@@ -27,8 +27,11 @@ $(document).ready(function () {
     });
     // load keep-close-toggle from localStorage, if its true, close the sidebar
     if (localStorage.getItem('keep-close-toggle') === 'true') {
-        toggleSidebar();
-        document.querySelector('#keep-close-toggle').checked = true;
+        const keepCloseToggle = document.querySelector('#keep-close-toggle');
+        if (keepCloseToggle) {
+            toggleSidebar();
+            keepCloseToggle.checked = true;
+        }
     }
 
 });

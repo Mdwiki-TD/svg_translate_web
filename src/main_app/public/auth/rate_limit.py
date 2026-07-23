@@ -6,7 +6,6 @@ import logging
 from collections import deque
 from datetime import UTC, datetime, timedelta
 from threading import Lock
-from typing import Deque
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,7 @@ class RateLimiter:
     def __init__(self, limit: int, period: timedelta) -> None:
         self._limit = limit
         self._period = period
-        self._hits: dict[str, Deque[datetime]] = {}
+        self._hits: dict[str, deque[datetime]] = {}
         self._lock = Lock()
 
     def allow(self, key: str) -> bool:

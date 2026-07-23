@@ -6,6 +6,8 @@ import logging
 from collections.abc import Sequence
 from typing import Any
 
+from mwoauth import AccessToken
+
 from .auth_users_service import AuthUserService
 from .mwoauth_handshake import complete_login
 
@@ -20,8 +22,11 @@ class OAuthCallbackError(Exception):
         self.flash_category = flash_category
 
 
-def extract_token_credentials(access_token: Any) -> tuple[str, str]:
+def extract_token_credentials(access_token: AccessToken | Any) -> tuple[str, str]:
     """Extract key/secret from an OAuth access token object."""
+    if not access_token:
+        raise OAuthCallbackError("Missing OAuth credentials")
+
     token_key = getattr(access_token, "key", None)
     token_secret = getattr(access_token, "secret", None)
 

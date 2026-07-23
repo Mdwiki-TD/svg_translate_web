@@ -15,10 +15,7 @@ from .routes import (
 )
 
 
-def register_bp_admin_blueprints(app: Flask) -> None:
-    bp_admin = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
-    admin_model = AdminPanel(bp_admin)  # noqa: F841
-
+def register_admin_blueprints(bp_admin: Blueprint) -> None:
     bp_coords = Blueprint("coordinators", __name__, url_prefix="/coordinators")
     coords_model = CoordinatorsRoutes(bp_coords)
 
@@ -29,7 +26,6 @@ def register_bp_admin_blueprints(app: Flask) -> None:
     bp_settings = Blueprint("settings", __name__, url_prefix="/settings")
     settings_module = SettingsRoutes(bp_settings)
 
-    # Public API module
     jobs_module = AdminJobsRoutes(
         bp=Blueprint("jobs", __name__, url_prefix="/jobs"),
         jobs_data_infos=jobs_data_admins,
@@ -55,7 +51,13 @@ def register_bp_admin_blueprints(app: Flask) -> None:
     bp_admin.register_blueprint(owid_model.bp)
     bp_admin.register_blueprint(slug_redirects_model.bp)
 
-    app.register_blueprint(bp_admin)
+
+def register_bp_admin_blueprints(app: Flask) -> None:
+    bp_admin = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
+    admin_model = AdminPanel(bp_admin)
+
+    register_admin_blueprints(admin_model.bp)
+    app.register_blueprint(admin_model.bp)
 
 
 __all__ = [

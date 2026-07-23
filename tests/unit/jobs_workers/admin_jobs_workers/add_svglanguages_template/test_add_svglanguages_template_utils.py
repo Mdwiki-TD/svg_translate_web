@@ -6,12 +6,12 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.util
     RE_SVG_LANG,
     RE_TRANSLATE,
     add_template_to_text,
-    load_link_file_name,
+    extract_svg_file_name,
 )
 
 
 class TestLoadLinkFileName:
-    """Tests for load_link_file_name function."""
+    """Tests for extract_svg_file_name function."""
 
     def test_extract_file_name_from_translate_link(self):
         """Test extracting file name from standard Translate link."""
@@ -33,21 +33,21 @@ class TestLoadLinkFileName:
 {{-}}
         """
 
-        file_name = load_link_file_name(wikitext)
+        file_name = extract_svg_file_name(wikitext)
         assert file_name == "share_with_mental_and_substance_disorders,_World,_1990.svg"
 
     def test_extract_file_name_with_spaces_in_url(self):
         """Test extracting file name when URL has spaces."""
         wikitext = "*'''Translate''': https://svgtranslate.toolforge.org/File:health-expenditure-government-expenditure,World,2000.svg"
 
-        file_name = load_link_file_name(wikitext)
+        file_name = extract_svg_file_name(wikitext)
         assert file_name == "health-expenditure-government-expenditure,World,2000.svg"
 
     def test_extract_file_name_with_extra_whitespace(self):
         """Test extracting file name with extra whitespace around the link."""
         wikitext = "*'''Translate''':   https://svgtranslate.toolforge.org/File:test-file.svg   \n"
 
-        file_name = load_link_file_name(wikitext)
+        file_name = extract_svg_file_name(wikitext)
         assert file_name == "test-file.svg"
 
     def test_returns_none_when_no_translate_link(self):
@@ -60,19 +60,19 @@ class TestLoadLinkFileName:
 *'''Source''': https://ourworldindata.org/grapher/test
         """
 
-        file_name = load_link_file_name(wikitext)
+        file_name = extract_svg_file_name(wikitext)
         assert file_name is None
 
     def test_returns_none_when_empty_text(self):
         """Test that None is returned for empty text."""
-        assert load_link_file_name("") is None
+        assert extract_svg_file_name("") is None
 
     def test_translate_link_with_typo(self):
         """Test that Translate link with typo (Translat) is NOT matched since regex requires word chars."""
         # The regex requires at least one word character after "Translat"
         wikitext = "*'''Translat''': https://svgtranslate.toolforge.org/File:test-file.svg"
 
-        file_name = load_link_file_name(wikitext)
+        file_name = extract_svg_file_name(wikitext)
         # This should return None because "Translat" alone doesn't match the pattern
         assert file_name is None
 
@@ -85,7 +85,7 @@ class TestLoadLinkFileName:
         ]
 
         for wikitext, expected in test_cases:
-            assert load_link_file_name(wikitext) == expected
+            assert extract_svg_file_name(wikitext) == expected
 
 
 class TestAddTemplateToText:

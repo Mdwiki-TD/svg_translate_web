@@ -5,8 +5,9 @@ Authentication utilities and decorators for routes.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from flask import flash, g, redirect, request, session, url_for
 
