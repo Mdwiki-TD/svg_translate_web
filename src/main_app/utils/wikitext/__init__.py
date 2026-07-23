@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from .before_methods import insert_before_methods
 from .categories_utils import merge_categories, sort_categories
-from .files_text import appendImageExtractedTemplate, create_cropped_file_text, update_original_file_text
+from .files_text import append_image_extracted_template, create_cropped_file_text, update_original_file_text
 from .other_versions import add_other_versions
 from .owid_sliders_rcs import (
     find_main_title,
@@ -37,7 +37,7 @@ __all__ = [
     "update_original_file_text",
     "create_cropped_file_text",
     "update_template_page_file_reference",
-    "appendImageExtractedTemplate",
+    "append_image_extracted_template",
     "update_original_file_text",
     "create_cropped_file_text",
     "get_titles",

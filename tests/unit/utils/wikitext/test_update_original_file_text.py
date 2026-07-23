@@ -8,7 +8,7 @@ from src.main_app.utils.wikitext import update_original_file_text
 class TestUpdateOriginalFileText:
     """Tests for the update_original_file_text function."""
 
-    def testItAddsImageExtractedTemplateToOtherVersions2(self):
+    def testupdate_original_file_text_versions2(self):
         oldText = """
 == {{int:filedesc}} ==
 

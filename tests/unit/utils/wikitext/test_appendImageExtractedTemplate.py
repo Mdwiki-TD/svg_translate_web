@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext import appendImageExtractedTemplate
+from src.main_app.utils.wikitext import append_image_extracted_template
 
 
 class TestAddOtherVersions:
-    """Tests for the appendImageExtractedTemplate function."""
+    """Tests for the append_image_extracted_template function."""
 
-    def testItAppendsToExistingImageExtractedTemplate(self):
+    def test_itappendstoexistingimageextracted_template(self):
         oldText1 = """
 {{Information
 |description={{zh|1=北师大启功像1。}}
@@ -45,8 +45,8 @@ class TestAddOtherVersions:
 {{PD-self}}
 """
 
-        result1 = appendImageExtractedTemplate("My new file.jpg", oldText1)
+        result1 = append_image_extracted_template("My new file.jpg", oldText1)
         assert result1 == newText1
 
-        result2 = appendImageExtractedTemplate("My new file.jpg", oldText2)
+        result2 = append_image_extracted_template("My new file.jpg", oldText2)
         assert result2 == newText2

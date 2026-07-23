@@ -53,7 +53,7 @@ def test_create_key_max_length():
     assert result is not None
 
 
-def test_SettingsRoutes_init_registers_routes():
+def test_settingsroutes_init_registers_routes():
     """Test SettingsRoutes registers all required routes."""
     # mock_bp = MagicMock()
     bp_settings = Blueprint("settings", __name__, url_prefix="/settings")
