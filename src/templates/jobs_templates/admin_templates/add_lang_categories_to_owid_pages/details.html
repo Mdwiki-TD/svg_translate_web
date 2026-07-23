@@ -120,12 +120,12 @@
 
 <!-- Pages Updated -->
 {% if result_data.pages_success %}
-{{ pages_result_table(result_data.pages_success, 'Pages Updated') }}
+{{ pages_result_table(result_data.pages_success, 'Updated') }}
 {% endif %}
 
 <!-- Skipped Pages -->
 {% if result_data.pages_skipped %}
-{{ pages_skipped_table(wiki_domain, result_data.pages_skipped, "Skipped Pages", job.id, job_type, expand_all) }}
+{{ pages_result_table(result_data.pages_skipped, "Skipped") }}
 {% endif %}
 
 <!-- Failed Pages -->
