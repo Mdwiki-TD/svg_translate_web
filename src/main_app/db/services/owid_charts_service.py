@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import func
 
 from ...extensions import db
-from ..models.owid_charts import OwidChartRecord
+from ..models import OwidChartRecord, TemplateRecord
 from .utils import db_guard_rollback, retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
@@ -32,8 +32,6 @@ def list_charts_with_templates() -> list[tuple[OwidChartRecord, int | None, str 
     """
     Retrieve all charts along with their associated template ID and title using a single LEFT OUTER JOIN.
     """
-    # Import TemplateRecord to avoid circular imports
-    from ..models.templates import TemplateRecord
 
     query = (
         db.session.query(
