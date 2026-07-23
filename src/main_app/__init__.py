@@ -118,7 +118,7 @@ def init_app_and_db(app, _db) -> bool:
     return False
 
 
-def create_app(config_class: Type) -> Flask:
+def create_app(config_class: type) -> Flask:
     """Instantiate and configure the Flask application.
 
     Args:

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import logging
 from functools import wraps
-from typing import Callable, TypeVar, cast
+from typing import TypeVar, cast
+from collections.abc import Callable
 
 from flask import (
     abort,

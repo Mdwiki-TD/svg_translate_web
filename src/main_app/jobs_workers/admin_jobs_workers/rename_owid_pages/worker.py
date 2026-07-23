@@ -20,7 +20,8 @@ import logging
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Iterable
+from typing import Any
+from collections.abc import Iterable
 
 from mwclient.client import Site
 

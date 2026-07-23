@@ -134,12 +134,8 @@ def lang_code_category(langcode: str) -> str | None:
 
 
 import logging
-from typing import Any
 
-import requests
 
-from ..api_services import create_commons_session
-from ..config import settings
 
 logger = logging.getLogger(__name__)
 

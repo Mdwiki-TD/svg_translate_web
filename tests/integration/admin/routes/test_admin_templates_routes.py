@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from html import unescape
-from typing import Iterable
+from collections.abc import Iterable
 
 import pytest
 

@@ -8,7 +8,8 @@ import logging
 import tempfile
 import threading
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from mwclient.client import Site
 
