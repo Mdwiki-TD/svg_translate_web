@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from typing import Any
 
+import logging
 import requests
-
 from ..api_services import create_commons_session
 from ..config import settings
+
+logger = logging.getLogger(__name__)
 
 LANG_CODE_CATEGORY_MAP: dict[str, str] = {
     "ar": "Arabic-language SVG",
@@ -131,17 +133,6 @@ LANG_CODE_CATEGORY_MAP: dict[str, str] = {
 
 def lang_code_category(langcode: str) -> str | None:
     return LANG_CODE_CATEGORY_MAP.get(langcode)
-
-
-import logging
-from typing import Any
-
-import requests
-
-from ..api_services import create_commons_session
-from ..config import settings
-
-logger = logging.getLogger(__name__)
 
 
 def get_file_languages(file_name: str, session: requests.Session | None = None) -> dict[str, Any]:

@@ -51,6 +51,7 @@ def register_admin_blueprints(bp_admin: Blueprint) -> None:
     bp_admin.register_blueprint(owid_model.bp)
     bp_admin.register_blueprint(slug_redirects_model.bp)
 
+
 def register_bp_admin_blueprints(app: Flask) -> None:
     bp_admin = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
     admin_model = AdminPanel(bp_admin)

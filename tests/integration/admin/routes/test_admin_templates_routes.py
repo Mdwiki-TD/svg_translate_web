@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from html import unescape
-from typing import Iterable
 
 import pytest
 
