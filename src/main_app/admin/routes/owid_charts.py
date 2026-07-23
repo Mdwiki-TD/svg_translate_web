@@ -260,59 +260,58 @@ class OwidChartsRoutes(OwidCharts):
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        @self.bp.route("/", methods=["GET"])
-        @self.bp.route("/<string:template_filter>", methods=["GET"])
-        @admin_required
-        def dashboard(template_filter: str = ""):
-            return render_template("admins/owid_charts/list.html", selected_template=template_filter)
+        self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
+        self.bp.route("/<string:template_filter>", methods=["GET"])(admin_required(self.dashboard))
 
-        @self.bp.route("/add", methods=["GET"])
-        @admin_required
-        def add_chart_popup() -> ResponseReturnValue:
-            """Render the add chart popup form."""
-            return render_template("admins/owid_charts/add.html")
+        self.bp.route("/add", methods=["GET"])(admin_required(self.add_chart_popup))
+        self.bp.route("/<int:chart_id>/edit", methods=["GET"])(admin_required(self.edit_chart))
+        self.bp.route("/download-json", methods=["GET"])(admin_required(self.download_owid_charts_json))
 
-        @self.bp.post("/add")
-        @admin_required
-        def add_chart() -> ResponseReturnValue:
-            return self._add_chart(request.form)
+        self.bp.route("/add", methods=["POST"])(admin_required(self.add_chart))
+        self.bp.route("/update", methods=["POST"])(admin_required(self.update_chart))
+        self.bp.route("/<int:chart_id>/delete", methods=["POST"])(admin_required(self.delete_chart))
 
-        @self.bp.post("/update")
-        @admin_required
-        def update_chart() -> ResponseReturnValue:
-            chart_id = request.form.get("chart_id", default=0, type=int)
-            from_popup = request.form.get("from_popup") == "1"
+    def dashboard(self, template_filter: str = ""):
+        return render_template(
+            "admins/owid_charts/list.html",
+            selected_template=template_filter,
+        )
 
-            if not chart_id:
-                flash("Chart ID is required.", "danger")
-                if from_popup:
-                    return redirect(url_for("adminpanel.owidcharts.edit_chart", chart_id=chart_id))
-                return redirect(url_for("adminpanel.owidcharts.dashboard"))
+    def add_chart_popup(self) -> ResponseReturnValue:
+        """Render the add chart popup form."""
+        return render_template("admins/owid_charts/add.html")
 
-            return self._update_chart(request.form)
+    def add_chart(self) -> ResponseReturnValue:
+        return self._add_chart(request.form)
 
-        @self.bp.post("/<int:chart_id>/delete")
-        @admin_required
-        def delete_chart(chart_id: int) -> ResponseReturnValue:
-            from_popup = request.form.get("from_popup") == "1"
-            return self._delete_chart(chart_id, from_popup)
+    def update_chart(self) -> ResponseReturnValue:
+        chart_id = request.form.get("chart_id", default=0, type=int)
+        from_popup = request.form.get("from_popup") == "1"
 
-        @self.bp.route("/<int:chart_id>/edit", methods=["GET"])
-        @admin_required
-        def edit_chart(chart_id: int) -> ResponseReturnValue:
-            return self._edit_chart(chart_id)
+        if not chart_id:
+            flash("Chart ID is required.", "danger")
+            if from_popup:
+                return redirect(url_for("adminpanel.owidcharts.edit_chart", chart_id=chart_id))
+            return redirect(url_for("adminpanel.owidcharts.dashboard"))
 
-        @self.bp.route("/download-json", methods=["GET"])
-        @admin_required
-        def download_owid_charts_json() -> ResponseReturnValue:
-            """Download all charts as a JSON file."""
-            response, status_code = self.create_json_file()
+        return self._update_chart(request.form)
 
-            if status_code != 200:
-                flash(response, "warning" if status_code == 404 else "danger")
-                return redirect(url_for("adminpanel.owidcharts.dashboard"))
+    def delete_chart(self, chart_id: int) -> ResponseReturnValue:
+        from_popup = request.form.get("from_popup") == "1"
+        return self._delete_chart(chart_id, from_popup)
 
-            return response
+    def edit_chart(self, chart_id: int) -> ResponseReturnValue:
+        return self._edit_chart(chart_id)
+
+    def download_owid_charts_json(self) -> ResponseReturnValue:
+        """Download all charts as a JSON file."""
+        response, status_code = self.create_json_file()
+
+        if status_code != 200:
+            flash(response, "warning" if status_code == 404 else "danger")
+            return redirect(url_for("adminpanel.owidcharts.dashboard"))
+
+        return response
 
 
 __all__ = [

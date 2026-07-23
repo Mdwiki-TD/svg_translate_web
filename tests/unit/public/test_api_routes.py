@@ -197,6 +197,20 @@ class TestOwidChartsList:
             lambda: self.chart_templates,
         )
 
+        chart_temps_dict = {c.chart_id: c for c in self.chart_templates}
+
+        def mock_list_charts_with_templates():
+            results = []
+            for chart in self.charts:
+                ct = chart_temps_dict.get(chart.chart_id)
+                results.append((chart, ct.template_id if ct else None, ct.template_title if ct else None))
+            return results
+
+        monkeypatch.setattr(
+            "src.main_app.public.api_routes.list_charts_with_templates",
+            mock_list_charts_with_templates,
+        )
+
     def test_owid_charts_list_no_filter(self, mock_client: FlaskClient) -> None:
         """Without a filter, all charts are returned."""
         resp = mock_client.get("/api/owidcharts/")

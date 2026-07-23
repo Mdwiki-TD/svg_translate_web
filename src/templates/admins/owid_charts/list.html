@@ -10,7 +10,8 @@
                 <i class="bi bi-copy"></i> Copy data
             </a>
             <button type="button" class="btn btn-outline-primary"
-                pup-target="{{ url_for('adminpanel.owidcharts.add_chart_popup') }}" onclick="pup_window_new(this, 700, 650)">
+                pup-target="{{ url_for('adminpanel.owidcharts.add_chart_popup') }}"
+                onclick="pup_window_new(this, 700, 650)">
                 <i class="bi bi-plus-lg"></i> Add Chart
             </button>
             <a href="{{ url_for('adminpanel.owidcharts.download_owid_charts_json') }}" class="btn btn-outline-success">
@@ -24,7 +25,7 @@
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h2 class="h6 text-uppercase text-muted">Total Charts</h2>
-                        <p class="display-6 mb-0" id="totalCount">-</p>
+                        <p class="display-6 mb-0" id="totalCount"> {{ json.summary.total }} </p>
                     </div>
                 </div>
             </div>
@@ -34,9 +35,9 @@
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h2 class="h6 text-uppercase text-muted">Published</h2>
-                                <p class="h5 mb-1 text-success" id="publishedWith">-</p>
+                                <p class="h5 mb-1 text-success" id="publishedWith">{{ json.summary.published.with }}</p>
                                 <p class="h5 mb-0 text-secondary">
-                                    <span id="publishedWithout">-</span>
+                                    <span id="publishedWithout">{{ json.summary.published.without }}</span>
                                     <small class="text-muted">not published</small>
                                 </p>
                             </div>
@@ -46,10 +47,10 @@
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h2 class="h6 text-uppercase text-muted">Template</h2>
-                                <p class="h5 mb-1 text-success" id="templateWith">-</p>
+                                <p class="h5 mb-1 text-success" id="templateWith"> {{ json.summary.template.with }}</p>
                                 <p class="h5 mb-0 text-secondary">
                                     <span id="templateWithout">-</span>
-                                    <small class="text-muted">without</small>
+                                    <small class="text-muted">{{ json.summary.template.without }}</small>
                                 </p>
                             </div>
                         </div>
@@ -58,10 +59,10 @@
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h2 class="h6 text-uppercase text-muted">Map Tab</h2>
-                                <p class="h5 mb-1 text-success" id="mapTabWith">-</p>
+                                <p class="h5 mb-1 text-success" id="mapTabWith">{{ json.summary.map_tab.with }}</p>
                                 <p class="h5 mb-0 text-secondary">
                                     <span id="mapTabWithout">-</span>
-                                    <small class="text-muted">without</small>
+                                    <small class="text-muted">{{ json.summary.map_tab.without }}</small>
                                 </p>
                             </div>
                         </div>
@@ -70,9 +71,9 @@
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h2 class="h6 text-uppercase text-muted">Timeline</h2>
-                                <p class="h5 mb-1 text-success" id="timelineWith">-</p>
+                                <p class="h5 mb-1 text-success" id="timelineWith">{{ json.summary.timeline.with }}</p>
                                 <p class="h5 mb-0 text-secondary">
-                                    <span id="timelineWithout">-</span>
+                                    <span id="timelineWithout">{{ json.summary.timeline.without }}</span>
                                     <small class="text-muted">without</small>
                                 </p>
                             </div>
@@ -88,21 +89,22 @@
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == '' %}active{% endif %}" id="tabAll"
                             href="{{ url_for('adminpanel.owidcharts.dashboard') }}">
-                            All <span id="tabTotal"></span>
+                            All <span id="tabTotal">{{ json.summary.total }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}"
                             id="tabWithTemplate"
                             href="{{ url_for('adminpanel.owidcharts.dashboard', template_filter='has_template') }}">
-                            With Templates <span id="tabWithTemplateTotal"></span>
+                            With Templates <span id="tabWithTemplateTotal">{{ json.summary.template.with }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}"
                             id="tabWithoutTemplate"
                             href="{{ url_for('adminpanel.owidcharts.dashboard', template_filter='no_template') }}">
-                            Without Templates <span id="tabWithoutTemplateTotal"></span>
+                            Without Templates <span
+                                id="tabWithoutTemplateTotal">{{ json.summary.template.without }}</span>
                         </a>
                     </li>
                 </ul>
@@ -122,7 +124,9 @@
                                 <th scope="col">Edit</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+
+                        </tbody>
                     </table>
                 </div>
             </div>

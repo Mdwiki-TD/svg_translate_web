@@ -192,7 +192,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             else:
                 self.result.pages_failed.append(info.to_dict())
             return False
-            
+
         # Step 4 — build_categories
         if not self._step_build_categories(info):
             self.result.pages_skipped.append(info.to_dict())
@@ -262,7 +262,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             }
             info.status = "skipped"
             return False
-            
+
         info.lang_codes = langs
         info.steps["get_languages"] = {"result": True, "msg": f"Found {len(langs)} language(s): {', '.join(langs)}"}
         return True
