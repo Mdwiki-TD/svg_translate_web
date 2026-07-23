@@ -45,6 +45,12 @@
                         <th>SVG File</th>
                         <th>Languages</th>
                         <th>Categories Added</th>
+                        <th>Load Text</th>
+                        <th>Extract SVG</th>
+                        <th>Get Langs</th>
+                        <th>Build Cats</th>
+                        <th>Check Exist</th>
+                        <th>Save Page</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -82,6 +88,13 @@
                             -
                             {% endif %}
                         </td>
+                        {% set step_keys = [ 'load_page_text', 'extract_file_name', 'get_languages', 'build_categories', 'check_existing', 'save_page' ] %}
+                        {% for step_key in step_keys %}
+                        <td>
+                            {% set step = item.steps.get(step_key) if item.steps else None %}
+                            {{ render_step(step) }}
+                        </td>
+                        {% endfor %}
                         <td>
                             {% if item.status == 'completed' %}
                             <span class="badge bg-success">Updated</span>
