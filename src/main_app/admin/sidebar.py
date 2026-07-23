@@ -330,6 +330,13 @@ def load_groups_menu() -> list[SidebarGroup]:
                 title="Add {{SVGLanguages}}",
                 icon="bi-file-earmark-text",
             ),
+            SidebarItem(
+                id="add_lang_categories_to_owid_pages",
+                admin=1,
+                href=job_list_url("add_lang_categories_to_owid_pages"),
+                title="Add Lang Categories",
+                icon="bi-tags",
+            ),
         ],
     )
 

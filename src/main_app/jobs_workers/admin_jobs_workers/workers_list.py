@@ -1,4 +1,5 @@
 from ..objects import JobData
+from .add_lang_categories_to_owid_pages import add_lang_categories_to_owid_pages_entry
 from .add_svglanguages_template import add_svglanguages_template_to_templates
 from .collect_templates_data import collect_templates_data_entry
 from .create_owid_pages import create_owid_pages_for_templates
@@ -91,6 +92,17 @@ jobs_data_admins = {
             {"key": "download_main_files_limit_items", "as": "limit_items"},
         ],
         start_confirm_message="This will start a background job to download all main files from the remote source to the local filesystem. Continue?",
+    ),
+    "add_lang_categories_to_owid_pages": JobData(
+        job_type="add_lang_categories_to_owid_pages",
+        job_name="Add Language Categories",
+        job_details_template="jobs_templates/admin_templates/add_lang_categories_to_owid_pages/details.html",
+        job_list_template="jobs_templates/admin_templates/add_lang_categories_to_owid_pages/list.html",
+        job_callable=add_lang_categories_to_owid_pages_entry,
+        job_args=[
+            {"key": "add_lang_categories_limit_items", "as": "limit_items"},
+        ],
+        start_confirm_message="This will add language categories (e.g. [[Category:English-language SVG]]) to OWID pages based on available SVG translations. Continue?",
     ),
 }
 

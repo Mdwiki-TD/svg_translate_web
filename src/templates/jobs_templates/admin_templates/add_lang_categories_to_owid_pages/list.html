@@ -1,0 +1,9 @@
+{% extends "jobs_templates/admin_templates/base_list.html" %}
+
+{% block list_info %}
+<div class="alert alert-info mb-3">
+    <i class="bi bi-info-circle"></i>
+    This job adds language categories to OWID pages (e.g. <code>[[Category:English-language SVG]]</code>)
+    based on the available SVG translations detected via the Commons file metadata API.
+</div>
+{% endblock %}
