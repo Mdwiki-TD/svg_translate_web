@@ -41,11 +41,4 @@ ADMIN_ROUTE_MODULES: list[AdminRouteModule] = [
 
 __all__ = [
     "ADMIN_ROUTE_MODULES",
-    "CoordinatorsRoutes",
-    "UsersRoutes",
-    "SettingsRoutes",
-    "AdminJobsRoutes",
-    "OwidChartsRoutes",
-    "SlugRedirects",
-    "Templates",
 ]

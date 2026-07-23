@@ -28,7 +28,7 @@ class PublicRouteModule:
 
 
 PUBLIC_ROUTE_MODULES: list[PublicRouteModule] = [
-    PublicRouteModule(MainRoutes, "main", "/main"),
+    PublicRouteModule(MainRoutes, "main", ""),
     PublicRouteModule(AuthRoutes, "auth", ""),  # "/auth"
     PublicRouteModule(ProfileRoutes, "profile", "/profile"),
     PublicRouteModule(ExplorerRoutes, "explorer", "/explorer"),
