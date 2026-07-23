@@ -187,9 +187,12 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
         # Step 3 — get_languages
         if not self._step_get_languages(info):
-            self.result.pages_skipped.append(info.to_dict())
+            if info.status == "skipped":
+                self.result.pages_skipped.append(info.to_dict())
+            else:
+                self.result.pages_failed.append(info.to_dict())
             return False
-
+            
         # Step 4 — build_categories
         if not self._step_build_categories(info):
             self.result.pages_skipped.append(info.to_dict())
