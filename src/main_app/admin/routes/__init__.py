@@ -17,7 +17,7 @@ from .users import UsersRoutes
 class AdminRouteModule:
     route_cls: type
     name: str
-    url_prefix: str
+    url_prefix: str = ""
     extra_kwargs: dict[str, Any] = field(default_factory=dict)
 
 

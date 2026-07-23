@@ -23,7 +23,7 @@ from .public_jobs import PublicJobsRoutes
 class PublicRouteModule:
     route_cls: type
     name: str
-    url_prefix: str
+    url_prefix: str = ""
     extra_kwargs: dict[str, Any] = field(default_factory=dict)
 
 

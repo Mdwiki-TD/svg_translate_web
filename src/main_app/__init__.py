@@ -61,11 +61,16 @@ def register_error_pages(app: Flask) -> None:
     @app.errorhandler(404)
     def page_not_found(e: Exception) -> tuple[str | Response, int]:
         """Handle 404 errors"""
-        logger.error("Page not found: %s", e)
-        logger.error(f"Request url: {request.url}")
+        # Skip logging for `/.well-known/` which is used in browser console
+        if not request.path.startswith("/.well-known/"):
+            logger.error("%s Page not found: %s", {request.path}, e)
+
+        # Return JSON response for API requests
         if request.is_json or request.path.startswith("/api/"):
             return jsonify({"error": "Not found", "message": str(e)}), 404
         flash("Page not found", "warning")
+
+        # Return HTML response for web requests
         return render_template("error.html", title="Page Not Found"), 404
 
     @app.errorhandler(405)
