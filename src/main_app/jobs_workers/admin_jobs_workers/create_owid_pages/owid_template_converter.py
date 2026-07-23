@@ -12,7 +12,7 @@ from typing import Any
 import wikitextparser as wtp
 
 
-def create_SVGLanguages_template(file_name) -> str:
+def create_svglanguages_template(file_name) -> str:
     return f"*{{{{SVGLanguages|{file_name}}}}}"
 
 
@@ -159,7 +159,7 @@ def create_new_text(wikitext: str, template_title: str) -> str:
 
     if translate_link and translate_link.startswith("https://svgtranslate.toolforge.org/File:"):
         file_name = translate_link.replace("https://svgtranslate.toolforge.org/File:", "")
-        parts.append(create_SVGLanguages_template(file_name))
+        parts.append(create_svglanguages_template(file_name))
 
     parts.append(f"*'''Template''': [[{template_title}]]")
 

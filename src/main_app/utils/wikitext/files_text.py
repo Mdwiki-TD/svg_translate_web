@@ -13,7 +13,7 @@ from .other_versions import add_other_versions
 logger = logging.getLogger(__name__)
 
 
-def appendImageExtractedTemplate(
+def append_image_extracted_template(
     cropped_file_name: str,
     text: str,
 ) -> str:
@@ -54,7 +54,7 @@ def update_original_file_text(
         return text
 
     other_versions_text = f"{{{{Image extracted|1={cropped_file_name}}}}}"
-    modified_text = appendImageExtractedTemplate(cropped_file_name, text)
+    modified_text = append_image_extracted_template(cropped_file_name, text)
 
     if modified_text == text:
         modified_text = add_other_versions(other_versions_text, text)
@@ -93,7 +93,7 @@ def create_cropped_file_text(
 
 
 __all__ = [
-    "appendImageExtractedTemplate",
+    "append_image_extracted_template",
     "update_original_file_text",
     "create_cropped_file_text",
 ]

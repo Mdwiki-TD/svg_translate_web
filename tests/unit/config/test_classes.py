@@ -15,7 +15,7 @@ from src.main_app.config.classes import (
 )
 
 
-def test_DbConfig():
+def test_dbconfig():
     """Test the DbConfig dataclass."""
     db_config = DbConfig(
         db_name="test_db",
@@ -30,7 +30,7 @@ def test_DbConfig():
     assert db_config.db_password == "password"
 
 
-def test_Paths():
+def test_paths():
     """Test the Paths dataclass."""
     paths = Paths(
         svg_data="/svg/data",
@@ -51,7 +51,7 @@ def test_Paths():
     assert paths.crop_main_files_path == "/crop_main_files"
 
 
-def test_CookieConfig():
+def test_cookieconfig():
     """Test the CookieConfig dataclass."""
     cookie_config = CookieConfig(name="test_cookie", max_age=3600, secure=True, httponly=True, samesite="Lax")
 
@@ -62,7 +62,7 @@ def test_CookieConfig():
     assert cookie_config.samesite == "Lax"
 
 
-def test_OAuthConfig():
+def test_oauthconfig():
     """Test the OAuthConfig dataclass."""
     oauth_config = OAuthConfig(
         mw_uri="https://example.com",
@@ -76,7 +76,7 @@ def test_OAuthConfig():
     assert oauth_config.consumer_secret == "secret"
 
 
-def test_Settings():
+def test_settings():
     """Test the Settings dataclass."""
     # Create a minimal settings object for testing
     db_config = DbConfig("test", "localhost", "user", "pass")
