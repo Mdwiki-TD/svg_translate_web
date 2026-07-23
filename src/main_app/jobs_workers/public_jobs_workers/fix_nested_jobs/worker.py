@@ -7,9 +7,9 @@ from __future__ import annotations
 import logging
 import tempfile
 import threading
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
 
 from mwclient.client import Site
 

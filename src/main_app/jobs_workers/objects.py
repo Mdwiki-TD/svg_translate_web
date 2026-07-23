@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
 from collections.abc import Callable
+from dataclasses import dataclass, field
 
 
 @dataclass

@@ -135,8 +135,6 @@ def lang_code_category(langcode: str) -> str | None:
 
 import logging
 
-
-
 logger = logging.getLogger(__name__)
 
 

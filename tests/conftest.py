@@ -13,9 +13,9 @@ import os
 import secrets
 import sys
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
 from typing import Any
-from collections.abc import Generator
 from unittest.mock import MagicMock
 
 import pytest

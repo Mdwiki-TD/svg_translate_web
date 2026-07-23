@@ -40,8 +40,8 @@ import argparse
 import logging
 import os
 import sys
-from pathlib import Path
 from collections.abc import Iterable
+from pathlib import Path
 
 import mwclient
 import mwclient.errors
