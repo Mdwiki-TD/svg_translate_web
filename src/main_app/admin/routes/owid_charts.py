@@ -22,6 +22,7 @@ from ...db.models import OwidChartRecord
 from ...db.models.views import OwidChartTemplateView
 from ...db.services import OwidChartsService, delete_chart
 from ...db.services.views_service import list_owid_charts_templates
+from ...shared.owid_charts_utils import charts_new_list
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
@@ -257,6 +258,7 @@ class OwidChartsRoutes(OwidCharts):
     def __init__(self, bp: Blueprint) -> None:
         self.name = "owidcharts"
         self.bp = bp
+        super().__init__()
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -277,17 +279,22 @@ class OwidChartsRoutes(OwidCharts):
         self.bp.route("/<int:chart_id>/delete", methods=["POST"])(admin_required(self.delete_chart))
 
     def dashboard(self, template_filter: str = "") -> str:
-        summary = {
+        charts_with_templates = self.owid_charts_service.list_charts_with_templates()
+        results = charts_new_list(charts_with_templates, template_filter)
+
+        summary = results.get("summary") or {
             "total": 0,
             "published": {"with": 0, "without": 0},
             "template": {"with": 0, "without": 0},
             "map_tab": {"with": 0, "without": 0},
             "timeline": {"with": 0, "without": 0},
         }
+
         return render_template(
             "admins/owid_charts/list.html",
             selected_template=template_filter,
             summary=summary,
+            rows=results["data"],
         )
 
     def add_chart_popup(self) -> ResponseReturnValue:
