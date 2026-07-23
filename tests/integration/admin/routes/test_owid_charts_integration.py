@@ -51,10 +51,7 @@ def _patch_owid_charts_instance(flask_app, mock_service):
     view_func = flask_app.view_functions[endpoint]
     inner_func = _unwrap_admin_required(view_func)
 
-    closure = inner_func.__closure__
-    assert closure is not None
-
-    owid_charts_instance = closure[0].cell_contents
+    owid_charts_instance = inner_func.__self__
     owid_charts_instance.owid_charts_service = mock_service
 
 
