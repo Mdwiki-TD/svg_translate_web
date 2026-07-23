@@ -18,8 +18,7 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import IntegrityError
 
-from ...db.models import OwidChartRecord
-from ...db.models.views import OwidChartTemplateView
+from ...db.models import OwidChartRecord, OwidChartTemplateView
 from ...db.services import OwidChartsService, delete_chart
 from ...db.services.views_service import list_owid_charts_templates
 from ...shared.owid_charts_utils import charts_new_list
