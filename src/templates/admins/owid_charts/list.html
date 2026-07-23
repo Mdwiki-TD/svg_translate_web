@@ -101,7 +101,68 @@
                             </tr>
                         </thead>
                         <tbody>
-
+                            {% if data %}
+                            {% for row in data %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td><a href="https://ourworldindata.org/grapher/{{ row.slug }}" target="_blank"
+                                        rel="noopener noreferrer"><code>{{ row.slug }}</code></a></td>
+                                <td>{{ row.title }}</td>
+                                <td class="text-center">
+                                    {% if row.has_map_tab %}
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    {% else %}
+                                    <i class="bi bi-x-circle-fill text-muted"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if row.has_timeline %}
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    {% else %}
+                                    <i class="bi bi-x-circle-fill text-muted"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if row.has_timeline %}
+                                    {{ row.min_time }} - {{ row.max_time }}
+                                    {% if row.len_years %}
+                                    <small class="text-muted">
+                                        ({{ row.len_years }})
+                                    </small>
+                                    {% endif %}
+                                    {% else %}
+                                    {{ row.min_time or '' }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.status_404 == 404 %}
+                                    <span class="badge bg-danger">
+                                        {{ row.status_404 }}
+                                    </span>
+                                    {% else %}
+                                    {{ row.status_404 or '-' }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.template_title %}
+                                    <a href="https://commons.wikimedia.org/wiki/{{ row.template_title }}"
+                                        target="_blank" rel="noopener noreferrer">
+                                        {{ row.template_title.replace('Template:', '') }}
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set edit_url = url_for('adminpanel.owidcharts.edit_chart', chart_id=row.chart_id) %}
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                        pup-target="{{ edit_url }}" onclick="pup_window_new(this, 700, 650)">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
