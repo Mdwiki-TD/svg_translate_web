@@ -1,4 +1,5 @@
 {% extends "admins/base1.html" %}
+{% from "_macros.html" import summary_card_2 %}
 
 {% block title %}Coordinators · {{ tool_title }}{% endblock %}
 
@@ -9,15 +10,16 @@
     <div class="form-check form-switch d-inline-flex align-items-center">
         <input class="form-check-input" type="checkbox" role="switch" id="coordinator-active-{{ coordinator.id }}"
             {% if coordinator.is_active %}checked{% endif %} onchange="this.form.submit();">
-        <label class="visually-hidden" for="coordinator-active-{{ coordinator.id }}">Toggle
-            coordinator active state</label>
+        <label class="visually-hidden" for="coordinator-active-{{ coordinator.id }}">
+            Toggle coordinator active state
+        </label>
     </div>
 </form>
 {%- endmacro -%}
 
 {%- macro delete_coordinator_form(coordinator) -%}
-<form method="post" action="{{ url_for('adminpanel.coordinators.delete', coordinator_id=coordinator.id) }}" class="d-inline"
-    onsubmit="return confirm('Remove {{ coordinator.username }} from coordinators?');">
+<form method="post" action="{{ url_for('adminpanel.coordinators.delete', coordinator_id=coordinator.id) }}"
+    class="d-inline" onsubmit="return confirm('Remove {{ coordinator.username }} from coordinators?');">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <button type="submit" class="btn btn-outline-danger btn-sm">
         <i class="bi bi-trash"></i> Delete
@@ -30,39 +32,24 @@
 <div class="card">
     <div class="card-header">
         <h3 class="headline">Coordinators</h3>
-
     </div>
     <div class="card-body">
         <div class="row g-3 mb-4">
             <div class="col-md-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">Total Coordinators</h2>
-                        <p class="display-6 mb-0">{{ total_coordinators }}</p>
-                    </div>
-                </div>
+                {{ summary_card_2('Total Coordinators', total_coordinators) }}
             </div>
             <div class="col-md-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">Active</h2>
-                        <p class="display-6 mb-0">{{ total_active_coordinators }}</p>
-                    </div>
-                </div>
+                {{ summary_card_2('Active', total_active_coordinators) }}
             </div>
             <div class="col-md-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">Inactive</h2>
-                        <p class="display-6 mb-0">{{ inactive_coordinators }}</p>
-                    </div>
-                </div>
+                {{ summary_card_2('Inactive', inactive_coordinators) }}
             </div>
         </div>
 
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
-                <form method="post" action="{{ url_for('adminpanel.coordinators.add') }}" class="row g-2 align-items-end">
+                <form method="post" action="{{ url_for('adminpanel.coordinators.add') }}"
+                    class="row g-2 align-items-end">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="col-sm-8 col-md-6 col-lg-4">
                         <label class="form-label" for="new-coordinator-username">Add coordinator</label>

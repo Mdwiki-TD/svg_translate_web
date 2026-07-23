@@ -1,6 +1,21 @@
 {% extends "admins/base1.html" %}
+{% from "_macros.html" import summary_card_2 %}
+
 {% block title %}OWID Charts · {{ tool_title }}{% endblock %}
 {% block admin_contents %}
+
+{% macro summary_card(title, prefix, data, without_value, without_label="without") %}
+<div class="card h-100 shadow-sm">
+    <div class="card-body">
+        <h2 class="h6 text-uppercase text-muted">{{ title }}</h2>
+        <p class="h5 mb-1 text-success" id="{{ prefix }}With">{{ data.with }}</p>
+        <p class="h5 mb-0 text-secondary">
+            <span id="{{ prefix }}Without">{{ data.without }}</span>
+            <small class="text-muted">{{ without_label }}</small>
+        </p>
+    </div>
+</div>
+{% endmacro %}
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -22,86 +37,50 @@
     <div class="card-body">
         <div class="row g-3 mb-4" id="summaryCards">
             <div class="col-md-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">Total Charts</h2>
-                        <p class="display-6 mb-0" id="totalCount"> {{ summary.total }} </p>
-                    </div>
-                </div>
+                {{ summary_card_2('Total Charts', summary.total, id='totalCount') }}
             </div>
             <div class="col-md-9">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <h2 class="h6 text-uppercase text-muted">Published</h2>
-                                <p class="h5 mb-1 text-success" id="publishedWith">{{ summary.published.with }}</p>
-                                <p class="h5 mb-0 text-secondary">
-                                    <span id="publishedWithout">{{ summary.published.without }}</span>
-                                    <small class="text-muted">not published</small>
-                                </p>
-                            </div>
-                        </div>
+                        {{ summary_card("Published", "published", summary.published, "not published") }}
                     </div>
                     <div class="col-md-3">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <h2 class="h6 text-uppercase text-muted">Template</h2>
-                                <p class="h5 mb-1 text-success" id="templateWith"> {{ summary.template.with }}</p>
-                                <p class="h5 mb-0 text-secondary">
-                                    <span id="templateWithout">{{ summary.template.without }}</span>
-                                    <small class="text-muted">without</small>
-                                </p>
-                            </div>
-                        </div>
+                        {{ summary_card("Template", "template", summary.template) }}
                     </div>
                     <div class="col-md-3">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <h2 class="h6 text-uppercase text-muted">Map Tab</h2>
-                                <p class="h5 mb-1 text-success" id="mapTabWith">{{ summary.map_tab.with }}</p>
-                                <p class="h5 mb-0 text-secondary">
-                                    <span id="mapTabWithout">{{ summary.map_tab.without }}</span>
-                                    <small class="text-muted">without</small>
-                                </p>
-                            </div>
-                        </div>
+                        {{ summary_card("Map Tab", "mapTab", summary.map_tab) }}
                     </div>
                     <div class="col-md-3">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <h2 class="h6 text-uppercase text-muted">Timeline</h2>
-                                <p class="h5 mb-1 text-success" id="timelineWith">{{ summary.timeline.with }}</p>
-                                <p class="h5 mb-0 text-secondary">
-                                    <span id="timelineWithout">{{ summary.timeline.without }}</span>
-                                    <small class="text-muted">without</small>
-                                </p>
-                            </div>
-                        </div>
+                        {{ summary_card("Timeline", "timeline", summary.timeline) }}
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="card mb-2 shadow-sm">
             <div class="card-body">
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == '' %}active{% endif %}"
                             href="{{ url_for('adminpanel.owidcharts.dashboard') }}">
-                            All <span id="tabTotal">({{ summary.total }})</span>
+                            All <span id="tabTotal">
+                                ({{ summary.total }})
+                            </span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}"
                             href="{{ url_for('adminpanel.owidcharts.dashboard', template_filter='has_template') }}">
-                            With Templates <span id="tabWithTemplateTotal">({{ summary.template.with }})</span>
+                            With Templates <span id="tabWithTemplateTotal">
+                                ({{ summary.template.with }})
+                            </span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}"
                             href="{{ url_for('adminpanel.owidcharts.dashboard', template_filter='no_template') }}">
-                            Without Templates <span id="tabWithoutTemplateTotal">({{ summary.template.without }})</span>
+                            Without Templates <span id="tabWithoutTemplateTotal">
+                                ({{ summary.template.without }})
+                            </span>
                         </a>
                     </li>
                 </ul>

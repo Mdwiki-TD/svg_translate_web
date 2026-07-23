@@ -229,3 +229,12 @@
     </label>
 </div>
 {%- endmacro -%}
+
+{% macro summary_card_2(title, value, id="") %}
+<div class="card h-100 shadow-sm">
+    <div class="card-body">
+        <h2 class="h6 text-uppercase text-muted">{{ title }}</h2>
+        <p class="display-6 mb-0" {%if id%}id="{{ id }}" {%endif%}>{{ value }}</p>
+    </div>
+</div>
+{% endmacro %}

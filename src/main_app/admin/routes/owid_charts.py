@@ -279,10 +279,10 @@ class OwidChartsRoutes(OwidCharts):
     def dashboard(self, template_filter: str = "") -> str:
         summary = {
             "total": 0,
-            "published": {"with": 0, "without": 0 },
-            "template": {"with": 0, "without": 0 },
-            "map_tab": {"with": 0, "without": 0 },
-            "timeline": {"with": 0, "without": 0 },
+            "published": {"with": 0, "without": 0},
+            "template": {"with": 0, "without": 0},
+            "map_tab": {"with": 0, "without": 0},
+            "timeline": {"with": 0, "without": 0},
         }
         return render_template(
             "admins/owid_charts/list.html",
