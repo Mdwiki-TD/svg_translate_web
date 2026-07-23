@@ -14,6 +14,7 @@ from ..db.services import (
     list_templates_mismatched_years,
     list_templates_need_update,
 )
+from ..shared.owid_charts_utils import charts_new_list, make_charts_summary
 
 logger = logging.getLogger(__name__)
 
@@ -22,57 +23,6 @@ class ApiRoutes:
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
         self._setup_routes()
-
-    def make_charts_summary(
-        self,
-        all_charts: list[OwidChartRecord],
-        charts_temps: dict[int, OwidChartTemplateView],
-        template_filter: str,
-    ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
-        data: list[dict[str, Any]] = []
-        total = len(all_charts)
-        published_with = 0
-        template_with = 0
-        map_tab_with = 0
-        timeline_with = 0
-
-        # Single-pass loop to build data and collect summary statistics
-        for c in all_charts:
-            # Update summary metrics
-            if c.is_published:
-                published_with += 1
-
-            temp_rec = charts_temps.get(c.chart_id)
-            has_template = bool(temp_rec.template_title) if temp_rec else False
-
-            if has_template:
-                template_with += 1
-
-            if c.has_map_tab:
-                map_tab_with += 1
-            if c.has_timeline:
-                timeline_with += 1
-
-            # Filtering and data enrichment
-            include = (
-                template_filter not in ("has_template", "no_template")
-                or (template_filter == "has_template") == has_template
-            )
-            if include:
-                c_json = c.to_dict()
-                c_json["template_id"] = temp_rec.template_id if temp_rec else None
-                c_json["template_title"] = temp_rec.template_title if temp_rec else None
-                data.append(c_json)
-
-        summary = {
-            "total": total,
-            "published": {"with": published_with, "without": total - published_with},
-            "template": {"with": template_with, "without": total - template_with},
-            "map_tab": {"with": map_tab_with, "without": total - map_tab_with},
-            "timeline": {"with": timeline_with, "without": total - timeline_with},
-        }
-
-        return summary, data
 
     def _setup_routes(self) -> None:
         self.bp.get("/templates")(self.templates_list)
@@ -150,29 +100,14 @@ class ApiRoutes:
 
         charts_temps = {c.chart_id: c for c in all_charts_templates}
 
-        summary, data = self.make_charts_summary(all_charts, charts_temps, template_filter)
+        summary, data = make_charts_summary(all_charts, charts_temps, template_filter)
 
         return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
 
     def owid_charts_list_new(self, template_filter: str = ""):
-        # Optimize: use single-query list_charts_with_templates() with fallback
-        all_charts = []
-        charts_temps = {}
-        try:
-            charts_with_templates = list_charts_with_templates()
-            for chart, temp_id, temp_title in charts_with_templates:
-                all_charts.append(chart)
-                charts_temps[chart.chart_id] = OwidChartTemplateView(
-                    chart_id=chart.chart_id,
-                    template_id=temp_id,
-                    template_title=temp_title,
-                )
-        except Exception as e:
-            logger.debug(f"Falling back to legacy multi-query charts listing: {e}")
-
-        summary, data = self.make_charts_summary(all_charts, charts_temps, template_filter)
-
-        return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
+        charts_with_templates = list_charts_with_templates()
+        results = charts_new_list(charts_with_templates, template_filter)
+        return jsonify(results)
 
 
 __all__ = [
