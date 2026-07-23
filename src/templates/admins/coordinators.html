@@ -91,8 +91,12 @@
                 <tbody>
                     {% for coordinator in coordinators %}
                     <tr>
-                        <td>{{ coordinator.id }}</td>
-                        <td>{{ coordinator.username }}</td>
+                        <td>
+                            {{ coordinator.id }}
+                        </td>
+                        <td>
+                            {{ coordinator.username }}
+                        </td>
                         <td class="text-center">
                             {{ update_active_form(coordinator) }}
                         </td>

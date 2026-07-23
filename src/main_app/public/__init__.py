@@ -6,10 +6,7 @@ from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_pub
 from .api_routes import ApiRoutes
 from .auth.routes import AuthRoutes
 from .jobs_utils_bp import UtilsJobsBp
-from .main_routes.explorer_routes import ExplorerRoutes
-from .main_routes.extract_routes import ExtractRoutes
-from .main_routes.owid_charts_routes import OwidChartsRoutes
-from .main_routes.routes import MainRoutes
+from .main_routes import ExplorerRoutes, ExtractRoutes, MainRoutes, OwidChartsRoutes
 from .profile import ProfileRoutes
 from .public_jobs import PublicJobsRoutes
 
