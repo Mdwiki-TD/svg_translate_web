@@ -63,7 +63,7 @@ def register_error_pages(app: Flask) -> None:
         """Handle 404 errors"""
         # Skip logging for `/.well-known/` which is used in browser console
         if not request.path.startswith("/.well-known/"):
-            logger.error("%s Page not found: %s", {request.path}, e)
+            logger.error("%s Page not found: %s", request.path, e)
 
         # Return JSON response for API requests
         if request.is_json or request.path.startswith("/api/"):
