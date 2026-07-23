@@ -261,8 +261,13 @@ class OwidChartsRoutes(OwidCharts):
 
     def _setup_routes(self) -> None:
         self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
-        self.bp.route("/<string:template_filter>", methods=["GET"])(admin_required(self.dashboard))
 
+        self.bp.add_url_rule(
+            "/<string:template_filter>",
+            endpoint="dashboard_pages_default",
+            view_func=admin_required(self.dashboard),
+            methods=["GET"],
+        )
         self.bp.route("/add", methods=["GET"])(admin_required(self.add_chart_popup))
         self.bp.route("/<int:chart_id>/edit", methods=["GET"])(admin_required(self.edit_chart))
         self.bp.route("/download-json", methods=["GET"])(admin_required(self.download_owid_charts_json))
@@ -271,10 +276,18 @@ class OwidChartsRoutes(OwidCharts):
         self.bp.route("/update", methods=["POST"])(admin_required(self.update_chart))
         self.bp.route("/<int:chart_id>/delete", methods=["POST"])(admin_required(self.delete_chart))
 
-    def dashboard(self, template_filter: str = ""):
+    def dashboard(self, template_filter: str = "") -> str:
+        summary = {
+            "total": 0,
+            "published": {"with": 0, "without": 0 },
+            "template": {"with": 0, "without": 0 },
+            "map_tab": {"with": 0, "without": 0 },
+            "timeline": {"with": 0, "without": 0 },
+        }
         return render_template(
             "admins/owid_charts/list.html",
             selected_template=template_filter,
+            summary=summary,
         )
 
     def add_chart_popup(self) -> ResponseReturnValue:
