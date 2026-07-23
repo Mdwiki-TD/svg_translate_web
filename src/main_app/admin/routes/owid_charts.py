@@ -255,6 +255,7 @@ class OwidCharts:
 
 class OwidChartsRoutes(OwidCharts):
     def __init__(self, bp: Blueprint) -> None:
+        self.name = "owidcharts"
         self.bp = bp
         self.owid_charts_service = OwidChartsService()
         self._setup_routes()
@@ -264,7 +265,7 @@ class OwidChartsRoutes(OwidCharts):
 
         self.bp.add_url_rule(
             "/<string:template_filter>",
-            endpoint="dashboard_pages_default",
+            endpoint="filterd_dashboard",
             view_func=admin_required(self.dashboard),
             methods=["GET"],
         )
