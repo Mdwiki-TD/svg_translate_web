@@ -901,7 +901,7 @@ class TestCropMainFilesProcessorRun:
             mock_save_job_result,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist ",
+            "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
             mock_is_job_cancelled_file_exist,
         )
         mock_update_job_status.side_effect = LookupError("Job not found")

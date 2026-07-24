@@ -633,7 +633,7 @@ class TestRun:
         mocks["is_job_cancelled"].return_value = False
 
         # _run_stage calls self.is_cancelled() without check_db=True, so we
-        # drive cancellation through is_job_cancelled_file_exist (file path)
+        # drive cancellation through is_job_cancelled_file_exist(file path)
         # instead of the DB path. Trip cancellation on the 3rd check.
         call_count = [0]
 
@@ -643,7 +643,7 @@ class TestRun:
 
         mock_is_job_cancelled_file_exist = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist ",
+            "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
             mock_is_job_cancelled_file_exist,
         )
         mock_is_job_cancelled_file_exist.return_value = False
