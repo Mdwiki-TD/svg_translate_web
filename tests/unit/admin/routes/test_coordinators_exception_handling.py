@@ -13,17 +13,17 @@ from src.main_app.admin.routes.coordinators import CoordinatorsFuncs
 class TestAddCoordinatorExceptionHandling:
     @pytest.fixture(autouse=True)
     def setup(self):
-        self.funcs = CoordinatorsFuncs()
+        self.service = CoordinatorsFuncs()
 
     def test_catches_both_lookup_and_value_errors(self, monkeypatch, caplog):
         """Test that add catches both LookupError and ValueError in single except clause."""
         mock_add_coordinator = Mock()
-        monkeypatch.setattr(self.funcs.service, "add_coordinator", mock_add_coordinator)
+        monkeypatch.setattr(self.service.admin_service, "add_coordinator", mock_add_coordinator)
 
         # Mock Flask globals to avoid "Working outside of request context" errors
-        mock_request = Mock()
-        mock_request.form.get.return_value = "test_user"
-        monkeypatch.setattr("src.main_app.admin.routes.coordinators.request", mock_request)
+        mock_req = Mock()
+        mock_req.form.get.return_value = "test_user"
+        monkeypatch.setattr("src.main_app.admin.routes.coordinators.request", mock_req)
 
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", mock_flash)
@@ -37,7 +37,7 @@ class TestAddCoordinatorExceptionHandling:
         mock_add_coordinator.side_effect = ValueError("Username invalid")
 
         with caplog.at_level(logging.ERROR):
-            self.funcs.add()
+            self.service.add()
 
         # Verify exception was logged
         assert "Unable to Add coordinator" in caplog.text
@@ -53,6 +53,6 @@ class TestAddCoordinatorExceptionHandling:
         mock_add_coordinator.side_effect = LookupError("User not found")
 
         with caplog.at_level(logging.ERROR):
-            self.funcs.add()
+            self.service.add()
 
         mock_flash.assert_called_once_with("Unable to add 'test_user' as coordinator", "warning")
