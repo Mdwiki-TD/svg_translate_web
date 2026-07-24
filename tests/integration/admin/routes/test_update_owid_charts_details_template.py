@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 from html import unescape
 
-from src.main_app.db.services import jobs_service as _sqlalchemy_jobs_service
+from src.main_app.db.services import JobsService, jobs_service as _sqlalchemy_jobs_service
 
 _JOB_TYPE = "update_owid_charts"
 
@@ -59,10 +59,10 @@ def _result_data(updated=None, failed=None, skipped=None) -> dict:
 
 
 def _create_job_with_result(result_data: dict, tmp_path):
-    job = _sqlalchemy_jobs_service.create_job(_JOB_TYPE, "admin")
+    job = JobsService().create_job(_JOB_TYPE, "admin")
     result_file = tmp_path / "result.json"
     result_file.write_text(json.dumps(result_data))
-    _sqlalchemy_jobs_service.update_job_status(job.id, "completed", str(result_file), job_type=_JOB_TYPE)
+    JobsService().update_job_status(job.id, "completed", str(result_file), job_type=_JOB_TYPE)
     return job
 
 

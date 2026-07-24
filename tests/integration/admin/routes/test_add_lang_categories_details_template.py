@@ -10,15 +10,15 @@ from __future__ import annotations
 import json
 from html import unescape
 
-from src.main_app.db.services import jobs_service as _sqlalchemy_jobs_service
+from src.main_app.db.services import JobsService, jobs_service as _sqlalchemy_jobs_service
 
 
 def _create_job_with_result(result_data: dict, tmp_path, job_type: str = "add_lang_categories_to_owid_pages"):
     """Helper to persist a job and a JSON result file, returning the job."""
-    job = _sqlalchemy_jobs_service.create_job(job_type, "admin")
+    job = JobsService().create_job(job_type, "admin")
     result_file = tmp_path / "result.json"
     result_file.write_text(json.dumps(result_data))
-    _sqlalchemy_jobs_service.update_job_status(job.id, "completed", str(result_file), job_type=job_type)
+    JobsService().update_job_status(job.id, "completed", str(result_file), job_type=job_type)
     return job
 
 
