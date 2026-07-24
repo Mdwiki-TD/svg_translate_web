@@ -1,4 +1,5 @@
-"""Unit tests for src/main_app/public/public_jobs.py module.
+"""
+Unit tests for src/main_app/public/public_jobs.py module.
 
 Tests cover direct calls to module-level functions (cancel_job_handler, delete_job_handler,
 start_job_handler, jobs_list_handler, job_detail_handler) and route integration via test client.
