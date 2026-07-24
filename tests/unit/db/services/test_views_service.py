@@ -1,15 +1,10 @@
-"""
-Unit tests for src/main_app/db/services/views_service.py module.
-"""
+"""Unit tests for views_service module."""
 
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from src.main_app.db.services.views_service import (
-    list_owid_charts_templates,
-    list_templates_need_update,
-)
+from src.main_app.db.services.views_service import ViewsService
 
 
 class TestListTemplatesNeedUpdate:
@@ -18,7 +13,7 @@ class TestListTemplatesNeedUpdate:
         mock_db = MagicMock()
         mock_db.session.query.return_value.order_by.return_value.all.return_value = mock_records
         with patch("src.main_app.db.services.views_service.db", mock_db):
-            result = list_templates_need_update()
+            result = ViewsService().list_templates_need_update()
             assert result == mock_records
             mock_db.session.query.return_value.order_by.assert_called_once()
 
@@ -26,7 +21,7 @@ class TestListTemplatesNeedUpdate:
         mock_db = MagicMock()
         mock_db.session.query.return_value.order_by.return_value.all.return_value = []
         with patch("src.main_app.db.services.views_service.db", mock_db):
-            result = list_templates_need_update()
+            result = ViewsService().list_templates_need_update()
             assert result == []
 
 
@@ -36,7 +31,7 @@ class TestListOwidChartsTemplates:
         mock_db = MagicMock()
         mock_db.session.query.return_value.order_by.return_value.all.return_value = mock_records
         with patch("src.main_app.db.services.views_service.db", mock_db):
-            result = list_owid_charts_templates()
+            result = ViewsService().list_owid_charts_templates()
             assert result == mock_records
             mock_db.session.query.return_value.order_by.assert_called_once()
 
@@ -44,5 +39,5 @@ class TestListOwidChartsTemplates:
         mock_db = MagicMock()
         mock_db.session.query.return_value.order_by.return_value.all.return_value = []
         with patch("src.main_app.db.services.views_service.db", mock_db):
-            result = list_owid_charts_templates()
+            result = ViewsService().list_owid_charts_templates()
             assert result == []
