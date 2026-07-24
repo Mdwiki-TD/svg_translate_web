@@ -372,10 +372,12 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # Only assign slug if it exists in the owid_charts table
         if slug:
             try:
-                self.owid_charts_service.get_chart_by_slug(slug)
-                return slug
+                if self.owid_charts_service.get_chart_by_slug(slug):
+                    return slug
+                return None
             except (LookupError, RuntimeError):
                 return None
+        return None
 
     def _load_slug(self, template_title: str, template_slug: str, template_source: str) -> str | None:
         _slug = extract_slug(template_source)
