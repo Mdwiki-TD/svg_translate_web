@@ -1,6 +1,4 @@
-"""
-Tests for src.main_app.db.services.owid_charts_service.
-"""
+"""Tests for owid_charts_service module."""
 
 from __future__ import annotations
 
@@ -8,16 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.services.owid_charts_service import (
-    OwidChartsService,
-    add_chart,
-    count_charts,
-    get_chart_by_id,
-    get_chart_by_slug,
-    list_charts,
-    list_published_charts,
-    update_chart_data,
-)
+from src.main_app.db.services.owid_charts_service import OwidChartsService
 
 
 def delete_chart(id: int) -> bool:
@@ -69,7 +58,7 @@ class TestCountCharts:
     def test_returns_count(self, monkeypatch):
         """Return the total number of charts."""
         _mock_query_for_read(monkeypatch, scalar=MagicMock(return_value=42))
-        assert count_charts() == 42
+        assert OwidChartsService().count_charts() == 42
 
 
 class TestListCharts:
@@ -79,27 +68,27 @@ class TestListCharts:
         """Return all charts when no limit is specified."""
         expected = [MagicMock(chart_id=1, slug="a"), MagicMock(chart_id=2, slug="b")]
         _mock_query_for_read(monkeypatch, all=MagicMock(return_value=expected))
-        result = list_charts()
+        result = OwidChartsService().list_charts()
         assert result == expected
 
     def test_respects_limit(self, monkeypatch):
         """Pass the limit argument through to the query."""
         expected = [MagicMock(chart_id=1)]
         mock_query = _mock_query_for_read(monkeypatch, all=MagicMock(return_value=expected))
-        result = list_charts(limit=1)
+        result = OwidChartsService().list_charts(limit=1)
         assert result == expected
         mock_query.limit.assert_called_once_with(1)
 
     def test_no_limit_when_none(self, monkeypatch):
         """Do not call .limit() when limit is None."""
         mock_query = _mock_query_for_read(monkeypatch, all=MagicMock(return_value=[]))
-        list_charts()
+        OwidChartsService().list_charts()
         mock_query.limit.assert_not_called()
 
     def test_returns_empty_list(self, monkeypatch):
         """Return empty list when no charts exist."""
         _mock_query_for_read(monkeypatch, all=MagicMock(return_value=[]))
-        assert list_charts() == []
+        assert OwidChartsService().list_charts() == []
 
 
 class TestListPublishedCharts:
@@ -109,19 +98,19 @@ class TestListPublishedCharts:
         """Return only charts where is_published is True."""
         expected = [MagicMock(chart_id=1, is_published=True)]
         _mock_query_for_read(monkeypatch, all=MagicMock(return_value=expected))
-        result = list_published_charts()
+        result = OwidChartsService().list_published_charts()
         assert result == expected
 
     def test_applies_filter(self, monkeypatch):
         """Verify the filter is applied to the query."""
         mock_query = _mock_query_for_read(monkeypatch, all=MagicMock(return_value=[]))
-        list_published_charts()
+        OwidChartsService().list_published_charts()
         mock_query.filter.assert_called_once()
 
     def test_returns_empty_when_none_published(self, monkeypatch):
         """Return empty list when no published charts exist."""
         _mock_query_for_read(monkeypatch, all=MagicMock(return_value=[]))
-        assert list_published_charts() == []
+        assert OwidChartsService().list_published_charts() == []
 
 
 class TestGetChart:
@@ -131,13 +120,13 @@ class TestGetChart:
         """Return the chart when the ID exists."""
         expected = MagicMock(chart_id=1, slug="test-chart")
         _mock_query_for_read(monkeypatch, first=MagicMock(return_value=expected))
-        result = get_chart_by_id(1)
+        result = OwidChartsService().get_chart_by_id(1)
         assert result is expected
 
     def test_returns_none_for_missing_id(self, monkeypatch):
         """Return None when no chart matches the given ID."""
         _mock_query_for_read(monkeypatch, first=MagicMock(return_value=None))
-        assert get_chart_by_id(999) is None
+        assert OwidChartsService().get_chart_by_id(999) is None
 
 
 class TestGetChartBySlug:
@@ -147,13 +136,13 @@ class TestGetChartBySlug:
         """Return the chart when the slug exists."""
         expected = MagicMock(slug="existing-chart", chart_id=5)
         _mock_query_for_read(monkeypatch, first=MagicMock(return_value=expected))
-        result = get_chart_by_slug("existing-chart")
+        result = OwidChartsService().get_chart_by_slug("existing-chart")
         assert result is expected
 
     def test_returns_none_for_missing_slug(self, monkeypatch):
         """Return None when no chart matches the given slug."""
         _mock_query_for_read(monkeypatch, first=MagicMock(return_value=None))
-        assert get_chart_by_slug("nonexistent") is None
+        assert OwidChartsService().get_chart_by_slug("nonexistent") is None
 
 
 class TestAddChart:
@@ -165,7 +154,7 @@ class TestAddChart:
         monkeypatch.setattr("src.main_app.db.services.owid_charts_service.db", mock_db)
         from src.main_app.db.models import OwidChartRecord
 
-        result = add_chart(chart_id=1, slug="test-chart", title="Test Chart")
+        result = OwidChartsService().add_chart(chart_id=1, slug="test-chart", title="Test Chart")
         assert isinstance(result, OwidChartRecord)
         assert result.chart_id == 1
         assert result.slug == "test-chart"
@@ -178,7 +167,7 @@ class TestAddChart:
         mock_db = MagicMock()
         monkeypatch.setattr("src.main_app.db.services.owid_charts_service.db", mock_db)
 
-        result = add_chart(chart_id=1, slug="test-chart", title=None, max_time=None)
+        result = OwidChartsService().add_chart(chart_id=1, slug="test-chart", title=None, max_time=None)
         assert result.chart_id == 1
         assert result.slug == "test-chart"
 
@@ -187,7 +176,7 @@ class TestAddChart:
         mock_db = MagicMock()
         monkeypatch.setattr("src.main_app.db.services.owid_charts_service.db", mock_db)
 
-        result = add_chart(chart_id=1, slug="test", invalid_attr="value")
+        result = OwidChartsService().add_chart(chart_id=1, slug="test", invalid_attr="value")
         assert result.chart_id == 1
         assert result.slug == "test"
 
@@ -205,7 +194,7 @@ class TestUpdateChartData:
         mock_db.session.query.return_value = mock_query
         monkeypatch.setattr("src.main_app.db.services.owid_charts_service.db", mock_db)
 
-        result = update_chart_data(1, {"title": "Updated"})
+        result = OwidChartsService().update_chart_data(1, {"title": "Updated"})
         assert result is not None
         assert result.title == "Updated"
         mock_db.session.commit.assert_called_once()
@@ -220,7 +209,7 @@ class TestUpdateChartData:
         mock_db.session.query.return_value = mock_query
         monkeypatch.setattr("src.main_app.db.services.owid_charts_service.db", mock_db)
 
-        result = update_chart_data(999, {"title": "Updated"})
+        result = OwidChartsService().update_chart_data(999, {"title": "Updated"})
         assert result is None
         mock_db.session.commit.assert_not_called()
 
@@ -234,7 +223,7 @@ class TestUpdateChartData:
         mock_db.session.query.return_value = mock_query
         monkeypatch.setattr("src.main_app.db.services.owid_charts_service.db", mock_db)
 
-        result = update_chart_data(1, {"title": "New", "max_time": None})
+        result = OwidChartsService().update_chart_data(1, {"title": "New", "max_time": None})
         assert result is not None
         assert result.title == "New"
 
@@ -248,7 +237,7 @@ class TestUpdateChartData:
         mock_db.session.query.return_value = mock_query
         monkeypatch.setattr("src.main_app.db.services.owid_charts_service.db", mock_db)
 
-        result = update_chart_data(1, {"title": "New", "invalid_attr": "value"})
+        result = OwidChartsService().update_chart_data(1, {"title": "New", "invalid_attr": "value"})
         assert result is not None
         assert result.title == "New"
 
