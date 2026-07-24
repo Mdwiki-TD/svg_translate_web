@@ -63,7 +63,7 @@ def _make_chart_template_mock(**attrs: Any) -> MagicMock:
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_app):
     mock_views_service = MagicMock()
     mock_views_service.list_templates_need_update = MagicMock()
     mock_views_service.list_owid_charts_templates = MagicMock()
@@ -86,6 +86,15 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.public.api_routes.OwidChartsService", MagicMock(return_value=mock_owidcharts_service)
     )
     monkeypatch.setattr("src.main_app.public.api_routes.TemplateService", MagicMock(return_value=mock_template_service))
+
+    # Replace services on the already-constructed ApiRoutes instance
+    for view_func in mock_app.view_functions.values():
+        instance = getattr(view_func, "__self__", None)
+        if instance is not None and hasattr(instance, "templates_service"):
+            instance.views_service = mock_views_service
+            instance.owid_charts_service = mock_owidcharts_service
+            instance.templates_service = mock_template_service
+            break
 
     return mocks
 
