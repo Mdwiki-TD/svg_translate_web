@@ -14,12 +14,7 @@ from .jobs_service import (
 )
 from .owid_charts_service import OwidChartsService
 from .owid_slug_redirects_service import OwidSlugRedirectsService
-from .settings_service import (
-    SettingsService,
-    create_setting,
-    get_all_settings_raw,
-    update_setting,
-)
+from .settings_service import SettingsService
 from .template_service import (
     TemplateService,
     add_template_data,
