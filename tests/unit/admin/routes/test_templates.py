@@ -9,17 +9,18 @@ from unittest.mock import MagicMock, Mock
 import pytest
 
 from src.main_app.admin.routes.templates import (
-    _add_template,
-    _delete_template,
-    _edit_template,
-    _edit_template_by_title,
-    _update_template,
+    TemplatesRoutesFuncs,
     create_json_file,
 )
 
 
 @pytest.mark.usefixtures("mock_app")
 class TestTemplatesUnit:
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.service = TemplatesRoutesFuncs()
+
     def test_create_json_file_success(self, monkeypatch):
         from src.main_app.db.models import TemplateRecord
 
@@ -68,7 +69,7 @@ class TestTemplatesUnit:
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
-        result = _add_template()
+        result = self.service.add_template()
         assert "redirect" in result
         mock_flash.assert_called()
 
@@ -87,7 +88,7 @@ class TestTemplatesUnit:
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
-        _add_template()
+        self.service.add_template()
         mock_flash.assert_called_with("Template 'NewT' added.", "success")
 
     def test_add_template_value_error(self, monkeypatch):
@@ -105,7 +106,7 @@ class TestTemplatesUnit:
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
-        _add_template()
+        self.service.add_template()
         mock_flash.assert_called()
 
     def test_update_template_missing_id(self, monkeypatch):
@@ -120,7 +121,7 @@ class TestTemplatesUnit:
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
-        _update_template()
+        self.service.update_template()
         mock_flash.assert_called_with("Template ID is required to update a template.", "danger")
 
     def test_update_template_success(self, monkeypatch):
@@ -140,7 +141,7 @@ class TestTemplatesUnit:
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
-        _update_template()
+        self.service.update_template()
         mock_flash.assert_called()
 
     def test_update_template_lookup_error(self, monkeypatch):
@@ -158,7 +159,7 @@ class TestTemplatesUnit:
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
-        _update_template()
+        self.service.update_template()
         mock_flash.assert_called()
 
     def test_update_template_from_popup(self, monkeypatch):
@@ -174,14 +175,14 @@ class TestTemplatesUnit:
         monkeypatch.setattr("src.main_app.admin.routes.templates.update_template_data", lambda i, d: mock_record)
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: f"rendered:{t}")
-        result = _update_template()
+        result = self.service.update_template()
         assert "popup_action" in result
 
     def test_delete_template_success(self, monkeypatch):
         mock_record = MagicMock()
         mock_record.title = "DelT"
         monkeypatch.setattr("src.main_app.admin.routes.templates.get_template", lambda i: mock_record)
-        monkeypatch.setattr("src.main_app.admin.routes.templates.delete_template", lambda i: None)
+        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.delete", lambda i: None)
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
@@ -193,7 +194,7 @@ class TestTemplatesUnit:
 
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
-        _delete_template(1)
+        self.service.delete_template(1)
         mock_flash.assert_called_with("Template 'DelT' removed.", "success")
 
     def test_delete_template_not_found(self, monkeypatch):
@@ -211,14 +212,14 @@ class TestTemplatesUnit:
 
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
-        _delete_template(999)
+        self.service.delete_template(999)
         mock_flash.assert_called()
 
     def test_delete_template_from_popup(self, monkeypatch):
         mock_record = MagicMock()
         mock_record.title = "DelT"
         monkeypatch.setattr("src.main_app.admin.routes.templates.get_template", lambda i: mock_record)
-        monkeypatch.setattr("src.main_app.admin.routes.templates.delete_template", lambda i: None)
+        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.delete", lambda i: None)
         mock_req = Mock()
 
         def form_get(key, default=None, **kwargs):
@@ -228,14 +229,14 @@ class TestTemplatesUnit:
         monkeypatch.setattr("src.main_app.admin.routes.templates.request", mock_req)
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: f"rendered:{t}")
-        result = _delete_template(1)
+        result = self.service.delete_template(1)
         assert "popup_action" in result
 
     def test_edit_template_found(self, monkeypatch):
         mock_template = MagicMock()
         monkeypatch.setattr("src.main_app.admin.routes.templates.get_template", lambda i: mock_template)
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: c)
-        result = _edit_template(1)
+        result = self.service.edit_template(1)
         assert result["template"] == mock_template
         assert result["error"] is None
 
@@ -244,7 +245,7 @@ class TestTemplatesUnit:
             "src.main_app.admin.routes.templates.get_template", Mock(side_effect=LookupError("not found"))
         )
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: c)
-        result = _edit_template(999)
+        result = self.service.edit_template(999)
         assert result["template"] is None
         assert result["error"] == "Template not found"
 
@@ -252,7 +253,7 @@ class TestTemplatesUnit:
         mock_template = MagicMock()
         monkeypatch.setattr("src.main_app.admin.routes.templates.get_template_by_title", lambda t: mock_template)
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: c)
-        result = _edit_template_by_title("Test")
+        result = self.service.edit_by_title("Test")
         assert result["template"] == mock_template
         assert result["error"] is None
 
@@ -261,6 +262,6 @@ class TestTemplatesUnit:
             "src.main_app.admin.routes.templates.get_template_by_title", Mock(side_effect=LookupError("not found"))
         )
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: c)
-        result = _edit_template_by_title("Missing")
+        result = self.service.edit_by_title("Missing")
         assert result["template"] is None
         assert result["error"] == "Template not found"

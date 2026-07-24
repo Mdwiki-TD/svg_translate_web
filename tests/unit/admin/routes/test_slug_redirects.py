@@ -88,7 +88,9 @@ class TestSlugRedirectsRoutes:
         app.config["TESTING"] = True
 
         admin_bp = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
-        admin_bp.register_blueprint(SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects")).bp)
+        admin_bp.register_blueprint(
+            SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects")).bp
+        )
         app.register_blueprint(admin_bp)
 
         return app

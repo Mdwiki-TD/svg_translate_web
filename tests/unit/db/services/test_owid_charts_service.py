@@ -23,6 +23,7 @@ from src.main_app.db.services.owid_charts_service import (
 def delete_chart(id: int) -> bool:
     return OwidChartsService().delete(id)
 
+
 @pytest.fixture
 def sample_record():
     """Create a sample OwidChartRecord."""
