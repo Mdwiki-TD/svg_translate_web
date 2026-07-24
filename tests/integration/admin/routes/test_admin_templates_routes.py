@@ -9,23 +9,26 @@ import pytest
 
 from src.main_app.db.models import TemplateRecord
 from src.main_app.db.services import delete_service
-from src.main_app.db.services import template_service as _sqlalchemy_template_service
+from src.main_app.db.services import TemplateService
 
 
 class _TemplatesStore:
     """Adapter bridging old TemplatesDB API to SQLAlchemy template_service functions."""
 
+    def __init__(self):
+        self.service = TemplateService()
+
     def list(self, limit=None):
-        return _sqlalchemy_template_service.list_templates(limit)
+        return self.service.list_templates(limit)
 
     def add_data(self, data):
-        return _sqlalchemy_template_service.add_template_data(data)
+        return self.service.add_template_data(data)
 
     def update_data(self, template_id, data):
-        return _sqlalchemy_template_service.update_template_data(template_id, data)
+        return self.service.update_template_data(template_id, data)
 
     def delete(self, record_id: int):
-        return delete_service.delete_record_by_pk(TemplateRecord, record_id)
+        return self.service.delete(record_id)
 
 
 @pytest.fixture
