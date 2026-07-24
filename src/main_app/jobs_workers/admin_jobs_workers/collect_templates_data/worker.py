@@ -15,8 +15,8 @@ from mwclient.client import Site
 from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_members
 from ....db.models import TemplateRecord
 from ....db.services import (
-    TemplateService,
     OwidChartsService,
+    TemplateService,
     list_templates_need_update,
 )
 from ....db.templates_utils import extract_slug

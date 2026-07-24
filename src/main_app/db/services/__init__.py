@@ -32,14 +32,6 @@ from .jobs_service import (
 )
 from .owid_charts_service import (
     OwidChartsService,
-    add_chart,
-    count_charts,
-    get_chart_by_id,
-    get_chart_by_slug,
-    list_charts,
-    list_charts_with_templates,
-    list_published_charts,
-    update_chart_data,
 )
 from .owid_slug_redirects_service import (
     OwidSlugRedirectsService,
@@ -145,16 +137,6 @@ __all__ = [
     "delete_job",
     "delete_user",
     "delete_user_token",
-    # owid_charts_service
-    "get_chart_by_id",
-    "get_chart_by_slug",
-    "add_chart",
-    "update_chart_data",
-    "list_charts",
-    "list_charts_with_templates",
-    "count_charts",
-    "list_published_charts",
-    # owid_slug_redirects_service
     "add_new_slug_redirect",
     "list_slug_redirects",
     "get_slug_redirect_by_id",
