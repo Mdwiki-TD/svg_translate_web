@@ -33,44 +33,47 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
         return raw_val, True
 
 
-def settings_update_form(request_form) -> tuple[list[str], list[str]]:
-    all_settings = get_all_settings_raw()
-    failed_keys: list[str] = []
-    deleted_keys: list[str] = []
+class SettingsFuncs:
+    def __init__(self) -> None:
+        pass
 
-    for setting in all_settings:
-        key = setting["key"]
-        v_type = setting["value_type"]
-        form_key = f"setting_{key}"
-        delete_key = f"delete_{key}"
+    def settings_update_form(self, request_form) -> tuple[list[str], list[str]]:
+        all_settings = get_all_settings_raw()
+        failed_keys: list[str] = []
+        deleted_keys: list[str] = []
 
-        # Check if marked for deletion
-        if request_form.get(delete_key) == "on":
-            if delete_setting_by_key(key):
-                deleted_keys.append(key)
+        for setting in all_settings:
+            key = setting["key"]
+            v_type = setting["value_type"]
+            form_key = f"setting_{key}"
+            delete_key = f"delete_{key}"
+
+            # Check if marked for deletion
+            if request_form.get(delete_key) == "on":
+                if delete_setting_by_key(key):
+                    deleted_keys.append(key)
+                else:
+                    failed_keys.append(key)
+                continue
+
+            if v_type == "boolean":
+                raw_val = request_form.get(form_key, "")
+            elif form_key in request_form:
+                raw_val = request_form.get(form_key, "")
             else:
+                continue
+
+            value, success = _parse_setting_value(v_type, raw_val)
+            if not success:
                 failed_keys.append(key)
-            continue
+                continue
 
-        if v_type == "boolean":
-            raw_val = request_form.get(form_key, "")
-        elif form_key in request_form:
-            raw_val = request_form.get(form_key, "")
-        else:
-            continue
+            if not update_setting(key, value, v_type):
+                failed_keys.append(key)
 
-        value, success = _parse_setting_value(v_type, raw_val)
-        if not success:
-            failed_keys.append(key)
-            continue
+        return failed_keys, deleted_keys
 
-        if not update_setting(key, value, v_type):
-            failed_keys.append(key)
-
-    return failed_keys, deleted_keys
-
-
-class SettingsRoutes:
+class SettingsRoutes(SettingsFuncs):
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
         self._setup_routes()
@@ -121,6 +124,11 @@ class SettingsRoutes:
         else:
             flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")
         return redirect(url_for("adminpanel.settings.dashboard"))
+
+
+def settings_update_form(request_form) -> tuple[list[str], list[str]]:
+    return SettingsFuncs().settings_update_form(request_form)
+
 
 
 __all__ = [

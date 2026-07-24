@@ -13,7 +13,7 @@ from ..db.models import JobRecord
 from ..db.services import (
     cancel_job_db,
     create_job,
-    get_all_settings_ready,
+    SettingsService,
 )
 from ..su_services.jobs_files_service import create_job_cancelled_file
 from .admin_jobs_workers.workers_list import jobs_data_admins
@@ -50,7 +50,7 @@ def _load_job_args(job_args: list[dict[str, str]]) -> dict:
     if not job_args:
         return {}
 
-    settings_ready = get_all_settings_ready()
+    settings_ready = SettingsService().get_all_settings_ready()
     _args: dict[str, Any] = {}
 
     for item in job_args:

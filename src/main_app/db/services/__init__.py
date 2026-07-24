@@ -12,27 +12,9 @@ from .jobs_service import (
     update_job_status,
     update_job_status_with_retry,
 )
-from .owid_charts_service import (
-    OwidChartsService,
-)
-from .owid_slug_redirects_service import (
-    OwidSlugRedirectsService,
-    add_new_slug_redirect,
-    bulk_delete_slug_redirects,
-    bulk_update_slug_redirects,
-    count_slug_redirects,
-    get_slug_redirect_by_id,
-    list_slug_redirects,
-    update_slug_redirect,
-)
-from .settings_service import (
-    SettingsService,
-    create_setting,
-    get_all_settings_raw,
-    get_all_settings_ready,
-    list_settings,
-    update_setting,
-)
+from .owid_charts_service import OwidChartsService
+from .owid_slug_redirects_service import OwidSlugRedirectsService
+from .settings_service import SettingsService
 from .template_service import (
     TemplateService,
     add_template_data,
@@ -96,21 +78,8 @@ __all__ = [
     "get_user_jobs_stats",
     "cancel_job_db",
     "is_job_cancelled",
-    # settings_service
-    "get_all_settings_ready",
-    "get_all_settings_raw",
-    "update_setting",
-    "create_setting",
-    "list_settings",
     # delete
     "delete_record_by_pk",
-    "add_new_slug_redirect",
-    "list_slug_redirects",
-    "get_slug_redirect_by_id",
-    "update_slug_redirect",
-    "count_slug_redirects",
-    "bulk_update_slug_redirects",
-    "bulk_delete_slug_redirects",
     # template_service
     "get_template",
     "get_template_by_title",
