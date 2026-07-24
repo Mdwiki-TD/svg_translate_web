@@ -120,7 +120,7 @@ class SlugFuncs:
         return redirect(url_for("adminpanel.slugredirects.dashboard"))
 
 
-class SlugRedirects(SlugFuncs):
+class SlugRedirectsRoutes(SlugFuncs):
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
         super().__init__()
@@ -135,5 +135,5 @@ class SlugRedirects(SlugFuncs):
 
 
 __all__ = [
-    "SlugRedirects",
+    "SlugRedirectsRoutes",
 ]
