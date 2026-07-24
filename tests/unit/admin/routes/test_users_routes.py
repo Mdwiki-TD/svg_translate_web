@@ -230,7 +230,7 @@ class TestUsersRoutesRoutes:
     def client(self, app_with_routes: Flask):
         return app_with_routes.test_client()
 
-def test_dashboard_get(self, client, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_dashboard_get(self, client, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_users = [MagicMock(username="alice")]
         monkeypatch.setattr(
             UsersService,
