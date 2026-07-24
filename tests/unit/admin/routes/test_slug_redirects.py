@@ -8,7 +8,7 @@ import pytest
 from flask import Blueprint, Flask
 
 from src.main_app.admin.routes.slug_redirects import (
-    SlugRedirects,
+    SlugRedirectsRoutes,
     _edit_slug_redirect,
 )
 
@@ -57,18 +57,18 @@ class TestEditSlugRedirect:
 
 
 class TestSlugRedirectsClass:
-    """Tests for the SlugRedirects class itself."""
+    """Tests for the SlugRedirectsRoutes class itself."""
 
     def test_blueprint_properties(self):
-        """SlugRedirects should create a Blueprint with the expected name and prefix."""
-        instance = SlugRedirects(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
+        """SlugRedirectsRoutes should create a Blueprint with the expected name and prefix."""
+        instance = SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
         assert isinstance(instance.bp, Blueprint)
         assert instance.bp.name == "slugredirects"
         assert instance.bp.url_prefix == "/slugredirects"
 
     def test_all_routes_registered(self):
-        """SlugRedirects should register all 5 routes."""
-        instance = SlugRedirects(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
+        """SlugRedirectsRoutes should register all 5 routes."""
+        instance = SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
         assert len(instance.bp.deferred_functions) == 5
 
 
@@ -88,7 +88,7 @@ class TestSlugRedirectsRoutes:
         app.config["TESTING"] = True
 
         admin_bp = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
-        admin_bp.register_blueprint(SlugRedirects(Blueprint("slugredirects", __name__, url_prefix="/slugredirects")).bp)
+        admin_bp.register_blueprint(SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects")).bp)
         app.register_blueprint(admin_bp)
 
         return app
