@@ -24,7 +24,7 @@ class TestCreateJsonFile(TestSetup):
     def _setup_service(self, monkeypatch, mock_service=None):
         if mock_service is None:
             mock_service = MagicMock()
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService", lambda: mock_service)
+        self.owid_charts_service.owid_charts_service = mock_service
         return mock_service
 
     def test_success(self, monkeypatch):
@@ -102,7 +102,7 @@ class TestCreateJsonFile(TestSetup):
 class TestAddChart(TestSetup):
     def _setup_service(self, monkeypatch):
         mock_service = MagicMock()
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService", lambda: mock_service)
+        self.owid_charts_service.owid_charts_service = mock_service
         return mock_service
 
     def _setup_request(self, monkeypatch, form_data):
@@ -156,7 +156,7 @@ class TestAddChart(TestSetup):
 class TestUpdateChart(TestSetup):
     def _setup_service(self, monkeypatch):
         mock_service = MagicMock()
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService", lambda: mock_service)
+        self.owid_charts_service.owid_charts_service = mock_service
         return mock_service
 
     def _setup_request(self, monkeypatch, form_data, from_popup="0"):
@@ -269,7 +269,7 @@ class TestEditChart(TestSetup):
         mock_chart = MagicMock()
         mock_service = MagicMock()
         mock_service.get_chart_by_id.return_value = mock_chart
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService", lambda: mock_service)
+        self.owid_charts_service.owid_charts_service = mock_service
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", lambda t, **c: c)
         result = self.owid_charts_service._edit_chart(1)
         assert result["chart"] == mock_chart  # pyright: ignore[reportCallIssue]
