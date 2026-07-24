@@ -556,7 +556,7 @@ class TestRun:
                 "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
                 return_value=None,
             ),
-            "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.is_job_cancelled"),
+            "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled"),
             "get_site": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.get_user_site",
                 return_value=MagicMock(),
@@ -643,7 +643,7 @@ class TestRun:
 
         mock_is_job_cancelled_file_exist = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
+            "src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled_file_exist",
             mock_is_job_cancelled_file_exist,
         )
         mock_is_job_cancelled_file_exist.return_value = False
