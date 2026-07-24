@@ -8,8 +8,8 @@ import pytest
 from flask import Blueprint, Flask
 
 from src.main_app.admin.routes.slug_redirects import (
+    SlugFuncs,
     SlugRedirectsRoutes,
-    _edit_slug_redirect,
 )
 
 
@@ -29,7 +29,7 @@ class TestEditSlugRedirect:
             mock_render,
         )
 
-        result = _edit_slug_redirect(1)
+        result = SlugFuncs().edit_slug_redirect(1)
 
         mock_render.assert_called_once_with("admins/slug_redirects/edit.html", record=record, error=None)
         assert result == "rendered"
@@ -46,7 +46,7 @@ class TestEditSlugRedirect:
             mock_render,
         )
 
-        result = _edit_slug_redirect(999)
+        result = SlugFuncs().edit_slug_redirect(999)
 
         mock_render.assert_called_once_with(
             "admins/slug_redirects/edit.html",
