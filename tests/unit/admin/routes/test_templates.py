@@ -36,27 +36,27 @@ class TestTemplatesUnit:
                 updated_at=None,
             )
         ]
-        monkeypatch.setattr("src.main_app.admin.routes.templates.list_templates", lambda: templates)
+        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list_templates", lambda: templates)
         response, status = create_json_file()
         assert status == 200
         assert "templates.json" in response.headers["Content-Disposition"]
 
     def test_create_json_file_no_templates(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.admin.routes.templates.list_templates", list)
+        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list_templates", list)
         msg, status = create_json_file()
         assert status == 404
         assert "No templates found" in msg
 
     def test_create_json_file_lookup_error(self, monkeypatch):
         monkeypatch.setattr(
-            "src.main_app.admin.routes.templates.list_templates", Mock(side_effect=LookupError("not found"))
+            "src.main_app.admin.routes.templates.TemplateService.list_templates", Mock(side_effect=LookupError("not found"))
         )
         msg, status = create_json_file()
         assert status == 404
 
     def test_create_json_file_exception(self, monkeypatch):
         monkeypatch.setattr(
-            "src.main_app.admin.routes.templates.list_templates", Mock(side_effect=RuntimeError("error"))
+            "src.main_app.admin.routes.templates.TemplateService.list_templates", Mock(side_effect=RuntimeError("error"))
         )
         msg, status = create_json_file()
         assert status == 500
