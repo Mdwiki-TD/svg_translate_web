@@ -78,7 +78,7 @@ class TestSettingsRoutesRoutes:
         """POST /create with valid key, title, and value_type should call create_setting."""
         mock_create = MagicMock(return_value=True)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.create_setting",
+            "src.main_app.admin.routes.settings.SettingsService.create_setting",
             mock_create,
         )
 
@@ -94,7 +94,7 @@ class TestSettingsRoutesRoutes:
         """POST /create with an empty key should not call create_setting and redirect."""
         mock_create = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.create_setting",
+            "src.main_app.admin.routes.settings.SettingsService.create_setting",
             mock_create,
         )
 
@@ -110,7 +110,7 @@ class TestSettingsRoutesRoutes:
         """POST /create with a key starting with a number should show validation error."""
         mock_create = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.create_setting",
+            "src.main_app.admin.routes.settings.SettingsService.create_setting",
             mock_create,
         )
 
@@ -126,7 +126,7 @@ class TestSettingsRoutesRoutes:
         """POST /create with uppercase letters in key should show validation error."""
         mock_create = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.create_setting",
+            "src.main_app.admin.routes.settings.SettingsService.create_setting",
             mock_create,
         )
 
@@ -142,7 +142,7 @@ class TestSettingsRoutesRoutes:
         """POST /create when create_setting returns False should show 'already exists' flash."""
         mock_create = MagicMock(return_value=False)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.create_setting",
+            "src.main_app.admin.routes.settings.SettingsService.create_setting",
             mock_create,
         )
 
@@ -158,7 +158,7 @@ class TestSettingsRoutesRoutes:
         """POST /create with key but no title should show 'Key and Title are required'."""
         mock_create = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.create_setting",
+            "src.main_app.admin.routes.settings.SettingsService.create_setting",
             mock_create,
         )
 
