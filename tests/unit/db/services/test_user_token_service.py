@@ -11,29 +11,31 @@ from src.main_app.db.services.user_token_service import UserTokenService
 from src.main_app.db.services.users_service import UsersService
 
 
-def test_delete_user_cascades(mock_app: Flask) -> None:
-    with mock_app.app_context():
-        user = UsersService().create_user("svc_dave")
-        UserTokenService().upsert_user_token(user_id=user.user_id, access_key="k", access_secret="s")
-        assert UserTokenService().get_user_token(user.user_id) is not None
-        UsersService().delete(user.user_id)
-        assert UserTokenService().get_user_token(user.user_id) is None
 
-def test_upsert_get_delete_user_token(mock_app: Flask) -> None:
-    with mock_app.app_context():
-        user = UsersService().create_user("svc_eve")
-        UserTokenService().upsert_user_token(user_id=user.user_id, access_key="key", access_secret="secret")
+class TestDelete:
+    def test_delete_user_cascades(self, mock_app: Flask) -> None:
+        with mock_app.app_context():
+            user = UsersService().create_user("svc_dave")
+            UserTokenService().upsert_user_token(user_id=user.user_id, access_key="k", access_secret="s")
+            assert UserTokenService().get_user_token(user.user_id) is not None
+            UsersService().delete(user.user_id)
+            assert UserTokenService().get_user_token(user.user_id) is None
 
-        token_record = UserTokenService().get_user_token(user.user_id)
-        assert token_record is not None
-        assert token_record.access_token is not None
-        assert token_record.access_secret is not None
+    def test_upsert_get_delete_user_token(self, mock_app: Flask) -> None:
+        with mock_app.app_context():
+            user = UsersService().create_user("svc_eve")
+            UserTokenService().upsert_user_token(user_id=user.user_id, access_key="key", access_secret="secret")
 
-        UserTokenService().upsert_user_token(user_id=user.user_id, access_key="new_key", access_secret="new_secret")
-        token_record = UserTokenService().get_user_token(user.user_id)
+            token_record = UserTokenService().get_user_token(user.user_id)
+            assert token_record is not None
+            assert token_record.access_token is not None
+            assert token_record.access_secret is not None
 
-        UserTokenService().delete(user.user_id)
-        assert UserTokenService().get_user_token(user.user_id) is None
+            UserTokenService().upsert_user_token(user_id=user.user_id, access_key="new_key", access_secret="new_secret")
+            token_record = UserTokenService().get_user_token(user.user_id)
+
+            UserTokenService().delete(user.user_id)
+            assert UserTokenService().get_user_token(user.user_id) is None
 
 
 class TestUserTokenRecord:
