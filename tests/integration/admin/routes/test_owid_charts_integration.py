@@ -74,12 +74,12 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, mock_service):
     _patch_owid_charts_instance(flask_app, mock_service)
 
     monkeypatch.setattr(
-        "src.main_app.admin.routes.owid_charts.OwidChartsService.list_owid_charts_templates",
+        "src.main_app.admin.routes.owid_charts.ViewsService.list_owid_charts_templates",
         MagicMock(return_value=[]),
     )
     monkeypatch.setattr(
         "src.main_app.admin.routes.owid_charts.OwidChartsService.delete",
-        mock_service.delete_chart,
+        mock_service.delete,
     )
 
     yield flask_app.test_client()
@@ -93,6 +93,7 @@ def mock_service():
     mocks.add_chart = MagicMock()
     mocks.update_chart_data = MagicMock()
     mocks.delete_chart = MagicMock()
+    mocks.delete = mocks.delete_chart
     mocks.get_chart_by_id = MagicMock()
     return mocks
 
