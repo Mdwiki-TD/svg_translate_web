@@ -24,12 +24,12 @@ logger = logging.getLogger(__name__)
 
 class CoordinatorsFuncs:
     def __init__(self):
-        self.service = AdminService()
+        self.admin_service = AdminService()
 
     def dashboard(self):
         """Render the coordinator management dashboard."""
         try:
-            coordinators = self.service.list_coordinators()
+            coordinators = self.admin_service.list_coordinators()
         except Exception as e:  # pragma: no cover - defensive guard
             logger.error(f"Unable to list coordinators: {e}")
             flash("Unable to list coordinators.", "danger")
@@ -55,7 +55,7 @@ class CoordinatorsFuncs:
             return redirect(url_for("adminpanel.coordinators.dashboard"))
 
         try:
-            record = self.service.add_coordinator(username)
+            record = self.admin_service.add_coordinator(username)
         except UserNotFoundError as exc:
             logger.error("UserNotFoundError: %s", exc)
             flash(f"User '{username}' does not exist", "warning")
@@ -83,10 +83,10 @@ class CoordinatorsFuncs:
         """Remove a coordinator entirely."""
 
         try:
-            record = self.service.get_coordinator_by_id(coordinator_id)
+            record = self.admin_service.get_coordinator_by_id(coordinator_id)
             if record is None:
                 raise LookupError(f"Coordinator with id {coordinator_id} not found")
-            self.service.delete(coordinator_id)
+            self.admin_service.delete(coordinator_id)
         except LookupError:
             logger.exception("Unable to delete coordinator.")
             flash(f"Coordinator id {coordinator_id} was not found", "warning")
@@ -101,7 +101,7 @@ class CoordinatorsFuncs:
     def _set_record_active_status(self, coordinator_id: int, is_active: bool) -> ResponseReturnValue:
         """Shared helper to update coordinator is_active status."""
         try:
-            record = self.service.set_coordinator_active(coordinator_id, is_active)
+            record = self.admin_service.set_coordinator_active(coordinator_id, is_active)
             if record is None:
                 raise LookupError(f"Coordinator with id {coordinator_id} not found")
         except LookupError:

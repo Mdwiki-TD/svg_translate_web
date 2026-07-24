@@ -23,30 +23,33 @@ class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self, monkeypatch):
         self.service = CoordinatorsFuncs()
+
+    @pytest.fixture(autouse=True)
+    def setup_mocks(self, monkeypatch):
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.render_template", lambda t, **c: c)
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.url_for", lambda x: f"/{x}")
         self.mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", self.mock_flash)
 
 
 class TestCoordinatorsDashboard(TestSetup):
     def test_renders_with_coordinators(self, monkeypatch):
         mock_coord = MagicMock()
         mock_coord.is_active = True
-        monkeypatch.setattr(self.service.service, "list_coordinators", lambda: [mock_coord])
+        monkeypatch.setattr(self.service.admin_service, "list_coordinators", lambda: [mock_coord])
         result = self.service.dashboard()
         assert result["total_coordinators"] == 1
         assert result["total_active_coordinators"] == 1
 
     def test_renders_with_empty_list(self, monkeypatch):
-        monkeypatch.setattr(self.service.service, "list_coordinators", list)
+        monkeypatch.setattr(self.service.admin_service, "list_coordinators", list)
 
         result = self.service.dashboard()
         assert result["total_coordinators"] == 0
 
     def test_handles_exception(self, monkeypatch):
-        monkeypatch.setattr(self.service.service, "list_coordinators", Mock(side_effect=Exception("DB error")))
+        monkeypatch.setattr(self.service.admin_service, "list_coordinators", Mock(side_effect=Exception("DB error")))
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", Mock())
 
         result = self.service.dashboard()
@@ -69,7 +72,7 @@ class TestAddCoordinator(TestSetup):
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.request", mock_request)
 
         mock_add = Mock(side_effect=UserNotFoundError("User does not exist"))
-        monkeypatch.setattr(self.service.service, "add_coordinator", mock_add)
+        monkeypatch.setattr(self.service.admin_service, "add_coordinator", mock_add)
         self.service.add()
         self.mock_flash.assert_called()
 
@@ -79,7 +82,7 @@ class TestAddCoordinator(TestSetup):
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.request", mock_request)
 
         mock_add = Mock(side_effect=DuplicateUserError("Already exists"))
-        monkeypatch.setattr(self.service.service, "add_coordinator", mock_add)
+        monkeypatch.setattr(self.service.admin_service, "add_coordinator", mock_add)
         self.service.add()
         self.mock_flash.assert_called()
 
@@ -91,7 +94,7 @@ class TestAddCoordinator(TestSetup):
         mock_record = MagicMock()
         mock_record.username = "new_user"
         mock_add = Mock(return_value=mock_record)
-        monkeypatch.setattr(self.service.service, "add_coordinator", mock_add)
+        monkeypatch.setattr(self.service.admin_service, "add_coordinator", mock_add)
         self.service.add()
         self.mock_flash.assert_called_with("Coordinator 'new_user' added.", "success")
 
@@ -101,7 +104,7 @@ class TestSetRecordActiveStatus(TestSetup):
         mock_record = MagicMock()
         mock_record.is_active = True
         mock_record.username = "testuser"
-        monkeypatch.setattr(self.service.service, "set_coordinator_active", lambda i, a: mock_record)
+        monkeypatch.setattr(self.service.admin_service, "set_coordinator_active", lambda i, a: mock_record)
 
         self.service.activate(1)
         self.mock_flash.assert_called_with("Coordinator 'testuser' activated.", "success")
@@ -110,13 +113,13 @@ class TestSetRecordActiveStatus(TestSetup):
         mock_record = MagicMock()
         mock_record.is_active = False
         mock_record.username = "testuser"
-        monkeypatch.setattr(self.service.service, "set_coordinator_active", lambda i, a: mock_record)
+        monkeypatch.setattr(self.service.admin_service, "set_coordinator_active", lambda i, a: mock_record)
 
         self.service.deactivate(1)
         self.mock_flash.assert_called_with("Coordinator 'testuser' deactivated.", "success")
 
     def test_not_found(self, monkeypatch):
-        monkeypatch.setattr(self.service.service, "set_coordinator_active", lambda i, a: None)
+        monkeypatch.setattr(self.service.admin_service, "set_coordinator_active", lambda i, a: None)
 
         self.service.activate(999)
         self.mock_flash.assert_called()
@@ -126,14 +129,14 @@ class TestDeleteCoordinator(TestSetup):
     def test_success(self, monkeypatch):
         mock_record = MagicMock()
         mock_record.id = 1
-        monkeypatch.setattr(self.service.service, "get_coordinator_by_id", lambda i: mock_record)
-        monkeypatch.setattr(self.service.service, "delete", lambda i: None)
+        monkeypatch.setattr(self.service.admin_service, "get_coordinator_by_id", lambda i: mock_record)
+        monkeypatch.setattr(self.service.admin_service, "delete", lambda i: None)
 
         self.service.delete(1)
         self.mock_flash.assert_called_with("Coordinator '1' removed.", "success")
 
     def test_not_found(self, monkeypatch):
-        monkeypatch.setattr(self.service.service, "get_coordinator_by_id", Mock(side_effect=LookupError("not found")))
+        monkeypatch.setattr(self.service.admin_service, "get_coordinator_by_id", Mock(side_effect=LookupError("not found")))
 
         self.service.delete(999)
         self.mock_flash.assert_called()
