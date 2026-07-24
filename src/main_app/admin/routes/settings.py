@@ -76,53 +76,51 @@ class SettingsRoutes:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        @self.bp.route("/", methods=["GET"])
-        @admin_required
-        def dashboard():
-            settings_list = get_all_settings_raw()
-            return render_template(
-                "admins/settings.html",
-                settings_list=settings_list,
+        self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
+        self.bp.post("/create")(admin_required(self.create))
+        self.bp.post("/update")(admin_required(self.update))
+
+    def dashboard(self):
+        settings_list = get_all_settings_raw()
+        return render_template(
+            "admins/settings.html",
+            settings_list=settings_list,
+        )
+
+    def create(self):
+        key = request.form.get("key", "").strip()
+        title = request.form.get("title", "").strip()
+        value_type = request.form.get("value_type", "boolean").strip()
+
+        if not re.fullmatch(r"[a-z][a-z0-9_]{0,189}", key):
+            flash(
+                "Key must start with a lowercase letter and contain only lowercase letters, digits, and underscores.",
+                "danger",
             )
-
-        @self.bp.post("/create")
-        @admin_required
-        def create():
-            key = request.form.get("key", "").strip()
-            title = request.form.get("title", "").strip()
-            value_type = request.form.get("value_type", "boolean").strip()
-
-            if not re.fullmatch(r"[a-z][a-z0-9_]{0,189}", key):
-                flash(
-                    "Key must start with a lowercase letter and contain only lowercase letters, digits, and underscores.",
-                    "danger",
-                )
-                return redirect(url_for("adminpanel.settings.dashboard"))
-
-            if key and title:
-                success = create_setting(key, title, value_type)
-                if success:
-                    flash("Setting created successfully.", "success")
-                else:
-                    flash("Setting could not be created or already exists.", "danger")
-            else:
-                flash("Key and Title are required.", "danger")
-
             return redirect(url_for("adminpanel.settings.dashboard"))
 
-        @self.bp.post("/update")
-        @admin_required
-        def update():
-            failed_keys, deleted_keys = settings_update_form(request.form)
-            # Invalidate runtime cache only if all updates succeeded
-            if not failed_keys:
-                if deleted_keys:
-                    flash(f"Deleted settings: {', '.join(deleted_keys)}. ", "success")
-
-                flash("Settings updated successfully.", "success")
+        if key and title:
+            success = create_setting(key, title, value_type)
+            if success:
+                flash("Setting created successfully.", "success")
             else:
-                flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")
-            return redirect(url_for("adminpanel.settings.dashboard"))
+                flash("Setting could not be created or already exists.", "danger")
+        else:
+            flash("Key and Title are required.", "danger")
+
+        return redirect(url_for("adminpanel.settings.dashboard"))
+
+    def update(self):
+        failed_keys, deleted_keys = settings_update_form(request.form)
+        # Invalidate runtime cache only if all updates succeeded
+        if not failed_keys:
+            if deleted_keys:
+                flash(f"Deleted settings: {', '.join(deleted_keys)}. ", "success")
+
+            flash("Settings updated successfully.", "success")
+        else:
+            flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")
+        return redirect(url_for("adminpanel.settings.dashboard"))
 
 
 __all__ = [
