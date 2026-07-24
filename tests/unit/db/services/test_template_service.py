@@ -6,6 +6,8 @@ import pytest
 
 from src.main_app.db.services.template_service import TemplateService
 
+from .....src.main_app.db.exceptions import DuplicateRecordError
+
 
 class TestListTemplates:
     """Test list_templates function."""
@@ -45,6 +47,7 @@ class TestDeleteTemplate:
     def test_delete_template_success(self):
         data = {"title": "To Delete", "main_file": "delete.svg"}
         record = TemplateService().add_template_data(data)
+        assert record is not None
 
         result = TemplateService().delete(record.id)
 
@@ -62,6 +65,7 @@ class TestAddTemplate:
     def test_template_record_dataclass_with_none_main_file(self):
         data = {"title": "No Oldest File", "main_file": ""}
         record = TemplateService().add_template_data(data)
+        assert record is not None
 
         assert record.title == "No Oldest File"
         assert isinstance(record.main_file, str)
@@ -80,6 +84,7 @@ class TestAddTemplate:
             "main_file": "test.svg",
         }
         record = TemplateService().add_template_data(data)
+        assert record is not None
 
         assert record.title == "Test Template"
         assert record.main_file == "test.svg"
@@ -96,7 +101,7 @@ class TestAddTemplate:
             "title": "Duplicate",
             "main_file": "file2.svg",
         }
-        with pytest.raises(ValueError, match="Template 'Duplicate' already exists"):
+        with pytest.raises(DuplicateRecordError, match="Template 'Duplicate' already exists"):
             TemplateService().add_template_data(data2)
 
     def test_add_template_commit_failure_raises_error(self, monkeypatch):
@@ -158,6 +163,7 @@ class TestGetTemplate:
 
     def test_returns_template_by_id(self):
         record = TemplateService().add_template_data({"title": "Test", "main_file": "test.svg"})
+        assert record is not None
 
         result = TemplateService().get_template(record.id)
 
@@ -191,6 +197,7 @@ class TestUpdateTemplateData:
 
     def test_update_fields_successfully(self):
         record = TemplateService().add_template_data({"title": "Original", "main_file": "original.svg"})
+        assert record is not None
 
         updated = TemplateService().update_template_data(record.id, {"main_file": "updated.svg"})
 
@@ -205,6 +212,7 @@ class TestUpdateTemplateData:
 
     def test_ignores_none_values(self):
         record = TemplateService().add_template_data({"title": "Original", "main_file": "original.svg"})
+        assert record is not None
 
         updated = TemplateService().update_template_data(record.id, {"main_file": None, "title": "New Title"})
 
@@ -214,6 +222,7 @@ class TestUpdateTemplateData:
 
     def test_ignores_unknown_attributes(self):
         record = TemplateService().add_template_data({"title": "Original", "main_file": "file.svg"})
+        assert record is not None
 
         updated = TemplateService().update_template_data(record.id, {"nonexistent_field": "value"})
 
@@ -222,6 +231,7 @@ class TestUpdateTemplateData:
 
     def test_handles_file_prefix_stripping(self):
         record = TemplateService().add_template_data({"title": "Original", "main_file": "file.svg"})
+        assert record is not None
 
         updated = TemplateService().update_template_data(record.id, {"main_file": "File:new_file.svg"})
 

@@ -348,10 +348,10 @@ class TestParseSettingValue:
         assert _parse_setting_value("integer", "-10") == (-10, True)
 
     def test_integer_invalid(self):
-        assert _parse_setting_value("integer", "abc") == (0, True)
+        assert _parse_setting_value("integer", "abc") == (0, False)
 
     def test_integer_empty(self):
-        assert _parse_setting_value("integer", "") == (0, True)
+        assert _parse_setting_value("integer", "") == (0, False)
 
     def test_string(self):
         assert _parse_setting_value("string", "hello") == ("hello", True)

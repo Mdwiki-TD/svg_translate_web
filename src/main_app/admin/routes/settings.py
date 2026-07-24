@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
+from werkzeug.datastructures import ImmutableMultiDict
 
 from ...db.services import SettingsService
 from ..decorators import admin_required
@@ -19,7 +20,7 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
         try:
             return int(raw_val), True
         except (TypeError, ValueError):
-            return 0, True
+            return 0, False
     else:
         return raw_val, True
 
@@ -70,7 +71,7 @@ class SettingsFuncs:
             flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")
         return redirect(url_for("adminpanel.settings.dashboard"))
 
-    def settings_update_form(self, request_form) -> tuple[list[str], list[str]]:
+    def settings_update_form(self, request_form: ImmutableMultiDict) -> tuple[list[str], list[str]]:
         all_settings = self.service.get_all_settings_raw()
         failed_keys: list[str] = []
         deleted_keys: list[str] = []
@@ -119,7 +120,7 @@ class SettingsRoutes(SettingsFuncs):
         self.bp.post("/update")(admin_required(self.update))
 
 
-def settings_update_form(request_form) -> tuple[list[str], list[str]]:
+def settings_update_form(request_form: ImmutableMultiDict) -> tuple[list[str], list[str]]:
     return SettingsFuncs().settings_update_form(request_form)
 
 

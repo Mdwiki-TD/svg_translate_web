@@ -6,6 +6,7 @@ from typing import Any
 from sqlalchemy import String, cast, func, select
 
 from ...extensions import db
+from ..exceptions import DuplicateRecordError
 from ..models.templates import TemplateRecord
 from ..templates_utils import ensure_template_data
 from .delete_service import delete_record_by_pk
@@ -64,9 +65,7 @@ def _get_template_by_title(title: str) -> TemplateRecord:
 # ── INSERT, UPDATE, SET ──────────────────────────────────
 
 
-def _add_template_data(
-    data: dict[str, Any],
-) -> TemplateRecord:
+def _add_template_data(data: dict[str, Any]) -> TemplateRecord:
     """
     Add a new template.
     """
@@ -76,7 +75,7 @@ def _add_template_data(
 
     existing = db.session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
     if existing:
-        raise ValueError(f"Template '{title}' already exists")
+        raise DuplicateRecordError(f"Template '{title}' already exists")
 
     data = ensure_template_data(data)
 
@@ -124,18 +123,30 @@ class TemplateService:
         pass
 
     def list_templates(self, limit: int | None = None) -> list[TemplateRecord]:
-        return _list_templates(limit)
+        try:
+            return _list_templates(limit)
+        except Exception as exc:
+            logger.error(f"Error listing templates: {exc}")
+            return []
 
     def list_templates_mismatched_years(self) -> list[TemplateRecord]:
         return _list_templates_mismatched_years()
 
-    def get_template(self, template_id: int) -> TemplateRecord:
-        return _get_template(template_id)
+    def get_template(self, template_id: int) -> TemplateRecord | None:
+        try:
+            return _get_template(template_id)
+        except Exception as exc:
+            logger.error("Error getting template %s", str(exc))
+            return None
 
-    def get_template_by_title(self, title: str) -> TemplateRecord:
-        return _get_template_by_title(title)
+    def get_template_by_title(self, title: str) -> TemplateRecord | None:
+        try:
+            return _get_template_by_title(title)
+        except Exception as exc:
+            logger.error("Error getting template %s", str(exc))
+            return None
 
-    def add_template_data(self, data: dict[str, Any]) -> TemplateRecord:
+    def add_template_data(self, data: dict[str, Any]) -> TemplateRecord | None:
         return _add_template_data(data)
 
     def update_template_data(

@@ -31,24 +31,20 @@ def test_update_template_uses_request_form_type_parameter(mock_app, mock_service
     """Test that _update_template uses request.form.get with type=int parameter."""
     mock_services["update_template_data"].return_value = Mock(title="Test Title")
 
-    with mock_app.test_request_context(
-        method="POST", data={"id": "42", "title": "Test Title", "main_file": "test.svg"}
-    ):
-        # Spy on request.form.get with wraps to preserve original behavior
-        original_get = templates.request.form.get
-        mock_get = Mock(wraps=original_get)
-        monkeypatch.setattr(templates.request.form, "get", mock_get)
+    # Spy on request.form.get with wraps to preserve original behavior
+    original_get = templates.request.form.get
+    mock_get = Mock(wraps=original_get)
+    monkeypatch.setattr(templates.request.form, "get", mock_get)
 
-        templates.TemplatesRoutesFuncs().update_template()
+    templates.TemplatesRoutesFuncs()._update_template({"id": "42", "title": "Test Title", "main_file": "test.svg"})
 
-        # Verify get was called with type parameter for id
-        mock_get.assert_any_call("id", default=0, type=int)
+    # Verify get was called with type parameter for id
+    mock_get.assert_any_call("id", default=0, type=int)
 
 
 def test_update_template_correct_error_message_for_missing_title(mock_app, mock_services):
     """Test that _update_template shows correct error message for update (not 'add')."""
-    with mock_app.test_request_context(method="POST", data={"id": "1", "title": "", "main_file": "test.svg"}):
-        templates.TemplatesRoutesFuncs().update_template()
+    templates.TemplatesRoutesFuncs()._update_template({"id": "1", "title": "", "main_file": "test.svg"})
 
     # Verify the correct error message (should say "update" not "add")
     mock_services["flash"].assert_called_once()
@@ -59,7 +55,6 @@ def test_update_template_correct_error_message_for_missing_title(mock_app, mock_
 
 def test_update_template_missing_id_shows_error(mock_app, mock_services):
     """Test that _update_template shows error when template ID is missing."""
-    with mock_app.test_request_context(method="POST", data={"id": "0", "title": "Test", "main_file": "test.svg"}):
-        templates.TemplatesRoutesFuncs().update_template()
+    templates.TemplatesRoutesFuncs()._update_template({"id": "0", "title": "Test", "main_file": "test.svg"})
 
     mock_services["flash"].assert_called_once_with("Template ID is required to update a template.", "danger")

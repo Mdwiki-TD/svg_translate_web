@@ -413,7 +413,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     def process_one(self, template_title: str) -> CollectTemplatesDataWorkerObject:
         """Process a single template by title."""
 
-        template: TemplateRecord = self.template_service.get_template_by_title(template_title)
+        template = self.template_service.get_template_by_title(template_title)
         if not template:
             logger.error(f"Job {self.job_id}: Template '{template_title}' not found")
             self.result.summary.total = 0

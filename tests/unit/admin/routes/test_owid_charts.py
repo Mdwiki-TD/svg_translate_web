@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, Mock
 
-from werkzeug.datastructures import ImmutableMultiDict
+import pytest
 
 from src.main_app.admin.routes.owid_charts import (
     OwidCharts,
@@ -14,27 +14,13 @@ from src.main_app.admin.routes.owid_charts import (
 from src.main_app.db.services import ViewsService
 
 
-def _add_chart(request_form):
-    return OwidCharts()._add_chart(ImmutableMultiDict(request_form))
+class TestSetup:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.owid_charts_service = OwidCharts()
 
 
-def _delete_chart(chart_id: int, from_popup):
-    return OwidCharts()._delete_chart(chart_id, from_popup)
-
-
-def _edit_chart(chart_id: int):
-    return OwidCharts()._edit_chart(chart_id)
-
-
-def _update_chart(request_form):
-    return OwidCharts()._update_chart(ImmutableMultiDict(request_form))
-
-
-def create_json_file():
-    return OwidCharts().create_json_file()
-
-
-class TestCreateJsonFile:
+class TestCreateJsonFile(TestSetup):
     def _setup_service(self, monkeypatch, mock_service=None):
         if mock_service is None:
             mock_service = MagicMock()
@@ -57,7 +43,7 @@ class TestCreateJsonFile:
         mock_service = self._setup_service(monkeypatch)
         mock_service.list_charts.return_value = [mock_chart]
         monkeypatch.setattr(ViewsService, "list_owid_charts_templates", lambda self: [])
-        response, status = create_json_file()
+        response, status = self.owid_charts_service.create_json_file()
         assert status == 200
         assert "owid_charts.json" in response.headers["Content-Disposition"]
 
@@ -65,7 +51,7 @@ class TestCreateJsonFile:
         mock_service = self._setup_service(monkeypatch)
         mock_service.list_charts.return_value = []
         monkeypatch.setattr(ViewsService, "list_owid_charts_templates", lambda self: [])
-        msg, status = create_json_file()
+        msg, status = self.owid_charts_service.create_json_file()
         assert status == 404
         assert "No charts found" in msg
 
@@ -73,7 +59,7 @@ class TestCreateJsonFile:
         mock_service = self._setup_service(monkeypatch)
         mock_service.list_charts.side_effect = LookupError("not found")
         monkeypatch.setattr(ViewsService, "list_owid_charts_templates", lambda self: [])
-        msg, status = create_json_file()
+        msg, status = self.owid_charts_service.create_json_file()
         assert status == 404
         assert "Charts not found" in msg
 
@@ -81,7 +67,7 @@ class TestCreateJsonFile:
         mock_service = self._setup_service(monkeypatch)
         mock_service.list_charts.side_effect = RuntimeError("error")
         monkeypatch.setattr(ViewsService, "list_owid_charts_templates", lambda self: [])
-        msg, status = create_json_file()
+        msg, status = self.owid_charts_service.create_json_file()
         assert status == 500
         assert "Failed to create JSON file" in msg
 
@@ -105,7 +91,7 @@ class TestCreateJsonFile:
         mock_service = self._setup_service(monkeypatch)
         mock_service.list_charts.return_value = [mock_chart]
         monkeypatch.setattr(ViewsService, "list_owid_charts_templates", lambda self: [mock_template])
-        response, status = create_json_file()
+        response, status = self.owid_charts_service.create_json_file()
         import json as j
 
         data = j.loads(response.get_data())
@@ -113,7 +99,7 @@ class TestCreateJsonFile:
         assert data[0]["template_title"] == "Template:T"
 
 
-class TestAddChart:
+class TestAddChart(TestSetup):
     def _setup_service(self, monkeypatch):
         mock_service = MagicMock()
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService", lambda: mock_service)
@@ -134,7 +120,7 @@ class TestAddChart:
     def test_missing_slug(self, monkeypatch):
         self._setup_service(monkeypatch)
         self._setup_request(monkeypatch, {"slug": "", "title": "T", "from_popup": "0"})
-        _add_chart({"slug": "", "title": "T", "from_popup": "0"})
+        self.owid_charts_service._add_chart({"slug": "", "title": "T", "from_popup": "0"})
 
     def test_success(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
@@ -142,13 +128,13 @@ class TestAddChart:
         mock_record.title = "T"
         mock_service.add_chart.return_value = mock_record
         self._setup_request(monkeypatch, {"slug": "s", "title": "T", "from_popup": "0"})
-        _add_chart({"slug": "s", "title": "T", "from_popup": "0"})
+        self.owid_charts_service._add_chart({"slug": "s", "title": "T", "from_popup": "0"})
 
     def test_value_error(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.add_chart.side_effect = ValueError("error")
         self._setup_request(monkeypatch, {"slug": "s", "title": "T", "from_popup": "0"})
-        _add_chart({"slug": "s", "title": "T", "from_popup": "0"})
+        self.owid_charts_service._add_chart({"slug": "s", "title": "T", "from_popup": "0"})
 
     def test_from_popup_error(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
@@ -163,11 +149,11 @@ class TestAddChart:
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", Mock(return_value="redirected"))
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.url_for", lambda x, **kw: "/r")
-        result = _add_chart({"slug": "s", "title": "T", "from_popup": "1"})
+        result = self.owid_charts_service._add_chart({"slug": "s", "title": "T", "from_popup": "1"})
         assert "redirected" in result
 
 
-class TestUpdateChart:
+class TestUpdateChart(TestSetup):
     def _setup_service(self, monkeypatch):
         mock_service = MagicMock()
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService", lambda: mock_service)
@@ -188,13 +174,13 @@ class TestUpdateChart:
     def test_missing_slug(self, monkeypatch):
         self._setup_service(monkeypatch)
         self._setup_request(monkeypatch, {"chart_id": "1", "slug": "", "title": "T"})
-        _update_chart({"chart_id": "1", "slug": "", "title": "T"})
+        self.owid_charts_service._update_chart({"chart_id": "1", "slug": "", "title": "T"})
 
     def test_lookup_error(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.update_chart_data.side_effect = LookupError("not found")
         self._setup_request(monkeypatch, {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
-        _update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
+        self.owid_charts_service._update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
 
     def test_success(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
@@ -202,13 +188,13 @@ class TestUpdateChart:
         mock_record.title = "T"
         mock_service.update_chart_data.return_value = mock_record
         self._setup_request(monkeypatch, {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
-        _update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
+        self.owid_charts_service._update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
 
     def test_record_none(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.update_chart_data.return_value = None
         self._setup_request(monkeypatch, {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
-        _update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
+        self.owid_charts_service._update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
 
     def test_from_popup_error(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
@@ -223,11 +209,11 @@ class TestUpdateChart:
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", Mock(return_value="redirected"))
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.url_for", lambda x, **kw: "/r")
-        result = _update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "1"})
+        result = self.owid_charts_service._update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "1"})
         assert "redirected" in result
 
 
-class TestDeleteChart:
+class TestDeleteChart(TestSetup):
     def test_success(self, monkeypatch):
         mock_req = Mock()
 
@@ -242,7 +228,7 @@ class TestDeleteChart:
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.url_for", lambda x: f"/{x}")
-        _delete_chart(1, False)
+        self.owid_charts_service._delete_chart(1, False)
         mock_flash.assert_called_with("Chart '1' removed.", "success")
 
     def test_not_found(self, monkeypatch):
@@ -259,7 +245,7 @@ class TestDeleteChart:
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.url_for", lambda x: f"/{x}")
-        _delete_chart(999, False)
+        self.owid_charts_service._delete_chart(999, False)
         mock_flash.assert_called_with("Chart '999' not found.", "warning")
 
     def test_from_popup(self, monkeypatch):
@@ -274,17 +260,17 @@ class TestDeleteChart:
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.delete", mock_delete_chart)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", lambda t, **c: f"rendered:{t}")
-        result = _delete_chart(1, True)
+        result = self.owid_charts_service._delete_chart(1, True)
         assert "popup_action" in result
 
 
-class TestEditChart:
+class TestEditChart(TestSetup):
     def test_found(self, monkeypatch):
         mock_chart = MagicMock()
         mock_service = MagicMock()
         mock_service.get_chart_by_id.return_value = mock_chart
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService", lambda: mock_service)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", lambda t, **c: c)
-        result = _edit_chart(1)
-        assert result["chart"] == mock_chart
-        assert result["error"] is None
+        result = self.owid_charts_service._edit_chart(1)
+        assert result["chart"] == mock_chart  # pyright: ignore[reportCallIssue]
+        assert result["error"] is None  # pyright: ignore[reportCallIssue]
