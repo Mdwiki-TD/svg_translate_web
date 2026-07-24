@@ -169,7 +169,7 @@ class TestCoordinatorRoutes:
         resp = mock_client.get("/adminpanel/coordinators/")
         assert resp.status_code == 200
 
-    def test_AdminService().add_coordinator(self, mock_app, mock_client):
+    def test_add_coordinator(self, mock_app, mock_client):
         """Admin should be able to add a new coordinator."""
 
         with mock_app.app_context():
