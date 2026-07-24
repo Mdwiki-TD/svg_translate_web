@@ -5,7 +5,7 @@ from src.main_app.admin.routes.templates import (
 )
 
 
-@patch("src.main_app.admin.routes.templates.add_template_data")
+@patch("src.main_app.admin.routes.templates.TemplateService.add_template_data")
 @patch("src.main_app.admin.routes.templates.flash")
 @patch("src.main_app.admin.routes.templates.redirect")
 @patch("src.main_app.admin.routes.templates.url_for")
@@ -35,7 +35,7 @@ def test_add_template_missing_title(mock_url, mock_redirect, mock_flash, mock_ap
         mock_flash.assert_called_with("Title is required to add a template.", "danger")
 
 
-@patch("src.main_app.admin.routes.templates.update_template_data")
+@patch("src.main_app.admin.routes.templates.TemplateService.update_template_data")
 @patch("src.main_app.admin.routes.templates.flash")
 @patch("src.main_app.admin.routes.templates.redirect")
 @patch("src.main_app.admin.routes.templates.url_for")
@@ -74,7 +74,7 @@ def test_update_template_missing_id(mock_url, mock_redirect, mock_flash, mock_ap
         mock_flash.assert_called_with("Template ID is required to update a template.", "danger")
 
 
-@patch("src.main_app.admin.routes.templates.get_template")
+@patch("src.main_app.admin.routes.templates.TemplateService.get_template")
 @patch("src.main_app.admin.routes.templates.TemplateService.delete")
 @patch("src.main_app.admin.routes.templates.flash")
 @patch("src.main_app.admin.routes.templates.redirect")
@@ -165,7 +165,7 @@ def test_edit_template_found(mock_app, monkeypatch):
         updated_at=None,
         source=None,
     )
-    monkeypatch.setattr("src.main_app.admin.routes.templates.get_template", lambda id: template)
+    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.get_template", lambda id: template)
 
     with mock_app.test_request_context():
         with patch("src.main_app.admin.routes.templates.render_template") as mock_render:
@@ -183,7 +183,7 @@ def test_edit_template_not_found(mock_app, monkeypatch):
     from src.main_app.admin.routes.templates import TemplatesRoutesFuncs
 
     monkeypatch.setattr(
-        "src.main_app.admin.routes.templates.get_template",
+        "src.main_app.admin.routes.templates.TemplateService.get_template",
         lambda id: (_ for _ in ()).throw(LookupError("Not found")),
     )
 
