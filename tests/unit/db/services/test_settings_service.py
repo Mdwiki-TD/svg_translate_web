@@ -1,14 +1,8 @@
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
-from src.main_app.db.services.settings_service import (
-    _serialize_value,
-    create_setting,
-    get_all_settings_raw,
-    get_all_settings_ready,
-    get_setting_by_key,
-    list_settings,
-    update_setting,
-)
+from src.main_app.db.services.settings_service import SettingsService, _serialize_value
 
 
 def test_serialize_value_none():
@@ -36,11 +30,11 @@ def test_serialize_value_string():
 
 
 def test_get_all_settings_ready() -> None:
-    create_setting("crop_newest_upload_limit", "Crop Newest World Files upload limit", "integer", "5000")
-    records_raw = get_all_settings_raw()
+    SettingsService().create_setting("crop_newest_upload_limit", "Crop Newest World Files upload limit", "integer", "5000")
+    records_raw = SettingsService().get_all_settings_raw()
     assert records_raw[0]["value"] == "5000"
 
-    records = get_all_settings_ready()
+    records = SettingsService().get_all_settings_ready()
     assert records == {"crop_newest_upload_limit": 5000}
 
 
@@ -52,7 +46,7 @@ class TestListSettings:
         mock_query = MagicMock()
         mock_query.all.return_value = mock_records
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.query", lambda cls: mock_query)
-        result = list_settings()
+        result = SettingsService().list_settings()
         assert result == mock_records
 
 
@@ -65,9 +59,10 @@ class TestGetAllSettingsRaw:
         mock_record2 = MagicMock()
         mock_record2.to_dict.return_value = {"key": "setting2", "value": "val2"}
         monkeypatch.setattr(
-            "src.main_app.db.services.settings_service.list_settings", lambda: [mock_record1, mock_record2]
+            "src.main_app.db.services.settings_service.SettingsService.list_settings",
+            lambda self: [mock_record1, mock_record2],
         )
-        result = get_all_settings_raw()
+        result = SettingsService().get_all_settings_raw()
         assert result == [{"key": "setting1", "value": "val1"}, {"key": "setting2", "value": "val2"}]
 
 
@@ -79,41 +74,56 @@ class TestGetAllSettingsReady:
         mock_record.value_type = "boolean"
         mock_record.value = "true"
         mock_record.key = "test_bool"
-        monkeypatch.setattr("src.main_app.db.services.settings_service.list_settings", lambda: [mock_record])
-        assert get_all_settings_ready() == {"test_bool": True}
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.SettingsService.list_settings",
+            lambda self: [mock_record],
+        )
+        assert SettingsService().get_all_settings_ready() == {"test_bool": True}
 
     def test_boolean_false(self, monkeypatch):
         mock_record = MagicMock()
         mock_record.value_type = "boolean"
         mock_record.value = "false"
         mock_record.key = "test_bool"
-        monkeypatch.setattr("src.main_app.db.services.settings_service.list_settings", lambda: [mock_record])
-        assert get_all_settings_ready() == {"test_bool": False}
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.SettingsService.list_settings",
+            lambda self: [mock_record],
+        )
+        assert SettingsService().get_all_settings_ready() == {"test_bool": False}
 
     def test_integer_from_string(self, monkeypatch):
         mock_record = MagicMock()
         mock_record.value_type = "integer"
         mock_record.value = "42"
         mock_record.key = "test_int"
-        monkeypatch.setattr("src.main_app.db.services.settings_service.list_settings", lambda: [mock_record])
-        assert get_all_settings_ready() == {"test_int": 42}
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.SettingsService.list_settings",
+            lambda self: [mock_record],
+        )
+        assert SettingsService().get_all_settings_ready() == {"test_int": 42}
 
     def test_integer_from_int(self, monkeypatch):
         mock_record = MagicMock()
         mock_record.value_type = "integer"
         mock_record.value = 42
         mock_record.key = "test_int"
-        monkeypatch.setattr("src.main_app.db.services.settings_service.list_settings", lambda: [mock_record])
-        assert get_all_settings_ready() == {"test_int": 42}
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.SettingsService.list_settings",
+            lambda self: [mock_record],
+        )
+        assert SettingsService().get_all_settings_ready() == {"test_int": 42}
 
     def test_integer_invalid(self, monkeypatch, caplog):
         mock_record = MagicMock()
         mock_record.value_type = "integer"
         mock_record.value = "not_a_number"
         mock_record.key = "test_int"
-        monkeypatch.setattr("src.main_app.db.services.settings_service.list_settings", lambda: [mock_record])
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.SettingsService.list_settings",
+            lambda self: [mock_record],
+        )
         with caplog.at_level("WARNING"):
-            result = get_all_settings_ready()
+            result = SettingsService().get_all_settings_ready()
         assert result == {"test_int": None}
         assert "Could not parse setting test_int with value not_a_number" in caplog.text
 
@@ -122,17 +132,23 @@ class TestGetAllSettingsReady:
         mock_record.value_type = "string"
         mock_record.value = "hello"
         mock_record.key = "test_str"
-        monkeypatch.setattr("src.main_app.db.services.settings_service.list_settings", lambda: [mock_record])
-        assert get_all_settings_ready() == {"test_str": "hello"}
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.SettingsService.list_settings",
+            lambda self: [mock_record],
+        )
+        assert SettingsService().get_all_settings_ready() == {"test_str": "hello"}
 
     def test_unknown_type_logs_warning(self, monkeypatch, caplog):
         mock_record = MagicMock()
         mock_record.value_type = "unknown"
         mock_record.value = "anything"
         mock_record.key = "test_unknown"
-        monkeypatch.setattr("src.main_app.db.services.settings_service.list_settings", lambda: [mock_record])
+        monkeypatch.setattr(
+            "src.main_app.db.services.settings_service.SettingsService.list_settings",
+            lambda self: [mock_record],
+        )
         with caplog.at_level("WARNING"):
-            result = get_all_settings_ready()
+            result = SettingsService().get_all_settings_ready()
         assert result == {"test_unknown": None}
         assert "Could not parse setting test_unknown with value anything" in caplog.text
 
@@ -145,14 +161,14 @@ class TestGetSettingByKey:
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = mock_setting
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.query", lambda cls: mock_query)
-        result = get_setting_by_key("test_key")
+        result = SettingsService().get_setting_by_key("test_key")
         assert result == mock_setting
 
     def test_returns_none_for_missing_key(self, monkeypatch):
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = None
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.query", lambda cls: mock_query)
-        result = get_setting_by_key("nonexistent")
+        result = SettingsService().get_setting_by_key("nonexistent")
         assert result is None
 
 
@@ -170,7 +186,7 @@ class TestUpdateSetting:
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.query", lambda cls: mock_query)
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
-        result = update_setting("test_key", "new_value", "string", "New Title")
+        result = SettingsService().update_setting("test_key", "new_value", "string", "New Title")
 
         assert mock_setting.value == "new_value"
         assert mock_setting.title == "New Title"
@@ -181,7 +197,7 @@ class TestUpdateSetting:
         mock_query.filter.return_value.first.return_value = None
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.query", lambda cls: mock_query)
 
-        result = update_setting("nonexistent", "value")
+        result = SettingsService().update_setting("nonexistent", "value")
         assert result is False
 
     def test_serializes_value_according_to_type(self, monkeypatch):
@@ -195,7 +211,7 @@ class TestUpdateSetting:
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.query", lambda cls: mock_query)
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
-        update_setting("test_key", True, "boolean")
+        SettingsService().update_setting("test_key", True, "boolean")
         assert mock_setting.value == "true"
 
     def test_uses_existing_value_type_when_none_provided(self, monkeypatch):
@@ -209,7 +225,7 @@ class TestUpdateSetting:
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.query", lambda cls: mock_query)
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
-        update_setting("test_key", 99, value_type=None)
+        SettingsService().update_setting("test_key", 99, value_type=None)
         assert mock_setting.value == "99"
 
 
@@ -223,7 +239,7 @@ class TestCreateSetting:
         )
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
-        result = create_setting("test_key", "Test Title", "string", "test_value")
+        result = SettingsService().create_setting("test_key", "Test Title", "string", "test_value")
 
         assert result is True
         assert len(added_settings) == 1
@@ -241,7 +257,7 @@ class TestCreateSetting:
         rollback = MagicMock()
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.rollback", rollback)
 
-        result = create_setting("test_key", "Test Title", "string", "test_value")
+        result = SettingsService().create_setting("test_key", "Test Title", "string", "test_value")
 
         assert result is False
         rollback.assert_called_once()
@@ -253,7 +269,7 @@ class TestCreateSetting:
         )
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
-        create_setting("bool_key", "Bool Setting", "boolean")
+        SettingsService().create_setting("bool_key", "Bool Setting", "boolean")
         assert added_settings[0].value == "false"
 
     def test_default_value_integer(self, monkeypatch):
@@ -263,7 +279,7 @@ class TestCreateSetting:
         )
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
-        create_setting("int_key", "Int Setting", "integer")
+        SettingsService().create_setting("int_key", "Int Setting", "integer")
         assert added_settings[0].value == "0"
 
     def test_default_value_string(self, monkeypatch):
@@ -273,5 +289,5 @@ class TestCreateSetting:
         )
         monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", lambda: None)
 
-        create_setting("str_key", "Str Setting", "string")
+        SettingsService().create_setting("str_key", "Str Setting", "string")
         assert added_settings[0].value == ""
