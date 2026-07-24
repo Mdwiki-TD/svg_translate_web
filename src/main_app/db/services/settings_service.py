@@ -40,7 +40,7 @@ def _get_setting_by_key(key: str) -> SettingRecord | None:
     return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
 
 
-def get_setting_by_id(setting_id: int) -> SettingRecord | None:
+def _get_setting_by_id(setting_id: int) -> SettingRecord | None:
     """Get a setting record by ID."""
     orm_obj = db.session.get(SettingRecord, setting_id)
     if not orm_obj:
@@ -50,7 +50,7 @@ def get_setting_by_id(setting_id: int) -> SettingRecord | None:
 
 
 @db_guard(default_return=False)
-def update_setting(
+def _update_setting(
     key: str,
     value: Any,
     value_type: str = "string",
@@ -73,7 +73,7 @@ def update_setting(
     return True
 
 
-def create_setting(
+def _create_setting(
     key: str,
     title: str,
     value_type: str = "boolean",
@@ -164,7 +164,7 @@ class SettingsService:
 
     def get_setting_by_id(self, setting_id: int) -> SettingRecord | None:
         try:
-            return get_setting_by_id(setting_id)
+            return _get_setting_by_id(setting_id)
         except Exception:
             logger.exception("Could not get setting by ID")
             return None
@@ -176,7 +176,7 @@ class SettingsService:
         value_type: str = "string",
         title: str | None = None,
     ) -> bool:
-        return update_setting(key, value, value_type, title)
+        return _update_setting(key, value, value_type, title)
 
     def create_setting(
         self,
@@ -185,7 +185,7 @@ class SettingsService:
         value_type: str = "boolean",
         value: Any | None = None,
     ) -> bool:
-        return create_setting(key, title, value_type, value)
+        return _create_setting(key, title, value_type, value)
 
     def delete(self, record_id: int) -> bool:
         return delete_record_by_pk(SettingRecord, record_id)
