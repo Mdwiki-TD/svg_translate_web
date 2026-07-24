@@ -97,7 +97,7 @@ def test_delete_job():
     job = JobsService().create_job("collect_templates_data", username="z")
     assert len(JobsService().list_jobs()) == 1
 
-    JobsService().delete_job(job.id, "collect_templates_data")
+    JobsService().delete_job_by_id_and_type(job.id, "collect_templates_data")
     jobs_len = len(JobsService().list_jobs())
     assert jobs_len == 0
 
@@ -108,7 +108,7 @@ def test_delete_job_with_correct_type():
     job2 = JobsService().create_job("fix_nested_main_files", username="z")
     assert len(JobsService().list_jobs()) == 2
 
-    JobsService().delete_job(job1.id, "collect_templates_data")
+    JobsService().delete_job_by_id_and_type(job1.id, "collect_templates_data")
 
     remaining_jobs = JobsService().list_jobs()
     assert len(remaining_jobs) == 1
@@ -120,7 +120,7 @@ def test_delete_job_with_wrong_type():
     job = JobsService().create_job("collect_templates_data", username="z")
     assert len(JobsService().list_jobs()) == 1
 
-    JobsService().delete_job(job.id, "fix_nested_main_files")
+    JobsService().delete_job_by_id_and_type(job.id, "fix_nested_main_files")
 
     remaining_jobs = JobsService().list_jobs()
     assert len(remaining_jobs) == 1
@@ -129,7 +129,7 @@ def test_delete_job_with_wrong_type():
 
 def test_delete_nonexistent_job():
     """Test deleting a non-existent job."""
-    JobsService().delete_job(999, "collect_templates_data")
+    JobsService().delete_job_by_id_and_type(999, "collect_templates_data")
 
     assert len(JobsService().list_jobs()) == 0
 
@@ -529,14 +529,14 @@ class TestDeleteJob:
             _db.session.commit()
             job_id = record.id
 
-            result = JobsService().delete_job(job_id, "copy_svg_langs")
+            result = JobsService().delete_job_by_id_and_type(job_id, "copy_svg_langs")
             assert result is True
             _db.session.expire_all()
             assert _db.session.get(JobRecord, job_id) is None
 
     def test_delete_non_existent_job(self, mock_app, setup_db):
         with mock_app.app_context():
-            result = JobsService().delete_job(99999, "copy_svg_langs")
+            result = JobsService().delete_job_by_id_and_type(99999, "copy_svg_langs")
             assert result is False
 
     def test_delete_job_wrong_type(self, mock_app, setup_db):
@@ -548,7 +548,7 @@ class TestDeleteJob:
             _db.session.commit()
             job_id = record.id
 
-            result = JobsService().delete_job(job_id, "wrong_type")
+            result = JobsService().delete_job_by_id_and_type(job_id, "wrong_type")
             assert result is False
             _db.session.expire_all()
             assert _db.session.get(JobRecord, job_id) is not None

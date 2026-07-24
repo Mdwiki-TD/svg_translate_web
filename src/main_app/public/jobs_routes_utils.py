@@ -97,7 +97,7 @@ def delete_job_handler(job_id: int, job_type: str) -> str:
         if cancel_job_worker(job_id, job_type, job):
             logger.info("Cancelled running job %s before deletion", job_id)
 
-        if JobsService().delete_job(job_id, job_type):
+        if JobsService().delete_job_by_id_and_type(job_id, job_type):
             flash(f"Job {job_id} deleted successfully.", "success")
         else:
             flash(f"Failed to delete job {job_id}", "danger")

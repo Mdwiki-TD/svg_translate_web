@@ -300,7 +300,7 @@ class JobsService:
         db.session.refresh(job)
         return True
 
-    def delete_job(self, job_id: int, job_type: str) -> bool:
+    def delete_job_by_id_and_type(self, job_id: int, job_type: str) -> bool:
         """
         Special case since it filters by multiple columns (id and job_type).
         """
