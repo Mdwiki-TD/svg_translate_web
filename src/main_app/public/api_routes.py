@@ -5,16 +5,13 @@ from typing import Any
 
 from flask import Blueprint, jsonify
 
-from ..db.models import OwidChartRecord, OwidChartTemplateView, TemplateRecord
+from ..db.models import OwidChartTemplateView, TemplateRecord
 from ..db.services import (
-    list_charts,
-    list_charts_with_templates,
-    list_owid_charts_templates,
-    list_templates,
-    list_templates_mismatched_years,
-    list_templates_need_update,
+    OwidChartsService,
+    TemplateService,
+    ViewsService,
 )
-from ..shared.owid_charts_utils import charts_new_list, make_charts_summary
+from ..shared.owid_charts_utils import charts_new_list
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +19,9 @@ logger = logging.getLogger(__name__)
 class ApiRoutes:
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
+        self.owid_charts_service = OwidChartsService()
+        self.views_service = ViewsService()
+        self.templates_service = TemplateService()
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -33,11 +33,8 @@ class ApiRoutes:
         self.bp.get("/owidcharts/")(self.owid_charts_list)
         self.bp.get("/owidcharts/<string:template_filter>")(self.owid_charts_list)
 
-        self.bp.get("/owidcharts_new/")(self.owid_charts_list_new)
-        self.bp.get("/owidcharts_new/<string:template_filter>")(self.owid_charts_list_new)
-
     def templates_list(self):
-        templates: list[TemplateRecord] = list_templates()
+        templates: list[TemplateRecord] = self.templates_service.list_templates()
 
         data: list[dict[str, Any]] = []
         with_main_file = 0
@@ -73,7 +70,7 @@ class ApiRoutes:
 
     def templates_mismatched_years_list(self):
         try:
-            templates = list_templates_mismatched_years()
+            templates = self.templates_service.list_templates_mismatched_years()
             data = [t.to_dict() for t in templates]
         except Exception as e:
             logger.exception(e)
@@ -82,30 +79,20 @@ class ApiRoutes:
         return jsonify({"data": data})
 
     def templates_need_update_list(self):
-        templates = list_templates_need_update()
+        templates = self.views_service.list_templates_need_update()
 
         data = [t.to_dict() for t in templates]
 
         return jsonify({"data": data})
 
     def charts_templates(self):
-        all_charts_templates: list[OwidChartTemplateView] = list_owid_charts_templates()
+        all_charts_templates: list[OwidChartTemplateView] = self.views_service.list_owid_charts_templates()
 
         data = [c.to_dict() for c in all_charts_templates if c.template_id]
         return jsonify(data)
 
     def owid_charts_list(self, template_filter: str = ""):
-        all_charts: list[OwidChartRecord] = list_charts()
-        all_charts_templates: list[OwidChartTemplateView] = list_owid_charts_templates()
-
-        charts_temps = {c.chart_id: c for c in all_charts_templates}
-
-        summary, data = make_charts_summary(all_charts, charts_temps, template_filter)
-
-        return jsonify({"data": data, "summary": summary, "selected_template": template_filter})
-
-    def owid_charts_list_new(self, template_filter: str = ""):
-        charts_with_templates = list_charts_with_templates()
+        charts_with_templates = self.owid_charts_service.list_charts_with_templates()
         results = charts_new_list(charts_with_templates, template_filter)
         return jsonify(results)
 

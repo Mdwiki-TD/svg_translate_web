@@ -8,20 +8,19 @@ from unittest.mock import MagicMock
 import pytest
 from flask.testing import FlaskClient
 
-_DEFAULTS_TEMPLATE: dict[str, Any] = {
-    "id": 0,
-    "title": "",
-    "main_file": None,
-    "last_world_file": None,
-    "last_world_year": None,
-    "source": "",
-    "slug": "",
-    "created_at": None,
-    "updated_at": None,
-}
-
 
 def _make_template_mock(**attrs: Any) -> MagicMock:
+    _DEFAULTS_TEMPLATE: dict[str, Any] = {
+        "id": 0,
+        "title": "",
+        "main_file": None,
+        "last_world_file": None,
+        "last_world_year": None,
+        "source": "",
+        "slug": "",
+        "created_at": None,
+        "updated_at": None,
+    }
     data = {**_DEFAULTS_TEMPLATE, **attrs}
     mock = MagicMock()
     for key, value in data.items():
@@ -30,25 +29,23 @@ def _make_template_mock(**attrs: Any) -> MagicMock:
     return mock
 
 
-_DEFAULTS_CHART: dict[str, Any] = {
-    "chart_id": 0,
-    "slug": "",
-    "title": "",
-    "has_map_tab": False,
-    "max_time": None,
-    "min_time": None,
-    "default_tab": None,
-    "owid_variable_id": None,
-    "is_published": False,
-    "single_year_data": False,
-    "len_years": None,
-    "has_timeline": False,
-    "created_at": None,
-    "updated_at": None,
-}
-
-
 def _make_chart_mock(**attrs: Any) -> MagicMock:
+    _DEFAULTS_CHART: dict[str, Any] = {
+        "chart_id": 0,
+        "slug": "",
+        "title": "",
+        "has_map_tab": False,
+        "max_time": None,
+        "min_time": None,
+        "default_tab": None,
+        "owid_variable_id": None,
+        "is_published": False,
+        "single_year_data": False,
+        "len_years": None,
+        "has_timeline": False,
+        "created_at": None,
+        "updated_at": None,
+    }
     data = {**_DEFAULTS_CHART, **attrs}
     mock = MagicMock()
     for key, value in data.items():
@@ -63,6 +60,28 @@ def _make_chart_template_mock(**attrs: Any) -> MagicMock:
         setattr(mock, key, value)
     mock.to_dict.return_value = dict(attrs)
     return mock
+
+
+@pytest.fixture
+def mock_services(monkeypatch: pytest.MonkeyPatch):
+    mocks = {
+        "owidchartsservice": MagicMock(),
+        "templateservice": MagicMock(),
+        "viewsservice": MagicMock(),
+    }
+    monkeypatch.setattr(
+        "src.main_app.public.api_routes.OwidChartsService",
+        mocks["owidchartsservice"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.public.api_routes.TemplateService",
+        mocks["templateservice"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.public.api_routes.ViewsService",
+        mocks["viewsservice"],
+    )
+    return mocks
 
 
 class TestTemplatesList:
