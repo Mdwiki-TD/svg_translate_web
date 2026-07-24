@@ -13,15 +13,15 @@ Generated for `tests/` directory.
 
 | #   | File                                                                                                      | Count | Status                 |
 | --- | --------------------------------------------------------------------------------------------------------- | ----- | ---------------------- |
-| 1   | `tests/unit/admin/routes/test_coordinators.py`                                                            | 47    | 🔴 refactor candidate  |
-| 2   | `tests/unit/admin/routes/test_owid_charts.py`                                                             | 36    | 🔴 refactor candidate  |
-| 3   | `tests/unit/admin/routes/test_users_routes.py`                                                            | 30    | 🔴 refactor candidate  |
-| 4   | `tests/unit/db/services/test_settings_service.py`                                                         | 29    | 🟡 refactor candidate  |
-| 5   | `tests/unit/admin/routes/test_slug_redirects.py`                                                          | 25    | 🟡 refactor candidate  |
-| 6   | `tests/unit/db/services/test_jobs_service.py`                                                             | 23    | 🟡 refactor candidate  |
-| 7   | `tests/unit/admin/routes/test_settings.py`                                                                | 23    | 🟡 refactor candidate  |
-| 8   | `tests/integration/admin/routes/test_admin_jobs_routes.py`                                                | 23    | 🟡 refactor candidate  |
-| 9   | `tests/unit/jobs_workers/public_jobs_workers/copy_svg_langs/test_copy_svg_langs_worker.py`                | 22    | 🟡 refactor candidate  |
+| 1   | `tests/unit/admin/routes/test_coordinators.py`                                                            | 10    |                        |
+| 2   | `tests/unit/admin/routes/test_owid_charts.py`                                                             | 6     |                        |
+| 3   | `tests/unit/admin/routes/test_users_routes.py`                                                            | 10    | ✅ refactored (was 30) |
+| 4   | `tests/unit/db/services/test_settings_service.py`                                                         | 5     | ✅ refactored (was 29) |
+| 5   | `tests/unit/admin/routes/test_slug_redirects.py`                                                          | 25    | 🔴 refactor candidate  |
+| 6   | `tests/unit/db/services/test_jobs_service.py`                                                             | 23    | 🔴 refactor candidate  |
+| 7   | `tests/unit/admin/routes/test_settings.py`                                                                | 23    | 🔴 refactor candidate  |
+| 8   | `tests/integration/admin/routes/test_admin_jobs_routes.py`                                                | 23    | 🔴 refactor candidate  |
+| 9   | `tests/unit/jobs_workers/public_jobs_workers/copy_svg_langs/test_copy_svg_langs_worker.py`                | 22    | 🟡                     |
 | 10  | `tests/unit/public/test_public_jobs.py`                                                                   | 20    | ✅ refactored (was 85) |
 | 11  | `tests/unit/public/test_jobs_utils_bp.py`                                                                 | 19    | 🟠 borderline          |
 | 12  | `tests/integration/public/auth/test_auth_routes.py`                                                       | 19    | 🟠 borderline          |
@@ -91,32 +91,26 @@ Generated for `tests/` directory.
 | 76  | `tests/integration/public/auth/test_oauth_helpers_integration.py`                                         | 1     |                        |
 | 77  | `tests/integration/api_services/files_service/test_upload_bot_integration.py`                             | 1     |                        |
 
-## Refactoring Priority Tiers
+## Refactoring Progress
 
-### 🔴 High priority (≥30 calls)
+### ✅ Refactored files
 
-| File                   | Count |
-| ---------------------- | ----- |
-| `test_coordinators.py` | 47    |
-| `test_owid_charts.py`  | 36    |
-| `test_users_routes.py` | 30    |
+| File                       | Before  | After  | Reduction |
+| -------------------------- | ------- | ------ | --------- |
+| `test_public_jobs.py`      | 85      | 20     | 76%       |
+| `test_users_routes.py`     | 30      | 10     | 67%       |
+| `test_settings_service.py` | 29      | 5      | 83%       |
+| **Total**                  | **144** | **35** | **76%**   |
 
-### 🟡 Medium priority (20–29 calls)
+### 🔴 Remaining high-priority candidates (≥20 calls)
 
 | File                            | Count |
 | ------------------------------- | ----- |
-| `test_settings_service.py`      | 29    |
 | `test_slug_redirects.py`        | 25    |
 | `test_jobs_service.py`          | 23    |
 | `test_settings.py`              | 23    |
 | `test_admin_jobs_routes.py`     | 23    |
 | `test_copy_svg_langs_worker.py` | 22    |
-
-### ✅ Already refactored
-
-| File                  | Before → After          |
-| --------------------- | ----------------------- |
-| `test_public_jobs.py` | 85 → 20 (76% reduction) |
 
 ## Recommended Refactoring Patterns
 
