@@ -8,11 +8,6 @@ import pytest
 
 from src.main_app.db.services.owid_charts_service import OwidChartsService
 
-
-def delete_chart(id: int) -> bool:
-    return OwidChartsService().delete(id)
-
-
 @pytest.fixture
 def sample_record():
     """Create a sample OwidChartRecord."""
@@ -252,7 +247,7 @@ class TestDeleteChart:
         mock_db.session.get.return_value = mock_record
         monkeypatch.setattr("src.main_app.db.services.delete_service.db", mock_db)
 
-        result = delete_chart(1)
+        result = OwidChartsService().delete(1)
         assert result is True
         mock_db.session.get.assert_called_once()
         mock_db.session.delete.assert_called_once_with(mock_record)
@@ -264,7 +259,7 @@ class TestDeleteChart:
         mock_db.session.get.return_value = None
         monkeypatch.setattr("src.main_app.db.services.delete_service.db", mock_db)
 
-        result = delete_chart(999)
+        result = OwidChartsService().delete(999)
         assert result is False
         mock_db.session.get.assert_called_once()
         mock_db.session.delete.assert_not_called()
@@ -274,6 +269,6 @@ class TestDeleteChart:
         mock_db = MagicMock()
         monkeypatch.setattr("src.main_app.db.services.delete_service.db", mock_db)
 
-        result = delete_chart(None)
+        result = OwidChartsService().delete(None)
         assert result is False
         mock_db.session.get.assert_not_called()
