@@ -38,19 +38,19 @@ class PublicJobsRoutes(JobsBp):
         @self.bp.post("/<string:job_type>/<int:job_id>/cancel")
         @user_login_required
         def cancel_job(job_type: str, job_id: int) -> Response:
-            return self.cancel_job(job_type, job_id)
+            return self.cancel_running_job(job_type, job_id)
 
         @self.bp.route("/<string:job_type>", methods=["GET"])
         def jobs_list(job_type: str) -> str:
-            return self.jobs_list(job_type)
+            return self.jobs_lists(job_type)
 
         @self.bp.route("/<string:job_type>/<int:job_id>", methods=["GET"])
         def job_detail(job_type: str, job_id: int) -> Response | str:
-            return self.job_detail(job_type, job_id)
+            return self.job_details(job_type, job_id)
 
         @self.bp.route("/<string:job_type>/<int:job_id>/expand", methods=["GET"])
         def job_detail_expand(job_type: str, job_id: int) -> Response | str:
-            return self.job_detail(job_type, job_id, expand_all=True)
+            return self.job_details(job_type, job_id, expand_all=True)
 
         @self.bp.post("/<string:job_type>/start")
         @user_login_required
@@ -66,7 +66,7 @@ class PublicJobsRoutes(JobsBp):
         @self.bp.route("/job-file/<string:result_file>/<string:job_type>", methods=["GET"])
         @user_login_required
         def read_job_result_file(result_file: str, job_type: str) -> ResponseReturnValue:
-            return self.read_job_result_file(result_file, job_type)
+            return self.read_job_file(result_file, job_type)
 
 
 __all__ = [

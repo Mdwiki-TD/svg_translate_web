@@ -34,7 +34,7 @@ class AdminJobsRoutes(JobsBp):
 
     def _setup_routes(self) -> None:
         self.bp.route("/<string:job_type>", methods=["GET"])(admin_required(self.jobs_list))
-        self.bp.route("/<string:job_type>/<int:job_id>", methods=["GET"])(admin_required(self.job_detail))
+        self.bp.route("/<string:job_type>/<int:job_id>", methods=["GET"])(admin_required(self.job_details))
         self.bp.route("/<string:job_type>/<int:job_id>/expand", methods=["GET"])(admin_required(self.job_detail_expand))
         self.bp.route("/job-file/<string:result_file>/<string:job_type>", methods=["GET"])(
             admin_required(self.read_job_result_file)
@@ -45,16 +45,16 @@ class AdminJobsRoutes(JobsBp):
         self.bp.route("/<string:job_type>/<int:job_id>/delete", methods=["POST"])(admin_required(self.delete_job))
 
     def cancel_job(self, job_type: str, job_id: int) -> Response:
-        return self.cancel_job(job_type, job_id)
+        return self.cancel_running_job(job_type, job_id)
 
     def jobs_list(self, job_type: str) -> str:
-        return self.jobs_list(job_type)
+        return self.jobs_lists(job_type)
 
     def job_detail(self, job_type: str, job_id: int) -> Response | str:
-        return self.job_detail(job_type, job_id)
+        return self.job_details(job_type, job_id)
 
     def job_detail_expand(self, job_type: str, job_id: int) -> Response | str:
-        return self.job_detail(job_type, job_id, expand_all=True)
+        return self.job_details(job_type, job_id, expand_all=True)
 
     def start_job(self, job_type: str) -> ResponseReturnValue:
         args = request.form.to_dict()
@@ -64,7 +64,7 @@ class AdminJobsRoutes(JobsBp):
         return self.delete_job_record(job_type, job_id)
 
     def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
-        return self.read_job_result_file(result_file, job_type)
+        return self.read_job_file(result_file, job_type)
 
 
 __all__ = [

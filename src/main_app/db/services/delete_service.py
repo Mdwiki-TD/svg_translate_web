@@ -7,7 +7,6 @@ from typing import Any
 
 from ...extensions import db
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -31,6 +30,7 @@ def delete_record_by_pk(model: type[db.Model], pk_value: Any) -> bool:  # type: 
         logger.error(f"Error deleting {model.__name__} with PK {pk_value}: {e}")
         db.session.rollback()
         return False
+
 
 __all__ = [
     "delete_record_by_pk",

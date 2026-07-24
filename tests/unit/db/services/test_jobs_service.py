@@ -9,10 +9,10 @@ from sqlalchemy.exc import OperationalError
 
 from src.main_app.db.models import JobRecord
 from src.main_app.db.services.jobs_service import (
-    delete_job_by_id_and_type,
     _normalize_limit,
     cancel_job_db,
     create_job,
+    delete_job_by_id_and_type,
     get_all_user_jobs_stats,
     get_job,
     get_user_jobs_stats,
@@ -556,6 +556,7 @@ class TestUpdateJobStatusWithRetry:
 class TestDeleteJob:
     def test_delete_existing_job(self, mock_app, setup_db):
         from src.main_app.extensions import db as _db
+
         with mock_app.app_context():
             record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
             _db.session.add(record)
@@ -575,6 +576,7 @@ class TestDeleteJob:
     def test_delete_job_wrong_type(self, mock_app, setup_db):
         """Deleting with wrong job_type should not delete."""
         from src.main_app.extensions import db as _db
+
         with mock_app.app_context():
             record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
             _db.session.add(record)

@@ -388,6 +388,7 @@ class JobsService:
     def delete_job(self, job_id: int, job_type: str) -> bool:
         return delete_job_by_id_and_type(job_id, job_type)
 
+
 __all__ = [
     "JobsService",
     "create_job",

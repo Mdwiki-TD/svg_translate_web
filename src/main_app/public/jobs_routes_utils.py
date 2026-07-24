@@ -224,7 +224,7 @@ class JobsBp(ABC):
         self.bp_name = bp_name
         self._setup_routes()
 
-    def cancel_job(self, job_type: str, job_id: int) -> Response:
+    def cancel_running_job(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             flash("Job type not found.", "warning")
             abort(404)
@@ -236,14 +236,14 @@ class JobsBp(ABC):
 
         return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
 
-    def jobs_list(self, job_type: str) -> str:
+    def jobs_lists(self, job_type: str) -> str:
         template_data: JobData | None = self.jobs_data_infos.get(job_type)
         if not template_data:
             abort(404)
 
         return jobs_list_handler(job_type, template_data)
 
-    def job_detail(self, job_type: str, job_id: int, expand_all: bool = False) -> Response | str:
+    def job_details(self, job_type: str, job_id: int, expand_all: bool = False) -> Response | str:
         # Load template data
         template_data: JobData | None = self.jobs_data_infos.get(job_type)
 
@@ -277,7 +277,7 @@ class JobsBp(ABC):
 
         return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
 
-    def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
+    def read_job_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
         """ """
         if job_type not in self.jobs_data_infos:
             abort(404)
