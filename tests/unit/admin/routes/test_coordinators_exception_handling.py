@@ -5,47 +5,54 @@ from __future__ import annotations
 import logging
 from unittest.mock import Mock
 
+import pytest
+
 from src.main_app.admin.routes.coordinators import CoordinatorsFuncs
 
 
-def test_add_coordinator_catches_both_lookup_and_value_errors(monkeypatch, caplog):
-    """Test that add catches both LookupError and ValueError in single except clause."""
-    mock_add_coordinator = Mock()
-    monkeypatch.setattr("src.main_app.admin.routes.coordinators.add_coordinator", mock_add_coordinator)
+class TestAddCoordinatorExceptionHandling:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.funcs = CoordinatorsFuncs()
 
-    # Mock Flask globals to avoid "Working outside of request context" errors
-    mock_request = Mock()
-    mock_request.form.get.return_value = "test_user"
-    monkeypatch.setattr("src.main_app.admin.routes.coordinators.request", mock_request)
+    def test_catches_both_lookup_and_value_errors(self, monkeypatch, caplog):
+        """Test that add catches both LookupError and ValueError in single except clause."""
+        mock_add_coordinator = Mock()
+        monkeypatch.setattr(self.funcs.service, "add_coordinator", mock_add_coordinator)
 
-    mock_flash = Mock()
-    monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", mock_flash)
+        # Mock Flask globals to avoid "Working outside of request context" errors
+        mock_request = Mock()
+        mock_request.form.get.return_value = "test_user"
+        monkeypatch.setattr("src.main_app.admin.routes.coordinators.request", mock_request)
 
-    mock_redirect = Mock()
-    monkeypatch.setattr("src.main_app.admin.routes.coordinators.redirect", mock_redirect)
+        mock_flash = Mock()
+        monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", mock_flash)
 
-    monkeypatch.setattr("src.main_app.admin.routes.coordinators.url_for", lambda x: f"/{x}")
+        mock_redirect = Mock()
+        monkeypatch.setattr("src.main_app.admin.routes.coordinators.redirect", mock_redirect)
 
-    # Test with ValueError
-    mock_add_coordinator.side_effect = ValueError("Username invalid")
+        monkeypatch.setattr("src.main_app.admin.routes.coordinators.url_for", lambda x: f"/{x}")
 
-    with caplog.at_level(logging.ERROR):
-        CoordinatorsFuncs().add()
+        # Test with ValueError
+        mock_add_coordinator.side_effect = ValueError("Username invalid")
 
-    # Verify exception was logged
-    assert "Unable to Add coordinator" in caplog.text
+        with caplog.at_level(logging.ERROR):
+            self.funcs.add()
 
-    # Verify flash was called with the error message
-    mock_flash.assert_called_once_with("Unable to add 'test_user' as coordinator", "warning")
+        # Verify exception was logged
+        assert "Unable to Add coordinator" in caplog.text
 
-    # Reset for next part
-    mock_flash.reset_mock()
-    caplog.clear()
+        # Verify flash was called with the error message
+        mock_flash.assert_called_once_with("Unable to add 'test_user' as coordinator", "warning")
 
-    # Test with LookupError
-    mock_add_coordinator.side_effect = LookupError("User not found")
+        # Reset for next part
+        mock_flash.reset_mock()
+        caplog.clear()
 
-    with caplog.at_level(logging.ERROR):
-        CoordinatorsFuncs().add()
+        # Test with LookupError
+        mock_add_coordinator.side_effect = LookupError("User not found")
 
-    mock_flash.assert_called_once_with("Unable to add 'test_user' as coordinator", "warning")
+        with caplog.at_level(logging.ERROR):
+            self.funcs.add()
+
+        mock_flash.assert_called_once_with("Unable to add 'test_user' as coordinator", "warning")
