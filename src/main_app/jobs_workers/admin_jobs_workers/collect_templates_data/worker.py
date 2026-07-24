@@ -16,7 +16,7 @@ from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_
 from ....db.models import TemplateRecord
 from ....db.services import (
     TemplateService,
-    get_chart_by_slug,
+    OwidChartsService,
     list_templates_need_update,
 )
 from ....db.templates_utils import extract_slug
@@ -70,12 +70,7 @@ def slugify_title(title: str) -> str:
     slug = slug.strip("-")
 
     if slug:
-        # Only assign slug if it exists in the owid_charts table
-        try:
-            get_chart_by_slug(slug)
-            return slug
-        except (LookupError, RuntimeError):
-            return None
+        return slug
     return None
 
 
@@ -96,6 +91,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         self.args = args or {}
         self.template_service = TemplateService()
+        self.owid_charts_service = OwidChartsService()
         self.result.args = self.args
         self.update_all = str(self.args.get("update_all", "")).lower() == "true"
 
@@ -371,11 +367,21 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return False
 
+    def slugify_title(self, template_title: str) -> str | None:
+        slug = slugify_title(template_title)
+        # Only assign slug if it exists in the owid_charts table
+        if slug:
+            try:
+                self.owid_charts_service.get_chart_by_slug(slug)
+                return slug
+            except (LookupError, RuntimeError):
+                return None
+
     def _load_slug(self, template_title: str, template_slug: str, template_source: str) -> str | None:
         _slug = extract_slug(template_source)
 
         if not _slug:
-            _slug = slugify_title(template_title)
+            _slug = self.slugify_title(template_title)
 
         _slug_to_check = _slug or template_slug
 
