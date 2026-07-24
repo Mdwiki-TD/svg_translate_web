@@ -12,7 +12,6 @@ import pytest
 from src.main_app.admin.routes.owid_charts import OwidCharts
 from src.main_app.db.services import ViewsService
 
-
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self):
@@ -32,9 +31,6 @@ class TestSetup:
         self.mock_render_template = Mock(side_effect=lambda t, **c: c)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", self.mock_render_template)
 
-        self.mock_owid_charts_service = MagicMock()
-        self.owid_charts_service.owid_charts_service = self.mock_owid_charts_service
-
         self.mock_delete_chart = MagicMock(return_value=True)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.delete", self.mock_delete_chart)
 
@@ -42,7 +38,21 @@ class TestSetup:
         monkeypatch.setattr(ViewsService, "list_owid_charts_templates", self.mock_list_templates)
 
 
-class TestCreateJsonFile(TestSetup):
+class TestSetupWithMockService(TestSetup):
+    """For test classes that stub out the owid_charts_service instance entirely.
+
+    TestDeleteChart intentionally does NOT use this — it exercises the real service
+    instance and only patches OwidChartsService.delete at the class level, so forcing
+    a generic instance mock on it would silently swallow that patch.
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup_mock_service(self):
+        self.mock_owid_charts_service = MagicMock()
+        self.owid_charts_service.owid_charts_service = self.mock_owid_charts_service
+
+
+class TestCreateJsonFile(TestSetupWithMockService):
     def test_success(self):
         mock_chart = MagicMock()
         mock_chart.chart_id = 1
@@ -109,7 +119,7 @@ class TestCreateJsonFile(TestSetup):
         assert data[0]["template_title"] == "Template:T"
 
 
-class TestAddChart(TestSetup):
+class TestAddChart(TestSetupWithMockService):
     def test_missing_slug(self):
         self.owid_charts_service._add_chart({"slug": "", "title": "T", "from_popup": "0"})
 
@@ -134,7 +144,7 @@ class TestAddChart(TestSetup):
         assert "redirected" in result
 
 
-class TestUpdateChart(TestSetup):
+class TestUpdateChart(TestSetupWithMockService):
     def test_missing_slug(self):
         self.owid_charts_service._update_chart({"chart_id": "1", "slug": "", "title": "T"})
 
@@ -187,7 +197,7 @@ class TestDeleteChart(TestSetup):
         assert "popup_action" in result
 
 
-class TestEditChart(TestSetup):
+class TestEditChart(TestSetupWithMockService):
     def test_found(self):
         mock_chart = MagicMock()
         self.mock_owid_charts_service.get_chart_by_id.return_value = mock_chart
