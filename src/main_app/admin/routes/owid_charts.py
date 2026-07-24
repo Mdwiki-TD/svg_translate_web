@@ -264,7 +264,7 @@ class OwidChartsRoutes(OwidCharts):
 
         self.bp.add_url_rule(
             rule="/<string:template_filter>",
-            endpoint="filterd_dashboard",
+            endpoint="filtered_dashboard",
             view_func=admin_required(self.dashboard),
             methods=["GET"],
         )
