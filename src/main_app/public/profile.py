@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 class ProfileRoutes:
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
+        self.jobs_service = JobsService()
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -33,11 +34,10 @@ class ProfileRoutes:
                 show_all = bool(user and getattr(user, "is_active_admin", False))
 
             try:
-                jobs_service = JobsService()
                 if show_all:
-                    data = jobs_service.get_all_user_jobs_stats(user_name)
+                    data = self.jobs_service.get_all_user_jobs_stats(user_name)
                 else:
-                    data = jobs_service.get_user_jobs_stats(
+                    data = self.jobs_service.get_user_jobs_stats(
                         username=user_name,
                         jobs_types=list(jobs_data_public.keys()),
                     )

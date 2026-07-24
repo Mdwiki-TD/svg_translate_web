@@ -85,7 +85,7 @@ def _mock_stats_functions(monkeypatch):
         mock_get_all,
     )
     monkeypatch.setattr(
-        "src.main_app.public.profile.get_user_jobs_stats",
+        "src.main_app.public.profile.JobsService.get_user_jobs_stats",
         mock_get_user,
     )
     return mock_get_all, mock_get_user
