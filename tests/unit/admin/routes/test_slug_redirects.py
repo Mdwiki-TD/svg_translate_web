@@ -275,7 +275,7 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action with action=mark_replace should bulk update."""
         mock_bulk = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.bulk_update_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_update_slug_redirects",
             mock_bulk,
         )
 
@@ -291,7 +291,7 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action with action=mark_no_replace should set should_be_replaced=False."""
         mock_bulk = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.bulk_update_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_update_slug_redirects",
             mock_bulk,
         )
 
@@ -307,7 +307,7 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action with action=delete should bulk delete."""
         mock_bulk = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.bulk_delete_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_delete_slug_redirects",
             mock_bulk,
         )
 
@@ -323,12 +323,12 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action with an invalid action should not call any service."""
         mock_bulk_update = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.bulk_update_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_update_slug_redirects",
             mock_bulk_update,
         )
         mock_bulk_delete = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.bulk_delete_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_delete_slug_redirects",
             mock_bulk_delete,
         )
 
@@ -345,7 +345,7 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action without selected_ids should not call any service."""
         mock_bulk = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.bulk_update_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_update_slug_redirects",
             mock_bulk,
         )
 
@@ -361,7 +361,7 @@ class TestSlugRedirectsRoutes:
         """POST /bulk_action should handle exceptions gracefully."""
         mock_bulk = MagicMock(side_effect=Exception("DB error"))
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.bulk_update_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_update_slug_redirects",
             mock_bulk,
         )
 
