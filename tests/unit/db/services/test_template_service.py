@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.services.delete_service import delete_template
 from src.main_app.db.services.template_service import (
+    TemplateService,
     add_template_data,
     get_template,
     get_template_by_title,
@@ -51,21 +51,21 @@ class TestListTemplates:
 
 
 class TestDeleteTemplate:
-    """Test delete_template function."""
+    """Test TemplateService().delete function."""
 
     def test_delete_template_success(self):
         """Test successfully deleting a template."""
         data = {"title": "To Delete", "main_file": "delete.svg"}
         record = add_template_data(data)
 
-        result = delete_template(record.id)
+        result = TemplateService().delete(record.id)
 
         assert result is True
         assert len(list_templates()) == 0
 
     def test_delete_template_not_found_raises_lookup_error(self):
         """Test that deleting a non-existent template raises LookupError."""
-        result = delete_template(999)
+        result = TemplateService().delete(999)
         assert result is False
 
 

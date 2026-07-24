@@ -8,11 +8,11 @@ import pytest
 from sqlalchemy.exc import OperationalError
 
 from src.main_app.db.models import JobRecord
-from src.main_app.db.services.delete_service import delete_job
 from src.main_app.db.services.jobs_service import (
     _normalize_limit,
     cancel_job_db,
     create_job,
+    delete_job_by_id_and_type,
     get_all_user_jobs_stats,
     get_job,
     get_user_jobs_stats,
@@ -110,7 +110,7 @@ def test_delete_job():
     job = create_job("collect_templates_data", username="z")
     assert len(list_jobs()) == 1
 
-    delete_job(job.id, "collect_templates_data")
+    delete_job_by_id_and_type(job.id, "collect_templates_data")
     jobs_len = len(list_jobs())
     assert jobs_len == 0
 
@@ -121,7 +121,7 @@ def test_delete_job_with_correct_type():
     job2 = create_job("fix_nested_main_files", username="z")
     assert len(list_jobs()) == 2
 
-    delete_job(job1.id, "collect_templates_data")
+    delete_job_by_id_and_type(job1.id, "collect_templates_data")
 
     remaining_jobs = list_jobs()
     assert len(remaining_jobs) == 1
@@ -134,7 +134,7 @@ def test_delete_job_with_wrong_type():
     assert len(list_jobs()) == 1
 
     # Try to delete with wrong job type
-    delete_job(job.id, "fix_nested_main_files")
+    delete_job_by_id_and_type(job.id, "fix_nested_main_files")
 
     # Job should still exist
     remaining_jobs = list_jobs()
@@ -145,7 +145,7 @@ def test_delete_job_with_wrong_type():
 def test_delete_nonexistent_job():
     """Test deleting a non-existent job."""
     # Should not raise an error
-    delete_job(999, "collect_templates_data")
+    delete_job_by_id_and_type(999, "collect_templates_data")
 
     # No jobs should exist
     assert len(list_jobs()) == 0
@@ -551,3 +551,39 @@ class TestUpdateJobStatusWithRetry:
         assert result == mock_job
         assert result.status == "completed"
         assert commit_call_count[0] == 2
+
+
+class TestDeleteJob:
+    def test_delete_existing_job(self, mock_app, setup_db):
+        from src.main_app.extensions import db as _db
+
+        with mock_app.app_context():
+            record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
+            _db.session.add(record)
+            _db.session.commit()
+            job_id = record.id
+
+            result = delete_job_by_id_and_type(job_id, "copy_svg_langs")
+            assert result is True
+            _db.session.expire_all()
+            assert _db.session.get(JobRecord, job_id) is None
+
+    def test_delete_non_existent_job(self, mock_app, setup_db):
+        with mock_app.app_context():
+            result = delete_job_by_id_and_type(99999, "copy_svg_langs")
+            assert result is False
+
+    def test_delete_job_wrong_type(self, mock_app, setup_db):
+        """Deleting with wrong job_type should not delete."""
+        from src.main_app.extensions import db as _db
+
+        with mock_app.app_context():
+            record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
+            _db.session.add(record)
+            _db.session.commit()
+            job_id = record.id
+
+            result = delete_job_by_id_and_type(job_id, "wrong_type")
+            assert result is False
+            _db.session.expire_all()
+            assert _db.session.get(JobRecord, job_id) is not None

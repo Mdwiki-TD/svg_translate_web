@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...db.services import add_new_slug_redirect
+from ...db.services import OwidSlugRedirectsService
 from ...db.templates_utils import extract_slug
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ def check_slugs(slug_to_check: str, metadata: dict[str, Any]) -> bool:
         return False
 
     try:
-        add_new_slug_redirect(slug=slug_to_check, redirect_to=original_slug)
+        OwidSlugRedirectsService().add_new_slug_redirect(slug=slug_to_check, redirect_to=original_slug)
         return True
     except Exception as e:
         logger.error("Error adding slug redirect: %s", e)

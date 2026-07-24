@@ -236,7 +236,7 @@ class TestDeleteChart:
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_delete_chart = MagicMock(return_value=True)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_delete_chart)
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.delete", mock_delete_chart)
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
@@ -253,7 +253,7 @@ class TestDeleteChart:
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_delete_chart = MagicMock(return_value=False)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_delete_chart)
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.delete", mock_delete_chart)
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
@@ -270,7 +270,7 @@ class TestDeleteChart:
         mock_req.form.get = form_get
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_delete_chart = MagicMock(return_value=True)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.delete_chart", mock_delete_chart)
+        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.delete", mock_delete_chart)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", lambda t, **c: f"rendered:{t}")
         result = _delete_chart(1, True)

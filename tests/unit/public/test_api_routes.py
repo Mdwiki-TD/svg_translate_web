@@ -8,20 +8,19 @@ from unittest.mock import MagicMock
 import pytest
 from flask.testing import FlaskClient
 
-_DEFAULTS_TEMPLATE: dict[str, Any] = {
-    "id": 0,
-    "title": "",
-    "main_file": None,
-    "last_world_file": None,
-    "last_world_year": None,
-    "source": "",
-    "slug": "",
-    "created_at": None,
-    "updated_at": None,
-}
-
 
 def _make_template_mock(**attrs: Any) -> MagicMock:
+    _DEFAULTS_TEMPLATE: dict[str, Any] = {
+        "id": 0,
+        "title": "",
+        "main_file": None,
+        "last_world_file": None,
+        "last_world_year": None,
+        "source": "",
+        "slug": "",
+        "created_at": None,
+        "updated_at": None,
+    }
     data = {**_DEFAULTS_TEMPLATE, **attrs}
     mock = MagicMock()
     for key, value in data.items():
@@ -30,25 +29,23 @@ def _make_template_mock(**attrs: Any) -> MagicMock:
     return mock
 
 
-_DEFAULTS_CHART: dict[str, Any] = {
-    "chart_id": 0,
-    "slug": "",
-    "title": "",
-    "has_map_tab": False,
-    "max_time": None,
-    "min_time": None,
-    "default_tab": None,
-    "owid_variable_id": None,
-    "is_published": False,
-    "single_year_data": False,
-    "len_years": None,
-    "has_timeline": False,
-    "created_at": None,
-    "updated_at": None,
-}
-
-
 def _make_chart_mock(**attrs: Any) -> MagicMock:
+    _DEFAULTS_CHART: dict[str, Any] = {
+        "chart_id": 0,
+        "slug": "",
+        "title": "",
+        "has_map_tab": False,
+        "max_time": None,
+        "min_time": None,
+        "default_tab": None,
+        "owid_variable_id": None,
+        "is_published": False,
+        "single_year_data": False,
+        "len_years": None,
+        "has_timeline": False,
+        "created_at": None,
+        "updated_at": None,
+    }
     data = {**_DEFAULTS_CHART, **attrs}
     mock = MagicMock()
     for key, value in data.items():
@@ -65,15 +62,52 @@ def _make_chart_template_mock(**attrs: Any) -> MagicMock:
     return mock
 
 
+@pytest.fixture
+def mock_services(monkeypatch: pytest.MonkeyPatch, mock_app):
+    mock_views_service = MagicMock()
+    mock_views_service.list_templates_need_update = MagicMock()
+    mock_views_service.list_owid_charts_templates = MagicMock()
+
+    mock_owidcharts_service = MagicMock()
+    mock_owidcharts_service.list_charts_with_templates = MagicMock()
+    mock_owidcharts_service.list_charts = MagicMock()
+
+    mock_template_service = MagicMock()
+    mock_template_service.list_templates = MagicMock()
+    mock_template_service.list_templates_mismatched_years = MagicMock()
+
+    mocks = MagicMock()
+    mocks.views_service = mock_views_service
+    mocks.owidcharts_service = mock_owidcharts_service
+    mocks.template_service = mock_template_service
+
+    monkeypatch.setattr("src.main_app.public.api_routes.ViewsService", MagicMock(return_value=mock_views_service))
+    monkeypatch.setattr(
+        "src.main_app.public.api_routes.OwidChartsService", MagicMock(return_value=mock_owidcharts_service)
+    )
+    monkeypatch.setattr("src.main_app.public.api_routes.TemplateService", MagicMock(return_value=mock_template_service))
+
+    # Replace services on the already-constructed ApiRoutes instance
+    for view_func in mock_app.view_functions.values():
+        instance = getattr(view_func, "__self__", None)
+        if instance is not None and hasattr(instance, "templates_service"):
+            instance.views_service = mock_views_service
+            instance.owid_charts_service = mock_owidcharts_service
+            instance.templates_service = mock_template_service
+            break
+
+    return mocks
+
+
 class TestTemplatesList:
     """Tests for GET /api/templates."""
 
-    def test_templates_list(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_templates_list(self, mock_client: FlaskClient, mock_services) -> None:
         """list_templates returns list of templates; response has data and summary."""
         t1 = _make_template_mock(id=1, title="T1", main_file="f1.svg")
         t2 = _make_template_mock(id=2, title="T2")
 
-        monkeypatch.setattr("src.main_app.public.api_routes.list_templates", lambda: [t1, t2])
+        mock_services.template_service.list_templates.return_value = [t1, t2]
 
         resp = mock_client.get("/api/templates")
         assert resp.status_code == 200
@@ -85,7 +119,7 @@ class TestTemplatesList:
         assert body["data"][1]["title"] == "T2"
         assert body["summary"]["total"] == 2
 
-    def test_templates_list_summary_counts(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_templates_list_summary_counts(self, mock_client: FlaskClient, mock_services) -> None:
         """Summary counts reflect which optional fields are set."""
         t1 = _make_template_mock(
             id=1,
@@ -104,7 +138,7 @@ class TestTemplatesList:
             source="",
         )
 
-        monkeypatch.setattr("src.main_app.public.api_routes.list_templates", lambda: [t1, t2])
+        mock_services.template_service.list_templates.return_value = [t1, t2]
 
         resp = mock_client.get("/api/templates")
         body = resp.get_json()
@@ -115,9 +149,9 @@ class TestTemplatesList:
         assert body["summary"]["with_last_world_year"] == 1
         assert body["summary"]["with_source"] == 1
 
-    def test_templates_list_empty(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_templates_list_empty(self, mock_client: FlaskClient, mock_services) -> None:
         """When no templates exist, data is empty and counts are zero."""
-        monkeypatch.setattr("src.main_app.public.api_routes.list_templates", list)
+        mock_services.template_service.list_templates.return_value = []
 
         resp = mock_client.get("/api/templates")
         body = resp.get_json()
@@ -133,14 +167,14 @@ class TestTemplatesList:
 class TestTemplatesNeedUpdateList:
     """Tests for GET /api/templates-need-update."""
 
-    def test_templates_need_update_list(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_templates_need_update_list(self, mock_client: FlaskClient, mock_services) -> None:
         """list_templates_need_update returns records; JSON has data key."""
         t1 = MagicMock()
         t1.to_dict.return_value = {"template_id": 1, "template_title": "T1", "difference": 2}
         t2 = MagicMock()
         t2.to_dict.return_value = {"template_id": 2, "template_title": "T2", "difference": 0}
 
-        monkeypatch.setattr("src.main_app.public.api_routes.list_templates_need_update", lambda: [t1, t2])
+        mock_services.views_service.list_templates_need_update.return_value = [t1, t2]
 
         resp = mock_client.get("/api/templates-need-update")
         body = resp.get_json()
@@ -154,16 +188,13 @@ class TestTemplatesNeedUpdateList:
 class TestChartsTemplates:
     """Tests for GET /api/charts_templates."""
 
-    def test_charts_templates(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_charts_templates(self, mock_client: FlaskClient, mock_services) -> None:
         """Only records with a template_id are included in the response."""
         ct1 = _make_chart_template_mock(chart_id=1, template_id=10, template_title="T1")
         ct2 = _make_chart_template_mock(chart_id=2, template_id=None, template_title=None)
         ct3 = _make_chart_template_mock(chart_id=3, template_id=30, template_title="T3")
 
-        monkeypatch.setattr(
-            "src.main_app.public.api_routes.list_owid_charts_templates",
-            lambda: [ct1, ct2, ct3],
-        )
+        mock_services.views_service.list_owid_charts_templates.return_value = [ct1, ct2, ct3]
 
         resp = mock_client.get("/api/charts_templates")
         body = resp.get_json()
@@ -178,7 +209,7 @@ class TestOwidChartsList:
     """Tests for GET /api/owidcharts/."""
 
     @pytest.fixture(autouse=True)
-    def _setup_mocks(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def _setup_mocks(self, mock_services) -> None:
         chart1 = _make_chart_mock(chart_id=1, slug="s1", is_published=True, has_map_tab=True, has_timeline=True)
         chart2 = _make_chart_mock(chart_id=2, slug="s2", is_published=False, has_map_tab=False, has_timeline=False)
         chart3 = _make_chart_mock(chart_id=3, slug="s3", is_published=True, has_map_tab=False, has_timeline=True)
@@ -188,14 +219,18 @@ class TestOwidChartsList:
         ct3 = _make_chart_template_mock(chart_id=3, template_id=None, template_title=None)
         self.chart_templates = [ct1, ct3]
 
-        monkeypatch.setattr(
-            "src.main_app.public.api_routes.list_charts",
-            lambda: self.charts,
-        )
-        monkeypatch.setattr(
-            "src.main_app.public.api_routes.list_owid_charts_templates",
-            lambda: self.chart_templates,
-        )
+        mock_services.views_service.list_owid_charts_templates.return_value = self.chart_templates
+
+        chart_temps_dict = {c.chart_id: c for c in self.chart_templates}
+
+        def mock_list_charts_with_templates():
+            results = []
+            for chart in self.charts:
+                ct = chart_temps_dict.get(chart.chart_id)
+                results.append((chart, ct.template_id if ct else None, ct.template_title if ct else None))
+            return results
+
+        mock_services.owidcharts_service.list_charts_with_templates.side_effect = mock_list_charts_with_templates
 
     def test_owid_charts_list_no_filter(self, mock_client: FlaskClient) -> None:
         """Without a filter, all charts are returned."""

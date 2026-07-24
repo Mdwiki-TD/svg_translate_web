@@ -10,12 +10,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.main_app.db.services import (
-    is_active_coordinator,
-    upsert_user_token,
-)
+from src.main_app.db.services import upsert_user_token
 from src.main_app.db.services.admin_service import (
     add_coordinator,
+    is_active_coordinator,
     list_coordinators,
     set_coordinator_active,
 )

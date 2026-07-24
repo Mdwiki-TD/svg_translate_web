@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.services.delete_service import delete_chart
 from src.main_app.db.services.owid_charts_service import (
+    OwidChartsService,
     add_chart,
     count_charts,
     get_chart_by_id,
@@ -18,6 +18,10 @@ from src.main_app.db.services.owid_charts_service import (
     list_published_charts,
     update_chart_data,
 )
+
+
+def delete_chart(id: int) -> bool:
+    return OwidChartsService().delete(id)
 
 
 @pytest.fixture

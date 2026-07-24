@@ -1,4 +1,5 @@
 {% extends "admins/base1.html" %}
+{% from "_macros.html" import summary_card_2 %}
 
 {% block title %}Templates · {{ tool_title }}{% endblock %}
 
@@ -14,44 +15,19 @@
     <div class="card-body">
         <div class="row g-3 mb-4" id="summaryCards">
             <div class="col-md">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">Total Templates</h2>
-                        <p class="display-6 mb-0" id="totalCount">-</p>
-                    </div>
-                </div>
+                {{ summary_card_2('Total Templates', '-', id="totalCount") }}
             </div>
             <div class="col-md">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">With Oldest File</h2>
-                        <p class="display-6 mb-0" id="withMainFile">-</p>
-                    </div>
-                </div>
+                {{ summary_card_2('With Oldest File', '-', id="withMainFile") }}
             </div>
             <div class="col-md">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">With Newest File</h2>
-                        <p class="display-6 mb-0" id="withLastWorldFile">-</p>
-                    </div>
-                </div>
+                {{ summary_card_2('With Newest File', '-', id="withLastWorldFile") }}
             </div>
             <div class="col-md">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">With Source</h2>
-                        <p class="display-6 mb-0" id="withSource">-</p>
-                    </div>
-                </div>
+                {{ summary_card_2('With Source', '-', id="withSource") }}
             </div>
             <div class="col-md">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h6 text-uppercase text-muted">mismatched year</h2>
-                        <p class="display-6 mb-0" id="mismatched_year">-</p>
-                    </div>
-                </div>
+                {{ summary_card_2('mismatched year', '-', id="mismatched_year") }}
             </div>
         </div>
         <div class="card mb-2 shadow-sm">

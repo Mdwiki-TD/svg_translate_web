@@ -8,6 +8,7 @@ from sqlalchemy import String, cast, func, select
 from ...extensions import db
 from ..models.templates import TemplateRecord
 from ..templates_utils import ensure_template_data
+from .delete_service import delete_record_by_pk
 from .utils import db_guard
 
 logger = logging.getLogger(__name__)
@@ -143,6 +144,9 @@ class TemplateService:
         template_data: dict[str, str],
     ) -> TemplateRecord | None:
         return update_template_data(template_id, template_data)
+
+    def delete(self, record_id: int) -> bool:
+        return delete_record_by_pk(TemplateRecord, record_id)
 
 
 __all__ = [

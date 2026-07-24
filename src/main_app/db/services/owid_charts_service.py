@@ -6,7 +6,8 @@ from typing import Any
 from sqlalchemy import func
 
 from ...extensions import db
-from ..models.owid_charts import OwidChartRecord
+from ..models import OwidChartRecord, TemplateRecord
+from .delete_service import delete_record_by_pk
 from .utils import db_guard_rollback, retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,23 @@ def list_charts(limit: int | None = None) -> list[OwidChartRecord]:
     if limit is not None:
         query = query.limit(limit)
 
+    return query.all()
+
+
+def list_charts_with_templates() -> list[tuple[OwidChartRecord, int | None, str | None]]:
+    """
+    Retrieve all charts along with their associated template ID and title using a single LEFT OUTER JOIN.
+    """
+
+    query = (
+        db.session.query(
+            OwidChartRecord,
+            TemplateRecord.id.label("template_id"),
+            TemplateRecord.title.label("template_title"),
+        )
+        .outerjoin(TemplateRecord, TemplateRecord.slug == OwidChartRecord.slug)
+        .order_by(OwidChartRecord.chart_id.asc())
+    )
     return query.all()
 
 
@@ -144,6 +162,9 @@ class OwidChartsService:
     def list_charts(self, limit: int | None = None) -> list[OwidChartRecord]:
         return list_charts(limit)
 
+    def list_charts_with_templates(self) -> list[tuple[OwidChartRecord, int | None, str | None]]:
+        return list_charts_with_templates()
+
     def count_charts(self) -> int:
         return count_charts()
 
@@ -173,6 +194,9 @@ class OwidChartsService:
     ) -> OwidChartRecord | None:
         return update_chart_data_with_retry(chart_id, chart_data)
 
+    def delete(self, record_id: int) -> bool:
+        return delete_record_by_pk(OwidChartRecord, record_id)
+
 
 __all__ = [
     "OwidChartsService",
@@ -180,6 +204,7 @@ __all__ = [
     "get_chart_by_slug",
     "add_chart",
     "list_charts",
+    "list_charts_with_templates",
     "count_charts",
     "list_published_charts",
     "update_chart_data",

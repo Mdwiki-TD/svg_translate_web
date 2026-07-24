@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -47,24 +47,26 @@ def sample_unpublished_chart():
 
 
 @pytest.fixture
-def owid_charts_client(sample_chart, sample_unpublished_chart):
+def owid_charts_client(monkeypatch, sample_chart, sample_unpublished_chart):
     """Create Flask test client with mocked owid_charts_service."""
-    with (
-        patch("src.main_app.public.main_routes.owid_charts_routes.list_published_charts") as mock_published,
-        patch("src.main_app.public.main_routes.owid_charts_routes.list_charts") as mock_all,
-        patch("src.main_app.public.main_routes.owid_charts_routes.count_charts") as mock_count,
-    ):
-        mock_published.return_value = [sample_chart]
-        mock_all.return_value = [sample_chart, sample_unpublished_chart]
-        mock_count.return_value = 2
 
-        from src.main_app import create_app
+    mock_service = MagicMock()
+    mock_service.list_published_charts = MagicMock(return_value=[sample_chart])
+    mock_service.list_charts = MagicMock(return_value=[sample_chart, sample_unpublished_chart])
+    mock_service.count_charts = MagicMock(return_value=2)
 
-        flask_app = create_app(TestingConfig)
-        flask_app.config["TESTING"] = True
-        flask_app.config["WTF_CSRF_ENABLED"] = False
+    monkeypatch.setattr(
+        "src.main_app.public.main_routes.owid_charts_routes.OwidChartsService",
+        MagicMock(return_value=mock_service),
+    )
 
-        yield flask_app.test_client(), mock_published, mock_all, mock_count
+    from src.main_app import create_app
+
+    flask_app = create_app(TestingConfig)
+    flask_app.config["TESTING"] = True
+    flask_app.config["WTF_CSRF_ENABLED"] = False
+
+    yield flask_app.test_client(), mock_service
 
 
 class TestIndexRoute:
@@ -72,20 +74,20 @@ class TestIndexRoute:
 
     def test_index_renders_with_published_charts(self, owid_charts_client):
         """Test index page renders with published charts."""
-        flask_client, mock_published, _, _ = owid_charts_client
+        flask_client, mock_service = owid_charts_client
 
         response = flask_client.get("/owidcharts/")
 
         assert response.status_code == 200
-        mock_published.assert_called_once()
+        mock_service.list_published_charts.assert_called_once()
 
     def test_index_calls_count_charts(self, owid_charts_client):
         """Test index page also calls count_charts for total count."""
-        flask_client, _, _, mock_count = owid_charts_client
+        flask_client, mock_service = owid_charts_client
 
         flask_client.get("/owidcharts/")
 
-        mock_count.assert_called_once()
+        mock_service.count_charts.assert_called_once()
 
 
 class TestAllChartsRoute:
@@ -93,17 +95,17 @@ class TestAllChartsRoute:
 
     def test_all_charts_renders(self, owid_charts_client):
         """Test all charts page renders."""
-        flask_client, _, mock_all, _ = owid_charts_client
+        flask_client, mock_service = owid_charts_client
 
         response = flask_client.get("/owidcharts/all")
 
         assert response.status_code == 200
-        mock_all.assert_called_once()
+        mock_service.list_charts.assert_called_once()
 
     def test_all_charts_includes_unpublished(self, owid_charts_client, sample_unpublished_chart):
         """Test all charts page includes unpublished charts."""
-        flask_client, _, mock_all, _ = owid_charts_client
-        mock_all.return_value = [sample_unpublished_chart]
+        flask_client, mock_service = owid_charts_client
+        mock_service.list_charts.return_value = [sample_unpublished_chart]
 
         response = flask_client.get("/owidcharts/all")
 
@@ -111,8 +113,8 @@ class TestAllChartsRoute:
 
     def test_all_charts_empty_list(self, owid_charts_client):
         """Test all charts page with no charts."""
-        flask_client, _, mock_all, _ = owid_charts_client
-        mock_all.return_value = []
+        flask_client, mock_service = owid_charts_client
+        mock_service.list_charts.return_value = []
 
         response = flask_client.get("/owidcharts/all")
 

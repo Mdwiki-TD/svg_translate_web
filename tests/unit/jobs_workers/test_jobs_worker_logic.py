@@ -36,7 +36,9 @@ def mock_db_services(monkeypatch: pytest.MonkeyPatch):
     }
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.create_job", mocks["create"])
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.cancel_job_db", mocks["cancel_db"])
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.get_all_settings_ready", mocks["settings"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.jobs_worker.SettingsService.get_all_settings_ready", mocks["settings"]
+    )
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.create_job_cancelled_file", mocks["cancel_file"])
     return mocks
 

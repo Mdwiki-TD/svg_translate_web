@@ -6,9 +6,9 @@ from unittest.mock import MagicMock
 
 from flask.app import Flask
 
-from src.main_app.db.services.delete_service import delete_user_token
+from src.main_app.db.models import UserTokenRecord
 from src.main_app.db.services.user_token_service import (
-    UserTokenRecord,
+    UserTokenService,
     create_user_token,
     get_authenticated_user_token,
     get_user_token,
@@ -41,7 +41,7 @@ def test_upsert_get_delete_user_token(mock_app: Flask) -> None:
         token_record = get_user_token(user.user_id)
 
         # Test delete token only
-        delete_user_token(user.user_id)
+        UserTokenService().delete(user.user_id)
         assert get_user_token(user.user_id) is None
 
 

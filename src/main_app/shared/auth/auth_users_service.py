@@ -6,12 +6,9 @@ import logging
 
 from ...db.models import UserRecord
 from ...db.services import (
-    create_user,
-    get_authenticated_user_token,
-    get_user_by_username,
-    get_user_token,
-    is_active_coordinator,
-    upsert_user_token,
+    AdminService,
+    UsersService,
+    UserTokenService,
 )
 from .current_user import CurrentUser
 
@@ -19,8 +16,13 @@ logger = logging.getLogger(__name__)
 
 
 class AuthUserService:
-    @staticmethod
+    def __init__(self):
+        self.users_service = UsersService()
+        self.user_token_service = UserTokenService()
+        self.admin_service = AdminService()
+
     def save_and_get_user(
+        self,
         username: str,
         access_key: str,
         access_secret: str,
@@ -33,10 +35,10 @@ class AuthUserService:
 
         try:
             # Ensure user identity row exists
-            user: UserRecord | None = get_user_by_username(username)
+            user: UserRecord | None = self.users_service.get_user_by_username(username)
 
             if not user:
-                user: UserRecord | None = create_user(username)
+                user: UserRecord | None = self.users_service.create_user(username)
 
             if not user:
                 return None
@@ -49,7 +51,7 @@ class AuthUserService:
 
         try:
             # 1. Update or insert into database via repository
-            upsert_user_token(
+            self.user_token_service.upsert_user_token(
                 user_id=user_id,
                 access_key=access_key,
                 access_secret=access_secret,
@@ -61,11 +63,11 @@ class AuthUserService:
 
         try:
             # 2. Get the fresh record
-            token = get_user_token(user_id)
+            token = self.user_token_service.get_user_token(user_id)
             if not token:
                 return None
 
-            is_active_admin = is_active_coordinator(username)
+            is_active_admin = self.admin_service.is_active_coordinator(username)
         except Exception as e:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
             return None
@@ -80,11 +82,10 @@ class AuthUserService:
             can_run_bg_jobs=user.can_run_bg_jobs,
         )
 
-    @staticmethod
-    def get_authenticated_user(user_id: int) -> CurrentUser | None:
+    def get_authenticated_user(self, user_id: int) -> CurrentUser | None:
         """Fetch the CurrentUser composite for session restoration."""
         try:
-            token = get_authenticated_user_token(user_id)
+            token = self.user_token_service.get_authenticated_user_token(user_id)
             if not token:
                 return None
             username = token.user.username
@@ -93,7 +94,7 @@ class AuthUserService:
                 username=username,
                 access_token=token.access_token,
                 access_secret=token.access_secret,
-                is_active_admin=is_active_coordinator(username),
+                is_active_admin=self.admin_service.is_active_coordinator(username),
                 can_run_jobs=token.user.can_run_jobs,
                 can_run_bg_jobs=token.user.can_run_bg_jobs,
             )

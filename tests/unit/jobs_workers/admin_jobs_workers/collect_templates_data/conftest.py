@@ -76,10 +76,20 @@ def mock_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, tmp_path, mo
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_main_title",
         mocks["find_main_title"],
     )
+
+    _mock_class = MagicMock()
+    _mock_instance = MagicMock()
+    _mock_instance.get_chart_by_slug = mocks["get_chart_by_slug"]
+    _mock_class.return_value = _mock_instance
+
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_chart_by_slug",
-        mocks["get_chart_by_slug"],
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidChartsService", _mock_class
     )
+    # monkeypatch.setattr(
+    #     "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_chart_by_slug",
+    #     mocks["get_chart_by_slug"],
+    # )
+
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.fetch_grapher_metadata",
         mocks["fetch_grapher_metadata"],

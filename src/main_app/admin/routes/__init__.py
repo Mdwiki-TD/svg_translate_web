@@ -8,8 +8,8 @@ from .coordinators import CoordinatorsRoutes
 from .jobs import AdminJobsRoutes
 from .owid_charts import OwidChartsRoutes
 from .settings import SettingsRoutes
-from .slug_redirects import SlugRedirects
-from .templates import Templates
+from .slug_redirects import SlugRedirectsRoutes
+from .templates import TemplatesRoutes
 from .users import UsersRoutes
 
 
@@ -25,9 +25,9 @@ ADMIN_ROUTE_MODULES: list[AdminRouteModule] = [
     AdminRouteModule(CoordinatorsRoutes, "coordinators", "/coordinators"),
     AdminRouteModule(UsersRoutes, "users", "/users"),
     AdminRouteModule(SettingsRoutes, "settings", "/settings"),
-    AdminRouteModule(Templates, "templates", "/templates"),
+    AdminRouteModule(TemplatesRoutes, "templates", "/templates"),
     AdminRouteModule(OwidChartsRoutes, "owidcharts", "/owidcharts"),
-    AdminRouteModule(SlugRedirects, "slugredirects", "/slugredirects"),
+    AdminRouteModule(SlugRedirectsRoutes, "slugredirects", "/slugredirects"),
     AdminRouteModule(
         AdminJobsRoutes,
         "jobs",

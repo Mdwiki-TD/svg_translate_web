@@ -50,7 +50,8 @@ def _patch_owid_charts_instance(flask_app, mock_service):
     endpoint = "adminpanel.owidcharts.add_chart"
     view_func = flask_app.view_functions[endpoint]
     inner_func = _unwrap_admin_required(view_func)
-    owid_charts_instance = inner_func.__closure__[0].cell_contents
+
+    owid_charts_instance = inner_func.__self__
     owid_charts_instance.owid_charts_service = mock_service
 
 
@@ -77,7 +78,7 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, mock_service):
         MagicMock(return_value=[]),
     )
     monkeypatch.setattr(
-        "src.main_app.admin.routes.owid_charts.delete_chart",
+        "src.main_app.admin.routes.owid_charts.OwidChartsService.delete",
         mock_service.delete_chart,
     )
 
@@ -376,11 +377,11 @@ class TestDeleteChart:
     def test_delete_chart_success(self, mock_service, owid_charts_admin_client, sample_chart_record):
         """Test deleting a chart successfully."""
 
-        mock_service.delete_chart.return_value = True
+        mock_service.delete.return_value = True
 
         response = owid_charts_admin_client.post("/adminpanel/owidcharts/1/delete", follow_redirects=True)
 
-        mock_service.delete_chart.assert_called_once_with(1)
+        mock_service.delete.assert_called_once_with(1)
         assert response.status_code == 200
 
     def test_delete_chart_not_found(self, mock_service, owid_charts_admin_client):
