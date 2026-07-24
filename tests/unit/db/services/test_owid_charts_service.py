@@ -9,6 +9,7 @@ import pytest
 from src.main_app.db.models import OwidChartRecord
 from src.main_app.db.services.owid_charts_service import OwidChartsService
 
+
 @pytest.fixture
 def sample_record():
     """Create a sample OwidChartRecord."""

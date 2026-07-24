@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from flask.app import Flask
 import pytest
+from flask.app import Flask
 
 from src.main_app.db.models import UserTokenRecord
 from src.main_app.db.services.user_token_service import UserTokenService
@@ -17,6 +17,7 @@ class TestSetup:
     def setup(self) -> None:
         self.usertoken_service = UserTokenService()
         self.users_service = UsersService()
+
 
 class TestDelete(TestSetup):
 
@@ -39,7 +40,9 @@ class TestDelete(TestSetup):
             assert token_record.access_token is not None
             assert token_record.access_secret is not None
 
-            self.usertoken_service.upsert_user_token(user_id=user.user_id, access_key="new_key", access_secret="new_secret")
+            self.usertoken_service.upsert_user_token(
+                user_id=user.user_id, access_key="new_key", access_secret="new_secret"
+            )
             token_record = self.usertoken_service.get_user_token(user.user_id)
 
             self.usertoken_service.delete(user.user_id)

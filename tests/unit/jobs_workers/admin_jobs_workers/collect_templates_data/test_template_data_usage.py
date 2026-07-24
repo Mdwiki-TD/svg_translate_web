@@ -75,7 +75,6 @@ class TestTemplateRecordToTemplateDataConversion:
 
     def test_conversion_preserves_all_fields(self, mock_base_worker):
 
-
         record = TemplateRecord(
             id=5,
             title="Template:Test",

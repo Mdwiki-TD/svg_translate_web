@@ -1,9 +1,9 @@
 from unittest.mock import MagicMock, patch
 
-from src.main_app.db.models import TemplateRecord
 from src.main_app.admin.routes.templates import (
     TemplatesRoutesFuncs,
 )
+from src.main_app.db.models import TemplateRecord
 
 
 @patch("src.main_app.admin.routes.templates.TemplateService.add_template_data")
@@ -132,9 +132,9 @@ def test_create_json_file_no_templates(mock_app, monkeypatch):
     assert status_code == 404
     assert "No templates found" in msg
 
+
 def test_edit_template_found(mock_app, monkeypatch):
     """Test TemplatesRoutesFuncs().edit_template returns template when found."""
-
 
     template = TemplateRecord(
         id=1,
@@ -145,7 +145,9 @@ def test_edit_template_found(mock_app, monkeypatch):
         updated_at=None,
         source=None,
     )
-    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.get_template", lambda self, template_id: template)
+    monkeypatch.setattr(
+        "src.main_app.admin.routes.templates.TemplateService.get_template", lambda self, template_id: template
+    )
 
     with mock_app.test_request_context():
         with patch("src.main_app.admin.routes.templates.render_template") as mock_render:
