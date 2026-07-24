@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # ── SELECT ───────────────────────────────────────────────
 
 
-def list_templates(limit: int | None = None) -> list[TemplateRecord]:
+def _list_templates(limit: int | None = None) -> list[TemplateRecord]:
     """Return all templates"""
     query = db.session.query(TemplateRecord).order_by(TemplateRecord.title)
     if limit is not None:
@@ -25,7 +25,7 @@ def list_templates(limit: int | None = None) -> list[TemplateRecord]:
     return query.all()
 
 
-def list_templates_mismatched_years() -> list[TemplateRecord]:
+def _list_templates_mismatched_years() -> list[TemplateRecord]:
     """
     Fetches all template records where the 'last_world_file'
     does not contain the 'last_world_year', resolving collation conflicts.
@@ -51,12 +51,12 @@ def list_templates_mismatched_years() -> list[TemplateRecord]:
     return list(results)
 
 
-def get_template(template_id: int) -> TemplateRecord:
+def _get_template(template_id: int) -> TemplateRecord:
     """Fetch a template by ID."""
     return db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
 
 
-def get_template_by_title(title: str) -> TemplateRecord:
+def _get_template_by_title(title: str) -> TemplateRecord:
     """Fetch a template by title."""
     return db.session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
 
@@ -64,7 +64,7 @@ def get_template_by_title(title: str) -> TemplateRecord:
 # ── INSERT, UPDATE, SET ──────────────────────────────────
 
 
-def add_template_data(
+def _add_template_data(
     data: dict[str, Any],
 ) -> TemplateRecord:
     """
@@ -96,7 +96,7 @@ def add_template_data(
 
 
 @db_guard(default_return=None)
-def update_template_data(
+def _update_template_data(
     template_id: int,
     template_data: dict[str, str],
 ) -> TemplateRecord | None:
@@ -124,26 +124,26 @@ class TemplateService:
         pass
 
     def list_templates(self, limit: int | None = None) -> list[TemplateRecord]:
-        return list_templates(limit)
+        return _list_templates(limit)
 
     def list_templates_mismatched_years(self) -> list[TemplateRecord]:
-        return list_templates_mismatched_years()
+        return _list_templates_mismatched_years()
 
     def get_template(self, template_id: int) -> TemplateRecord:
-        return get_template(template_id)
+        return _get_template(template_id)
 
     def get_template_by_title(self, title: str) -> TemplateRecord:
-        return get_template_by_title(title)
+        return _get_template_by_title(title)
 
     def add_template_data(self, data: dict[str, Any]) -> TemplateRecord:
-        return add_template_data(data)
+        return _add_template_data(data)
 
     def update_template_data(
         self,
         template_id: int,
         template_data: dict[str, str],
     ) -> TemplateRecord | None:
-        return update_template_data(template_id, template_data)
+        return _update_template_data(template_id, template_data)
 
     def delete(self, record_id: int) -> bool:
         return delete_record_by_pk(TemplateRecord, record_id)

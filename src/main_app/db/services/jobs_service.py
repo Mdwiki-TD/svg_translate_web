@@ -248,7 +248,7 @@ def _create_job(job_type: str, username: str) -> JobRecord:
 
 
 @db_guard_rollback
-def update_job_status_rollback(
+def _update_job_status_rollback(
     job_id: int,
     status: str,
     result_file: str | None = None,
@@ -367,7 +367,7 @@ class JobsService:
         *,
         job_type: str,
     ) -> JobRecord:
-        return update_job_status_rollback(job_id, status, result_file, job_type=job_type)
+        return _update_job_status_rollback(job_id, status, result_file, job_type=job_type)
 
     def update_job_status_with_retry(
         self,
