@@ -58,7 +58,7 @@ class TestSettingsRoutesRoutes:
         """Dashboard should render the template with all settings."""
         mock_settings = [{"key": "foo", "value": "true"}, {"key": "bar", "value": "42"}]
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.get_all_settings_raw",
+            "src.main_app.admin.routes.settings.SettingsService.get_all_settings_raw",
             MagicMock(return_value=mock_settings),
         )
         mock_render = MagicMock(return_value="dashboard")
@@ -213,7 +213,7 @@ class TestSettingsUpdateForm:
         mock_settings = [
             {"key": "test_bool", "value_type": "boolean", "value": "false"},
         ]
-        monkeypatch.setattr("src.main_app.admin.routes.settings.get_all_settings_raw", lambda: mock_settings)
+        monkeypatch.setattr("src.main_app.admin.routes.settings.SettingsService.get_all_settings_raw", lambda: mock_settings)
 
         updated = {}
 
@@ -221,7 +221,7 @@ class TestSettingsUpdateForm:
             updated[key] = (value, v_type)
             return True
 
-        monkeypatch.setattr("src.main_app.admin.routes.settings.update_setting", mock_update)
+        monkeypatch.setattr("src.main_app.admin.routes.settings.SettingsService.update_setting", mock_update)
 
         request_form = {"setting_test_bool": "on"}
 
@@ -235,7 +235,7 @@ class TestSettingsUpdateForm:
         mock_settings = [
             {"key": "test_int", "value_type": "integer", "value": "0"},
         ]
-        monkeypatch.setattr("src.main_app.admin.routes.settings.get_all_settings_raw", lambda: mock_settings)
+        monkeypatch.setattr("src.main_app.admin.routes.settings.SettingsService.get_all_settings_raw", lambda: mock_settings)
 
         updated = {}
 
@@ -243,7 +243,7 @@ class TestSettingsUpdateForm:
             updated[key] = (value, v_type)
             return True
 
-        monkeypatch.setattr("src.main_app.admin.routes.settings.update_setting", mock_update)
+        monkeypatch.setattr("src.main_app.admin.routes.settings.SettingsService.update_setting", mock_update)
 
         request_form = {"setting_test_int": "42"}
 
@@ -257,8 +257,8 @@ class TestSettingsUpdateForm:
         mock_settings = [
             {"key": "test_key", "value_type": "string", "value": "val"},
         ]
-        monkeypatch.setattr("src.main_app.admin.routes.settings.get_all_settings_raw", lambda: mock_settings)
-        monkeypatch.setattr("src.main_app.admin.routes.settings.delete_setting_by_key", lambda k: True)
+        monkeypatch.setattr("src.main_app.admin.routes.settings.SettingsService.get_all_settings_raw", lambda: mock_settings)
+        monkeypatch.setattr("src.main_app.admin.routes.settings.SettingsService.delete_setting_by_key", lambda k: True)
 
         request_form = {"delete_test_key": "on"}
 
@@ -271,8 +271,8 @@ class TestSettingsUpdateForm:
         mock_settings = [
             {"key": "test_key", "value_type": "string", "value": "val"},
         ]
-        monkeypatch.setattr("src.main_app.admin.routes.settings.get_all_settings_raw", lambda: mock_settings)
-        monkeypatch.setattr("src.main_app.admin.routes.settings.update_setting", lambda k, v, vt: False)
+        monkeypatch.setattr("src.main_app.admin.routes.settings.SettingsService.get_all_settings_raw", lambda: mock_settings)
+        monkeypatch.setattr("src.main_app.admin.routes.settings.SettingsService.update_setting", lambda k, v, vt: False)
         # monkeypatch.setattr("src.main_app.admin.routes.settings._parse_setting_value", lambda k, v: v, True)
 
         request_form = {"setting_test_key": "new_val"}
@@ -286,7 +286,7 @@ class TestSettingsUpdateForm:
         mock_settings = [
             {"key": "test_key", "value_type": "string", "value": "val"},
         ]
-        monkeypatch.setattr("src.main_app.admin.routes.settings.get_all_settings_raw", lambda: mock_settings)
+        monkeypatch.setattr("src.main_app.admin.routes.settings.SettingsService.get_all_settings_raw", lambda: mock_settings)
 
         update_called = []
 
@@ -294,7 +294,7 @@ class TestSettingsUpdateForm:
             update_called.append(key)
             return True
 
-        monkeypatch.setattr("src.main_app.admin.routes.settings.update_setting", mock_update)
+        monkeypatch.setattr("src.main_app.admin.routes.settings.SettingsService.update_setting", mock_update)
 
         request_form = {"other_key": "value"}
 

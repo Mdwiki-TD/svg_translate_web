@@ -10,11 +10,6 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from ...db.services import SettingsService
 from ..decorators import admin_required
 
-
-def delete_setting_by_key(key):
-    return SettingsService().delete_setting_by_key(key)
-
-
 def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
     """Returns (value, success)"""
     if v_type == "boolean":
@@ -87,7 +82,7 @@ class SettingsFuncs:
 
             # Check if marked for deletion
             if request_form.get(delete_key) == "on":
-                if delete_setting_by_key(key):
+                if self.service.delete_setting_by_key(key):
                     deleted_keys.append(key)
                 else:
                     failed_keys.append(key)
