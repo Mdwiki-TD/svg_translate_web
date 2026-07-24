@@ -37,7 +37,9 @@ class PublicJobsRoutes(JobsBp):
         self.bp.route("/<string:job_type>", methods=["GET"])(self.jobs_list)
         self.bp.route("/<string:job_type>/<int:job_id>", methods=["GET"])(self.job_detail)
         self.bp.route("/<string:job_type>/<int:job_id>/expand", methods=["GET"])(self.job_detail_expand)
-        self.bp.route("/job-file/<string:result_file>/<string:job_type>", methods=["GET"])(user_login_required(self.read_job_result_file))
+        self.bp.route("/job-file/<string:result_file>/<string:job_type>", methods=["GET"])(
+            user_login_required(self.read_job_result_file)
+        )
 
         self.bp.route("/<string:job_type>/<int:job_id>/cancel", methods=["POST"])(user_login_required(self.cancel_job))
         self.bp.route("/<string:job_type>/start", methods=["POST"])(user_login_required(self.start_job))
