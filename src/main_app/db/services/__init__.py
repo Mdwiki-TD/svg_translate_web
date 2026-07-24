@@ -108,7 +108,6 @@ __all__ = [
     "list_settings",
     # delete
     "delete_record_by_pk",
-    "delete_job",
     "add_new_slug_redirect",
     "list_slug_redirects",
     "get_slug_redirect_by_id",

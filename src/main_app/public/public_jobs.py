@@ -34,39 +34,36 @@ class PublicJobsRoutes(JobsBp):
         super().__init__(jobs_data_infos, bp_name)
 
     def _setup_routes(self) -> None:
+        self.bp.route("/<string:job_type>", methods=["GET"])(self.jobs_list)
+        self.bp.route("/<string:job_type>/<int:job_id>", methods=["GET"])(self.job_detail)
+        self.bp.route("/<string:job_type>/<int:job_id>/expand", methods=["GET"])(self.job_detail_expand)
+        self.bp.route("/job-file/<string:result_file>/<string:job_type>", methods=["GET"])(user_login_required(self.read_job_result_file))
 
-        @self.bp.post("/<string:job_type>/<int:job_id>/cancel")
-        @user_login_required
-        def cancel_job(job_type: str, job_id: int) -> Response:
-            return self.cancel_running_job(job_type, job_id)
+        self.bp.route("/<string:job_type>/<int:job_id>/cancel", methods=["POST"])(user_login_required(self.cancel_job))
+        self.bp.route("/<string:job_type>/start", methods=["POST"])(user_login_required(self.start_job))
+        self.bp.route("/<string:job_type>/<int:job_id>/delete", methods=["POST"])(admin_required(self.delete_job))
 
-        @self.bp.route("/<string:job_type>", methods=["GET"])
-        def jobs_list(job_type: str) -> str:
-            return self.jobs_lists(job_type)
+    def cancel_job(self, job_type: str, job_id: int) -> Response:
+        return self.cancel_running_job(job_type, job_id)
 
-        @self.bp.route("/<string:job_type>/<int:job_id>", methods=["GET"])
-        def job_detail(job_type: str, job_id: int) -> Response | str:
-            return self.job_details(job_type, job_id)
+    def jobs_list(self, job_type: str) -> str:
+        return self.jobs_lists(job_type)
 
-        @self.bp.route("/<string:job_type>/<int:job_id>/expand", methods=["GET"])
-        def job_detail_expand(job_type: str, job_id: int) -> Response | str:
-            return self.job_details(job_type, job_id, expand_all=True)
+    def job_detail(self, job_type: str, job_id: int) -> Response | str:
+        return self.job_details(job_type, job_id)
 
-        @self.bp.post("/<string:job_type>/start")
-        @user_login_required
-        def start_job(job_type: str) -> ResponseReturnValue:
-            args = request.form.to_dict()
-            return self.start_new_job(job_type, args)
+    def job_detail_expand(self, job_type: str, job_id: int) -> Response | str:
+        return self.job_details(job_type, job_id, expand_all=True)
 
-        @self.bp.post("/<string:job_type>/<int:job_id>/delete")
-        @admin_required
-        def delete_job(job_type: str, job_id: int) -> Response:
-            return self.delete_job_record(job_type, job_id)
+    def start_job(self, job_type: str) -> ResponseReturnValue:
+        args = request.form.to_dict()
+        return self.start_new_job(job_type, args)
 
-        @self.bp.route("/job-file/<string:result_file>/<string:job_type>", methods=["GET"])
-        @user_login_required
-        def read_job_result_file(result_file: str, job_type: str) -> ResponseReturnValue:
-            return self.read_job_file(result_file, job_type)
+    def delete_job(self, job_type: str, job_id: int) -> Response:
+        return self.delete_job_record(job_type, job_id)
+
+    def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
+        return self.read_job_file(result_file, job_type)
 
 
 __all__ = [

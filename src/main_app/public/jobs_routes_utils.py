@@ -19,7 +19,7 @@ from werkzeug.wrappers.response import Response
 
 from ..db.exceptions import DuplicateJobError
 from ..db.services import (
-    delete_job,
+    JobsService,
     get_job,
     list_jobs,
 )
@@ -101,7 +101,7 @@ def delete_job_handler(job_id: int, job_type: str) -> str:
         if cancel_job_worker(job_id, job_type, job):
             logger.info("Cancelled running job %s before deletion", job_id)
 
-        if delete_job(job_id, job_type):
+        if JobsService().delete_job(job_id, job_type):
             flash(f"Job {job_id} deleted successfully.", "success")
         else:
             flash(f"Failed to delete job {job_id}", "danger")

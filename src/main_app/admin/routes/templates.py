@@ -114,7 +114,7 @@ class TemplatesRoutesFuncs:
             logger.exception("Unable to update template.")
             flash("Unable to update template main file. Please try again.", "danger")
         else:
-            flash(f"Template '{record.title}' main file: {main_file} updated.", "success")
+            flash(f"Template '{title}' main file: {main_file} updated.", "success")
 
         if from_popup:
             return render_template("admins/popup_action.html")
