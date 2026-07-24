@@ -371,10 +371,7 @@ class TestGetUserJobsStats:
         mock_return = {"stats": {"total": 0}, "recent_jobs": []}
         mock_method = MagicMock(return_value=mock_return)
 
-        def mock_get_all(self, username, limit=100):
-            return mock_method(username, limit)
-
-        monkeypatch.setattr(JobsService, "get_all_user_jobs_stats", mock_get_all)
+        monkeypatch.setattr("src.main_app.db.services.jobs_service._get_all_user_jobs_stats", mock_method)
         result = JobsService().get_user_jobs_stats("test_user", jobs_types=None)
         assert result == mock_return
         mock_method.assert_called_once_with("test_user", 100)
@@ -383,10 +380,7 @@ class TestGetUserJobsStats:
         mock_return = {"stats": {"total": 5}, "recent_jobs": []}
         mock_method = MagicMock(return_value=mock_return)
 
-        def mock_get_all(self, username, limit=100):
-            return mock_method(username, limit)
-
-        monkeypatch.setattr(JobsService, "get_all_user_jobs_stats", mock_get_all)
+        monkeypatch.setattr("src.main_app.db.services.jobs_service._get_all_user_jobs_stats", mock_method)
         result = JobsService().get_user_jobs_stats("test_user", jobs_types=[])
         assert result == mock_return
         mock_method.assert_called_once_with("test_user", 100)
