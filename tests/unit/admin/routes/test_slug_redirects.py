@@ -108,7 +108,7 @@ class TestSlugRedirectsRoutes:
         mock_records[0].should_be_replaced = True
         mock_records[1].should_be_replaced = False
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.list_slug_redirects",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.list_slug_redirects",
             MagicMock(return_value=mock_records),
         )
         mock_render = MagicMock(return_value="dashboard")
@@ -175,7 +175,7 @@ class TestSlugRedirectsRoutes:
         """POST /update with valid data should update and redirect."""
         mock_update = MagicMock(return_value=MagicMock())
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.update_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.update_slug_redirect",
             mock_update,
         )
 
@@ -191,7 +191,7 @@ class TestSlugRedirectsRoutes:
         """POST /update without an id should not call the service and redirect."""
         mock_update = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.update_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.update_slug_redirect",
             mock_update,
         )
 
@@ -207,7 +207,7 @@ class TestSlugRedirectsRoutes:
         """POST /update when update_slug_redirect returns None should redirect."""
         mock_update = MagicMock(return_value=None)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.update_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.update_slug_redirect",
             mock_update,
         )
 
@@ -223,7 +223,7 @@ class TestSlugRedirectsRoutes:
         """POST /update with from_popup=1 should render popup_action.html."""
         mock_update = MagicMock(return_value=MagicMock())
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.update_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.update_slug_redirect",
             mock_update,
         )
         mock_render = MagicMock(return_value="popup")
