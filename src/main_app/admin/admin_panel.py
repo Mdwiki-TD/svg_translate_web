@@ -11,7 +11,7 @@ from flask import (
     request,
 )
 
-from ..db.services import list_jobs
+from ..db.services import JobsService
 from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ..public.utils.routes_utils import get_job_detail_url
 from .decorators import admin_required
@@ -43,7 +43,7 @@ class AdminPanel:
         @self.bp.route("/", methods=["GET"])
         @admin_required
         def admin_dashboard() -> str:
-            jobs = list_jobs(limit=100)
+            jobs = JobsService().list_jobs(limit=100)
 
             # Enhance jobs with display names and detail URLs
             enhanced_jobs: list[Any] = []

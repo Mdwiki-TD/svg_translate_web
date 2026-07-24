@@ -22,16 +22,16 @@ class AdminRouteModule:
 
 
 ADMIN_ROUTE_MODULES: list[AdminRouteModule] = [
-    AdminRouteModule(CoordinatorsRoutes, "coordinators", "/coordinators"),
-    AdminRouteModule(UsersRoutes, "users", "/users"),
-    AdminRouteModule(SettingsRoutes, "settings", "/settings"),
-    AdminRouteModule(TemplatesRoutes, "templates", "/templates"),
-    AdminRouteModule(OwidChartsRoutes, "owidcharts", "/owidcharts"),
-    AdminRouteModule(SlugRedirectsRoutes, "slugredirects", "/slugredirects"),
+    AdminRouteModule(route_cls=CoordinatorsRoutes, name="coordinators", url_prefix="/coordinators"),
+    AdminRouteModule(route_cls=UsersRoutes, name="users", url_prefix="/users"),
+    AdminRouteModule(route_cls=SettingsRoutes, name="settings", url_prefix="/settings"),
+    AdminRouteModule(route_cls=TemplatesRoutes, name="templates", url_prefix="/templates"),
+    AdminRouteModule(route_cls=OwidChartsRoutes, name="owidcharts", url_prefix="/owidcharts"),
+    AdminRouteModule(route_cls=SlugRedirectsRoutes, name="slugredirects", url_prefix="/slugredirects"),
     AdminRouteModule(
-        AdminJobsRoutes,
-        "jobs",
-        "/jobs",
+        route_cls=AdminJobsRoutes,
+        name="jobs",
+        url_prefix="/jobs",
         extra_kwargs={
             "jobs_data_infos": jobs_data_admins,
             "bp_name": "adminpanel.jobs",

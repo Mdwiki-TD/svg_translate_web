@@ -32,6 +32,10 @@ class DuplicateUserError(Exception):
     """Raised when attempting to create a user or coordinator that already exists."""
 
 
+class DuplicateRecordError(Exception):
+    """Raised when attempting to create duplicate record."""
+
+
 class InsufficientDatabaseConfigError(RuntimeError):
     def __init__(self) -> None:
         msg = "DB requires database configuration; no fallback store is available."
@@ -40,6 +44,7 @@ class InsufficientDatabaseConfigError(RuntimeError):
 
 __all__ = [
     "UniqueError",
+    "DuplicateRecordError",
     "DatabaseInitError",
     "MaxUserConnectionsError",
     "UserNotFoundError",

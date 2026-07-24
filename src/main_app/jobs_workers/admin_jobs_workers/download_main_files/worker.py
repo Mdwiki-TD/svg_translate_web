@@ -16,7 +16,7 @@ import requests
 from ....api_services import create_commons_session
 from ....config import settings
 from ....db.models import TemplateRecord
-from ....db.services import list_templates
+from ....db.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
 from .download_helper import download_file_from_commons
 from .objects import DownloadMainFilesWorkerObject, FileInfo
@@ -97,7 +97,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
     def _load_templates(self) -> list[TemplateRecord]:
         # Get all templates with main files
-        templates = list_templates()
+        templates = TemplateService().list_templates()
         templates_with_files = [t for t in templates if t.main_file]
         return self._apply_limits(templates_with_files)
 

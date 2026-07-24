@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # ── SELECT ───────────────────────────────────────────────
 
 
-def list_slug_redirects(limit: int | None = None, offset: int | None = None) -> list[OwidSlugRedirectRecord]:
+def _list_slug_redirects(limit: int | None = None, offset: int | None = None) -> list[OwidSlugRedirectRecord]:
     """
     List slug redirects ordered by created_at DESC.
     """
@@ -28,14 +28,14 @@ def list_slug_redirects(limit: int | None = None, offset: int | None = None) -> 
     return query.all()
 
 
-def get_slug_redirect_by_id(redirect_id: int) -> OwidSlugRedirectRecord | None:
+def _get_slug_redirect_by_id(redirect_id: int) -> OwidSlugRedirectRecord | None:
     """
     Fetch a slug redirect by ID.
     """
     return db.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id == redirect_id).first()
 
 
-def count_slug_redirects() -> int:
+def _count_slug_redirects() -> int:
     """
     Count total slug redirect records.
     """
@@ -46,7 +46,7 @@ def count_slug_redirects() -> int:
 
 
 @db_guard_rollback
-def add_new_slug_redirect(slug: str, redirect_to: str) -> None:
+def _add_new_slug_redirect(slug: str, redirect_to: str) -> None:
     """
     Add a new slug redirect record if it doesn't already exist.
     """
@@ -64,11 +64,11 @@ def add_new_slug_redirect(slug: str, redirect_to: str) -> None:
 
 
 @db_guard(default_return=False)
-def update_slug_redirect(redirect_id: int, data: dict[str, Any]) -> OwidSlugRedirectRecord | None:
+def _update_slug_redirect(redirect_id: int, data: dict[str, Any]) -> OwidSlugRedirectRecord | None:
     """
     Update a slug redirect record.
     """
-    record = get_slug_redirect_by_id(redirect_id)
+    record = _get_slug_redirect_by_id(redirect_id)
     if not record:
         return None
 
@@ -83,7 +83,7 @@ def update_slug_redirect(redirect_id: int, data: dict[str, Any]) -> OwidSlugRedi
 
 
 @db_guard_rollback
-def bulk_update_slug_redirects(redirect_ids: list[int], data: dict[str, Any]) -> None:
+def _bulk_update_slug_redirects(redirect_ids: list[int], data: dict[str, Any]) -> None:
     """
     Bulk update slug redirect records.
     """
@@ -100,7 +100,7 @@ def bulk_update_slug_redirects(redirect_ids: list[int], data: dict[str, Any]) ->
 
 
 @db_guard_rollback
-def bulk_delete_slug_redirects(redirect_ids: list[int]) -> None:
+def _bulk_delete_slug_redirects(redirect_ids: list[int]) -> None:
     """
     Bulk delete slug redirect records.
     """
@@ -116,25 +116,25 @@ class OwidSlugRedirectsService:
         pass
 
     def list_slug_redirects(self, limit: int | None = None, offset: int | None = None) -> list[OwidSlugRedirectRecord]:
-        return list_slug_redirects(limit, offset)
+        return _list_slug_redirects(limit, offset)
 
     def get_slug_redirect_by_id(self, redirect_id: int) -> OwidSlugRedirectRecord | None:
-        return get_slug_redirect_by_id(redirect_id)
+        return _get_slug_redirect_by_id(redirect_id)
 
     def count_slug_redirects(self) -> int:
-        return count_slug_redirects()
+        return _count_slug_redirects()
 
     def add_new_slug_redirect(self, slug: str, redirect_to: str) -> None:
-        return add_new_slug_redirect(slug, redirect_to)
+        return _add_new_slug_redirect(slug, redirect_to)
 
     def update_slug_redirect(self, redirect_id: int, data: dict[str, Any]) -> OwidSlugRedirectRecord | None:
-        return update_slug_redirect(redirect_id, data)
+        return _update_slug_redirect(redirect_id, data)
 
     def bulk_update_slug_redirects(self, redirect_ids: list[int], data: dict[str, Any]) -> None:
-        return bulk_update_slug_redirects(redirect_ids, data)
+        return _bulk_update_slug_redirects(redirect_ids, data)
 
     def bulk_delete_slug_redirects(self, redirect_ids: list[int]) -> None:
-        return bulk_delete_slug_redirects(redirect_ids)
+        return _bulk_delete_slug_redirects(redirect_ids)
 
     def delete(self, record_id: int) -> bool:
         return delete_record_by_pk(OwidSlugRedirectRecord, record_id)
@@ -142,11 +142,4 @@ class OwidSlugRedirectsService:
 
 __all__ = [
     "OwidSlugRedirectsService",
-    "add_new_slug_redirect",
-    "list_slug_redirects",
-    "get_slug_redirect_by_id",
-    "update_slug_redirect",
-    "count_slug_redirects",
-    "bulk_update_slug_redirects",
-    "bulk_delete_slug_redirects",
 ]

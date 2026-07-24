@@ -14,6 +14,7 @@ from src.main_app.admin.routes.users import (
     _update_can_run_jobs,
 )
 from src.main_app.db.exceptions import UserNotFoundError
+from src.main_app.db.services import UsersService
 
 
 class TestDashboard:
@@ -22,8 +23,9 @@ class TestDashboard:
     def test_with_users(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_users = [MagicMock(username="alice"), MagicMock(username="bob")]
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.list_users",
-            lambda: mock_users,
+            UsersService,
+            "list_users",
+            lambda self: mock_users,
         )
         mock_render = MagicMock(return_value="rendered")
         monkeypatch.setattr(
@@ -42,8 +44,9 @@ class TestDashboard:
 
     def test_with_0_users(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.list_users",
-            list,
+            UsersService,
+            "list_users",
+            lambda self: [],
         )
         mock_render = MagicMock(return_value="rendered")
         monkeypatch.setattr(
@@ -67,7 +70,8 @@ class TestDashboard:
             mock_flash,
         )
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.list_users",
+            UsersService,
+            "list_users",
             MagicMock(side_effect=Exception("DB error")),
         )
         mock_render = MagicMock(return_value="rendered")
@@ -99,7 +103,8 @@ class TestUpdatePermissions:
     def test_success(self, monkeypatch: pytest.MonkeyPatch, toggle_func_name: str) -> None:
         record = MagicMock(username="testuser")
         monkeypatch.setattr(
-            f"src.main_app.admin.routes.users.{toggle_func_name}",
+            UsersService,
+            toggle_func_name,
             MagicMock(return_value=record),
         )
         mock_flash = MagicMock()
@@ -127,7 +132,8 @@ class TestUpdatePermissions:
 
     def test_lookup_error(self, monkeypatch: pytest.MonkeyPatch, toggle_func_name: str) -> None:
         monkeypatch.setattr(
-            f"src.main_app.admin.routes.users.{toggle_func_name}",
+            UsersService,
+            toggle_func_name,
             MagicMock(side_effect=UserNotFoundError("User with id 999 was not found")),
         )
         mock_flash = MagicMock()
@@ -155,7 +161,8 @@ class TestUpdatePermissions:
 
     def test_generic_exception(self, monkeypatch: pytest.MonkeyPatch, toggle_func_name: str) -> None:
         monkeypatch.setattr(
-            f"src.main_app.admin.routes.users.{toggle_func_name}",
+            UsersService,
+            toggle_func_name,
             MagicMock(side_effect=Exception("Unexpected error")),
         )
         mock_flash = MagicMock()
@@ -226,7 +233,8 @@ class TestUsersRoutesRoutes:
     def test_dashboard_get(self, client, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_users = [MagicMock(username="alice")]
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.list_users",
+            UsersService,
+            "list_users",
             MagicMock(return_value=mock_users),
         )
         mock_render = MagicMock(return_value="dashboard")
@@ -246,7 +254,8 @@ class TestUsersRoutesRoutes:
 
     def test_dashboard_get_exception(self, client, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.list_users",
+            UsersService,
+            "list_users",
             MagicMock(side_effect=Exception("DB error")),
         )
         mock_render = MagicMock(return_value="dashboard")
@@ -268,7 +277,8 @@ class TestUsersRoutesRoutes:
         record = MagicMock(username="testuser")
         mock_toggle = MagicMock(return_value=record)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.toggle_can_run_jobs",
+            UsersService,
+            "toggle_can_run_jobs",
             mock_toggle,
         )
 
@@ -281,7 +291,8 @@ class TestUsersRoutesRoutes:
         record = MagicMock(username="testuser")
         mock_toggle = MagicMock(return_value=record)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.toggle_can_run_jobs",
+            UsersService,
+            "toggle_can_run_jobs",
             mock_toggle,
         )
 
@@ -294,7 +305,8 @@ class TestUsersRoutesRoutes:
         record = MagicMock(username="testuser")
         mock_toggle = MagicMock(return_value=record)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.toggle_can_run_jobs",
+            UsersService,
+            "toggle_can_run_jobs",
             mock_toggle,
         )
 
@@ -307,7 +319,8 @@ class TestUsersRoutesRoutes:
         record = MagicMock(username="testuser")
         mock_toggle = MagicMock(return_value=record)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.toggle_can_run_bg_jobs",
+            UsersService,
+            "toggle_can_run_bg_jobs",
             mock_toggle,
         )
 
@@ -320,7 +333,8 @@ class TestUsersRoutesRoutes:
         record = MagicMock(username="testuser")
         mock_toggle = MagicMock(return_value=record)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.toggle_can_run_bg_jobs",
+            UsersService,
+            "toggle_can_run_bg_jobs",
             mock_toggle,
         )
 
@@ -333,7 +347,8 @@ class TestUsersRoutesRoutes:
         record = MagicMock(username="testuser")
         mock_toggle = MagicMock(return_value=record)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.users.toggle_can_run_bg_jobs",
+            UsersService,
+            "toggle_can_run_bg_jobs",
             mock_toggle,
         )
 

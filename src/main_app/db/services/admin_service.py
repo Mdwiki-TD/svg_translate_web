@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # ── SELECT ───────────────────────────────────────────────
 
 
-def is_active_coordinator(username: str) -> bool:
+def _is_active_coordinator(username: str) -> bool:
     """Check whether a single username is an active coordinator."""
     try:
         record = (
@@ -35,7 +35,7 @@ def is_active_coordinator(username: str) -> bool:
     return False
 
 
-def list_coordinators() -> list[AdminUserRecord]:
+def _list_coordinators() -> list[AdminUserRecord]:
     """
     Return all coordinators from the database.
 
@@ -44,7 +44,7 @@ def list_coordinators() -> list[AdminUserRecord]:
     return db.session.query(AdminUserRecord).all()
 
 
-def get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
+def _get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
     """
     Get a coordinator by ID.
     """
@@ -57,7 +57,7 @@ def get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
 # ── INSERT, UPDATE, SET ──────────────────────────────────
 
 
-def add_coordinator(username: str) -> AdminUserRecord:
+def _add_coordinator(username: str) -> AdminUserRecord:
     """Add a coordinator."""
     if not username or not username.strip():
         raise ValueError("Username is required")
@@ -82,7 +82,7 @@ def add_coordinator(username: str) -> AdminUserRecord:
 
 
 @db_guard_rollback
-def set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRecord | None:
+def _set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRecord | None:
     """Toggle coordinator activity."""
     # record = get_coordinator_by_id(coordinator_id)
     record = db.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
@@ -100,19 +100,19 @@ class AdminService:
         pass
 
     def is_active_coordinator(self, username: str) -> bool:
-        return is_active_coordinator(username)
+        return _is_active_coordinator(username)
 
     def list_coordinators(self) -> list[AdminUserRecord]:
-        return list_coordinators()
+        return _list_coordinators()
 
     def get_coordinator_by_id(self, coordinator_id: int) -> AdminUserRecord:
-        return get_coordinator_by_id(coordinator_id)
+        return _get_coordinator_by_id(coordinator_id)
 
     def add_coordinator(self, username: str) -> AdminUserRecord:
-        return add_coordinator(username)
+        return _add_coordinator(username)
 
     def set_coordinator_active(self, coordinator_id: int, is_active: bool) -> AdminUserRecord | None:
-        return set_coordinator_active(coordinator_id, is_active)
+        return _set_coordinator_active(coordinator_id, is_active)
 
     def delete(self, record_id: int) -> bool:
         return delete_record_by_pk(AdminUserRecord, record_id)

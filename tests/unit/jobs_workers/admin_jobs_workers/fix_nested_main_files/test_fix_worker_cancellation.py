@@ -16,7 +16,7 @@ def test_fix_nested_main_files_worker_cancellation(mock_base_worker, monkeypatch
     """Test that fix_nested_main_files_worker stops when cancelled."""
     mock_list_templates = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates",
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.TemplateService.list_templates",
         mock_list_templates,
     )
 

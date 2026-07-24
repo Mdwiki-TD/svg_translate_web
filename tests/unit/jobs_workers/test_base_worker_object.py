@@ -30,7 +30,7 @@ def mock_base_is_cancelled(
         "is_job_cancelled_file_exist": MagicMock(),
     }
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
+        "src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled",
         mocks["is_job_cancelled"],
     )
     monkeypatch.setattr(

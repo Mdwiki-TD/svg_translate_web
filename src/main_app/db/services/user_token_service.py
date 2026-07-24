@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # ── SELECT ───────────────────────────────────────────────
 
 
-def get_authenticated_user_token(user_id: int) -> None | UserTokenRecord:
+def _get_authenticated_user_token(user_id: int) -> None | UserTokenRecord:
     """Fetch the CurrentUser composite for session restoration."""
     try:
         token = (
@@ -38,7 +38,7 @@ def get_authenticated_user_token(user_id: int) -> None | UserTokenRecord:
         return None
 
 
-def get_user_token(user_id: str | int) -> UserTokenRecord | None:
+def _get_user_token(user_id: str | int) -> UserTokenRecord | None:
     """Fetch the encrypted OAuth credentials for a user."""
     if not user_id:
         return None
@@ -54,7 +54,7 @@ def get_user_token(user_id: str | int) -> UserTokenRecord | None:
 
 
 @db_guard_rollback
-def create_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
+def _create_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
     """ """
     encrypted_token = encrypt_value(access_key)
     encrypted_secret = encrypt_value(access_secret)
@@ -73,7 +73,7 @@ def create_user_token(user_id: int, access_key: str, access_secret: str) -> User
 
 
 @db_guard_rollback
-def update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord | None:
+def _update_user_token(user_id: int, access_key: str, access_secret: str) -> UserTokenRecord | None:
     """
     update the encrypted OAuth credentials for a user.
     """
@@ -98,7 +98,7 @@ def update_user_token(user_id: int, access_key: str, access_secret: str) -> User
 
 
 @db_guard_rollback
-def upsert_user_token(
+def _upsert_user_token(
     user_id: int,
     access_key: str,
     access_secret: str,
@@ -111,9 +111,9 @@ def upsert_user_token(
     # record = db.session.get(UserTokenRecord, user_id)
     record = db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
     if record:
-        orm_obj = update_user_token(user_id, access_key, access_secret)
+        orm_obj = _update_user_token(user_id, access_key, access_secret)
     else:
-        orm_obj = create_user_token(user_id, access_key, access_secret)
+        orm_obj = _create_user_token(user_id, access_key, access_secret)
 
     return orm_obj
 
@@ -123,16 +123,16 @@ class UserTokenService:
         pass
 
     def get_authenticated_user_token(self, user_id: int) -> None | UserTokenRecord:
-        return get_authenticated_user_token(user_id)
+        return _get_authenticated_user_token(user_id)
 
     def get_user_token(self, user_id: str | int) -> UserTokenRecord | None:
-        return get_user_token(user_id)
+        return _get_user_token(user_id)
 
     def create_user_token(self, user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
-        return create_user_token(user_id, access_key, access_secret)
+        return _create_user_token(user_id, access_key, access_secret)
 
     def update_user_token(self, user_id: int, access_key: str, access_secret: str) -> UserTokenRecord | None:
-        return update_user_token(user_id, access_key, access_secret)
+        return _update_user_token(user_id, access_key, access_secret)
 
     def upsert_user_token(
         self,
@@ -140,7 +140,7 @@ class UserTokenService:
         access_key: str,
         access_secret: str,
     ) -> UserTokenRecord:
-        return upsert_user_token(user_id, access_key, access_secret)
+        return _upsert_user_token(user_id, access_key, access_secret)
 
     def delete(self, record_id: int) -> bool:
         return delete_record_by_pk(UserTokenRecord, record_id)
@@ -148,7 +148,4 @@ class UserTokenService:
 
 __all__ = [
     "UserTokenService",
-    "upsert_user_token",
-    "get_user_token",
-    "update_user_token",
 ]

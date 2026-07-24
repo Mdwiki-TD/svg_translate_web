@@ -5,14 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models.owid_slug_redirects import OwidSlugRedirectRecord
-from src.main_app.db.services.owid_slug_redirects_service import (
-    OwidSlugRedirectsService,
-    add_new_slug_redirect,
-    count_slug_redirects,
-    get_slug_redirect_by_id,
-    list_slug_redirects,
-    update_slug_redirect,
-)
+from src.main_app.db.services.owid_slug_redirects_service import OwidSlugRedirectsService
 
 
 @pytest.fixture
@@ -25,7 +18,7 @@ def mock_db_session(monkeypatch: pytest.MonkeyPatch):
 def test_add_new_slug_redirect_new(mock_db_session):
     mock_db_session.query().filter().first.return_value = None
 
-    add_new_slug_redirect("old-slug", "new-slug")
+    OwidSlugRedirectsService().add_new_slug_redirect("old-slug", "new-slug")
 
     assert mock_db_session.add.called
     assert mock_db_session.commit.called
@@ -36,7 +29,7 @@ def test_add_new_slug_redirect_existing(mock_db_session):
         slug="old-slug", redirect_to="new-slug"
     )
 
-    add_new_slug_redirect("old-slug", "new-slug")
+    OwidSlugRedirectsService().add_new_slug_redirect("old-slug", "new-slug")
 
     assert not mock_db_session.add.called
     assert not mock_db_session.commit.called
@@ -46,8 +39,8 @@ def test_add_new_slug_redirect_update_target(mock_db_session):
     _existing = OwidSlugRedirectRecord(id=100, slug="old-slugz", redirect_to="old-target")
     mock_db_session.query().filter().first.return_value = _existing
 
-    update_slug_redirect(100, {"redirect_to": "new-target"})
-    existing_record = get_slug_redirect_by_id(100)
+    OwidSlugRedirectsService().update_slug_redirect(100, {"redirect_to": "new-target"})
+    existing_record = OwidSlugRedirectsService().get_slug_redirect_by_id(100)
     assert existing_record is not None
     assert existing_record.redirect_to == "new-target"
     assert mock_db_session.commit.called
@@ -56,7 +49,7 @@ def test_add_new_slug_redirect_update_target(mock_db_session):
 def test_list_slug_redirects(mock_db_session):
     mock_db_session.query().order_by().limit().offset().all.return_value = []
 
-    results = list_slug_redirects(limit=10, offset=0)
+    results = OwidSlugRedirectsService().list_slug_redirects(limit=10, offset=0)
 
     assert results == []
 
@@ -65,7 +58,7 @@ def test_get_slug_redirect_by_id(mock_db_session):
     record = OwidSlugRedirectRecord(id=1)
     mock_db_session.query().filter().first.return_value = record
 
-    result = get_slug_redirect_by_id(1)
+    result = OwidSlugRedirectsService().get_slug_redirect_by_id(1)
 
     assert result == record
 
@@ -74,7 +67,7 @@ def test_update_slug_redirect(mock_db_session):
     record = OwidSlugRedirectRecord(id=1, should_be_replaced=False)
     mock_db_session.query().filter().first.return_value = record
 
-    update_slug_redirect(1, {"should_be_replaced": True})
+    OwidSlugRedirectsService().update_slug_redirect(1, {"should_be_replaced": True})
 
     assert record.should_be_replaced is True
     assert mock_db_session.commit.called
@@ -94,4 +87,4 @@ def test_delete_slug_redirect(mock_db_session):
 def test_count_slug_redirects(mock_db_session):
     mock_db_session.query().count.return_value = 5
 
-    assert count_slug_redirects() == 5
+    assert OwidSlugRedirectsService().count_slug_redirects() == 5

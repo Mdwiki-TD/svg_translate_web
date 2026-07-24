@@ -14,7 +14,7 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage
 from ....db.models import TemplateRecord
-from ....db.services import list_templates
+from ....db.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
 from .objects import AddSvgLanguagesWorkerObject
 from .utils import RE_SVG_LANG, add_template_to_text, extract_svg_file_name
@@ -93,7 +93,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = list_templates()
+        templates = TemplateService().list_templates()
         templates = [t for t in templates if t.title.startswith("Template:OWID/")]
         return self._apply_limits(templates)
 

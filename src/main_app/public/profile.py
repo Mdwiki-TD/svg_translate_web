@@ -4,7 +4,7 @@ import logging
 
 from flask import Blueprint, flash, render_template
 
-from ..db.services import get_all_user_jobs_stats, get_user_jobs_stats
+from ..db.services import JobsService
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from .auth.utils import load_user
 
@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 class ProfileRoutes:
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
+        self.jobs_service = JobsService()
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -34,9 +35,9 @@ class ProfileRoutes:
 
             try:
                 if show_all:
-                    data = get_all_user_jobs_stats(user_name)
+                    data = self.jobs_service.get_all_user_jobs_stats(user_name)
                 else:
-                    data = get_user_jobs_stats(
+                    data = self.jobs_service.get_user_jobs_stats(
                         username=user_name,
                         jobs_types=list(jobs_data_public.keys()),
                     )

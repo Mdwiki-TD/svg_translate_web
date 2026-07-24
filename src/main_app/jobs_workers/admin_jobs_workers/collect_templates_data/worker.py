@@ -17,7 +17,7 @@ from ....db.models import TemplateRecord
 from ....db.services import (
     OwidChartsService,
     TemplateService,
-    list_templates_need_update,
+    ViewsService,
 )
 from ....db.templates_utils import extract_slug
 from ....utils.wikitext import (
@@ -372,10 +372,12 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # Only assign slug if it exists in the owid_charts table
         if slug:
             try:
-                self.owid_charts_service.get_chart_by_slug(slug)
-                return slug
+                if self.owid_charts_service.get_chart_by_slug(slug):
+                    return slug
+                return None
             except (LookupError, RuntimeError):
                 return None
+        return None
 
     def _load_slug(self, template_title: str, template_slug: str, template_source: str) -> str | None:
         _slug = extract_slug(template_source)
@@ -413,7 +415,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     def process_one(self, template_title: str) -> CollectTemplatesDataWorkerObject:
         """Process a single template by title."""
 
-        template: TemplateRecord = self.template_service.get_template_by_title(template_title)
+        template = self.template_service.get_template_by_title(template_title)
         if not template:
             logger.error(f"Job {self.job_id}: Template '{template_title}' not found")
             self.result.summary.total = 0
@@ -512,7 +514,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             return self.process_one(self.args["title"])
 
         if self.args.get("list_titles") == "list_templates_need_update":
-            templates_to_update = list_templates_need_update()
+            templates_to_update = ViewsService().list_templates_need_update()
             templates_to_update_titles = {x.template_title for x in templates_to_update}
 
             templates: list[TemplateRecord] = self.template_service.list_templates()

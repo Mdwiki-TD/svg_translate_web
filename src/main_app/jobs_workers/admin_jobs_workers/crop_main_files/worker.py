@@ -15,7 +15,7 @@ from mwclient.client import Site
 from ....api_services import MwClientPage, create_commons_session, is_pages_exists
 from ....config import settings
 from ....db.models import TemplateRecord
-from ....db.services import list_templates
+from ....db.services import TemplateService
 from ....utils.wikitext import (
     create_cropped_file_text,
     ensure_file_prefix,
@@ -121,7 +121,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         logger.info("self.exists: %d", len(self.exists))
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = list_templates()
+        templates = TemplateService().list_templates()
         _templates = [t for t in templates if t.last_world_file]
         return self._apply_limits(_templates)
 

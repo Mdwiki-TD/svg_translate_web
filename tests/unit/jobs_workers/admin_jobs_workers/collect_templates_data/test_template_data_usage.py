@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker import (
     CollectMainFilesWorker,
     TemplateData,
@@ -73,7 +74,6 @@ class TestTemplateRecordToTemplateDataConversion:
     """start_process converts TemplateRecord to TemplateData."""
 
     def test_conversion_preserves_all_fields(self, mock_base_worker):
-        from src.main_app.db.models import TemplateRecord
 
         record = TemplateRecord(
             id=5,
@@ -102,8 +102,6 @@ class TestTemplateRecordToTemplateDataConversion:
         assert data.source == record.source
 
     def test_conversion_strips_file_prefix(self):
-        from src.main_app.db.models import TemplateRecord
-
         record = TemplateRecord(
             id=1,
             title="Template:Test",

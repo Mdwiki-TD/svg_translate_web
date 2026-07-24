@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from ...config import settings
-from ...db.services import get_template_by_title
+from ...db.services import TemplateService
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +107,7 @@ def get_informations(title: str) -> dict:
 
     full_title = f"Template:OWID/{title}" if not title.startswith("Template:OWID/") else title
     full_title = full_title.replace("_", " ")
-    template = get_template_by_title(full_title)
+    template = TemplateService().get_template_by_title(full_title)
     if not template:
         logger.info(f"Template {full_title} not found")
 

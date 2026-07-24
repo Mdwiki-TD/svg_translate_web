@@ -4,7 +4,7 @@
 {% block title %}OWID Charts · {{ tool_title }}{% endblock %}
 {% block admin_contents %}
 
-{% macro summary_card(title, prefix, data, without_value, without_label="without") %}
+{% macro summary_card(title, prefix, data, without_label="without") %}
 <div class="card h-100 shadow-sm">
     <div class="card-body">
         <h2 class="h6 text-uppercase text-muted">{{ title }}</h2>
@@ -42,7 +42,7 @@
             <div class="col-md-9">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        {{ summary_card("Published", "published", summary.published, "not published") }}
+                        {{ summary_card("Published", "published", summary.published, without_label="not published") }}
                     </div>
                     <div class="col-md-3">
                         {{ summary_card("Template", "template", summary.template) }}

@@ -30,50 +30,18 @@ def _serialize_value(value: Any, value_type: str) -> str | None:
     return str(value)
 
 
-def list_settings() -> list[SettingRecord]:
+def _list_settings() -> list[SettingRecord]:
     """Return all setting records."""
     orm_objs = db.session.query(SettingRecord).all()
     return orm_objs
 
 
-def get_all_settings_raw() -> list[dict[str, Any]]:
-    """Fetch a setting by key."""
-    return [x.to_dict() for x in list_settings()]
-
-
-def get_all_settings_ready() -> dict[str, Any]:
-    """Fetch all settings parsed into their respective Python types."""
-    records: dict[str, Any] = {}
-
-    for x in list_settings():
-        val = None
-        if x.value_type == "boolean":
-            val = x.value == "true"
-        elif x.value_type == "integer":
-            if isinstance(x.value, int):
-                val = x.value
-            else:
-                try:
-                    val = int(x.value)  # type: ignore
-                except (ValueError, TypeError):
-                    val = None
-        elif x.value_type == "string":
-            val = str(x.value)
-
-        if val is None:
-            logger.warning("Could not parse setting %s with value %s", x.key, x.value)
-
-        records[x.key] = val
-
-    return records
-
-
-def get_setting_by_key(key: str) -> SettingRecord | None:
+def _get_setting_by_key(key: str) -> SettingRecord | None:
     """Fetch a setting by key."""
     return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
 
 
-def get_setting_by_id(setting_id: int) -> SettingRecord | None:
+def _get_setting_by_id(setting_id: int) -> SettingRecord | None:
     """Get a setting record by ID."""
     orm_obj = db.session.get(SettingRecord, setting_id)
     if not orm_obj:
@@ -83,7 +51,7 @@ def get_setting_by_id(setting_id: int) -> SettingRecord | None:
 
 
 @db_guard(default_return=False)
-def update_setting(
+def _update_setting(
     key: str,
     value: Any,
     value_type: str = "string",
@@ -106,7 +74,7 @@ def update_setting(
     return True
 
 
-def create_setting(
+def _create_setting(
     key: str,
     title: str,
     value_type: str = "boolean",
@@ -152,19 +120,55 @@ class SettingsService:
         pass
 
     def list_settings(self) -> list[SettingRecord]:
-        return list_settings()
+        try:
+            return _list_settings()
+        except Exception:
+            logger.exception("Could not list settings")
+            return []
 
     def get_all_settings_raw(self) -> list[dict[str, Any]]:
-        return get_all_settings_raw()
+        """Fetch a setting by key."""
+        return [x.to_dict() for x in self.list_settings()]
 
     def get_all_settings_ready(self) -> dict[str, Any]:
-        return get_all_settings_ready()
+        """Fetch all settings parsed into their respective Python types."""
+        records: dict[str, Any] = {}
+
+        for x in self.list_settings():
+            val = None
+            if x.value_type == "boolean":
+                val = x.value == "true"
+            elif x.value_type == "integer":
+                if isinstance(x.value, int):
+                    val = x.value
+                else:
+                    try:
+                        val = int(x.value)  # type: ignore
+                    except (ValueError, TypeError):
+                        val = None
+            elif x.value_type == "string":
+                val = str(x.value)
+
+            if val is None:
+                logger.warning("Could not parse setting %s with value %s", x.key, x.value)
+
+            records[x.key] = val
+
+        return records
 
     def get_setting_by_key(self, key: str) -> SettingRecord | None:
-        return get_setting_by_key(key)
+        try:
+            return _get_setting_by_key(key)
+        except Exception:
+            logger.exception("Could not get setting by key")
+            return None
 
     def get_setting_by_id(self, setting_id: int) -> SettingRecord | None:
-        return get_setting_by_id(setting_id)
+        try:
+            return _get_setting_by_id(setting_id)
+        except Exception:
+            logger.exception("Could not get setting by ID")
+            return None
 
     def update_setting(
         self,
@@ -173,7 +177,7 @@ class SettingsService:
         value_type: str = "string",
         title: str | None = None,
     ) -> bool:
-        return update_setting(key, value, value_type, title)
+        return _update_setting(key, value, value_type, title)
 
     def create_setting(
         self,
@@ -182,7 +186,7 @@ class SettingsService:
         value_type: str = "boolean",
         value: Any | None = None,
     ) -> bool:
-        return create_setting(key, title, value_type, value)
+        return _create_setting(key, title, value_type, value)
 
     def delete(self, record_id: int) -> bool:
         return delete_record_by_pk(SettingRecord, record_id)

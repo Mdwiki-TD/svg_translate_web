@@ -548,7 +548,7 @@ class TestRun:
         patches = {
             # Bypass the DB write inside BaseObjectsJobWorker.after_run().
             "update_job_status": patch(
-                "src.main_app.jobs_workers.base_worker.update_job_status",
+                "src.main_app.jobs_workers.base_worker.JobsService.update_job_status",
                 return_value=None,
             ),
             # Bypass disk writes from _save_progress().
@@ -556,7 +556,7 @@ class TestRun:
                 "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
                 return_value=None,
             ),
-            "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.is_job_cancelled"),
+            "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled"),
             "get_site": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.get_user_site",
                 return_value=MagicMock(),
@@ -633,7 +633,7 @@ class TestRun:
         mocks["is_job_cancelled"].return_value = False
 
         # _run_stage calls self.is_cancelled() without check_db=True, so we
-        # drive cancellation through is_job_cancelled_file_exist (file path)
+        # drive cancellation through is_job_cancelled_file_exist(file path)
         # instead of the DB path. Trip cancellation on the 3rd check.
         call_count = [0]
 

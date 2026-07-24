@@ -6,6 +6,7 @@ from typing import Any
 from sqlalchemy import String, cast, func, select
 
 from ...extensions import db
+from ..exceptions import DuplicateRecordError
 from ..models.templates import TemplateRecord
 from ..templates_utils import ensure_template_data
 from .delete_service import delete_record_by_pk
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 # ── SELECT ───────────────────────────────────────────────
 
 
-def list_templates(limit: int | None = None) -> list[TemplateRecord]:
+def _list_templates(limit: int | None = None) -> list[TemplateRecord]:
     """Return all templates"""
     query = db.session.query(TemplateRecord).order_by(TemplateRecord.title)
     if limit is not None:
@@ -25,7 +26,7 @@ def list_templates(limit: int | None = None) -> list[TemplateRecord]:
     return query.all()
 
 
-def list_templates_mismatched_years() -> list[TemplateRecord]:
+def _list_templates_mismatched_years() -> list[TemplateRecord]:
     """
     Fetches all template records where the 'last_world_file'
     does not contain the 'last_world_year', resolving collation conflicts.
@@ -51,12 +52,12 @@ def list_templates_mismatched_years() -> list[TemplateRecord]:
     return list(results)
 
 
-def get_template(template_id: int) -> TemplateRecord:
+def _get_template(template_id: int) -> TemplateRecord:
     """Fetch a template by ID."""
     return db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
 
 
-def get_template_by_title(title: str) -> TemplateRecord:
+def _get_template_by_title(title: str) -> TemplateRecord:
     """Fetch a template by title."""
     return db.session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
 
@@ -64,9 +65,7 @@ def get_template_by_title(title: str) -> TemplateRecord:
 # ── INSERT, UPDATE, SET ──────────────────────────────────
 
 
-def add_template_data(
-    data: dict[str, Any],
-) -> TemplateRecord:
+def _add_template_data(data: dict[str, Any]) -> TemplateRecord:
     """
     Add a new template.
     """
@@ -76,7 +75,7 @@ def add_template_data(
 
     existing = db.session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
     if existing:
-        raise ValueError(f"Template '{title}' already exists")
+        raise DuplicateRecordError(f"Template '{title}' already exists")
 
     data = ensure_template_data(data)
 
@@ -96,7 +95,7 @@ def add_template_data(
 
 
 @db_guard(default_return=None)
-def update_template_data(
+def _update_template_data(
     template_id: int,
     template_data: dict[str, str],
 ) -> TemplateRecord | None:
@@ -124,26 +123,38 @@ class TemplateService:
         pass
 
     def list_templates(self, limit: int | None = None) -> list[TemplateRecord]:
-        return list_templates(limit)
+        try:
+            return _list_templates(limit)
+        except Exception as exc:
+            logger.error(f"Error listing templates: {exc}")
+            return []
 
     def list_templates_mismatched_years(self) -> list[TemplateRecord]:
-        return list_templates_mismatched_years()
+        return _list_templates_mismatched_years()
 
-    def get_template(self, template_id: int) -> TemplateRecord:
-        return get_template(template_id)
+    def get_template(self, template_id: int) -> TemplateRecord | None:
+        try:
+            return _get_template(template_id)
+        except Exception as exc:
+            logger.error("Error getting template %s", str(exc))
+            return None
 
-    def get_template_by_title(self, title: str) -> TemplateRecord:
-        return get_template_by_title(title)
+    def get_template_by_title(self, title: str) -> TemplateRecord | None:
+        try:
+            return _get_template_by_title(title)
+        except Exception as exc:
+            logger.error("Error getting template %s", str(exc))
+            return None
 
-    def add_template_data(self, data: dict[str, Any]) -> TemplateRecord:
-        return add_template_data(data)
+    def add_template_data(self, data: dict[str, Any]) -> TemplateRecord | None:
+        return _add_template_data(data)
 
     def update_template_data(
         self,
         template_id: int,
         template_data: dict[str, str],
     ) -> TemplateRecord | None:
-        return update_template_data(template_id, template_data)
+        return _update_template_data(template_id, template_data)
 
     def delete(self, record_id: int) -> bool:
         return delete_record_by_pk(TemplateRecord, record_id)
@@ -151,10 +162,4 @@ class TemplateService:
 
 __all__ = [
     "TemplateService",
-    "get_template_by_title",
-    "add_template_data",
-    "update_template_data",
-    "list_templates",
-    "list_templates_mismatched_years",
-    "get_template",
 ]

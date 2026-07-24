@@ -27,7 +27,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     mocks["MwClientPage"].return_value = mock_page_instance
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_job_cancelled",
+        "src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled",
         mocks["is_job_cancelled"],
     )
     monkeypatch.setattr(
@@ -35,7 +35,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         mocks["is_job_cancelled_file_exist"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.list_templates",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.TemplateService.list_templates",
         mocks["list_templates"],
     )
     monkeypatch.setattr(

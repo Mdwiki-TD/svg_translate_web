@@ -16,7 +16,9 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from werkzeug.datastructures import ImmutableMultiDict
 
+from ...db.exceptions import DuplicateRecordError
 from ...db.models import TemplateRecord
 from ...db.services import (
     TemplateService,
@@ -41,17 +43,19 @@ class TemplatesRoutesFuncs:
             "admins/templates_need_update.html",
         )
 
-    def add_template(self) -> ResponseReturnValue:
+    def _add_template(self, request_form: dict[str, Any] | ImmutableMultiDict) -> ResponseReturnValue:
         """Create a new template from the submitted title."""
+        if isinstance(request_form, dict):
+            request_form = ImmutableMultiDict(request_form)
 
-        title = request.form.get("title", "").strip()
+        title = request_form.get("title", "").strip()
         if not title:
             flash("Title is required to add a template.", "danger")
             return redirect(url_for("adminpanel.templates.dashboard"))
 
-        main_file = request.form.get("main_file", "").strip()
-        last_world_file = request.form.get("last_world_file", "").strip()
-        source = request.form.get("source", "").strip()
+        main_file = request_form.get("main_file", "").strip()
+        last_world_file = request_form.get("last_world_file", "").strip()
+        source = request_form.get("source", "").strip()
 
         data = {
             "title": title,
@@ -61,7 +65,7 @@ class TemplatesRoutesFuncs:
         }
         try:
             record = self.service.add_template_data(data)
-        except ValueError:
+        except DuplicateRecordError:
             logger.exception("Unable to add template.")
             flash(f"Template '{title}' already exists", "warning")
         except LookupError:
@@ -71,14 +75,16 @@ class TemplatesRoutesFuncs:
             logger.exception("Unable to add template.")
             flash("Unable to add template. Please try again.", "danger")
         else:
-            flash(f"Template '{record.title}' added.", "success")
+            flash(f"Template '{title}' added.", "success")
 
         return redirect(url_for("adminpanel.templates.dashboard"))
 
-    def update_template(self) -> ResponseReturnValue:
+    def _update_template(self, request_form: dict[str, Any] | ImmutableMultiDict) -> ResponseReturnValue:
         """Update main_file for a template."""
-        template_id = request.form.get("id", default=0, type=int)
-        from_popup = request.form.get("from_popup") == "1"
+        if isinstance(request_form, dict):
+            request_form = ImmutableMultiDict(request_form)
+        template_id = request_form.get("id", default=0, type=int)
+        from_popup = request_form.get("from_popup") == "1"
 
         if not template_id:
             flash("Template ID is required to update a template.", "danger")
@@ -86,17 +92,17 @@ class TemplatesRoutesFuncs:
                 return render_template("admins/popup_action.html")
             return redirect(url_for("adminpanel.templates.dashboard"))
 
-        title = request.form.get("title", "").strip()
+        title = request_form.get("title", "").strip()
         if not title:
             flash("Title is required to update a template.", "danger")
             if from_popup:
                 return render_template("admins/popup_action.html")
             return redirect(url_for("adminpanel.templates.dashboard"))
 
-        main_file = request.form.get("main_file") or None
-        last_world_file = request.form.get("last_world_file") or None
-        last_world_year = request.form.get("last_world_year") or None
-        source = request.form.get("source") or None
+        main_file = request_form.get("main_file") or None
+        last_world_file = request_form.get("last_world_file") or None
+        last_world_year = request_form.get("last_world_year") or None
+        source = request_form.get("source") or None
 
         data = {
             "title": title,
@@ -120,22 +126,20 @@ class TemplatesRoutesFuncs:
             return render_template("admins/popup_action.html")
         return redirect(url_for("adminpanel.templates.dashboard"))
 
-    def delete_template(self, template_id: int) -> ResponseReturnValue:
+    def _delete_template(self, template_id: int, from_popup: bool = False) -> ResponseReturnValue:
         """Remove a template entirely."""
-        from_popup = request.form.get("from_popup") == "1"
+        template = self.service.get_template(template_id)
 
-        try:
-            template = self.service.get_template(template_id)
+        if template:
             title = template.title
-            self.service.delete(template_id)
-        except LookupError:
-            logger.exception("Unable to delete template.")
-            flash(f"template with id {template_id} was not found", "warning")
-        except Exception:  # pragma: no cover - defensive guard
-            logger.exception("Unable to delete template.")
-            flash("Unable to delete template. Please try again.", "danger")
+            deleted = self.service.delete(template_id)
+            if deleted:
+                flash(f"Template '{title}' removed.", "success")
+            else:
+                logger.error("Unable to delete template %s.", template_id)
+                flash("Unable to delete template. Please try again.", "danger")
         else:
-            flash(f"Template '{title}' removed.", "success")
+            flash(f"Template with id {template_id} was not found", "warning")
 
         if from_popup:
             return render_template("admins/popup_action.html")
@@ -143,9 +147,8 @@ class TemplatesRoutesFuncs:
 
     def edit_template(self, template_id: int) -> ResponseReturnValue:
         """Render the edit template popup page."""
-        try:
-            template = self.service.get_template(template_id)
-        except LookupError:
+        template = self.service.get_template(template_id)
+        if not template:
             return render_template(
                 "admins/template_edit.html",
                 error="Template not found",
@@ -160,9 +163,8 @@ class TemplatesRoutesFuncs:
 
     def edit_by_title(self, template_title: str) -> ResponseReturnValue:
         """Render the edit template popup page."""
-        try:
-            template = self.service.get_template_by_title(template_title)
-        except LookupError:
+        template = self.service.get_template_by_title(template_title)
+        if not template:
             return render_template(
                 "admins/template_edit.html",
                 error="Template not found",
@@ -195,24 +197,24 @@ class TemplatesRoutesFuncs:
             response object for file download (status 200) or an error message
             string with appropriate status code (404 for no templates, 500 for errors).
         """
+        templates: list[TemplateRecord] = self.service.list_templates()
+
+        if not templates:
+            return "No templates found to export.", 404
+
+        # Convert templates to a list of dictionaries
+        templates_data = [
+            {
+                "title": template.title,
+                "main_file": template.main_file,
+                "last_world_file": template.last_world_file,
+                "last_world_year": template.last_world_year,
+                "source": template.source,
+            }
+            for template in templates
+        ]
+
         try:
-            templates: list[TemplateRecord] = self.service.list_templates()
-
-            if not templates:
-                return "No templates found to export.", 404
-
-            # Convert templates to a list of dictionaries
-            templates_data = [
-                {
-                    "title": template.title,
-                    "main_file": template.main_file,
-                    "last_world_file": template.last_world_file,
-                    "last_world_year": template.last_world_year,
-                    "source": template.source,
-                }
-                for template in templates
-            ]
-
             # Create JSON content
             json_content = json.dumps(templates_data, indent=2, ensure_ascii=False)
 
@@ -246,6 +248,17 @@ class TemplatesRoutes(TemplatesRoutesFuncs):
         self.bp.route("/<int:template_id>/edit", methods=["GET"])(admin_required(self.edit_template))
         self.bp.route("/<path:template_title>/edit_by_title", methods=["GET"])(admin_required(self.edit_by_title))
         self.bp.route("/download-json", methods=["GET"])(admin_required(self.download_templates_json))
+
+    def update_template(self) -> ResponseReturnValue:
+        return self._update_template(request.form)
+
+    def add_template(self) -> ResponseReturnValue:
+        return self._add_template(request.form)
+
+    def delete_template(self, template_id: int) -> ResponseReturnValue:
+        """Remove a template entirely."""
+        from_popup = request.form.get("from_popup") == "1"
+        return self._delete_template(template_id, from_popup)
 
 
 def create_json_file():

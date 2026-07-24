@@ -17,11 +17,11 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
     mock_is_cancelled = MagicMock(return_value=False)
     mock_cancel_job = MagicMock(return_value=False)
     monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.is_job_cancelled",
+        "src.main_app.db.services.jobs_service.JobsService.is_job_cancelled",
         mock_is_cancelled,
     )
     monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.cancel_job_db",
+        "src.main_app.db.services.jobs_service.JobsService.cancel_job_db",
         mock_cancel_job,
     )
     return {"is_job_cancelled": mock_is_cancelled, "cancel_job": mock_cancel_job}
@@ -46,7 +46,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "current_app": MagicMock(),
     }
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.create_job", mocks["create_job"])
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.JobsService.create_job", mocks["create_job"])
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.threading.Thread", mocks["Thread"])
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.current_app", mocks["current_app"])
 

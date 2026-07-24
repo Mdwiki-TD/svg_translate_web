@@ -17,10 +17,10 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import IntegrityError
+from werkzeug.datastructures import ImmutableMultiDict
 
 from ...db.models import OwidChartRecord, OwidChartTemplateView
-from ...db.services import OwidChartsService
-from ...db.services.views_service import list_owid_charts_templates
+from ...db.services import OwidChartsService, ViewsService
 from ...shared.owid_charts_utils import charts_new_list
 from ..decorators import admin_required
 
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 def get_charts_data(charts: list[OwidChartRecord]) -> list[dict[str, Any]]:
 
-    all_charts_templates: list[OwidChartTemplateView] = list_owid_charts_templates()
+    all_charts_templates: list[OwidChartTemplateView] = ViewsService().list_owid_charts_templates()
 
     charts_temps = {c.chart_id: c for c in all_charts_templates}
 
@@ -94,8 +94,11 @@ class OwidCharts:
             logger.exception("Failed to create JSON file.")
             return "Failed to create JSON file.", 500
 
-    def _add_chart(self, request_form) -> ResponseReturnValue:
+    def _add_chart(self, request_form: dict[str, Any] | ImmutableMultiDict) -> ResponseReturnValue:
         """Create a new chart from the submitted form data."""
+        if isinstance(request_form, dict):
+            request_form = ImmutableMultiDict(request_form)
+
         from_popup = request_form.get("from_popup") == "1"
 
         slug = request_form.get("slug", "").strip()
@@ -153,8 +156,11 @@ class OwidCharts:
             return render_template("admins/popup_action.html")
         return redirect(url_for("adminpanel.owidcharts.dashboard"))
 
-    def _update_chart(self, request_form) -> ResponseReturnValue:
+    def _update_chart(self, request_form: dict[str, Any] | ImmutableMultiDict) -> ResponseReturnValue:
         """Update a chart from the submitted form data."""
+        if isinstance(request_form, dict):
+            request_form = ImmutableMultiDict(request_form)
+
         from_popup = request_form.get("from_popup") == "1"
 
         chart_id = request_form.get("chart_id", default=0, type=int)
@@ -265,7 +271,7 @@ class OwidChartsRoutes(OwidCharts):
 
         self.bp.add_url_rule(
             rule="/<string:template_filter>",
-            endpoint="filterd_dashboard",
+            endpoint="filtered_dashboard",
             view_func=admin_required(self.dashboard),
             methods=["GET"],
         )

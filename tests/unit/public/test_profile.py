@@ -81,11 +81,11 @@ def _mock_stats_functions(monkeypatch):
     mock_get_all = MagicMock(return_value=DEFAULT_STATS)
     mock_get_user = MagicMock(return_value=DEFAULT_STATS)
     monkeypatch.setattr(
-        "src.main_app.public.profile.get_all_user_jobs_stats",
+        "src.main_app.public.profile.JobsService.get_all_user_jobs_stats",
         mock_get_all,
     )
     monkeypatch.setattr(
-        "src.main_app.public.profile.get_user_jobs_stats",
+        "src.main_app.public.profile.JobsService.get_user_jobs_stats",
         mock_get_user,
     )
     return mock_get_all, mock_get_user
@@ -169,7 +169,7 @@ class TestDashboard:
         )
         mock_get_all = MagicMock(side_effect=ValueError("DB connection failed"))
         monkeypatch.setattr(
-            "src.main_app.public.profile.get_all_user_jobs_stats",
+            "src.main_app.public.profile.JobsService.get_all_user_jobs_stats",
             mock_get_all,
         )
         resp = client.get("/profile/")

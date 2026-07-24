@@ -11,9 +11,8 @@ from flask import Flask, current_app
 from ..db.exceptions import DuplicateJobError
 from ..db.models import JobRecord
 from ..db.services import (
+    JobsService,
     SettingsService,
-    cancel_job_db,
-    create_job,
 )
 from ..su_services.jobs_files_service import create_job_cancelled_file
 from .admin_jobs_workers.workers_list import jobs_data_admins
@@ -107,7 +106,7 @@ def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord |
 
     # 3. Persist cancellation to DB (for cross-process detection)
     try:
-        db_cancelled = cancel_job_db(job_id, job_type)
+        db_cancelled = JobsService().cancel_job_db(job_id, job_type)
         if db_cancelled:
             logger.info(f"Database cancellation requested for job {job_id}")
 
@@ -142,7 +141,7 @@ def _start_job_impl(
 
     try:
         # Create job record
-        job = create_job(job_type, username)
+        job = JobsService().create_job(job_type, username)
     except DuplicateJobError:
         logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
         raise
