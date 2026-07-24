@@ -136,7 +136,7 @@ class TemplatesRoutesFuncs:
             if deleted:
                 flash(f"Template '{title}' removed.", "success")
             else:
-                logger.exception("Unable to delete template.")
+                logger.error("Unable to delete template %s.", template_id)
                 flash("Unable to delete template. Please try again.", "danger")
         else:
             flash(f"Template with id {template_id} was not found", "warning")

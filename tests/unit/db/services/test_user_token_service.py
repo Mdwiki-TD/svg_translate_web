@@ -208,7 +208,7 @@ class TestUpdateUserToken:
         mock_db.session.query.return_value.filter.return_value.first.return_value = mock_record
 
         result = UserTokenService().update_user_token(1, "new_key", "new_secret")
-
+        assert result is not None
         assert result == mock_record
         assert result.access_token == b"enc_new_key"
         assert result.access_secret == b"enc_new_secret"

@@ -136,7 +136,7 @@ def test_create_json_file_no_templates(mock_app, monkeypatch):
 def test_create_json_file_exception(mock_app, monkeypatch):
     """Test create_json_file returns 500 on exception."""
 
-    def raise_error():
+    def raise_error(self):
         raise RuntimeError("Database error")
 
     monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list_templates", raise_error)
@@ -181,7 +181,7 @@ def test_edit_template_not_found(mock_app, monkeypatch):
 
     monkeypatch.setattr(
         "src.main_app.admin.routes.templates.TemplateService.get_template",
-        lambda self, template_id: (_ for _ in ()).throw(LookupError("Not found")),
+        lambda self, id: None,
     )
 
     with mock_app.test_request_context():
