@@ -27,7 +27,7 @@ def mock_fix_nested_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, m
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.list_templates",
         mocks["list_templates"],
     )
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.update_job_status", mocks["update_job_status"])
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService.update_job_status", mocks["update_job_status"])
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mocks["save_job_result_by_name"]
     )

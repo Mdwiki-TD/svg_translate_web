@@ -548,7 +548,7 @@ class TestRun:
         patches = {
             # Bypass the DB write inside BaseObjectsJobWorker.after_run().
             "update_job_status": patch(
-                "src.main_app.jobs_workers.base_worker.update_job_status",
+                "src.main_app.jobs_workers.base_worker.JobsService.update_job_status",
                 return_value=None,
             ),
             # Bypass disk writes from _save_progress().

@@ -56,7 +56,7 @@ def mock_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, tmp_path, mo
         MagicMock(return_value=mock_template_service),
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.update_job_status",
+        "src.main_app.jobs_workers.base_worker.JobsService.update_job_status",
         mocks["update_job_status"],
     )
     monkeypatch.setattr(
