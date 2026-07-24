@@ -24,7 +24,7 @@ class TestCheckSlugs:
             "src.main_app.jobs_workers.admin_jobs_workers.slugs_helpers.extract_slug",
         ) as mock_extract:
             with patch(
-                "src.main_app.jobs_workers.admin_jobs_workers.slugs_helpers.add_new_slug_redirect",
+                "src.main_app.jobs_workers.admin_jobs_workers.slugs_helpers.OwidSlugRedirectsService.add_new_slug_redirect",
             ) as mock_add:
                 self.mock_extract_slug = mock_extract
                 self.mock_add_new_slug_redirect = mock_add
