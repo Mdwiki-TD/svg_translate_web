@@ -13,47 +13,17 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
-
-from ...db.services import (
-    OwidSlugRedirectsService,
-    bulk_delete_slug_redirects,
-    bulk_update_slug_redirects,
-    get_slug_redirect_by_id,
-    list_slug_redirects,
-    update_slug_redirect,
-)
+from ...db.services import OwidSlugRedirectsService
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
-
-
-def delete_slug_redirect(record_id):
-    return OwidSlugRedirectsService().delete(record_id)
-
-
-def _edit_slug_redirect(redirect_id: int) -> ResponseReturnValue:
-    """Render the edit slug redirect popup page."""
-    record = get_slug_redirect_by_id(redirect_id)
-    if not record:
-        return render_template(
-            "admins/slug_redirects/edit.html",
-            error="Redirect record not found",
-            record=None,
-        )
-
-    return render_template(
-        "admins/slug_redirects/edit.html",
-        record=record,
-        error=None,
-    )
-
 
 class SlugFuncs:
     def __init__(self) -> None:
         self.service = OwidSlugRedirectsService()
 
     def dashboard(self):
-        records = list_slug_redirects()
+        records = self.service.list_slug_redirects()
         total = len(records)  # count_slug_redirects()
         total_should_be_replaced = len([r for r in records if r.should_be_replaced])
         total_should_not_be_replaced = total - total_should_be_replaced
@@ -67,7 +37,21 @@ class SlugFuncs:
         )
 
     def edit_slug_redirect(self, redirect_id: int) -> ResponseReturnValue:
-        return _edit_slug_redirect(redirect_id)
+        """Render the edit slug redirect popup page."""
+        record = self.service.get_slug_redirect_by_id(redirect_id)
+        if not record:
+            return render_template(
+                "admins/slug_redirects/edit.html",
+                error="Redirect record not found",
+                record=None,
+            )
+
+        return render_template(
+            "admins/slug_redirects/edit.html",
+            record=record,
+            error=None,
+        )
+
 
     def update_slug_redirect_data(self) -> ResponseReturnValue:
         redirect_id = request.form.get("id", type=int)
@@ -78,7 +62,7 @@ class SlugFuncs:
             flash("Redirect ID is required.", "danger")
             return redirect(url_for("adminpanel.slugredirects.dashboard"))
 
-        if update_slug_redirect(redirect_id, {"should_be_replaced": should_be_replaced}):
+        if self.service.update_slug_redirect(redirect_id, {"should_be_replaced": should_be_replaced}):
             flash("Slug redirect updated.", "success")
         else:
             flash("Slug redirect not found.", "danger")
@@ -88,7 +72,7 @@ class SlugFuncs:
         return redirect(url_for("adminpanel.slugredirects.dashboard"))
 
     def delete_slug_redirect_data(self, redirect_id: int) -> ResponseReturnValue:
-        if delete_slug_redirect(redirect_id):
+        if self.service.delete(redirect_id):
             flash("Slug redirect deleted.", "success")
         else:
             flash("Slug redirect not found.", "danger")
@@ -103,13 +87,13 @@ class SlugFuncs:
             return redirect(url_for("adminpanel.slugredirects.dashboard"))
         try:
             if action == "mark_replace":
-                bulk_update_slug_redirects(selected_ids, {"should_be_replaced": True})
+                self.service.bulk_update_slug_redirects(selected_ids, {"should_be_replaced": True})
                 flash(f"Marked {len(selected_ids)} redirects as 'replace'.", "success")
             elif action == "mark_no_replace":
-                bulk_update_slug_redirects(selected_ids, {"should_be_replaced": False})
+                self.service.bulk_update_slug_redirects(selected_ids, {"should_be_replaced": False})
                 flash(f"Marked {len(selected_ids)} redirects as 'do not replace'.", "success")
             elif action == "delete":
-                bulk_delete_slug_redirects(selected_ids)
+                self.service.bulk_delete_slug_redirects(selected_ids)
                 flash(f"Deleted {len(selected_ids)} redirects.", "success")
             else:
                 flash("Invalid action.", "danger")

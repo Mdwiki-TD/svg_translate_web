@@ -1,9 +1,5 @@
-from .admin_service import (
-    AdminService,
-)
-from .delete_service import (
-    delete_record_by_pk,
-)
+from .admin_service import AdminService
+from .delete_service import delete_record_by_pk
 from .jobs_service import (
     JobsService,
     cancel_job_db,
