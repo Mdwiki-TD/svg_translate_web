@@ -11,16 +11,19 @@ import pytest
 from src.main_app.admin.routes.coordinators import CoordinatorsFuncs
 from src.main_app.db.exceptions import DuplicateUserError, UserNotFoundError
 
+
 @pytest.mark.usefixtures("mock_app")
 class TestCoordinatorRoutes:
     def test_dashboard_requires_auth(self, mock_client):
         resp = mock_client.get("/adminpanel/coordinators/")
         assert resp.status_code == 302
 
+
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.service = CoordinatorsFuncs()
+
 
 class TestCoordinatorsDashboard(TestSetup):
     def test_renders_with_coordinators(self, monkeypatch):

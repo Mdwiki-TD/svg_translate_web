@@ -28,6 +28,7 @@ from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
+
 class CoordinatorsFuncs:
     def __init__(self):
         self.service = AdminService()
@@ -103,7 +104,6 @@ class CoordinatorsFuncs:
             flash(f"Coordinator '{coordinator_id}' removed.", "success")
 
         return redirect(url_for("adminpanel.coordinators.dashboard"))
-
 
     def _set_record_active_status(self, coordinator_id: int, is_active: bool) -> ResponseReturnValue:
         """Shared helper to update coordinator is_active status."""
