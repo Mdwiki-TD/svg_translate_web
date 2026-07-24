@@ -36,14 +36,9 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.base_worker.get_user_site",
         mocks["get_user_site"],
     )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.update_job_status_with_retry",
-        mocks["update_job_status_with_retry"],
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.update_job_status",
-        mocks["update_job_status"],
-    )
+
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService.update_job_status_with_retry", mocks["update_job_status_with_retry"])
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService.update_job_status", mocks["update_job_status"])
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.generate_result_file_name", mocks["generate_result_file_name"]
     )

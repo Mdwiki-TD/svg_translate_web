@@ -11,6 +11,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from src.main_app.admin.routes.owid_charts import (
     OwidCharts,
 )
+from src.main_app.db.services import ViewsService
 
 
 def _add_chart(request_form):
@@ -55,7 +56,7 @@ class TestCreateJsonFile:
         mock_chart.has_timeline = False
         mock_service = self._setup_service(monkeypatch)
         mock_service.list_charts.return_value = [mock_chart]
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.list_owid_charts_templates", list)
+        monkeypatch.setattr(ViewsService, "list_owid_charts_templates", lambda self: [])
         response, status = create_json_file()
         assert status == 200
         assert "owid_charts.json" in response.headers["Content-Disposition"]
@@ -63,7 +64,7 @@ class TestCreateJsonFile:
     def test_no_charts(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.list_charts.return_value = []
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.list_owid_charts_templates", list)
+        monkeypatch.setattr(ViewsService, "list_owid_charts_templates", lambda self: [])
         msg, status = create_json_file()
         assert status == 404
         assert "No charts found" in msg
@@ -71,7 +72,7 @@ class TestCreateJsonFile:
     def test_lookup_error(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.list_charts.side_effect = LookupError("not found")
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.list_owid_charts_templates", list)
+        monkeypatch.setattr(ViewsService, "list_owid_charts_templates", lambda self: [])
         msg, status = create_json_file()
         assert status == 404
         assert "Charts not found" in msg
@@ -79,7 +80,7 @@ class TestCreateJsonFile:
     def test_exception(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.list_charts.side_effect = RuntimeError("error")
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.list_owid_charts_templates", list)
+        monkeypatch.setattr(ViewsService, "list_owid_charts_templates", lambda self: [])
         msg, status = create_json_file()
         assert status == 500
         assert "Failed to create JSON file" in msg
@@ -103,7 +104,7 @@ class TestCreateJsonFile:
         mock_template.template_title = "Template:T"
         mock_service = self._setup_service(monkeypatch)
         mock_service.list_charts.return_value = [mock_chart]
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.list_owid_charts_templates", lambda: [mock_template])
+        monkeypatch.setattr(ViewsService, "list_owid_charts_templates", lambda self: [mock_template])
         response, status = create_json_file()
         import json as j
 
