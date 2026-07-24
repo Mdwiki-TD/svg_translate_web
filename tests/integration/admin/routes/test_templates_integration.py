@@ -83,13 +83,12 @@ def test_delete_template_success(
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
-    with mock_app.test_request_context():
-        resp = TemplatesRoutesFuncs().delete_template(1)
-        assert resp == "redirected"
+    resp = TemplatesRoutesFuncs()._delete_template(1, False)
+    assert resp == "redirected"
 
-        mock_get_template.assert_called_with(1)
-        mock_delete_template.assert_called_with(1)
-        mock_flash.assert_called_with("Template 'DelT' removed.", "success")
+    mock_get_template.assert_called_with(1)
+    mock_delete_template.assert_called_with(1)
+    mock_flash.assert_called_with("Template 'DelT' removed.", "success")
 
 
 def test_create_json_file_success(mock_app, monkeypatch):
