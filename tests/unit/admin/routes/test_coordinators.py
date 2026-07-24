@@ -142,7 +142,7 @@ class TestDeleteCoordinator(TestSetup):
         mock_record = MagicMock()
         mock_record.id = 1
         monkeypatch.setattr(self.service.service, "get_coordinator_by_id", lambda i: mock_record)
-        monkeypatch.setattr(self.service.service, "delete_coordinator", lambda i: None)
+        monkeypatch.setattr(self.service.service, "delete", lambda i: None)
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.redirect", lambda x: f"redirect:{x}")

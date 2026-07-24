@@ -120,9 +120,4 @@ class AdminService:
 
 __all__ = [
     "AdminService",
-    "add_coordinator",
-    "get_coordinator_by_id",
-    "is_active_coordinator",
-    "list_coordinators",
-    "set_coordinator_active",
 ]

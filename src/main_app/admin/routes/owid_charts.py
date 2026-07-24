@@ -19,7 +19,7 @@ from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import IntegrityError
 
 from ...db.models import OwidChartRecord, OwidChartTemplateView
-from ...db.services import OwidChartsService, delete_chart
+from ...db.services import OwidChartsService
 from ...db.services.views_service import list_owid_charts_templates
 from ...shared.owid_charts_utils import charts_new_list
 from ..decorators import admin_required
@@ -224,7 +224,7 @@ class OwidCharts:
         """Remove a chart entirely."""
 
         try:
-            if delete_chart(chart_id):
+            if self.owid_charts_service.delete(chart_id):
                 flash(f"Chart '{chart_id}' removed.", "success")
             else:
                 flash(f"Chart '{chart_id}' not found.", "warning")

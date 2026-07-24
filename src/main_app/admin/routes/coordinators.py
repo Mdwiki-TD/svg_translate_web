@@ -122,6 +122,7 @@ class CoordinatorsRoutes(CoordinatorsFuncs):
 
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
+        super().__init__()
         self._setup_routes()
 
     def _setup_routes(self) -> None:

@@ -10,7 +10,10 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from src.main_app.db.exceptions import DuplicateUserError, UserNotFoundError
+from src.main_app.db.models import AdminUserRecord
+from src.main_app.db.models.users import UserRecord
 from src.main_app.db.services.admin_service import (
+    AdminService,
     add_coordinator,
     get_coordinator_by_id,
     is_active_coordinator,
@@ -136,3 +139,28 @@ class TestSetCoordinatorActive:
         with patch("src.main_app.db.services.admin_service.db", mock_db):
             result = set_coordinator_active(999, True)
             assert result is None
+
+
+class TestDeleteCoordinator:
+    def test_delete_existing_coordinator(self, mock_app, setup_db):
+        from src.main_app.extensions import db as _db
+
+        with mock_app.app_context():
+            # AdminUserRecord FK → UserRecord, so create a user first
+            user = UserRecord(username="admin_user", user_id=401)
+            _db.session.add(user)
+            _db.session.commit()
+
+            record = AdminUserRecord(username="admin_user", is_active=True)
+            _db.session.add(record)
+            _db.session.commit()
+
+            result = AdminService().delete(record.id)
+            assert result is True
+            _db.session.expire_all()
+            assert _db.session.get(AdminUserRecord, record.id) is None
+
+    def test_delete_non_existent_coordinator(self, mock_app, setup_db):
+        with mock_app.app_context():
+            result = AdminService().delete(99999)
+            assert result is False

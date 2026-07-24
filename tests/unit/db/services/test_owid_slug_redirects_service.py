@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models.owid_slug_redirects import OwidSlugRedirectRecord
-from src.main_app.db.services.delete_service import delete_slug_redirect
 from src.main_app.db.services.owid_slug_redirects_service import (
+    OwidSlugRedirectsService,
     add_new_slug_redirect,
     count_slug_redirects,
     get_slug_redirect_by_id,
@@ -84,7 +84,7 @@ def test_delete_slug_redirect(mock_db_session):
     record = OwidSlugRedirectRecord(id=1)
     mock_db_session.query().filter().first.return_value = record
 
-    result = delete_slug_redirect(1)
+    result = OwidSlugRedirectsService().delete(1)
 
     assert result is True
     assert mock_db_session.delete.called

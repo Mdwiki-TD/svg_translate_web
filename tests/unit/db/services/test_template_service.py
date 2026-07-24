@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.services.delete_service import delete_template
 from src.main_app.db.services.template_service import (
+    TemplateService,
     add_template_data,
     get_template,
     get_template_by_title,
@@ -14,6 +14,8 @@ from src.main_app.db.services.template_service import (
     update_template_data,
 )
 
+def delete_template(template_id: int) -> bool:
+    return TemplateService().delete(template_id)
 
 class TestListTemplates:
     """Test list_templates function."""

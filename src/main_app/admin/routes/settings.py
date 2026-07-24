@@ -8,12 +8,16 @@ from typing import Any
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from ...db.services import (
+    SettingsService,
     create_setting,
-    delete_setting_by_key,
     get_all_settings_raw,
     update_setting,
 )
 from ..decorators import admin_required
+
+
+def delete_setting_by_key(key):
+    return SettingsService().delete_setting_by_key(key)
 
 
 def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:

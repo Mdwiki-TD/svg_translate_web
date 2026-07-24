@@ -11,7 +11,6 @@ from ..models import (
     JobRecord,
     OwidChartRecord,
     OwidSlugRedirectRecord,
-    SettingRecord,
     TemplateRecord,
     UserRecord,
     UserTokenRecord,
@@ -42,25 +41,6 @@ def delete_record_by_pk(model: type[db.Model], pk_value: Any) -> bool:  # type: 
         return False
 
 
-def delete_user_token(user_id: int) -> bool:
-    return delete_record_by_pk(UserTokenRecord, user_id)
-
-
-def delete_user(user_id: int) -> bool:
-    return delete_record_by_pk(UserRecord, user_id)
-
-
-def delete_setting_by_key(key: str) -> bool:
-    setting = SettingRecord.query.filter_by(key=key).first()
-    if setting:
-        return delete_record_by_pk(SettingRecord, setting.id)
-    return False
-
-
-def delete_coordinator(coordinator_id: int) -> bool:
-    return delete_record_by_pk(AdminUserRecord, coordinator_id)
-
-
 def delete_job(job_id: int, job_type: str) -> bool:
     """
     Special case since it filters by multiple columns (id and job_type).
@@ -79,18 +59,6 @@ def delete_job(job_id: int, job_type: str) -> bool:
         return False
 
 
-def delete_template(template_id: int) -> bool:
-    return delete_record_by_pk(TemplateRecord, template_id)
-
-
-def delete_slug_redirect(redirect_id: int) -> bool:
-    return delete_record_by_pk(OwidSlugRedirectRecord, redirect_id)
-
-
-def delete_chart(chart_id: int) -> bool:
-    return delete_record_by_pk(OwidChartRecord, chart_id)
-
-
 class DeleteService:
     def __init__(self) -> None:
         pass
@@ -99,39 +67,23 @@ class DeleteService:
         return delete_record_by_pk(model, pk_value)
 
     def delete_user_token(self, user_id: int) -> bool:
-        return delete_user_token(user_id)
+        return delete_record_by_pk(UserTokenRecord, user_id)
 
     def delete_user(self, user_id: int) -> bool:
-        return delete_user(user_id)
-
-    def delete_setting_by_key(self, key: str) -> bool:
-        return delete_setting_by_key(key)
+        return delete_record_by_pk(UserRecord, user_id)
 
     def delete_coordinator(self, coordinator_id: int) -> bool:
-        return delete_coordinator(coordinator_id)
+        return delete_record_by_pk(AdminUserRecord, coordinator_id)
 
     def delete_job(self, job_id: int, job_type: str) -> bool:
         return delete_job(job_id, job_type)
 
-    def delete_template(self, template_id: int) -> bool:
-        return delete_template(template_id)
-
-    def delete_slug_redirect(self, redirect_id: int) -> bool:
-        return delete_slug_redirect(redirect_id)
-
     def delete_chart(self, chart_id: int) -> bool:
-        return delete_chart(chart_id)
+        return delete_record_by_pk(OwidChartRecord, chart_id)
 
 
 __all__ = [
     "DeleteService",
     "delete_record_by_pk",
-    "delete_user",
-    "delete_user_token",
-    "delete_coordinator",
     "delete_job",
-    "delete_chart",
-    "delete_setting_by_key",
-    "delete_slug_redirect",
-    "delete_template",
 ]

@@ -187,6 +187,12 @@ class SettingsService:
     def delete(self, record_id: int) -> bool:
         return delete_record_by_pk(SettingRecord, record_id)
 
+    def delete_setting_by_key(self, key: str) -> bool:
+        setting = SettingRecord.query.filter_by(key=key).first()
+        if setting:
+            return delete_record_by_pk(SettingRecord, setting.id)
+        return False
+
 
 __all__ = [
     "SettingsService",

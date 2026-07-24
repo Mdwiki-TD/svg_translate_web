@@ -1,22 +1,10 @@
 from .admin_service import (
     AdminService,
-    add_coordinator,
-    get_coordinator_by_id,
-    is_active_coordinator,
-    list_coordinators,
-    set_coordinator_active,
 )
 from .delete_service import (
     DeleteService,
-    delete_chart,
-    delete_coordinator,
     delete_job,
     delete_record_by_pk,
-    delete_setting_by_key,
-    delete_slug_redirect,
-    delete_template,
-    delete_user,
-    delete_user_token,
 )
 from .jobs_service import (
     JobsService,
@@ -105,12 +93,6 @@ __all__ = [
     "list_users",
     "toggle_can_run_jobs",
     "toggle_can_run_bg_jobs",
-    # admin_service
-    "list_coordinators",
-    "is_active_coordinator",
-    "add_coordinator",
-    "set_coordinator_active",
-    "get_coordinator_by_id",
     # jobs_service
     "create_job",
     "get_job",
@@ -129,14 +111,7 @@ __all__ = [
     "list_settings",
     # delete
     "delete_record_by_pk",
-    "delete_template",
-    "delete_slug_redirect",
-    "delete_chart",
-    "delete_setting_by_key",
-    "delete_coordinator",
     "delete_job",
-    "delete_user",
-    "delete_user_token",
     "add_new_slug_redirect",
     "list_slug_redirects",
     "get_slug_redirect_by_id",

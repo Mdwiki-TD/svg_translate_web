@@ -245,7 +245,7 @@ class TestSlugRedirectsRoutes:
         """POST /<id>/delete should delete and redirect on success."""
         mock_delete = MagicMock(return_value=True)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.delete_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.delete",
             mock_delete,
         )
 
@@ -258,7 +258,7 @@ class TestSlugRedirectsRoutes:
         """POST /<id>/delete should redirect when the record is not found."""
         mock_delete = MagicMock(return_value=False)
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.delete_slug_redirect",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.delete",
             mock_delete,
         )
 

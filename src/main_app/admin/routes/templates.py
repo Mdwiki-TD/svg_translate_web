@@ -19,8 +19,8 @@ from flask.typing import ResponseReturnValue
 
 from ...db.models import TemplateRecord
 from ...db.services import (
+    TemplateService,
     add_template_data,
-    delete_template,
     get_template,
     get_template_by_title,
     list_templates,
@@ -29,6 +29,10 @@ from ...db.services import (
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
+
+
+def delete_template(template_id: int) -> bool:
+    return TemplateService().delete(template_id)
 
 
 def create_json_file() -> tuple[Any, int]:

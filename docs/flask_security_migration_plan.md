@@ -350,7 +350,7 @@ def load_logged_in_user() -> None:
     # ... rest of legacy resolve logic ...
 
     if user_id is not None:
-        user = AuthUserService.get_authenticated_user(user_id)
+        user = AuthUserService().get_authenticated_user(user_id)
         g._current_user = user
         if user:
             # Sync with Flask-Login

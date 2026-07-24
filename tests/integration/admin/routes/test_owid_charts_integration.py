@@ -78,7 +78,7 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, mock_service):
         MagicMock(return_value=[]),
     )
     monkeypatch.setattr(
-        "src.main_app.admin.routes.owid_charts.delete_chart",
+        "src.main_app.admin.routes.owid_charts.OwidChartsService.delete",
         mock_service.delete_chart,
     )
 
