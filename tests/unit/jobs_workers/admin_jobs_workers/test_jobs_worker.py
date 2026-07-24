@@ -46,7 +46,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
         "current_app": MagicMock(),
     }
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.create_job", mocks["create_job"])
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.JobsService.create_job", mocks["create_job"])
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.threading.Thread", mocks["Thread"])
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.current_app", mocks["current_app"])
 
