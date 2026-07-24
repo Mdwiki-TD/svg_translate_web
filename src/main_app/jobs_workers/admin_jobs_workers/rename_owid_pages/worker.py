@@ -26,7 +26,7 @@ from typing import Any
 from mwclient.client import Site
 
 from ....api_services import MwClientPage
-from ....db.services import get_template_by_title, update_template_data
+from ....db.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
 from .objects import RenameOwidPagesWorkerObject
 
@@ -266,9 +266,9 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
     def _update_template_title(self, old_title: str, new_title: str) -> None:
         """Update TemplateRecord.title in the database after a successful move."""
         try:
-            record = get_template_by_title(old_title)
+            record = TemplateService().get_template_by_title(old_title)
             if record:
-                update_template_data(record.id, {"title": new_title})
+                TemplateService().update_template_data(record.id, {"title": new_title})
                 logger.info("Job %s: Updated DB template title: %s -> %s", self.job_id, old_title, new_title)
             else:
                 logger.debug("Job %s: No TemplateRecord found for '%s', skipping DB update", self.job_id, old_title)

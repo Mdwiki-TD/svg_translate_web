@@ -15,7 +15,7 @@ from mwclient.client import Site
 
 from ....api_services import download_svg_file, upload_fixed_svg
 from ....db.models import TemplateRecord
-from ....db.services import list_templates
+from ....db.services import TemplateService
 from ....shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
@@ -190,7 +190,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         if not self._check_site():
             return self.result
 
-        templates = list_templates()
+        templates = TemplateService().list_templates()
         self.result.summary.total = len(templates)
 
         logger.info("Job %s: Found %d templates", self.job_id, len(templates))

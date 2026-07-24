@@ -21,195 +21,6 @@ def _normalize_limit(limit: int | None, *, default: int = 100, max_limit: int = 
     return min(limit, max_limit)
 
 
-# ── SELECT ───────────────────────────────────────────────
-
-
-@db_guard(default_return=False)
-def is_job_cancelled(job_id: int, job_type: str) -> bool:
-    """
-    Check if a job is marked as cancelled.
-
-    Query to match:
-        SELECT status FROM jobs WHERE id = %s AND job_type = %s
-    """
-    record = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
-    if record:
-        # Refresh from database to ensure we don't use a stale cached status
-        db.session.refresh(record)
-        return (record.status or "").lower() == "cancelled"
-    return False
-
-
-def get_job(job_id: int, job_type: str) -> JobRecord:
-    """
-    Get a job by ID.
-    """
-    query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
-    if job_type:
-        query = query.filter(JobRecord.job_type == job_type)
-    job = query.first()
-    if not job:
-        raise LookupError(f"Job id {job_id} was not found")
-    return job
-
-
-def list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
-    """
-    list recent jobs, optionally filtered by job_type.
-
-    Query to match:
-        if job_type:
-            SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
-            FROM jobs
-            WHERE job_type = %s
-            ORDER BY created_at DESC
-            LIMIT %s
-        else:
-            SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
-            FROM jobs
-            ORDER BY created_at DESC
-            LIMIT %s
-    """
-    query = db.session.query(JobRecord)
-    if job_type:
-        query = query.filter(JobRecord.job_type == job_type)
-    return query.order_by(JobRecord.created_at.desc()).limit(limit).all()
-
-
-def get_all_user_jobs_stats(username: str, limit: int | None = 100) -> dict[str, dict[str, int] | list[JobRecord]]:
-    """
-    Get user jobs
-    """
-    limit = _normalize_limit(limit)
-
-    base_query = db.session.query(JobRecord).filter(JobRecord.username == username)
-
-    records = (
-        db.session.query(JobRecord.status, func.count(JobRecord.id))
-        .filter(JobRecord.username == username)
-        .group_by(JobRecord.status)
-        .all()
-    )
-    status_counts: dict[str, int] = {row[0]: row[1] for row in records}
-
-    recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
-
-    total_jobs = sum(status_counts.values())
-
-    stats: dict[str, int] = {
-        "total": total_jobs,
-        "completed": status_counts.get("completed", 0),
-        "failed": status_counts.get("failed", 0),
-        "cancelled": status_counts.get("cancelled", 0),
-        # "running": status_counts.get("running", 0),
-        # "pending": status_counts.get("pending", 0),
-    }
-
-    data = {
-        "stats": stats,
-        "recent_jobs": recent_jobs,
-    }
-
-    return data
-
-
-def get_user_jobs_stats(
-    username: str,
-    jobs_types: list | None = None,
-    limit: int | None = 100,
-) -> dict[str, dict[str, int] | list[JobRecord]]:
-    """
-    Get user jobs
-    """
-    if jobs_types is None or not jobs_types:
-        return get_all_user_jobs_stats(username, limit)
-
-    limit = _normalize_limit(limit)
-
-    base_query = (
-        db.session.query(JobRecord).filter(JobRecord.username == username).filter(JobRecord.job_type.in_(jobs_types))
-    )
-
-    records = (
-        db.session.query(JobRecord.status, func.count(JobRecord.id))
-        .filter(JobRecord.username == username)
-        .filter(JobRecord.job_type.in_(jobs_types))
-        .group_by(JobRecord.status)
-        .all()
-    )
-    status_counts = {row[0]: row[1] for row in records}
-
-    recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
-
-    total_jobs = sum(status_counts.values())
-
-    stats: dict[str, int] = {
-        "total": total_jobs,
-        "completed": status_counts.get("completed", 0),
-        "failed": status_counts.get("failed", 0),
-        "cancelled": status_counts.get("cancelled", 0),
-        # "running": status_counts.get("running", 0),
-        # "pending": status_counts.get("pending", 0),
-    }
-
-    data = {
-        "stats": stats,
-        "recent_jobs": recent_jobs,
-    }
-
-    return data
-
-
-def has_active_job(job_type: str) -> bool:
-    """
-    Check if there is an active (pending or running) job of the given type.
-
-    This is an auxiliary application-level check that works on all database backends
-    (MySQL, SQLite, PostgreSQL). Note that the primary enforcement mechanism for
-    preventing duplicate concurrent jobs is the database-level unique constraint
-    idx_unique_active_job.
-    """
-    result = (
-        db.session.query(JobRecord.id)
-        .filter(
-            JobRecord.job_type == job_type,
-            JobRecord.status.in_(["pending", "running"]),
-            JobRecord.is_running == 1,
-        )
-        .first()
-    )
-    return result is not None
-
-
-# ── INSERT, UPDATE, SET ──────────────────────────────────
-
-
-def create_job(job_type: str, username: str) -> JobRecord:
-    """
-    Create a new job record.
-
-    Query to match:
-        INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
-        (job_type, "pending", username),
-
-    Raises:
-        DuplicateJobError: If a job of the same type is already running.
-    """
-    job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
-    db.session.add(job)
-
-    try:
-        db.session.commit()
-    except IntegrityError as exc:
-        db.session.rollback()
-        if "idx_unique_active_job" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
-            logger.warning("Duplicate active job detected for job_type=%s", job_type)
-            raise DuplicateJobError(f"A job of type '{job_type}' is already active (pending or running).") from exc
-        raise  # Re-raise unexpected IntegrityError
-    db.session.refresh(job)
-    return job
-
-
 def _update_job_status(
     job_id: int,
     status: str,
@@ -247,103 +58,96 @@ def _update_job_status(
     return job
 
 
-@db_guard_rollback
-def update_job_status(
-    job_id: int,
-    status: str,
-    result_file: str | None = None,
-    *,
-    job_type: str,
-) -> JobRecord:
-    """
-    Update job status and result file.
-    """
-    return _update_job_status(job_id, status, result_file, job_type=job_type)
-
-
-@retry_on_db_disconnect()
-def update_job_status_with_retry(
-    job_id: int,
-    status: str,
-    result_file: str | None = None,
-    *,
-    job_type: str,
-) -> JobRecord:
-    return _update_job_status(job_id, status, result_file, job_type=job_type)
-
-
-@db_guard_rollback
-def cancel_job_db(job_id: int, job_type: str | None = None) -> bool:
-    """
-    Mark a job as cancelled.
-        query = "UPDATE jobs SET status = 'cancelled', completed_at = NOW() WHERE id = %s AND status IN ('pending', 'running')"
-        params = [job_id]
-        if job_type:
-            query += " AND job_type = %s"
-            params.append(job_type)
-
-        rowcount = self.db.execute_query_safe(query, tuple(params))
-        return rowcount > 0
-    """
-
-    query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
-    if job_type:
-        query = query.filter(JobRecord.job_type == job_type)
-
-    job = query.filter(
-        JobRecord.status.in_(["pending", "running"]),
-        JobRecord.is_running == 1,
-    ).first()
-
-    if not job:
-        return False
-
-    job.status = "cancelled"
-    job.completed_at = datetime.now(UTC)
-    job.is_running = None
-
-    db.session.commit()
-    db.session.refresh(job)
-    return True
-
-
-def delete_job_by_id_and_type(job_id: int, job_type: str) -> bool:
-    """
-    Special case since it filters by multiple columns (id and job_type).
-    """
-    try:
-        affected_rows = (
-            db.session.query(JobRecord)
-            .filter(JobRecord.id == job_id, JobRecord.job_type == job_type)
-            .delete(synchronize_session=False)
-        )
-        db.session.commit()
-        return affected_rows > 0
-    except Exception as e:
-        logger.error(f"Error deleting JobRecord: {e}")
-        db.session.rollback()
-        return False
-
-
 class JobsService:
     def __init__(self) -> None:
         pass
 
+    @db_guard(default_return=False)
     def is_job_cancelled(self, job_id: int, job_type: str) -> bool:
-        return is_job_cancelled(job_id, job_type)
+        """
+        Check if a job is marked as cancelled.
+
+        Query to match:
+            SELECT status FROM jobs WHERE id = %s AND job_type = %s
+        """
+        record = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
+        if record:
+            # Refresh from database to ensure we don't use a stale cached status
+            db.session.refresh(record)
+            return (record.status or "").lower() == "cancelled"
+        return False
 
     def get_job(self, job_id: int, job_type: str) -> JobRecord:
-        return get_job(job_id, job_type)
+        """
+        Get a job by ID.
+        """
+        query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
+        if job_type:
+            query = query.filter(JobRecord.job_type == job_type)
+        job = query.first()
+        if not job:
+            raise LookupError(f"Job id {job_id} was not found")
+        return job
 
     def list_jobs(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
-        return list_jobs(limit, job_type)
+        """
+        list recent jobs, optionally filtered by job_type.
+
+        Query to match:
+            if job_type:
+                SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
+                FROM jobs
+                WHERE job_type = %s
+                ORDER BY created_at DESC
+                LIMIT %s
+            else:
+                SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
+                FROM jobs
+                ORDER BY created_at DESC
+                LIMIT %s
+        """
+        query = db.session.query(JobRecord)
+        if job_type:
+            query = query.filter(JobRecord.job_type == job_type)
+        return query.order_by(JobRecord.created_at.desc()).limit(limit).all()
 
     def get_all_user_jobs_stats(
         self,
         username: str,
         limit: int | None = 100,
     ) -> dict[str, dict[str, int] | list[JobRecord]]:
-        return get_all_user_jobs_stats(username, limit)
+        """
+        Get user jobs
+        """
+        limit = _normalize_limit(limit)
+
+        base_query = db.session.query(JobRecord).filter(JobRecord.username == username)
+
+        records = (
+            db.session.query(JobRecord.status, func.count(JobRecord.id))
+            .filter(JobRecord.username == username)
+            .group_by(JobRecord.status)
+            .all()
+        )
+        status_counts: dict[str, int] = {row[0]: row[1] for row in records}
+
+        recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
+
+        total_jobs = sum(status_counts.values())
+
+        stats: dict[str, int] = {
+            "total": total_jobs,
+            "completed": status_counts.get("completed", 0),
+            "failed": status_counts.get("failed", 0),
+            "cancelled": status_counts.get("cancelled", 0),
+        }
+
+        data = {
+            "stats": stats,
+            "recent_jobs": recent_jobs,
+        }
+
+        return data
 
     def get_user_jobs_stats(
         self,
@@ -351,14 +155,93 @@ class JobsService:
         jobs_types: list | None = None,
         limit: int | None = 100,
     ) -> dict[str, dict[str, int] | list[JobRecord]]:
-        return get_user_jobs_stats(username, jobs_types, limit)
+        """
+        Get user jobs
+        """
+        if jobs_types is None or not jobs_types:
+            return self.get_all_user_jobs_stats(username, limit)
+
+        limit = _normalize_limit(limit)
+
+        base_query = (
+            db.session.query(JobRecord)
+            .filter(JobRecord.username == username)
+            .filter(JobRecord.job_type.in_(jobs_types))
+        )
+
+        records = (
+            db.session.query(JobRecord.status, func.count(JobRecord.id))
+            .filter(JobRecord.username == username)
+            .filter(JobRecord.job_type.in_(jobs_types))
+            .group_by(JobRecord.status)
+            .all()
+        )
+        status_counts = {row[0]: row[1] for row in records}
+
+        recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
+
+        total_jobs = sum(status_counts.values())
+
+        stats: dict[str, int] = {
+            "total": total_jobs,
+            "completed": status_counts.get("completed", 0),
+            "failed": status_counts.get("failed", 0),
+            "cancelled": status_counts.get("cancelled", 0),
+        }
+
+        data = {
+            "stats": stats,
+            "recent_jobs": recent_jobs,
+        }
+
+        return data
 
     def has_active_job(self, job_type: str) -> bool:
-        return has_active_job(job_type)
+        """
+        Check if there is an active (pending or running) job of the given type.
+
+        This is an auxiliary application-level check that works on all database backends
+        (MySQL, SQLite, PostgreSQL). Note that the primary enforcement mechanism for
+        preventing duplicate concurrent jobs is the database-level unique constraint
+        idx_unique_active_job.
+        """
+        result = (
+            db.session.query(JobRecord.id)
+            .filter(
+                JobRecord.job_type == job_type,
+                JobRecord.status.in_(["pending", "running"]),
+                JobRecord.is_running == 1,
+            )
+            .first()
+        )
+        return result is not None
 
     def create_job(self, job_type: str, username: str) -> JobRecord:
-        return create_job(job_type, username)
+        """
+        Create a new job record.
 
+        Query to match:
+            INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
+            (job_type, "pending", username),
+
+        Raises:
+            DuplicateJobError: If a job of the same type is already running.
+        """
+        job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
+        db.session.add(job)
+
+        try:
+            db.session.commit()
+        except IntegrityError as exc:
+            db.session.rollback()
+            if "idx_unique_active_job" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
+                logger.warning("Duplicate active job detected for job_type=%s", job_type)
+                raise DuplicateJobError(f"A job of type '{job_type}' is already active (pending or running).") from exc
+            raise  # Re-raise unexpected IntegrityError
+        db.session.refresh(job)
+        return job
+
+    @db_guard_rollback
     def update_job_status(
         self,
         job_id: int,
@@ -367,8 +250,12 @@ class JobsService:
         *,
         job_type: str,
     ) -> JobRecord:
-        return update_job_status(job_id, status, result_file, job_type=job_type)
+        """
+        Update job status and result file.
+        """
+        return _update_job_status(job_id, status, result_file, job_type=job_type)
 
+    @retry_on_db_disconnect()
     def update_job_status_with_retry(
         self,
         job_id: int,
@@ -377,28 +264,63 @@ class JobsService:
         *,
         job_type: str,
     ) -> JobRecord:
-        return update_job_status_with_retry(job_id, status, result_file, job_type=job_type)
+        return _update_job_status(job_id, status, result_file, job_type=job_type)
 
+    @db_guard_rollback
     def cancel_job_db(self, job_id: int, job_type: str | None = None) -> bool:
-        return cancel_job_db(job_id, job_type)
+        """
+        Mark a job as cancelled.
+            query = "UPDATE jobs SET status = 'cancelled', completed_at = NOW() WHERE id = %s AND status IN ('pending', 'running')"
+            params = [job_id]
+            if job_type:
+                query += " AND job_type = %s"
+                params.append(job_type)
+
+            rowcount = self.db.execute_query_safe(query, tuple(params))
+            return rowcount > 0
+        """
+
+        query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
+        if job_type:
+            query = query.filter(JobRecord.job_type == job_type)
+
+        job = query.filter(
+            JobRecord.status.in_(["pending", "running"]),
+            JobRecord.is_running == 1,
+        ).first()
+
+        if not job:
+            return False
+
+        job.status = "cancelled"
+        job.completed_at = datetime.now(UTC)
+        job.is_running = None
+
+        db.session.commit()
+        db.session.refresh(job)
+        return True
+
+    def delete_job(self, job_id: int, job_type: str) -> bool:
+        """
+        Special case since it filters by multiple columns (id and job_type).
+        """
+        try:
+            affected_rows = (
+                db.session.query(JobRecord)
+                .filter(JobRecord.id == job_id, JobRecord.job_type == job_type)
+                .delete(synchronize_session=False)
+            )
+            db.session.commit()
+            return affected_rows > 0
+        except Exception as e:
+            logger.error(f"Error deleting JobRecord: {e}")
+            db.session.rollback()
+            return False
 
     def delete(self, record_id: int) -> bool:
         return delete_record_by_pk(JobRecord, record_id)
 
-    def delete_job(self, job_id: int, job_type: str) -> bool:
-        return delete_job_by_id_and_type(job_id, job_type)
-
 
 __all__ = [
     "JobsService",
-    "create_job",
-    "get_job",
-    "has_active_job",
-    "list_jobs",
-    "update_job_status",
-    "cancel_job_db",
-    "is_job_cancelled",
-    "get_all_user_jobs_stats",
-    "get_user_jobs_stats",
-    "update_job_status_with_retry",
 ]

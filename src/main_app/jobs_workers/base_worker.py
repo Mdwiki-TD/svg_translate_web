@@ -13,11 +13,7 @@ from sqlalchemy.orm.exc import StaleDataError
 
 from ..api_services import get_user_site
 from ..config import settings
-from ..db.services import (
-    is_job_cancelled,
-    update_job_status,
-    update_job_status_with_retry,
-)
+from ..db.services import JobsService
 from ..su_services import is_job_cancelled_file_exist, save_job_result_by_name
 from .shared_objects import WorkerObject
 from .utils import generate_result_file_name
@@ -62,6 +58,7 @@ class BaseObjectsJobWorker(ABC):
         self._edit_count: int = 0
         self.site: Site | None = None
         self.result: WorkerObject = WorkerObject()
+        self._jobs_service = JobsService()
 
     @abstractmethod
     def get_job_type(self) -> str:
@@ -92,7 +89,7 @@ class BaseObjectsJobWorker(ABC):
         """
 
         try:
-            update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
+            self._jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
             self.result.status = "running"
             self._save_progress()
             return True
@@ -119,7 +116,9 @@ class BaseObjectsJobWorker(ABC):
 
         # Update final status
         try:
-            update_job_status_with_retry(self.job_id, final_status, self.result_file, job_type=self.job_type)
+            self._jobs_service.update_job_status_with_retry(
+                self.job_id, final_status, self.result_file, job_type=self.job_type
+            )
         except (StaleDataError, LookupError):
             logger.error("Job %s: Could not update final status, job record might have been deleted.", self.job_id)
         except Exception:
@@ -154,7 +153,7 @@ class BaseObjectsJobWorker(ABC):
 
         if check_db:
             # Optimize is_cancelled DB check frequency, by reducing the check frequency (to occur every N cycles).
-            if is_job_cancelled(self.job_id, job_type=self.job_type):
+            if self._jobs_service.is_job_cancelled(self.job_id, job_type=self.job_type):
                 logger.info("Job %s: Global cancellation detected, stopping.", self.job_id)
                 self._mark_as_cancelled_in_result()
                 return True

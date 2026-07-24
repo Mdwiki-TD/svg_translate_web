@@ -15,7 +15,7 @@ from mwclient.client import Site
 from ....api_services import MwClientPage, is_pages_exists
 from ....data import get_slug_categories
 from ....db.models import TemplateRecord
-from ....db.services import list_templates
+from ....db.services import TemplateService
 from ....utils.wikitext import merge_categories, sort_categories
 from ...base_worker import BaseObjectsJobWorker
 from .objects import CreateOwidPagesWorkerObject
@@ -156,7 +156,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         return templates
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = list_templates()
+        templates = TemplateService().list_templates()
         _templates = [t for t in templates if t.title.startswith("Template:OWID/")]
         return self._apply_limits(_templates)
 

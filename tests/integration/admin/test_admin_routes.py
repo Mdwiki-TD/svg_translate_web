@@ -10,19 +10,12 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.main_app.db.services import upsert_user_token
-from src.main_app.db.services.admin_service import (
-    add_coordinator,
-    is_active_coordinator,
-    list_coordinators,
-    set_coordinator_active,
-)
-from src.main_app.db.services.users_service import create_user
+from src.main_app.db.services import AdminService, UsersService, UserTokenService
 
 
 def _upsert_u_token(username: str, access_key: str, access_secret: str) -> int:
-    user = create_user(username)
-    upsert_user_token(
+    user = UsersService().create_user(username)
+    UserTokenService().upsert_user_token(
         user_id=user.user_id,
         access_key=access_key,
         access_secret=access_secret,
@@ -39,7 +32,7 @@ def _seed_admin(mock_app, username="AdminUser"):
             access_secret="admin-secret",
         )
         try:
-            add_coordinator(username)
+            AdminService().add_coordinator(username)
         except ValueError:
             pass
         except Exception:
@@ -96,8 +89,8 @@ class TestAdminDashboard:
                 access_key="k",
                 access_secret="s",
             )
-            coord = add_coordinator("InactiveAdmin")
-            set_coordinator_active(coord.id, False)
+            coord = AdminService().add_coordinator("InactiveAdmin")
+            AdminService().set_coordinator_active(coord.id, False)
 
         with mock_client.session_transaction() as sess:
             sess["uid"] = uid
@@ -176,7 +169,7 @@ class TestCoordinatorRoutes:
         resp = mock_client.get("/adminpanel/coordinators/")
         assert resp.status_code == 200
 
-    def test_add_coordinator(self, mock_app, mock_client):
+    def test_AdminService().add_coordinator(self, mock_app, mock_client):
         """Admin should be able to add a new coordinator."""
 
         with mock_app.app_context():
@@ -195,7 +188,7 @@ class TestCoordinatorRoutes:
         assert resp.status_code == 200
 
         with mock_app.app_context():
-            result = is_active_coordinator("NewCoord")
+            result = AdminService().is_active_coordinator("NewCoord")
             assert result is True
 
     def test_add_coordinator_empty_username_flash(self, mock_app, mock_client, monkeypatch):
@@ -243,7 +236,7 @@ class TestCoordinatorRoutes:
                 access_key="k",
                 access_secret="s",
             )
-            coord = add_coordinator("ToggleCoord")
+            coord = AdminService().add_coordinator("ToggleCoord")
 
         _login_admin(mock_app, mock_client)
         resp = mock_client.post(
@@ -253,7 +246,7 @@ class TestCoordinatorRoutes:
         assert resp.status_code == 200
 
         with mock_app.app_context():
-            result = is_active_coordinator("ToggleCoord")
+            result = AdminService().is_active_coordinator("ToggleCoord")
             assert result is False
 
     def test_toggle_coordinator_reactivate(self, mock_app, mock_client):
@@ -265,8 +258,8 @@ class TestCoordinatorRoutes:
                 access_key="k",
                 access_secret="s",
             )
-            coord = add_coordinator("ReactivateCoord")
-            set_coordinator_active(coord.id, False)
+            coord = AdminService().add_coordinator("ReactivateCoord")
+            AdminService().set_coordinator_active(coord.id, False)
 
         _login_admin(mock_app, mock_client)
         resp = mock_client.post(
@@ -276,7 +269,7 @@ class TestCoordinatorRoutes:
         assert resp.status_code == 200
 
         with mock_app.app_context():
-            result = is_active_coordinator("ReactivateCoord")
+            result = AdminService().is_active_coordinator("ReactivateCoord")
             assert result is True
 
     def test_delete_coordinator(self, mock_app, mock_client):
@@ -288,7 +281,7 @@ class TestCoordinatorRoutes:
                 access_key="k",
                 access_secret="s",
             )
-            coord = add_coordinator("DeleteCoord")
+            coord = AdminService().add_coordinator("DeleteCoord")
 
         _login_admin(mock_app, mock_client)
         resp = mock_client.post(
@@ -298,7 +291,7 @@ class TestCoordinatorRoutes:
         assert resp.status_code == 200
 
         with mock_app.app_context():
-            coords = list_coordinators()
+            coords = AdminService().list_coordinators()
             usernames = [c.username for c in coords]
             assert "DeleteCoord" not in usernames
 
@@ -341,12 +334,12 @@ class TestAdminRouteIntegration:
             follow_redirects=True,
         )
         with mock_app.app_context():
-            result = is_active_coordinator("LifecycleCoord")
+            result = AdminService().is_active_coordinator("LifecycleCoord")
             assert result is True
 
         # Get the coordinator ID
         with mock_app.app_context():
-            coords = list_coordinators()
+            coords = AdminService().list_coordinators()
             coord = next(c for c in coords if c.username == "LifecycleCoord")
 
         # Deactivate
@@ -355,7 +348,7 @@ class TestAdminRouteIntegration:
             follow_redirects=True,
         )
         with mock_app.app_context():
-            result = is_active_coordinator("LifecycleCoord")
+            result = AdminService().is_active_coordinator("LifecycleCoord")
             assert result is False
 
         # Reactivate
@@ -364,7 +357,7 @@ class TestAdminRouteIntegration:
             follow_redirects=True,
         )
         with mock_app.app_context():
-            result = is_active_coordinator("LifecycleCoord")
+            result = AdminService().is_active_coordinator("LifecycleCoord")
             assert result is True
 
         # Delete
@@ -373,7 +366,7 @@ class TestAdminRouteIntegration:
             follow_redirects=True,
         )
         with mock_app.app_context():
-            coords = list_coordinators()
+            coords = AdminService().list_coordinators()
             usernames = [c.username for c in coords]
             assert "LifecycleCoord" not in usernames
 

@@ -17,7 +17,7 @@ from ....db.models import TemplateRecord
 from ....db.services import (
     OwidChartsService,
     TemplateService,
-    list_templates_need_update,
+    ViewsService,
 )
 from ....db.templates_utils import extract_slug
 from ....utils.wikitext import (
@@ -512,7 +512,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             return self.process_one(self.args["title"])
 
         if self.args.get("list_titles") == "list_templates_need_update":
-            templates_to_update = list_templates_need_update()
+            templates_to_update = ViewsService().list_templates_need_update()
             templates_to_update_titles = {x.template_title for x in templates_to_update}
 
             templates: list[TemplateRecord] = self.template_service.list_templates()

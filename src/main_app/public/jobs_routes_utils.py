@@ -18,11 +18,7 @@ from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
 from ..db.exceptions import DuplicateJobError
-from ..db.services import (
-    JobsService,
-    get_job,
-    list_jobs,
-)
+from ..db.services import JobsService
 from ..jobs_workers.jobs_worker import (
     cancel_job_worker,
     start_job,
@@ -59,7 +55,7 @@ def cancel_job_handler(job_id: int, job_type: str) -> str:
         return "job_detail"
 
     try:
-        job = get_job(job_id, job_type)
+        job = JobsService().get_job(job_id, job_type)
     except LookupError:
         flash("Job not found.", "warning")
         return "jobs_list"
@@ -88,7 +84,7 @@ def delete_job_handler(job_id: int, job_type: str) -> str:
         return "job_detail"
 
     try:
-        job = get_job(job_id, job_type)
+        job = JobsService().get_job(job_id, job_type)
     except LookupError:
         flash("Job not found.", "warning")
         return "jobs_list"
@@ -159,7 +155,7 @@ def start_job_handler(
 def jobs_list_handler(job_type: str, template_data: JobData) -> str:
     """Render the jobs list dashboard for any job type."""
     try:
-        jobs = list_jobs(limit=100, job_type=job_type)
+        jobs = JobsService().list_jobs(limit=100, job_type=job_type)
     except Exception:  # pragma: no cover - defensive guard
         logger.exception("Unable to load jobs list.")
         flash("Unable to load jobs list.", "danger")
@@ -187,7 +183,7 @@ def job_detail_handler(
     """Render the job detail page for any job type."""
 
     try:
-        job = get_job(job_id, job_type)
+        job = JobsService().get_job(job_id, job_type)
     except LookupError:
         logger.error("Job not found: id=%s, type=%s", job_id, job_type)
         flash(f"Job id {job_id} was not found", "warning")

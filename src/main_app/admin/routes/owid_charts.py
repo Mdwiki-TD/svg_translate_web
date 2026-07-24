@@ -19,8 +19,7 @@ from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import IntegrityError
 
 from ...db.models import OwidChartRecord, OwidChartTemplateView
-from ...db.services import OwidChartsService
-from ...db.services.views_service import list_owid_charts_templates
+from ...db.services import OwidChartsService, ViewsService
 from ...shared.owid_charts_utils import charts_new_list
 from ..decorators import admin_required
 
@@ -29,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 def get_charts_data(charts: list[OwidChartRecord]) -> list[dict[str, Any]]:
 
-    all_charts_templates: list[OwidChartTemplateView] = list_owid_charts_templates()
+    all_charts_templates: list[OwidChartTemplateView] = ViewsService().list_owid_charts_templates()
 
     charts_temps = {c.chart_id: c for c in all_charts_templates}
 
