@@ -57,7 +57,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_worker):
         mocks["is_job_cancelled"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.list_templates",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.TemplateService.list_templates",
         mocks["list_templates"],
     )
     monkeypatch.setattr(

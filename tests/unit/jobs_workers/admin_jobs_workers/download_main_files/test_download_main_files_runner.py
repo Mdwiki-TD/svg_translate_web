@@ -38,7 +38,7 @@ def mock_path(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 def mock_services(monkeypatch: pytest.MonkeyPatch, mock_before_run) -> MockServices:
     mock_list_templates = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.list_templates",
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.TemplateService.list_templates",
         mock_list_templates,
     )
 

@@ -38,7 +38,7 @@ def mock_add_svglanguages_services(monkeypatch: pytest.MonkeyPatch, mock_base_wo
         mocks["add_template_to_text"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.list_templates",
+        "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.TemplateService.list_templates",
         mocks["list_templates"],
     )
     monkeypatch.setattr(

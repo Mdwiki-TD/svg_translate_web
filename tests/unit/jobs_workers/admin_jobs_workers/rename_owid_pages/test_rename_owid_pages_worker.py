@@ -26,11 +26,11 @@ def mock_db_services(monkeypatch: pytest.MonkeyPatch) -> dict:
         "update_template_data": MagicMock(),
     }
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.get_template_by_title",
+        "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.TemplateService.get_template_by_title",
         mocks["get_template_by_title"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.update_template_data",
+        "src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker.TemplateService.update_template_data",
         mocks["update_template_data"],
     )
     return mocks
