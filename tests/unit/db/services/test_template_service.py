@@ -6,7 +6,7 @@ import pytest
 
 from src.main_app.db.services.template_service import TemplateService
 
-from .....src.main_app.db.exceptions import DuplicateRecordError
+from src.main_app.db.exceptions import DuplicateRecordError
 
 
 class TestListTemplates:
