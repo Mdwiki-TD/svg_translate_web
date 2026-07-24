@@ -34,6 +34,68 @@ def setup_db():
     """Override conftest's autouse setup_db — no database needed for these unit tests."""
 
 
+@dataclass
+class MockJobRoutesDeps:
+    """Typed bundle of all mocked jobs_routes_utils dependencies."""
+
+    flash: MagicMock = field(default_factory=MagicMock)
+    redirect: MagicMock = field(default_factory=MagicMock)
+    url_for: MagicMock = field(default_factory=MagicMock)
+    render_template: MagicMock = field(default_factory=MagicMock)
+    load_user: MagicMock = field(default_factory=MagicMock)
+    get_job: MagicMock = field(default_factory=MagicMock)
+    list_jobs: MagicMock = field(default_factory=MagicMock)
+    can_manage_job: MagicMock = field(default_factory=MagicMock)
+    cancel_job_worker: MagicMock = field(default_factory=MagicMock)
+    load_auth_payload: MagicMock = field(default_factory=MagicMock)
+    start_job: MagicMock = field(default_factory=MagicMock)
+    delete_job_by_id_and_type: MagicMock = field(default_factory=MagicMock)
+    delete_job: MagicMock = field(default_factory=MagicMock)
+    load_job_result: MagicMock = field(default_factory=MagicMock)
+    admin_load_user: MagicMock = field(default_factory=MagicMock)
+
+
+@pytest.fixture
+def mock_deps(
+    monkeypatch: pytest.MonkeyPatch,
+    mock_user: MagicMock,
+    mock_job: MagicMock,
+) -> MockJobRoutesDeps:
+    """Patch all jobs_routes_utils dependencies and return a typed bundle."""
+    _m = "src.main_app.public.jobs_routes_utils"
+
+    deps = MockJobRoutesDeps()
+    monkeypatch.setattr(f"{_m}.flash", deps.flash)
+    monkeypatch.setattr(f"{_m}.redirect", deps.redirect)
+    monkeypatch.setattr(f"{_m}.url_for", deps.url_for)
+    monkeypatch.setattr(f"{_m}.render_template", deps.render_template)
+    monkeypatch.setattr(f"{_m}.load_user", deps.load_user)
+    monkeypatch.setattr(f"{_m}.can_manage_job", deps.can_manage_job)
+    monkeypatch.setattr(f"{_m}.cancel_job_worker", deps.cancel_job_worker)
+    monkeypatch.setattr(f"{_m}.load_auth_payload", deps.load_auth_payload)
+    monkeypatch.setattr(f"{_m}.start_job", deps.start_job)
+    monkeypatch.setattr(f"{_m}.JobsService.get_job", deps.get_job)
+    monkeypatch.setattr(f"{_m}.JobsService.list_jobs", deps.list_jobs)
+    monkeypatch.setattr(f"{_m}.JobsService.delete_job_by_id_and_type", deps.delete_job_by_id_and_type)
+    monkeypatch.setattr(f"{_m}.JobsService.delete", deps.delete_job)
+    monkeypatch.setattr(f"{_m}.load_job_result", deps.load_job_result)
+
+    deps.redirect.return_value = "redirected"
+    deps.url_for.return_value = MOCK_URL
+    deps.render_template.return_value = "rendered"
+    deps.load_user.return_value = mock_user
+    deps.get_job.return_value = mock_job
+    deps.list_jobs.return_value = [mock_job]
+    deps.can_manage_job.return_value = True
+    deps.cancel_job_worker.return_value = False
+    deps.load_auth_payload.return_value = {"token": "abc"}
+    deps.start_job.return_value = 42
+    deps.delete_job_by_id_and_type.return_value = True
+    deps.delete_job.return_value = True
+
+    return deps
+
+
 @pytest.fixture
 def mock_job() -> MagicMock:
     """Return a generic running job owned by testuser."""
@@ -124,68 +186,6 @@ def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
 def mock_p_client(mock_p_app: Flask):
     """Return a test client for the minimal Flask app."""
     return mock_p_app.test_client()
-
-
-@dataclass
-class MockJobRoutesDeps:
-    """Typed bundle of all mocked jobs_routes_utils dependencies."""
-
-    flash: MagicMock = field(default_factory=MagicMock)
-    redirect: MagicMock = field(default_factory=MagicMock)
-    url_for: MagicMock = field(default_factory=MagicMock)
-    render_template: MagicMock = field(default_factory=MagicMock)
-    load_user: MagicMock = field(default_factory=MagicMock)
-    get_job: MagicMock = field(default_factory=MagicMock)
-    list_jobs: MagicMock = field(default_factory=MagicMock)
-    can_manage_job: MagicMock = field(default_factory=MagicMock)
-    cancel_job_worker: MagicMock = field(default_factory=MagicMock)
-    load_auth_payload: MagicMock = field(default_factory=MagicMock)
-    start_job: MagicMock = field(default_factory=MagicMock)
-    delete_job_by_id_and_type: MagicMock = field(default_factory=MagicMock)
-    delete_job: MagicMock = field(default_factory=MagicMock)
-    load_job_result: MagicMock = field(default_factory=MagicMock)
-    admin_load_user: MagicMock = field(default_factory=MagicMock)
-
-
-@pytest.fixture
-def mock_deps(
-    monkeypatch: pytest.MonkeyPatch,
-    mock_user: MagicMock,
-    mock_job: MagicMock,
-) -> MockJobRoutesDeps:
-    """Patch all jobs_routes_utils dependencies and return a typed bundle."""
-    _m = "src.main_app.public.jobs_routes_utils"
-
-    deps = MockJobRoutesDeps()
-    monkeypatch.setattr(f"{_m}.flash", deps.flash)
-    monkeypatch.setattr(f"{_m}.redirect", deps.redirect)
-    monkeypatch.setattr(f"{_m}.url_for", deps.url_for)
-    monkeypatch.setattr(f"{_m}.render_template", deps.render_template)
-    monkeypatch.setattr(f"{_m}.load_user", deps.load_user)
-    monkeypatch.setattr(f"{_m}.can_manage_job", deps.can_manage_job)
-    monkeypatch.setattr(f"{_m}.cancel_job_worker", deps.cancel_job_worker)
-    monkeypatch.setattr(f"{_m}.load_auth_payload", deps.load_auth_payload)
-    monkeypatch.setattr(f"{_m}.start_job", deps.start_job)
-    monkeypatch.setattr(f"{_m}.JobsService.get_job", deps.get_job)
-    monkeypatch.setattr(f"{_m}.JobsService.list_jobs", deps.list_jobs)
-    monkeypatch.setattr(f"{_m}.JobsService.delete_job_by_id_and_type", deps.delete_job_by_id_and_type)
-    monkeypatch.setattr(f"{_m}.JobsService.delete", deps.delete_job)
-    monkeypatch.setattr(f"{_m}.load_job_result", deps.load_job_result)
-
-    deps.redirect.return_value = "redirected"
-    deps.url_for.return_value = MOCK_URL
-    deps.render_template.return_value = "rendered"
-    deps.load_user.return_value = mock_user
-    deps.get_job.return_value = mock_job
-    deps.list_jobs.return_value = [mock_job]
-    deps.can_manage_job.return_value = True
-    deps.cancel_job_worker.return_value = False
-    deps.load_auth_payload.return_value = {"token": "abc"}
-    deps.start_job.return_value = 42
-    deps.delete_job_by_id_and_type.return_value = True
-    deps.delete_job.return_value = True
-
-    return deps
 
 
 # =========================================================================
