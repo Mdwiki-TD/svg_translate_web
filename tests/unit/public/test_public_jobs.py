@@ -143,6 +143,7 @@ class MockJobRoutesDeps:
     delete_job_by_id_and_type: MagicMock = field(default_factory=MagicMock)
     delete_job: MagicMock = field(default_factory=MagicMock)
     load_job_result: MagicMock = field(default_factory=MagicMock)
+    admin_load_user: MagicMock = field(default_factory=MagicMock)
 
 
 @pytest.fixture
