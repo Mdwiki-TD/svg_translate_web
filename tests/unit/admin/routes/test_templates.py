@@ -4,10 +4,11 @@ Unit tests for src/main_app/adminpanel/routes/templates.py module.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.db.models import TemplateRecord
 from src.main_app.admin.routes.templates import TemplatesRoutesFuncs
 from src.main_app.db.exceptions import DuplicateRecordError
 
@@ -46,7 +47,6 @@ class TestTemplatesUnit:
         self.service = TemplatesRoutesFuncs()
 
     def test_create_json_file_success(self, mock_services):
-        from src.main_app.db.models import TemplateRecord
 
         templates = [
             TemplateRecord(

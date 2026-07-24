@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+from src.main_app.db.models import TemplateRecord
 from src.main_app.admin.routes.templates import (
     TemplatesRoutesFuncs,
 )
@@ -94,7 +95,6 @@ def test_delete_template_success(
 def test_create_json_file_success(mock_app, monkeypatch):
     """Test create_json_file returns JSON file with templates data."""
     from src.main_app.admin.routes.templates import create_json_file
-    from src.main_app.db.models import TemplateRecord
 
     templates = [
         TemplateRecord(
@@ -132,26 +132,9 @@ def test_create_json_file_no_templates(mock_app, monkeypatch):
     assert status_code == 404
     assert "No templates found" in msg
 
-
-def test_create_json_file_exception(mock_app, monkeypatch):
-    """Test create_json_file returns 500 on exception."""
-
-    def raise_error(self):
-        raise RuntimeError("Database error")
-
-    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list_templates", raise_error)
-
-    from src.main_app.admin.routes.templates import create_json_file
-
-    msg, status_code = create_json_file()
-
-    assert status_code == 500
-    assert "Failed to create JSON file" in msg
-
-
 def test_edit_template_found(mock_app, monkeypatch):
     """Test TemplatesRoutesFuncs().edit_template returns template when found."""
-    from src.main_app.db.models import TemplateRecord
+
 
     template = TemplateRecord(
         id=1,

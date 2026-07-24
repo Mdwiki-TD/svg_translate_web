@@ -6,12 +6,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.db.models import OwidChartRecord
 from src.main_app.db.services.owid_charts_service import OwidChartsService
 
 @pytest.fixture
 def sample_record():
     """Create a sample OwidChartRecord."""
-    from src.main_app.db.models import OwidChartRecord
 
     return OwidChartRecord(
         chart_id=1,
@@ -147,7 +147,6 @@ class TestAddChart:
         """Create a chart record with valid keyword arguments."""
         mock_db = MagicMock()
         monkeypatch.setattr("src.main_app.db.services.owid_charts_service.db", mock_db)
-        from src.main_app.db.models import OwidChartRecord
 
         result = OwidChartsService().add_chart(chart_id=1, slug="test-chart", title="Test Chart")
         assert isinstance(result, OwidChartRecord)
