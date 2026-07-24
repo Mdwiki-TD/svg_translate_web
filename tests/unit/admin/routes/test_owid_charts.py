@@ -12,6 +12,7 @@ import pytest
 from src.main_app.admin.routes.owid_charts import OwidCharts
 from src.main_app.db.services import ViewsService
 
+
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self):
@@ -170,9 +171,7 @@ class TestUpdateChart(TestSetupWithMockService):
         self.mock_redirect.side_effect = lambda *a, **kw: "redirected"
         self.mock_url_for.side_effect = lambda x, **kw: "/r"
 
-        result = self.owid_charts_service._update_chart(
-            {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "1"}
-        )
+        result = self.owid_charts_service._update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "1"})
         assert "redirected" in result
 
 
