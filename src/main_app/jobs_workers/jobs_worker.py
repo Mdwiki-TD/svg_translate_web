@@ -11,9 +11,9 @@ from flask import Flask, current_app
 from ..db.exceptions import DuplicateJobError
 from ..db.models import JobRecord
 from ..db.services import (
+    SettingsService,
     cancel_job_db,
     create_job,
-    SettingsService,
 )
 from ..su_services.jobs_files_service import create_job_cancelled_file
 from .admin_jobs_workers.workers_list import jobs_data_admins

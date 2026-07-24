@@ -10,6 +10,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from ...db.services import SettingsService
 from ..decorators import admin_required
 
+
 def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
     """Returns (value, success)"""
     if v_type == "boolean":
@@ -120,7 +121,6 @@ class SettingsRoutes(SettingsFuncs):
 
 def settings_update_form(request_form) -> tuple[list[str], list[str]]:
     return SettingsFuncs().settings_update_form(request_form)
-
 
 
 __all__ = [

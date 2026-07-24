@@ -13,10 +13,12 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+
 from ...db.services import OwidSlugRedirectsService
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
+
 
 class SlugFuncs:
     def __init__(self) -> None:
@@ -51,7 +53,6 @@ class SlugFuncs:
             record=record,
             error=None,
         )
-
 
     def update_slug_redirect_data(self) -> ResponseReturnValue:
         redirect_id = request.form.get("id", type=int)

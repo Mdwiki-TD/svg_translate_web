@@ -229,9 +229,7 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: False)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.delete_job", lambda self, jid, jt: True
-        )
+        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete_job", lambda self, jid, jt: True)
 
         result = delete_job_handler(1, "test_job")
 
@@ -247,9 +245,7 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: True)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.delete_job", lambda self, jid, jt: True
-        )
+        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete_job", lambda self, jid, jt: True)
 
         result = delete_job_handler(1, "test_job")
 
@@ -262,9 +258,7 @@ class TestDeleteJob:
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.get_job", lambda jid, jt: mock_job)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: False)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.delete_job", lambda self, jid, jt: False
-        )
+        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete_job", lambda self, jid, jt: False)
 
         result = delete_job_handler(1, "test_job")
 

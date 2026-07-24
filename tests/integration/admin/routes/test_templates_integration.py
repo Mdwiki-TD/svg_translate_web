@@ -167,9 +167,7 @@ def test_edit_template_found(mock_app, monkeypatch):
         updated_at=None,
         source=None,
     )
-    monkeypatch.setattr(
-        "src.main_app.admin.routes.templates.TemplateService.get_template", lambda self, id: template
-    )
+    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.get_template", lambda self, id: template)
 
     with mock_app.test_request_context():
         with patch("src.main_app.admin.routes.templates.render_template") as mock_render:

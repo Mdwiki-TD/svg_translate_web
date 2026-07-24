@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Blueprint, Flask
 
-from src.main_app.admin.routes.settings import SettingsFuncs, SettingsRoutes, _parse_setting_value, settings_update_form
+from src.main_app.admin.routes.settings import SettingsRoutes, _parse_setting_value, settings_update_form
 
 
 class TestSettingsRoutesClass:
