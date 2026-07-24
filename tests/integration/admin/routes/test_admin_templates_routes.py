@@ -8,7 +8,7 @@ from html import unescape
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.db.services import TemplateService, delete_service
+from src.main_app.db.services import TemplateService
 
 
 class _TemplatesStore:

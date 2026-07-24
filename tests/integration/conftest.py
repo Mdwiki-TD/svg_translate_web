@@ -10,8 +10,7 @@ import pytest
 
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
-from src.main_app.db.models import JobRecord
-from src.main_app.db.services import JobsService, delete_record_by_pk
+from src.main_app.db.services import JobsService
 from src.main_app.extensions import db as _db
 
 

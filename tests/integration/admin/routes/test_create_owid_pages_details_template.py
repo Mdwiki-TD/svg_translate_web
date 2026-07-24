@@ -16,7 +16,6 @@ import json
 from html import unescape
 
 from src.main_app.db.services import JobsService
-from src.main_app.db.services import jobs_service as _sqlalchemy_jobs_service
 
 
 def _create_job_with_result(result_data: dict, tmp_path, job_type: str = "create_owid_pages"):

@@ -17,7 +17,6 @@ import json
 from html import unescape
 
 from src.main_app.db.services import JobsService
-from src.main_app.db.services import jobs_service as _sqlalchemy_jobs_service
 
 _JOB_TYPE = "update_owid_charts"
 
