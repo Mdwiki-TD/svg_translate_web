@@ -113,7 +113,9 @@ def test_create_json_file_success(mock_app, monkeypatch):
             updated_at=None,
         ),
     ]
-    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list_templates", lambda: templates)
+    monkeypatch.setattr(
+        "src.main_app.admin.routes.templates.TemplateService.list_templates", lambda self, limit=None: templates
+    )
 
     with mock_app.app_context():
         response, status_code = create_json_file()
@@ -165,7 +167,9 @@ def test_edit_template_found(mock_app, monkeypatch):
         updated_at=None,
         source=None,
     )
-    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.get_template", lambda id: template)
+    monkeypatch.setattr(
+        "src.main_app.admin.routes.templates.TemplateService.get_template", lambda self, id: template
+    )
 
     with mock_app.test_request_context():
         with patch("src.main_app.admin.routes.templates.render_template") as mock_render:
@@ -184,7 +188,7 @@ def test_edit_template_not_found(mock_app, monkeypatch):
 
     monkeypatch.setattr(
         "src.main_app.admin.routes.templates.TemplateService.get_template",
-        lambda id: (_ for _ in ()).throw(LookupError("Not found")),
+        lambda self, id: (_ for _ in ()).throw(LookupError("Not found")),
     )
 
     with mock_app.test_request_context():

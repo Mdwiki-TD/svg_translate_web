@@ -36,7 +36,9 @@ class TestTemplatesUnit:
                 updated_at=None,
             )
         ]
-        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list_templates", lambda: templates)
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.TemplateService.list_templates", lambda self, limit=None: templates
+        )
         response, status = create_json_file()
         assert status == 200
         assert "templates.json" in response.headers["Content-Disposition"]
@@ -86,7 +88,7 @@ class TestTemplatesUnit:
         mock_record = MagicMock()
         mock_record.title = "NewT"
         monkeypatch.setattr(
-            "src.main_app.admin.routes.templates.TemplateService.add_template_data", lambda d: mock_record
+            "src.main_app.admin.routes.templates.TemplateService.add_template_data", lambda self, d: mock_record
         )
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
@@ -191,8 +193,10 @@ class TestTemplatesUnit:
     def test_delete_template_success(self, monkeypatch):
         mock_record = MagicMock()
         mock_record.title = "DelT"
-        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.get_template", lambda i: mock_record)
-        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.delete", lambda i: None)
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.TemplateService.get_template", lambda self, i: mock_record
+        )
+        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.delete", lambda self, i: None)
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
@@ -229,8 +233,10 @@ class TestTemplatesUnit:
     def test_delete_template_from_popup(self, monkeypatch):
         mock_record = MagicMock()
         mock_record.title = "DelT"
-        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.get_template", lambda i: mock_record)
-        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.delete", lambda i: None)
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.TemplateService.get_template", lambda self, i: mock_record
+        )
+        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.delete", lambda self, i: None)
         mock_req = Mock()
 
         def form_get(key, default=None, **kwargs):
@@ -245,7 +251,9 @@ class TestTemplatesUnit:
 
     def test_edit_template_found(self, monkeypatch):
         mock_template = MagicMock()
-        monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.get_template", lambda i: mock_template)
+        monkeypatch.setattr(
+            "src.main_app.admin.routes.templates.TemplateService.get_template", lambda self, i: mock_template
+        )
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: c)
         result = self.service.edit_template(1)
         assert result["template"] == mock_template
@@ -264,7 +272,7 @@ class TestTemplatesUnit:
     def test_edit_template_by_title_found(self, monkeypatch):
         mock_template = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.templates.TemplateService.get_template_by_title", lambda t: mock_template
+            "src.main_app.admin.routes.templates.TemplateService.get_template_by_title", lambda self, t: mock_template
         )
         monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: c)
         result = self.service.edit_by_title("Test")

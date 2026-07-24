@@ -377,11 +377,11 @@ class TestDeleteChart:
     def test_delete_chart_success(self, mock_service, owid_charts_admin_client, sample_chart_record):
         """Test deleting a chart successfully."""
 
-        mock_service.delete_chart.return_value = True
+        mock_service.delete.return_value = True
 
         response = owid_charts_admin_client.post("/adminpanel/owidcharts/1/delete", follow_redirects=True)
 
-        mock_service.delete_chart.assert_called_once_with(1)
+        mock_service.delete.assert_called_once_with(1)
         assert response.status_code == 200
 
     def test_delete_chart_not_found(self, mock_service, owid_charts_admin_client):
