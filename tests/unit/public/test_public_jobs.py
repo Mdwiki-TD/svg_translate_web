@@ -361,9 +361,7 @@ class TestJobsList:
         _args, kwargs = mock_deps.render_template.call_args
         assert kwargs["jobs"] == []
 
-    def test_exception_falls_back_to_empty(
-        self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock
-    ) -> None:
+    def test_exception_falls_back_to_empty(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
         mock_deps.list_jobs.side_effect = RuntimeError("DB error")
 
         result = jobs_list_handler("test_job", mock_template_data)
@@ -382,9 +380,7 @@ class TestJobsList:
 class TestJobDetail:
     """Direct tests for job_detail_handler()."""
 
-    def test_job_found_without_result(
-        self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock
-    ) -> None:
+    def test_job_found_without_result(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
         mock_deps.load_job_result.return_value = None
 
         result = job_detail_handler(1, "test_job", mock_template_data, "public_jobs")
@@ -422,9 +418,7 @@ class TestJobDetail:
             expand_all=False,
         )
 
-    def test_job_found_with_expand_all(
-        self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock
-    ) -> None:
+    def test_job_found_with_expand_all(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
         mock_deps.load_job_result.return_value = None
 
         result = job_detail_handler(1, "test_job", mock_template_data, "public_jobs", expand_all=True)
@@ -481,9 +475,7 @@ class TestJobsPublicRoutesRoutes:
         monkeypatch.setattr("src.main_app.public.auth.utils.load_user", mock_deps.load_user)
 
         # Allow delete route's @admin_required decorator to pass by default
-        mock_deps.admin_load_user = MagicMock(
-            return_value=MagicMock(username="admin", is_active_admin=True)
-        )
+        mock_deps.admin_load_user = MagicMock(return_value=MagicMock(username="admin", is_active_admin=True))
         monkeypatch.setattr("src.main_app.admin.decorators.load_user", mock_deps.admin_load_user)
 
     # ── jobs_list ──────────────────────────────────────────────────────
@@ -529,9 +521,7 @@ class TestJobsPublicRoutesRoutes:
         resp = mock_p_client.post("/jobs/nonexistent_type/1/cancel")
         assert resp.status_code == 404
 
-    def test_cancel_job_not_logged_in(
-        self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps
-    ) -> None:
+    def test_cancel_job_not_logged_in(self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.load_user.return_value = None
         resp = mock_p_client.post("/jobs/test_job/1/cancel")
         assert resp.status_code == 302
@@ -563,9 +553,7 @@ class TestJobsPublicRoutesRoutes:
         resp = mock_p_client.post("/jobs/nonexistent_type/1/delete")
         assert resp.status_code == 404
 
-    def test_delete_job_not_admin_403(
-        self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps
-    ) -> None:
+    def test_delete_job_not_admin_403(self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.admin_load_user.return_value = MagicMock(username="regular", is_active_admin=False)
         resp = mock_p_client.post("/jobs/test_job/1/delete")
         assert resp.status_code == 403
