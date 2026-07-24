@@ -34,7 +34,7 @@ class AdminJobsRoutes(JobsBp):
 
     def _setup_routes(self) -> None:
         self.bp.route("/<string:job_type>", methods=["GET"])(admin_required(self.jobs_list))
-        self.bp.route("/<string:job_type>/<int:job_id>", methods=["GET"])(admin_required(self.job_details))
+        self.bp.route("/<string:job_type>/<int:job_id>", methods=["GET"])(admin_required(self.job_detail))
         self.bp.route("/<string:job_type>/<int:job_id>/expand", methods=["GET"])(admin_required(self.job_detail_expand))
         self.bp.route("/job-file/<string:result_file>/<string:job_type>", methods=["GET"])(
             admin_required(self.read_job_result_file)

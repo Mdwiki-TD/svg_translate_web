@@ -713,7 +713,7 @@ def test_delete_job_handles_exception(admin_jobs_client, mock_jobs_db, monkeypat
     def mock_delete_job(job_id, job_type):
         raise Exception("Database error")
 
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.delete_job", mock_delete_job)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete", mock_delete_job)
 
     response = admin_jobs_client.post(f"/adminpanel/jobs/collect_templates_data/{job.id}/delete", follow_redirects=True)
     assert response.status_code == 200
