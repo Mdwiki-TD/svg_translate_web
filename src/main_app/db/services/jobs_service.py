@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from ...extensions import db
 from ..exceptions import DuplicateJobError
 from ..models import JobRecord
+from .delete_service import delete_record_by_pk
 from .utils import db_guard, db_guard_rollback, retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
@@ -362,6 +363,9 @@ class JobsService:
 
     def cancel_job_db(self, job_id: int, job_type: str | None = None) -> bool:
         return cancel_job_db(job_id, job_type)
+
+    def delete(self, record_id: int) -> bool:
+        return delete_record_by_pk(JobRecord, record_id)
 
 
 __all__ = [

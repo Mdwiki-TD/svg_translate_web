@@ -7,6 +7,7 @@ from sqlalchemy import func
 
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
+from .delete_service import delete_record_by_pk
 from .utils import db_guard_rollback, retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
@@ -192,6 +193,9 @@ class OwidChartsService:
         chart_data: dict[str, Any],
     ) -> OwidChartRecord | None:
         return update_chart_data_with_retry(chart_id, chart_data)
+
+    def delete(self, record_id: int) -> bool:
+        return delete_record_by_pk(OwidChartRecord, record_id)
 
 
 __all__ = [

@@ -86,7 +86,7 @@ class CoordinatorsFuncs:
             record = self.service.get_coordinator_by_id(coordinator_id)
             if record is None:
                 raise LookupError(f"Coordinator with id {coordinator_id} not found")
-            self.service.delete_coordinator(coordinator_id)
+            self.service.delete(coordinator_id)
         except LookupError:
             logger.exception("Unable to delete coordinator.")
             flash(f"Coordinator id {coordinator_id} was not found", "warning")

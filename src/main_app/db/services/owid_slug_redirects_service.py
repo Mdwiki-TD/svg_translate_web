@@ -7,6 +7,7 @@ from sqlalchemy import desc
 
 from ...extensions import db
 from ..models.owid_slug_redirects import OwidSlugRedirectRecord
+from .delete_service import delete_record_by_pk
 from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)
@@ -134,6 +135,9 @@ class OwidSlugRedirectsService:
 
     def bulk_delete_slug_redirects(self, redirect_ids: list[int]) -> None:
         return bulk_delete_slug_redirects(redirect_ids)
+
+    def delete(self, record_id: int) -> bool:
+        return delete_record_by_pk(OwidSlugRedirectRecord, record_id)
 
 
 __all__ = [

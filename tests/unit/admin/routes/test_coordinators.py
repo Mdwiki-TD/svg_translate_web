@@ -42,9 +42,7 @@ class TestCoordinatorsDashboard(TestSetup):
         assert result["total_coordinators"] == 0
 
     def test_handles_exception(self, monkeypatch):
-        monkeypatch.setattr(
-            self.service.service, "list_coordinators", Mock(side_effect=Exception("DB error"))
-        )
+        monkeypatch.setattr(self.service.service, "list_coordinators", Mock(side_effect=Exception("DB error")))
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.render_template", lambda t, **c: c)
         result = self.service.dashboard()
@@ -153,9 +151,7 @@ class TestDeleteCoordinator(TestSetup):
         mock_flash.assert_called_with("Coordinator '1' removed.", "success")
 
     def test_not_found(self, monkeypatch):
-        monkeypatch.setattr(
-            self.service.service, "get_coordinator_by_id", Mock(side_effect=LookupError("not found"))
-        )
+        monkeypatch.setattr(self.service.service, "get_coordinator_by_id", Mock(side_effect=LookupError("not found")))
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", mock_flash)
         monkeypatch.setattr("src.main_app.admin.routes.coordinators.redirect", lambda x: f"redirect:{x}")

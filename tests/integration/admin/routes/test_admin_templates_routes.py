@@ -24,8 +24,8 @@ class _TemplatesStore:
     def update_data(self, template_id, data):
         return _sqlalchemy_template_service.update_template_data(template_id, data)
 
-    def delete(self, template_id):
-        return delete_service.delete_template(template_id)
+    def delete(self, record_id: int):
+        return delete_service.delete_record_by_pk(TemplateRecord, record_id)
 
 
 @pytest.fixture
