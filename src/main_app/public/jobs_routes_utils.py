@@ -252,7 +252,7 @@ class JobsBp(ABC):
 
         return job_detail_handler(job_id, job_type, template_data, bp_name=self.bp_name, expand_all=expand_all)
 
-    def start_job(
+    def start_new_job(
         self,
         job_type: str,
         args: dict[str, Any],
@@ -267,7 +267,7 @@ class JobsBp(ABC):
 
         return redirect(url_for(f"{self.bp_name}.job_detail", job_type=job_type, job_id=job_id))
 
-    def delete_job(self, job_type: str, job_id: int) -> Response:
+    def delete_job_record(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             abort(404)
         result = delete_job_handler(job_id, job_type)

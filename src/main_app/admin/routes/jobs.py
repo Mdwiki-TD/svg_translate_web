@@ -58,10 +58,10 @@ class AdminJobsRoutes(JobsBp):
 
     def start_job(self, job_type: str) -> ResponseReturnValue:
         args = request.form.to_dict()
-        return self.start_job(job_type, args)
+        return self.start_new_job(job_type, args)
 
     def delete_job(self, job_type: str, job_id: int) -> Response:
-        return self.delete_job(job_type, job_id)
+        return self.delete_job_record(job_type, job_id)
 
     def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
         return self.read_job_result_file(result_file, job_type)

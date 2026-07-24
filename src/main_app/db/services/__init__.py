@@ -2,8 +2,6 @@ from .admin_service import (
     AdminService,
 )
 from .delete_service import (
-    DeleteService,
-    delete_job,
     delete_record_by_pk,
 )
 from .jobs_service import (
@@ -72,7 +70,6 @@ from .views_service import (
 
 __all__ = [
     "AdminService",
-    "DeleteService",
     "JobsService",
     "OwidChartsService",
     "OwidSlugRedirectsService",

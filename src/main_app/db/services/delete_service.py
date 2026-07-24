@@ -6,13 +6,7 @@ import logging
 from typing import Any
 
 from ...extensions import db
-from ..models import (
-    AdminUserRecord,
-    JobRecord,
-    OwidChartRecord,
-    UserRecord,
-    UserTokenRecord,
-)
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,50 +32,6 @@ def delete_record_by_pk(model: type[db.Model], pk_value: Any) -> bool:  # type: 
         db.session.rollback()
         return False
 
-
-def delete_job(job_id: int, job_type: str) -> bool:
-    """
-    Special case since it filters by multiple columns (id and job_type).
-    """
-    try:
-        affected_rows = (
-            db.session.query(JobRecord)
-            .filter(JobRecord.id == job_id, JobRecord.job_type == job_type)
-            .delete(synchronize_session=False)
-        )
-        db.session.commit()
-        return affected_rows > 0
-    except Exception as e:
-        logger.error(f"Error deleting JobRecord: {e}")
-        db.session.rollback()
-        return False
-
-
-class DeleteService:
-    def __init__(self) -> None:
-        pass
-
-    def delete_record_by_pk(self, model: type[db.Model], pk_value: Any) -> bool:  # type: ignore
-        return delete_record_by_pk(model, pk_value)
-
-    def delete_user_token(self, user_id: int) -> bool:
-        return delete_record_by_pk(UserTokenRecord, user_id)
-
-    def delete_user(self, user_id: int) -> bool:
-        return delete_record_by_pk(UserRecord, user_id)
-
-    def delete_coordinator(self, coordinator_id: int) -> bool:
-        return delete_record_by_pk(AdminUserRecord, coordinator_id)
-
-    def delete_job(self, job_id: int, job_type: str) -> bool:
-        return delete_job(job_id, job_type)
-
-    def delete_chart(self, chart_id: int) -> bool:
-        return delete_record_by_pk(OwidChartRecord, chart_id)
-
-
 __all__ = [
-    "DeleteService",
     "delete_record_by_pk",
-    "delete_job",
 ]

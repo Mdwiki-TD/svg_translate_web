@@ -56,12 +56,12 @@ class PublicJobsRoutes(JobsBp):
         @user_login_required
         def start_job(job_type: str) -> ResponseReturnValue:
             args = request.form.to_dict()
-            return self.start_job(job_type, args)
+            return self.start_new_job(job_type, args)
 
         @self.bp.post("/<string:job_type>/<int:job_id>/delete")
         @admin_required
         def delete_job(job_type: str, job_id: int) -> Response:
-            return self.delete_job(job_type, job_id)
+            return self.delete_job_record(job_type, job_id)
 
         @self.bp.route("/job-file/<string:result_file>/<string:job_type>", methods=["GET"])
         @user_login_required
