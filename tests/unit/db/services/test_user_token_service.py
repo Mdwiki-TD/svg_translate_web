@@ -5,40 +5,47 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from flask.app import Flask
+import pytest
 
 from src.main_app.db.models import UserTokenRecord
 from src.main_app.db.services.user_token_service import UserTokenService
 from src.main_app.db.services.users_service import UsersService
 
 
+class TestSetup:
+    @pytest.fixture(autouse=True)
+    def setup(self) -> None:
+        self.usertoken_service = UserTokenService()
+        self.users_service = UsersService()
 
-class TestDelete:
+class TestDelete(TestSetup):
+
     def test_delete_user_cascades(self, mock_app: Flask) -> None:
         with mock_app.app_context():
-            user = UsersService().create_user("svc_dave")
-            UserTokenService().upsert_user_token(user_id=user.user_id, access_key="k", access_secret="s")
-            assert UserTokenService().get_user_token(user.user_id) is not None
-            UsersService().delete(user.user_id)
-            assert UserTokenService().get_user_token(user.user_id) is None
+            user = self.users_service.create_user("svc_dave")
+            self.usertoken_service.upsert_user_token(user_id=user.user_id, access_key="k", access_secret="s")
+            assert self.usertoken_service.get_user_token(user.user_id) is not None
+            self.users_service.delete(user.user_id)
+            assert self.usertoken_service.get_user_token(user.user_id) is None
 
     def test_upsert_get_delete_user_token(self, mock_app: Flask) -> None:
         with mock_app.app_context():
-            user = UsersService().create_user("svc_eve")
-            UserTokenService().upsert_user_token(user_id=user.user_id, access_key="key", access_secret="secret")
+            user = self.users_service.create_user("svc_eve")
+            self.usertoken_service.upsert_user_token(user_id=user.user_id, access_key="key", access_secret="secret")
 
-            token_record = UserTokenService().get_user_token(user.user_id)
+            token_record = self.usertoken_service.get_user_token(user.user_id)
             assert token_record is not None
             assert token_record.access_token is not None
             assert token_record.access_secret is not None
 
-            UserTokenService().upsert_user_token(user_id=user.user_id, access_key="new_key", access_secret="new_secret")
-            token_record = UserTokenService().get_user_token(user.user_id)
+            self.usertoken_service.upsert_user_token(user_id=user.user_id, access_key="new_key", access_secret="new_secret")
+            token_record = self.usertoken_service.get_user_token(user.user_id)
 
-            UserTokenService().delete(user.user_id)
-            assert UserTokenService().get_user_token(user.user_id) is None
+            self.usertoken_service.delete(user.user_id)
+            assert self.usertoken_service.get_user_token(user.user_id) is None
 
 
-class TestUserTokenRecord:
+class TestUserTokenRecord(TestSetup):
     """Tests for UserTokenRecord dataclass."""
 
     def test_user_token_record_creation(self):
@@ -83,7 +90,7 @@ class TestUserTokenRecord:
         assert record.access_secret == b"encrypted_secret"
 
 
-class TestGetAuthenticatedUserToken:
+class TestGetAuthenticatedUserToken(TestSetup):
     """Tests for get_authenticated_user_token."""
 
     def test_returns_token_when_user_exists(self, monkeypatch):
@@ -93,7 +100,7 @@ class TestGetAuthenticatedUserToken:
         mock_query.options.return_value.filter.return_value.first.return_value = mock_token
         monkeypatch.setattr("src.main_app.db.services.user_token_service.db.session.query", lambda cls: mock_query)
 
-        result = UserTokenService().get_authenticated_user_token(1)
+        result = self.usertoken_service.get_authenticated_user_token(1)
 
         assert result == mock_token
 
@@ -102,7 +109,7 @@ class TestGetAuthenticatedUserToken:
         mock_query.options.return_value.filter.return_value.first.return_value = None
         monkeypatch.setattr("src.main_app.db.services.user_token_service.db.session.query", lambda cls: mock_query)
 
-        result = UserTokenService().get_authenticated_user_token(1)
+        result = self.usertoken_service.get_authenticated_user_token(1)
 
         assert result is None
 
@@ -113,7 +120,7 @@ class TestGetAuthenticatedUserToken:
         mock_query.options.return_value.filter.return_value.first.return_value = mock_token
         monkeypatch.setattr("src.main_app.db.services.user_token_service.db.session.query", lambda cls: mock_query)
 
-        result = UserTokenService().get_authenticated_user_token(1)
+        result = self.usertoken_service.get_authenticated_user_token(1)
 
         assert result is None
 
@@ -122,12 +129,12 @@ class TestGetAuthenticatedUserToken:
         mock_query.options.side_effect = Exception("DB error")
         monkeypatch.setattr("src.main_app.db.services.user_token_service.db.session.query", lambda cls: mock_query)
 
-        result = UserTokenService().get_authenticated_user_token(1)
+        result = self.usertoken_service.get_authenticated_user_token(1)
 
         assert result is None
 
 
-class TestGetUserToken:
+class TestGetUserToken(TestSetup):
     """Tests for get_user_token."""
 
     def test_returns_token_for_valid_user_id(self, monkeypatch):
@@ -136,7 +143,7 @@ class TestGetUserToken:
         mock_query.filter.return_value.first.return_value = mock_token
         monkeypatch.setattr("src.main_app.db.services.user_token_service.db.session.query", lambda cls: mock_query)
 
-        result = UserTokenService().get_user_token(1)
+        result = self.usertoken_service.get_user_token(1)
 
         assert result == mock_token
 
@@ -146,22 +153,22 @@ class TestGetUserToken:
         mock_query.filter.return_value.first.return_value = mock_token
         monkeypatch.setattr("src.main_app.db.services.user_token_service.db.session.query", lambda cls: mock_query)
 
-        result = UserTokenService().get_user_token("1")
+        result = self.usertoken_service.get_user_token("1")
 
         assert result == mock_token
 
     def test_returns_none_for_none_user_id(self):
-        result = UserTokenService().get_user_token(None)
+        result = self.usertoken_service.get_user_token(None)
 
         assert result is None
 
     def test_returns_none_for_zero_user_id(self):
-        result = UserTokenService().get_user_token(0)
+        result = self.usertoken_service.get_user_token(0)
 
         assert result is None
 
     def test_returns_none_for_empty_string_user_id(self):
-        result = UserTokenService().get_user_token("")
+        result = self.usertoken_service.get_user_token("")
 
         assert result is None
 
@@ -170,12 +177,12 @@ class TestGetUserToken:
         mock_query.filter.return_value.first.return_value = None
         monkeypatch.setattr("src.main_app.db.services.user_token_service.db.session.query", lambda cls: mock_query)
 
-        result = UserTokenService().get_user_token(999)
+        result = self.usertoken_service.get_user_token(999)
 
         assert result is None
 
 
-class TestCreateUserToken:
+class TestCreateUserToken(TestSetup):
     """Tests for create_user_token."""
 
     def test_creates_and_returns_record(self, monkeypatch):
@@ -186,7 +193,7 @@ class TestCreateUserToken:
             lambda x: b"enc_" + x.encode(),
         )
 
-        result = UserTokenService().create_user_token(1, "key", "secret")
+        result = self.usertoken_service.create_user_token(1, "key", "secret")
 
         assert result.user_id == 1
         assert result.access_token == b"enc_key"
@@ -196,7 +203,7 @@ class TestCreateUserToken:
         mock_db.session.refresh.assert_called_once_with(result)
 
 
-class TestUpdateUserToken:
+class TestUpdateUserToken(TestSetup):
     """Tests for update_user_token."""
 
     def test_updates_existing_token(self, monkeypatch):
@@ -209,7 +216,7 @@ class TestUpdateUserToken:
         mock_record = MagicMock(spec=UserTokenRecord)
         mock_db.session.query.return_value.filter.return_value.first.return_value = mock_record
 
-        result = UserTokenService().update_user_token(1, "new_key", "new_secret")
+        result = self.usertoken_service.update_user_token(1, "new_key", "new_secret")
         assert result is not None
         assert result == mock_record
         assert result.access_token == b"enc_new_key"
@@ -222,12 +229,12 @@ class TestUpdateUserToken:
         monkeypatch.setattr("src.main_app.db.services.user_token_service.db", mock_db)
         mock_db.session.query.return_value.filter.return_value.first.return_value = None
 
-        result = UserTokenService().update_user_token(999, "key", "secret")
+        result = self.usertoken_service.update_user_token(999, "key", "secret")
 
         assert result is None
 
 
-class TestUpsertUserToken:
+class TestUpsertUserToken(TestSetup):
     """Tests for upsert_user_token."""
 
     def test_calls_create_when_no_existing_token(self, monkeypatch):
@@ -239,7 +246,7 @@ class TestUpsertUserToken:
         )
         mock_db.session.query.return_value.filter.return_value.first.return_value = None
 
-        result = UserTokenService().upsert_user_token(1, "key", "secret")
+        result = self.usertoken_service.upsert_user_token(1, "key", "secret")
 
         assert result.user_id == 1
         assert result.access_token == b"enc_key"
@@ -255,7 +262,7 @@ class TestUpsertUserToken:
         mock_record = MagicMock(spec=UserTokenRecord)
         mock_db.session.query.return_value.filter.return_value.first.return_value = mock_record
 
-        result = UserTokenService().upsert_user_token(1, "new_key", "new_secret")
+        result = self.usertoken_service.upsert_user_token(1, "new_key", "new_secret")
 
         assert result == mock_record
         assert result.access_token == b"enc_new_key"
