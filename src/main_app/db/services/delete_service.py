@@ -10,8 +10,6 @@ from ..models import (
     AdminUserRecord,
     JobRecord,
     OwidChartRecord,
-    OwidSlugRedirectRecord,
-    TemplateRecord,
     UserRecord,
     UserTokenRecord,
 )
