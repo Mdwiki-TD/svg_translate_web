@@ -106,13 +106,6 @@ class TestAddChart(TestSetup):
         return mock_service
 
     def _setup_request(self, monkeypatch, form_data):
-        mock_req = Mock()
-
-        def form_get(key, default=None, **kwargs):
-            return form_data.get(key, default if default else "")
-
-        mock_req.form.get = form_get
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.url_for", lambda x: f"/{x}")
@@ -139,13 +132,6 @@ class TestAddChart(TestSetup):
     def test_from_popup_error(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.add_chart.side_effect = ValueError("error")
-        mock_req = Mock()
-
-        def form_get(key, default=None, **kwargs):
-            return {"slug": "s", "title": "T", "from_popup": "1"}.get(key, default if default else "")
-
-        mock_req.form.get = form_get
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", Mock(return_value="redirected"))
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.url_for", lambda x, **kw: "/r")
@@ -160,13 +146,6 @@ class TestUpdateChart(TestSetup):
         return mock_service
 
     def _setup_request(self, monkeypatch, form_data, from_popup="0"):
-        mock_req = Mock()
-
-        def form_get(key, default=None, **kwargs):
-            return form_data.get(key, default if default else "")
-
-        mock_req.form.get = form_get
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.url_for", lambda x, **kw: f"/{x}")
@@ -199,13 +178,6 @@ class TestUpdateChart(TestSetup):
     def test_from_popup_error(self, monkeypatch):
         mock_service = self._setup_service(monkeypatch)
         mock_service.update_chart_data.side_effect = LookupError("not found")
-        mock_req = Mock()
-
-        def form_get(key, default=None, **kwargs):
-            return {"chart_id": "1", "slug": "s", "title": "T", "from_popup": "1"}.get(key, default if default else "")
-
-        mock_req.form.get = form_get
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", Mock(return_value="redirected"))
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.url_for", lambda x, **kw: "/r")
@@ -215,13 +187,6 @@ class TestUpdateChart(TestSetup):
 
 class TestDeleteChart(TestSetup):
     def test_success(self, monkeypatch):
-        mock_req = Mock()
-
-        def form_get(key, default=None, **kwargs):
-            return {"from_popup": "0"}.get(key, default if default else "")
-
-        mock_req.form.get = form_get
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_delete_chart = MagicMock(return_value=True)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.delete", mock_delete_chart)
         mock_flash = Mock()
@@ -232,13 +197,6 @@ class TestDeleteChart(TestSetup):
         mock_flash.assert_called_with("Chart '1' removed.", "success")
 
     def test_not_found(self, monkeypatch):
-        mock_req = Mock()
-
-        def form_get(key, default=None, **kwargs):
-            return {"from_popup": "0"}.get(key, default if default else "")
-
-        mock_req.form.get = form_get
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_delete_chart = MagicMock(return_value=False)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.delete", mock_delete_chart)
         mock_flash = Mock()
@@ -249,13 +207,6 @@ class TestDeleteChart(TestSetup):
         mock_flash.assert_called_with("Chart '999' not found.", "warning")
 
     def test_from_popup(self, monkeypatch):
-        mock_req = Mock()
-
-        def form_get(key, default=None, **kwargs):
-            return {"from_popup": "1"}.get(key, default if default else "")
-
-        mock_req.form.get = form_get
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.request", mock_req)
         mock_delete_chart = MagicMock(return_value=True)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.delete", mock_delete_chart)
         monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", Mock())
