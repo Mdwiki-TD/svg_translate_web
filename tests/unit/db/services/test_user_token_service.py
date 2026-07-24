@@ -16,7 +16,8 @@ def test_delete_user_cascades(mock_app: Flask) -> None:
         user = UsersService().create_user("svc_dave")
         UserTokenService().upsert_user_token(user_id=user.user_id, access_key="k", access_secret="s")
         assert UserTokenService().get_user_token(user.user_id) is not None
-
+        UsersService().delete(user.user_id)
+        assert UserTokenService().get_user_token(user.user_id) is None
 
 def test_upsert_get_delete_user_token(mock_app: Flask) -> None:
     with mock_app.app_context():

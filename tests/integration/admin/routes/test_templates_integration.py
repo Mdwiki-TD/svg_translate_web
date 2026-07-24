@@ -14,12 +14,11 @@ def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_service,
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
-    with mock_app.test_request_context(method="POST", data={"title": "NewT", "main_file": "f.svg"}):
-        resp = TemplatesRoutesFuncs().add_template()
-        assert resp == "redirected"
+    resp = TemplatesRoutesFuncs()._add_template({"title": "NewT", "main_file": "f.svg"})
+    assert resp == "redirected"
 
-        mock_service.assert_called_with({"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""})
-        mock_flash.assert_called_with("Template 'NewT' added.", "success")
+    mock_service.assert_called_with({"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""})
+    mock_flash.assert_called_with("Template 'NewT' added.", "success")
 
 
 @patch("src.main_app.admin.routes.templates.flash")
@@ -29,10 +28,9 @@ def test_add_template_missing_title(mock_url, mock_redirect, mock_flash, mock_ap
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
-    with mock_app.test_request_context(method="POST", data={"title": ""}):
-        resp = TemplatesRoutesFuncs().add_template()
-        assert resp == "redirected"
-        mock_flash.assert_called_with("Title is required to add a template.", "danger")
+    resp = TemplatesRoutesFuncs()._add_template({"title": ""})
+    assert resp == "redirected"
+    mock_flash.assert_called_with("Title is required to add a template.", "danger")
 
 
 @patch("src.main_app.admin.routes.templates.TemplateService.update_template_data")
