@@ -30,7 +30,9 @@ def test_serialize_value_string():
 
 
 def test_get_all_settings_ready() -> None:
-    SettingsService().create_setting("crop_newest_upload_limit", "Crop Newest World Files upload limit", "integer", "5000")
+    SettingsService().create_setting(
+        "crop_newest_upload_limit", "Crop Newest World Files upload limit", "integer", "5000"
+    )
     records_raw = SettingsService().get_all_settings_raw()
     assert records_raw[0]["value"] == "5000"
 

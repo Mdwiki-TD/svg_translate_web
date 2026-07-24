@@ -35,6 +35,7 @@ def _list_settings() -> list[SettingRecord]:
     orm_objs = db.session.query(SettingRecord).all()
     return orm_objs
 
+
 def _get_setting_by_key(key: str) -> SettingRecord | None:
     """Fetch a setting by key."""
     return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()

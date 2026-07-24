@@ -169,7 +169,9 @@ class TestCancelJob:
     def test_no_permission(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
+        )
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: False)
 
         result = cancel_job_handler(1, "test_job")
@@ -182,7 +184,9 @@ class TestCancelJob:
     ) -> None:
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
+        )
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: True)
 
@@ -194,7 +198,9 @@ class TestCancelJob:
     def test_cancel_fails(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
+        )
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: False)
 
@@ -226,10 +232,14 @@ class TestDeleteJob:
     ) -> None:
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
+        )
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: False)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", lambda self, jid, jt: True)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", lambda self, jid, jt: True
+        )
 
         result = delete_job_handler(1, "test_job")
 
@@ -242,10 +252,14 @@ class TestDeleteJob:
         """When cancel_job_worker returns True, the job is still deleted."""
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
+        )
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: True)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", lambda self, jid, jt: True)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", lambda self, jid, jt: True
+        )
 
         result = delete_job_handler(1, "test_job")
 
@@ -255,10 +269,14 @@ class TestDeleteJob:
     def test_delete_failure(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
+        )
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: False)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", lambda self, jid, jt: False)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", lambda self, jid, jt: False
+        )
 
         result = delete_job_handler(1, "test_job")
 
@@ -270,7 +288,9 @@ class TestDeleteJob:
     ) -> None:
         mocks = self._setup_mocks(monkeypatch)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
+        )
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: False)
         monkeypatch.setattr(
@@ -379,7 +399,9 @@ class TestJobsList:
     def test_normal_listing(self, monkeypatch: pytest.MonkeyPatch, mock_template_data: MagicMock) -> None:
         mocks = self._setup_mocks(monkeypatch)
         mock_jobs = [MagicMock(id=1), MagicMock(id=2)]
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.list_jobs", lambda *args, **kwargs: mock_jobs)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.list_jobs", lambda *args, **kwargs: mock_jobs
+        )
 
         result = jobs_list_handler("test_job", mock_template_data)
 
@@ -444,7 +466,9 @@ class TestJobDetail:
         self, monkeypatch: pytest.MonkeyPatch, mock_job: MagicMock, mock_template_data: MagicMock
     ) -> None:
         self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
+        )
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_job_result", lambda rf: None)
 
         result = job_detail_handler(1, "test_job", mock_template_data, "public_jobs")
@@ -467,7 +491,9 @@ class TestJobDetail:
         mock_template_data: MagicMock,
     ) -> None:
         self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job_with_result)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job_with_result
+        )
         monkeypatch.setattr(
             "src.main_app.public.jobs_routes_utils.load_job_result",
             lambda rf: {"key": "value"},
@@ -490,7 +516,9 @@ class TestJobDetail:
         self, monkeypatch: pytest.MonkeyPatch, mock_job: MagicMock, mock_template_data: MagicMock
     ) -> None:
         self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
+        )
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_job_result", lambda rf: None)
 
         result = job_detail_handler(1, "test_job", mock_template_data, "public_jobs", expand_all=True)
@@ -535,7 +563,9 @@ class TestJobsPublicRoutesRoutes:
         Individual tests can override specific mocks for their scenario.
         """
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job)
+        monkeypatch.setattr(
+            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
+        )
         monkeypatch.setattr(
             "src.main_app.public.jobs_routes_utils.JobsService.list_jobs",
             lambda *args, **kwargs: [mock_job],

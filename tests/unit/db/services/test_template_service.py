@@ -120,16 +120,24 @@ class TestListTemplatesMismatchedYears:
         assert result == []
 
     def test_empty_when_all_match(self):
-        TemplateService().add_template_data({"title": "T1", "last_world_file": "chart,World,2024.svg", "last_world_year": 2024})
-        TemplateService().add_template_data({"title": "T2", "last_world_file": "chart,World,2025.svg", "last_world_year": 2025})
+        TemplateService().add_template_data(
+            {"title": "T1", "last_world_file": "chart,World,2024.svg", "last_world_year": 2024}
+        )
+        TemplateService().add_template_data(
+            {"title": "T2", "last_world_file": "chart,World,2025.svg", "last_world_year": 2025}
+        )
 
         result = TemplateService().list_templates_mismatched_years()
 
         assert result == []
 
     def test_returns_mismatched(self):
-        TemplateService().add_template_data({"title": "Match", "last_world_file": "chart,World,2024.svg", "last_world_year": 2024})
-        TemplateService().add_template_data({"title": "Mismatch", "last_world_file": "old_file.svg", "last_world_year": 2024})
+        TemplateService().add_template_data(
+            {"title": "Match", "last_world_file": "chart,World,2024.svg", "last_world_year": 2024}
+        )
+        TemplateService().add_template_data(
+            {"title": "Mismatch", "last_world_file": "old_file.svg", "last_world_year": 2024}
+        )
 
         result = TemplateService().list_templates_mismatched_years()
 

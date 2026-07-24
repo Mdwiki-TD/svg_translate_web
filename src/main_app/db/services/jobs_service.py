@@ -57,6 +57,7 @@ def _update_job_status(
 
     return job
 
+
 # ── SELECT ───────────────────────────────────────────────
 
 
@@ -244,7 +245,6 @@ def _create_job(job_type: str, username: str) -> JobRecord:
         raise  # Re-raise unexpected IntegrityError
     db.session.refresh(job)
     return job
-
 
 
 @db_guard_rollback

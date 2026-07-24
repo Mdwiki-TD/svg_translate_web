@@ -86,7 +86,9 @@ def test_update_job_status_with_result_file():
     """Test updating a job's status with a result file."""
     job = JobsService().create_job("collect_templates_data", username="z")
 
-    updated_job = JobsService().update_job_status(job.id, "completed", "/path/to/result.json", job_type="collect_templates_data")
+    updated_job = JobsService().update_job_status(
+        job.id, "completed", "/path/to/result.json", job_type="collect_templates_data"
+    )
 
     assert updated_job.status == "completed"
     assert updated_job.result_file == "/path/to/result.json"
