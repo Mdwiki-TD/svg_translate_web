@@ -44,21 +44,20 @@ def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_servi
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
-    with mock_app.test_request_context(method="POST", data={"id": 1, "title": "UpdT", "main_file": "f2.svg"}):
-        resp = TemplatesRoutesFuncs().update_template()
-        assert resp == "redirected"
+    resp = TemplatesRoutesFuncs()._update_template({"id": 1, "title": "UpdT", "main_file": "f2.svg"})
+    assert resp == "redirected"
 
-        mock_service.assert_called_with(
-            1,
-            {
-                "title": "UpdT",
-                "main_file": "f2.svg",
-                "last_world_file": None,
-                "source": None,
-                "last_world_year": None,
-            },
-        )
-        mock_flash.assert_called_with("Template 'UpdT' main file: f2.svg updated.", "success")
+    mock_service.assert_called_with(
+        1,
+        {
+            "title": "UpdT",
+            "main_file": "f2.svg",
+            "last_world_file": None,
+            "source": None,
+            "last_world_year": None,
+        },
+    )
+    mock_flash.assert_called_with("Template 'UpdT' main file: f2.svg updated.", "success")
 
 
 @patch("src.main_app.admin.routes.templates.flash")
@@ -68,10 +67,9 @@ def test_update_template_missing_id(mock_url, mock_redirect, mock_flash, mock_ap
     mock_url.return_value = "/dash"
     mock_redirect.return_value = "redirected"
 
-    with mock_app.test_request_context(method="POST", data={"title": "UpdT"}):
-        resp = TemplatesRoutesFuncs().update_template()
-        assert resp == "redirected"
-        mock_flash.assert_called_with("Template ID is required to update a template.", "danger")
+    resp = TemplatesRoutesFuncs()._update_template({"title": "UpdT"})
+    assert resp == "redirected"
+    mock_flash.assert_called_with("Template ID is required to update a template.", "danger")
 
 
 @patch("src.main_app.admin.routes.templates.TemplateService.get_template")
