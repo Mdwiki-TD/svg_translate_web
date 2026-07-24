@@ -20,7 +20,7 @@ class TestEditSlugRedirect:
         """_edit_slug_redirect should pass the record to the template."""
         record = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.get_slug_redirect_by_id",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.get_slug_redirect_by_id",
             MagicMock(return_value=record),
         )
         mock_render = MagicMock(return_value="rendered")
@@ -37,7 +37,7 @@ class TestEditSlugRedirect:
     def test_with_not_found_record(self, monkeypatch):
         """_edit_slug_redirect should pass an error when the record is missing."""
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.get_slug_redirect_by_id",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.get_slug_redirect_by_id",
             MagicMock(return_value=None),
         )
         mock_render = MagicMock(return_value="rendered")
@@ -134,7 +134,7 @@ class TestSlugRedirectsRoutes:
         """GET /<id>/edit should render the edit form with the record."""
         record = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.get_slug_redirect_by_id",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.get_slug_redirect_by_id",
             MagicMock(return_value=record),
         )
         mock_render = MagicMock(return_value="edit_page")
@@ -151,7 +151,7 @@ class TestSlugRedirectsRoutes:
     def test_edit_get_not_found(self, client, monkeypatch):
         """GET /<id>/edit for a missing record should render with an error."""
         monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.get_slug_redirect_by_id",
+            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.get_slug_redirect_by_id",
             MagicMock(return_value=None),
         )
         mock_render = MagicMock(return_value="error_page")
