@@ -31,7 +31,6 @@ class TestDownloadFileForCropping:
             mock_download.assert_called_once_with(
                 title="test.svg",
                 out_dir=tmp_path,
-                i=1,
                 session=mock_session,
                 overwrite=True,
             )
@@ -52,7 +51,6 @@ class TestDownloadFileForCropping:
             mock_download.assert_called_once_with(
                 title="test.svg",
                 out_dir=tmp_path,
-                i=1,
                 session=mock_session,
                 overwrite=True,
             )
@@ -110,7 +108,6 @@ class TestDownloadFileForCropping:
             mock_download.assert_called_once_with(
                 title="test.svg",
                 out_dir=tmp_path,
-                i=1,
                 session=None,
                 overwrite=True,
             )
