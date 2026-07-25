@@ -401,8 +401,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # File step 2: fix nested tags
 
-        detect_before: DetectionResult = detect_nested_tags(file_path)
         verify_fixed = 0
+
+        detect_before: DetectionResult = detect_nested_tags(file_path)
         if detect_before.count == 0:
             title_info.steps.nested = StepResult(result=None, msg="No nested tags found")
         else:
