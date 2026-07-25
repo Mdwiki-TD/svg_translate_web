@@ -579,31 +579,31 @@ def mock_is_job_cancelled(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 @pytest.fixture
 def mock_download_svg_file(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.download_svg_file", _mock)
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.download_svg_file", _mock)
     return _mock
 
 @pytest.fixture
 def mock_detect_nested_tags(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags", _mock)
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.detect_nested_tags", _mock)
     return _mock
 
 @pytest.fixture
 def mock_fix_nested_tags(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.fix_nested_tags", _mock)
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.fix_nested_tags", _mock)
     return _mock
 
 @pytest.fixture
 def mock_verify_fix(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.verify_fix", _mock)
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.verify_fix", _mock)
     return _mock
 
 @pytest.fixture
 def mock_upload_fixed_svg(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg", _mock)
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.upload_fixed_svg", _mock)
     return _mock
 
 
@@ -643,29 +643,26 @@ class MockFixNestedJobsDeps:
 
 @pytest.fixture
 def mock_deps(monkeypatch: pytest.MonkeyPatch) -> MockFixNestedJobsDeps:
-    _base = "src.main_app.jobs_workers.base_worker"
-    _worker = "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker"
-
     mock_save_job_result = MagicMock()
-    monkeypatch.setattr(f"{_base}.save_job_result_by_name", mock_save_job_result)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result)
 
     mock_is_job_cancelled = MagicMock()
-    monkeypatch.setattr(f"{_base}.is_job_cancelled", mock_is_job_cancelled)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.is_job_cancelled", mock_is_job_cancelled)
 
     mock_download_svg_file = MagicMock()
-    monkeypatch.setattr(f"{_worker}.download_svg_file", mock_download_svg_file)
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.download_svg_file", mock_download_svg_file)
 
     mock_detect_nested_tags = MagicMock()
-    monkeypatch.setattr(f"{_worker}.detect_nested_tags", mock_detect_nested_tags)
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.detect_nested_tags", mock_detect_nested_tags)
 
     mock_fix_nested_tags = MagicMock()
-    monkeypatch.setattr(f"{_worker}.fix_nested_tags", mock_fix_nested_tags)
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.fix_nested_tags", mock_fix_nested_tags)
 
     mock_verify_fix = MagicMock()
-    monkeypatch.setattr(f"{_worker}.verify_fix", mock_verify_fix)
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.verify_fix", mock_verify_fix)
 
     mock_upload_fixed_svg = MagicMock()
-    monkeypatch.setattr(f"{_worker}.upload_fixed_svg", mock_upload_fixed_svg)
+    monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.upload_fixed_svg", mock_upload_fixed_svg)
 
     return MockFixNestedJobsDeps(
         save_job_result=mock_save_job_result,

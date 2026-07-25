@@ -20,7 +20,6 @@ def _normalize_limit(limit: int | None, *, default: int = 100, max_limit: int = 
         return default
     return min(limit, max_limit)
 
-
 def _update_job_status(
     job_id: int,
     status: str,

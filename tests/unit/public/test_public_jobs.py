@@ -1,4 +1,5 @@
-"""Unit tests for src/main_app/public/public_jobs.py module.
+"""
+Unit tests for src/main_app/public/public_jobs.py module.
 
 Tests cover direct calls to module-level functions (cancel_job_handler, delete_job_handler,
 start_job_handler, jobs_list_handler, job_detail_handler) and route integration via test client.
@@ -6,6 +7,7 @@ start_job_handler, jobs_list_handler, job_detail_handler) and route integration 
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import Any
 from unittest.mock import MagicMock
 
@@ -26,10 +28,74 @@ from src.main_app.public.public_jobs import PublicJobsRoutes
 # Fixtures
 # =========================================================================
 
+MOCK_URL = "/redirected"
+_JOBS_ROUTES_UTILS = "src.main_app.public.jobs_routes_utils"
+
 
 @pytest.fixture(autouse=True)
 def setup_db():
     """Override conftest's autouse setup_db — no database needed for these unit tests."""
+
+
+@dataclass
+class MockJobRoutesDeps:
+    """Typed bundle of all mocked jobs_routes_utils dependencies."""
+
+    flash: MagicMock = field(default_factory=MagicMock)
+    redirect: MagicMock = field(default_factory=MagicMock)
+    url_for: MagicMock = field(default_factory=MagicMock)
+    render_template: MagicMock = field(default_factory=MagicMock)
+    load_user: MagicMock = field(default_factory=MagicMock)
+    get_job: MagicMock = field(default_factory=MagicMock)
+    list_jobs: MagicMock = field(default_factory=MagicMock)
+    can_manage_job: MagicMock = field(default_factory=MagicMock)
+    cancel_job_worker: MagicMock = field(default_factory=MagicMock)
+    load_auth_payload: MagicMock = field(default_factory=MagicMock)
+    start_job: MagicMock = field(default_factory=MagicMock)
+    delete_job_by_id_and_type: MagicMock = field(default_factory=MagicMock)
+    delete_job: MagicMock = field(default_factory=MagicMock)
+    load_job_result: MagicMock = field(default_factory=MagicMock)
+    admin_load_user: MagicMock = field(default_factory=MagicMock)
+
+
+@pytest.fixture
+def mock_deps(
+    monkeypatch: pytest.MonkeyPatch,
+    mock_user: MagicMock,
+    mock_job: MagicMock,
+) -> MockJobRoutesDeps:
+    """Patch all jobs_routes_utils dependencies and return a typed bundle."""
+
+    deps = MockJobRoutesDeps()
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.flash", deps.flash)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.redirect", deps.redirect)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.url_for", deps.url_for)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.render_template", deps.render_template)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.load_user", deps.load_user)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.can_manage_job", deps.can_manage_job)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.cancel_job_worker", deps.cancel_job_worker)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.load_auth_payload", deps.load_auth_payload)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.start_job", deps.start_job)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.JobsService.get_job", deps.get_job)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.JobsService.list_jobs", deps.list_jobs)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.JobsService.delete_job_by_id_and_type", deps.delete_job_by_id_and_type)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.JobsService.delete", deps.delete_job)
+    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.load_job_result", deps.load_job_result)
+
+    deps.redirect.return_value = "redirected"
+    deps.url_for.return_value = MOCK_URL
+    deps.render_template.return_value = "rendered"
+    deps.load_user.return_value = mock_user
+    deps.get_job.return_value = mock_job
+    deps.list_jobs.return_value = [mock_job]
+    deps.can_manage_job.return_value = True
+    deps.cancel_job_worker.return_value = False
+    deps.load_auth_payload.return_value = {"token": "abc"}
+    deps.start_job.return_value = 42
+    deps.delete_job_by_id_and_type.return_value = True
+    deps.delete_job.return_value = True
+
+    return deps
 
 
 @pytest.fixture
@@ -129,85 +195,46 @@ def mock_p_client(mock_p_app: Flask):
 # =========================================================================
 
 
-MOCK_URL = "/redirected"
-
-
 class TestCancelJob:
     """Direct tests for cancel_job_handler()."""
 
-    def _setup_mocks(self, monkeypatch: pytest.MonkeyPatch) -> dict[str, MagicMock]:
-        flash = MagicMock()
-        redirect = MagicMock(return_value="redirected")
-        url_for = MagicMock(return_value=MOCK_URL)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.flash", flash)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.redirect", redirect)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.url_for", url_for)
-        return {"flash": flash, "redirect": redirect, "url_for": url_for}
-
-    def test_not_logged_in(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: None)
+    def test_not_logged_in(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.load_user.return_value = None
 
         result = cancel_job_handler(1, "test_job")
 
         assert result == "job_detail"
-        mocks["flash"].assert_called_once_with("You must be logged in to cancel jobs.", "danger")
+        mock_deps.flash.assert_called_once_with("You must be logged in to cancel jobs.", "danger")
 
-    def test_job_not_found(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job",
-            MagicMock(side_effect=LookupError("not found")),
-        )
+    def test_job_not_found(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.get_job.side_effect = LookupError("not found")
 
         result = cancel_job_handler(1, "test_job")
 
         assert result == "jobs_list"
-        mocks["flash"].assert_called_once_with("Job not found.", "warning")
+        mock_deps.flash.assert_called_once_with("Job not found.", "warning")
 
-    def test_no_permission(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
-        )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: False)
+    def test_no_permission(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.can_manage_job.return_value = False
 
         result = cancel_job_handler(1, "test_job")
 
         assert result == "job_detail"
-        mocks["flash"].assert_called_once_with("You don't have permission to cancel this job.", "danger")
+        mock_deps.flash.assert_called_once_with("You don't have permission to cancel this job.", "danger")
 
-    def test_cancel_successful(
-        self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock
-    ) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
-        )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: True)
+    def test_cancel_successful(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.cancel_job_worker.return_value = True
 
         result = cancel_job_handler(1, "test_job")
 
         assert result == "job_detail"
-        mocks["flash"].assert_called_once_with("Job 1 cancellation requested.", "success")
+        mock_deps.flash.assert_called_once_with("Job 1 cancellation requested.", "success")
 
-    def test_cancel_fails(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
-        )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: False)
-
+    def test_cancel_fails(self, mock_deps: MockJobRoutesDeps) -> None:
         result = cancel_job_handler(1, "test_job")
 
         assert result == "job_detail"
-        mocks["flash"].assert_called_once_with("Job 1 is not running or already cancelled.", "warning")
+        mock_deps.flash.assert_called_once_with("Job 1 is not running or already cancelled.", "warning")
 
 
 # =========================================================================
@@ -218,90 +245,36 @@ class TestCancelJob:
 class TestDeleteJob:
     """Direct tests for delete_job_handler()."""
 
-    def _setup_mocks(self, monkeypatch: pytest.MonkeyPatch) -> dict[str, MagicMock]:
-        flash = MagicMock()
-        redirect = MagicMock(return_value="redirected")
-        url_for = MagicMock(return_value=MOCK_URL)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.flash", flash)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.redirect", redirect)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.url_for", url_for)
-        return {"flash": flash, "redirect": redirect, "url_for": url_for}
-
-    def test_delete_successful(
-        self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock
-    ) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
-        )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: False)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", lambda self, jid, jt: True
-        )
-
+    def test_delete_successful(self, mock_deps: MockJobRoutesDeps) -> None:
         result = delete_job_handler(1, "test_job")
 
         assert result == "jobs_list"
-        mocks["flash"].assert_called_once_with("Job 1 deleted successfully.", "success")
+        mock_deps.flash.assert_called_once_with("Job 1 deleted successfully.", "success")
 
-    def test_cancel_then_delete(
-        self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock
-    ) -> None:
+    def test_cancel_then_delete(self, mock_deps: MockJobRoutesDeps) -> None:
         """When cancel_job_worker returns True, the job is still deleted."""
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
-        )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: True)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", lambda self, jid, jt: True
-        )
+        mock_deps.cancel_job_worker.return_value = True
 
         result = delete_job_handler(1, "test_job")
 
         assert result == "jobs_list"
-        mocks["flash"].assert_called_once_with("Job 1 deleted successfully.", "success")
+        mock_deps.flash.assert_called_once_with("Job 1 deleted successfully.", "success")
 
-    def test_delete_failure(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
-        )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: False)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", lambda self, jid, jt: False
-        )
+    def test_delete_failure(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.delete_job_by_id_and_type.return_value = False
 
         result = delete_job_handler(1, "test_job")
 
         assert result == "jobs_list"
-        mocks["flash"].assert_called_once_with("Failed to delete job 1", "danger")
+        mock_deps.flash.assert_called_once_with("Failed to delete job 1", "danger")
 
-    def test_exception_during_delete(
-        self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock
-    ) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
-        )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda j, u: True)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda jid, jt, j: False)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type",
-            MagicMock(side_effect=RuntimeError("DB error")),
-        )
+    def test_exception_during_delete(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.delete_job_by_id_and_type.side_effect = RuntimeError("DB error")
 
         result = delete_job_handler(1, "test_job")
 
         assert result == "jobs_list"
-        mocks["flash"].assert_called_once_with("Failed to delete job 1", "danger")
+        mock_deps.flash.assert_called_once_with("Failed to delete job 1", "danger")
 
 
 # =========================================================================
@@ -312,73 +285,45 @@ class TestDeleteJob:
 class TestStartJob:
     """Direct tests for start_job_handler()."""
 
-    def _setup_mocks(self, monkeypatch: pytest.MonkeyPatch) -> dict[str, MagicMock]:
-        flash = MagicMock()
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.flash", flash)
-        return {"flash": flash}
-
-    def test_not_logged_in(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: None)
+    def test_not_logged_in(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.load_user.return_value = None
 
         result = start_job_handler("test_job", {})
 
         assert result is None
-        mocks["flash"].assert_called_once_with("You must be logged in to start this job.", "danger")
+        mock_deps.flash.assert_called_once_with("You must be logged in to start this job.", "danger")
 
-    def test_auth_payload_failure(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.load_auth_payload",
-            MagicMock(side_effect=RuntimeError("OAuth error")),
-        )
+    def test_auth_payload_failure(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.load_auth_payload.side_effect = RuntimeError("OAuth error")
 
         result = start_job_handler("test_job", {})
 
         assert result is None
-        mocks["flash"].assert_called_once_with("Failed to load auth payload. Please try again.", "danger")
+        mock_deps.flash.assert_called_once_with("Failed to load auth payload. Please try again.", "danger")
 
-    def test_duplicate_job_error(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_auth_payload", lambda u: {"token": "abc"})
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.start_job",
-            MagicMock(side_effect=DuplicateJobError()),
-        )
+    def test_duplicate_job_error(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.start_job.side_effect = DuplicateJobError()
 
         result = start_job_handler("test_job", {})
 
         assert result is None
-        mocks["flash"].assert_called_once_with(
+        mock_deps.flash.assert_called_once_with(
             "A job of this type is already running. Please wait for it to complete.", "warning"
         )
 
-    def test_generic_exception(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_auth_payload", lambda u: {"token": "abc"})
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.start_job",
-            MagicMock(side_effect=ValueError("unexpected")),
-        )
+    def test_generic_exception(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.start_job.side_effect = ValueError("unexpected")
 
         result = start_job_handler("test_job", {})
 
         assert result is None
-        mocks["flash"].assert_called_once_with("Failed to start job. Please try again.", "danger")
+        mock_deps.flash.assert_called_once_with("Failed to start job. Please try again.", "danger")
 
-    def test_successful_start(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_auth_payload", lambda u: {"token": "abc"})
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.start_job", lambda au, jt, args: 42)
-
+    def test_successful_start(self, mock_deps: MockJobRoutesDeps) -> None:
         result = start_job_handler("test_job", {})
 
         assert result == 42
-        mocks["flash"].assert_called_once_with("Job 42 started to test_job.", "success")
+        mock_deps.flash.assert_called_once_with("Job 42 started to test_job.", "success")
 
 
 # =========================================================================
@@ -389,25 +334,15 @@ class TestStartJob:
 class TestJobsList:
     """Direct tests for jobs_list_handler()."""
 
-    def _setup_mocks(self, monkeypatch: pytest.MonkeyPatch) -> dict[str, MagicMock]:
-        flash = MagicMock()
-        render_template = MagicMock(return_value="rendered")
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.flash", flash)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.render_template", render_template)
-        return {"flash": flash, "render_template": render_template}
-
-    def test_normal_listing(self, monkeypatch: pytest.MonkeyPatch, mock_template_data: MagicMock) -> None:
-        mocks = self._setup_mocks(monkeypatch)
+    def test_normal_listing(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
         mock_jobs = [MagicMock(id=1), MagicMock(id=2)]
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.list_jobs", lambda *args, **kwargs: mock_jobs
-        )
+        mock_deps.list_jobs.return_value = mock_jobs
 
         result = jobs_list_handler("test_job", mock_template_data)
 
         assert result == "rendered"
-        mocks["flash"].assert_not_called()
-        mocks["render_template"].assert_called_once_with(
+        mock_deps.flash.assert_not_called()
+        mock_deps.render_template.assert_called_once_with(
             "test_list.html",
             jobs=mock_jobs,
             job_type="test_job",
@@ -416,31 +351,24 @@ class TestJobsList:
             start_confirm_message="Start?",
         )
 
-    def test_listing_with_0_jobs(self, monkeypatch: pytest.MonkeyPatch, mock_template_data: MagicMock) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.list_jobs", lambda *args, **kwargs: [])
+    def test_listing_with_0_jobs(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
+        mock_deps.list_jobs.return_value = []
 
         result = jobs_list_handler("test_job", mock_template_data)
 
         assert result == "rendered"
-        mocks["render_template"].assert_called_once()
-        _args, kwargs = mocks["render_template"].call_args
+        mock_deps.render_template.assert_called_once()
+        _args, kwargs = mock_deps.render_template.call_args
         assert kwargs["jobs"] == []
 
-    def test_exception_falls_back_to_empty(
-        self, monkeypatch: pytest.MonkeyPatch, mock_template_data: MagicMock
-    ) -> None:
-        mocks = self._setup_mocks(monkeypatch)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.list_jobs",
-            MagicMock(side_effect=RuntimeError("DB error")),
-        )
+    def test_exception_falls_back_to_empty(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
+        mock_deps.list_jobs.side_effect = RuntimeError("DB error")
 
         result = jobs_list_handler("test_job", mock_template_data)
 
         assert result == "rendered"
-        mocks["flash"].assert_called_once_with("Unable to load jobs list.", "danger")
-        _args, kwargs = mocks["render_template"].call_args
+        mock_deps.flash.assert_called_once_with("Unable to load jobs list.", "danger")
+        _args, kwargs = mock_deps.render_template.call_args
         assert kwargs["jobs"] == []
 
 
@@ -452,31 +380,15 @@ class TestJobsList:
 class TestJobDetail:
     """Direct tests for job_detail_handler()."""
 
-    def _setup_mocks(self, monkeypatch: pytest.MonkeyPatch) -> dict[str, MagicMock]:
-        self._flash = MagicMock()
-        self._redirect = MagicMock(return_value="redirected")
-        self._url_for = MagicMock(return_value=MOCK_URL)
-        self._render_template = MagicMock(return_value="rendered")
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.flash", self._flash)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.redirect", self._redirect)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.url_for", self._url_for)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.render_template", self._render_template)
-
-    def test_job_found_without_result(
-        self, monkeypatch: pytest.MonkeyPatch, mock_job: MagicMock, mock_template_data: MagicMock
-    ) -> None:
-        self._setup_mocks(monkeypatch)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
-        )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_job_result", lambda rf: None)
+    def test_job_found_without_result(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
+        mock_deps.load_job_result.return_value = None
 
         result = job_detail_handler(1, "test_job", mock_template_data, "public_jobs")
 
         assert result == "rendered"
-        self._render_template.assert_called_once_with(
+        mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
-            job=mock_job,
+            job=mock_deps.get_job.return_value,
             job_type="test_job",
             result_data=None,
             detail_title="Test Job",
@@ -486,23 +398,17 @@ class TestJobDetail:
 
     def test_job_found_with_result(
         self,
-        monkeypatch: pytest.MonkeyPatch,
+        mock_deps: MockJobRoutesDeps,
         mock_job_with_result: MagicMock,
         mock_template_data: MagicMock,
     ) -> None:
-        self._setup_mocks(monkeypatch)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job_with_result
-        )
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.load_job_result",
-            lambda rf: {"key": "value"},
-        )
+        mock_deps.get_job.return_value = mock_job_with_result
+        mock_deps.load_job_result.return_value = {"key": "value"}
 
         result = job_detail_handler(2, "test_job", mock_template_data, "public_jobs")
 
         assert result == "rendered"
-        self._render_template.assert_called_once_with(
+        mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=mock_job_with_result,
             job_type="test_job",
@@ -512,21 +418,15 @@ class TestJobDetail:
             expand_all=False,
         )
 
-    def test_job_found_with_expand_all(
-        self, monkeypatch: pytest.MonkeyPatch, mock_job: MagicMock, mock_template_data: MagicMock
-    ) -> None:
-        self._setup_mocks(monkeypatch)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
-        )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_job_result", lambda rf: None)
+    def test_job_found_with_expand_all(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
+        mock_deps.load_job_result.return_value = None
 
         result = job_detail_handler(1, "test_job", mock_template_data, "public_jobs", expand_all=True)
 
         assert result == "rendered"
-        self._render_template.assert_called_once_with(
+        mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
-            job=mock_job,
+            job=mock_deps.get_job.return_value,
             job_type="test_job",
             result_data=None,
             detail_title="Test Job",
@@ -534,18 +434,14 @@ class TestJobDetail:
             expand_all=True,
         )
 
-    def test_job_not_found(self, monkeypatch: pytest.MonkeyPatch, mock_template_data: MagicMock) -> None:
-        self._setup_mocks(monkeypatch)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job",
-            MagicMock(side_effect=LookupError("Job id 99 was not found")),
-        )
+    def test_job_not_found(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
+        mock_deps.get_job.side_effect = LookupError("Job id 99 was not found")
 
         result = job_detail_handler(99, "test_job", mock_template_data, "public_jobs")
 
         assert result == "redirected"
-        self._flash.assert_called_once_with("Job id 99 was not found", "warning")
-        self._redirect.assert_called_once()
+        mock_deps.flash.assert_called_once_with("Job id 99 was not found", "warning")
+        mock_deps.redirect.assert_called_once()
 
 
 # =========================================================================
@@ -557,32 +453,30 @@ class TestJobsPublicRoutesRoutes:
     """Integration tests for routes registered by PublicJobsRoutes."""
 
     @pytest.fixture(autouse=True)
-    def _common_mocks(self, monkeypatch: pytest.MonkeyPatch, mock_user: MagicMock, mock_job: MagicMock) -> None:
+    def _common_mocks(self, monkeypatch: pytest.MonkeyPatch, mock_deps: MockJobRoutesDeps) -> None:
         """Set up common mocks so routes can execute without a real database.
 
         Individual tests can override specific mocks for their scenario.
+        jobs_routes_utils.* is already patched by the mock_deps fixture.
         """
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: mock_user)
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.get_job", lambda *args, **kwargs: mock_job
-        )
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.list_jobs",
-            lambda *args, **kwargs: [mock_job],
-        )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", lambda job, user: True)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_auth_payload", lambda u: {"token": "abc"})
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", lambda *a: True)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.start_job", lambda au, jt, args: 42)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete", lambda *args, **kwargs: True)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_job_result", lambda rf: {"result": "ok"})
+        # Re-patch Flask functions with real implementations — integration tests need them
+        from flask import redirect as _real_redirect
+        from flask import render_template as _real_render_template
+        from flask import url_for as _real_url_for
 
-        monkeypatch.setattr("src.main_app.public.auth.utils.load_user", lambda: mock_user)
+        _m = "src.main_app.public.jobs_routes_utils"
+        monkeypatch.setattr(f"{_m}.render_template", _real_render_template)
+        monkeypatch.setattr(f"{_m}.redirect", _real_redirect)
+        monkeypatch.setattr(f"{_m}.url_for", _real_url_for)
+
+        mock_deps.cancel_job_worker.return_value = True
+        mock_deps.load_job_result.return_value = {"result": "ok"}
+
+        monkeypatch.setattr("src.main_app.public.auth.utils.load_user", mock_deps.load_user)
 
         # Allow delete route's @admin_required decorator to pass by default
-        _admin_user = MagicMock(username="admin", is_active_admin=True)
-        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: _admin_user)
-        self._mock_user = mock_user
+        mock_deps.admin_load_user = MagicMock(return_value=MagicMock(username="admin", is_active_admin=True))
+        monkeypatch.setattr("src.main_app.admin.decorators.load_user", mock_deps.admin_load_user)
 
     # ── jobs_list ──────────────────────────────────────────────────────
 
@@ -627,8 +521,8 @@ class TestJobsPublicRoutesRoutes:
         resp = mock_p_client.post("/jobs/nonexistent_type/1/cancel")
         assert resp.status_code == 404
 
-    def test_cancel_job_not_logged_in(self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", lambda: None)
+    def test_cancel_job_not_logged_in(self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.load_user.return_value = None
         resp = mock_p_client.post("/jobs/test_job/1/cancel")
         assert resp.status_code == 302
 
@@ -643,12 +537,9 @@ class TestJobsPublicRoutesRoutes:
         assert resp.status_code == 404
 
     def test_start_job_failure_redirects_to_list(
-        self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch
+        self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps
     ) -> None:
-        monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.start_job",
-            MagicMock(side_effect=DuplicateJobError()),
-        )
+        mock_deps.start_job.side_effect = DuplicateJobError()
         resp = mock_p_client.post("/jobs/test_job/start", data={"key": "value"})
         assert resp.status_code == 302
 
@@ -662,16 +553,15 @@ class TestJobsPublicRoutesRoutes:
         resp = mock_p_client.post("/jobs/nonexistent_type/1/delete")
         assert resp.status_code == 404
 
-    def test_delete_job_not_admin_403(self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch) -> None:
-        non_admin = MagicMock(username="regular", is_active_admin=False)
-        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: non_admin)
+    def test_delete_job_not_admin_403(self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.admin_load_user.return_value = MagicMock(username="regular", is_active_admin=False)
         resp = mock_p_client.post("/jobs/test_job/1/delete")
         assert resp.status_code == 403
 
     def test_delete_job_not_logged_in_302(
-        self, mock_p_client: Flask.test_client, monkeypatch: pytest.MonkeyPatch
+        self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: None)
+        mock_deps.admin_load_user.return_value = None
         monkeypatch.setattr(
             "src.main_app.admin.decorators.url_for",
             lambda endpoint, **values: f"/{endpoint}",
