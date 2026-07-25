@@ -48,7 +48,6 @@ def download_file_for_cropping(
         download_result = download_one_file(
             title=clean_filename,
             out_dir=output_dir,
-            i=1,
             session=session,
             overwrite=True,
         )
