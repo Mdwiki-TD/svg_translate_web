@@ -7,11 +7,6 @@ import pytest
 
 from src.main_app.db.services.settings_service import SettingsService, _serialize_value
 
-_M = "src.main_app.db.services.settings_service"
-_DB = f"{_M}.db.session"
-_SVC = f"{_M}.SettingsService"
-
-
 def test_serialize_value_none():
     """Test _serialize_value handles None."""
     result = _serialize_value(None, "string")
@@ -61,10 +56,10 @@ class MockDbSession:
 def mock_db(monkeypatch: pytest.MonkeyPatch) -> MockDbSession:
     """Patch db.session methods and return a typed bundle."""
     deps = MockDbSession()
-    monkeypatch.setattr(f"{_DB}.query", lambda cls: deps.query)
-    monkeypatch.setattr(f"{_DB}.commit", deps.commit)
-    monkeypatch.setattr(f"{_DB}.add", deps.add)
-    monkeypatch.setattr(f"{_DB}.rollback", deps.rollback)
+    monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.query", lambda cls: deps.query)
+    monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.commit", deps.commit)
+    monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.add", deps.add)
+    monkeypatch.setattr("src.main_app.db.services.settings_service.db.session.rollback", deps.rollback)
     return deps
 
 
@@ -72,7 +67,7 @@ def mock_db(monkeypatch: pytest.MonkeyPatch) -> MockDbSession:
 def mock_list_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     """Patch SettingsService.list_settings and return the mock."""
     mock = MagicMock()
-    monkeypatch.setattr(f"{_SVC}.list_settings", mock)
+    monkeypatch.setattr("src.main_app.db.services.settings_service.SettingsService.list_settings", mock)
     return mock
 
 

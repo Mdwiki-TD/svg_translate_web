@@ -29,7 +29,6 @@ from src.main_app.public.public_jobs import PublicJobsRoutes
 # =========================================================================
 
 MOCK_URL = "/redirected"
-_JOBS_ROUTES_UTILS = "src.main_app.public.jobs_routes_utils"
 
 
 @pytest.fixture(autouse=True)
@@ -56,6 +55,7 @@ class MockJobRoutesDeps:
     delete_job: MagicMock = field(default_factory=MagicMock)
     load_job_result: MagicMock = field(default_factory=MagicMock)
     admin_load_user: MagicMock = field(default_factory=MagicMock)
+    get_all_settings_ready: MagicMock = field(default_factory=MagicMock)
 
 
 @pytest.fixture
@@ -67,20 +67,21 @@ def mock_deps(
     """Patch all jobs_routes_utils dependencies and return a typed bundle."""
 
     deps = MockJobRoutesDeps()
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.flash", deps.flash)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.redirect", deps.redirect)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.url_for", deps.url_for)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.render_template", deps.render_template)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.load_user", deps.load_user)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.can_manage_job", deps.can_manage_job)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.cancel_job_worker", deps.cancel_job_worker)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.load_auth_payload", deps.load_auth_payload)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.start_job", deps.start_job)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.JobsService.get_job", deps.get_job)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.JobsService.list_jobs", deps.list_jobs)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.JobsService.delete_job_by_id_and_type", deps.delete_job_by_id_and_type)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.JobsService.delete", deps.delete_job)
-    monkeypatch.setattr(f"{_JOBS_ROUTES_UTILS}.load_job_result", deps.load_job_result)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.SettingsService.get_all_settings_ready", deps.get_all_settings_ready)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.flash", deps.flash)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.redirect", deps.redirect)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.url_for", deps.url_for)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.render_template", deps.render_template)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", deps.load_user)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", deps.can_manage_job)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", deps.cancel_job_worker)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_auth_payload", deps.load_auth_payload)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.start_job", deps.start_job)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", deps.get_job)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.list_jobs", deps.list_jobs)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", deps.delete_job_by_id_and_type)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete", deps.delete_job)
+    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_job_result", deps.load_job_result)
 
     deps.redirect.return_value = "redirected"
     deps.url_for.return_value = MOCK_URL
@@ -349,6 +350,7 @@ class TestJobsList:
             list_title="Test Job",
             list_headline="Test Job",
             start_confirm_message="Start?",
+            all_settings=mock_deps.get_all_settings_ready.return_value,
         )
 
     def test_listing_with_0_jobs(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
@@ -464,10 +466,9 @@ class TestJobsPublicRoutesRoutes:
         from flask import render_template as _real_render_template
         from flask import url_for as _real_url_for
 
-        _m = "src.main_app.public.jobs_routes_utils"
-        monkeypatch.setattr(f"{_m}.render_template", _real_render_template)
-        monkeypatch.setattr(f"{_m}.redirect", _real_redirect)
-        monkeypatch.setattr(f"{_m}.url_for", _real_url_for)
+        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.render_template", _real_render_template)
+        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.redirect", _real_redirect)
+        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.url_for", _real_url_for)
 
         mock_deps.cancel_job_worker.return_value = True
         mock_deps.load_job_result.return_value = {"result": "ok"}
