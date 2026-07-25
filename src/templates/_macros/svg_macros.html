@@ -82,7 +82,9 @@
     <div id="extracted-json" class="collapse show">
         <div class="card-body p-0">
             <!-- <code id="json-content">{{- data -}}</code> -->
-            <pre class="mb-0 p-3 bg-light" style="max-height: 400px; overflow:auto;" id="json-content">
+            <pre class="mb-0 p-3 bg-light"
+                style="max-height: 400px; overflow:auto; white-space: pre-wrap; word-break: break-word;"
+                id="json-content">
                 {{- data | to_json -}}
             </pre>
         </div>

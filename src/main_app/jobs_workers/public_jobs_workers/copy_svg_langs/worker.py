@@ -290,6 +290,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 steps=FileSteps(
                     download=StepResult(result=None, msg=""),
                     nested=StepResult(result=None, msg=""),
+                    translations=StepResult(result=None, msg=""),
                     inject=StepResult(result=None, msg=""),
                     upload=StepResult(result=None, msg=""),
                 ),

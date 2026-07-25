@@ -122,19 +122,15 @@
                         <td>
                             {{ render_step(item.steps.nested) }}
                         </td>
-                        {% set inject_step = item.steps.get('inject') if item.steps else {} %}
+                        {% set translations_step = item.steps.get('translations') if item.steps else {} %}
                         <td>
-                            {% if inject_step and inject_step.details %}
-                            {{ inject_step.details.new_languages }}
-                            {% endif %}
+                            {{ translations_step.new }}
                         </td>
                         <td>
-                            {% if inject_step and inject_step.details %}
-                            {{ inject_step.details.updated_translations }}
-                            {% endif %}
+                            {{ translations_step.updated }}
                         </td>
                         <td>
-                            {{ render_step(inject_step) }}
+                            {{ render_step(item.steps.inject) }}
                         </td>
                         <td>
                             {{ render_step(item.steps.upload) }}
