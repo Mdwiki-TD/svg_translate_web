@@ -73,12 +73,14 @@ class FilesProcessedItem:
 @dataclass
 class CopySvgLangsWorkerObject(StandardAdminWorkerObject):
     title: str | None = None
+    main_title: str | None = None
     stages: Stages = field(default_factory=Stages)
     files_processed: list[FilesProcessedItem] = field(default_factory=list)
     files_success: list[FilesProcessedItem] = field(default_factory=list)
     files_skipped: list[FilesProcessedItem] = field(default_factory=list)
     files_failed: list[FilesProcessedItem] = field(default_factory=list)
-    new_translations: dict[str, Any] = field(default_factory=dict)
+    translations: list[dict[str, str]] = field(default_factory=list)
+    languages: list[str] = field(default_factory=list)
 
     def to_json(self) -> dict[str, Any]:
         """

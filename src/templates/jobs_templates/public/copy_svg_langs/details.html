@@ -1,14 +1,21 @@
 {% extends "jobs_templates/base_details_public.html" %}
-{% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link, render_step %}
+{% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link, render_step, commons_link %}
+{% from '_macros/svg_macros.html' import render_extract_details, render_json %}
 
 {% block job_info_extra %}
 {% if result_data and result_data.title %}
 <tr>
-    <th>Main Title:</th>
+    <th>Template:</th>
     <td>
-        <a href="https://commons.wikimedia.org/wiki/{{ result_data.title }}" target="_blank" rel="noopener noreferrer">
-            {{ result_data.title }}
-        </a>
+        {{ commons_link(result_data.title) }}
+    </td>
+</tr>
+{% endif %}
+{% if result_data.main_title %}
+<tr>
+    <th>File:</th>
+    <td>
+        {{ commons_file_link(result_data.main_title) }}
     </td>
 </tr>
 {% endif %}
@@ -47,6 +54,13 @@
         </tbody>
     </table>
 </div>
+
+{% set len_new_translations = result_data.translations|length if result_data and result_data.translations else 0 %}
+
+{% if result_data.main_title %}
+{{ render_extract_details(result_data.main_title, result_data.languages, len_new_translations) }}
+{% endif %}
+
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
@@ -153,44 +167,14 @@
 {% endif %}
 
 <!-- Translations -->
-{% if result_data.new_translations %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header("New Translations (" ~ result_data.new_translations | length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Original Text</th>
-                        {% set first_key = result_data.new_translations | dictsort | first %}
-                        {% if first_key %}
-                        {% set first_val = result_data.new_translations[first_key[0]] %}
-                        {% for lang in first_val %}
-                        <th>{{ lang }}</th>
-                        {% endfor %}
-                        {% endif %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for key, translations in result_data.new_translations | dictsort %}
-                    {% if translations %}
-                    <tr>
-                        <td> {{ loop.index }} </td>
-                        <td><small class="text-muted">{{ key[:80] }}{% if key|length > 80 %}...{% endif %}</small></td>
-                        {% for lang, text in translations.items() %}
-                        <td><small>{{ text[:80] }}{% if text|length > 80 %}...{% endif %}</small></td>
-                        {% endfor %}
-                    </tr>
-                    {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+{% if result_data.translations %}
+{{ render_json(result_data.translations, title='Extracted Translations', card_class='mb-4') }}
 {% endif %}
+
+{#
+    {% if result_data.translations %}
+    {{ render_translations_table(result_data.translations, result_data.languages, title='New Translations') }}
+    {% endif %}
+#}
 
 {% endblock %}

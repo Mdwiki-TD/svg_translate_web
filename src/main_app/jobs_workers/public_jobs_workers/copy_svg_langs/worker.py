@@ -148,6 +148,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.status = "completed"
 
             self.main_title = step_result["main_title"]
+            self.result.main_title = self.main_title
             self.titles = list(step_result["titles"])
             self.titles.sort()
 
@@ -174,14 +175,25 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.status = "failed"
             return False
 
-        stage.data = step_result
+        file_translations = step_result.get("translations", {})
 
-        new_translations = step_result.get("translations", {})
+        new_translations = file_translations.get("new", {})
 
-        if step_result.get("success") and new_translations:
+        languages = sorted(
+            {
+                lang
+                for entry in file_translations.get("new", {}).values()
+                if isinstance(entry, dict)
+                for lang in entry
+            }
+        )
+        self.result.translations = self.render_new_translations(new_translations, languages)
+        self.result.languages = languages
+
+        if step_result.get("success") and file_translations:
             stage.status = "completed"
-            stage.message = step_result.get("message") or f"Loaded {len(new_translations)} translations from main file"
-            self.translations = new_translations
+            stage.message = f"Loaded {len(file_translations)} translations from (File:{self.main_title})"
+            self.translations = file_translations
             return True
 
         stage.status = "failed"
@@ -214,6 +226,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         if step_result.get("success") and text:
             stage.status = "completed"
+            stage.message = "Text extracted successfully"
             self.text = text
             return True
 
@@ -547,6 +560,19 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         return summary
 
+    def render_new_translations(self, translations: dict[str, Any], languages: set[str]) -> list[dict[str, str]]:
+        data = []
+
+        for en, row in translations.items():
+            # empty data
+            if not row:
+                continue
+            item = {"en": en}
+            for lang in languages:
+                item[lang] = row.get(lang, "")
+            data.append(item)
+
+        return data
 
 __all__ = [
     "CopySvgLangsWorker",
