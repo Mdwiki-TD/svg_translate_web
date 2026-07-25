@@ -461,8 +461,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         summary: str,
         new_path: Path,
     ) -> bool:
-        # Check if settings upload_files option is enabled
-        if not bool(self.args.get("upload_files")):
+        # Check if settings upload_files option is disabled
+        if self.args.get("upload_files") is False:
             title_info.steps.upload = StepResult(
                 result=None,
                 msg="skipped",

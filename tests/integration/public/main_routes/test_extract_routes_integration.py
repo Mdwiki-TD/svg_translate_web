@@ -101,7 +101,7 @@ def test_extract_post_strips_file_prefix(
     client = app_client.test_client()
     client.post("/extract/", data={"filename": "File: Test.svg"})
 
-    mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, i=0, overwrite=True)
+    mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, overwrite=True)
 
     assert patch_render["context"]["filename"] == "File:Test.svg"
 

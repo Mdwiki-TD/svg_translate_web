@@ -153,8 +153,8 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
     def _upload_step(self) -> bool | None:
         """Upload fixed files to Commons."""
 
-        # Check if settings upload_files option is enabled
-        if not bool(self.args.get("upload_files")):
+        # Check if settings upload_files option is disabled
+        if self.args.get("upload_files") is False:
             self.result.stages.upload._update("skipped", "Upload disabled from settings")
             return None
 
