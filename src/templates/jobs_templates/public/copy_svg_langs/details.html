@@ -1,5 +1,5 @@
 {% extends "jobs_templates/base_details_public.html" %}
-{% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link %}
+{% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link, render_step %}
 
 {% block job_info_extra %}
 {% if result_data and result_data.title %}
@@ -86,14 +86,15 @@
                         <th>#</th>
                         <th>File</th>
                         <th>Status</th>
-                        <th>Download</th>
-                        <th>Nested</th>
+                        <!-- <th>Download</th> -->
+                        <th>Nested tags</th>
+                        <th>New Languages</th>
+                        <th>Translations Updated</th>
                         <th>Inject</th>
                         <th>Upload</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% set step_keys = [ 'download', 'nested', 'inject', 'upload' ] %}
                     {% for item in data %}
                     <tr>
                         <td> {{ loop.index }} </td>
@@ -103,30 +104,27 @@
                         <td>
                             {{ status_icon(item.status) }}
                         </td>
-                        {% for step_key in step_keys %}
+                        <!-- <td> {{ render_step(item.steps.download) }} </td> -->
                         <td>
-                            {% set step = item.steps.get(step_key) if item.steps else None %}
-                            {% if step %}
-                            {% if step.result == true %}
-                            <span class="badge bg-success" title="{{ step.msg }}">
-                                <i class="bi bi-check-lg"></i>
-                            </span>
-                            {% elif step.result == false %}
-                            <span class="badge bg-danger" title="{{ step.msg }}">
-                                <i class="bi bi-x-lg"></i>
-                            </span>
-                            {% elif step.result is none %}
-                            <span class="badge bg-secondary" title="{{ step.msg }}">
-                                <i class="bi bi-dash"></i>
-                            </span>
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
-                            {% else %}
-                            <span class="text-muted">-</span>
+                            {{ render_step(item.steps.nested) }}
+                        </td>
+                        {% set inject_step = item.steps.get('inject') if item.steps else {} %}
+                        <td>
+                            {% if inject_step and inject_step.details %}
+                            {{ inject_step.details.new_languages }}
                             {% endif %}
                         </td>
-                        {% endfor %}
+                        <td>
+                            {% if inject_step and inject_step.details %}
+                            {{ inject_step.details.updated_translations }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ render_step(inject_step) }}
+                        </td>
+                        <td>
+                            {{ render_step(item.steps.upload) }}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
