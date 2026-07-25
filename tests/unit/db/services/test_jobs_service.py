@@ -5,10 +5,10 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-from sqlalchemy.exc import OperationalError
 from flask import Flask
-from src.main_app.db.exceptions import DuplicateJobError
+from sqlalchemy.exc import OperationalError
 
+from src.main_app.db.exceptions import DuplicateJobError
 from src.main_app.db.models import JobRecord
 from src.main_app.db.services.jobs_service import JobsService, _normalize_limit
 
@@ -550,6 +550,7 @@ class TestDeleteJob:
             assert result is False
             _db.session.expire_all()
             assert _db.session.get(JobRecord, job_id) is not None
+
 
 def test_create_duplicate_pending_job_raises_error(mock_app: Flask) -> None:
     """Creating a second pending job of the same type should raise DuplicateJobError."""
