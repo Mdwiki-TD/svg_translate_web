@@ -98,8 +98,7 @@
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
-                            {% set short_title = item.title[:50] ~ '...' if item.title|length > 50 else item.title %}
-                            {{ commons_file_link(item.title, label=short_title) }}
+                            {{ commons_file_link(item.title, label=item.title) }}
                         </td>
                         <td>
                             {{ status_icon(item.status) }}

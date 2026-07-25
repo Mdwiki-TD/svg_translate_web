@@ -438,11 +438,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if inject_result.result is True:
             # inject success
             new_languages = inject_result.details.get("new_languages", 0) if inject_result.details else 0
-            summary = (
-                f"Adding {new_languages} languages translations from {self.main_title}"
-                if new_languages > 0
-                else f"Adding translations from {self.main_title}"
-            )
+            summary = self.create_language_summary(new_languages)
             # Stage 7: Upload
             return self._upload_step(title_info, summary, new_path)
 
@@ -525,6 +521,18 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             details=error_and_details,
         )
         return False
+
+    def create_language_summary(self, new_languages: int) -> str:
+        file_name = self.main_title.removeprefix("File:")
+        main_title_link = f"[[File:{file_name}]]"
+
+        summary = (
+            f"Adding {new_languages} languages translations from {main_title_link}"
+            if new_languages > 0
+            else f"Adding translations from {main_title_link}"
+        )
+
+        return summary
 
 
 __all__ = [
