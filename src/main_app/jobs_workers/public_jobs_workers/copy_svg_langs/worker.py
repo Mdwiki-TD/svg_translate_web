@@ -290,7 +290,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 steps=FileSteps(
                     download=StepResult(result=None, msg=""),
                     nested=StepResult(result=None, msg=""),
-                    translations=StepResult(result=None, msg=""),
+                    translations=StepResult(result=None, msg="", details={"new": [], "updated": []}),
                     inject=StepResult(result=None, msg=""),
                     upload=StepResult(result=None, msg=""),
                 ),
@@ -369,7 +369,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.result.summary.processed += 1
 
         # ----------------------------------------------
-        # Stage 4: download SVG files
+        # File step 1: download
 
         try:
             download = download_svg_file(
@@ -399,7 +399,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         title_info.file_path = str(file_path)
 
         # ----------------------------------------------
-        # Stage 5: Analyze And Fix Nested Files
+        # File step 2: fix nested tags
 
         detect_before: DetectionResult = detect_nested_tags(file_path)
         verify_fixed = 0
@@ -442,20 +442,22 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         # ----------------------------------------------
         # At this point, no nested tags remaining in the file
-        # Stage 6: Inject translations
+        # File step 3: log translations
+        # File step 4: inject translations
 
         inject_result, new_path = self.inject_step_file(title_info.file_path)
         title_info.steps.inject = inject_result
+
+        # ----------------------------------------------
+        # File step 5: upload
 
         if inject_result.result is True:
             # inject success
             new_languages = inject_result.details.get("new_languages", 0) if inject_result.details else 0
             summary = self.create_language_summary(new_languages)
-            # Stage 7: Upload
             return self._upload_step(title_info, summary, new_path)
 
         # ----------------------------------------------
-        # Stage 7: Upload
         if verify_fixed > 0:
             # Here we need to upload the orignal file because we fix nested tags.
             summary = f"{verify_fixed} nested tags fixed"
