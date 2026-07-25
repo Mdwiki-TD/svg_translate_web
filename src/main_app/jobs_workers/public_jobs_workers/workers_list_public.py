@@ -14,6 +14,7 @@ jobs_data_public: dict[str, JobData] = {
             {"key": "copy_svg_langs_pages_limit", "as": "limit_items"},
         ],
         start_confirm_message="",
+        load_settings=True,
     ),
     "fix_nested_jobs": JobData(
         job_type="fix_nested_jobs",
