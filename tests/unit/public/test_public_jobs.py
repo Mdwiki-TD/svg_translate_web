@@ -67,7 +67,9 @@ def mock_deps(
     """Patch all jobs_routes_utils dependencies and return a typed bundle."""
 
     deps = MockJobRoutesDeps()
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.SettingsService.get_all_settings_ready", deps.get_all_settings_ready)
+    monkeypatch.setattr(
+        "src.main_app.public.jobs_routes_utils.SettingsService.get_all_settings_ready", deps.get_all_settings_ready
+    )
     monkeypatch.setattr("src.main_app.public.jobs_routes_utils.flash", deps.flash)
     monkeypatch.setattr("src.main_app.public.jobs_routes_utils.redirect", deps.redirect)
     monkeypatch.setattr("src.main_app.public.jobs_routes_utils.url_for", deps.url_for)
@@ -79,7 +81,9 @@ def mock_deps(
     monkeypatch.setattr("src.main_app.public.jobs_routes_utils.start_job", deps.start_job)
     monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", deps.get_job)
     monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.list_jobs", deps.list_jobs)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", deps.delete_job_by_id_and_type)
+    monkeypatch.setattr(
+        "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", deps.delete_job_by_id_and_type
+    )
     monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete", deps.delete_job)
     monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_job_result", deps.load_job_result)
 

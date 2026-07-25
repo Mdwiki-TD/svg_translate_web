@@ -180,12 +180,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         new_translations = file_translations.get("new", {})
 
         languages = sorted(
-            {
-                lang
-                for entry in file_translations.get("new", {}).values()
-                if isinstance(entry, dict)
-                for lang in entry
-            }
+            {lang for entry in file_translations.get("new", {}).values() if isinstance(entry, dict) for lang in entry}
         )
         self.result.translations = self.render_new_translations(new_translations, languages)
         self.result.languages = languages
@@ -573,6 +568,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             data.append(item)
 
         return data
+
 
 __all__ = [
     "CopySvgLangsWorker",

@@ -31,7 +31,6 @@ jobs_data_admins = {
         ],
         start_confirm_message="This will fetch metadata from ourworldindata.org for every chart and update min_time / max_time / len_years where changed. Continue?",
     ),
-
     # Files Jobs (jobs makes edit or upload in commons)
     "crop_main_files": JobData(
         job_type="crop_main_files",
@@ -56,7 +55,6 @@ jobs_data_admins = {
         ],
         start_confirm_message="This will start a background job to fix nested tags in all template main files. This will upload fixed versions to Commons using your credentials. Continue?",
     ),
-
     # OWID Templates/Pages
     "create_owid_pages": JobData(
         job_type="create_owid_pages",
@@ -69,7 +67,6 @@ jobs_data_admins = {
         ],
         start_confirm_message="This will start a background job to create showcase pages for OWID templates. Continue?",
     ),
-
     "rename_owid_pages": JobData(
         job_type="rename_owid_pages",
         job_name="Rename OWID Pages",
@@ -90,7 +87,6 @@ jobs_data_admins = {
         ],
         start_confirm_message="This will start a background job to add Template:SVGLanguages to OWID templates.\nContinue?",
     ),
-
     "add_lang_categories_to_owid_pages": JobData(
         job_type="add_lang_categories_to_owid_pages",
         job_name="Add Language Categories",
@@ -102,7 +98,6 @@ jobs_data_admins = {
         ],
         start_confirm_message="This will add language categories (e.g. [[Category:English-language SVG]]) to OWID pages based on available SVG translations. Continue?",
     ),
-
     "download_main_files": JobData(
         job_type="download_main_files",
         job_name="Download Main Files",

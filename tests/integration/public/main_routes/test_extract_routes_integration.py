@@ -214,7 +214,3 @@ def test_extract_post_successful_extraction(
     assert response.data.decode() == "rendered:extract/result.html"
     assert ("Translations extracted successfully", "success") in flashed
     assert patch_render["context"]["translations"] == sample_translations
-    assert "translations_json" in patch_render["context"]
-
-    json_data = json.loads(patch_render["context"]["translations_json"])
-    assert json_data == sample_translations

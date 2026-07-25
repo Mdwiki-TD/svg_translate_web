@@ -12,6 +12,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker impo
     UpdateOwidChartsWorker,
 )
 
+
 @dataclass
 class MockServices:
     check_slugs: MagicMock
@@ -24,15 +25,21 @@ class MockServices:
 def mock_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
     """Bundle of mocked worker dependencies for update_owid_charts."""
     mock_check_slugs = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.check_slugs", mock_check_slugs)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.check_slugs", mock_check_slugs
+    )
 
     # _fetch_grapher_metadata returns (metadata, status_code)
     mock_fetch = MagicMock(return_value=(None, 200))
-    monkeypatch.setattr("src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker._fetch_grapher_metadata", mock_fetch)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker._fetch_grapher_metadata", mock_fetch
+    )
 
     mock_service = MagicMock()
     mock_service_class = MagicMock(return_value=mock_service)
-    monkeypatch.setattr("src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService", mock_service_class)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService", mock_service_class
+    )
 
     return MockServices(
         check_slugs=mock_check_slugs,

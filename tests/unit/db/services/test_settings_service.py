@@ -7,6 +7,7 @@ import pytest
 
 from src.main_app.db.services.settings_service import SettingsService, _serialize_value
 
+
 def test_serialize_value_none():
     """Test _serialize_value handles None."""
     result = _serialize_value(None, "string")

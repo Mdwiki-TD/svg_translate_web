@@ -115,8 +115,8 @@
                     </div>
                     {% endif %}
 
-                    {% if translations_json %}
-                    {{ render_json(translations_json, title='Extracted Translations', card_class='mb-4') }}
+                    {% if translations %}
+                    {{ render_json(translations, title='Extracted Translations', card_class='mb-4') }}
                     {% endif %}
                 </div>
             </div>
