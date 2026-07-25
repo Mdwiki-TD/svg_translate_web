@@ -24,9 +24,9 @@
 {%- from "_macros.html" import flash_messages -%}
 
 <body>
-    {% if not hide_navbar %}
+    {% block _navbar %}
     {% include "_navbar.html" %}
-    {% endif %}
+    {% endblock %}
     {{ flash_messages() }}
     {% block content_fluid %}{% endblock %}
     <script src='{{ static_server }}/ajax/libs/jquery/3.7.1/jquery.min.js'></script>

@@ -112,7 +112,6 @@ def check_active_route(route_name: str) -> str:
     route_name = route_name.replace("%20", " ")
     if route_name == request.path:
         return "active fw-bold"
-    logger.debug(f"route_name: {route_name} != request.path: {request.path}")
     return ""
 
 
@@ -120,6 +119,13 @@ def is_job_running(job_status: str | None) -> bool:
     if not job_status:
         return False
     return job_status.lower() in ["running", "pending"]
+
+
+def commas_filter(value: str) -> str:
+    try:
+        return f"{value:,}"
+    except (ValueError, TypeError):
+        return value
 
 
 filters = {
@@ -130,6 +136,7 @@ filters = {
     "short_url": short_url,
     "check_active_route": check_active_route,
     "is_job_running": is_job_running,
+    "commas": commas_filter,
 }
 
 __all__ = [
