@@ -199,8 +199,8 @@ class OneFileProcessor:
         title_info.steps.translations._update(
             result=True,
             details={
-                "new": inject_result.new_languages,
-                "updated": inject_result.updated_translations,
+                "new": inject_result.new_languages or 0,
+                "updated": inject_result.updated_translations or 0,
             },
         )
         title_info.steps.inject._update(
