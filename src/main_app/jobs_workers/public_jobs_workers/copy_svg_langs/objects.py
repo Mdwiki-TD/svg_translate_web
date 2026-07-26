@@ -52,6 +52,15 @@ class StepResult:
     msg: str = ""
     details: dict[str, Any] | None = None
 
+    def _update(self, result: bool | None = None, msg: str = "", details: dict[str, Any] | None = None) -> None:
+        self.result = result
+
+        if msg:
+            self.msg = msg
+
+        if details:
+            self.details = details
+
 
 @dataclass
 class FileSteps:

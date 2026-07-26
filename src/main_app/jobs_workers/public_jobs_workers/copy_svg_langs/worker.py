@@ -182,7 +182,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         languages = sorted(
             {lang for entry in file_translations.get("new", {}).values() if isinstance(entry, dict) for lang in entry}
         )
-        self.result.translations = self.render_new_translations(new_translations, languages)
+        self.result.translations = self._render_new_translations(new_translations, languages)
         self.result.languages = languages
 
         if step_result.get("success") and file_translations:
@@ -288,11 +288,11 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 status="pending",
                 error=None,
                 steps=FileSteps(
-                    download=StepResult(result=None, msg=""),
-                    nested=StepResult(result=None, msg=""),
-                    translations=StepResult(result=None, msg="", details={"new": [], "updated": []}),
-                    inject=StepResult(result=None, msg=""),
-                    upload=StepResult(result=None, msg=""),
+                    download=StepResult(msg=""),
+                    nested=StepResult(msg=""),
+                    translations=StepResult(msg="", details={"new": [], "updated": []}),
+                    inject=StepResult(msg=""),
+                    upload=StepResult(msg=""),
                 ),
             )
             ok = self._process_one_item(title, title_info)
@@ -324,14 +324,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         return self.result
 
-    def inject_step_file(
-        self,
-        file_path_str: str,
-    ) -> tuple[StepResult, Path | None]:
-        if not file_path_str:
-            return StepResult(result=False, msg="No file path found"), None
+    def inject_step_file(self, title_info: FilesProcessedItem, file_path: Path | str) -> Path | None:
+        if not file_path:
+            title_info.steps.inject._update(result=False, msg="No file path found")
+            return None
 
-        file_path = Path(file_path_str)
+        file_path = Path(file_path)
         output_file = self.output_dir / "translated" / file_path.name
 
         inject_result: InjectResult = inject_step_one_file(
@@ -342,28 +340,29 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         )
 
         if inject_result.result is None:
-            step_result = StepResult(
+            title_info.steps.inject._update(
                 result=None,
                 msg=inject_result.msg,
             )
-            return step_result, None
+            return None
 
         if inject_result.result is False:
-            step_result = StepResult(
+            title_info.steps.inject._update(
                 result=False,
                 msg=inject_result.msg,
             )
-            return step_result, None
+            return None
 
-        step_result = StepResult(
+        title_info.steps.inject._update(
             result=True,
             msg=inject_result.msg,
             details={
                 "new_languages": inject_result.new_languages,
                 "updated_translations": inject_result.updated_translations,
+                "output_file": output_file,
             },
         )
-        return step_result, output_file
+        return output_file
 
     def _process_one_item(self, title: str, title_info: FilesProcessedItem) -> bool:
         self.result.summary.processed += 1
@@ -379,20 +378,20 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             )
         except Exception as e:
             logger.exception("Error downloading SVG file")
-            title_info.steps.download = StepResult(result=False, msg="Error downloading", details={"error": str(e)})
+            title_info.steps.download._update(result=False, msg="Error downloading", details={"error": str(e)})
             title_info.status = "failed"
             return False
 
         if not download.get("ok"):
-            title_info.steps.download = StepResult(result=False, msg="Failed to download file", details=download)
+            title_info.steps.download._update(result=False, msg="Failed to download file", details=download)
             title_info.status = "failed"
             return False
 
-        title_info.steps.download = StepResult(result=True, msg="Downloaded successfully", details=download)
+        title_info.steps.download._update(result=True, msg="Downloaded successfully", details=download)
 
-        file_path = download.get("path")
+        file_path: Path | None = download.get("path")
         if not file_path:
-            title_info.steps.download = StepResult(result=False, msg="Failed to get file path", details=download)
+            title_info.steps.download._update(result=False, msg="Failed to get file path", details=download)
             title_info.status = "failed"
             return False
 
@@ -401,53 +400,24 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # File step 2: fix nested tags
 
-        verify_fixed = 0
+        verify_fixed, no_nested_tags = self.handle_nested_tag_repair_step(title_info, file_path)
 
-        detect_before: DetectionResult = detect_nested_tags(file_path)
-        if detect_before.count == 0:
-            title_info.steps.nested = StepResult(result=None, msg="No nested tags found")
-        else:
-            # Try to fix nested tags
-            if not fix_nested_tags(file_path):
-                title_info.steps.nested = StepResult(
-                    result=False,
-                    msg="Failed to fix nested tags",
-                    details=detect_before.to_dict(),
-                )
-                title_info.status = "failed"
-                # We can't inject file that has nested tags
-                title_info.steps.inject.msg = "skipped"
-                title_info.steps.upload.msg = "skipped"
-                return False
+        if not no_nested_tags:
+            # no nested tags fixed, break the file process
+            title_info.status = "failed"
 
-            verify: VerificationResult = verify_fix(file_path, detect_before.count)
-
-            if verify.fixed == 0:
-                title_info.steps.nested = StepResult(
-                    result=False,
-                    msg="No nested tags were fixed",
-                    details=verify.to_dict(),
-                )
-                title_info.status = "failed"
-                # We can't inject file that has nested tags
-                title_info.steps.inject.msg = "skipped"
-                title_info.steps.upload.msg = "skipped"
-                return False
-            else:
-                verify_fixed = verify.fixed
-                title_info.steps.nested = StepResult(
-                    result=True,
-                    msg=f"Fixed {verify.fixed} nested tag(s)",
-                    details=verify.to_dict(),
-                )
+            # We can't inject file that has nested tags
+            title_info.steps.inject.msg = "skipped"
+            title_info.steps.upload.msg = "skipped"
+            return False
 
         # ----------------------------------------------
         # At this point, no nested tags remaining in the file
         # File step 3: log translations
         # File step 4: inject translations
 
-        inject_result, new_path = self.inject_step_file(title_info.file_path)
-        title_info.steps.inject = inject_result
+        new_path: Path | None = self.inject_step_file(title_info, file_path)
+        inject_result = title_info.steps.inject
 
         # ----------------------------------------------
         # File step 5: upload
@@ -455,7 +425,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if inject_result.result is True:
             # inject success
             new_languages = inject_result.details.get("new_languages", 0) if inject_result.details else 0
-            summary = self.create_language_summary(new_languages)
+            summary = self._create_language_summary(new_languages)
             return self._upload_step(title_info, summary, new_path)
 
         # ----------------------------------------------
@@ -467,15 +437,55 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # No nested tags were fixed, and inject failed
         return False
 
+    def handle_nested_tag_repair_step(self, title_info: FilesProcessedItem, file_path: Path) -> tuple[int, bool]:
+
+        detect_before: DetectionResult = detect_nested_tags(file_path)
+        if detect_before.count == 0:
+            title_info.steps.nested._update(msg="No nested tags found")
+            # no nested tags, process to inject translations step
+            return 0, True
+
+        # Try to fix nested tags
+        if not fix_nested_tags(file_path):
+            title_info.steps.nested._update(
+                result=False,
+                msg="Failed to fix nested tags",
+                details=detect_before.to_dict(),
+            )
+            # no nested tags fixed, break the file process
+            return 0, False
+
+        verify: VerificationResult = verify_fix(file_path, detect_before.count)
+
+        if verify.fixed == 0:
+            title_info.steps.nested._update(
+                result=False,
+                msg="No nested tags were fixed",
+                details=verify.to_dict(),
+            )
+            # no nested tags fixed, break the file process
+            return 0, False
+
+        verify_fixed = verify.fixed
+
+        title_info.steps.nested._update(
+            result=True,
+            msg=f"Fixed {verify.fixed} nested tag(s)",
+            details=verify.to_dict(),
+        )
+
+        # no nested tags remaining in the file, process to inject translations step
+        return verify_fixed, True
+
     def _upload_step(
         self,
         title_info: FilesProcessedItem,
         summary: str,
-        new_path: Path,
+        new_path: Path | None,
     ) -> bool:
         # Check if settings upload_files option is disabled
         if self.args.get("upload_files") is False:
-            title_info.steps.upload = StepResult(
+            title_info.steps.upload._update(
                 result=None,
                 msg="skipped",
                 details={"error": "Upload disabled from settings"},
@@ -485,7 +495,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         # Check if form upload input is enabled
         if not bool(self.args.get("upload")):
-            title_info.steps.upload = StepResult(
+            title_info.steps.upload._update(
                 result=None,
                 msg="skipped",
                 details={"error": "Upload disabled"},
@@ -494,7 +504,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return False
 
         if self.upload_limit > 0 and self.upload_done >= self.upload_limit:
-            title_info.steps.upload = StepResult(
+            title_info.steps.upload._update(
                 result=None,
                 msg="skipped",
                 details={"error": "Upload limit reached"},
@@ -515,7 +525,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         upload_msg = upload.get("msg") or ""
 
         if upload_success is True:
-            title_info.steps.upload = StepResult(
+            title_info.steps.upload._update(
                 result=True,
                 msg="File Successfully uploaded.",
                 # details=upload.get("result", ""),
@@ -532,7 +542,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         }
 
         if upload_success is None and upload_error == "skipped":
-            title_info.steps.upload = StepResult(
+            title_info.steps.upload._update(
                 result=None,
                 msg=upload_msg,
                 details=error_and_details,
@@ -540,14 +550,14 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return False
 
         title_info.error = upload_error
-        title_info.steps.upload = StepResult(
+        title_info.steps.upload._update(
             result=False,
             msg="Upload failed.",
             details=error_and_details,
         )
         return False
 
-    def create_language_summary(self, new_languages: int) -> str:
+    def _create_language_summary(self, new_languages: int) -> str:
         file_name = self.main_title.removeprefix("File:")
         main_title_link = f"[[File:{file_name}]]"
 
@@ -559,7 +569,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         return summary
 
-    def render_new_translations(self, translations: dict[str, Any], languages: set[str]) -> list[dict[str, str]]:
+    def _render_new_translations(self, translations: dict[str, Any], languages: set[str]) -> list[dict[str, str]]:
         data = []
 
         for en, row in translations.items():

@@ -52,7 +52,7 @@ class UploadFile:
         if not self.file_name:
             return self._err("File name is required")
 
-        if self.file_path is None:
+        if self.file_path is None or not self.file_path:
             return self._err("File path is None")
 
         file_path = Path(self.file_path)

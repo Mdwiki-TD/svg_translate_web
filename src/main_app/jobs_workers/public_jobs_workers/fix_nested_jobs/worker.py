@@ -191,7 +191,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         return False
 
-    def _run_stage(
+    def _run_step(
         self,
         stage: StageDetail,
         step_func: Callable[[], bool | None],
@@ -240,28 +240,28 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 1: Download SVG files
 
-        if not self._run_stage(self.result.stages.download, self._download_step):
+        if not self._run_step(self.result.stages.download, self._download_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 2: Analyze nested tags
-        if not self._run_stage(self.result.stages.analyze, self._analyze_step):
+        if not self._run_step(self.result.stages.analyze, self._analyze_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 3: Fix nested tags
-        if not self._run_stage(self.result.stages.fix, self._fix_step):
+        if not self._run_step(self.result.stages.fix, self._fix_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 4: Verify fixes
-        if not self._run_stage(self.result.stages.verify, self._verify_step):
+        if not self._run_step(self.result.stages.verify, self._verify_step):
             return self.result
 
         # ----------------------------------------------
         # Stage 5: Upload fixed files
 
-        if not self._run_stage(self.result.stages.upload, self._upload_step):
+        if not self._run_step(self.result.stages.upload, self._upload_step):
             return self.result
 
         return self.result
