@@ -206,11 +206,11 @@ class OneFileProcessor:
         title_info.steps.inject._update(
             result=True,
             msg=inject_result.msg,
-            details={
-                "new_languages": inject_result.new_languages,
-                "updated_translations": inject_result.updated_translations,
-                "output_file": output_file,
-            },
+            # details={
+            #     "new_languages": inject_result.new_languages,
+            #     "updated_translations": inject_result.updated_translations,
+            #     "output_file": output_file,
+            # },
         )
 
         return output_file
