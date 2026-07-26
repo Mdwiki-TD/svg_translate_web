@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 from ...extensions import db
 from ...shared.core.crypto import encrypt_value
 from ..models import UserTokenRecord
-from .delete_service import delete_record_by_pk
+from .base_service import DbService
 from .utils import db_guard_rollback
 
 logger = logging.getLogger(__name__)
@@ -118,9 +118,9 @@ def _upsert_user_token(
     return orm_obj
 
 
-class UserTokenService:
+class UserTokenService(DbService):
     def __init__(self) -> None:
-        pass
+        super().__init__(UserTokenRecord)
 
     def get_authenticated_user_token(self, user_id: int) -> None | UserTokenRecord:
         return _get_authenticated_user_token(user_id)
@@ -141,9 +141,6 @@ class UserTokenService:
         access_secret: str,
     ) -> UserTokenRecord:
         return _upsert_user_token(user_id, access_key, access_secret)
-
-    def delete(self, record_id: int) -> bool:
-        return delete_record_by_pk(UserTokenRecord, record_id)
 
 
 __all__ = [

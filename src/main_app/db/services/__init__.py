@@ -1,4 +1,5 @@
 from .admin_service import AdminService
+from .base_service import DbService
 from .delete_service import delete_record_by_pk
 from .jobs_service import JobsService
 from .owid_charts_service import OwidChartsService
@@ -11,6 +12,7 @@ from .views_service import ViewsService
 
 __all__ = [
     "AdminService",
+    "DbService",
     "JobsService",
     "OwidChartsService",
     "OwidSlugRedirectsService",
