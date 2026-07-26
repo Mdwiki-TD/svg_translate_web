@@ -4,6 +4,7 @@ import logging
 from typing import Any, Generic, TypeVar
 
 from ...extensions import db
+from . import delete_service
 
 logger = logging.getLogger(__name__)
 
@@ -100,15 +101,15 @@ class DbService(Generic[ModelT]):
             return False
 
         try:
-            record = db.session.get(self.model, record_id)
+            record = delete_service.db.session.get(self.model, record_id)
             if not record:
                 return False
 
-            db.session.delete(record)
-            db.session.commit()
+            delete_service.db.session.delete(record)
+            delete_service.db.session.commit()
             return True
         except Exception as exc:
-            db.session.rollback()
+            delete_service.db.session.rollback()
             logger.error(f"Error deleting {self.model.__name__} with PK {record_id}: {exc}")
             return False
 
