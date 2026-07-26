@@ -11,6 +11,11 @@ import pytest
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files import runner
 
+from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner import (
+    MAIN_FILES_ZIP_NAME,
+    create_main_files_zip,
+    download_main_files_for_templates,
+)
 
 @dataclass
 class MockServices:
@@ -300,3 +305,90 @@ def test_entry_point_maps_limit_items(mock_services: MockServices):
         passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
         assert isinstance(passed_args, dict)
         assert passed_args.get("limit_items") == 123
+
+
+
+class TestCreateMainFilesZip:
+    def test_directory_not_exists(self, monkeypatch):
+        mock_settings = MagicMock()
+        mock_settings.paths.main_files_path = "/nonexistent/path"
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.settings",
+            mock_settings,
+        )
+
+        result, status = create_main_files_zip()
+        assert status == 404
+        assert "does not exist" in result
+
+    def test_zip_not_found(self, monkeypatch, tmp_path):
+        mock_settings = MagicMock()
+        mock_settings.paths.main_files_path = str(tmp_path)
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.settings",
+            mock_settings,
+        )
+
+        result, status = create_main_files_zip()
+        assert status == 404
+        assert "Zip file not found" in result
+
+    def test_zip_empty(self, monkeypatch, tmp_path):
+        zip_path = tmp_path / MAIN_FILES_ZIP_NAME
+        zip_path.write_text("")
+
+        mock_settings = MagicMock()
+        mock_settings.paths.main_files_path = str(tmp_path)
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.settings",
+            mock_settings,
+        )
+
+        result, status = create_main_files_zip()
+        assert status == 500
+        assert "empty or corrupted" in result
+
+    @patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.send_file")
+    def test_zip_found_returns_file(self, mock_send_file, monkeypatch, tmp_path):
+        zip_path = tmp_path / MAIN_FILES_ZIP_NAME
+        zip_path.write_bytes(b"PK\x03\x04fake zip content")
+
+        mock_settings = MagicMock()
+        mock_settings.paths.main_files_path = str(tmp_path)
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.settings",
+            mock_settings,
+        )
+
+        mock_send_file.return_value = MagicMock()
+        result, status = create_main_files_zip()
+        assert status == 200
+        mock_send_file.assert_called_once()
+
+
+class TestDownloadMainFilesForTemplates:
+    @patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.DownloadMainFilesWorker")
+    def test_creates_worker_and_runs(self, mock_worker_cls):
+        mock_worker = MagicMock()
+        mock_worker_cls.return_value = mock_worker
+
+        cancel_event = MagicMock()
+        download_main_files_for_templates(
+            job_id=42,
+            user={"name": "test"},
+            cancel_event=cancel_event,
+            args={"key": "value"},
+        )
+
+        mock_worker_cls.assert_called_once_with(42, {"name": "test"}, cancel_event, {"key": "value"})
+        mock_worker.run.assert_called_once()
+
+    @patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.DownloadMainFilesWorker")
+    def test_default_args(self, mock_worker_cls):
+        mock_worker = MagicMock()
+        mock_worker_cls.return_value = mock_worker
+
+        download_main_files_for_templates(job_id=1, user={})
+
+        mock_worker_cls.assert_called_once_with(1, {}, None, None)
+        mock_worker.run.assert_called_once()
