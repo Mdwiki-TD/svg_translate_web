@@ -100,19 +100,7 @@ class DbService(Generic[ModelT]):
         if record_id is None:
             return False
 
-        try:
-            record = delete_service.db.session.get(self.model, record_id)
-            if not record:
-                return False
-
-            delete_service.db.session.delete(record)
-            delete_service.db.session.commit()
-            return True
-        except Exception as exc:
-            delete_service.db.session.rollback()
-            logger.error(f"Error deleting {self.model.__name__} with PK {record_id}: {exc}")
-            return False
-
+        return delete_service.delete_record_by_pk(self.model, record_id)
 
 __all__ = [
     "DbService",
