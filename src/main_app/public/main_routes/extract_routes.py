@@ -55,6 +55,8 @@ class ExtractRoutes:
 
         logger.info("Starting extract translations for file: %s", filename)
 
+        # TODO: Reject invalid filesystem filenames before calling download_one_file()
+
         # Create temporary directory for download
         temp_dir = Path(tempfile.mkdtemp())
         try:
