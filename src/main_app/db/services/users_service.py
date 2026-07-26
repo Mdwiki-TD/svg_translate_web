@@ -11,7 +11,7 @@ import logging
 from ...extensions import db
 from ..exceptions import UserNotFoundError
 from ..models import UserRecord
-from .delete_service import delete_record_by_pk
+from .db_service import DbService
 
 logger = logging.getLogger(__name__)
 
@@ -92,9 +92,9 @@ def _toggle_can_run_bg_jobs(user_id: int, value: bool) -> UserRecord:
 # ── DELETE ───────────────────────────────────────────────
 
 
-class UsersService:
+class UsersService(DbService[UserRecord]):
     def __init__(self) -> None:
-        pass
+        super().__init__(UserRecord)
 
     def list_users(self) -> list[UserRecord]:
         return _list_users()
@@ -113,9 +113,6 @@ class UsersService:
 
     def toggle_can_run_bg_jobs(self, user_id: int, value: bool) -> UserRecord:
         return _toggle_can_run_bg_jobs(user_id, value)
-
-    def delete(self, record_id: int) -> bool:
-        return delete_record_by_pk(UserRecord, record_id)
 
 
 __all__ = [

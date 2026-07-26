@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from ...extensions import db
 from ..exceptions import DuplicateUserError, UserNotFoundError
 from ..models import AdminUserRecord
-from .delete_service import delete_record_by_pk
+from .db_service import DbService
 from .utils import db_guard_rollback
 
 logger = logging.getLogger(__name__)
@@ -95,9 +95,9 @@ def _set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRe
     return record
 
 
-class AdminService:
+class AdminService(DbService[AdminUserRecord]):
     def __init__(self) -> None:
-        pass
+        super().__init__(AdminUserRecord)
 
     def is_active_coordinator(self, username: str) -> bool:
         return _is_active_coordinator(username)
@@ -113,9 +113,6 @@ class AdminService:
 
     def set_coordinator_active(self, coordinator_id: int, is_active: bool) -> AdminUserRecord | None:
         return _set_coordinator_active(coordinator_id, is_active)
-
-    def delete(self, record_id: int) -> bool:
-        return delete_record_by_pk(AdminUserRecord, record_id)
 
 
 __all__ = [

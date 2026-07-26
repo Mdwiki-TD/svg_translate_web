@@ -9,7 +9,7 @@ from ...extensions import db
 from ..exceptions import DuplicateRecordError
 from ..models.templates import TemplateRecord
 from ..templates_utils import ensure_template_data
-from .delete_service import delete_record_by_pk
+from .db_service import DbService
 from .utils import db_guard
 
 logger = logging.getLogger(__name__)
@@ -118,9 +118,9 @@ def _update_template_data(
     return template
 
 
-class TemplateService:
+class TemplateService(DbService[TemplateRecord]):
     def __init__(self) -> None:
-        pass
+        super().__init__(TemplateRecord)
 
     def list_templates(self, limit: int | None = None) -> list[TemplateRecord]:
         try:
@@ -155,9 +155,6 @@ class TemplateService:
         template_data: dict[str, str],
     ) -> TemplateRecord | None:
         return _update_template_data(template_id, template_data)
-
-    def delete(self, record_id: int) -> bool:
-        return delete_record_by_pk(TemplateRecord, record_id)
 
 
 __all__ = [
