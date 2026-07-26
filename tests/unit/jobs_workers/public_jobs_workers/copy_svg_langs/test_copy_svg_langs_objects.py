@@ -36,9 +36,9 @@ class TestStages:
 
 class TestStepResult:
     def test_defaults(self):
-        r = StepResult()
-        assert r.result is None
-        assert r.msg == ""
+        step = StepResult()
+        assert step.result is None
+        assert step.msg == ""
 
 
 class TestFileSteps:
