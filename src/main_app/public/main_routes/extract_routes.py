@@ -43,15 +43,14 @@ class ExtractRoutes:
         """Process SVG file and extract translations."""
 
         # Remove "File:" prefix if present (keep original for display)
-        original_filename = filename
         if filename.lower().startswith("file:"):
             filename = filename[5:].lstrip()
 
-        original_filename = f"File:{filename}"
-
         if not filename:
             flash("Please provide a file name", "danger")
-            return render_template("extract/form.html", filename=original_filename)
+            return render_template("extract/form.html", filename=filename)
+
+        original_filename = f"File:{filename}"
 
         logger.info("Starting extract translations for file: %s", filename)
 
