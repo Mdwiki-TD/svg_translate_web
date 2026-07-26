@@ -34,7 +34,7 @@
 
                 {% if form and form.upload == "z" %}
                 {% set is_checked = true %}
-                {% elif not (all_settings and all_settings.copy_svg_langs_upload_disabled_by_default) %}
+                {% elif not form and not (all_settings and all_settings.copy_svg_langs_upload_disabled_by_default) %}
                 {% set is_checked = true %}
                 {% endif %}
 

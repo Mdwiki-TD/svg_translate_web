@@ -129,8 +129,14 @@ def commas_filter(value: str) -> str:
         return value
 
 
-def to_json_filter(value, indent=2):
-    # ensure_ascii=False prevents Arabic text from converting to \uXXXX
+def to_json_filter(value: object, indent: int = 2) -> str:
+    """Serialize a value for template display.
+    Args:
+        value: Value to serialize.
+        indent: JSON indentation width.
+    Returns:
+        UTF-8-preserving JSON text.
+    """
     return json.dumps(value, ensure_ascii=False, indent=indent)
 
 

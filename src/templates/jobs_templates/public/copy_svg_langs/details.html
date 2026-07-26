@@ -87,7 +87,7 @@
 {% endif %}
 {% endblock %}
 
-{% macro pages_table(data, table_title) %}
+{% macro pages_table(data, table_title, show_download=False) %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
@@ -100,7 +100,9 @@
                         <th>#</th>
                         <th>File</th>
                         <th>Status</th>
-                        <!-- <th>Download</th> -->
+                        {% if show_download %}
+                        <th>Download</th>
+                        {% endif %}
                         <th>Nested tags</th>
                         <th>New Languages</th>
                         <th>Translations Updated</th>
@@ -118,7 +120,9 @@
                         <td>
                             {{ status_icon(item.status) }}
                         </td>
-                        <!-- <td> {{ render_step(item.steps.download) }} </td> -->
+                        {% if show_download %}
+                        <td> {{ render_step(item.steps.download) }} </td>
+                        {% endif %}
                         <td>
                             {{ render_step(item.steps.nested) }}
                         </td>
@@ -156,11 +160,11 @@
 {% endif %}
 
 {% if result_data.files_skipped %}
-{{ pages_table(result_data.files_skipped, "Skipped") }}
+{{ pages_table(result_data.files_skipped, "Skipped", show_download=True) }}
 {% endif %}
 
 {% if result_data.files_failed %}
-{{ pages_table(result_data.files_failed, "Failed") }}
+{{ pages_table(result_data.files_failed, "Failed", show_download=True) }}
 {% endif %}
 
 <!-- Translations -->
