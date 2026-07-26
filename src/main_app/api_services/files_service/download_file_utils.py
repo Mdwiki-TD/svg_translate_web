@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 def download_one_file(
     title: str,
     out_dir: Path,
-    i: int,
+    i: int = 0,
     session: requests.Session | None = None,
     overwrite: bool = False,
 ) -> dict[str, str]:

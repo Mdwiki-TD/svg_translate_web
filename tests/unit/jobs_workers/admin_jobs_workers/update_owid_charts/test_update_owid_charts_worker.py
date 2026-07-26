@@ -12,8 +12,6 @@ from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker impo
     UpdateOwidChartsWorker,
 )
 
-_WORKER = "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker"
-
 
 @dataclass
 class MockServices:
@@ -27,15 +25,21 @@ class MockServices:
 def mock_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
     """Bundle of mocked worker dependencies for update_owid_charts."""
     mock_check_slugs = MagicMock()
-    monkeypatch.setattr(f"{_WORKER}.check_slugs", mock_check_slugs)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.check_slugs", mock_check_slugs
+    )
 
     # _fetch_grapher_metadata returns (metadata, status_code)
     mock_fetch = MagicMock(return_value=(None, 200))
-    monkeypatch.setattr(f"{_WORKER}._fetch_grapher_metadata", mock_fetch)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker._fetch_grapher_metadata", mock_fetch
+    )
 
     mock_service = MagicMock()
     mock_service_class = MagicMock(return_value=mock_service)
-    monkeypatch.setattr(f"{_WORKER}.OwidChartsService", mock_service_class)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidChartsService", mock_service_class
+    )
 
     return MockServices(
         check_slugs=mock_check_slugs,
@@ -420,7 +424,7 @@ class TestProcess:
 
         mock_process_chart = MagicMock(return_value=True)
         monkeypatch.setattr(
-            f"{_WORKER}.UpdateOwidChartsWorker._process_chart",
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker._process_chart",
             mock_process_chart,
         )
 
@@ -440,7 +444,7 @@ class TestProcess:
 
         mock_is_cancelled = MagicMock(return_value=True)
         monkeypatch.setattr(
-            f"{_WORKER}.UpdateOwidChartsWorker.is_cancelled",
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker.is_cancelled",
             mock_is_cancelled,
         )
 
@@ -458,12 +462,12 @@ class TestProcess:
 
         mock_process_chart = MagicMock(return_value=True)
         monkeypatch.setattr(
-            f"{_WORKER}.UpdateOwidChartsWorker._process_chart",
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker._process_chart",
             mock_process_chart,
         )
         mock_cancel_periodic = MagicMock(return_value=True)
         monkeypatch.setattr(
-            f"{_WORKER}.UpdateOwidChartsWorker.check_cancel_db_periodic",
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker.check_cancel_db_periodic",
             mock_cancel_periodic,
         )
 

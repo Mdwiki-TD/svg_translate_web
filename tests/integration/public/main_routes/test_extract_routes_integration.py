@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 import pytest
@@ -101,7 +100,7 @@ def test_extract_post_strips_file_prefix(
     client = app_client.test_client()
     client.post("/extract/", data={"filename": "File: Test.svg"})
 
-    mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, i=0, overwrite=True)
+    mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, overwrite=True)
 
     assert patch_render["context"]["filename"] == "File:Test.svg"
 
@@ -214,7 +213,3 @@ def test_extract_post_successful_extraction(
     assert response.data.decode() == "rendered:extract/result.html"
     assert ("Translations extracted successfully", "success") in flashed
     assert patch_render["context"]["translations"] == sample_translations
-    assert "translations_json" in patch_render["context"]
-
-    json_data = json.loads(patch_render["context"]["translations_json"])
-    assert json_data == sample_translations

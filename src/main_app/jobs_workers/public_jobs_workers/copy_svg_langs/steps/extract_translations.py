@@ -26,7 +26,7 @@ def extract_translations_step(main_title: str, output_dir_main: Path) -> dict[st
     """
     logger.info(f"Extracting translations from main file: {main_title}")
 
-    files1 = download_one_file(title=main_title, out_dir=output_dir_main, i=0, overwrite=True)
+    files1 = download_one_file(title=main_title, out_dir=output_dir_main, overwrite=True)
 
     if not files1.get("path"):
         error = f"Error when downloading main file: {main_title}"

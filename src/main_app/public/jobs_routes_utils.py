@@ -18,7 +18,7 @@ from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
 from ..db.exceptions import DuplicateJobError
-from ..db.services import JobsService
+from ..db.services import JobsService, SettingsService
 from ..jobs_workers.jobs_worker import (
     cancel_job_worker,
     start_job,
@@ -161,6 +161,11 @@ def jobs_list_handler(job_type: str, template_data: JobData) -> str:
         flash("Unable to load jobs list.", "danger")
         jobs: list[Any] = []
 
+    all_settings = {}
+
+    if template_data.load_settings:
+        all_settings = SettingsService().get_all_settings_ready()
+
     template_name = template_data.job_list_template
 
     return render_template(
@@ -170,6 +175,7 @@ def jobs_list_handler(job_type: str, template_data: JobData) -> str:
         list_title=template_data.job_name,
         list_headline=template_data.job_name,
         start_confirm_message=template_data.start_confirm_message,
+        all_settings=all_settings,
     )
 
 

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "_macros.html" import card_header, stats_card, commons_file_link %}
+{% from '_macros/svg_macros.html' import render_extract_details, render_json %}
 
 {% block title %}Extract SVG Translations{% endblock %}
 
@@ -14,14 +15,14 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    {% if filename %}
                     <div class="mb-4">
-
                         <!-- Header -->
                         <div class="mb-3">
                             <h3 class="mb-1">
                                 <i class="bi bi-file-earmark-image"></i>
+                                {% if filename %}
                                 {{ commons_file_link(filename) }}
+                                {% endif %}
                             </h3>
 
                             {% if languages %}
@@ -30,62 +31,10 @@
                             </span>
                             {% endif %}
                         </div>
-
-                        <!-- 3 boxes -->
-                        <div class="row g-3">
-
-                            <!-- Box 1: File -->
-                            <div class="col-md-4">
-                                <div class="card h-100">
-                                    <div class="card-header">
-                                        <i class="bi bi-info-circle"></i> File
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="mb-1"><strong>Name:</strong></p>
-                                        <p class="mb-0 text-muted small">{{ filename }}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Box 2: Languages -->
-                            <div class="col-md-4">
-                                <div class="card h-100">
-                                    <div class="card-header">
-                                        <i class="bi bi-translate"></i> Languages
-                                    </div>
-                                    <div class="card-body">
-                                        {% if languages %}
-                                        {% for lang in languages %}
-                                        <span class="badge bg-secondary me-1 mb-1">{{ lang }}</span>
-                                        {% endfor %}
-                                        {% else %}
-                                        <span class="text-muted">No languages detected</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Box 3: Summary / Future -->
-                            <div class="col-md-4">
-                                <div class="card h-100">
-                                    <div class="card-header">
-                                        <i class="bi bi-lightning"></i> Summary
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="mb-1">
-                                            <strong>Total keys:</strong>
-                                            {{ translations.new|length if translations and translations.new else 0 }}
-                                        </p>
-                                        <p class="mb-0 text-muted small">
-                                            Extracted SVG text blocks
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
+                        {% set len_new_translations = translations.new|length if translations and translations.new else 0 %}
+                        {{ render_extract_details(filename, languages, len_new_translations) }}
                     </div>
-                    {% endif %}
+
                     {% if translations and translations.title_new %}
                     <div class="card mb-4">
                         <div class="card-header">
@@ -130,6 +79,7 @@
                         <div class="card-body">
 
                             {% for text, langs in translations.new.items() %}
+                            {% if langs %}
                             <div class="card mb-2">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <span><strong>EN:</strong> {{ text }}</span>
@@ -160,39 +110,16 @@
                                     </div>
                                 </div>
                             </div>
+                            {% endif %}
                             {% endfor %}
 
                         </div>
                     </div>
                     {% endif %}
-                    {% if translations_json %}
-                    <div class="card mb-4">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">
-                                <i class="bi bi-braces"></i> Extracted JSON
-                            </h4>
-                            <div>
-                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse"
-                                    data-bs-target="#extracted-json">
-                                    Show / Hide
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary"
-                                    onclick="navigator.clipboard.writeText(document.getElementById('json-content').innerText)">
-                                    Copy
-                                </button>
-                            </div>
-                        </div>
 
-                        <div id="extracted-json" class="collapse show">
-                            <div class="card-body p-0">
-                                <pre class="mb-0 p-3 bg-light"
-                                    style="max-height: 400px; overflow:auto;"><code id="json-content">{{ translations_json }}</code></pre>
-                            </div>
-                        </div>
-                    </div>
+                    {% if translations %}
+                    {{ render_json(translations, title='Extracted Translations', card_class='mb-4') }}
                     {% endif %}
-
-
                 </div>
             </div>
         </div>

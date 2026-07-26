@@ -22,7 +22,7 @@ def test_translations_task_stops_on_failure(monkeypatch, tmp_path, extract_retur
     fake_svg_path = dummy_main_path / "Example.svg"
     fake_svg_path.write_text("<svg></svg>")
 
-    def fake_download_one_file(title, out_dir, i, overwrite=False, session=None):
+    def fake_download_one_file(title, out_dir, i=1, overwrite=False, session=None):
         return {"path": fake_svg_path}
 
     def fake_extract(path, case_insensitive):
@@ -45,7 +45,7 @@ def test_translations_task_stops_on_failure(monkeypatch, tmp_path, extract_retur
 
 
 def test_extract_translations_download_failure(monkeypatch, tmp_path):
-    def fake_download_one_file(title, out_dir, i, overwrite=False, session=None):
+    def fake_download_one_file(title, out_dir, i=1, overwrite=False, session=None):
         return {"path": ""}
 
     monkeypatch.setattr(
@@ -64,7 +64,7 @@ def test_extract_translations_extract_exception(monkeypatch, tmp_path):
     fake_svg_path = tmp_path / "Example.svg"
     fake_svg_path.write_text("<svg></svg>")
 
-    def fake_download_one_file(title, out_dir, i, overwrite=False, session=None):
+    def fake_download_one_file(title, out_dir, i=1, overwrite=False, session=None):
         return {"path": fake_svg_path}
 
     def fake_extract(path, case_insensitive):
@@ -89,7 +89,7 @@ def test_extract_translations_success(monkeypatch, tmp_path):
     fake_svg_path = tmp_path / "Example.svg"
     fake_svg_path.write_text("<svg></svg>")
 
-    def fake_download_one_file(title, out_dir, i, overwrite=False, session=None):
+    def fake_download_one_file(title, out_dir, i=1, overwrite=False, session=None):
         return {"path": fake_svg_path}
 
     def fake_extract(path, case_insensitive):

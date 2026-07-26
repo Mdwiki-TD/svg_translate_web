@@ -24,7 +24,6 @@ def download_svg_file(
     file_data = download_one_file(
         title=filename,
         out_dir=temp_dir,
-        i=1,
         overwrite=True,
         session=session,
     )

@@ -1,0 +1,137 @@
+{# Define the macro for displaying file svg extract details #}
+{% macro render_extract_details(filename, languages=None, len_new_translations=0) %}
+<div class="mb-4">
+    <!-- 3 boxes -->
+    <div class="row g-3">
+
+        <!-- Box 1: File -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-info-circle"></i> File
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>Name:</strong></p>
+                    <p class="mb-0 text-muted small">{{ filename }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Box 2: Languages -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-translate"></i> Languages
+                </div>
+                <div class="card-body">
+                    {% if languages %}
+                    {% for lang in languages %}
+                    <span class="badge bg-secondary me-1 mb-1">{{ lang }}</span>
+                    {% endfor %}
+                    {% else %}
+                    <span class="text-muted">No languages detected</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Box 3: Summary -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-lightning"></i> Summary
+                </div>
+                <div class="card-body">
+                    <p class="mb-1">
+                        <strong>Total keys:</strong>
+                        {{ len_new_translations }}
+                    </p>
+                    <p class="mb-0 text-muted small">
+                        Extracted SVG text blocks
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endmacro %}
+
+{%- macro render_json(data, title='Extracted Translations', card_class='mb-4') -%}
+<!-- Container card for displaying formatted JSON data -->
+<div class="card {{ card_class }}">
+    <!-- Card header containing title and action buttons -->
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="bi bi-braces"></i> {{ title }}
+        </h4>
+        <div>
+            <!-- Toggle collapse button -->
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#extracted-json">
+                Show / Hide
+            </button>
+            <!-- Copy content to clipboard button -->
+            <button class="btn btn-sm btn-outline-primary"
+                onclick="navigator.clipboard.writeText(document.getElementById('json-content').innerText)">
+                Copy
+            </button>
+        </div>
+    </div>
+
+    <!-- Collapsible card body holding the JSON pre block -->
+    <div id="extracted-json" class="collapse show">
+        <div class="card-body p-0">
+            <!-- <code id="json-content">{{- data -}}</code> -->
+            <pre class="mb-0 p-3 bg-light"
+                style="max-height: 400px; overflow:auto; white-space: pre-wrap; word-break: break-word;"
+                id="json-content">
+                {{- data | to_json -}}
+            </pre>
+        </div>
+    </div>
+</div>
+{%- endmacro -%}
+
+{% macro render_translations_table(translations, languages_keys, title='New Translations') %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header(title ~ " (" ~ data | length ~ ")") }}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Original Text (en)</th>
+                        {% for lang in languages %}
+                        <th>{{ lang }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in translations %}
+                    <tr>
+                        <td> {{ loop.index }} </td>
+                        <td>
+                            {% set en_text = row.get('en', '') %}
+                            <small class="text-muted">
+                                {# {{ en_text[:80] }}{% if en_text|length > 80 %}...{% endif %} #}
+                                {{ en_text }}
+                            </small>
+                        </td>
+                        {% for lang in languages %}
+                        <td>
+                            <small>
+                                {{ row.get(lang, '') }}
+                            </small>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endmacro %}

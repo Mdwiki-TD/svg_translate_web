@@ -13,6 +13,8 @@ from flask import (
 )
 from werkzeug.wrappers.response import Response
 
+from ...db.services import SettingsService
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,10 +26,12 @@ class MainRoutes:
     def _setup_routes(self) -> None:
         @self.bp.route("/", methods=["GET"])
         def index() -> str:
+            all_settings = SettingsService().get_all_settings_ready()
             return render_template(
                 "index.html",
                 form={},
                 set_titles_limit=False,
+                all_settings=all_settings,
             )
 
         @self.bp.get("/favicon.ico")

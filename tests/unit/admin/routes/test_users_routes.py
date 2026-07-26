@@ -34,13 +34,12 @@ class MockUsersDeps:
 @pytest.fixture
 def mock_deps(monkeypatch: pytest.MonkeyPatch) -> MockUsersDeps:
     """Patch all users route dependencies and return a typed bundle."""
-    _m = "src.main_app.admin.routes.users"
 
     deps = MockUsersDeps()
-    monkeypatch.setattr(f"{_m}.render_template", deps.render_template)
-    monkeypatch.setattr(f"{_m}.flash", deps.flash)
-    monkeypatch.setattr(f"{_m}.url_for", deps.url_for)
-    monkeypatch.setattr(f"{_m}.redirect", deps.redirect)
+    monkeypatch.setattr("src.main_app.admin.routes.users.render_template", deps.render_template)
+    monkeypatch.setattr("src.main_app.admin.routes.users.flash", deps.flash)
+    monkeypatch.setattr("src.main_app.admin.routes.users.url_for", deps.url_for)
+    monkeypatch.setattr("src.main_app.admin.routes.users.redirect", deps.redirect)
     monkeypatch.setattr(UsersService, "list_users", deps.list_users)
     monkeypatch.setattr(UsersService, "toggle_can_run_jobs", deps.toggle_can_run_jobs)
     monkeypatch.setattr(UsersService, "toggle_can_run_bg_jobs", deps.toggle_can_run_bg_jobs)
@@ -165,8 +164,8 @@ class TestUsersRoutesRoutes:
         from flask import url_for as _real_url_for
 
         _m = "src.main_app.admin.routes.users"
-        monkeypatch.setattr(f"{_m}.redirect", _real_redirect)
-        monkeypatch.setattr(f"{_m}.url_for", _real_url_for)
+        monkeypatch.setattr("src.main_app.admin.routes.users.redirect", _real_redirect)
+        monkeypatch.setattr("src.main_app.admin.routes.users.url_for", _real_url_for)
 
     @pytest.fixture
     def app_with_routes(self, monkeypatch: pytest.MonkeyPatch) -> Flask:

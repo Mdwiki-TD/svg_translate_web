@@ -57,7 +57,6 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         super().__init__(job_id, user, cancel_event)
         self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject()
         self.args = args or {}
-        self.upload_files = bool(self.args.get("upload_files"))
         self.result.args = self.args
         self.upload_limit = self.args.get("upload_limit") or 0
 
@@ -184,7 +183,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             return False
 
         # Upload disabled → mark skipped and move on
-        if not self.upload_files:
+        if self.args.get("upload_files") is False:
             self._skip_upload_steps(file_info)
             self.result.pages_skipped.append(file_info.to_dict())
             return False

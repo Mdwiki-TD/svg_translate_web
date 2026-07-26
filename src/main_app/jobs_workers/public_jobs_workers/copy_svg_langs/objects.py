@@ -52,11 +52,21 @@ class StepResult:
     msg: str = ""
     details: dict[str, Any] | None = None
 
+    def _update(self, result: bool | None = None, msg: str = "", details: dict[str, Any] | None = None) -> None:
+        self.result = result
+
+        if msg:
+            self.msg = msg
+
+        if details:
+            self.details = details
+
 
 @dataclass
 class FileSteps:
     download: StepResult = field(default_factory=lambda: StepResult())
     nested: StepResult = field(default_factory=lambda: StepResult())
+    translations: StepResult = field(default_factory=lambda: StepResult())
     inject: StepResult = field(default_factory=lambda: StepResult())
     upload: StepResult = field(default_factory=lambda: StepResult())
 
@@ -73,12 +83,15 @@ class FilesProcessedItem:
 @dataclass
 class CopySvgLangsWorkerObject(StandardAdminWorkerObject):
     title: str | None = None
+    main_title: str | None = None
     stages: Stages = field(default_factory=Stages)
+    translations: list[dict[str, str]] = field(default_factory=list)
+    languages: list[str] = field(default_factory=list)
+
     files_processed: list[FilesProcessedItem] = field(default_factory=list)
     files_success: list[FilesProcessedItem] = field(default_factory=list)
     files_skipped: list[FilesProcessedItem] = field(default_factory=list)
     files_failed: list[FilesProcessedItem] = field(default_factory=list)
-    new_translations: dict[str, Any] = field(default_factory=dict)
 
     def to_json(self) -> dict[str, Any]:
         """

@@ -165,22 +165,22 @@ class TestFixNestedJobsProcessor:
         assert processor.is_cancelled() is True
         assert processor.result.status == "cancelled"
 
-    def test_run_stage_success(self) -> None:
+    def test_run_step_success(self) -> None:
         processor = _make_processor()
 
         def mock_step():
             return True
 
-        result = processor._run_stage(processor.result.stages.download, mock_step)
+        result = processor._run_step(processor.result.stages.download, mock_step)
         assert result is True
 
-    def test_run_stage_failure(self) -> None:
+    def test_run_step_failure(self) -> None:
         processor = _make_processor()
 
         def mock_step():
             return False
 
-        result = processor._run_stage(processor.result.stages.download, mock_step)
+        result = processor._run_step(processor.result.stages.download, mock_step)
         assert result is False
         assert processor.result.status == "failed"
 
@@ -271,7 +271,7 @@ class TestIsCancelled:
         # is_cancelled's only positional arg is `check_db` (bool); a truthy
         # value triggers the DB cancellation check. The base worker sets the
         # global result status to "cancelled" but does NOT update per-stage
-        # statuses (stage updates happen in _run_stage instead).
+        # statuses (stage updates happen in _run_step instead).
         proc.is_cancelled("download")
         assert proc.result.status == "cancelled"
 
@@ -471,7 +471,7 @@ class TestUploadStep:
 
 
 # ---------------------------------------------------------------------------
-# _run_stage
+# _run_step
 # ---------------------------------------------------------------------------
 
 
@@ -479,18 +479,18 @@ class TestRunStage:
     def test_returns_true_when_step_returns_true(self, mock_services):
         mock_services["is_job_cancelled"].return_value = False
         proc = _make_processor()
-        assert proc._run_stage(proc.result.stages.download, lambda: True) is True
+        assert proc._run_step(proc.result.stages.download, lambda: True) is True
 
     def test_returns_false_and_sets_failed_when_step_returns_false(self, mock_services):
         mock_services["is_job_cancelled"].return_value = False
         proc = _make_processor()
-        assert proc._run_stage(proc.result.stages.download, lambda: False) is False
+        assert proc._run_step(proc.result.stages.download, lambda: False) is False
         assert proc.result.status == "failed"
 
     def test_returns_false_and_sets_skipped_when_step_returns_none(self, mock_services):
         mock_services["is_job_cancelled"].return_value = False
         proc = _make_processor()
-        assert proc._run_stage(proc.result.stages.download, lambda: None) is False
+        assert proc._run_step(proc.result.stages.download, lambda: None) is False
         assert proc.result.status == "skipped"
 
     def test_handles_exception_and_sets_failed(self, mock_services):
@@ -500,21 +500,21 @@ class TestRunStage:
         def boom():
             raise ValueError("oops")
 
-        assert proc._run_stage(proc.result.stages.download, boom) is False
+        assert proc._run_step(proc.result.stages.download, boom) is False
         assert proc.result.stages.download.status == "failed"
         assert "oops" in proc.result.stages.download.message
         assert proc.result.status == "failed"
 
     def test_returns_false_immediately_when_cancelled(self, mock_services):
         mock_services["is_job_cancelled"].return_value = True
-        # _run_stage calls self.is_cancelled() without check_db=True, so the
+        # _run_step calls self.is_cancelled() without check_db=True, so the
         # DB mock alone has no effect. Use a cancel_event to trigger
         # cancellation via the local event path.
         event = threading.Event()
         event.set()
         step = MagicMock(return_value=True)
         proc = _make_processor(cancel_event=event)
-        assert proc._run_stage(proc.result.stages.download, step) is False
+        assert proc._run_step(proc.result.stages.download, step) is False
         step.assert_not_called()
 
     def test_sets_stage_status_to_running_before_calling_step(self, mock_services):
@@ -526,7 +526,7 @@ class TestRunStage:
             return True
 
         proc = _make_processor()
-        proc._run_stage(proc.result.stages.download, capture_status)
+        proc._run_step(proc.result.stages.download, capture_status)
         assert statuses[0] == "running"
 
 
@@ -632,7 +632,7 @@ class TestRun:
         mocks = {k: v.start() for k, v in patchers.items()}
         mocks["is_job_cancelled"].return_value = False
 
-        # _run_stage calls self.is_cancelled() without check_db=True, so we
+        # _run_step calls self.is_cancelled() without check_db=True, so we
         # drive cancellation through is_job_cancelled_file_exist(file path)
         # instead of the DB path. Trip cancellation on the 3rd check.
         call_count = [0]

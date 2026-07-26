@@ -12,8 +12,10 @@ jobs_data_public: dict[str, JobData] = {
         job_args=[
             {"key": "copy_svg_langs_upload_limit", "as": "upload_limit"},
             {"key": "copy_svg_langs_pages_limit", "as": "limit_items"},
+            {"key": "upload_jobs_files", "as": "upload_files"},
         ],
         start_confirm_message="",
+        load_settings=True,
     ),
     "fix_nested_jobs": JobData(
         job_type="fix_nested_jobs",
@@ -21,7 +23,9 @@ jobs_data_public: dict[str, JobData] = {
         job_details_template="jobs_templates/public/fix_nested_jobs/details.html",
         job_list_template="jobs_templates/public/fix_nested_jobs/list.html",
         job_callable=fix_nested_jobs_worker_entry,
-        job_args=[],
+        job_args=[
+            {"key": "upload_jobs_files", "as": "upload_files"},
+        ],
         start_confirm_message="",
     ),
 }

@@ -4,6 +4,7 @@ Flask application factory.
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import datetime
 
@@ -128,6 +129,11 @@ def commas_filter(value: str) -> str:
         return value
 
 
+def to_json_filter(value, indent=2):
+    # ensure_ascii=False prevents Arabic text from converting to \uXXXX
+    return json.dumps(value, ensure_ascii=False, indent=indent)
+
+
 filters = {
     "format_long_date": format_long_date,
     "format_short_date": format_short_date,
@@ -137,6 +143,7 @@ filters = {
     "check_active_route": check_active_route,
     "is_job_running": is_job_running,
     "commas": commas_filter,
+    "to_json": to_json_filter,
 }
 
 __all__ = [
