@@ -297,7 +297,7 @@ class TestCopySvgLangsWorkerInjectStepFile:
 
         assert step_result.result is True
         assert step_result.msg == "2 languages injected"
-        assert step_result.details == {"new_languages": 2, "updated_translations": 1, "output_file": new_path}
+        assert title_info.steps.translations.details == {"new": 2, "updated": 1}
         assert new_path == tmp_path / "translated" / file_name
 
 
