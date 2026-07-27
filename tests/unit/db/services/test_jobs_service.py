@@ -17,6 +17,8 @@ class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.service = JobsService()
+        self.mock_session = self.service.session
+        self.mock_query = self.service.session.query
 
 
 class TestGet(TestSetup):
@@ -168,7 +170,7 @@ class TestIsJobCancelled(TestSetup):
         mock_record.status = "cancelled"
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = mock_record
-        self.service.session.query = mock_query
+        self.mock_query = mock_query
 
         result = self.service.is_job_cancelled(1, "test")
         assert result is True
@@ -180,7 +182,7 @@ class TestIsJobCancelled(TestSetup):
             mock_query = MagicMock()
             mock_query.filter.return_value.first.return_value = mock_record
 
-            self.service.session.query = mock_query
+            self.mock_query = mock_query
 
             result = self.service.is_job_cancelled(1, "test")
             assert result is False
@@ -188,7 +190,7 @@ class TestIsJobCancelled(TestSetup):
     def test_no_record_returns_false(self):
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = None
-        self.service.session.query = mock_query
+        self.mock_query = mock_query
         result = self.service.is_job_cancelled(1, "test")
         assert result is False
 
@@ -198,8 +200,8 @@ class TestIsJobCancelled(TestSetup):
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = mock_record
         refresh = MagicMock()
-        self.service.session.query = mock_query
-        self.service.session.refresh = refresh
+        self.mock_query = mock_query
+        self.mock_session.refresh = refresh
         self.service.is_job_cancelled(1, "test")
         refresh.assert_called_once_with(mock_record)
 
@@ -246,7 +248,8 @@ class TestGetAllUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        self.service.session.query = query_side_effect
+        self.mock_query = MagicMock()
+        self.mock_query.side_effect = query_side_effect
 
         result = self.service.get_all_user_jobs_stats("test_user")
         assert result["stats"]["total"] == 7  # type: ignore
@@ -268,7 +271,8 @@ class TestGetAllUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        self.service.session.query = query_side_effect
+        self.mock_query = MagicMock()
+        self.mock_query.side_effect = query_side_effect
 
         result = self.service.get_all_user_jobs_stats("test_user")
         assert result["stats"]["total"] == 0  # type: ignore
@@ -294,7 +298,8 @@ class TestGetAllUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        self.service.session.query = query_side_effect
+        self.mock_query = MagicMock()
+        self.mock_query.side_effect = query_side_effect
 
         result = self.service.get_all_user_jobs_stats("test_user", limit=5)
         assert result["stats"]["total"] == 3  # type: ignore
@@ -325,7 +330,8 @@ class TestGetUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        self.service.session.query = query_side_effect
+        self.mock_query = MagicMock()
+        self.mock_query.side_effect = query_side_effect
 
         result = self.service.get_user_jobs_stats("test_user", jobs_types=["type_a", "type_b"])
         assert result["stats"]["total"] == 2  # type: ignore
@@ -434,11 +440,10 @@ class TestUpdateJobStatus(TestSetup):
             error.connection_invalidated = True
             raise error
 
-        self.service.session.query = mock_query
-        self.service.session.commit = mock_commit
+        self.mock_query = mock_query
+        self.mock_session.commit = mock_commit
 
-        self.service.session.rollback = MagicMock()
-        self.service.session.remove = MagicMock()
+        self.mock_session.rollback = MagicMock()
 
         with pytest.raises(OperationalError):
             self.service.update_job_status(1, "completed", job_type="test_job")
@@ -486,11 +491,10 @@ class TestUpdateJobStatusWithRetry(TestSetup):
                 error.connection_invalidated = True
                 raise error
 
-        self.service.session.query = mock_query
-        self.service.session.commit = mock_commit
+        self.mock_query = mock_query
+        self.mock_session.commit = mock_commit
 
-        self.service.session.rollback = MagicMock()
-        self.service.session.remove = MagicMock()
+        self.mock_session.rollback = MagicMock()
 
         result = self.service.update_job_status_with_retry(1, "completed", job_type="test_job")
         assert result == mock_job
@@ -503,14 +507,14 @@ class TestDeleteJob(TestSetup):
 
         with mock_app.app_context():
             record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
-            self.service.session.add(record)
-            self.service.session.commit()
+            self.mock_session.add(record)
+            self.mock_session.commit()
             job_id = record.id
 
             result = self.service.delete_job_by_id_and_type(job_id, "copy_svg_langs")
             assert result is True
-            self.service.session.expire_all()
-            assert self.service.session.get(JobRecord, job_id) is None
+            self.mock_session.expire_all()
+            assert self.mock_session.get(JobRecord, job_id) is None
 
     def test_delete_non_existent_job(self, mock_app, setup_db):
         with mock_app.app_context():
@@ -521,14 +525,14 @@ class TestDeleteJob(TestSetup):
 
         with mock_app.app_context():
             record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
-            self.service.session.add(record)
-            self.service.session.commit()
+            self.mock_session.add(record)
+            self.mock_session.commit()
             job_id = record.id
 
             result = self.service.delete_job_by_id_and_type(job_id, "wrong_type")
             assert result is False
-            self.service.session.expire_all()
-            assert self.service.session.get(JobRecord, job_id) is not None
+            self.mock_session.expire_all()
+            assert self.mock_session.get(JobRecord, job_id) is not None
 
 
 class TestCreateJob(TestSetup):

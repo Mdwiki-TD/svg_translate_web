@@ -97,6 +97,9 @@ class TestCreateUser(TestSetup):
         assert result.user_id == user_record.user_id
         assert result.username == "test_user"
 
+
+class TestCreateUserMocks(TestSetup):
+
     def test_race_condition_returns_existing(self) -> None:
         existing_user = MagicMock(spec=UserRecord)
         existing_user.username = "race_user"
