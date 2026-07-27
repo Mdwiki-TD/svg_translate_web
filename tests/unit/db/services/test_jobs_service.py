@@ -511,6 +511,7 @@ class TestDeleteJob(TestSetup):
             record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
             self.mock_session.add(record)
             self.mock_session.commit()
+            self.mock_session.refresh(record)
             job_id = record.id
 
             result = self.service.delete_job_by_id_and_type(job_id, "copy_svg_langs")
@@ -529,6 +530,7 @@ class TestDeleteJob(TestSetup):
             record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
             self.mock_session.add(record)
             self.mock_session.commit()
+            self.mock_session.refresh(record)
             job_id = record.id
 
             result = self.service.delete_job_by_id_and_type(job_id, "wrong_type")
