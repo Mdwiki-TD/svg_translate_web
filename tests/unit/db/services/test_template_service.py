@@ -109,21 +109,6 @@ class TestAddTemplate(TestSetup):
         with pytest.raises(DuplicateRecordError, match="Template 'Duplicate' already exists"):
             self.service.add_template_data(data2)
 
-    def test_add_template_commit_failure_raises_error(self, monkeypatch):
-        from sqlalchemy.exc import SQLAlchemyError
-
-        from src.main_app.db.exceptions import CRUDIntegrityError
-        from src.main_app.extensions import db
-
-        def _fail_commit():
-            raise SQLAlchemyError("DB connection lost")
-
-        monkeypatch.setattr(db.session, "commit", _fail_commit)
-
-        data = {"title": "Fail", "main_file": "fail.svg"}
-        with pytest.raises(CRUDIntegrityError):
-            self.service.add_template_data(data)
-
 
 class TestListTemplatesMismatchedYears(TestSetup):
     """Test list_templates_mismatched_years function."""

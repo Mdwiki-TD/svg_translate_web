@@ -141,13 +141,13 @@ class TestGetSettingByKey(TestSetup):
 
     def test_returns_setting_by_key(self):
         mock_setting = MagicMock()
-        self.service.session.query.return_value.filter.return_value.first.return_value = mock_setting
+        self.service.session.execute.return_value.scalars.return_value.first.return_value = mock_setting
 
         result = self.service.get_setting_by_key("test_key")
         assert result == mock_setting
 
     def test_returns_none_for_missing_key(self):
-        self.service.session.query.return_value.filter.return_value.first.return_value = None
+        self.service.session.execute.return_value.scalars.return_value.first.return_value = None
         result = self.service.get_setting_by_key("nonexistent")
         assert result is None
 
@@ -161,7 +161,7 @@ class TestUpdateSetting(TestSetup):
         mock_setting.title = "Original"
         mock_setting.value_type = "string"
 
-        self.service.session.query.return_value.filter.return_value.first.return_value = mock_setting
+        self.service.session.execute.return_value.scalars.return_value.first.return_value = mock_setting
 
         result = self.service.update_setting("test_key", "new_value", "string", "New Title")
 
@@ -170,7 +170,7 @@ class TestUpdateSetting(TestSetup):
         assert result is True
 
     def test_returns_false_when_not_found(self):
-        self.service.session.query.return_value.filter.return_value.first.return_value = None
+        self.service.session.execute.return_value.scalars.return_value.first.return_value = None
 
         result = self.service.update_setting("nonexistent", "value")
         assert result is False
@@ -181,7 +181,7 @@ class TestUpdateSetting(TestSetup):
         mock_setting.title = "Orig"
         mock_setting.value_type = "boolean"
 
-        self.service.session.query.return_value.filter.return_value.first.return_value = mock_setting
+        self.service.session.execute.return_value.scalars.return_value.first.return_value = mock_setting
 
         self.service.update_setting("test_key", True, "boolean")
         assert mock_setting.value == "true"
@@ -192,7 +192,7 @@ class TestUpdateSetting(TestSetup):
         mock_setting.title = "Orig"
         mock_setting.value_type = "integer"
 
-        self.service.session.query.return_value.filter.return_value.first.return_value = mock_setting
+        self.service.session.execute.return_value.scalars.return_value.first.return_value = mock_setting
 
         self.service.update_setting("test_key", 99, value_type=None)
         assert mock_setting.value == "99"
