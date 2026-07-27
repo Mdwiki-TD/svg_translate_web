@@ -313,7 +313,7 @@ class TestGetAllUserJobsStats(TestSetup):
 class TestGetUserJobsStats(TestSetup):
     """Tests for get_user_jobs_stats."""
 
-    def test_with_jobs_types_filters_correctly(self):
+    def test_with_jobs_types_filters_correctly(self, monkeypatch):
         mock_group_records = [("completed", 2)]
         mock_group_query = MagicMock()
         mock_group_query.filter.return_value.filter.return_value.group_by.return_value.all.return_value = (
@@ -333,8 +333,9 @@ class TestGetUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        self.mock_query = MagicMock()
-        self.mock_query.side_effect = query_side_effect
+        mock_query = MagicMock()
+        mock_query.side_effect = query_side_effect
+        monkeypatch.setattr(self.service.session, "query", mock_query)
 
         result = self.service.get_user_jobs_stats("test_user", jobs_types=["type_a", "type_b"])
         assert result["stats"]["total"] == 2  # type: ignore
@@ -427,7 +428,7 @@ class TestUpdateJobStatus(TestSetup):
         assert updated.status == "cancelled"
         assert updated.completed_at is not None
 
-    def test_re_raises_after_max_retries(self):
+    def test_re_raises_after_max_retries(self, monkeypatch):
         mock_job = MagicMock()
         mock_job.started_at = None
         mock_job.status = "pending"
@@ -443,10 +444,9 @@ class TestUpdateJobStatus(TestSetup):
             error.connection_invalidated = True
             raise error
 
-        self.mock_query = mock_query
-        self.mock_session.commit = mock_commit
-
-        self.mock_session.rollback = MagicMock()
+        monkeypatch.setattr(self.service.session, "query", mock_query)
+        monkeypatch.setattr(self.service.session, "commit", mock_commit)
+        monkeypatch.setattr(self.service.session, "rollback", MagicMock())
 
         with pytest.raises(OperationalError):
             self.service.update_job_status(1, "completed", job_type="test_job")
@@ -474,7 +474,7 @@ class TestUpdateJobStatus(TestSetup):
 class TestUpdateJobStatusWithRetry(TestSetup):
     """Tests for update_job_status_with_retry."""
 
-    def test_retries_on_connection_error(self):
+    def test_retries_on_connection_error(self, monkeypatch):
         mock_job = MagicMock()
         mock_job.started_at = None
         mock_job.status = "pending"
@@ -494,10 +494,9 @@ class TestUpdateJobStatusWithRetry(TestSetup):
                 error.connection_invalidated = True
                 raise error
 
-        self.mock_query = mock_query
-        self.mock_session.commit = mock_commit
-
-        self.mock_session.rollback = MagicMock()
+        monkeypatch.setattr(self.service.session, "query", mock_query)
+        monkeypatch.setattr(self.service.session, "commit", mock_commit)
+        monkeypatch.setattr(self.service.session, "rollback", MagicMock())
 
         result = self.service.update_job_status_with_retry(1, "completed", job_type="test_job")
         assert result == mock_job
