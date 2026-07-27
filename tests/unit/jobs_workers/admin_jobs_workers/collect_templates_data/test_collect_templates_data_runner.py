@@ -34,9 +34,12 @@ def mock_find_source(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def mock_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_worker):
+def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     """Mock the services used by collect_templates_data_worker."""
 
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
+    )
     mocks = {
         "list_templates": MagicMock(),
         "add_template_data": MagicMock(),
@@ -48,8 +51,13 @@ def mock_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, tmp_path, mo
         "find_main_title": MagicMock(),
         "get_chart_by_slug": MagicMock(),
         "fetch_grapher_metadata": MagicMock(return_value=None),
-        "get_user_site": mock_base_worker["get_user_site"],
+        "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
     }
+
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.get_user_site",
+        mocks["get_user_site"],
+    )
 
     mock_template_service = MagicMock()
     mock_template_service.list_templates = mocks["list_templates"]
