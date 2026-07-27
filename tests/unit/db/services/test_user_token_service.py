@@ -7,6 +7,7 @@ import pytest
 from src.main_app.db.services.user_token_service import UserTokenService
 from src.main_app.db.services.users_service import UsersService
 
+
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
@@ -20,7 +21,9 @@ class TestSetup:
 
 class TestDelete(TestSetup):
     def test_upsert_get_delete_user_token(self) -> None:
-        self.usertoken_service.upsert_user_token(user_id=self.user_record.user_id, access_key="key", access_secret="secret")
+        self.usertoken_service.upsert_user_token(
+            user_id=self.user_record.user_id, access_key="key", access_secret="secret"
+        )
 
         token_record = self.usertoken_service.get_user_token(self.user_record.user_id)
         assert token_record is not None
@@ -37,6 +40,7 @@ class TestDelete(TestSetup):
 
         self.usertoken_service.delete(self.user_record.user_id)
         assert self.usertoken_service.get_user_token(self.user_record.user_id) is None
+
 
 class TestGetAuthenticatedUserToken(TestSetup):
     """Tests for get_authenticated_user_token."""
@@ -116,7 +120,6 @@ class TestCreateUserToken(TestSetup):
         assert persisted.access_token == b"enc_key"
         assert persisted.access_secret == b"enc_secret"
 
-
     def test_upserts_and_returns_record(self) -> None:
         result = self.usertoken_service.upsert_user_token(self.user_record.user_id, "key", "secret")
 
@@ -128,6 +131,7 @@ class TestCreateUserToken(TestSetup):
         assert persisted is not None
         assert persisted.access_token == b"enc_key"
         assert persisted.access_secret == b"enc_secret"
+
 
 class TestUpdateUserToken(TestSetup):
     """Tests for update_user_token."""

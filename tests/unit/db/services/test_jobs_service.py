@@ -354,6 +354,7 @@ class TestUpdateJobStatus(TestSetup):
         assert updated_job.status == "completed"
         assert updated_job.result_file == "/path/to/result.json"
 
+
 class TestDeleteJob(TestSetup):
     def test_delete_existing_job(self) -> None:
         record = self.service.create(job_type="copy_svg_langs", status="completed", username="admin")

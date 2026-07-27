@@ -6,6 +6,7 @@ import pytest
 
 from src.main_app.db.services import OwidChartsService, TemplateService
 
+
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:

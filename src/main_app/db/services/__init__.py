@@ -1,4 +1,5 @@
 from .admin_service import AdminService
+from .crud_service import CRUDService
 from .jobs_service import JobsService
 from .owid_charts_service import OwidChartsService
 from .owid_slug_redirects_service import OwidSlugRedirectsService
@@ -18,4 +19,5 @@ __all__ = [
     "UsersService",
     "UserTokenService",
     "ViewsService",
+    "CRUDService",
 ]

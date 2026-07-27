@@ -7,10 +7,12 @@ import pytest
 from src.main_app.db.exceptions import UserNotFoundError
 from src.main_app.db.services.users_service import UsersService
 
+
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
         self.service = UsersService()
+
 
 class TestListUsers(TestSetup):
     """Tests for list_users."""

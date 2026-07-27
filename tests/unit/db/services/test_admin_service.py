@@ -8,6 +8,7 @@ from src.main_app.db.exceptions import DuplicateRecordError, UserNotFoundError
 from src.main_app.db.services.admin_service import AdminService
 from src.main_app.db.services.users_service import UsersService
 
+
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
@@ -16,6 +17,7 @@ class TestSetup:
 
         self.user_record = self.user_service.create(username="test_user")
         self.coordinator_record = self.service.create(username=self.user_record.username, is_active=True)
+
 
 class TestIsActiveCoordinator(TestSetup):
     def test_active_coordinator(self) -> None:

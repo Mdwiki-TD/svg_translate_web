@@ -241,6 +241,7 @@ class CRUDService[ModelT]:
     def expire_all(self) -> None:
         self.session.expire_all()
 
+
 __all__ = [
     "CRUDService",
 ]

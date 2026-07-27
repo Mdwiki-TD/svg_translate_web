@@ -127,7 +127,6 @@ def mock_login(mock_client):
 # ── db fixtures ───────────────────────────────────────────────────────────────────
 
 
-
 def sqlite_view_functions(db) -> None:
     """Register MySQL-compatible functions used by views for SQLite tests."""
     raw_connection = db.engine.raw_connection()
@@ -167,6 +166,11 @@ def setup_db(mock_app: Flask):
         # Drop only real tables
         real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
         _db.metadata.drop_all(_db.engine, tables=real_tables)
+
+
+@pytest.fixture
+def sqlite_db():
+    yield _db
 
 
 # ── mwclient_page fixtures ───────────────────────────────────────────────────────────────────

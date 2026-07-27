@@ -4,6 +4,7 @@ import pytest
 
 from src.main_app.db.services.owid_slug_redirects_service import OwidSlugRedirectsService
 
+
 class TestOwidSlugRedirectsService:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
@@ -21,7 +22,9 @@ class TestOwidSlugRedirectsService:
         assert self.service.count_slug_redirects() == 2
 
     def test_add_new_slug_redirect_existing(self) -> None:
-        result = self.service.add_new_slug_redirect(self.slug_redirect_record.slug, self.slug_redirect_record.redirect_to)
+        result = self.service.add_new_slug_redirect(
+            self.slug_redirect_record.slug, self.slug_redirect_record.redirect_to
+        )
 
         assert result is None
         assert self.service.count_slug_redirects() == 1
