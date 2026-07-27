@@ -4,7 +4,6 @@ import logging
 from typing import Any, Generic, TypeVar
 
 from ...extensions import db
-from . import delete_service
 
 logger = logging.getLogger(__name__)
 
@@ -88,19 +87,38 @@ class CRUDService(Generic[ModelT]):
             logger.error("Error updating %s id=%s: %s", self.model.__name__, record_id, exc)
             return None
 
-    def delete(self, record_id: Any) -> bool:
+    def delete(self, pk_value: Any) -> bool:
         """Delete a record by primary key.
 
         Args:
-            record_id: Primary key value for the configured model.
+            pk_value: Primary key value for the configured model.
 
         Returns:
             True when a row was deleted, otherwise False.
         """
-        if record_id is None:
+        if pk_value is None:
             return False
 
-        return delete_service.delete_record_by_pk(self.model, record_id)
+        """
+        Generic helper to delete a record by its primary key.
+        Returns True if deleted, False otherwise.
+        """
+        if pk_value is None:
+            return False
+
+        try:
+            # Use session.get() as it is efficient and looks up by primary key
+            record = db.session.get(self.model, pk_value)
+            if record:
+                db.session.delete(record)
+                db.session.commit()
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Error deleting {self.model.__name__} with PK {pk_value}: {e}")
+            db.session.rollback()
+            return False
+
 
 __all__ = [
     "CRUDService",

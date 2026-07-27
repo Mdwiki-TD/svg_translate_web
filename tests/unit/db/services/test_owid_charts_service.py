@@ -245,7 +245,7 @@ class TestDeleteChart:
         mock_record = MagicMock()
         mock_db = MagicMock()
         mock_db.session.get.return_value = mock_record
-        monkeypatch.setattr("src.main_app.db.services.delete_service.db", mock_db)
+        monkeypatch.setattr("src.main_app.db.services.crud_service.db", mock_db)
 
         result = OwidChartsService().delete(1)
         assert result is True
@@ -257,7 +257,7 @@ class TestDeleteChart:
         """Return False when chart ID does not exist."""
         mock_db = MagicMock()
         mock_db.session.get.return_value = None
-        monkeypatch.setattr("src.main_app.db.services.delete_service.db", mock_db)
+        monkeypatch.setattr("src.main_app.db.services.crud_service.db", mock_db)
 
         result = OwidChartsService().delete(999)
         assert result is False
@@ -267,7 +267,7 @@ class TestDeleteChart:
     def test_returns_false_for_none_id(self, monkeypatch):
         """Return False when chart ID is None."""
         mock_db = MagicMock()
-        monkeypatch.setattr("src.main_app.db.services.delete_service.db", mock_db)
+        monkeypatch.setattr("src.main_app.db.services.crud_service.db", mock_db)
 
         result = OwidChartsService().delete(None)
         assert result is False

@@ -10,12 +10,12 @@ import pytest
 
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files import runner
-
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner import (
     MAIN_FILES_ZIP_NAME,
     create_main_files_zip,
     download_main_files_for_templates,
 )
+
 
 @dataclass
 class MockServices:
@@ -305,7 +305,6 @@ def test_entry_point_maps_limit_items(mock_services: MockServices):
         passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
         assert isinstance(passed_args, dict)
         assert passed_args.get("limit_items") == 123
-
 
 
 class TestCreateMainFilesZip:

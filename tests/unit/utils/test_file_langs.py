@@ -98,11 +98,7 @@ class TestGetFileLanguages:
 
         mock_response = MagicMock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "query": {
-                "pages": [{"title": "File:Missing.svg", "missing": True}]
-            }
-        }
+        mock_response.json.return_value = {"query": {"pages": [{"title": "File:Missing.svg", "missing": True}]}}
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
@@ -116,11 +112,7 @@ class TestGetFileLanguages:
 
         mock_response = MagicMock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "query": {
-                "pages": [{"title": "File:Test.svg", "imageinfo": []}]
-            }
-        }
+        mock_response.json.return_value = {"query": {"pages": [{"title": "File:Test.svg", "imageinfo": []}]}}
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
@@ -295,9 +287,7 @@ class TestGetFileLanguages:
                 "pages": [
                     {
                         "title": "File:Test.svg",
-                        "imageinfo": [
-                            {"metadata": [{"name": "translations", "value": []}]}
-                        ],
+                        "imageinfo": [{"metadata": [{"name": "translations", "value": []}]}],
                     }
                 ]
             }

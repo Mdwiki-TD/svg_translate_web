@@ -23,8 +23,10 @@ class MaxUserConnectionsError(Exception):
 class UserNotFoundError(LookupError):
     """Raised when a referenced user does not exist in users."""
 
+
 class DuplicateRecordError(Exception):
     """Raised when attempting to create duplicate record."""
+
 
 class InsufficientDatabaseConfigError(RuntimeError):
     def __init__(self) -> None:
