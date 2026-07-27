@@ -59,7 +59,7 @@ class JobsService(CRUDService[JobRecord]):
     def list_jobs(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
         filters = {}
         if job_type:
-            filters[JobRecord.job_type] = job_type
+            filters["job_type"] = job_type
 
         return self.list(
             limit=limit,
