@@ -120,7 +120,7 @@ def _update_template_data(
 
 class TemplateService(CRUDService[TemplateRecord]):
     def __init__(self) -> None:
-        super().__init__(TemplateRecord)
+        super().__init__(db.session, TemplateRecord)
 
     def list_templates(self, limit: int | None = None) -> list[TemplateRecord]:
         try:

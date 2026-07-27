@@ -6,10 +6,12 @@ import pytest
 
 from src.main_app.db.services.settings_service import SettingsService, _serialize_value
 
+
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.service = SettingsService()
+
 
 class TestListSettings(TestSetup):
     """Tests for list_settings."""

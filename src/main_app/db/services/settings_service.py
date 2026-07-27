@@ -9,11 +9,11 @@ from typing import Any
 
 from sqlalchemy.exc import IntegrityError
 
+from ...extensions import db
 from ..models import SettingRecord
 from .crud_service import CRUDService
 
 logger = logging.getLogger(__name__)
-
 
 
 def _serialize_value(value: Any, value_type: str) -> str | None:
@@ -31,7 +31,7 @@ def _serialize_value(value: Any, value_type: str) -> str | None:
 
 class SettingsService(CRUDService[SettingRecord]):
     def __init__(self) -> None:
-        super().__init__(SettingRecord)
+        super().__init__(db.session, SettingRecord)
 
     def list_settings(self) -> list[SettingRecord]:
         return self.list_all()
@@ -158,7 +158,6 @@ class SettingsService(CRUDService[SettingRecord]):
             logger.error(f"Error deleting {self.model.__name__} with PK {record.id}: {e}")
             self.session.rollback()
         return False
-
 
 
 __all__ = [

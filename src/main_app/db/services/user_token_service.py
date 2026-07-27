@@ -120,7 +120,7 @@ def _upsert_user_token(
 
 class UserTokenService(CRUDService[UserTokenRecord]):
     def __init__(self) -> None:
-        super().__init__(UserTokenRecord)
+        super().__init__(db.session, UserTokenRecord)
 
     def get_authenticated_user_token(self, user_id: int) -> None | UserTokenRecord:
         return _get_authenticated_user_token(user_id)

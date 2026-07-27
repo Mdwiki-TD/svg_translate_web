@@ -94,7 +94,7 @@ def _toggle_can_run_bg_jobs(user_id: int, value: bool) -> UserRecord:
 
 class UsersService(CRUDService[UserRecord]):
     def __init__(self) -> None:
-        super().__init__(UserRecord)
+        super().__init__(db.session, UserRecord)
 
     def list_users(self) -> list[UserRecord]:
         return _list_users()

@@ -17,9 +17,10 @@ from .crud_service import CRUDService
 
 logger = logging.getLogger(__name__)
 
+
 class AdminService(CRUDService[AdminUserRecord]):
     def __init__(self) -> None:
-        super().__init__(AdminUserRecord)
+        super().__init__(db.session, AdminUserRecord)
 
     def is_active_coordinator(self, username: str) -> bool:
         """Check whether a single username is an active coordinator."""
@@ -85,6 +86,7 @@ class AdminService(CRUDService[AdminUserRecord]):
         except Exception:
             self.session.rollback()
             return None
+
 
 __all__ = [
     "AdminService",

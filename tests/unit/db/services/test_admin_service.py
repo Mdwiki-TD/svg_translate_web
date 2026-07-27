@@ -17,8 +17,9 @@ class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self, monkeypatch):
         self.service = AdminService()
-        self.mock_dbsession =  MagicMock()
+        self.mock_dbsession = MagicMock()
         self.service.session = self.mock_dbsession
+
 
 class TestIsActiveCoordinator(TestSetup):
     def test_active_coordinator(self):

@@ -113,7 +113,7 @@ def _bulk_delete_slug_redirects(redirect_ids: list[int]) -> None:
 
 class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
     def __init__(self) -> None:
-        super().__init__(OwidSlugRedirectRecord)
+        super().__init__(db.session, OwidSlugRedirectRecord)
 
     def list_slug_redirects(self, limit: int | None = None, offset: int | None = None) -> list[OwidSlugRedirectRecord]:
         return _list_slug_redirects(limit, offset)

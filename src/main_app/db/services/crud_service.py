@@ -3,21 +3,36 @@ from __future__ import annotations
 import logging
 from typing import Any, TypeVar
 
-from ...extensions import db
+from sqlalchemy.orm import Session
+
+# from ...extensions import db
 
 logger = logging.getLogger(__name__)
 
-ModelT = TypeVar("ModelT", bound=db.Model)
+ModelT = TypeVar("ModelT")  # , bound=db.Model
 
 
-class CRUDService[ModelT: db.Model]:
-    """Shared database service helpers for SQLAlchemy model services."""
+# class CRUDService[ModelT, PKT]:
+class CRUDService[ModelT]:
+    """
+    Generic CRUD service wrapping a single SQLAlchemy model.
+
+    Subclass and set `model` to the mapped class. The generic parameters
+    let type checkers know exactly what type `get`, `create`, etc. return:
+
+        class UserService(CRUDService[User, int]):
+            model = User
+    """
 
     model: type[ModelT]
 
-    def __init__(self, model: type[ModelT]) -> None:
+    def __init__(self, session: Session, model: type[ModelT]) -> None:
+        self.session = session
         self.model = model
-        self.session = db.session
+
+    # ------------------------------------------------------------------ #
+    # Read
+    # ------------------------------------------------------------------ #
 
     def list_records(self) -> list[ModelT]:
         """List all records for the configured model.

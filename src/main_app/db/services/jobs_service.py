@@ -327,7 +327,7 @@ def _delete_job_by_id_and_type(job_id: int, job_type: str) -> bool:
 
 class JobsService(CRUDService[JobRecord]):
     def __init__(self) -> None:
-        super().__init__(JobRecord)
+        super().__init__(db.session, JobRecord)
 
     def is_job_cancelled(self, job_id: int, job_type: str) -> bool:
         return _is_job_cancelled(job_id, job_type)

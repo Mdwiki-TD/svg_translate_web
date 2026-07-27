@@ -157,7 +157,7 @@ def _update_chart_data_with_retry(
 
 class OwidChartsService(CRUDService[OwidChartRecord]):
     def __init__(self) -> None:
-        super().__init__(OwidChartRecord)
+        super().__init__(db.session, OwidChartRecord)
 
     def list_charts(self, limit: int | None = None) -> list[OwidChartRecord]:
         return _list_charts(limit)

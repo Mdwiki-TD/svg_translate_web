@@ -64,7 +64,7 @@ class TemplatesRoutesFuncs:
             "source": source,
         }
         try:
-            record = self.service.add_template_data(data)
+            self.service.add_template_data(data)
         except DuplicateRecordError:
             logger.exception("Unable to add template.")
             flash(f"Template '{title}' already exists", "warning")
@@ -83,6 +83,7 @@ class TemplatesRoutesFuncs:
         """Update main_file for a template."""
         if isinstance(request_form, dict):
             request_form = ImmutableMultiDict(request_form)
+
         template_id = request_form.get("id", default=0, type=int)
         from_popup = request_form.get("from_popup") == "1"
 
@@ -112,7 +113,7 @@ class TemplatesRoutesFuncs:
             "source": source,
         }
         try:
-            record = self.service.update_template_data(template_id, data)
+            self.service.update_template_data(template_id, data)
         except LookupError:
             logger.exception("Unable to Update template.")
             flash(f"template with id {template_id} was not found", "warning")
