@@ -26,6 +26,7 @@ def _serialize_value(value: Any, value_type: str) -> str | None:
             return "0"
     return str(value)
 
+
 def format_values(records: list[SettingRecord]) -> dict[str, Any]:
     """Fetch all settings parsed into their respective Python types."""
     data: dict[str, Any] = {}
@@ -51,6 +52,7 @@ def format_values(records: list[SettingRecord]) -> dict[str, Any]:
         data[x.key] = val
 
     return data
+
 
 class SettingsService(CRUDService[SettingRecord]):
     def __init__(self) -> None:
@@ -92,7 +94,7 @@ class SettingsService(CRUDService[SettingRecord]):
             value_type = record.value_type
 
         data = {
-            "value":  _serialize_value(value, value_type),
+            "value": _serialize_value(value, value_type),
         }
         if title:
             data["title"] = title
