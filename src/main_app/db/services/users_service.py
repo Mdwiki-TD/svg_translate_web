@@ -22,35 +22,35 @@ class UsersService(CRUDService[UserRecord]):
 
     def list_users(self) -> list[UserRecord]:
         """Return all user identity records."""
-        return db.session.query(UserRecord).all()
+        return self.session.query(UserRecord).all()
 
     def get_user(self, user_id: int) -> UserRecord | None:
         """Fetch a user by user_id."""
         if not user_id:
             return None
-        return db.session.query(UserRecord).filter(UserRecord.user_id == int(user_id)).first()
+        return self.session.query(UserRecord).filter(UserRecord.user_id == int(user_id)).first()
 
     def get_user_by_username(self, username: str) -> UserRecord | None:
         """Fetch a user by username."""
         username = (username or "").strip()
         if not username:
             return None
-        return db.session.query(UserRecord).filter(UserRecord.username == username).first()
+        return self.session.query(UserRecord).filter(UserRecord.username == username).first()
 
     def create_user(self, username: str) -> UserRecord:
         """Create a user identity row. Idempotent — returns existing if present."""
-        existing = db.session.query(UserRecord).filter(UserRecord.username == username).first()
+        existing = self.session.query(UserRecord).filter(UserRecord.username == username).first()
         if existing:
             return existing
         record = UserRecord(username=username)
-        db.session.add(record)
+        self.session.add(record)
         try:
-            db.session.commit()
-            db.session.refresh(record)
+            self.session.commit()
+            self.session.refresh(record)
         except Exception:
-            db.session.rollback()
+            self.session.rollback()
             # Handle potential race condition where user was created concurrently
-            existing = db.session.query(UserRecord).filter(UserRecord.username == username).first()
+            existing = self.session.query(UserRecord).filter(UserRecord.username == username).first()
             if existing:
                 return existing
             raise
@@ -64,8 +64,8 @@ class UsersService(CRUDService[UserRecord]):
             raise UserNotFoundError("User record not found")
 
         record.can_run_jobs = value
-        db.session.commit()
-        db.session.refresh(record)
+        self.session.commit()
+        self.session.refresh(record)
 
         return record
 
@@ -77,8 +77,8 @@ class UsersService(CRUDService[UserRecord]):
             raise UserNotFoundError("User record not found")
 
         record.can_run_bg_jobs = value
-        db.session.commit()
-        db.session.refresh(record)
+        self.session.commit()
+        self.session.refresh(record)
 
         return record
 

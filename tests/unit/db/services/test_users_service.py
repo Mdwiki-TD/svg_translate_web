@@ -101,36 +101,35 @@ class TestCreateUser(TestSetup):
         existing_user = MagicMock(spec=UserRecord)
         existing_user.username = "race_user"
 
-        mock_db = MagicMock()
+        mock_session = MagicMock()
         mock_query = MagicMock()
         mock_filter = MagicMock()
         mock_filter.first.side_effect = [None, existing_user]
         mock_query.filter.return_value = mock_filter
-        mock_db.session.query.return_value = mock_query
-        mock_db.session.commit.side_effect = Exception("race")
+        mock_session.query.return_value = mock_query
+        mock_session.commit.side_effect = Exception("race")
 
-        with patch("src.main_app.db.services.users_service.db", mock_db):
-            result = self.service.create_user("race_user")
+        self.service.session = mock_session
+        result = self.service.create_user("race_user")
 
         assert result is existing_user
-        mock_db.session.add.assert_called_once()
-        mock_db.session.rollback.assert_called_once()
+        mock_session.add.assert_called_once()
+        mock_session.rollback.assert_called_once()
 
     def test_race_condition_raises(self) -> None:
-        mock_db = MagicMock()
+        mock_session = MagicMock()
         mock_query = MagicMock()
         mock_filter = MagicMock()
         mock_filter.first.side_effect = [None, None]
         mock_query.filter.return_value = mock_filter
-        mock_db.session.query.return_value = mock_query
-        mock_db.session.commit.side_effect = Exception("db error")
+        mock_session.query.return_value = mock_query
+        mock_session.commit.side_effect = Exception("db error")
+        self.service.session = mock_session
+        with pytest.raises(Exception, match="db error"):
+            self.service.create_user("fail_user")
 
-        with patch("src.main_app.db.services.users_service.db", mock_db):
-            with pytest.raises(Exception, match="db error"):
-                self.service.create_user("fail_user")
-
-        mock_db.session.add.assert_called_once()
-        mock_db.session.rollback.assert_called_once()
+        mock_session.add.assert_called_once()
+        mock_session.rollback.assert_called_once()
 
 
 class TestToggleCanRunJobs(TestSetup):
