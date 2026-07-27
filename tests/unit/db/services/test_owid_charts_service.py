@@ -144,7 +144,7 @@ class TestAddChart(TestSetup):
         assert result is not None
         assert result.chart_id is not None
         assert result.slug == "test-chart"
-        assert db.session.get(OwidChartRecord, result.chart_id) is not None
+        assert self.service.get(result.chart_id) is not None
 
     def test_filters_out_none_values(self) -> None:
         """Exclude None values from chart creation data and fail if required fields are missing."""
@@ -168,7 +168,7 @@ class TestUpdateChartData(TestSetup):
 
         assert result is not None
         assert result.title == "Updated"
-        persisted = db.session.get(OwidChartRecord, chart_record.chart_id)
+        persisted = self.service.get(chart_record.chart_id)
         assert persisted is not None
         assert persisted.title == "Updated"
 
@@ -199,7 +199,7 @@ class TestDeleteChart(TestSetup):
         """Delete an existing chart and return True."""
         result = self.service.delete(chart_record.chart_id)
         assert result is True
-        assert db.session.get(OwidChartRecord, chart_record.chart_id) is None
+        assert self.service.get(chart_record.chart_id) is None
 
     def test_returns_false_for_missing_chart(self) -> None:
         """Return False when chart ID does not exist."""

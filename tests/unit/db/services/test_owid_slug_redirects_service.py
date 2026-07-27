@@ -40,7 +40,7 @@ class TestOwidSlugRedirectsService:
 
         assert result is not None
         assert result.redirect_to == "new-target"
-        persisted = db.session.get(OwidSlugRedirectRecord, slug_redirect_record.id)
+        persisted = self.service.get(slug_redirect_record.id)
         assert persisted is not None
         assert persisted.redirect_to == "new-target"
 
@@ -61,7 +61,7 @@ class TestOwidSlugRedirectsService:
 
         assert result is not None
         assert result.should_be_replaced is True
-        persisted = db.session.get(OwidSlugRedirectRecord, slug_redirect_record.id)
+        persisted = self.service.get(slug_redirect_record.id)
         assert persisted is not None
         assert persisted.should_be_replaced is True
 
@@ -72,7 +72,7 @@ class TestOwidSlugRedirectsService:
         result = self.service.delete(slug_redirect_record.id)
 
         assert result is True
-        assert db.session.get(OwidSlugRedirectRecord, slug_redirect_record.id) is None
+        assert self.service.get(slug_redirect_record.id) is None
 
     def test_count_slug_redirects(self, slug_redirect_record: OwidSlugRedirectRecord) -> None:
         assert self.service.count_slug_redirects() == 1

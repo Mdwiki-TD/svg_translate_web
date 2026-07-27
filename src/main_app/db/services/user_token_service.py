@@ -21,6 +21,9 @@ class UserTokenService(CRUDService[UserTokenRecord]):
     def __init__(self) -> None:
         super().__init__(db.session, UserTokenRecord)
 
+    def encrypt_value(self, value: str) -> bytes:
+        return encrypt_value(value)
+
     def get_authenticated_user_token(self, user_id: int) -> None | UserTokenRecord:
         """Fetch the CurrentUser composite for session restoration."""
         try:
@@ -50,8 +53,8 @@ class UserTokenService(CRUDService[UserTokenRecord]):
 
     def create_user_token(self, user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
         try:
-            encrypted_token = encrypt_value(access_key)
-            encrypted_secret = encrypt_value(access_secret)
+            encrypted_token = self.encrypt_value(access_key)
+            encrypted_secret = self.encrypt_value(access_secret)
 
             record = UserTokenRecord(
                 user_id=user_id,
@@ -78,8 +81,8 @@ class UserTokenService(CRUDService[UserTokenRecord]):
             return None
 
         try:
-            encrypted_token = encrypt_value(access_key)
-            encrypted_secret = encrypt_value(access_secret)
+            encrypted_token = self.encrypt_value(access_key)
+            encrypted_secret = self.encrypt_value(access_secret)
             now = func.current_timestamp()
 
             orm_obj.access_token = encrypted_token

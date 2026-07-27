@@ -45,6 +45,9 @@ class CRUDService[ModelT]:
             logger.error("Error getting %s id=%s: %s", self.model_name, pk, exc)
             return None
 
+    def get(self, pk: PKT) -> ModelT | None:
+        return self.get_record_by_id(pk)
+
     def get_or_404(self, pk: PKT, description: str | None = None) -> ModelT:
         """Fetch a single row by primary key, or raise a 404."""
         instance = self.get_record_by_id(pk)
@@ -127,6 +130,7 @@ class CRUDService[ModelT]:
 
         try:
             self.commit()
+            self.session.refresh(instance)
             return instance
         except Exception as exc:
             logger.exception("Error adding %s", self.model_name)

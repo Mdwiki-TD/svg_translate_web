@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
 from sqlalchemy.exc import OperationalError
 
@@ -368,7 +366,7 @@ class TestDeleteJob(TestSetup):
         result = self.service.delete_job_by_id_and_type(job_id, "copy_svg_langs")
         assert result is True
         db.session.expire_all()
-        assert db.session.get(JobRecord, job_id) is None
+        assert self.service.get(job_id) is None
 
     def test_delete_non_existent_job(self) -> None:
         result = self.service.delete_job_by_id_and_type(99999, "copy_svg_langs")
@@ -384,7 +382,7 @@ class TestDeleteJob(TestSetup):
         result = self.service.delete_job_by_id_and_type(job_id, "wrong_type")
         assert result is False
         db.session.expire_all()
-        assert db.session.get(JobRecord, job_id) is not None
+        assert self.service.get(job_id) is not None
 
 
 class TestCreateJob(TestSetup):
@@ -414,14 +412,9 @@ class TestWithMocks(TestSetup):
     """Tests for update_job_status_with_retry and update_job_status."""
 
     def test_retries_on_connection_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        # Keep this mock: the retry path requires a synthetic connection-invalidated OperationalError.
-        mock_job = MagicMock()
-        mock_job.started_at = None
-        mock_job.status = "pending"
-        mock_job.completed_at = None
-        mock_job.result_file = None
-        mock_job.is_running = 1
+        job = self.service.create_job("test_job", username="test_user")
 
+        real_commit = self.service.session.commit
         commit_call_count = [0]
 
         def mock_commit() -> None:
@@ -430,35 +423,26 @@ class TestWithMocks(TestSetup):
                 error = OperationalError("stmt", {}, None)
                 error.connection_invalidated = True
                 raise error
+            real_commit()
 
-        monkeypatch.setattr(self.service, "get_by", lambda **kwargs: mock_job)
+        # Keep this mock: the retry path requires a synthetic connection-invalidated OperationalError.
         monkeypatch.setattr(self.service.session, "commit", mock_commit)
-        monkeypatch.setattr(self.service.session, "rollback", MagicMock())
-        monkeypatch.setattr(self.service.session, "refresh", MagicMock())
 
-        result = self.service.update_job_status_with_retry(1, "completed", job_type="test_job")
-        assert result == mock_job
+        result = self.service.update_job_status_with_retry(job.id, "completed", job_type="test_job")
+        assert result.id == job.id
         assert result.status == "completed"
         assert commit_call_count[0] == 2
 
-
     def test_re_raises_after_max_retries(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        # Keep this mock: it intentionally simulates a DBAPI connection-invalidated OperationalError.
-        mock_job = MagicMock()
-        mock_job.started_at = None
-        mock_job.status = "pending"
-        mock_job.completed_at = None
-        mock_job.result_file = None
-        mock_job.is_running = 1
+        job = self.service.create_job("test_job", username="test_user")
 
         def mock_commit() -> None:
             error = OperationalError("stmt", {}, None)
             error.connection_invalidated = True
             raise error
 
-        monkeypatch.setattr(self.service, "get_by", lambda **kwargs: mock_job)
+        # Keep this mock: the retry path requires a synthetic connection-invalidated OperationalError.
         monkeypatch.setattr(self.service.session, "commit", mock_commit)
-        monkeypatch.setattr(self.service.session, "rollback", MagicMock())
 
         with pytest.raises(OperationalError):
-            self.service.update_job_status(1, "completed", job_type="test_job")
+            self.service.update_job_status(job.id, "completed", job_type="test_job")

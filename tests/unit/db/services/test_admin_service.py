@@ -95,7 +95,7 @@ class TestAddCoordinator(TestSetup):
         assert result.username == user_record.username
         assert result.is_active is True
 
-        persisted = db.session.get(AdminUserRecord, result.id)
+        persisted = self.service.get(result.id)
         assert persisted is not None
         assert persisted.username == user_record.username
 
@@ -112,7 +112,7 @@ class TestSetCoordinatorActive(TestSetup):
         assert result is not None
         assert result.is_active is True
 
-        persisted = db.session.get(AdminUserRecord, coordinator_record.id)
+        persisted = self.service.get(coordinator_record.id)
         assert persisted is not None
         assert persisted.is_active is True
 
@@ -121,7 +121,7 @@ class TestSetCoordinatorActive(TestSetup):
         assert result is not None
         assert result.is_active is False
 
-        persisted = db.session.get(AdminUserRecord, coordinator_record.id)
+        persisted = self.service.get(coordinator_record.id)
         assert persisted is not None
         assert persisted.is_active is False
 
@@ -135,7 +135,7 @@ class TestDeleteCoordinator(TestSetup):
         result = self.service.delete(coordinator_record.id)
         assert result is True
         db.session.expire_all()
-        assert db.session.get(AdminUserRecord, coordinator_record.id) is None
+        assert self.service.get(coordinator_record.id) is None
 
     def test_delete_non_existent_coordinator(self) -> None:
         result = self.service.delete(99999)

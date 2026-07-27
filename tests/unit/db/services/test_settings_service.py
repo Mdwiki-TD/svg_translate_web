@@ -135,7 +135,7 @@ class TestCreateSetting(TestSetup):
         assert result.title == "Test Title"
         assert result.value == "test_value"
         assert result.value_type == "string"
-        assert db.session.get(SettingRecord, result.id) is not None
+        assert self.service.get(result.id) is not None
 
     def test_handles_exception_rollback(self, setting_record: SettingRecord) -> None:
         result = self.service.create_setting(setting_record.key, "Test Title", "string", "test_value")
