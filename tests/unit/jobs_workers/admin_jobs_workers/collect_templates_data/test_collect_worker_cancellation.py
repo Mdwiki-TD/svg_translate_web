@@ -18,7 +18,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     cancel_event = threading.Event()
     mocks = {
         "cancel_event": cancel_event,
-        "list_templates": MagicMock(),
+        "list": MagicMock(),
     }
 
     # Mock update_template_data to set the cancel event
@@ -30,7 +30,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_update_template.side_effect = side_effect
 
     mock_template_service = MagicMock()
-    mock_template_service.list_templates = mocks["list_templates"]
+    mock_template_service.list = mocks["list"]
     mock_template_service.add_template_data = MagicMock()
     mock_template_service.update_template_data = mock_update_template
     mock_template_service.get_template_by_title = MagicMock()
@@ -66,7 +66,7 @@ def test_collect_templates_data_worker_cancellation(monkeypatch, mock_services):
         TemplateRecord(id=1, title="T1", main_file=None, last_world_file=None),
         TemplateRecord(id=2, title="T2", main_file=None, last_world_file=None),
     ]
-    mock_services["list_templates"].return_value = templates
+    mock_services["list"].return_value = templates
 
     mock_save_job_result_by_name = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result_by_name)

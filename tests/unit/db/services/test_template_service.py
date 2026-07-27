@@ -15,7 +15,7 @@ class TestSetup:
 
 
 class TestListTemplates(TestSetup):
-    """Test list_templates function."""
+    """Test list function."""
 
     def test_list_templates_empty(self):
         templates = self.service.list()

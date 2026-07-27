@@ -41,7 +41,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
         "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
     )
     mocks = {
-        "list_templates": MagicMock(),
+        "list": MagicMock(),
         "add_template_data": MagicMock(),
         "update_template_data": MagicMock(),
         "update_job_status": MagicMock(),
@@ -60,7 +60,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     )
 
     mock_template_service = MagicMock()
-    mock_template_service.list_templates = mocks["list_templates"]
+    mock_template_service.list = mocks["list"]
     mock_template_service.add_template_data = mocks["add_template_data"]
     mock_template_service.update_template_data = mocks["update_template_data"]
     mock_template_service.get_template_by_title = MagicMock()
@@ -70,12 +70,12 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
         mocks["update_template_data"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.TemplateService.update_template_data",
-        mocks["list_templates"],
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.TemplateService.list",
+        mocks["list"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.TemplateService.add_template_data",
-        mocks["list_templates"],
+        mocks["add_template_data"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.TemplateService",
@@ -129,7 +129,7 @@ class TestRunner:
     def test_collect_templates_data_with_no_templates(self):
         """Test collect_templates_data_entry when there are no templates."""
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = []
+        self.services["list"].return_value = []
 
         self.collect_runner(job_id=1, user=None)
 
@@ -151,7 +151,7 @@ class TestRunner:
             ),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
 
         self.collect_runner(job_id=1, user=None)
 
@@ -169,7 +169,7 @@ class TestRunner:
             TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|test.svg}}"
         self.services["find_main_title"].return_value = "test.svg"
 
@@ -206,7 +206,7 @@ class TestRunner:
             TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.return_value = None
 
         self.collect_runner(job_id=1, user=None)
@@ -227,7 +227,7 @@ class TestRunner:
             TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.return_value = "some wikitext without SVGLanguages"
         self.services["find_main_title"].return_value = None
 
@@ -250,7 +250,7 @@ class TestRunner:
             TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.side_effect = Exception("Network error")
 
         self.collect_runner(job_id=1, user=None)
@@ -270,7 +270,7 @@ class TestRunner:
             TemplateRecord(id=3, title="Template:Test3", main_file=None, last_world_file=None),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
 
         # First template: success
         # Third template: success
@@ -321,7 +321,7 @@ class TestRunner:
         ]
 
         self.services["get_category_members"].return_value = category_templates
-        self.services["list_templates"].return_value = existing_templates
+        self.services["list"].return_value = existing_templates
 
         self.collect_runner(job_id=1, user=None)
 
@@ -348,7 +348,7 @@ class TestRunner:
         category_templates = ["Template:New1"]
 
         self.services["get_category_members"].return_value = category_templates
-        self.services["list_templates"].return_value = existing_templates
+        self.services["list"].return_value = existing_templates
         self.services["add_template_data"].side_effect = ValueError("Template 'Template:New1' already exists")
 
         self.collect_runner(job_id=1, user=None)
@@ -378,7 +378,7 @@ class TestRunner:
 
         self.services["get_category_members"].return_value = category_templates
         # First call returns existing, second call returns existing + new
-        self.services["list_templates"].side_effect = [existing_templates, existing_templates + [new_template]]
+        self.services["list"].side_effect = [existing_templates, existing_templates + [new_template]]
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
         self.services["find_main_title"].return_value = "newfile.svg"
 
@@ -414,7 +414,7 @@ class TestRunner:
             TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
 
         wikitext_with_owidslidersrcs = """
         {{SVGLanguages|test.svg}}
@@ -462,7 +462,7 @@ class TestRunner:
 
         category_templates = ["Template:New1", "Template:New2"]
         self.services["get_category_members"].return_value = category_templates
-        self.services["list_templates"].return_value = []
+        self.services["list"].return_value = []
 
         self.collect_runner(job_id=1, user=None, cancel_event=cancel_event)
 
@@ -484,7 +484,7 @@ class TestRunner:
         ]
 
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
 
         # Cancel after processing first template
         call_count = [0]
@@ -516,7 +516,7 @@ class TestRunner:
             TemplateRecord(id=i, title=f"Template:Test{i}", main_file=None, last_world_file=None) for i in range(1, 26)
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|test.svg}}"
         self.services["find_main_title"].return_value = "test.svg"
 
@@ -542,7 +542,7 @@ class TestRunner:
             TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
 
         wikitext_without_main = """
         {{owidslidersrcs|id=gallery|widths=240|heights=240
@@ -583,7 +583,7 @@ class TestRunner:
             TemplateRecord(id=1, title="Template:Test", main_file="existing.svg", last_world_file=None, source=""),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|test.svg}}"
         self.services["find_main_title"].return_value = "test.svg"
 
@@ -601,7 +601,7 @@ class TestRunner:
         category_templates = ["Template:New1"]
 
         self.services["get_category_members"].return_value = category_templates
-        self.services["list_templates"].return_value = existing_templates
+        self.services["list"].return_value = existing_templates
         self.services["add_template_data"].side_effect = RuntimeError("Database connection failed")
 
         self.collect_runner(job_id=1, user=None)
@@ -623,7 +623,7 @@ class TestRunner:
             ),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
         self.services["find_main_title"].return_value = "newfile.svg"
 
@@ -641,7 +641,7 @@ class TestRunner:
             ),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
 
         # Without args (update_all=False by default), complete templates are skipped
         self.collect_runner(job_id=1, user=None)
@@ -657,7 +657,7 @@ class TestRunner:
             ),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
         self.services["find_main_title"].return_value = "newfile.svg"
 
@@ -674,7 +674,7 @@ class TestRunner:
             ),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
 
         self.collect_runner(job_id=1, user=None, args={"update_all": "false"})
 
@@ -689,7 +689,7 @@ class TestRunner:
             ),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
 
         self.collect_runner(job_id=1, user=None, args=None)
 
@@ -704,7 +704,7 @@ class TestRunner:
             ),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
         self.services["find_main_title"].return_value = "newfile.svg"
 
@@ -718,7 +718,7 @@ class TestRunner:
 
         cancel_event = threading.Event()
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = []
+        self.services["list"].return_value = []
 
         # Should not raise a TypeError - cancel_event must be passed as keyword arg
         self.collect_runner(job_id=1, user=None, cancel_event=cancel_event)
@@ -736,7 +736,7 @@ class TestRunner:
             TemplateRecord(id=2, title="Template:Test2", main_file=None, last_world_file=None, source=""),
         ]
         self.services["get_category_members"].return_value = []
-        self.services["list_templates"].return_value = templates
+        self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
         self.services["find_main_title"].return_value = "newfile.svg"
 

@@ -126,7 +126,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
             TemplateRecord(id=2, title="Template:Other/Test2", main_file="test2.svg", last_world_file=None),
             TemplateRecord(id=3, title="Template:OWID/Test3", main_file="test3.svg", last_world_file=None),
         ]
-        mock_services["list_templates"].return_value = templates
+        mock_services["list"].return_value = templates
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         result = worker._load_templates()
@@ -139,7 +139,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
         templates = [
             TemplateRecord(id=1, title="Template:Other/Test1", main_file="test1.svg", last_world_file=None),
         ]
-        mock_services["list_templates"].return_value = templates
+        mock_services["list"].return_value = templates
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         result = worker._load_templates()
@@ -393,7 +393,7 @@ class TestCreateOwidPagesWorkerProcess:
     def test_process_no_templates(self, mock_services, monkeypatch: pytest.MonkeyPatch):
         """Test process when there are no templates to process."""
         mock_services["get_user_site"].return_value = MagicMock()
-        mock_services["list_templates"].return_value = []
+        mock_services["list"].return_value = []
 
         worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
         result = worker.process()
@@ -405,7 +405,7 @@ class TestCreateOwidPagesWorkerProcess:
     def test_process_single_template_success(self, mock_services, monkeypatch: pytest.MonkeyPatch):
         """Test process with a single successful template."""
         mock_services["get_user_site"].return_value = MagicMock()
-        mock_services["list_templates"].return_value = [
+        mock_services["list"].return_value = [
             TemplateRecord(id=1, title="Template:OWID/Test", main_file="test.svg", last_world_file=None)
         ]
         mock_services["MwClientPage"].return_value.get_text.return_value = "Template content"
@@ -425,7 +425,7 @@ class TestCreateOwidPagesWorkerProcess:
     def test_process_single_template_skipped(self, mock_services, monkeypatch: pytest.MonkeyPatch):
         """Test process with a skipped template (already exists)."""
         mock_services["get_user_site"].return_value = MagicMock()
-        mock_services["list_templates"].return_value = [
+        mock_services["list"].return_value = [
             TemplateRecord(id=1, title="Template:OWID/Test", main_file="test.svg", last_world_file=None)
         ]
         mock_services["MwClientPage"].return_value.get_text.return_value = "Template content"
@@ -442,7 +442,7 @@ class TestCreateOwidPagesWorkerProcess:
     def test_process_multiple_templates_mixed_results(self, mock_services, monkeypatch: pytest.MonkeyPatch):
         """Test process with multiple templates having different outcomes."""
         mock_services["get_user_site"].return_value = MagicMock()
-        mock_services["list_templates"].return_value = [
+        mock_services["list"].return_value = [
             TemplateRecord(id=1, title="Template:OWID/Test1", main_file="test1.svg", last_world_file=None),
             TemplateRecord(id=2, title="Template:OWID/Test2", main_file="test2.svg", last_world_file=None),
             TemplateRecord(id=3, title="Template:OWID/Test3", main_file="test3.svg", last_world_file=None),
@@ -475,7 +475,7 @@ class TestCreateOwidPagesWorkerProcess:
         cancel_event = threading.Event()
 
         mock_services["get_user_site"].return_value = MagicMock()
-        mock_services["list_templates"].return_value = [
+        mock_services["list"].return_value = [
             TemplateRecord(id=1, title="Template:OWID/Test1", main_file="test1.svg", last_world_file=None),
             TemplateRecord(id=2, title="Template:OWID/Test2", main_file="test2.svg", last_world_file=None),
         ]

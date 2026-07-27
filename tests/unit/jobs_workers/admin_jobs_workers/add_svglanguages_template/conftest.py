@@ -20,7 +20,7 @@ def mock_add_svglanguages_services(monkeypatch: pytest.MonkeyPatch, mock_base_wo
         "RE_SVG_LANG": MagicMock(),
         "MwClientPage": MagicMock(),
         "add_template_to_text": MagicMock(),
-        "list_templates": MagicMock(),
+        "list": MagicMock(),
         "AddSvgSVGLanguagesTemplate": _mock_class,
         "get_user_site": mock_base_worker["get_user_site"],
     }
@@ -39,7 +39,7 @@ def mock_add_svglanguages_services(monkeypatch: pytest.MonkeyPatch, mock_base_wo
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker.TemplateService.list",
-        mocks["list_templates"],
+        mocks["list"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.runner.AddSvgSVGLanguagesTemplate",

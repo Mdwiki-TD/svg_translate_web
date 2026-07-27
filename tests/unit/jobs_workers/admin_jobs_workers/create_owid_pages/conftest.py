@@ -13,7 +13,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
 
     mocks = {
         "is_job_cancelled": MagicMock(return_value=False),
-        "list_templates": MagicMock(),
+        "list": MagicMock(),
         "MwClientPage": MagicMock(),
         "create_new_text": MagicMock(),
         "is_pages_exists": MagicMock(return_value={}),
@@ -36,7 +36,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.TemplateService.list",
-        mocks["list_templates"],
+        mocks["list"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.MwClientPage",
