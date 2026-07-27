@@ -62,13 +62,12 @@ class TestGetCoordinatorById(TestSetup):
     def test_found(self):
         mock_record = MagicMock()
         mock_record.id = 1
-        self.mock_dbsession.query.return_value.filter.return_value.first.return_value = mock_record
+        self.mock_dbsession.get.return_value = mock_record
         result = self.service.get_coordinator_by_id(1)
         assert result.id == 1
 
     def test_not_found_raises(self):
-
-        self.mock_dbsession.query.return_value.filter.return_value.first.return_value = None
+        self.mock_dbsession.get.return_value = None
         with pytest.raises(LookupError, match="not found"):
             self.service.get_coordinator_by_id(999)
 
