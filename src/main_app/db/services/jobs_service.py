@@ -7,9 +7,9 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
-from ..exceptions import DuplicateJobError
+from ..exceptions import DuplicateRecordError
 from ..models import JobRecord
-from .db_service import DbService
+from .crud_service import DbService
 from .utils import db_guard, db_guard_rollback, retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
@@ -230,7 +230,7 @@ def _create_job(job_type: str, username: str) -> JobRecord:
         (job_type, "pending", username),
 
     Raises:
-        DuplicateJobError: If a job of the same type is already running.
+        DuplicateRecordError: If a job of the same type is already running.
     """
     job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
     db.session.add(job)
@@ -241,7 +241,7 @@ def _create_job(job_type: str, username: str) -> JobRecord:
         db.session.rollback()
         if "idx_unique_active_job" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
             logger.warning("Duplicate active job detected for job_type=%s", job_type)
-            raise DuplicateJobError(f"A job of type '{job_type}' is already active (pending or running).") from exc
+            raise DuplicateRecordError(f"A job of type '{job_type}' is already active (pending or running).") from exc
         raise  # Re-raise unexpected IntegrityError
     db.session.refresh(job)
     return job

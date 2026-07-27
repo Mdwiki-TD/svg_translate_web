@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, Mock
 import pytest
 
 from src.main_app.admin.routes.coordinators import CoordinatorsFuncs
-from src.main_app.db.exceptions import DuplicateUserError, UserNotFoundError
+from src.main_app.db.exceptions import DuplicateRecordError, UserNotFoundError
 
 
 @pytest.mark.usefixtures("mock_app")
@@ -112,7 +112,7 @@ class TestAddCoordinator(TestSetup):
 
     def test_duplicate_user(self, make_mock_request):
         make_mock_request("existing_user")
-        self.mock_service.add_coordinator.side_effect = DuplicateUserError("Already exists")
+        self.mock_service.add_coordinator.side_effect = DuplicateRecordError("Already exists")
 
         self.service.add()
         self.mock_flash.assert_called()

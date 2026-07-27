@@ -23,18 +23,8 @@ class MaxUserConnectionsError(Exception):
 class UserNotFoundError(LookupError):
     """Raised when a referenced user does not exist in users."""
 
-
-class DuplicateJobError(Exception):
-    """Raised when attempting to create a job of a type that already has an active (pending/running) instance."""
-
-
-class DuplicateUserError(Exception):
-    """Raised when attempting to create a user or coordinator that already exists."""
-
-
 class DuplicateRecordError(Exception):
     """Raised when attempting to create duplicate record."""
-
 
 class InsufficientDatabaseConfigError(RuntimeError):
     def __init__(self) -> None:
@@ -48,7 +38,5 @@ __all__ = [
     "DatabaseInitError",
     "MaxUserConnectionsError",
     "UserNotFoundError",
-    "DuplicateUserError",
-    "DuplicateJobError",
     "InsufficientDatabaseConfigError",
 ]

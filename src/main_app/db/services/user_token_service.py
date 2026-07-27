@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 from ...extensions import db
 from ...shared.core.crypto import encrypt_value
 from ..models import UserTokenRecord
-from .db_service import DbService
+from .crud_service import DbService
 from .utils import db_guard_rollback
 
 logger = logging.getLogger(__name__)

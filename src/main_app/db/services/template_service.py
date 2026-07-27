@@ -9,7 +9,7 @@ from ...extensions import db
 from ..exceptions import DuplicateRecordError
 from ..models.templates import TemplateRecord
 from ..templates_utils import ensure_template_data
-from .db_service import DbService
+from .crud_service import DbService
 from .utils import db_guard
 
 logger = logging.getLogger(__name__)

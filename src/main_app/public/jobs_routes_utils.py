@@ -17,7 +17,7 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.wrappers.response import Response
 
-from ..db.exceptions import DuplicateJobError
+from ..db.exceptions import DuplicateRecordError
 from ..db.services import JobsService, SettingsService
 from ..jobs_workers.jobs_worker import (
     cancel_job_worker,
@@ -135,7 +135,7 @@ def start_job_handler(
         job_id = start_job(auth_payload, job_type, args)
         flash(f"Job {job_id} started to {job_type}.", "success")
         return job_id
-    except DuplicateJobError:
+    except DuplicateRecordError:
         logger.warning(
             "User '%s' attempted to start duplicate job type '%s'", getattr(user, "username", "N/A"), job_type
         )

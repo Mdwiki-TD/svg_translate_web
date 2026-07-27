@@ -7,7 +7,7 @@ from sqlalchemy import desc
 
 from ...extensions import db
 from ..models.owid_slug_redirects import OwidSlugRedirectRecord
-from .db_service import DbService
+from .crud_service import DbService
 from .utils import db_guard, db_guard_rollback
 
 logger = logging.getLogger(__name__)

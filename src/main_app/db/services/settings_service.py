@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
 from ..models import SettingRecord
-from .db_service import DbService
+from .crud_service import DbService
 from .utils import db_guard
 
 logger = logging.getLogger(__name__)

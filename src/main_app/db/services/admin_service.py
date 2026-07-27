@@ -11,9 +11,9 @@ import logging
 from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
-from ..exceptions import DuplicateUserError, UserNotFoundError
+from ..exceptions import DuplicateRecordError, UserNotFoundError
 from ..models import AdminUserRecord
-from .db_service import DbService
+from .crud_service import DbService
 from .utils import db_guard_rollback
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ def _add_coordinator(username: str) -> AdminUserRecord:
     record = db.session.query(AdminUserRecord).filter(AdminUserRecord.username == username).first()
     if record:
         # This assumes a UNIQUE constraint on the username column
-        raise DuplicateUserError(f"Coordinator '{username}' already exists") from None
+        raise DuplicateRecordError(f"Coordinator '{username}' already exists") from None
 
     record = AdminUserRecord(username=username, is_active=True)
     db.session.add(record)

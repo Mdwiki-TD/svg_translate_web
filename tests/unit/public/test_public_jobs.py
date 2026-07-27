@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Blueprint, Flask
 
-from src.main_app.db.exceptions import DuplicateJobError
+from src.main_app.db.exceptions import DuplicateRecordError
 from src.main_app.public.jobs_routes_utils import (
     cancel_job_handler,
     delete_job_handler,
@@ -307,7 +307,7 @@ class TestStartJob:
         mock_deps.flash.assert_called_once_with("Failed to load auth payload. Please try again.", "danger")
 
     def test_duplicate_job_error(self, mock_deps: MockJobRoutesDeps) -> None:
-        mock_deps.start_job.side_effect = DuplicateJobError()
+        mock_deps.start_job.side_effect = DuplicateRecordError()
 
         result = start_job_handler("test_job", {})
 
@@ -544,7 +544,7 @@ class TestJobsPublicRoutesRoutes:
     def test_start_job_failure_redirects_to_list(
         self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps
     ) -> None:
-        mock_deps.start_job.side_effect = DuplicateJobError()
+        mock_deps.start_job.side_effect = DuplicateRecordError()
         resp = mock_p_client.post("/jobs/test_job/start", data={"key": "value"})
         assert resp.status_code == 302
 

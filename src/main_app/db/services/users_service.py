@@ -11,7 +11,7 @@ import logging
 from ...extensions import db
 from ..exceptions import UserNotFoundError
 from ..models import UserRecord
-from .db_service import DbService
+from .crud_service import DbService
 
 logger = logging.getLogger(__name__)
 

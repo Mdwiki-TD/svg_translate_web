@@ -7,7 +7,7 @@ from sqlalchemy import func
 
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
-from .db_service import DbService
+from .crud_service import DbService
 from .utils import db_guard_rollback, retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)

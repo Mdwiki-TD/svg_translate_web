@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from src.main_app.db.exceptions import DuplicateUserError, UserNotFoundError
+from src.main_app.db.exceptions import DuplicateRecordError, UserNotFoundError
 from src.main_app.db.models import AdminUserRecord
 from src.main_app.db.models.users import UserRecord
 from src.main_app.db.services.admin_service import AdminService
@@ -84,7 +84,7 @@ class TestAddCoordinator:
         mock_db = MagicMock()
         mock_db.session.query.return_value.filter.return_value.first.return_value = mock_record
         with patch("src.main_app.db.services.admin_service.db", mock_db):
-            with pytest.raises(DuplicateUserError, match="already exists"):
+            with pytest.raises(DuplicateRecordError, match="already exists"):
                 AdminService().add_coordinator("existing_user")
 
     def test_integrity_error_raises_user_not_found(self):
