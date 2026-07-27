@@ -26,6 +26,7 @@ def retry_on_db_disconnect(
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            func_name = getattr(func, "__name__", None)
             attempt = 0
             while True:
                 try:
@@ -40,17 +41,17 @@ def retry_on_db_disconnect(
                     )
 
                     if not is_disconnect:
-                        logger.exception("%s: db operation failed", func.__name__)
+                        logger.exception("%s: db operation failed", func_name)
                         raise
 
                     if attempt >= max_retries:
-                        logger.error("%s: failed after %s retries.", func.__name__, max_retries)
+                        logger.error("%s: failed after %s retries.", func_name, max_retries)
                         raise
 
                     attempt += 1
                     logger.warning(
                         "%s: MySQL server has gone away. Rolling back and retrying (attempt %s/%s).",
-                        func.__name__,
+                        func_name,
                         attempt,
                         max_retries,
                     )

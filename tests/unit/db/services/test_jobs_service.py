@@ -438,7 +438,7 @@ class TestUpdateJobStatus(TestSetup):
         mock_job.is_running = 1
 
         mock_query = MagicMock()
-        mock_query.filter.return_value.filter.return_value.first.return_value = mock_job
+        mock_query.return_value.filter.return_value.filter.return_value.first.return_value = mock_job
 
         def mock_commit():
             error = OperationalError("stmt", {}, None)
@@ -484,7 +484,7 @@ class TestUpdateJobStatusWithRetry(TestSetup):
         mock_job.is_running = 1
 
         mock_query = MagicMock()
-        mock_query.filter.return_value.filter.return_value.first.return_value = mock_job
+        mock_query.return_value.filter.return_value.filter.return_value.first.return_value = mock_job
 
         commit_call_count = [0]
 

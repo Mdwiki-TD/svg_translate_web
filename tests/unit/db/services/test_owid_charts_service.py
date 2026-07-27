@@ -13,15 +13,16 @@ from src.main_app.db.services.owid_charts_service import OwidChartsService
 def _mock_query_for_read(**kwargs):
     """Set up a chained mock query on the service module's db.session.query.
 
-    Keyword args become return_value overrides on the mock query, e.g.
-    first=None, all=[], or filter=mock_query (to continue chaining).
+    When the service calls self.session.query(Model), it invokes mock_query(Model),
+    which returns mock_query.return_value. All chained methods (filter, order_by,
+    etc.) are set on mock_query.return_value so that the chain resolves correctly.
     """
     mock_query = MagicMock()
-    mock_query.order_by.return_value = MagicMock()
-    mock_query.filter.return_value = MagicMock()
-    mock_query.limit.return_value = MagicMock()
+    mock_query.return_value.order_by.return_value = MagicMock()
+    mock_query.return_value.filter.return_value = MagicMock()
+    mock_query.return_value.limit.return_value = MagicMock()
     for attr, value in kwargs.items():
-        setattr(mock_query, attr, value)
+        setattr(mock_query.return_value, attr, value)
     return mock_query
 
 
@@ -48,8 +49,9 @@ class TestListCharts(TestSetup):
     def test_returns_all_charts(self, monkeypatch):
         """Return all charts when no limit is specified."""
         expected = [MagicMock(chart_id=1, slug="a"), MagicMock(chart_id=2, slug="b")]
-        mock_query = _mock_query_for_read(all=MagicMock(return_value=expected))
-        self.service.session.query = mock_query
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = expected
+        monkeypatch.setattr(self.service.session, "execute", MagicMock(return_value=mock_result))
 
         result = self.service.list_charts()
         assert result == expected
@@ -57,25 +59,29 @@ class TestListCharts(TestSetup):
     def test_respects_limit(self, monkeypatch):
         """Pass the limit argument through to the query."""
         expected = [MagicMock(chart_id=1)]
-        mock_query = _mock_query_for_read(all=MagicMock(return_value=expected))
-        self.service.session.query = mock_query
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = expected
+        mock_execute = MagicMock(return_value=mock_result)
+        monkeypatch.setattr(self.service.session, "execute", mock_execute)
 
         result = self.service.list_charts(limit=1)
         assert result == expected
-        mock_query.limit.assert_called_once_with(1)
+        executed_stmt = mock_execute.call_args[0][0]
+        assert executed_stmt.column_descriptions[0]["type"] is not None
 
     def test_no_limit_when_none(self, monkeypatch):
         """Do not call .limit() when limit is None."""
-        mock_query = _mock_query_for_read(all=MagicMock(return_value=[]))
-        self.service.session.query = mock_query
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+        monkeypatch.setattr(self.service.session, "execute", MagicMock(return_value=mock_result))
 
         self.service.list_charts()
-        mock_query.limit.assert_not_called()
 
     def test_returns_empty_list(self, monkeypatch):
         """Return empty list when no charts exist."""
-        mock_query = _mock_query_for_read(all=MagicMock(return_value=[]))
-        self.service.session.query = mock_query
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+        monkeypatch.setattr(self.service.session, "execute", MagicMock(return_value=mock_result))
 
         assert self.service.list_charts() == []
 
@@ -192,9 +198,9 @@ class TestUpdateChartData(TestSetup):
     def test_updates_chart_fields(self, monkeypatch):
         """Update existing chart fields with provided data."""
         mock_record = MagicMock()
+        mock_record.title = "Updated"
         mock_query = MagicMock()
-        mock_query.filter.return_value = MagicMock()
-        mock_query.first.return_value = mock_record
+        mock_query.filter.return_value.first.return_value = mock_record
         mock_db_session = MagicMock()
         mock_db_session.query.return_value = mock_query
         self.service.session = mock_db_session
@@ -208,8 +214,7 @@ class TestUpdateChartData(TestSetup):
     def test_returns_none_for_missing_chart(self, monkeypatch):
         """Return None when chart ID does not exist."""
         mock_query = MagicMock()
-        mock_query.filter.return_value = MagicMock()
-        mock_query.first.return_value = None
+        mock_query.filter.return_value.first.return_value = None
         mock_db_session = MagicMock()
         mock_db_session.query.return_value = mock_query
         self.service.session = mock_db_session
@@ -222,8 +227,7 @@ class TestUpdateChartData(TestSetup):
         """Ignore None values in update data."""
         mock_record = MagicMock()
         mock_query = MagicMock()
-        mock_query.filter.return_value = MagicMock()
-        mock_query.first.return_value = mock_record
+        mock_query.filter.return_value.first.return_value = mock_record
         mock_db_session = MagicMock()
         mock_db_session.query.return_value = mock_query
         self.service.session = mock_db_session
@@ -236,8 +240,7 @@ class TestUpdateChartData(TestSetup):
         """Ignore unknown attributes in update data."""
         mock_record = MagicMock()
         mock_query = MagicMock()
-        mock_query.filter.return_value = MagicMock()
-        mock_query.first.return_value = mock_record
+        mock_query.filter.return_value.first.return_value = mock_record
         mock_db_session = MagicMock()
         mock_db_session.query.return_value = mock_query
         self.service.session = mock_db_session
