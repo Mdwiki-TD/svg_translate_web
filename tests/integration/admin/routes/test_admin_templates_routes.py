@@ -11,29 +11,10 @@ from src.main_app.db.models import TemplateRecord
 from src.main_app.db.services import TemplateService
 
 
-class _TemplatesStore:
-    """Adapter bridging old TemplatesDB API to SQLAlchemy template_service functions."""
-
-    def __init__(self):
-        self.service = TemplateService()
-
-    def list(self, limit=None):
-        return self.service.list_templates(limit)
-
-    def add_data(self, data):
-        return self.service.add_template_data(data)
-
-    def update_data(self, template_id, data):
-        return self.service.update_template_data(template_id, data)
-
-    def delete(self, record_id: int):
-        return self.service.delete(record_id)
-
-
 @pytest.fixture
 def jobs_db(admin_jobs_client):
-    store = _TemplatesStore()
-    store.add_data({"title": "Existing Template", "main_file": "existing.svg"})
+    store = TemplateService()
+    store.add_template_data({"title": "Existing Template", "main_file": "existing.svg"})
     return store
 
 

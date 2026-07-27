@@ -69,6 +69,10 @@ class TemplateRecord(db.Model):
             "updated_at": self.updated_at,
         }
 
+    def validate(self) -> None:
+        if not self.title or not self.title.strip():
+            raise ValueError("Title is required")
+
 
 __all__ = [
     "TemplateRecord",

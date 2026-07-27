@@ -34,7 +34,17 @@ class InsufficientDatabaseConfigError(RuntimeError):
         super().__init__(msg)
 
 
+class CRUDError(Exception):
+    """Base error for CRUD service failures."""
+
+
+class CRUDIntegrityError(CRUDError):
+    """Raised when a create/update violates a DB constraint (unique, FK, etc.)."""
+
+
 __all__ = [
+    "CRUDError",
+    "CRUDIntegrityError",
     "UniqueError",
     "DuplicateRecordError",
     "DatabaseInitError",

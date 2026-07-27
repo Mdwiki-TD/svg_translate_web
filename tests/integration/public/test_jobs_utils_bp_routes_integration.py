@@ -78,7 +78,7 @@ class TestDownloadMainFilesRoutes:
 
         mock_create_zip.assert_called_once()
 
-    def test_serve_download_main_file_with_path_traversal_attempt(self, admin_jobs_client, mock_jobs_db):
+    def test_serve_download_main_file_with_path_traversal_attempt(self, admin_jobs_client):
         """Test that path traversal is handled by send_from_directory."""
 
         # send_from_directory should handle path traversal attempts

@@ -17,6 +17,7 @@ class CRUDService[ModelT: db.Model]:
 
     def __init__(self, model: type[ModelT]) -> None:
         self.model = model
+        self.session = db.session
 
     def list_records(self) -> list[ModelT]:
         """List all records for the configured model.
@@ -25,7 +26,14 @@ class CRUDService[ModelT: db.Model]:
             All model records, or an empty list if the query fails.
         """
         try:
-            return db.session.query(self.model).all()
+            return self.session.query(self.model).all()
+        except Exception as exc:
+            logger.error("Error listing %s records: %s", self.model.__name__, exc)
+            return []
+
+    def list_all(self) -> list[ModelT]:
+        try:
+            return self.session.query(self.model).all()
         except Exception as exc:
             logger.error("Error listing %s records: %s", self.model.__name__, exc)
             return []
@@ -40,7 +48,7 @@ class CRUDService[ModelT: db.Model]:
             The matching record, or None when missing or when the query fails.
         """
         try:
-            return db.session.get(self.model, record_id)
+            return self.session.get(self.model, record_id)
         except Exception as exc:
             logger.error("Error getting %s id=%s: %s", self.model.__name__, record_id, exc)
             return None
@@ -56,11 +64,11 @@ class CRUDService[ModelT: db.Model]:
         """
         try:
             record = self.model(**data)
-            db.session.add(record)
-            db.session.commit()
+            self.session.add(record)
+            self.session.commit()
             return record
         except Exception as exc:
-            db.session.rollback()
+            self.session.rollback()
             logger.error("Error adding %s: %s", self.model.__name__, exc)
             return None
 
@@ -80,10 +88,10 @@ class CRUDService[ModelT: db.Model]:
                 return None
             for key, value in data.items():
                 setattr(record, key, value)
-            db.session.commit()
+            self.session.commit()
             return record
         except Exception as exc:
-            db.session.rollback()
+            self.session.rollback()
             logger.error("Error updating %s id=%s: %s", self.model.__name__, record_id, exc)
             return None
 
@@ -108,15 +116,15 @@ class CRUDService[ModelT: db.Model]:
 
         try:
             # Use session.get() as it is efficient and looks up by primary key
-            record = db.session.get(self.model, pk_value)
+            record = self.session.get(self.model, pk_value)
             if record:
-                db.session.delete(record)
-                db.session.commit()
+                self.session.delete(record)
+                self.session.commit()
                 return True
             return False
         except Exception as e:
             logger.error(f"Error deleting {self.model.__name__} with PK {pk_value}: {e}")
-            db.session.rollback()
+            self.session.rollback()
             return False
 
 

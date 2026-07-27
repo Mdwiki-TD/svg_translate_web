@@ -35,22 +35,11 @@ def _is_active_coordinator(username: str) -> bool:
     return False
 
 
-def _list_coordinators() -> list[AdminUserRecord]:
-    """
-    Return all coordinators from the database.
-
-    Returns a list of records, or an empty list on failure.
-    """
-    return db.session.query(AdminUserRecord).all()
-
-
 def _get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
     """
     Get a coordinator by ID.
     """
     record = db.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
-    if not record:
-        raise LookupError(f"Coordinator id {coordinator_id} was not found")
     return record
 
 
@@ -59,10 +48,6 @@ def _get_coordinator_by_id(coordinator_id: int) -> AdminUserRecord:
 
 def _add_coordinator(username: str) -> AdminUserRecord:
     """Add a coordinator."""
-    if not username or not username.strip():
-        raise ValueError("Username is required")
-    username = username.strip()
-
     record = db.session.query(AdminUserRecord).filter(AdminUserRecord.username == username).first()
     if record:
         # This assumes a UNIQUE constraint on the username column
@@ -103,12 +88,19 @@ class AdminService(CRUDService[AdminUserRecord]):
         return _is_active_coordinator(username)
 
     def list_coordinators(self) -> list[AdminUserRecord]:
-        return _list_coordinators()
+        return self.list_all()
 
     def get_coordinator_by_id(self, coordinator_id: int) -> AdminUserRecord:
-        return _get_coordinator_by_id(coordinator_id)
+        record = _get_coordinator_by_id(coordinator_id)
+        if not record:
+            raise LookupError(f"Coordinator id {coordinator_id} was not found")
+        return record
 
     def add_coordinator(self, username: str) -> AdminUserRecord:
+        if not username or not username.strip():
+            raise ValueError("Username is required")
+        username = username.strip()
+
         return _add_coordinator(username)
 
     def set_coordinator_active(self, coordinator_id: int, is_active: bool) -> AdminUserRecord | None:
