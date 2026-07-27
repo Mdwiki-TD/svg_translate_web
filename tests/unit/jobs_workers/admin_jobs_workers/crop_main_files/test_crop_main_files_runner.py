@@ -187,15 +187,6 @@ def test_crop_main_files_worker_entry_handles_status_update_failure(mock_base_wo
     # Should not raise exception
     crop_main_files_worker_entry(job_id=1, user=None)
 
-
-def test_crop_main_files_worker_entry_generates_correct_result_file_name(mock_base_worker, mock_process):
-    """Test that result file name is generated correctly."""
-
-    crop_main_files_worker_entry(job_id=1, user=None)
-
-    mock_base_worker["generate_result_file_name"].assert_called_once_with(1, "crop_main_files")
-
-
 def test_crop_main_files_worker_entry_passes_result_file_to_process(mock_base_worker, mock_process):
     """Test that result_file is available on the worker."""
     mock_base_worker["save_job_result_by_name"].reset_mock()
@@ -270,15 +261,18 @@ def test_crop_main_files_worker_entry_upload_files_flag(mock_base_worker, mock_p
     mock_process.assert_called_once()
 
 
-def test_crop_main_files_worker_entry_multiple_jobs(mock_base_worker, mock_process):
+def test_crop_main_files_worker_entry_multiple_jobs(monkeypatch, mock_process):
     """Test running multiple jobs with different IDs."""
-
+    mock_gen = MagicMock(side_effect=lambda jid, jtype: f"{jtype}_job_{jid}.json")
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.generate_result_file_name", mock_gen
+    )
     crop_main_files_worker_entry(job_id=1, user=None)
     crop_main_files_worker_entry(job_id=2, user=None)
     crop_main_files_worker_entry(job_id=3, user=None)
 
-    assert mock_base_worker["generate_result_file_name"].call_count == 3
-    calls = mock_base_worker["generate_result_file_name"].call_args_list
+    assert mock_gen.call_count == 3
+    calls = mock_gen.call_args_list
     assert calls[0][0] == (1, "crop_main_files")
     assert calls[1][0] == (2, "crop_main_files")
     assert calls[2][0] == (3, "crop_main_files")

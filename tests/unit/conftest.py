@@ -23,7 +23,6 @@ def mock_before_run(monkeypatch: pytest.MonkeyPatch):
 def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
     """Mock services common to both workers."""
     mocks = {
-        "generate_result_file_name": MagicMock(side_effect=lambda jid, jtype: f"{jtype}_job_{jid}.json"),
         "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
         "save_job_result_by_name": MagicMock(),
         "update_job_status": MagicMock(),
@@ -43,8 +42,5 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.JobsService.update_job_status", mocks["update_job_status"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.generate_result_file_name", mocks["generate_result_file_name"]
     )
     return mocks
