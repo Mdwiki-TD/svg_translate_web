@@ -49,7 +49,7 @@ class TestOwidSlugRedirectsService:
         assert mock_db_session.commit.called
 
     def test_list_slug_redirects(self, mock_db_session):
-        mock_db_session.query().order_by().limit().offset().all.return_value = []
+        mock_db_session.execute().scalars().all.return_value = []
 
         results = self.service.list_slug_redirects(limit=10, offset=0)
 
