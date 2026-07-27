@@ -165,43 +165,43 @@ class TestNormalizeLimit(TestSetup):
 class TestIsJobCancelled(TestSetup):
     """Tests for is_job_cancelled."""
 
-    def test_cancelled_status_returns_true(self):
+    def test_cancelled_status_returns_true(self, monkeypatch):
         mock_record = MagicMock()
         mock_record.status = "cancelled"
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = mock_record
-        self.mock_query = mock_query
+        monkeypatch.setattr(self.service.session, "query", mock_query)
 
         result = self.service.is_job_cancelled(1, "test")
         assert result is True
 
-    def test_active_statuses_return_false(self):
+    def test_active_statuses_return_false(self, monkeypatch):
         for status in ("pending", "running", "completed"):
             mock_record = MagicMock()
             mock_record.status = status
             mock_query = MagicMock()
             mock_query.filter.return_value.first.return_value = mock_record
 
-            self.mock_query = mock_query
+            monkeypatch.setattr(self.service.session, "query", mock_query)
 
             result = self.service.is_job_cancelled(1, "test")
             assert result is False
 
-    def test_no_record_returns_false(self):
+    def test_no_record_returns_false(self, monkeypatch):
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = None
-        self.mock_query = mock_query
+        monkeypatch.setattr(self.service.session, "query", mock_query)
         result = self.service.is_job_cancelled(1, "test")
         assert result is False
 
-    def test_refresh_called_before_checking_status(self):
+    def test_refresh_called_before_checking_status(self, monkeypatch):
         mock_record = MagicMock()
         mock_record.status = "cancelled"
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = mock_record
         refresh = MagicMock()
-        self.mock_query = mock_query
-        self.mock_session.refresh = refresh
+        monkeypatch.setattr(self.service.session, "query", mock_query)
+        monkeypatch.setattr(self.service.session, "refresh", refresh)
         self.service.is_job_cancelled(1, "test")
         refresh.assert_called_once_with(mock_record)
 
@@ -231,7 +231,7 @@ class TestListJobs(TestSetup):
 class TestGetAllUserJobsStats(TestSetup):
     """Tests for get_all_user_jobs_stats."""
 
-    def test_returns_stats_with_correct_counts(self):
+    def test_returns_stats_with_correct_counts(self, monkeypatch):
         mock_group_records = [("completed", 5), ("failed", 2)]
         mock_group_query = MagicMock()
         mock_group_query.filter.return_value.group_by.return_value.all.return_value = mock_group_records
@@ -248,15 +248,16 @@ class TestGetAllUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        self.mock_query = MagicMock()
-        self.mock_query.side_effect = query_side_effect
+        mock_query = MagicMock()
+        mock_query.side_effect = query_side_effect
+        monkeypatch.setattr(self.service.session, "query", mock_query)
 
         result = self.service.get_all_user_jobs_stats("test_user")
         assert result["stats"]["total"] == 7  # type: ignore
         assert result["stats"]["completed"] == 5  # type: ignore
         assert result["stats"]["failed"] == 2  # type: ignore
 
-    def test_handles_empty_records(self):
+    def test_handles_empty_records(self, monkeypatch):
         mock_group_query = MagicMock()
         mock_group_query.filter.return_value.group_by.return_value.all.return_value = []
 
@@ -271,8 +272,9 @@ class TestGetAllUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        self.mock_query = MagicMock()
-        self.mock_query.side_effect = query_side_effect
+        mock_query = MagicMock()
+        mock_query.side_effect = query_side_effect
+        monkeypatch.setattr(self.service.session, "query", mock_query)
 
         result = self.service.get_all_user_jobs_stats("test_user")
         assert result["stats"]["total"] == 0  # type: ignore
@@ -280,7 +282,7 @@ class TestGetAllUserJobsStats(TestSetup):
         assert result["stats"]["failed"] == 0  # type: ignore
         assert result["recent_jobs"] == []
 
-    def test_respects_limit_parameter(self):
+    def test_respects_limit_parameter(self, monkeypatch):
         mock_group_records = [("completed", 3)]
         mock_group_query = MagicMock()
         mock_group_query.filter.return_value.group_by.return_value.all.return_value = mock_group_records
@@ -298,8 +300,9 @@ class TestGetAllUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        self.mock_query = MagicMock()
-        self.mock_query.side_effect = query_side_effect
+        mock_query = MagicMock()
+        mock_query.side_effect = query_side_effect
+        monkeypatch.setattr(self.service.session, "query", mock_query)
 
         result = self.service.get_all_user_jobs_stats("test_user", limit=5)
         assert result["stats"]["total"] == 3  # type: ignore
