@@ -14,7 +14,7 @@ from src.main_app.db.services.users_service import UsersService
 
 class TestSetup:
     @pytest.fixture(autouse=True)
-    def setup(self, monkeypatch) -> None:
+    def setup(self, mock_db_session, monkeypatch) -> None:
         self.usertoken_service = UserTokenService()
         monkeypatch.setattr(
             "src.main_app.db.services.user_token_service.encrypt_value",
@@ -22,7 +22,22 @@ class TestSetup:
         )
 
 
-class TestDelete(TestSetup):
+@pytest.fixture
+def mock_db_session(monkeypatch: pytest.MonkeyPatch):
+    mock_session = MagicMock()
+    monkeypatch.setattr("src.main_app.extensions.db.session", mock_session)
+    return mock_session
+
+
+class TestDelete:
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mock_app, monkeypatch):
+        monkeypatch.setattr(
+            "src.main_app.db.services.user_token_service.encrypt_value",
+            lambda x: b"enc_" + x.encode(),
+        )
+        self.usertoken_service = UserTokenService()
 
     def test_delete_user_cascades(self, mock_app: Flask) -> None:
         users_service = UsersService()

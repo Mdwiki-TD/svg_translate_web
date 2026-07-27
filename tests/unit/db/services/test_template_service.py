@@ -110,15 +110,18 @@ class TestAddTemplate(TestSetup):
             self.service.add_template_data(data2)
 
     def test_add_template_commit_failure_raises_error(self, monkeypatch):
+        from sqlalchemy.exc import SQLAlchemyError
+
+        from src.main_app.db.exceptions import CRUDIntegrityError
         from src.main_app.extensions import db
 
         def _fail_commit():
-            raise RuntimeError("DB connection lost")
+            raise SQLAlchemyError("DB connection lost")
 
         monkeypatch.setattr(db.session, "commit", _fail_commit)
 
         data = {"title": "Fail", "main_file": "fail.svg"}
-        with pytest.raises(RuntimeError, match="DB connection lost"):
+        with pytest.raises(CRUDIntegrityError):
             self.service.add_template_data(data)
 
 

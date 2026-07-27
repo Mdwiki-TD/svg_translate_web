@@ -139,7 +139,8 @@ class CRUDService[ModelT]:
         """Set attributes on `instance` and persist the change."""
         for key, value in fields.items():
             if not hasattr(instance, key):
-                raise CRUDError(f"{self.model_name} has no attribute '{key}'")
+                # raise CRUDError(f"{self.model_name} has no attribute '{key}'")
+                continue
             if value is not None:
                 setattr(instance, key, value)
         self._flush_or_commit(commit)

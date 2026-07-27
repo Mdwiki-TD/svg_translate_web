@@ -7,15 +7,25 @@ import pytest
 from src.main_app.db.services.settings_service import SettingsService, _serialize_value
 
 
+@pytest.fixture
+def mock_db_session(monkeypatch: pytest.MonkeyPatch):
+    mock_session = MagicMock()
+    monkeypatch.setattr("src.main_app.extensions.db.session", mock_session)
+    return mock_session
+
+
 class TestSetup:
+    @pytest.fixture(autouse=True)
+    def setup(self, mock_db_session):
+        self.service = SettingsService()
+
+
+class TestListSettingsReady:
+
     @pytest.fixture(autouse=True)
     def setup(self):
         self.service = SettingsService()
         self.service.session.rollback = MagicMock()
-        # self.service.session = MagicMock()
-
-
-class TestListSettingsReady(TestSetup):
 
     def test_get_all_settings_ready(self) -> None:
         self.service.create_setting(
@@ -205,7 +215,12 @@ class TestUpdateSetting(TestSetup):
         assert mock_setting.value == "99"
 
 
-class TestCreateSetting(TestSetup):
+class TestCreateSetting:
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.service = SettingsService()
+        self.service.session.rollback = MagicMock()
     """Tests for create_setting."""
 
     def test_creates_setting_successfully(self):
@@ -268,7 +283,7 @@ class TestCreateSetting(TestSetup):
         assert added_settings[0].value == ""
 
 
-class TestSerializeValue(TestSetup):
+class TestSerializeValue:
     """Test _serialize_value function."""
 
     def test_serialize_value_none(self):
