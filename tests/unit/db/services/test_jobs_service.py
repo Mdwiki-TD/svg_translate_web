@@ -437,15 +437,12 @@ class TestUpdateJobStatus(TestSetup):
         mock_job.result_file = None
         mock_job.is_running = 1
 
-        mock_query = MagicMock()
-        mock_query.return_value.filter.return_value.filter.return_value.first.return_value = mock_job
-
         def mock_commit():
             error = OperationalError("stmt", {}, None)
             error.connection_invalidated = True
             raise error
 
-        monkeypatch.setattr(self.service.session, "query", mock_query)
+        monkeypatch.setattr(self.service, "get_by", lambda **kwargs: mock_job)
         monkeypatch.setattr(self.service.session, "commit", mock_commit)
         monkeypatch.setattr(self.service.session, "rollback", MagicMock())
 
