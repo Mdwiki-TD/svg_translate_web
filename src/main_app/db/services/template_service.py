@@ -53,9 +53,7 @@ class TemplateService(CRUDService[TemplateRecord]):
         return self.get(template_id)
 
     def get_template_by_title(self, title: str) -> TemplateRecord | None:
-        return self.get_by(
-            title=title,
-        )
+        return self.get_by( title=title )
 
     def add_template_data(self, data: dict[str, Any]) -> TemplateRecord | None:
         title = data.get("title", "")

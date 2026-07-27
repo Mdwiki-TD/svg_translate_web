@@ -125,10 +125,8 @@ class TestGetAuthenticatedUserToken(TestSetup):
         """Test returns token when user exists and has user relationship loaded."""
         mock_token = MagicMock()
         mock_token.user = MagicMock(username="testuser")
-        mock_query = MagicMock()
-        mock_query.options.return_value.filter.return_value.first.return_value = mock_token
 
-        self.usertoken_service.session.query = mock_query
+        self.usertoken_service.session.query.return_value.options.return_value.filter.return_value.first.return_value = mock_token
 
         result = self.usertoken_service.get_authenticated_user_token(1)
 
@@ -136,9 +134,7 @@ class TestGetAuthenticatedUserToken(TestSetup):
 
     def test_returns_none_when_token_is_none(self, monkeypatch):
         """Test returns None when token query returns None."""
-        mock_query = MagicMock()
-        mock_query.options.return_value.filter.return_value.first.return_value = None
-        self.usertoken_service.session.query = mock_query
+        self.usertoken_service.session.query.return_value.options.return_value.filter.return_value.first.return_value = None
 
         result = self.usertoken_service.get_authenticated_user_token(1)
 
@@ -148,9 +144,8 @@ class TestGetAuthenticatedUserToken(TestSetup):
         """Test returns None when token.user is None."""
         mock_token = MagicMock()
         mock_token.user = None
-        mock_query = MagicMock()
-        mock_query.options.return_value.filter.return_value.first.return_value = mock_token
-        self.usertoken_service.session.query = mock_query
+
+        self.usertoken_service.session.query.return_value.options.return_value.filter.return_value.first.return_value = mock_token
 
         result = self.usertoken_service.get_authenticated_user_token(1)
 
@@ -158,9 +153,7 @@ class TestGetAuthenticatedUserToken(TestSetup):
 
     def test_handles_exception_gracefully(self, monkeypatch):
         """Test returns None when an exception is raised."""
-        mock_query = MagicMock()
-        mock_query.options.side_effect = Exception("DB error")
-        self.usertoken_service.session.query = mock_query
+        self.usertoken_service.session.query.return_value.options.side_effect = Exception("DB error")
 
         result = self.usertoken_service.get_authenticated_user_token(1)
 
@@ -173,9 +166,7 @@ class TestGetUserToken(TestSetup):
     def test_returns_token_for_valid_user_id(self, monkeypatch):
         """Test returns token for a valid integer user_id."""
         mock_token = MagicMock(spec=UserTokenRecord, user_id=1)
-        mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = mock_token
-        self.usertoken_service.session.query = mock_query
+        self.usertoken_service.session.query.return_value.filter.return_value.first.return_value = mock_token
 
         result = self.usertoken_service.get_user_token(1)
 
@@ -184,9 +175,7 @@ class TestGetUserToken(TestSetup):
     def test_returns_token_for_valid_user_id_str(self, monkeypatch):
         """Test returns token for a valid string user_id."""
         mock_token = MagicMock(spec=UserTokenRecord, user_id=1)
-        mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = mock_token
-        self.usertoken_service.session.query = mock_query
+        self.usertoken_service.session.query.return_value.filter.return_value.first.return_value = mock_token
 
         result = self.usertoken_service.get_user_token("1")
 
@@ -213,9 +202,7 @@ class TestGetUserToken(TestSetup):
 
     def test_returns_none_when_no_token_found(self, monkeypatch):
         """Test returns None when no matching token record exists."""
-        mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = None
-        self.usertoken_service.session.query = mock_query
+        self.usertoken_service.session.query.return_value.filter.return_value.first.return_value = None
 
         result = self.usertoken_service.get_user_token(999)
 

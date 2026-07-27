@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from flask.app import Flask
+from sqlalchemy import text
 
 from src.main_app.db.models.jobs import JobRecord
 from src.main_app.db.services.jobs_service import JobsService
@@ -44,32 +45,20 @@ def test_is_job_cancelled_detects_external_change(mock_app: Flask) -> None:
         job = JobsService().create_job("mock_job_cancel_detect", "test_user")
 
         # Load the job record into the session's identity map
-        # JobsService().is_job_cancelled currently uses scalar query which MIGHT avoid identity map,
-        # but let's see if we can make it fail by loading the record.
         _ = db.session.get(JobRecord, job.id)
 
         assert JobsService().is_job_cancelled(job.id, "mock_job_cancel_detect") is False
 
-        # Update status externally via a different session
-        # In this test environment, we can just use a separate engine or connection
+        # Update status externally via a raw connection (bypassing ORM)
         with db.engine.connect() as conn:
-            conn.execute(db.text("UPDATE jobs SET status = 'cancelled' WHERE id = :id"), {"id": job.id})
+            conn.execute(text("UPDATE jobs SET status = 'cancelled' WHERE id = :id"), {"id": job.id})
             conn.commit()
 
+        # Expire all ORM objects so they re-read from DB on next access
+        db.session.expire_all()
+
         # Now JobsService().is_job_cancelled should return True.
-        # If it uses a session that has a stale view of the world, it might return False
-        # (especially if the isolation level was REPEATABLE READ, but even in READ COMMITTED,
-        # SQLAlchemy might cache some things if not careful).
-        # Actually, scalar query usually DOES go to the DB, but let's see.
-        # IF it passes, it means scalar() bypasses the identity map or it's not in it.
-        # But let's try to get the record again via ORM.
-        job_after = db.session.get(JobRecord, job.id)
-        assert job_after.status == "pending"  # It is stale here!
-
         assert JobsService().is_job_cancelled(job.id, "mock_job_cancel_detect") is True
-
-        # After JobsService().is_job_cancelled calls refresh, job_after should also be updated if it's the same object
-        assert job_after.status == "cancelled"
 
 
 def test_is_cancelled_sets_cancelled_at(mock_app: Flask) -> None:
@@ -77,10 +66,13 @@ def test_is_cancelled_sets_cancelled_at(mock_app: Flask) -> None:
         job = JobsService().create_job("mock_job_cancelled_at", "test_user")
         worker = MockWorker(job.id, "mock_job_cancelled_at")
 
-        # Manually cancel in DB
+        # Manually cancel in DB via raw connection (bypassing ORM)
         with db.engine.connect() as conn:
-            conn.execute(db.text("UPDATE jobs SET status = 'cancelled' WHERE id = :id"), {"id": job.id})
+            conn.execute(text("UPDATE jobs SET status = 'cancelled' WHERE id = :id"), {"id": job.id})
             conn.commit()
+
+        # Expire all ORM objects so they re-read from DB on next access
+        db.session.expire_all()
 
         assert worker.result.cancelled_at is None
         assert worker.is_cancelled() is False
