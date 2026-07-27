@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from ...extensions import db
 
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 ModelT = TypeVar("ModelT", bound=db.Model)
 
 
-class CRUDService(Generic[ModelT]):
+class CRUDService[ModelT: db.Model]:
     """Shared database service helpers for SQLAlchemy model services."""
 
     model: type[ModelT]
