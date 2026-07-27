@@ -35,16 +35,24 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_template_service.update_template_data = mock_update_template
     mock_template_service.get_template_by_title = MagicMock()
 
-    monkeypatch.setattr(worker, "TemplateService",
+    monkeypatch.setattr(
+        worker,
+        "TemplateService",
         MagicMock(return_value=mock_template_service),
     )
-    monkeypatch.setattr(worker, "MwClientPage",
+    monkeypatch.setattr(
+        worker,
+        "MwClientPage",
         lambda title, site: MagicMock(get_text=MagicMock(return_value="some wikitext")),
     )
-    monkeypatch.setattr(worker, "find_main_title",
+    monkeypatch.setattr(
+        worker,
+        "find_main_title",
         lambda x, remove_prefix=False: "file.svg",
     )
-    monkeypatch.setattr(worker, "find_newest_world_file",
+    monkeypatch.setattr(
+        worker,
+        "find_newest_world_file",
         lambda x, remove_prefix=False: None,
     )
     monkeypatch.setattr(worker, "get_category_members", MagicMock(return_value=[]))
@@ -61,9 +69,7 @@ def test_collect_templates_data_worker_cancellation(monkeypatch, mock_services):
     mock_services["list_templates"].return_value = templates
 
     mock_save_job_result_by_name = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result_by_name
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result_by_name)
 
     worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=mock_services["cancel_event"])
 
