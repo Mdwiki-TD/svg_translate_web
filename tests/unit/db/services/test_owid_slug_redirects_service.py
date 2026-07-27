@@ -1,88 +1,78 @@
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
 
 from src.main_app.db.models.owid_slug_redirects import OwidSlugRedirectRecord
 from src.main_app.db.services.owid_slug_redirects_service import OwidSlugRedirectsService
+from src.main_app.extensions import db
 
 
 @pytest.fixture
-def mock_db_session(monkeypatch: pytest.MonkeyPatch):
-    mock_session = MagicMock()
-    monkeypatch.setattr("src.main_app.extensions.db.session", mock_session)
-    return mock_session
+def slug_redirect_record() -> OwidSlugRedirectRecord:
+    record = OwidSlugRedirectRecord(slug="old-slug", redirect_to="new-slug")
+    db.session.add(record)
+    db.session.commit()
+    db.session.refresh(record)
+    return record
 
 
 class TestOwidSlugRedirectsService:
     @pytest.fixture(autouse=True)
-    def setup(self, mock_db_session):
+    def setup(self) -> None:
         self.service = OwidSlugRedirectsService()
 
-    def test_add_new_slug_redirect_new(self, mock_db_session):
-        mock_db_session.query().filter().first.return_value = None
+    def test_add_new_slug_redirect_new(self) -> None:
+        result = self.service.add_new_slug_redirect("old-slug", "new-slug")
 
-        self.service.add_new_slug_redirect("old-slug", "new-slug")
+        assert result is not None
+        assert result.slug == "old-slug"
+        assert result.redirect_to == "new-slug"
+        assert self.service.count_slug_redirects() == 1
 
-        assert mock_db_session.add.called
-        assert mock_db_session.commit.called
+    def test_add_new_slug_redirect_existing(self, slug_redirect_record: OwidSlugRedirectRecord) -> None:
+        result = self.service.add_new_slug_redirect(slug_redirect_record.slug, slug_redirect_record.redirect_to)
 
-    def test_add_new_slug_redirect_existing(self, mock_db_session):
-        mock_db_session.query().filter().first.return_value = OwidSlugRedirectRecord(
-            slug="old-slug", redirect_to="new-slug"
-        )
+        assert result is None
+        assert self.service.count_slug_redirects() == 1
 
-        self.service.add_new_slug_redirect("old-slug", "new-slug")
+    def test_add_new_slug_redirect_update_target(self, slug_redirect_record: OwidSlugRedirectRecord) -> None:
+        result = self.service.update_slug_redirect(slug_redirect_record.id, {"redirect_to": "new-target"})
 
-        assert not mock_db_session.add.called
-        assert not mock_db_session.commit.called
+        assert result is not None
+        assert result.redirect_to == "new-target"
+        persisted = db.session.get(OwidSlugRedirectRecord, slug_redirect_record.id)
+        assert persisted is not None
+        assert persisted.redirect_to == "new-target"
 
-    def test_add_new_slug_redirect_update_target(self, mock_db_session):
-        _existing = OwidSlugRedirectRecord(id=100, slug="old-slugz", redirect_to="old-target")
-        mock_db_session.query().filter().first.return_value = _existing
-
-        self.service.update_slug_redirect(100, {"redirect_to": "new-target"})
-        existing_record = self.service.get_slug_redirect_by_id(100)
-        assert existing_record is not None
-        assert existing_record.redirect_to == "new-target"
-        assert mock_db_session.commit.called
-
-    def test_list_slug_redirects(self, mock_db_session):
-        mock_db_session.execute().scalars().all.return_value = []
-
+    def test_list_slug_redirects(self, slug_redirect_record: OwidSlugRedirectRecord) -> None:
         results = self.service.list_slug_redirects(limit=10, offset=0)
 
-        assert results == []
+        assert len(results) == 1
+        assert results[0].id == slug_redirect_record.id
 
-    def test_get_slug_redirect_by_id(self, mock_db_session):
-        record = OwidSlugRedirectRecord(id=1)
-        mock_db_session.query().filter().first.return_value = record
+    def test_get_slug_redirect_by_id(self, slug_redirect_record: OwidSlugRedirectRecord) -> None:
+        result = self.service.get_slug_redirect_by_id(slug_redirect_record.id)
 
-        result = self.service.get_slug_redirect_by_id(1)
+        assert result is not None
+        assert result.id == slug_redirect_record.id
 
-        assert result == record
+    def test_update_slug_redirect(self, slug_redirect_record: OwidSlugRedirectRecord) -> None:
+        result = self.service.update_slug_redirect(slug_redirect_record.id, {"should_be_replaced": True})
 
-    def test_update_slug_redirect(self, mock_db_session):
-        record = OwidSlugRedirectRecord(id=1, should_be_replaced=False)
-        mock_db_session.query().filter().first.return_value = record
+        assert result is not None
+        assert result.should_be_replaced is True
+        persisted = db.session.get(OwidSlugRedirectRecord, slug_redirect_record.id)
+        assert persisted is not None
+        assert persisted.should_be_replaced is True
 
-        self.service.update_slug_redirect(1, {"should_be_replaced": True})
+    def test_update_slug_redirect_returns_none_for_missing_record(self) -> None:
+        assert self.service.update_slug_redirect(999, {"should_be_replaced": True}) is None
 
-        assert record.should_be_replaced is True
-        assert mock_db_session.commit.called
-
-    def test_delete_slug_redirect(self, mock_db_session):
-        record = OwidSlugRedirectRecord(id=1)
-        mock_db_session.query().filter().first.return_value = record
-
-        result = self.service.delete(1)
+    def test_delete_slug_redirect(self, slug_redirect_record: OwidSlugRedirectRecord) -> None:
+        result = self.service.delete(slug_redirect_record.id)
 
         assert result is True
-        assert mock_db_session.delete.called
-        assert mock_db_session.commit.called
+        assert db.session.get(OwidSlugRedirectRecord, slug_redirect_record.id) is None
 
-    def test_count_slug_redirects(self, mock_db_session):
-        mock_db_session.query().count.return_value = 5
-
-        assert self.service.count_slug_redirects() == 5
+    def test_count_slug_redirects(self, slug_redirect_record: OwidSlugRedirectRecord) -> None:
+        assert self.service.count_slug_redirects() == 1

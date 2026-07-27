@@ -45,9 +45,6 @@ class CRUDService[ModelT]:
             logger.error("Error getting %s id=%s: %s", self.model_name, pk, exc)
             return None
 
-    def get(self, pk: PKT) -> ModelT | None:
-        return self.get_record_by_id(pk)
-
     def get_or_404(self, pk: PKT, description: str | None = None) -> ModelT:
         """Fetch a single row by primary key, or raise a 404."""
         instance = self.get_record_by_id(pk)
@@ -119,19 +116,23 @@ class CRUDService[ModelT]:
     # Write
     # ------------------------------------------------------------------ #
 
-    def create(self, *, commit: bool = True, **fields: Any) -> ModelT | None:
+    def create(self, **fields: Any) -> ModelT | None:
         """Instantiate the model with `fields` and persist it."""
         try:
             instance = self.model(**fields)
             self.session.add(instance)
-            self.session.commit()
-            return instance
         except Exception as exc:
-            self.session.rollback()
             logger.exception("Error adding %s", self.model_name)
             return None
 
-    def update(self, instance: ModelT, *, commit: bool = True, **fields: Any) -> ModelT:
+        try:
+            self.commit()
+            return instance
+        except Exception as exc:
+            logger.exception("Error adding %s", self.model_name)
+            return None
+
+    def update(self, instance: ModelT, **fields: Any) -> ModelT:
         """Set attributes on `instance` and persist the change."""
         for key, value in fields.items():
             if not hasattr(instance, key):
@@ -140,9 +141,8 @@ class CRUDService[ModelT]:
             if value is not None:
                 setattr(instance, key, value)
         try:
-            self.session.commit()
+            self.commit()
         except Exception as exc:
-            self.session.rollback()
             logger.error("Error updating %s: %s", self.model_name, exc)
 
         return instance
@@ -156,29 +156,28 @@ class CRUDService[ModelT]:
 
         try:
             # if validate and hasattr(record, "validate"): record.validate()
-            self.update(record, commit=True, **data)
+            self.update(record, **data)
             return record
         except Exception as exc:
             logger.error("Error updating %s id=%s: %s", self.model_name, pk, exc)
             return None
 
-    def upsert(self, pk: PKT, *, commit: bool = True, **fields: Any) -> tuple[ModelT, bool]:
+    def upsert(self, pk: PKT, **fields: Any) -> tuple[ModelT, bool]:
         """
         Update the row with primary key `pk` if it exists, else create it.
         Returns (instance, created).
         """
         instance = self.get_record_by_id(pk)
         if instance is not None:
-            return self.update(instance, commit=commit, **fields), False
-        return self.create(commit=commit, **fields), True
+            return self.update(instance, **fields), False
+        return self.create(**fields), True
 
-    def bulk_create(self, items: Iterable[dict[str, Any]], *, commit: bool = True) -> Sequence[ModelT]:
+    def bulk_create(self, items: Iterable[dict[str, Any]]) -> Sequence[ModelT]:
         instances = [self.model(**fields) for fields in items]
         self.session.add_all(instances)
         try:
-            self.session.commit()
+            self.commit()
         except Exception as exc:
-            self.session.rollback()
             logger.error("Error bulk creating %s: %s", self.model_name, exc)
         return instances
 
@@ -194,22 +193,31 @@ class CRUDService[ModelT]:
         if pk is None:
             return False
 
+        record = self.get_record_by_id(pk)
+        if record:
+            return self.delete_record(record)
+
+        return False
+
+    def delete_record(self, record: ModelT) -> bool:
         try:
-            # Use session.get() as it is efficient and looks up by primary key
-            record = self.session.get(self.model, pk)
-            if record:
-                self.session.delete(record)
-                self.session.commit()
-                return True
-            return False
+            self.session.delete(record)
+            self.commit()
+            return True
         except Exception as e:
-            logger.error(f"Error deleting {self.model_name} with PK {pk}: {e}")
-            self.session.rollback()
+            logger.error(f"Error deleting {self.model_name} {e}")
             return False
 
     # ------------------------------------------------------------------ #
     # Internals
     # ------------------------------------------------------------------ #
+
+    def commit(self) -> None:
+        try:
+            self.session.commit()
+        except Exception:
+            self.session.rollback()
+            raise
 
     def _base_select(self) -> Select[tuple[ModelT]]:
         return select(self.model)

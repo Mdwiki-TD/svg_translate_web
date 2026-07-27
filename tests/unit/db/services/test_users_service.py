@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -96,43 +95,6 @@ class TestCreateUser(TestSetup):
         result = self.service.create_user("test_user")
         assert result.user_id == user_record.user_id
         assert result.username == "test_user"
-
-
-class TestCreateUserMocks(TestSetup):
-
-    def test_race_condition_returns_existing(self) -> None:
-        existing_user = MagicMock(spec=UserRecord)
-        existing_user.username = "race_user"
-
-        mock_session = MagicMock()
-        mock_query = MagicMock()
-        mock_filter = MagicMock()
-        mock_filter.first.side_effect = [None, existing_user]
-        mock_query.filter.return_value = mock_filter
-        mock_session.query.return_value = mock_query
-        mock_session.commit.side_effect = Exception("race")
-
-        self.service.session = mock_session
-        result = self.service.create_user("race_user")
-
-        assert result is existing_user
-        mock_session.add.assert_called_once()
-        mock_session.rollback.assert_called_once()
-
-    def test_race_condition_raises(self) -> None:
-        mock_session = MagicMock()
-        mock_query = MagicMock()
-        mock_filter = MagicMock()
-        mock_filter.first.side_effect = [None, None]
-        mock_query.filter.return_value = mock_filter
-        mock_session.query.return_value = mock_query
-        mock_session.commit.side_effect = Exception("db error")
-        self.service.session = mock_session
-        with pytest.raises(Exception, match="db error"):
-            self.service.create_user("fail_user")
-
-        mock_session.add.assert_called_once()
-        mock_session.rollback.assert_called_once()
 
 
 class TestToggleCanRunJobs(TestSetup):

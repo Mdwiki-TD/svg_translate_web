@@ -43,7 +43,7 @@ class UserTokenService(CRUDService[UserTokenRecord]):
             return None
 
         user_id = int(user_id)
-        orm_obj = self.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
+        orm_obj = self.get_record_by_id(user_id)
         if not orm_obj:
             return None
         return orm_obj
@@ -72,12 +72,12 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         """
         update the encrypted OAuth credentials for a user.
         """
+        orm_obj = self.get_record_by_id(user_id)
+
+        if not orm_obj:
+            return None
+
         try:
-            orm_obj = self.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
-
-            if not orm_obj:
-                return None
-
             encrypted_token = encrypt_value(access_key)
             encrypted_secret = encrypt_value(access_secret)
             now = func.current_timestamp()
@@ -106,8 +106,7 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         Creates a new token row if one does not exist.
         """
         try:
-            # record = self.session.get(UserTokenRecord, user_id)
-            record = self.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
+            record = self.get_record_by_id(user_id)
             if record:
                 orm_obj = self.update_user_token(user_id, access_key, access_secret)
             else:

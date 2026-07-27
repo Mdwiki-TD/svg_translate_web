@@ -22,39 +22,29 @@ class UsersService(CRUDService[UserRecord]):
 
     def list_users(self) -> list[UserRecord]:
         """Return all user identity records."""
-        return self.session.query(UserRecord).all()
+        return self.list_all()
 
     def get_user(self, user_id: int) -> UserRecord | None:
         """Fetch a user by user_id."""
         if not user_id:
             return None
-        return self.session.query(UserRecord).filter(UserRecord.user_id == int(user_id)).first()
+        return self.get_record_by_id(user_id)
 
     def get_user_by_username(self, username: str) -> UserRecord | None:
         """Fetch a user by username."""
         username = (username or "").strip()
         if not username:
             return None
-        return self.session.query(UserRecord).filter(UserRecord.username == username).first()
+        return self.get_by(username=username)
 
     def create_user(self, username: str) -> UserRecord:
         """Create a user identity row. Idempotent — returns existing if present."""
-        existing = self.session.query(UserRecord).filter(UserRecord.username == username).first()
+        existing = self.get_by(username=username)
         if existing:
             return existing
-        record = UserRecord(username=username)
-        self.session.add(record)
-        try:
-            self.session.commit()
-            self.session.refresh(record)
-        except Exception:
-            self.session.rollback()
-            # Handle potential race condition where user was created concurrently
-            existing = self.session.query(UserRecord).filter(UserRecord.username == username).first()
-            if existing:
-                return existing
-            raise
-        return record
+
+        data = {"username": username}
+        return self.create(**data)
 
     def toggle_can_run_jobs(self, user_id: int, value: bool) -> UserRecord:
         """Toggle can_run_jobs."""
@@ -63,11 +53,8 @@ class UsersService(CRUDService[UserRecord]):
         if not record:
             raise UserNotFoundError("User record not found")
 
-        record.can_run_jobs = value
-        self.session.commit()
-        self.session.refresh(record)
-
-        return record
+        data = {"can_run_jobs": value}
+        return self.update(record, **data)
 
     def toggle_can_run_bg_jobs(self, user_id: int, value: bool) -> UserRecord:
         """Toggle can_run_bg_jobs."""
@@ -76,11 +63,8 @@ class UsersService(CRUDService[UserRecord]):
         if not record:
             raise UserNotFoundError("User record not found")
 
-        record.can_run_bg_jobs = value
-        self.session.commit()
-        self.session.refresh(record)
-
-        return record
+        data = {"can_run_bg_jobs": value}
+        return self.update(record, **data)
 
 
 __all__ = [

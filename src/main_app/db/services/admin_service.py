@@ -42,7 +42,7 @@ class AdminService(CRUDService[AdminUserRecord]):
         """
         Get a coordinator by ID.
         """
-        record = self.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
+        record = self.get_record_by_id(coordinator_id)
 
         if not record:
             raise LookupError(f"Coordinator id {coordinator_id} was not found")
@@ -65,7 +65,8 @@ class AdminService(CRUDService[AdminUserRecord]):
             self.session.commit()
         except IntegrityError as exc:
             self.session.rollback()
-            if "a foreign key constraint fails" in str(exc):
+            error_message = str(exc).lower()
+            if "foreign key constraint" in error_message:
                 raise UserNotFoundError(f"User '{username}' does not exist") from exc
 
             if "Duplicate entry" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
@@ -78,11 +79,11 @@ class AdminService(CRUDService[AdminUserRecord]):
     def set_coordinator_active(self, coordinator_id: int, is_active: bool) -> AdminUserRecord | None:
         """Toggle coordinator activity."""
         # record = get_coordinator_by_id(coordinator_id)
-        try:
-            record = self.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
-            if not record:
-                return None
+        record = self.get_record_by_id(coordinator_id)
+        if not record:
+            return None
 
+        try:
             record.is_active = is_active
             self.session.commit()
             self.session.refresh(record)
