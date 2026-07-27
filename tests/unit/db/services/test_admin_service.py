@@ -139,22 +139,20 @@ class TestSetCoordinatorActive(TestSetup):
 
 class TestDeleteCoordinator:
     def test_delete_existing_coordinator(self, mock_app, setup_db):
-        from src.main_app.extensions import db as _db
-
         service = AdminService()
         with mock_app.app_context():
             user = UserRecord(username="admin_user", user_id=401)
-            _db.session.add(user)
-            _db.session.commit()
+            service.session.add(user)
+            service.session.commit()
 
             record = AdminUserRecord(username="admin_user", is_active=True)
-            _db.session.add(record)
-            _db.session.commit()
+            service.session.add(record)
+            service.session.commit()
 
             result = service.delete(record.id)
             assert result is True
-            _db.session.expire_all()
-            assert _db.session.get(AdminUserRecord, record.id) is None
+            service.session.expire_all()
+            assert service.session.get(AdminUserRecord, record.id) is None
 
     def test_delete_non_existent_coordinator(self, mock_app, setup_db):
         service = AdminService()

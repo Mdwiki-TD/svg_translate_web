@@ -5,7 +5,7 @@ from typing import Any
 from flask.app import Flask
 
 from src.main_app.db.models.jobs import JobRecord
-from src.main_app.db.services.jobs_service import _create_job, _is_job_cancelled
+from src.main_app.db.services.jobs_service import JobsService
 from src.main_app.extensions import db
 from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker, WorkerObject
 
@@ -30,7 +30,7 @@ class MockWorker(BaseObjectsJobWorker):
 
 def test_before_run_updates_status(mock_app: Flask) -> None:
     with mock_app.app_context():
-        job = _create_job("mock_job_before_run", "test_user")
+        job = JobsService().create_job("mock_job_before_run", "test_user")
         worker = MockWorker(job.id, "mock_job_before_run")
 
         assert worker.result.status == "pending"
@@ -41,14 +41,14 @@ def test_before_run_updates_status(mock_app: Flask) -> None:
 
 def test_is_job_cancelled_detects_external_change(mock_app: Flask) -> None:
     with mock_app.app_context():
-        job = _create_job("mock_job_cancel_detect", "test_user")
+        job = JobsService().create_job("mock_job_cancel_detect", "test_user")
 
         # Load the job record into the session's identity map
-        # _is_job_cancelled currently uses scalar query which MIGHT avoid identity map,
+        # JobsService().is_job_cancelled currently uses scalar query which MIGHT avoid identity map,
         # but let's see if we can make it fail by loading the record.
         _ = db.session.get(JobRecord, job.id)
 
-        assert _is_job_cancelled(job.id, "mock_job_cancel_detect") is False
+        assert JobsService().is_job_cancelled(job.id, "mock_job_cancel_detect") is False
 
         # Update status externally via a different session
         # In this test environment, we can just use a separate engine or connection
@@ -56,7 +56,7 @@ def test_is_job_cancelled_detects_external_change(mock_app: Flask) -> None:
             conn.execute(db.text("UPDATE jobs SET status = 'cancelled' WHERE id = :id"), {"id": job.id})
             conn.commit()
 
-        # Now _is_job_cancelled should return True.
+        # Now JobsService().is_job_cancelled should return True.
         # If it uses a session that has a stale view of the world, it might return False
         # (especially if the isolation level was REPEATABLE READ, but even in READ COMMITTED,
         # SQLAlchemy might cache some things if not careful).
@@ -66,15 +66,15 @@ def test_is_job_cancelled_detects_external_change(mock_app: Flask) -> None:
         job_after = db.session.get(JobRecord, job.id)
         assert job_after.status == "pending"  # It is stale here!
 
-        assert _is_job_cancelled(job.id, "mock_job_cancel_detect") is True
+        assert JobsService().is_job_cancelled(job.id, "mock_job_cancel_detect") is True
 
-        # After _is_job_cancelled calls refresh, job_after should also be updated if it's the same object
+        # After JobsService().is_job_cancelled calls refresh, job_after should also be updated if it's the same object
         assert job_after.status == "cancelled"
 
 
 def test_is_cancelled_sets_cancelled_at(mock_app: Flask) -> None:
     with mock_app.app_context():
-        job = _create_job("mock_job_cancelled_at", "test_user")
+        job = JobsService().create_job("mock_job_cancelled_at", "test_user")
         worker = MockWorker(job.id, "mock_job_cancelled_at")
 
         # Manually cancel in DB

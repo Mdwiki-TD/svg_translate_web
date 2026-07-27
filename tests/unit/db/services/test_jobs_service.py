@@ -500,18 +500,17 @@ class TestUpdateJobStatusWithRetry(TestSetup):
 
 class TestDeleteJob(TestSetup):
     def test_delete_existing_job(self, mock_app, setup_db):
-        from src.main_app.extensions import db as _db
 
         with mock_app.app_context():
             record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
-            _db.session.add(record)
-            _db.session.commit()
+            self.service.session.add(record)
+            self.service.session.commit()
             job_id = record.id
 
             result = self.service.delete_job_by_id_and_type(job_id, "copy_svg_langs")
             assert result is True
-            _db.session.expire_all()
-            assert _db.session.get(JobRecord, job_id) is None
+            self.service.session.expire_all()
+            assert self.service.session.get(JobRecord, job_id) is None
 
     def test_delete_non_existent_job(self, mock_app, setup_db):
         with mock_app.app_context():
@@ -519,18 +518,17 @@ class TestDeleteJob(TestSetup):
             assert result is False
 
     def test_delete_job_wrong_type(self, mock_app, setup_db):
-        from src.main_app.extensions import db as _db
 
         with mock_app.app_context():
             record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
-            _db.session.add(record)
-            _db.session.commit()
+            self.service.session.add(record)
+            self.service.session.commit()
             job_id = record.id
 
             result = self.service.delete_job_by_id_and_type(job_id, "wrong_type")
             assert result is False
-            _db.session.expire_all()
-            assert _db.session.get(JobRecord, job_id) is not None
+            self.service.session.expire_all()
+            assert self.service.session.get(JobRecord, job_id) is not None
 
 
 class TestCreateJob(TestSetup):
