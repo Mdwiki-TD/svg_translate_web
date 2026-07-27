@@ -15,7 +15,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm.exc import DetachedInstanceError
 
 import src.main_app.db.services.utils.retry_on_disconnect as decorators_module
 from src.main_app.db.models import SettingRecord
