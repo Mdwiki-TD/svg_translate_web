@@ -146,16 +146,18 @@ class CRUDService[ModelT]:
     # Write
     # ------------------------------------------------------------------ #
 
-    def create(self, *, commit: bool = True, **fields: Any) -> ModelT:
+    def create(self, *, commit: bool = True, **fields: Any) -> ModelT | None:
         """Instantiate the model with `fields` and persist it."""
         try:
             instance = self.model(**fields)
             self.session.add(instance)
             self._flush_or_commit(commit)
             return instance
+        except CRUDIntegrityError:
+            raise
         except Exception as exc:
             self.session.rollback()
-            logger.error("Error adding %s: %s", self.model.__name__, exc)
+            logger.exception("Error adding %s", self.model.__name__)
             return None
 
     def update(self, instance: ModelT, *, commit: bool = True, **fields: Any) -> ModelT:
@@ -163,7 +165,6 @@ class CRUDService[ModelT]:
         for key, value in fields.items():
             if not hasattr(instance, key):
                 raise CRUDError(f"{self.model.__name__} has no attribute '{key}'")
-
             if value is not None:
                 setattr(instance, key, value)
         self._flush_or_commit(commit)

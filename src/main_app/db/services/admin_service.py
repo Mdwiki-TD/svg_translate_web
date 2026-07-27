@@ -67,6 +67,10 @@ class AdminService(CRUDService[AdminUserRecord]):
             self.session.rollback()
             if "a foreign key constraint fails" in str(exc):
                 raise UserNotFoundError(f"User '{username}' does not exist") from exc
+
+            if "Duplicate entry" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
+                raise DuplicateRecordError(f"Coordinator '{username}' already exists") from exc
+
             raise
         self.session.refresh(record)
         return record
