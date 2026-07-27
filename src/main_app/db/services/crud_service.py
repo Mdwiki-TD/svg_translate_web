@@ -1,25 +1,5 @@
 """
 Generic CRUD service/repository for Flask-SQLAlchemy models.
-
-Usage
------
-    from flask_sqlalchemy import SQLAlchemy
-    db = SQLAlchemy()
-
-    class User(db.Model):
-        id: Mapped[int] = mapped_column(primary_key=True)
-        email: Mapped[str] = mapped_column(unique=True)
-
-    class UserService(CRUDService[User, int]):
-        model = User
-
-    user_service = UserService(db.session)
-
-    user = user_service.create(email="a@example.com")
-    user = user_service.get_or_404(1)
-    users = user_service.list(filters={"email": "a@example.com"}, limit=20)
-    user = user_service.update(user, email="b@example.com")
-    user_service.delete(user)
 """
 
 from __future__ import annotations
