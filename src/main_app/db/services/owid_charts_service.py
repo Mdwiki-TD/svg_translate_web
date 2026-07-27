@@ -125,7 +125,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         chart_data: dict[str, Any],
     ) -> OwidChartRecord | None:
 
-        @retry_on_db_disconnect
+        @retry_on_db_disconnect()
         def with_retry() -> OwidChartRecord | None:
             return self._update_chart_data(chart_id, chart_data)
 
