@@ -9,12 +9,11 @@ from typing import Any
 
 from sqlalchemy.exc import IntegrityError
 
-from ...extensions import db
 from ..models import SettingRecord
 from .crud_service import CRUDService
-from .utils import db_guard
 
 logger = logging.getLogger(__name__)
+
 
 
 def _serialize_value(value: Any, value_type: str) -> str | None:
@@ -30,101 +29,12 @@ def _serialize_value(value: Any, value_type: str) -> str | None:
     return str(value)
 
 
-def _list_settings() -> list[SettingRecord]:
-    """Return all setting records."""
-    orm_objs = db.session.query(SettingRecord).all()
-    return orm_objs
-
-
-def _get_setting_by_key(key: str) -> SettingRecord | None:
-    """Fetch a setting by key."""
-    return db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
-
-
-def _get_setting_by_id(setting_id: int) -> SettingRecord | None:
-    """Get a setting record by ID."""
-    orm_obj = db.session.get(SettingRecord, setting_id)
-    if not orm_obj:
-        logger.warning(f"Setting record with ID {setting_id} not found")
-        return None
-    return orm_obj
-
-
-@db_guard(default_return=False)
-def _update_setting(
-    key: str,
-    value: Any,
-    value_type: str = "string",
-    title: str | None = None,
-) -> bool:
-    """
-    Update an existing setting.
-    """
-    setting = db.session.query(SettingRecord).filter(SettingRecord.key == key).first()
-    if not setting:
-        return False
-
-    if not value_type:
-        value_type = setting.value_type
-
-    setting.value = _serialize_value(value, value_type)
-    if title:
-        setting.title = title
-    db.session.commit()
-    return True
-
-
-def _create_setting(
-    key: str,
-    title: str,
-    value_type: str = "boolean",
-    value: Any | None = None,
-) -> bool:
-    """
-    Create new setting.
-    """
-    key = key.strip()
-    title = title.strip()
-    if not key:
-        raise ValueError("Key is required")
-    if not title:
-        raise ValueError("Title is required")
-
-    default_value_types = {
-        "boolean": "false",
-        "integer": "0",
-    }
-
-    value = value or default_value_types.get(value_type, "")
-
-    orm_obj = SettingRecord(
-        key=key,
-        title=title,
-        value_type=value_type,
-        value=str(value) if value is not None else None,
-    )
-    db.session.add(orm_obj)
-    try:
-        db.session.commit()
-        return True
-    except IntegrityError:
-        db.session.rollback()
-        return False
-    except Exception:
-        db.session.rollback()
-        return False
-
-
 class SettingsService(CRUDService[SettingRecord]):
     def __init__(self) -> None:
         super().__init__(SettingRecord)
 
     def list_settings(self) -> list[SettingRecord]:
-        try:
-            return _list_settings()
-        except Exception:
-            logger.exception("Could not list settings")
-            return []
+        return self.list_all()
 
     def get_all_settings_raw(self) -> list[dict[str, Any]]:
         """Fetch a setting by key."""
@@ -157,18 +67,15 @@ class SettingsService(CRUDService[SettingRecord]):
         return records
 
     def get_setting_by_key(self, key: str) -> SettingRecord | None:
+        """Fetch a setting by key."""
         try:
-            return _get_setting_by_key(key)
+            return self.session.query(SettingRecord).filter(SettingRecord.key == key).first()
         except Exception:
             logger.exception("Could not get setting by key")
             return None
 
     def get_setting_by_id(self, setting_id: int) -> SettingRecord | None:
-        try:
-            return _get_setting_by_id(setting_id)
-        except Exception:
-            logger.exception("Could not get setting by ID")
-            return None
+        return self.get(setting_id)
 
     def update_setting(
         self,
@@ -177,7 +84,25 @@ class SettingsService(CRUDService[SettingRecord]):
         value_type: str = "string",
         title: str | None = None,
     ) -> bool:
-        return _update_setting(key, value, value_type, title)
+        """
+        Update an existing setting.
+        """
+        try:
+            setting = self.session.query(SettingRecord).filter(SettingRecord.key == key).first()
+            if not setting:
+                return False
+
+            if not value_type:
+                value_type = setting.value_type
+
+            setting.value = _serialize_value(value, value_type)
+            if title:
+                setting.title = title
+            self.session.commit()
+            return True
+        except Exception as e:
+            self.session.rollback()
+            return False
 
     def create_setting(
         self,
@@ -186,7 +111,39 @@ class SettingsService(CRUDService[SettingRecord]):
         value_type: str = "boolean",
         value: Any | None = None,
     ) -> bool:
-        return _create_setting(key, title, value_type, value)
+        """
+        Create new setting.
+        """
+        key = key.strip()
+        title = title.strip()
+        if not key:
+            raise ValueError("Key is required")
+        if not title:
+            raise ValueError("Title is required")
+
+        default_value_types = {
+            "boolean": "false",
+            "integer": "0",
+        }
+
+        value = value or default_value_types.get(value_type, "")
+
+        orm_obj = SettingRecord(
+            key=key,
+            title=title,
+            value_type=value_type,
+            value=str(value) if value is not None else None,
+        )
+        self.session.add(orm_obj)
+        try:
+            self.session.commit()
+            return True
+        except IntegrityError:
+            self.session.rollback()
+            return False
+        except Exception:
+            self.session.rollback()
+            return False
 
     def delete_setting_by_key(self, key: str) -> bool:
         record = SettingRecord.query.filter_by(key=key).first()
@@ -194,13 +151,14 @@ class SettingsService(CRUDService[SettingRecord]):
             return False
 
         try:
-            db.session.delete(record)
-            db.session.commit()
+            self.session.delete(record)
+            self.session.commit()
             return True
         except Exception as e:
             logger.error(f"Error deleting {self.model.__name__} with PK {record.id}: {e}")
-            db.session.rollback()
-            return False
+            self.session.rollback()
+        return False
+
 
 
 __all__ = [

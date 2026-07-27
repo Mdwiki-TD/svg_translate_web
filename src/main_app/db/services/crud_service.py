@@ -53,6 +53,9 @@ class CRUDService[ModelT: db.Model]:
             logger.error("Error getting %s id=%s: %s", self.model.__name__, record_id, exc)
             return None
 
+    def get(self, record_id: int) -> ModelT | None:
+        return self.get_record_by_id(record_id)
+
     def add_record(self, data: dict[str, Any]) -> ModelT | None:
         """Add a record for the configured model.
 
