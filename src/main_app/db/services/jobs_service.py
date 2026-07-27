@@ -198,7 +198,7 @@ class JobsService(CRUDService[JobRecord]):
         *,
         job_type: str,
     ) -> JobRecord:
-        return retry_on_db_disconnect(self._update_job_status(job_id, status, result_file, job_type=job_type))
+        return retry_on_db_disconnect()(self._update_job_status)(job_id, status, result_file, job_type=job_type)
 
     def cancel_job_db(self, job_id: int, job_type: str | None = None) -> bool:
         """

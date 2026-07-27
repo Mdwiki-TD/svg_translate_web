@@ -169,8 +169,9 @@ class TestIsJobCancelled(TestSetup):
         mock_record = MagicMock()
         mock_record.status = "cancelled"
         mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = mock_record
+        mock_query.return_value.filter.return_value.first.return_value = mock_record
         monkeypatch.setattr(self.service.session, "query", mock_query)
+        monkeypatch.setattr(self.service.session, "refresh", MagicMock())
 
         result = self.service.is_job_cancelled(1, "test")
         assert result is True
@@ -180,7 +181,7 @@ class TestIsJobCancelled(TestSetup):
             mock_record = MagicMock()
             mock_record.status = status
             mock_query = MagicMock()
-            mock_query.filter.return_value.first.return_value = mock_record
+            mock_query.return_value.filter.return_value.first.return_value = mock_record
 
             monkeypatch.setattr(self.service.session, "query", mock_query)
 
@@ -189,7 +190,7 @@ class TestIsJobCancelled(TestSetup):
 
     def test_no_record_returns_false(self, monkeypatch):
         mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = None
+        mock_query.return_value.filter.return_value.first.return_value = None
         monkeypatch.setattr(self.service.session, "query", mock_query)
         result = self.service.is_job_cancelled(1, "test")
         assert result is False
@@ -198,7 +199,7 @@ class TestIsJobCancelled(TestSetup):
         mock_record = MagicMock()
         mock_record.status = "cancelled"
         mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = mock_record
+        mock_query.return_value.filter.return_value.first.return_value = mock_record
         refresh = MagicMock()
         monkeypatch.setattr(self.service.session, "query", mock_query)
         monkeypatch.setattr(self.service.session, "refresh", refresh)
@@ -497,6 +498,7 @@ class TestUpdateJobStatusWithRetry(TestSetup):
         monkeypatch.setattr(self.service.session, "query", mock_query)
         monkeypatch.setattr(self.service.session, "commit", mock_commit)
         monkeypatch.setattr(self.service.session, "rollback", MagicMock())
+        monkeypatch.setattr(self.service.session, "refresh", MagicMock())
 
         result = self.service.update_job_status_with_retry(1, "completed", job_type="test_job")
         assert result == mock_job
