@@ -480,9 +480,6 @@ class TestUpdateJobStatusWithRetry(TestSetup):
         mock_job.result_file = None
         mock_job.is_running = 1
 
-        mock_query = MagicMock()
-        mock_query.return_value.filter.return_value.filter.return_value.first.return_value = mock_job
-
         commit_call_count = [0]
 
         def mock_commit():
@@ -492,7 +489,7 @@ class TestUpdateJobStatusWithRetry(TestSetup):
                 error.connection_invalidated = True
                 raise error
 
-        monkeypatch.setattr(self.service.session, "query", mock_query)
+        monkeypatch.setattr(self.service, "get_by", lambda **kwargs: mock_job)
         monkeypatch.setattr(self.service.session, "commit", mock_commit)
         monkeypatch.setattr(self.service.session, "rollback", MagicMock())
         monkeypatch.setattr(self.service.session, "refresh", MagicMock())
