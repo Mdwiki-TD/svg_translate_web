@@ -8,7 +8,6 @@ from sqlalchemy.exc import OperationalError
 from src.main_app.db.exceptions import DuplicateRecordError
 from src.main_app.db.models import JobRecord
 from src.main_app.db.services.jobs_service import JobsService, _normalize_limit
-from src.main_app.extensions import db
 
 
 class TestSetup:
@@ -357,15 +356,12 @@ class TestUpdateJobStatus(TestSetup):
 
 class TestDeleteJob(TestSetup):
     def test_delete_existing_job(self) -> None:
-        record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
-        db.session.add(record)
-        db.session.commit()
-        db.session.refresh(record)
+        record = self.service.create(job_type="copy_svg_langs", status="completed", username="admin")
         job_id = record.id
 
         result = self.service.delete_job_by_id_and_type(job_id, "copy_svg_langs")
         assert result is True
-        db.session.expire_all()
+        self.service.expire_all()
         assert self.service.get(job_id) is None
 
     def test_delete_non_existent_job(self) -> None:
@@ -373,15 +369,12 @@ class TestDeleteJob(TestSetup):
         assert result is False
 
     def test_delete_job_wrong_type(self) -> None:
-        record = JobRecord(job_type="copy_svg_langs", status="completed", username="admin")
-        db.session.add(record)
-        db.session.commit()
-        db.session.refresh(record)
+        record = self.service.create(job_type="copy_svg_langs", status="completed", username="admin")
         job_id = record.id
 
         result = self.service.delete_job_by_id_and_type(job_id, "wrong_type")
         assert result is False
-        db.session.expire_all()
+        self.service.expire_all()
         assert self.service.get(job_id) is not None
 
 

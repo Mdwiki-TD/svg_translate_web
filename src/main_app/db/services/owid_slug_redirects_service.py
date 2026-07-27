@@ -41,7 +41,7 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         if existing:
             logger.info("Slug redirect already exists: %s -> %s", slug, redirect_to)
             return None
-        return self.create(slug=slug, redirect_to=redirect_to)
+        return self.create_safe(slug=slug, redirect_to=redirect_to)
 
     def update_slug_redirect(self, redirect_id: int, data: dict[str, Any]) -> OwidSlugRedirectRecord | None:
         """

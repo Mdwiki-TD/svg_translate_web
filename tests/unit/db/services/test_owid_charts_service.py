@@ -44,9 +44,7 @@ class TestListCharts(TestSetup):
 
     def test_respects_limit(self, chart_record: OwidChartRecord) -> None:
         """Apply the limit argument to the query."""
-        second = OwidChartRecord(slug="second-chart", title="Second Chart")
-        db.session.add(second)
-        db.session.commit()
+        second = self.service.create(slug="second-chart", title="Second Chart")
 
         result = self.service.list_charts(limit=1)
         assert len(result) == 1
@@ -89,9 +87,8 @@ class TestListPublishedCharts(TestSetup):
 
     def test_returns_only_published(self, chart_record: OwidChartRecord) -> None:
         """Return only charts where is_published is True."""
-        unpublished = OwidChartRecord(slug="unpublished", title="Unpublished", is_published=False)
-        db.session.add(unpublished)
-        db.session.commit()
+        unpublished = self.service.create(slug="unpublished", title="Unpublished", is_published=False)
+
 
         result = self.service.list_published_charts()
         assert len(result) == 1
@@ -100,8 +97,7 @@ class TestListPublishedCharts(TestSetup):
 
     def test_returns_empty_when_none_published(self) -> None:
         """Return empty list when no published charts exist."""
-        db.session.add(OwidChartRecord(slug="unpublished", title="Unpublished", is_published=False))
-        db.session.commit()
+        self.service.create(slug="unpublished", title="Unpublished", is_published=False)
 
         assert self.service.list_published_charts() == []
 

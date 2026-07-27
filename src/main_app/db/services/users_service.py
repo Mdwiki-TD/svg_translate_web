@@ -44,7 +44,7 @@ class UsersService(CRUDService[UserRecord]):
             return existing
 
         data = {"username": username}
-        return self.create(**data)
+        return self.create_safe(**data)
 
     def toggle_can_run_jobs(self, user_id: int, value: bool) -> UserRecord:
         """Toggle can_run_jobs."""

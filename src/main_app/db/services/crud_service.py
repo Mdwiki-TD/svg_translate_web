@@ -119,21 +119,28 @@ class CRUDService[ModelT]:
     # Write
     # ------------------------------------------------------------------ #
 
-    def create(self, **fields: Any) -> ModelT | None:
+    def create(self, **fields: Any) -> ModelT:
         """Instantiate the model with `fields` and persist it."""
         try:
             instance = self.model(**fields)
             self.session.add(instance)
-        except Exception as exc:
-            logger.exception("Error adding %s", self.model_name)
-            return None
+        except Exception:
+            logger.error("Error adding %s", self.model_name)
+            raise
 
         try:
             self.commit()
             self.session.refresh(instance)
             return instance
+        except Exception:
+            logger.error("Error adding %s", self.model_name)
+            raise
+
+    def create_safe(self, **fields: Any) -> ModelT | None:
+        """Instantiate the model with `fields` and persist it."""
+        try:
+            return self.create(**fields)
         except Exception as exc:
-            logger.exception("Error adding %s", self.model_name)
             return None
 
     def update(self, instance: ModelT, **fields: Any) -> ModelT:
@@ -174,7 +181,7 @@ class CRUDService[ModelT]:
         instance = self.get_record_by_id(pk)
         if instance is not None:
             return self.update(instance, **fields), False
-        return self.create(**fields), True
+        return self.create_safe(**fields), True
 
     def bulk_create(self, items: Iterable[dict[str, Any]]) -> Sequence[ModelT]:
         instances = [self.model(**fields) for fields in items]
@@ -226,6 +233,8 @@ class CRUDService[ModelT]:
     def _base_select(self) -> Select[tuple[ModelT]]:
         return select(self.model)
 
+    def expire_all(self) -> None:
+        self.session.expire_all()
 
 __all__ = [
     "CRUDService",

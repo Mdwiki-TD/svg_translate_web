@@ -107,7 +107,7 @@ class SettingsService(CRUDService[SettingRecord]):
         title: str,
         value_type: str = "boolean",
         value: Any | None = None,
-    ) -> bool:
+    ) -> SettingRecord | None:
         """
         Create new setting.
         """
@@ -125,7 +125,7 @@ class SettingsService(CRUDService[SettingRecord]):
         if value is None:
             value = default_value_types.get(value_type, "")
 
-        return self.create(
+        return self.create_safe(
             key=key,
             title=title,
             value_type=value_type,
