@@ -28,6 +28,31 @@ def _serialize_value(value: Any, value_type: str) -> str | None:
             return "0"
     return str(value)
 
+def format_values(records: list[SettingRecord]) -> dict[str, Any]:
+    """Fetch all settings parsed into their respective Python types."""
+    data: dict[str, Any] = {}
+
+    for x in records:
+        val = None
+        if x.value_type == "boolean":
+            val = x.value == "true"
+        elif x.value_type == "integer":
+            if isinstance(x.value, int):
+                val = x.value
+            else:
+                try:
+                    val = int(x.value)  # type: ignore
+                except (ValueError, TypeError):
+                    val = None
+        elif x.value_type == "string":
+            val = str(x.value)
+
+        if val is None:
+            logger.warning("Could not parse setting %s with value %s", x.key, x.value)
+
+        data[x.key] = val
+
+    return data
 
 class SettingsService(CRUDService[SettingRecord]):
     def __init__(self) -> None:
@@ -42,37 +67,11 @@ class SettingsService(CRUDService[SettingRecord]):
 
     def get_all_settings_ready(self) -> dict[str, Any]:
         """Fetch all settings parsed into their respective Python types."""
-        records: dict[str, Any] = {}
-
-        for x in self.list_settings():
-            val = None
-            if x.value_type == "boolean":
-                val = x.value == "true"
-            elif x.value_type == "integer":
-                if isinstance(x.value, int):
-                    val = x.value
-                else:
-                    try:
-                        val = int(x.value)  # type: ignore
-                    except (ValueError, TypeError):
-                        val = None
-            elif x.value_type == "string":
-                val = str(x.value)
-
-            if val is None:
-                logger.warning("Could not parse setting %s with value %s", x.key, x.value)
-
-            records[x.key] = val
-
-        return records
+        return format_values(self.list_settings())
 
     def get_setting_by_key(self, key: str) -> SettingRecord | None:
         """Fetch a setting by key."""
-        try:
-            return self.session.query(SettingRecord).filter(SettingRecord.key == key).first()
-        except Exception:
-            logger.exception("Could not get setting by key")
-            return None
+        return self.get_by(key=key)
 
     def get_setting_by_id(self, setting_id: int) -> SettingRecord | None:
         return self.get(setting_id)
@@ -87,17 +86,18 @@ class SettingsService(CRUDService[SettingRecord]):
         """
         Update an existing setting.
         """
+        record = self.get_by(key=key)
+        if not record:
+            return False
+
+        if not value_type:
+            value_type = record.value_type
+
+        record.value = _serialize_value(value, value_type)
+        if title:
+            record.title = title
+
         try:
-            setting = self.session.query(SettingRecord).filter(SettingRecord.key == key).first()
-            if not setting:
-                return False
-
-            if not value_type:
-                value_type = setting.value_type
-
-            setting.value = _serialize_value(value, value_type)
-            if title:
-                setting.title = title
             self.session.commit()
             return True
         except Exception as e:
@@ -146,10 +146,10 @@ class SettingsService(CRUDService[SettingRecord]):
             return False
 
     def delete_setting_by_key(self, key: str) -> bool:
+        record = self.get_by(key=key)
+        if record is None:
+            return False
         try:
-            record = SettingRecord.query.filter_by(key=key).first()
-            if record is None:
-                return False
             self.session.delete(record)
             self.session.commit()
             return True
