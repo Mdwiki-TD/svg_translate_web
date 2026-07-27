@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 ModelT = TypeVar("ModelT", bound=db.Model)
 
 
-class DbService(Generic[ModelT]):
+class CRUDService(Generic[ModelT]):
     """Shared database service helpers for SQLAlchemy model services."""
 
     model: type[ModelT]
@@ -103,5 +103,5 @@ class DbService(Generic[ModelT]):
         return delete_service.delete_record_by_pk(self.model, record_id)
 
 __all__ = [
-    "DbService",
+    "CRUDService",
 ]

@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 from ...extensions import db
 from ...shared.core.crypto import encrypt_value
 from ..models import UserTokenRecord
-from .crud_service import DbService
+from .crud_service import CRUDService
 from .utils import db_guard_rollback
 
 logger = logging.getLogger(__name__)
@@ -118,7 +118,7 @@ def _upsert_user_token(
     return orm_obj
 
 
-class UserTokenService(DbService[UserTokenRecord]):
+class UserTokenService(CRUDService[UserTokenRecord]):
     def __init__(self) -> None:
         super().__init__(UserTokenRecord)
 

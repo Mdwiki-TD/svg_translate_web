@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from ...extensions import db
 from ..exceptions import DuplicateRecordError, UserNotFoundError
 from ..models import AdminUserRecord
-from .crud_service import DbService
+from .crud_service import CRUDService
 from .utils import db_guard_rollback
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ def _set_coordinator_active(coordinator_id: int, is_active: bool) -> AdminUserRe
     return record
 
 
-class AdminService(DbService[AdminUserRecord]):
+class AdminService(CRUDService[AdminUserRecord]):
     def __init__(self) -> None:
         super().__init__(AdminUserRecord)
 

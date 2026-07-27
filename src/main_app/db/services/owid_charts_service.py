@@ -7,7 +7,7 @@ from sqlalchemy import func
 
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
-from .crud_service import DbService
+from .crud_service import CRUDService
 from .utils import db_guard_rollback, retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
@@ -155,7 +155,7 @@ def _update_chart_data_with_retry(
     return _update_chart_data(chart_id, chart_data)
 
 
-class OwidChartsService(DbService[OwidChartRecord]):
+class OwidChartsService(CRUDService[OwidChartRecord]):
     def __init__(self) -> None:
         super().__init__(OwidChartRecord)
 

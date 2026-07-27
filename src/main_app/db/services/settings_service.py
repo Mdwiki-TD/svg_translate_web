@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
 from ..models import SettingRecord
-from .crud_service import DbService
+from .crud_service import CRUDService
 from .utils import db_guard
 
 logger = logging.getLogger(__name__)
@@ -115,7 +115,7 @@ def _create_setting(
         return False
 
 
-class SettingsService(DbService[SettingRecord]):
+class SettingsService(CRUDService[SettingRecord]):
     def __init__(self) -> None:
         super().__init__(SettingRecord)
 

@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from ...extensions import db
 from ..exceptions import DuplicateRecordError
 from ..models import JobRecord
-from .crud_service import DbService
+from .crud_service import CRUDService
 from .utils import db_guard, db_guard_rollback, retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
@@ -325,7 +325,7 @@ def _delete_job_by_id_and_type(job_id: int, job_type: str) -> bool:
         return False
 
 
-class JobsService(DbService[JobRecord]):
+class JobsService(CRUDService[JobRecord]):
     def __init__(self) -> None:
         super().__init__(JobRecord)
 

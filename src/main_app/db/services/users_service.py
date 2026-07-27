@@ -11,7 +11,7 @@ import logging
 from ...extensions import db
 from ..exceptions import UserNotFoundError
 from ..models import UserRecord
-from .crud_service import DbService
+from .crud_service import CRUDService
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ def _toggle_can_run_bg_jobs(user_id: int, value: bool) -> UserRecord:
 # ── DELETE ───────────────────────────────────────────────
 
 
-class UsersService(DbService[UserRecord]):
+class UsersService(CRUDService[UserRecord]):
     def __init__(self) -> None:
         super().__init__(UserRecord)
 

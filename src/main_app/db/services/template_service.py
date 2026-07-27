@@ -9,7 +9,7 @@ from ...extensions import db
 from ..exceptions import DuplicateRecordError
 from ..models.templates import TemplateRecord
 from ..templates_utils import ensure_template_data
-from .crud_service import DbService
+from .crud_service import CRUDService
 from .utils import db_guard
 
 logger = logging.getLogger(__name__)
@@ -118,7 +118,7 @@ def _update_template_data(
     return template
 
 
-class TemplateService(DbService[TemplateRecord]):
+class TemplateService(CRUDService[TemplateRecord]):
     def __init__(self) -> None:
         super().__init__(TemplateRecord)
 
