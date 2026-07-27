@@ -14,7 +14,6 @@ from sqlalchemy.exc import OperationalError
 import src.main_app.db.services.utils.retry_on_disconnect as decorators_module
 from src.main_app.db.models import SettingRecord
 from src.main_app.db.services.utils.retry_on_disconnect import retry_on_db_disconnect
-from src.main_app.extensions import db
 
 
 def make_operational_error(message="some error", connection_invalidated=False):
@@ -161,11 +160,11 @@ class TestRetryOnDbDisconnectDetachedInstanceNoRemove:
     for SQLAlchemy objects the caller loaded before calling the decorated function.
     This is because db.session.remove() expires and detaches all ORM-managed objects."""
 
-    def test_objects_usable_on_first_try_success(self):
+    def test_objects_usable_on_first_try_success(self, sqlite_db):
         """No retry → session.remove() never called → objects remain usable."""
         record = SettingRecord(key="k", title="T", value="v", value_type="string")
-        db.session.add(record)
-        db.session.commit()
+        sqlite_db.session.add(record)
+        sqlite_db.session.commit()
 
         loaded = SettingRecord.query.first()
         assert loaded is not None
@@ -178,12 +177,12 @@ class TestRetryOnDbDisconnectDetachedInstanceNoRemove:
         assert ok() == "ok"
         assert loaded.value == "v"
 
-    def test_objects_usable_on_non_disconnect_error(self):
+    def test_objects_usable_on_non_disconnect_error(self, sqlite_db):
         """Non-disconnect OperationalError is re-raised immediately,
-        db.session.remove() is never called → objects remain usable."""
+        sqlite_db.session.remove() is never called → objects remain usable."""
         record = SettingRecord(key="k", title="T", value="v", value_type="string")
-        db.session.add(record)
-        db.session.commit()
+        sqlite_db.session.add(record)
+        sqlite_db.session.commit()
 
         loaded = SettingRecord.query.first()
         assert loaded is not None
