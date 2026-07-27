@@ -78,11 +78,11 @@ class AdminService(CRUDService[AdminUserRecord]):
     def set_coordinator_active(self, coordinator_id: int, is_active: bool) -> AdminUserRecord | None:
         """Toggle coordinator activity."""
         # record = get_coordinator_by_id(coordinator_id)
-        try:
-            record = self.get_record_by_id(coordinator_id)
-            if not record:
-                return None
+        record = self.get_record_by_id(coordinator_id)
+        if not record:
+            return None
 
+        try:
             record.is_active = is_active
             self.session.commit()
             self.session.refresh(record)
