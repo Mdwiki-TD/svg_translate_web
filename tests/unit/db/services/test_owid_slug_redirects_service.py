@@ -17,7 +17,7 @@ def mock_db_session(monkeypatch: pytest.MonkeyPatch):
 
 class TestOwidSlugRedirectsService:
     @pytest.fixture(autouse=True)
-    def setup(self, monkeypatch):
+    def setup(self, mock_db_session):
         self.service = OwidSlugRedirectsService()
 
     def test_add_new_slug_redirect_new(self, mock_db_session):
