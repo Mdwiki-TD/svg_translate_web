@@ -146,11 +146,10 @@ class SettingsService(CRUDService[SettingRecord]):
             return False
 
     def delete_setting_by_key(self, key: str) -> bool:
-        record = SettingRecord.query.filter_by(key=key).first()
-        if not record:
-            return False
-
         try:
+            record = SettingRecord.query.filter_by(key=key).first()
+            if not record:
+                return False
             self.session.delete(record)
             self.session.commit()
             return True
