@@ -119,7 +119,7 @@ class CRUDService[ModelT]:
     # Write
     # ------------------------------------------------------------------ #
 
-    def create(self, *, commit: bool = True, **fields: Any) -> ModelT | None:
+    def create(self, **fields: Any) -> ModelT | None:
         """Instantiate the model with `fields` and persist it."""
         try:
             instance = self.model(**fields)
@@ -131,7 +131,7 @@ class CRUDService[ModelT]:
             logger.exception("Error adding %s", self.model_name)
             return None
 
-    def update(self, instance: ModelT, *, commit: bool = True, **fields: Any) -> ModelT:
+    def update(self, instance: ModelT, **fields: Any) -> ModelT:
         """Set attributes on `instance` and persist the change."""
         for key, value in fields.items():
             if not hasattr(instance, key):
@@ -156,23 +156,23 @@ class CRUDService[ModelT]:
 
         try:
             # if validate and hasattr(record, "validate"): record.validate()
-            self.update(record, commit=True, **data)
+            self.update(record, **data)
             return record
         except Exception as exc:
             logger.error("Error updating %s id=%s: %s", self.model_name, pk, exc)
             return None
 
-    def upsert(self, pk: PKT, *, commit: bool = True, **fields: Any) -> tuple[ModelT, bool]:
+    def upsert(self, pk: PKT, **fields: Any) -> tuple[ModelT, bool]:
         """
         Update the row with primary key `pk` if it exists, else create it.
         Returns (instance, created).
         """
         instance = self.get_record_by_id(pk)
         if instance is not None:
-            return self.update(instance, commit=commit, **fields), False
-        return self.create(commit=commit, **fields), True
+            return self.update(instance, **fields), False
+        return self.create(**fields), True
 
-    def bulk_create(self, items: Iterable[dict[str, Any]], *, commit: bool = True) -> Sequence[ModelT]:
+    def bulk_create(self, items: Iterable[dict[str, Any]]) -> Sequence[ModelT]:
         instances = [self.model(**fields) for fields in items]
         self.session.add_all(instances)
         try:
