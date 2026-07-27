@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
-import pytest
 import requests
 
 from src.main_app.utils.file_langs import (
-    LANG_CODE_CATEGORY_MAP,
     get_file_languages,
     lang_code_category,
 )
