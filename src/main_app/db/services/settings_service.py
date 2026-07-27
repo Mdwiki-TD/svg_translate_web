@@ -148,15 +148,15 @@ class SettingsService(CRUDService[SettingRecord]):
     def delete_setting_by_key(self, key: str) -> bool:
         try:
             record = SettingRecord.query.filter_by(key=key).first()
-            if not record:
+            if record is None:
                 return False
             self.session.delete(record)
             self.session.commit()
             return True
-        except Exception as e:
-            logger.error(f"Error deleting {self.model.__name__} with PK {record.id}: {e}")
+        except Exception:
             self.session.rollback()
-        return False
+            logger.exception("Could not delete setting with key %s", key)
+            return False
 
 
 __all__ = [
