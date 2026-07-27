@@ -222,6 +222,7 @@ class CRUDService[ModelT]:
     def _base_select(self) -> Select[tuple[ModelT]]:
         return select(self.model)
 
+
 __all__ = [
     "CRUDService",
 ]
