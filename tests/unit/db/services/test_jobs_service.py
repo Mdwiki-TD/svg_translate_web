@@ -338,27 +338,6 @@ class TestUpdateJobStatus(TestSetup):
         assert updated.status == "cancelled"
         assert updated.completed_at is not None
 
-    def test_re_raises_after_max_retries(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        # Keep this mock: it intentionally simulates a DBAPI connection-invalidated OperationalError.
-        mock_job = MagicMock()
-        mock_job.started_at = None
-        mock_job.status = "pending"
-        mock_job.completed_at = None
-        mock_job.result_file = None
-        mock_job.is_running = 1
-
-        def mock_commit() -> None:
-            error = OperationalError("stmt", {}, None)
-            error.connection_invalidated = True
-            raise error
-
-        monkeypatch.setattr(self.service, "get_by", lambda **kwargs: mock_job)
-        monkeypatch.setattr(self.service.session, "commit", mock_commit)
-        monkeypatch.setattr(self.service.session, "rollback", MagicMock())
-
-        with pytest.raises(OperationalError):
-            self.service.update_job_status(1, "completed", job_type="test_job")
-
     def test_update_job_status(self) -> None:
         """Test updating a job's status."""
         job = self.service.create_job("collect_templates_data", username="z")
@@ -377,39 +356,6 @@ class TestUpdateJobStatus(TestSetup):
 
         assert updated_job.status == "completed"
         assert updated_job.result_file == "/path/to/result.json"
-
-
-class TestUpdateJobStatusWithRetry(TestSetup):
-    """Tests for update_job_status_with_retry."""
-
-    def test_retries_on_connection_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        # Keep this mock: the retry path requires a synthetic connection-invalidated OperationalError.
-        mock_job = MagicMock()
-        mock_job.started_at = None
-        mock_job.status = "pending"
-        mock_job.completed_at = None
-        mock_job.result_file = None
-        mock_job.is_running = 1
-
-        commit_call_count = [0]
-
-        def mock_commit() -> None:
-            commit_call_count[0] += 1
-            if commit_call_count[0] == 1:
-                error = OperationalError("stmt", {}, None)
-                error.connection_invalidated = True
-                raise error
-
-        monkeypatch.setattr(self.service, "get_by", lambda **kwargs: mock_job)
-        monkeypatch.setattr(self.service.session, "commit", mock_commit)
-        monkeypatch.setattr(self.service.session, "rollback", MagicMock())
-        monkeypatch.setattr(self.service.session, "refresh", MagicMock())
-
-        result = self.service.update_job_status_with_retry(1, "completed", job_type="test_job")
-        assert result == mock_job
-        assert result.status == "completed"
-        assert commit_call_count[0] == 2
-
 
 class TestDeleteJob(TestSetup):
     def test_delete_existing_job(self) -> None:
@@ -462,3 +408,57 @@ class TestCreateJob(TestSetup):
         assert job is not None
         assert job.id == 1
         assert job.job_type == "collect_templates_data"
+
+
+class TestWithMocks(TestSetup):
+    """Tests for update_job_status_with_retry and update_job_status."""
+
+    def test_retries_on_connection_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Keep this mock: the retry path requires a synthetic connection-invalidated OperationalError.
+        mock_job = MagicMock()
+        mock_job.started_at = None
+        mock_job.status = "pending"
+        mock_job.completed_at = None
+        mock_job.result_file = None
+        mock_job.is_running = 1
+
+        commit_call_count = [0]
+
+        def mock_commit() -> None:
+            commit_call_count[0] += 1
+            if commit_call_count[0] == 1:
+                error = OperationalError("stmt", {}, None)
+                error.connection_invalidated = True
+                raise error
+
+        monkeypatch.setattr(self.service, "get_by", lambda **kwargs: mock_job)
+        monkeypatch.setattr(self.service.session, "commit", mock_commit)
+        monkeypatch.setattr(self.service.session, "rollback", MagicMock())
+        monkeypatch.setattr(self.service.session, "refresh", MagicMock())
+
+        result = self.service.update_job_status_with_retry(1, "completed", job_type="test_job")
+        assert result == mock_job
+        assert result.status == "completed"
+        assert commit_call_count[0] == 2
+
+
+    def test_re_raises_after_max_retries(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Keep this mock: it intentionally simulates a DBAPI connection-invalidated OperationalError.
+        mock_job = MagicMock()
+        mock_job.started_at = None
+        mock_job.status = "pending"
+        mock_job.completed_at = None
+        mock_job.result_file = None
+        mock_job.is_running = 1
+
+        def mock_commit() -> None:
+            error = OperationalError("stmt", {}, None)
+            error.connection_invalidated = True
+            raise error
+
+        monkeypatch.setattr(self.service, "get_by", lambda **kwargs: mock_job)
+        monkeypatch.setattr(self.service.session, "commit", mock_commit)
+        monkeypatch.setattr(self.service.session, "rollback", MagicMock())
+
+        with pytest.raises(OperationalError):
+            self.service.update_job_status(1, "completed", job_type="test_job")
