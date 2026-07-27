@@ -129,6 +129,9 @@ class TemplateService(CRUDService[TemplateRecord]):
             logger.error(f"Error listing templates: {exc}")
             return []
 
+    def list(self, limit: int | None = None) -> list[TemplateRecord]:
+        return self.list_templates(limit)
+
     def list_templates_mismatched_years(self) -> list[TemplateRecord]:
         return _list_templates_mismatched_years()
 
