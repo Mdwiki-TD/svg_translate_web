@@ -46,7 +46,7 @@ class TestSetup:
 
     def _login_admin(self, mock_app, mock_client, username="AdminUser"):
         """Set session to an admin user (DB record must already exist)."""
-        uid = self._seed_admin(mock_app, username="AdminUser")
+        uid = self._seed_admin(mock_app, username=username)
         with mock_client.session_transaction() as sess:
             sess["uid"] = uid
             sess["username"] = username

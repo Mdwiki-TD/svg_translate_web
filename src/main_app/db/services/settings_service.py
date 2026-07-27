@@ -125,8 +125,8 @@ class SettingsService(CRUDService[SettingRecord]):
             "boolean": "false",
             "integer": "0",
         }
-
-        value = value or default_value_types.get(value_type, "")
+        if value is None:
+            value = default_value_types.get(value_type, "")
 
         orm_obj = SettingRecord(
             key=key,
