@@ -8,7 +8,7 @@ from typing import Any
 
 from flask import Flask, current_app
 
-from ..db.exceptions import DuplicateJobError
+from ..db.exceptions import DuplicateRecordError
 from ..db.models import JobRecord
 from ..db.services import (
     JobsService,
@@ -142,7 +142,7 @@ def _start_job_impl(
     try:
         # Create job record
         job = JobsService().create_job(job_type, username)
-    except DuplicateJobError:
+    except DuplicateRecordError:
         logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
         raise
     except Exception:

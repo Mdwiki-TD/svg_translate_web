@@ -142,7 +142,7 @@ class TestLoadTemplates:
             MagicMock(id=3, title="Template:Other/not_owid"),
             MagicMock(id=4, title="Template:OWID/test3"),
         ]
-        mock_add_svglanguages_services["list_templates"].return_value = mock_templates
+        mock_add_svglanguages_services["list"].return_value = mock_templates
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user=None)
         templates = worker._load_templates()
@@ -417,7 +417,7 @@ class TestProcessMethod:
         mock_add_svglanguages_services["get_user_site"].return_value = mock_site
 
         mock_templates = [MagicMock(id=1, title="Template:OWID/test1")]
-        mock_add_svglanguages_services["list_templates"].return_value = mock_templates
+        mock_add_svglanguages_services["list"].return_value = mock_templates
 
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"})
 
@@ -451,7 +451,7 @@ class TestProcessMethod:
             MagicMock(id=2, title="Template:OWID/test2"),
             MagicMock(id=3, title="Template:OWID/test3"),
         ]
-        mock_add_svglanguages_services["list_templates"].return_value = mock_templates
+        mock_add_svglanguages_services["list"].return_value = mock_templates
 
         cancel_event = threading.Event()
         worker = AddSvgSVGLanguagesTemplate(job_id=1, user={"username": "test"}, cancel_event=cancel_event)

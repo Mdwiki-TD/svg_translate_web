@@ -34,7 +34,7 @@ class TestCreateOwidPagesForTemplates:
     def test_entry_point_creates_worker_and_runs(self, mock_services, mock_run):
         """Test that create_owid_pages_for_templates creates worker and runs it."""
         mock_services["get_user_site"].return_value = MagicMock()
-        mock_services["list_templates"].return_value = []
+        mock_services["list"].return_value = []
 
         create_owid_pages_for_templates(job_id=1, user={"username": "test"})
 

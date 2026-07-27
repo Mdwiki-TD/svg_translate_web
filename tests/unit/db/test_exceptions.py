@@ -2,7 +2,7 @@
 """
 Unit tests for src/main_app/db/exceptions.py module.
 
-Classes to test: DatabaseInitError, MaxUserConnectionsError, UserNotFoundError, DuplicateJobError, InsufficientDatabaseConfigError
+Classes to test: DatabaseInitError, MaxUserConnectionsError, UserNotFoundError, DuplicateRecordError, InsufficientDatabaseConfigError
 
 TODO: write tests
 """
@@ -13,7 +13,7 @@ import pytest
 
 from src.main_app.db.exceptions import (
     DatabaseInitError,
-    DuplicateJobError,
+    DuplicateRecordError,
     InsufficientDatabaseConfigError,
     MaxUserConnectionsError,
     UserNotFoundError,

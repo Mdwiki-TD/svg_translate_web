@@ -120,7 +120,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         logger.info("self.exists: %d", len(self.exists))
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = TemplateService().list_templates()
+        templates = TemplateService().list()
         _templates = [t for t in templates if t.last_world_file]
         return self._apply_limits(_templates)
 

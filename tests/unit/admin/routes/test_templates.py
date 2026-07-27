@@ -20,7 +20,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mocks = MagicMock()
     mocks.update_template_data = MagicMock()
     mocks.add_template_data = MagicMock()
-    mocks.list_templates = MagicMock()
+    mocks.list = MagicMock()
     mocks.get_template = MagicMock()
     mocks.get_template_by_title = MagicMock()
     mocks.delete = MagicMock()
@@ -28,7 +28,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
 
     monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
-    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list_templates", mocks.list_templates)
+    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list", mocks.list)
     monkeypatch.setattr(
         "src.main_app.admin.routes.templates.TemplateService.add_template_data", mocks.add_template_data
     )
@@ -66,21 +66,21 @@ class TestTemplatesUnit:
                 updated_at=None,
             )
         ]
-        mock_services.list_templates.return_value = templates
+        mock_services.list.return_value = templates
 
         response, status = self.service.create_json_file()
         assert status == 200
         assert "templates.json" in response.headers["Content-Disposition"]
 
     def test_create_json_file_no_templates(self, mock_services):
-        mock_services.list_templates.return_value = []
+        mock_services.list.return_value = []
 
         msg, status = self.service.create_json_file()
         assert status == 404
         assert "No templates found" in msg
 
     def test_create_json_file_lookup_error(self, mock_services):
-        mock_services.list_templates.return_value = None
+        mock_services.list.return_value = None
         msg, status = self.service.create_json_file()
         assert status == 404
 

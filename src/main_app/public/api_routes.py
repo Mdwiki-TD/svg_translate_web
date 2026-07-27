@@ -34,7 +34,7 @@ class ApiRoutes:
         self.bp.get("/owidcharts/<string:template_filter>")(self.owid_charts_list)
 
     def templates_list(self):
-        templates: list[TemplateRecord] = self.templates_service.list_templates()
+        templates: list[TemplateRecord] = self.templates_service.list()
 
         data: list[dict[str, Any]] = []
         with_main_file = 0

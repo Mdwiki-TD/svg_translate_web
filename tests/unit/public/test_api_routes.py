@@ -73,7 +73,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_app):
     mock_owidcharts_service.list_charts = MagicMock()
 
     mock_template_service = MagicMock()
-    mock_template_service.list_templates = MagicMock()
+    mock_template_service.list = MagicMock()
     mock_template_service.list_templates_mismatched_years = MagicMock()
 
     mocks = MagicMock()
@@ -103,11 +103,11 @@ class TestTemplatesList:
     """Tests for GET /api/templates."""
 
     def test_templates_list(self, mock_client: FlaskClient, mock_services) -> None:
-        """list_templates returns list of templates; response has data and summary."""
+        """list returns list of templates; response has data and summary."""
         t1 = _make_template_mock(id=1, title="T1", main_file="f1.svg")
         t2 = _make_template_mock(id=2, title="T2")
 
-        mock_services.template_service.list_templates.return_value = [t1, t2]
+        mock_services.template_service.list.return_value = [t1, t2]
 
         resp = mock_client.get("/api/templates")
         assert resp.status_code == 200
@@ -138,7 +138,7 @@ class TestTemplatesList:
             source="",
         )
 
-        mock_services.template_service.list_templates.return_value = [t1, t2]
+        mock_services.template_service.list.return_value = [t1, t2]
 
         resp = mock_client.get("/api/templates")
         body = resp.get_json()
@@ -151,7 +151,7 @@ class TestTemplatesList:
 
     def test_templates_list_empty(self, mock_client: FlaskClient, mock_services) -> None:
         """When no templates exist, data is empty and counts are zero."""
-        mock_services.template_service.list_templates.return_value = []
+        mock_services.template_service.list.return_value = []
 
         resp = mock_client.get("/api/templates")
         body = resp.get_json()

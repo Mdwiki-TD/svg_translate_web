@@ -8,30 +8,19 @@ from ..models.views import OwidChartTemplateView, TemplateNeedUpdateView
 logger = logging.getLogger(__name__)
 
 
-# ── SELECT ───────────────────────────────────────────────
-
-
-def _list_templates_need_update() -> list[TemplateNeedUpdateView]:
-    """Return all templates"""
-    query = db.session.query(TemplateNeedUpdateView).order_by(TemplateNeedUpdateView.template_title)
-    return query.all()
-
-
-def _list_owid_charts_templates() -> list[OwidChartTemplateView]:
-    """Return all charts_templates"""
-    query = db.session.query(OwidChartTemplateView).order_by(OwidChartTemplateView.template_title)
-    return query.all()
-
-
 class ViewsService:
     def __init__(self) -> None:
         pass
 
     def list_templates_need_update(self) -> list[TemplateNeedUpdateView]:
-        return _list_templates_need_update()
+        """Return all templates"""
+        query = db.session.query(TemplateNeedUpdateView).order_by(TemplateNeedUpdateView.template_title)
+        return query.all()
 
     def list_owid_charts_templates(self) -> list[OwidChartTemplateView]:
-        return _list_owid_charts_templates()
+        """Return all charts_templates"""
+        query = db.session.query(OwidChartTemplateView).order_by(OwidChartTemplateView.template_title)
+        return query.all()
 
 
 __all__ = [

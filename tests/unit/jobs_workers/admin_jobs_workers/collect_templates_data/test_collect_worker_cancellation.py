@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models import TemplateRecord
-from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import runner as collect_runner
+from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker
 
 
 @pytest.fixture(autouse=True)
@@ -18,7 +18,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     cancel_event = threading.Event()
     mocks = {
         "cancel_event": cancel_event,
-        "list_templates": MagicMock(),
+        "list": MagicMock(),
     }
 
     # Mock update_template_data to set the cancel event
@@ -30,45 +30,58 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     mock_update_template.side_effect = side_effect
 
     mock_template_service = MagicMock()
-    mock_template_service.list_templates = mocks["list_templates"]
+    mock_template_service.list = mocks["list"]
     mock_template_service.add_template_data = MagicMock()
     mock_template_service.update_template_data = mock_update_template
     mock_template_service.get_template_by_title = MagicMock()
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.TemplateService",
+        worker,
+        "TemplateService",
         MagicMock(return_value=mock_template_service),
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MwClientPage",
+        worker,
+        "MwClientPage",
         lambda title, site: MagicMock(get_text=MagicMock(return_value="some wikitext")),
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_main_title",
+        worker,
+        "find_main_title",
         lambda x, remove_prefix=False: "file.svg",
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
+        worker,
+        "find_newest_world_file",
         lambda x, remove_prefix=False: None,
     )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.get_category_members",
-        MagicMock(return_value=[]),
-    )
+    monkeypatch.setattr(worker, "get_category_members", MagicMock(return_value=[]))
 
     return mocks
 
 
-def test_collect_templates_data_worker_cancellation(mock_services, mock_base_worker):
+def test_collect_templates_data_worker_cancellation(monkeypatch, mock_services):
     """Test that collect_templates_data_worker stops when cancelled."""
     templates = [
         TemplateRecord(id=1, title="T1", main_file=None, last_world_file=None),
         TemplateRecord(id=2, title="T2", main_file=None, last_world_file=None),
     ]
-    mock_services["list_templates"].return_value = templates
+    mock_services["list"].return_value = templates
 
-    collect_runner.collect_templates_data_entry(job_id=1, user=None, cancel_event=mock_services["cancel_event"])
+    mock_save_job_result_by_name = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result_by_name)
 
-    result = mock_base_worker["save_job_result_by_name"].call_args[0][1]
+    mock_jobs_service = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService", MagicMock(return_value=mock_jobs_service))
+
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.get_user_site",
+        lambda user: MagicMock(),
+    )
+
+    w = worker.CollectMainFilesWorker(job_id=1, user={"username": "test"}, cancel_event=mock_services["cancel_event"])
+    w.run()
+
+    result = mock_save_job_result_by_name.call_args[0][1]
     assert result.get("status") == "cancelled"
     assert len(result["pages_updated"]) == 1

@@ -156,7 +156,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         return templates
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = TemplateService().list_templates()
+        templates = TemplateService().list()
         _templates = [t for t in templates if t.title.startswith("Template:OWID/")]
         return self._apply_limits(_templates)
 

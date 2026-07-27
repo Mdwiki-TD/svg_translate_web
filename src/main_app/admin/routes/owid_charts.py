@@ -147,7 +147,7 @@ class OwidCharts:
             flash("Unable to add chart. Please try again.", "danger")
             save_error = True
         else:
-            flash(f"Chart '{record.title}' added.", "success")
+            flash(f"Chart '{title}' added.", "success")
 
         if from_popup and save_error:
             return redirect(url_for("adminpanel.owidcharts.add_chart_popup"))

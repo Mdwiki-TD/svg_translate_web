@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Flask
 
-from src.main_app.db.exceptions import DuplicateJobError
+from src.main_app.db.exceptions import DuplicateRecordError
 from src.main_app.jobs_workers.jobs_worker import (
     _load_job_args,
     _pop_cancel_event,
@@ -116,9 +116,9 @@ class TestStartJob:
         {"test": MagicMock(job_callable=lambda **kwargs: None, job_args=[])},
     )
     def test_start_job_duplicate(self, mock_db_services, flask_app):
-        mock_db_services["create"].side_effect = DuplicateJobError()
+        mock_db_services["create"].side_effect = DuplicateRecordError()
         with flask_app.app_context():
-            with pytest.raises(DuplicateJobError):
+            with pytest.raises(DuplicateRecordError):
                 start_job({"username": "u"}, "test")
 
     @patch(

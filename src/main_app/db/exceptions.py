@@ -24,14 +24,6 @@ class UserNotFoundError(LookupError):
     """Raised when a referenced user does not exist in users."""
 
 
-class DuplicateJobError(Exception):
-    """Raised when attempting to create a job of a type that already has an active (pending/running) instance."""
-
-
-class DuplicateUserError(Exception):
-    """Raised when attempting to create a user or coordinator that already exists."""
-
-
 class DuplicateRecordError(Exception):
     """Raised when attempting to create duplicate record."""
 
@@ -42,13 +34,16 @@ class InsufficientDatabaseConfigError(RuntimeError):
         super().__init__(msg)
 
 
+class CRUDError(Exception):
+    """Base error for CRUD service failures."""
+
+
 __all__ = [
+    "CRUDError",
     "UniqueError",
     "DuplicateRecordError",
     "DatabaseInitError",
     "MaxUserConnectionsError",
     "UserNotFoundError",
-    "DuplicateUserError",
-    "DuplicateJobError",
     "InsufficientDatabaseConfigError",
 ]

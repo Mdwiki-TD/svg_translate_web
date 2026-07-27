@@ -12,7 +12,7 @@ def mock_fix_nested_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, m
     """Mock the services used by fix_nested_main_files worker."""
 
     mocks = {
-        "list_templates": MagicMock(),
+        "list": MagicMock(),
         "update_job_status": MagicMock(),
         "save_job_result_by_name": MagicMock(),
         "download_svg_file": MagicMock(),
@@ -24,8 +24,8 @@ def mock_fix_nested_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, m
     }
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.TemplateService.list_templates",
-        mocks["list_templates"],
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.TemplateService.list",
+        mocks["list"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.JobsService.update_job_status", mocks["update_job_status"]
