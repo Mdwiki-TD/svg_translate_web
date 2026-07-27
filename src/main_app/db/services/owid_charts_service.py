@@ -72,8 +72,8 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
             WHERE oct.chart_id = %s
             and oct.chart_id = oc.chart_id
         """
-        records = self.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
-        return records
+        record = self.get_record_by_id(chart_id)
+        return record
 
     def get_chart_by_slug(self, slug: str) -> OwidChartRecord | None:
         """
@@ -139,7 +139,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         """
         Update chart fields if they are not None.
         """
-        chart = self.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
+        chart = self.get_record_by_id(chart_id)
         if not chart:
             return None
 

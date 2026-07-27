@@ -25,7 +25,7 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         """
         Fetch a slug redirect by ID.
         """
-        return self.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id == redirect_id).first()
+        return self.get_record_by_id(redirect_id)
 
     def count_slug_redirects(self) -> int:
         return self.session.query(OwidSlugRedirectRecord).count()

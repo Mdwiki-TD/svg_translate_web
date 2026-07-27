@@ -72,7 +72,7 @@ class SettingsService(CRUDService[SettingRecord]):
         return self.get_by(key=key)
 
     def get_setting_by_id(self, setting_id: int) -> SettingRecord | None:
-        return self.get(setting_id)
+        return self.get_record_by_id(setting_id)
 
     def update_setting(
         self,

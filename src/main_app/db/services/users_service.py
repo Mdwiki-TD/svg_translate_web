@@ -28,7 +28,7 @@ class UsersService(CRUDService[UserRecord]):
         """Fetch a user by user_id."""
         if not user_id:
             return None
-        return self.get(user_id)
+        return self.get_record_by_id(user_id)
 
     def get_user_by_username(self, username: str) -> UserRecord | None:
         """Fetch a user by username."""

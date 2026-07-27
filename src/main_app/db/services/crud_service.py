@@ -45,9 +45,6 @@ class CRUDService[ModelT]:
             logger.error("Error getting %s id=%s: %s", self.model_name, pk, exc)
             return None
 
-    def get(self, pk: PKT) -> ModelT | None:
-        return self.get_record_by_id(pk)
-
     def get_or_404(self, pk: PKT, description: str | None = None) -> ModelT:
         """Fetch a single row by primary key, or raise a 404."""
         instance = self.get_record_by_id(pk)

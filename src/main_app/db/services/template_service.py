@@ -50,7 +50,7 @@ class TemplateService(CRUDService[TemplateRecord]):
         return list(results)
 
     def get_template(self, template_id: int) -> TemplateRecord | None:
-        return self.get(template_id)
+        return self.get_record_by_id(template_id)
 
     def get_template_by_title(self, title: str) -> TemplateRecord | None:
         return self.get_by( title=title )

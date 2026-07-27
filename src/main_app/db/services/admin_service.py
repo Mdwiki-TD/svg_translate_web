@@ -42,7 +42,7 @@ class AdminService(CRUDService[AdminUserRecord]):
         """
         Get a coordinator by ID.
         """
-        record = self.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
+        record = self.get_record_by_id(coordinator_id)
 
         if not record:
             raise LookupError(f"Coordinator id {coordinator_id} was not found")
@@ -79,7 +79,7 @@ class AdminService(CRUDService[AdminUserRecord]):
         """Toggle coordinator activity."""
         # record = get_coordinator_by_id(coordinator_id)
         try:
-            record = self.session.query(AdminUserRecord).filter(AdminUserRecord.id == coordinator_id).first()
+            record = self.get_record_by_id(coordinator_id)
             if not record:
                 return None
 
