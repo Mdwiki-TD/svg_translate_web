@@ -46,12 +46,6 @@ PKT = TypeVar("PKT")  # primary key type, e.g. int, str, uuid.UUID
 class CRUDService[ModelT]:
     """
     Generic CRUD service wrapping a single SQLAlchemy model.
-
-    Subclass and set `model` to the mapped class. The generic parameters
-    let type checkers know exactly what type `get`, `create`, etc. return:
-
-        class UserService(CRUDService[User, int]):
-            model = User
     """
 
     model: type[ModelT]
