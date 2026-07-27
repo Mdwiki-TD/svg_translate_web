@@ -42,8 +42,7 @@ class TestIsActiveCoordinator(TestSetup):
         assert self.service.is_active_coordinator(coordinator_record.username) is True
 
     def test_inactive_coordinator(self, coordinator_record: AdminUserRecord) -> None:
-        coordinator_record.is_active = False
-        db.session.commit()
+        self.service.set_coordinator_active(coordinator_record.id, False)
 
         assert self.service.is_active_coordinator(coordinator_record.username) is False
 
@@ -107,8 +106,7 @@ class TestAddCoordinator(TestSetup):
 
 class TestSetCoordinatorActive(TestSetup):
     def test_activate(self, coordinator_record: AdminUserRecord) -> None:
-        coordinator_record.is_active = False
-        db.session.commit()
+        self.service.set_coordinator_active(coordinator_record.id, False)
 
         result = self.service.set_coordinator_active(coordinator_record.id, True)
         assert result is not None
