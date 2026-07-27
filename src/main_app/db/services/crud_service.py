@@ -124,10 +124,14 @@ class CRUDService[ModelT]:
         try:
             instance = self.model(**fields)
             self.session.add(instance)
-            self.session.commit()
+        except Exception as exc:
+            logger.exception("Error adding %s", self.model_name)
+            return None
+
+        try:
+            self.commit()
             return instance
         except Exception as exc:
-            self.session.rollback()
             logger.exception("Error adding %s", self.model_name)
             return None
 
@@ -140,9 +144,8 @@ class CRUDService[ModelT]:
             if value is not None:
                 setattr(instance, key, value)
         try:
-            self.session.commit()
+            self.commit()
         except Exception as exc:
-            self.session.rollback()
             logger.error("Error updating %s: %s", self.model_name, exc)
 
         return instance
@@ -176,9 +179,8 @@ class CRUDService[ModelT]:
         instances = [self.model(**fields) for fields in items]
         self.session.add_all(instances)
         try:
-            self.session.commit()
+            self.commit()
         except Exception as exc:
-            self.session.rollback()
             logger.error("Error bulk creating %s: %s", self.model_name, exc)
         return instances
 
@@ -194,22 +196,31 @@ class CRUDService[ModelT]:
         if pk is None:
             return False
 
+        record = self.get_record_by_id(pk)
+        if record:
+            return self.delete_record(record)
+
+        return False
+
+    def delete_record(self, record: ModelT) -> bool:
         try:
-            # Use session.get() as it is efficient and looks up by primary key
-            record = self.session.get(self.model, pk)
-            if record:
-                self.session.delete(record)
-                self.session.commit()
-                return True
-            return False
+            self.session.delete(record)
+            self.commit()
+            return True
         except Exception as e:
-            logger.error(f"Error deleting {self.model_name} with PK {pk}: {e}")
-            self.session.rollback()
+            logger.error(f"Error deleting {self.model_name} {e}")
             return False
 
     # ------------------------------------------------------------------ #
     # Internals
     # ------------------------------------------------------------------ #
+
+    def commit(self) -> None:
+        try:
+            self.session.commit()
+        except Exception:
+            self.session.rollback()
+            raise
 
     def _base_select(self) -> Select[tuple[ModelT]]:
         return select(self.model)

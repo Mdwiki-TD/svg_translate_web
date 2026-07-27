@@ -7,8 +7,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy.exc import IntegrityError
-
 from ...extensions import db
 from ..models import SettingRecord
 from .crud_service import CRUDService
@@ -93,16 +91,13 @@ class SettingsService(CRUDService[SettingRecord]):
         if not value_type:
             value_type = record.value_type
 
-        record.value = _serialize_value(value, value_type)
+        data = {
+            "value":  _serialize_value(value, value_type),
+        }
         if title:
-            record.title = title
+            data["title"] = title
 
-        try:
-            self.session.commit()
-            return True
-        except Exception as e:
-            self.session.rollback()
-            return False
+        return self.update(record, **data)
 
     def create_setting(
         self,
@@ -128,35 +123,19 @@ class SettingsService(CRUDService[SettingRecord]):
         if value is None:
             value = default_value_types.get(value_type, "")
 
-        orm_obj = SettingRecord(
+        return self.create(
             key=key,
             title=title,
             value_type=value_type,
             value=str(value) if value is not None else None,
         )
-        self.session.add(orm_obj)
-        try:
-            self.session.commit()
-            return True
-        except IntegrityError:
-            self.session.rollback()
-            return False
-        except Exception:
-            self.session.rollback()
-            return False
 
     def delete_setting_by_key(self, key: str) -> bool:
         record = self.get_by(key=key)
         if record is None:
             return False
-        try:
-            self.session.delete(record)
-            self.session.commit()
-            return True
-        except Exception:
-            self.session.rollback()
-            logger.exception("Could not delete setting with key %s", key)
-            return False
+
+        return self.delete_record(record)
 
 
 __all__ = [
