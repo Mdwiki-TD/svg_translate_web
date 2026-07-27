@@ -52,6 +52,18 @@ def mock_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, tmp_path, mo
     mock_template_service.get_template_by_title = MagicMock()
 
     monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.TemplateService.update_template_data",
+        mocks["update_template_data"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.TemplateService.update_template_data",
+        mocks["list_templates"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.TemplateService.add_template_data",
+        mocks["list_templates"],
+    )
+    monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.TemplateService",
         MagicMock(return_value=mock_template_service),
     )
