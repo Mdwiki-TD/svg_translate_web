@@ -33,6 +33,7 @@ class CRUDService[ModelT]:
     def __init__(self, session: Session, model: type[ModelT]) -> None:
         self.session = session
         self.model = model
+        self.model_name = getattr(self.model, "__name__", None)
 
     # ------------------------------------------------------------------ #
     # Read
@@ -43,7 +44,7 @@ class CRUDService[ModelT]:
         try:
             return self.session.get(self.model, pk)
         except Exception as exc:
-            logger.error("Error getting %s id=%s: %s", self.model.__name__, pk, exc)
+            logger.error("Error getting %s id=%s: %s", self.model_name, pk, exc)
             return None
 
     def get(self, pk: PKT) -> ModelT | None:
@@ -53,7 +54,7 @@ class CRUDService[ModelT]:
         """Fetch a single row by primary key, or raise a 404."""
         instance = self.get_record_by_id(pk)
         if instance is None:
-            raise NotFound(description or f"{self.model.__name__} with id={pk!r} not found")
+            raise NotFound(description or f"{self.model_name} with id={pk!r} not found")
         return instance
 
     def get_by(self, **filters: Any) -> ModelT | None:
@@ -62,14 +63,14 @@ class CRUDService[ModelT]:
             stmt = self._base_select().filter_by(**filters)
             return self.session.execute(stmt).scalars().first()
         except Exception as exc:
-            logger.error("Error getting %s by filters: %s", self.model.__name__, exc)
+            logger.error("Error getting %s by filters: %s", self.model_name, exc)
             return None
 
     def list_all(self) -> list[ModelT]:
         try:
             return self.session.query(self.model).all()
         except Exception as exc:
-            logger.error("Error listing %s records: %s", self.model.__name__, exc)
+            logger.error("Error listing %s records: %s", self.model_name, exc)
             return []
 
     def list(
@@ -99,7 +100,7 @@ class CRUDService[ModelT]:
                 stmt = stmt.offset(offset)
             return self.session.execute(stmt).scalars().all()
         except Exception as exc:
-            logger.error("Error listing %s records: %s", self.model.__name__, exc)
+            logger.error("Error listing %s records: %s", self.model_name, exc)
             return []
 
     def list_by_statement(self, stmt: Select[tuple[ModelT]]) -> Sequence[ModelT]:
@@ -131,14 +132,14 @@ class CRUDService[ModelT]:
             raise
         except Exception as exc:
             self.session.rollback()
-            logger.exception("Error adding %s", self.model.__name__)
+            logger.exception("Error adding %s", self.model_name)
             return None
 
     def update(self, instance: ModelT, *, commit: bool = True, **fields: Any) -> ModelT:
         """Set attributes on `instance` and persist the change."""
         for key, value in fields.items():
             if not hasattr(instance, key):
-                raise CRUDError(f"{self.model.__name__} has no attribute '{key}'")
+                raise CRUDError(f"{self.model_name} has no attribute '{key}'")
             if value is not None:
                 setattr(instance, key, value)
         self._flush_or_commit(commit)
@@ -148,7 +149,7 @@ class CRUDService[ModelT]:
         """Set attributes on `instance` and persist the change."""
         record = self.get_record_by_id(pk)
         if record is None:
-            logger.error("Error updating %s id=%s: record not found", self.model.__name__, pk)
+            logger.error("Error updating %s id=%s: record not found", self.model_name, pk)
             return None
 
         try:
@@ -156,7 +157,7 @@ class CRUDService[ModelT]:
             self.update(record, commit=True, **data)
             return record
         except Exception as exc:
-            logger.error("Error updating %s id=%s: %s", self.model.__name__, pk, exc)
+            logger.error("Error updating %s id=%s: %s", self.model_name, pk, exc)
             return None
 
     def upsert(self, pk: PKT, *, commit: bool = True, **fields: Any) -> tuple[ModelT, bool]:
@@ -196,7 +197,7 @@ class CRUDService[ModelT]:
                 return True
             return False
         except Exception as e:
-            logger.error(f"Error deleting {self.model.__name__} with PK {pk}: {e}")
+            logger.error(f"Error deleting {self.model_name} with PK {pk}: {e}")
             self.session.rollback()
             return False
 
