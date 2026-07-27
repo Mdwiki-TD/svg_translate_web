@@ -65,7 +65,8 @@ class AdminService(CRUDService[AdminUserRecord]):
             self.session.commit()
         except IntegrityError as exc:
             self.session.rollback()
-            if "a foreign key constraint fails" in str(exc):
+            error_message = str(exc).lower()
+            if "foreign key constraint" in error_message:
                 raise UserNotFoundError(f"User '{username}' does not exist") from exc
 
             if "Duplicate entry" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
