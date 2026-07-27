@@ -34,21 +34,14 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         """
         Add a new slug redirect record if it doesn't already exist.
         """
-        try:
-            existing = (
-                self.session.query(OwidSlugRedirectRecord)
-                .filter(OwidSlugRedirectRecord.slug == slug, OwidSlugRedirectRecord.redirect_to == redirect_to)
-                .first()
-            )
-
-            if not existing:
-                new_record = OwidSlugRedirectRecord(slug=slug, redirect_to=redirect_to)
-                self.session.add(new_record)
-                self.session.commit()
-                logger.info("Added new slug redirect: %s -> %s", slug, redirect_to)
-        except Exception as e:
-            self.session.rollback()
-            logger.error("Failed to add new slug redirect: %s -> %s", slug, redirect_to)
+        existing = self.get_by(
+            slug=slug,
+            redirect_to=redirect_to,
+        )
+        if existing:
+            logger.info("Slug redirect already exists: %s -> %s", slug, redirect_to)
+            return None
+        return self.create(slug=slug, redirect_to=redirect_to)
 
     def update_slug_redirect(self, redirect_id: int, data: dict[str, Any]) -> OwidSlugRedirectRecord | None:
         """
@@ -57,18 +50,7 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         record = self.get_slug_redirect_by_id(redirect_id)
         if not record:
             return None
-        try:
-            allowed_keys = {"slug", "redirect_to", "should_be_replaced"}
-            for key, value in data.items():
-                if key in allowed_keys:
-                    setattr(record, key, value)
-
-            self.session.commit()
-            self.session.refresh(record)
-            return record
-        except Exception as e:
-            self.session.rollback()
-            return None
+        return self.update(record, **data)
 
     def bulk_update_slug_redirects(self, redirect_ids: list[int], data: dict[str, Any]) -> None:
         """
