@@ -1,15 +1,45 @@
+"""
+Generic CRUD service/repository for Flask-SQLAlchemy models.
+
+Usage
+-----
+    from flask_sqlalchemy import SQLAlchemy
+    db = SQLAlchemy()
+
+    class User(db.Model):
+        id: Mapped[int] = mapped_column(primary_key=True)
+        email: Mapped[str] = mapped_column(unique=True)
+
+    class UserService(CRUDService[User, int]):
+        model = User
+
+    user_service = UserService(db.session)
+
+    user = user_service.create(email="a@example.com")
+    user = user_service.get_or_404(1)
+    users = user_service.list(filters={"email": "a@example.com"}, limit=20)
+    user = user_service.update(user, email="b@example.com")
+    user_service.delete(user)
+"""
+
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable, Sequence
 from typing import Any, TypeVar
 
+from sqlalchemy import Select, func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from werkzeug.exceptions import NotFound
 
 # from ...extensions import db
+from ..exceptions import CRUDError, CRUDIntegrityError
 
 logger = logging.getLogger(__name__)
 
 ModelT = TypeVar("ModelT")  # , bound=db.Model
+PKT = TypeVar("PKT")  # primary key type, e.g. int, str, uuid.UUID
 
 
 # class CRUDService[ModelT, PKT]:
@@ -34,17 +64,32 @@ class CRUDService[ModelT]:
     # Read
     # ------------------------------------------------------------------ #
 
-    def list_records(self) -> list[ModelT]:
-        """List all records for the configured model.
-
-        Returns:
-            All model records, or an empty list if the query fails.
-        """
+    def get_record_by_id(self, pk: PKT) -> ModelT | None:
+        """Fetch a single row by primary key, or None if it doesn't exist."""
         try:
-            return self.session.query(self.model).all()
+            return self.session.get(self.model, pk)
         except Exception as exc:
-            logger.error("Error listing %s records: %s", self.model.__name__, exc)
-            return []
+            logger.error("Error getting %s id=%s: %s", self.model.__name__, pk, exc)
+            return None
+
+    def get(self, pk: PKT) -> ModelT | None:
+        return self.get_record_by_id(pk)
+
+    def get_or_404(self, pk: PKT, description: str | None = None) -> ModelT:
+        """Fetch a single row by primary key, or raise a 404."""
+        instance = self.get_record_by_id(pk)
+        if instance is None:
+            raise NotFound(description or f"{self.model.__name__} with id={pk!r} not found")
+        return instance
+
+    def get_by(self, **filters: Any) -> ModelT | None:
+        """Fetch a single row matching the given column=value filters."""
+        try:
+            stmt = self._base_select().filter_by(**filters)
+            return self.session.execute(stmt).scalars().first()
+        except Exception as exc:
+            logger.error("Error getting %s by filters: %s", self.model.__name__, exc)
+            return None
 
     def list_all(self) -> list[ModelT]:
         try:
@@ -53,97 +98,154 @@ class CRUDService[ModelT]:
             logger.error("Error listing %s records: %s", self.model.__name__, exc)
             return []
 
-    def get_record_by_id(self, record_id: int) -> ModelT | None:
-        """Get a record by primary key.
+    def list(
+        self,
+        *,
+        filters: dict[str, Any] | None = None,
+        order_by: Iterable[Any] | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> Sequence[ModelT]:
+        """
+        Fetch multiple rows.
 
-        Args:
-            record_id: Primary key value for the configured model.
-
-        Returns:
-            The matching record, or None when missing or when the query fails.
+        `filters` is a simple column=value equality mapping. For anything
+        more complex (OR, LIKE, joins, etc.), build your own `Select` and
+        pass it to `list_by_statement` instead.
         """
         try:
-            return self.session.get(self.model, record_id)
+            stmt = self._base_select()
+            if filters:
+                stmt = stmt.filter_by(**filters)
+            if order_by:
+                stmt = stmt.order_by(*order_by)
+            if limit is not None:
+                stmt = stmt.limit(limit)
+            if offset is not None:
+                stmt = stmt.offset(offset)
+            return self.session.execute(stmt).scalars().all()
         except Exception as exc:
-            logger.error("Error getting %s id=%s: %s", self.model.__name__, record_id, exc)
-            return None
+            logger.error("Error listing %s records: %s", self.model.__name__, exc)
+            return []
 
-    def get(self, record_id: int) -> ModelT | None:
-        return self.get_record_by_id(record_id)
+    def list_by_statement(self, stmt: Select[tuple[ModelT]]) -> Sequence[ModelT]:
+        """Escape hatch: run a caller-built Select and return scalar results."""
+        return self.session.execute(stmt).scalars().all()
 
-    def add_record(self, data: dict[str, Any]) -> ModelT | None:
-        """Add a record for the configured model.
+    def count(self, filters: dict[str, Any] | None = None) -> int:
+        stmt = select(func.count()).select_from(self.model)
+        if filters:
+            stmt = stmt.filter_by(**filters)
+        return self.session.execute(stmt).scalar_one()
 
-        Args:
-            data: Field values used to construct the model instance.
+    def exists(self, **filters: Any) -> bool:
+        stmt = select(self._base_select().filter_by(**filters).exists())
+        return bool(self.session.execute(stmt).scalar())
 
-        Returns:
-            The created record, or None when creation fails.
-        """
+    # ------------------------------------------------------------------ #
+    # Write
+    # ------------------------------------------------------------------ #
+
+    def create(self, *, commit: bool = True, **fields: Any) -> ModelT:
+        """Instantiate the model with `fields` and persist it."""
         try:
-            record = self.model(**data)
-            self.session.add(record)
-            self.session.commit()
-            return record
+            instance = self.model(**fields)
+            self.session.add(instance)
+            self._flush_or_commit(commit)
+            return instance
         except Exception as exc:
             self.session.rollback()
             logger.error("Error adding %s: %s", self.model.__name__, exc)
             return None
 
-    def update_record(self, record_id: int, data: dict[str, Any]) -> ModelT | None:
-        """Update a record by primary key with the provided values.
+    def update(self, instance: ModelT, *, commit: bool = True, **fields: Any) -> ModelT:
+        """Set attributes on `instance` and persist the change."""
+        for key, value in fields.items():
+            if not hasattr(instance, key):
+                raise CRUDError(f"{self.model.__name__} has no attribute '{key}'")
 
-        Args:
-            record_id: Primary key value for the configured model.
-            data: Field values to apply to the record.
+            if value is not None:
+                setattr(instance, key, value)
+        self._flush_or_commit(commit)
+        return instance
 
-        Returns:
-            The updated record, or None when missing or when the update fails.
-        """
-        try:
-            record = self.get_record_by_id(record_id)
-            if record is None:
-                return None
-            for key, value in data.items():
-                setattr(record, key, value)
-            self.session.commit()
-            return record
-        except Exception as exc:
-            self.session.rollback()
-            logger.error("Error updating %s id=%s: %s", self.model.__name__, record_id, exc)
+    def update_by_id(self, pk: PKT, data: dict[str, Any], validate: bool = False) -> ModelT | None:
+        """Set attributes on `instance` and persist the change."""
+        record = self.get_record_by_id(pk)
+        if record is None:
+            logger.error("Error updating %s id=%s: record not found", self.model.__name__, pk)
             return None
 
-    def delete(self, pk_value: Any) -> bool:
+        try:
+            # if validate and hasattr(record, "validate"): record.validate()
+            self.update(record, commit=True, **data)
+            return record
+        except Exception as exc:
+            logger.error("Error updating %s id=%s: %s", self.model.__name__, pk, exc)
+            return None
+
+    def upsert(self, pk: PKT, *, commit: bool = True, **fields: Any) -> tuple[ModelT, bool]:
+        """
+        Update the row with primary key `pk` if it exists, else create it.
+        Returns (instance, created).
+        """
+        instance = self.get_record_by_id(pk)
+        if instance is not None:
+            return self.update(instance, commit=commit, **fields), False
+        return self.create(commit=commit, **fields), True
+
+    def bulk_create(self, items: Iterable[dict[str, Any]], *, commit: bool = True) -> Sequence[ModelT]:
+        instances = [self.model(**fields) for fields in items]
+        self.session.add_all(instances)
+        self._flush_or_commit(commit)
+        return instances
+
+    def delete(self, pk: PKT) -> bool:
         """Delete a record by primary key.
 
         Args:
-            pk_value: Primary key value for the configured model.
+            pk: Primary key value for the configured model.
 
         Returns:
             True when a row was deleted, otherwise False.
         """
-        if pk_value is None:
-            return False
-
-        """
-        Generic helper to delete a record by its primary key.
-        Returns True if deleted, False otherwise.
-        """
-        if pk_value is None:
+        if pk is None:
             return False
 
         try:
             # Use session.get() as it is efficient and looks up by primary key
-            record = self.session.get(self.model, pk_value)
+            record = self.session.get(self.model, pk)
             if record:
                 self.session.delete(record)
                 self.session.commit()
                 return True
             return False
         except Exception as e:
-            logger.error(f"Error deleting {self.model.__name__} with PK {pk_value}: {e}")
+            logger.error(f"Error deleting {self.model.__name__} with PK {pk}: {e}")
             self.session.rollback()
             return False
+
+    # ------------------------------------------------------------------ #
+    # Internals
+    # ------------------------------------------------------------------ #
+
+    def _base_select(self) -> Select[tuple[ModelT]]:
+        return select(self.model)
+
+    def _flush_or_commit(self, commit: bool) -> None:
+        """
+        Persist pending changes. Commits (and rolls back cleanly on failure)
+        when `commit=True`; otherwise just flushes so autogenerated fields
+        (e.g. PKs) are available, leaving the transaction open for the caller.
+        """
+        try:
+            if commit:
+                self.session.commit()
+            else:
+                self.session.flush()
+        except SQLAlchemyError as exc:
+            self.session.rollback()
+            raise CRUDIntegrityError(str(exc)) from exc
 
 
 __all__ = [

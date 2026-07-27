@@ -77,42 +77,6 @@ def _is_job_cancelled(job_id: int, job_type: str) -> bool:
     return False
 
 
-def _get_job(job_id: int, job_type: str) -> JobRecord:
-    """
-    Get a job by ID.
-    """
-    query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
-    if job_type:
-        query = query.filter(JobRecord.job_type == job_type)
-    job = query.first()
-    if not job:
-        raise LookupError(f"Job id {job_id} was not found")
-    return job
-
-
-def _list_jobs(limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
-    """
-    list recent jobs, optionally filtered by job_type.
-
-    Query to match:
-        if job_type:
-            SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
-            FROM jobs
-            WHERE job_type = %s
-            ORDER BY created_at DESC
-            LIMIT %s
-        else:
-            SELECT id, job_type, username, status, started_at, completed_at, result_file, created_at, updated_at
-            FROM jobs
-            ORDER BY created_at DESC
-            LIMIT %s
-    """
-    query = db.session.query(JobRecord)
-    if job_type:
-        query = query.filter(JobRecord.job_type == job_type)
-    return query.order_by(JobRecord.created_at.desc()).limit(limit).all()
-
-
 def _get_all_user_jobs_stats(username: str, limit: int | None = 100) -> dict[str, dict[str, int] | list[JobRecord]]:
     """
     Get user jobs
@@ -333,10 +297,26 @@ class JobsService(CRUDService[JobRecord]):
         return _is_job_cancelled(job_id, job_type)
 
     def get_job(self, job_id: int, job_type: str) -> JobRecord:
-        return _get_job(job_id, job_type)
+        # return _get_job(job_id, job_type)
+        filters = {"id": job_id}
+        if job_type:
+            filters["job_type"] = job_type
+
+        job = self.get_by(**filters)
+        if not job:
+            raise LookupError(f"Job id {job_id} was not found")
+        return job
 
     def list_jobs(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
-        return _list_jobs(limit, job_type)
+        filters = {}
+        if job_type:
+            filters[JobRecord.job_type] = job_type
+
+        return self.list(
+            limit=limit,
+            filters=filters,
+            order_by=[JobRecord.created_at.desc()],
+        )
 
     def get_all_user_jobs_stats(
         self,

@@ -108,9 +108,7 @@ def test_create_json_file_success(mock_app, monkeypatch):
             updated_at=None,
         ),
     ]
-    monkeypatch.setattr(
-        "src.main_app.admin.routes.templates.TemplateService.list_templates", lambda self, limit=None: templates
-    )
+    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list", lambda self, limit=None: templates)
 
     with mock_app.app_context():
         response, status_code = create_json_file()
@@ -123,7 +121,7 @@ def test_create_json_file_success(mock_app, monkeypatch):
 
 def test_create_json_file_no_templates(mock_app, monkeypatch):
     """Test create_json_file returns 404 when no templates."""
-    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list_templates", list)
+    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list", list)
 
     from src.main_app.admin.routes.templates import create_json_file
 

@@ -18,14 +18,6 @@ logger = logging.getLogger(__name__)
 # ── SELECT ───────────────────────────────────────────────
 
 
-def _list_templates(limit: int | None = None) -> list[TemplateRecord]:
-    """Return all templates"""
-    query = db.session.query(TemplateRecord).order_by(TemplateRecord.title)
-    if limit is not None:
-        query = query.limit(limit)
-    return query.all()
-
-
 def _list_templates_mismatched_years() -> list[TemplateRecord]:
     """
     Fetches all template records where the 'last_world_file'
@@ -52,16 +44,6 @@ def _list_templates_mismatched_years() -> list[TemplateRecord]:
     return list(results)
 
 
-def _get_template(template_id: int) -> TemplateRecord:
-    """Fetch a template by ID."""
-    return db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
-
-
-def _get_template_by_title(title: str) -> TemplateRecord:
-    """Fetch a template by title."""
-    return db.session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
-
-
 # ── INSERT, UPDATE, SET ──────────────────────────────────
 
 
@@ -69,16 +51,6 @@ def _add_template_data(data: dict[str, Any]) -> TemplateRecord:
     """
     Add a new template.
     """
-    title = data.get("title", "")
-    if not title or not title.strip():
-        raise ValueError("Title is required")
-
-    existing = db.session.query(TemplateRecord).filter(TemplateRecord.title == title).first()
-    if existing:
-        raise DuplicateRecordError(f"Template '{title}' already exists")
-
-    data = ensure_template_data(data)
-
     temp_data = {key: value for key, value in data.items() if value is not None and hasattr(TemplateRecord, key)}
     record = TemplateRecord(**temp_data)
 
@@ -106,8 +78,6 @@ def _update_template_data(
     if not template:
         return None
 
-    template_data = ensure_template_data(template_data)
-
     for key, value in template_data.items():
         if value is not None and hasattr(template, key):
             setattr(template, key, value)
@@ -122,42 +92,42 @@ class TemplateService(CRUDService[TemplateRecord]):
     def __init__(self) -> None:
         super().__init__(db.session, TemplateRecord)
 
-    def list_templates(self, limit: int | None = None) -> list[TemplateRecord]:
-        try:
-            return _list_templates(limit)
-        except Exception as exc:
-            logger.error(f"Error listing templates: {exc}")
-            return []
-
     def list(self, limit: int | None = None) -> list[TemplateRecord]:
-        return self.list_templates(limit)
+        return super().list(
+            limit=limit,
+            order_by=[TemplateRecord.title],
+        )
 
     def list_templates_mismatched_years(self) -> list[TemplateRecord]:
         return _list_templates_mismatched_years()
 
     def get_template(self, template_id: int) -> TemplateRecord | None:
-        try:
-            return _get_template(template_id)
-        except Exception as exc:
-            logger.error("Error getting template %s", str(exc))
-            return None
+        return self.get(template_id)
 
     def get_template_by_title(self, title: str) -> TemplateRecord | None:
-        try:
-            return _get_template_by_title(title)
-        except Exception as exc:
-            logger.error("Error getting template %s", str(exc))
-            return None
+        return self.get_by(
+            title=title,
+        )
 
     def add_template_data(self, data: dict[str, Any]) -> TemplateRecord | None:
-        return _add_template_data(data)
+        title = data.get("title", "")
+        if not title or not title.strip():
+            raise ValueError("Title is required")
+
+        existing = self.get_template_by_title(title)
+        if existing:
+            raise DuplicateRecordError(f"Template '{title}' already exists")
+
+        data = ensure_template_data(data)
+        return self.create(commit=True, **data)
 
     def update_template_data(
         self,
         template_id: int,
         template_data: dict[str, str],
     ) -> TemplateRecord | None:
-        return _update_template_data(template_id, template_data)
+        template_data = ensure_template_data(template_data)
+        return self.update_by_id(pk=template_id, data=template_data)
 
 
 __all__ = [

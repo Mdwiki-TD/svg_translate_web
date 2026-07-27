@@ -20,6 +20,7 @@ def _list_slug_redirects(limit: int | None = None, offset: int | None = None) ->
     """
     List slug redirects ordered by created_at DESC.
     """
+
     query = db.session.query(OwidSlugRedirectRecord).order_by(desc(OwidSlugRedirectRecord.created_at))
     if limit is not None:
         query = query.limit(limit)
@@ -116,7 +117,7 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         super().__init__(db.session, OwidSlugRedirectRecord)
 
     def list_slug_redirects(self, limit: int | None = None, offset: int | None = None) -> list[OwidSlugRedirectRecord]:
-        return _list_slug_redirects(limit, offset)
+        return self.list(limit=limit, offset=offset, order_by=[OwidSlugRedirectRecord.created_at.desc()])
 
     def get_slug_redirect_by_id(self, redirect_id: int) -> OwidSlugRedirectRecord | None:
         return _get_slug_redirect_by_id(redirect_id)

@@ -28,7 +28,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
 
     monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
-    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list_templates", mocks.list_templates)
+    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list", mocks.list_templates)
     monkeypatch.setattr(
         "src.main_app.admin.routes.templates.TemplateService.add_template_data", mocks.add_template_data
     )

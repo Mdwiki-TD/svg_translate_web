@@ -13,22 +13,6 @@ from .utils import db_guard_rollback, retry_on_db_disconnect
 logger = logging.getLogger(__name__)
 
 
-def _list_charts(limit: int | None = None) -> list[OwidChartRecord]:
-    """
-    Return all charts from the view.
-
-    Query to match:
-        SELECT * FROM owid_charts_templates oct, owid_charts oc
-        WHERE oct.chart_id = oc.chart_id
-        ORDER BY oc.chart_id ASC
-    """
-    query = db.session.query(OwidChartRecord).order_by(OwidChartRecord.chart_id.asc())
-    if limit is not None:
-        query = query.limit(limit)
-
-    return query.all()
-
-
 def _list_charts_with_templates() -> list[tuple[OwidChartRecord, int | None, str | None]]:
     """
     Retrieve all charts along with their associated template ID and title using a single LEFT OUTER JOIN.
@@ -160,7 +144,10 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         super().__init__(db.session, OwidChartRecord)
 
     def list_charts(self, limit: int | None = None) -> list[OwidChartRecord]:
-        return _list_charts(limit)
+        return self.list(
+            limit=limit,
+            order_by=[OwidChartRecord.chart_id.asc()],
+        )
 
     def list_charts_with_templates(self) -> list[tuple[OwidChartRecord, int | None, str | None]]:
         return _list_charts_with_templates()
