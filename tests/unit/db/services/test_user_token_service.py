@@ -166,7 +166,7 @@ class TestGetUserToken(TestSetup):
     def test_returns_token_for_valid_user_id(self, monkeypatch):
         """Test returns token for a valid integer user_id."""
         mock_token = MagicMock(spec=UserTokenRecord, user_id=1)
-        self.usertoken_service.session.query.return_value.filter.return_value.first.return_value = mock_token
+        self.usertoken_service.session.get.return_value = mock_token
 
         result = self.usertoken_service.get_user_token(1)
 
@@ -175,7 +175,7 @@ class TestGetUserToken(TestSetup):
     def test_returns_token_for_valid_user_id_str(self, monkeypatch):
         """Test returns token for a valid string user_id."""
         mock_token = MagicMock(spec=UserTokenRecord, user_id=1)
-        self.usertoken_service.session.query.return_value.filter.return_value.first.return_value = mock_token
+        self.usertoken_service.session.get.return_value = mock_token
 
         result = self.usertoken_service.get_user_token("1")
 
@@ -202,7 +202,7 @@ class TestGetUserToken(TestSetup):
 
     def test_returns_none_when_no_token_found(self, monkeypatch):
         """Test returns None when no matching token record exists."""
-        self.usertoken_service.session.query.return_value.filter.return_value.first.return_value = None
+        self.usertoken_service.session.get.return_value = None
 
         result = self.usertoken_service.get_user_token(999)
 
@@ -236,7 +236,7 @@ class TestUpdateUserToken(TestSetup):
         self.usertoken_service.session = mock_db_session
 
         mock_record = MagicMock(spec=UserTokenRecord)
-        mock_db_session.query.return_value.filter.return_value.first.return_value = mock_record
+        mock_db_session.get.return_value = mock_record
 
         result = self.usertoken_service.update_user_token(1, "new_key", "new_secret")
         assert result is not None
@@ -250,7 +250,7 @@ class TestUpdateUserToken(TestSetup):
         """Test returns None when no token record exists for the user."""
         mock_db_session = MagicMock()
         self.usertoken_service.session = mock_db_session
-        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+        mock_db_session.get.return_value = None
 
         result = self.usertoken_service.update_user_token(999, "key", "secret")
 
@@ -265,7 +265,7 @@ class TestUpsertUserToken(TestSetup):
         mock_db_session = MagicMock()
         self.usertoken_service.session = mock_db_session
 
-        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+        mock_db_session.get.return_value = None
 
         result = self.usertoken_service.upsert_user_token(1, "key", "secret")
 
@@ -279,7 +279,7 @@ class TestUpsertUserToken(TestSetup):
         self.usertoken_service.session = mock_db_session
 
         mock_record = MagicMock(spec=UserTokenRecord)
-        mock_db_session.query.return_value.filter.return_value.first.return_value = mock_record
+        mock_db_session.get.return_value = mock_record
 
         result = self.usertoken_service.upsert_user_token(1, "new_key", "new_secret")
 

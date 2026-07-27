@@ -167,7 +167,7 @@ class TestUpdateSetting(TestSetup):
 
         assert mock_setting.value == "new_value"
         assert mock_setting.title == "New Title"
-        assert result is True
+        assert result == mock_setting
 
     def test_returns_false_when_not_found(self):
         self.service.session.execute.return_value.scalars.return_value.first.return_value = None
@@ -218,7 +218,7 @@ class TestCreateSetting:
 
         result = self.service.create_setting("test_key", "Test Title", "string", "test_value")
 
-        assert result is True
+        assert result is not None
         assert len(added_settings) == 1
         assert added_settings[0].key == "test_key"
         assert added_settings[0].title == "Test Title"
@@ -235,7 +235,7 @@ class TestCreateSetting:
 
         result = self.service.create_setting("test_key", "Test Title", "string", "test_value")
 
-        assert result is False
+        assert result is None
         mock_rollback.assert_called_once()
 
     def test_default_value_boolean(self):

@@ -144,9 +144,8 @@ class TestGetChart(TestSetup):
     def test_returns_chart_by_id(self, monkeypatch):
         """Return the chart when the ID exists."""
         expected = MagicMock(chart_id=1, slug="test-chart")
-        mock_query = _mock_query_for_read(first=expected)
         mock_db_session = MagicMock()
-        mock_db_session.query.return_value = mock_query.return_value
+        mock_db_session.get.return_value = expected
         self.service.session = mock_db_session
 
         result = self.service.get_chart_by_id(1)
@@ -154,9 +153,8 @@ class TestGetChart(TestSetup):
 
     def test_returns_none_for_missing_id(self, monkeypatch):
         """Return None when no chart matches the given ID."""
-        mock_query = _mock_query_for_read(first=None)
         mock_db_session = MagicMock()
-        mock_db_session.query.return_value = mock_query.return_value
+        mock_db_session.get.return_value = None
         self.service.session = mock_db_session
 
         assert self.service.get_chart_by_id(999) is None
@@ -231,10 +229,8 @@ class TestUpdateChartData(TestSetup):
         """Update existing chart fields with provided data."""
         mock_record = MagicMock()
         mock_record.title = "Updated"
-        mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = mock_record
         mock_db_session = MagicMock()
-        mock_db_session.query.return_value = mock_query
+        mock_db_session.get.return_value = mock_record
         self.service.session = mock_db_session
 
         result = self.service.update_chart_data(1, {"title": "Updated"})
@@ -245,10 +241,8 @@ class TestUpdateChartData(TestSetup):
 
     def test_returns_none_for_missing_chart(self, monkeypatch):
         """Return None when chart ID does not exist."""
-        mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = None
         mock_db_session = MagicMock()
-        mock_db_session.query.return_value = mock_query
+        mock_db_session.get.return_value = None
         self.service.session = mock_db_session
 
         result = self.service.update_chart_data(999, {"title": "Updated"})
@@ -258,10 +252,8 @@ class TestUpdateChartData(TestSetup):
     def test_ignores_none_values(self, monkeypatch):
         """Ignore None values in update data."""
         mock_record = MagicMock()
-        mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = mock_record
         mock_db_session = MagicMock()
-        mock_db_session.query.return_value = mock_query
+        mock_db_session.get.return_value = mock_record
         self.service.session = mock_db_session
 
         result = self.service.update_chart_data(1, {"title": "New", "max_time": None})
@@ -271,10 +263,8 @@ class TestUpdateChartData(TestSetup):
     def test_ignores_non_existent_attributes(self, monkeypatch):
         """Ignore unknown attributes in update data."""
         mock_record = MagicMock()
-        mock_query = MagicMock()
-        mock_query.filter.return_value.first.return_value = mock_record
         mock_db_session = MagicMock()
-        mock_db_session.query.return_value = mock_query
+        mock_db_session.get.return_value = mock_record
         self.service.session = mock_db_session
 
         result = self.service.update_chart_data(1, {"title": "New", "invalid_attr": "value"})

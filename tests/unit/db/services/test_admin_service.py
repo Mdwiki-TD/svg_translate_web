@@ -130,7 +130,7 @@ class TestSetCoordinatorActive(TestSetup):
 
     def test_not_found(self):
 
-        self.mock_dbsession.query.return_value.filter.return_value.first.return_value = None
+        self.mock_dbsession.get.return_value = None
 
         result = self.service.set_coordinator_active(999, True)
         assert result is None
