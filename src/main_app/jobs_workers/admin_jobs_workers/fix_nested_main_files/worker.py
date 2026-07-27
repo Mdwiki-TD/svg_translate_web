@@ -190,7 +190,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         if not self._check_site():
             return self.result
 
-        templates = TemplateService().list_templates()
+        templates = TemplateService().list()
         self.result.summary.total = len(templates)
 
         logger.info("Job %s: Found %d templates", self.job_id, len(templates))

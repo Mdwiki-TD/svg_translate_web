@@ -97,7 +97,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
     def _load_templates(self) -> list[TemplateRecord]:
         # Get all templates with main files
-        templates = TemplateService().list_templates()
+        templates = TemplateService().list()
         templates_with_files = [t for t in templates if t.main_file]
         return self._apply_limits(templates_with_files)
 

@@ -197,7 +197,7 @@ class TemplatesRoutesFuncs:
             response object for file download (status 200) or an error message
             string with appropriate status code (404 for no templates, 500 for errors).
         """
-        templates: list[TemplateRecord] = self.service.list_templates()
+        templates: list[TemplateRecord] = self.service.list()
 
         if not templates:
             return "No templates found to export.", 404

@@ -93,7 +93,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = TemplateService().list_templates()
+        templates = TemplateService().list()
         templates = [t for t in templates if t.title.startswith("Template:OWID/")]
         return self._apply_limits(templates)
 

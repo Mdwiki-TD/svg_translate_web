@@ -111,7 +111,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         """
         logger.info(f"Job {self.job_id}: Fetching templates from category")
 
-        templates: list[TemplateRecord] = self.template_service.list_templates()
+        templates: list[TemplateRecord] = self.template_service.list()
         existing_titles = {t.title for t in templates}
 
         # Get templates from category
@@ -448,7 +448,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             return self.result
 
         # Step 2: Re-fetch all templates (including newly added)
-        templates: list[TemplateRecord] = self.template_service.list_templates()
+        templates: list[TemplateRecord] = self.template_service.list()
         self.result.summary.total = len(templates)
 
         if self.update_all:
@@ -517,7 +517,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             templates_to_update = ViewsService().list_templates_need_update()
             templates_to_update_titles = {x.template_title for x in templates_to_update}
 
-            templates: list[TemplateRecord] = self.template_service.list_templates()
+            templates: list[TemplateRecord] = self.template_service.list()
             tmps_to_process = [x for x in templates if x.title in templates_to_update_titles]
             self.result.summary.total = len(tmps_to_process)
             return self.start_process(tmps_to_process)
