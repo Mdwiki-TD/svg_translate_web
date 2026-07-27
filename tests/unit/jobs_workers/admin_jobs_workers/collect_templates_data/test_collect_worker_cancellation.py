@@ -74,7 +74,12 @@ def test_collect_templates_data_worker_cancellation(monkeypatch, mock_services):
     mock_jobs_service = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService", MagicMock(return_value=mock_jobs_service))
 
-    w = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=mock_services["cancel_event"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.get_user_site",
+        lambda user: MagicMock(),
+    )
+
+    w = worker.CollectMainFilesWorker(job_id=1, user={"username": "test"}, cancel_event=mock_services["cancel_event"])
     w.run()
 
     result = mock_save_job_result_by_name.call_args[0][1]

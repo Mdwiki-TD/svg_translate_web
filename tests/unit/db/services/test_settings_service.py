@@ -23,9 +23,9 @@ class TestSetup:
 class TestListSettingsReady:
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup(self, monkeypatch):
         self.service = SettingsService()
-        self.service.session.rollback = MagicMock()
+        monkeypatch.setattr(self.service.session, "rollback", MagicMock())
 
     def test_get_all_settings_ready(self) -> None:
         self.service.create_setting(
@@ -201,16 +201,20 @@ class TestUpdateSetting(TestSetup):
 class TestCreateSetting:
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup(self, monkeypatch):
         self.service = SettingsService()
-        self.service.session.rollback = MagicMock()
+        self._monkeypatch = monkeypatch
+
     """Tests for create_setting."""
 
     def test_creates_setting_successfully(self):
         added_settings: list = []
-        mock_add = MagicMock()
-        self.service.session.add = mock_add
-        mock_add.side_effect = lambda s: added_settings.append(s)
+
+        self._monkeypatch.setattr(
+            self.service.session,
+            "add",
+            lambda s: added_settings.append(s),
+        )
 
         result = self.service.create_setting("test_key", "Test Title", "string", "test_value")
 
@@ -222,13 +226,12 @@ class TestCreateSetting:
         assert added_settings[0].value_type == "string"
 
     def test_handles_exception_rollback(self):
-
         mock_rollback = MagicMock()
-        self.service.session.rollback = mock_rollback
+        self._monkeypatch.setattr(self.service.session, "rollback", mock_rollback)
 
         mock_commit = MagicMock()
-        self.service.session.commit = mock_commit
         mock_commit.side_effect = Exception("DB error")
+        self._monkeypatch.setattr(self.service.session, "commit", mock_commit)
 
         result = self.service.create_setting("test_key", "Test Title", "string", "test_value")
 
@@ -238,9 +241,11 @@ class TestCreateSetting:
     def test_default_value_boolean(self):
         added_settings: list = []
 
-        mock_add = MagicMock()
-        self.service.session.add = mock_add
-        mock_add.side_effect = lambda s: added_settings.append(s)
+        self._monkeypatch.setattr(
+            self.service.session,
+            "add",
+            lambda s: added_settings.append(s),
+        )
 
         self.service.create_setting("bool_key", "Bool Setting", "boolean")
         assert added_settings[0].value == "false"
@@ -248,9 +253,11 @@ class TestCreateSetting:
     def test_default_value_integer(self):
         added_settings: list = []
 
-        mock_add = MagicMock()
-        self.service.session.add = mock_add
-        mock_add.side_effect = lambda s: added_settings.append(s)
+        self._monkeypatch.setattr(
+            self.service.session,
+            "add",
+            lambda s: added_settings.append(s),
+        )
 
         self.service.create_setting("int_key", "Int Setting", "integer")
         assert added_settings[0].value == "0"
@@ -258,9 +265,11 @@ class TestCreateSetting:
     def test_default_value_string(self):
         added_settings: list = []
 
-        mock_add = MagicMock()
-        self.service.session.add = mock_add
-        mock_add.side_effect = lambda s: added_settings.append(s)
+        self._monkeypatch.setattr(
+            self.service.session,
+            "add",
+            lambda s: added_settings.append(s),
+        )
 
         self.service.create_setting("str_key", "Str Setting", "string")
         assert added_settings[0].value == ""
