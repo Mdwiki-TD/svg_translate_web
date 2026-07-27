@@ -98,8 +98,12 @@ class SettingsService(CRUDService[SettingRecord]):
         }
         if title:
             data["title"] = title
-
-        return self.update_safe(record, **data)
+        try:
+            self.update(record, **data)
+            return True
+        except Exception as e:
+            logger.error("Could not update setting %s: %s", key, e)
+            return False
 
     def create_setting(
         self,

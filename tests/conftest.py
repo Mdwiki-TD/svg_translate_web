@@ -127,6 +127,15 @@ def mock_login(mock_client):
 # ── db fixtures ───────────────────────────────────────────────────────────────────
 
 
+
+def sqlite_view_functions(db) -> None:
+    """Register MySQL-compatible functions used by views for SQLite tests."""
+    raw_connection = db.engine.raw_connection()
+    raw_connection.create_function("now", 0, lambda: "2026-01-01")
+    raw_connection.create_function("YEAR", 1, lambda value: int(str(value)[:4]))
+    raw_connection.close()
+
+
 @pytest.fixture(autouse=True)
 def setup_db(mock_app: Flask):
     """
@@ -136,6 +145,8 @@ def setup_db(mock_app: Flask):
     The Flask-SQLAlchemy session (db.session) is used throughout tests.
     """
     with mock_app.app_context():
+        sqlite_view_functions(_db)
+
         create_tables(_db)
         create_views(_db)
 

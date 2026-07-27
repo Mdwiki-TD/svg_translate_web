@@ -2,25 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.models import SettingRecord
 from src.main_app.db.services.settings_service import SettingsService, _serialize_value
-from src.main_app.extensions import db
-
-
-@pytest.fixture
-def setting_record() -> SettingRecord:
-    record = SettingRecord(key="test_key", title="Test Setting", value_type="string", value="test_value")
-    db.session.add(record)
-    db.session.commit()
-    db.session.refresh(record)
-    return record
-
 
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
         self.service = SettingsService()
-
 
 class TestListSettingsReady(TestSetup):
     def test_get_all_settings_ready(self) -> None:
@@ -37,7 +24,9 @@ class TestListSettingsReady(TestSetup):
 class TestListSettings(TestSetup):
     """Tests for list_settings."""
 
-    def test_list_settings(self, setting_record: SettingRecord) -> None:
+    def test_list_settings(self) -> None:
+        setting_record = self.service.create(key="test_key", title="Test Setting", value_type="string", value="test_value")
+
         result = self.service.list_settings()
         assert len(result) == 1
         assert result[0].id == setting_record.id
@@ -86,7 +75,9 @@ class TestGetAllSettingsReady(TestSetup):
 class TestGetSettingByKey(TestSetup):
     """Tests for get_setting_by_key."""
 
-    def test_returns_setting_by_key(self, setting_record: SettingRecord) -> None:
+    def test_returns_setting_by_key(self) -> None:
+        setting_record = self.service.create(key="test_key", title="Test Setting", value_type="string", value="test_value")
+
         result = self.service.get_setting_by_key(setting_record.key)
         assert result is not None
         assert result.id == setting_record.id
@@ -99,29 +90,34 @@ class TestGetSettingByKey(TestSetup):
 class TestUpdateSetting(TestSetup):
     """Tests for update_setting."""
 
-    def test_updates_existing_setting(self, setting_record: SettingRecord) -> None:
+    def test_updates_existing_setting(self) -> None:
+        setting_record = self.service.create(key="test_key", title="Test Setting", value_type="string", value="test_value")
+
         result = self.service.update_setting(setting_record.key, "new_value", "string", "New Title")
 
         assert result is not False
-        assert result.value == "new_value"
-        assert result.title == "New Title"
+        assert setting_record.value == "new_value"
+        assert setting_record.title == "New Title"
 
     def test_returns_false_when_not_found(self) -> None:
         result = self.service.update_setting("nonexistent", "value")
         assert result is False
 
-    def test_serializes_value_according_to_type(self, setting_record: SettingRecord) -> None:
+    def test_serializes_value_according_to_type(self) -> None:
+        setting_record = self.service.create(key="test_key", title="Test Setting", value_type="string", value="test_value")
+
         result = self.service.update_setting(setting_record.key, True, "boolean")
         assert result is not False
-        assert result.value == "true"
+        assert setting_record.value == "true"
 
-    def test_uses_existing_value_type_when_none_provided(self, setting_record: SettingRecord) -> None:
-        setting_record.value_type = "integer"
-        db.session.commit()
+    def test_uses_existing_value_type_when_none_provided(self) -> None:
+        setting_record = self.service.create(key="test_key", title="Test Setting", value_type="string", value="test_value")
+
+        self.service.update(setting_record, value_type="integer")
 
         result = self.service.update_setting(setting_record.key, 99, value_type=None)
         assert result is not False
-        assert result.value == "99"
+        assert setting_record.value == "99"
 
 
 class TestCreateSetting(TestSetup):
@@ -137,22 +133,30 @@ class TestCreateSetting(TestSetup):
         assert result.value_type == "string"
         assert self.service.get(result.id) is not None
 
-    def test_handles_exception_rollback(self, setting_record: SettingRecord) -> None:
+    def test_handles_exception_rollback(self) -> None:
+        setting_record = self.service.create(key="test_key", title="Test Setting", value_type="string", value="test_value")
+
         result = self.service.create_setting(setting_record.key, "Test Title", "string", "test_value")
 
         assert result is None
-        assert db.session.is_active is True
+        assert self.service.session.is_active is True
 
     def test_default_value_boolean(self) -> None:
         result = self.service.create_setting("bool_key", "Bool Setting", "boolean")
+
+        assert result is not None
         assert result.value == "false"
 
     def test_default_value_integer(self) -> None:
         result = self.service.create_setting("int_key", "Int Setting", "integer")
+
+        assert result is not None
         assert result.value == "0"
 
     def test_default_value_string(self) -> None:
         result = self.service.create_setting("str_key", "Str Setting", "string")
+
+        assert result is not None
         assert result.value == ""
 
     def test_requires_key(self) -> None:

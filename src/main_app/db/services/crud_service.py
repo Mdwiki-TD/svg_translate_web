@@ -143,7 +143,7 @@ class CRUDService[ModelT]:
         except Exception as exc:
             return None
 
-    def update_safe(self, instance: ModelT, **fields: Any) -> ModelT:
+    def update(self, instance: ModelT, **fields: Any) -> ModelT:
         """Set attributes on `instance` and persist the change."""
         for key, value in fields.items():
             if not hasattr(instance, key):
@@ -151,8 +151,13 @@ class CRUDService[ModelT]:
                 continue
             if value is not None:
                 setattr(instance, key, value)
+        self.commit()
+        return instance
+
+    def update_safe(self, instance: ModelT, **fields: Any) -> ModelT:
+        """Set attributes on `instance` and persist the change."""
         try:
-            self.commit()
+            return self.update(instance, **fields)
         except Exception as exc:
             logger.error("Error updating %s: %s", self.model_name, exc)
 
