@@ -50,7 +50,7 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         record = self.get_slug_redirect_by_id(redirect_id)
         if not record:
             return None
-        return self.update(record, **data)
+        return self.update_safe(record, **data)
 
     def bulk_update_slug_redirects(self, redirect_ids: list[int], data: dict[str, Any]) -> None:
         """

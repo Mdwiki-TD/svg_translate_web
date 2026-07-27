@@ -99,7 +99,7 @@ class SettingsService(CRUDService[SettingRecord]):
         if title:
             data["title"] = title
 
-        return self.update(record, **data)
+        return self.update_safe(record, **data)
 
     def create_setting(
         self,

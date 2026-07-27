@@ -54,7 +54,7 @@ class UsersService(CRUDService[UserRecord]):
             raise UserNotFoundError("User record not found")
 
         data = {"can_run_jobs": value}
-        return self.update(record, **data)
+        return self.update_safe(record, **data)
 
     def toggle_can_run_bg_jobs(self, user_id: int, value: bool) -> UserRecord:
         """Toggle can_run_bg_jobs."""
@@ -64,7 +64,7 @@ class UsersService(CRUDService[UserRecord]):
             raise UserNotFoundError("User record not found")
 
         data = {"can_run_bg_jobs": value}
-        return self.update(record, **data)
+        return self.update_safe(record, **data)
 
 
 __all__ = [

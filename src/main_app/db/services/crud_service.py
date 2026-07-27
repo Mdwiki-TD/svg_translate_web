@@ -143,7 +143,7 @@ class CRUDService[ModelT]:
         except Exception as exc:
             return None
 
-    def update(self, instance: ModelT, **fields: Any) -> ModelT:
+    def update_safe(self, instance: ModelT, **fields: Any) -> ModelT:
         """Set attributes on `instance` and persist the change."""
         for key, value in fields.items():
             if not hasattr(instance, key):
@@ -167,7 +167,7 @@ class CRUDService[ModelT]:
 
         try:
             # if validate and hasattr(record, "validate"): record.validate()
-            self.update(record, **data)
+            self.update_safe(record, **data)
             return record
         except Exception as exc:
             logger.error("Error updating %s id=%s: %s", self.model_name, pk, exc)
@@ -180,7 +180,7 @@ class CRUDService[ModelT]:
         """
         instance = self.get_record_by_id(pk)
         if instance is not None:
-            return self.update(instance, **fields), False
+            return self.update_safe(instance, **fields), False
         return self.create_safe(**fields), True
 
     def bulk_create(self, items: Iterable[dict[str, Any]]) -> Sequence[ModelT]:
