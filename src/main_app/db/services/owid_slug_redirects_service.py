@@ -25,10 +25,10 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         """
         Fetch a slug redirect by ID.
         """
-        return db.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id == redirect_id).first()
+        return self.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id == redirect_id).first()
 
     def count_slug_redirects(self) -> int:
-        return db.session.query(OwidSlugRedirectRecord).count()
+        return self.session.query(OwidSlugRedirectRecord).count()
 
     def add_new_slug_redirect(self, slug: str, redirect_to: str) -> None:
         """
@@ -36,18 +36,18 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         """
         try:
             existing = (
-                db.session.query(OwidSlugRedirectRecord)
+                self.session.query(OwidSlugRedirectRecord)
                 .filter(OwidSlugRedirectRecord.slug == slug, OwidSlugRedirectRecord.redirect_to == redirect_to)
                 .first()
             )
 
             if not existing:
                 new_record = OwidSlugRedirectRecord(slug=slug, redirect_to=redirect_to)
-                db.session.add(new_record)
-                db.session.commit()
+                self.session.add(new_record)
+                self.session.commit()
                 logger.info("Added new slug redirect: %s -> %s", slug, redirect_to)
         except Exception as e:
-            db.session.rollback()
+            self.session.rollback()
             logger.error("Failed to add new slug redirect: %s -> %s", slug, redirect_to)
 
     def update_slug_redirect(self, redirect_id: int, data: dict[str, Any]) -> OwidSlugRedirectRecord | None:
@@ -63,11 +63,11 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
                 if key in allowed_keys:
                     setattr(record, key, value)
 
-            db.session.commit()
-            db.session.refresh(record)
+            self.session.commit()
+            self.session.refresh(record)
             return record
         except Exception as e:
-            db.session.rollback()
+            self.session.rollback()
             return None
 
     def bulk_update_slug_redirects(self, redirect_ids: list[int], data: dict[str, Any]) -> None:
@@ -78,12 +78,12 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         update_data = {k: v for k, v in data.items() if k in allowed_keys}
         if update_data and redirect_ids:
             try:
-                db.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id.in_(redirect_ids)).update(
+                self.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id.in_(redirect_ids)).update(
                     update_data, synchronize_session=False
                 )
-                db.session.commit()
+                self.session.commit()
             except Exception as e:
-                db.session.rollback()
+                self.session.rollback()
                 return
 
     def bulk_delete_slug_redirects(self, redirect_ids: list[int]) -> None:
@@ -93,12 +93,12 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         if not redirect_ids:
             return
         try:
-            db.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id.in_(redirect_ids)).delete(
+            self.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id.in_(redirect_ids)).delete(
                 synchronize_session=False
             )
-            db.session.commit()
+            self.session.commit()
         except Exception as e:
-            db.session.rollback()
+            self.session.rollback()
             return
 
 

@@ -11,6 +11,21 @@ class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.service = SettingsService()
+        self.service.session.rollback = MagicMock()
+        # self.service.session = MagicMock()
+
+
+class TestListSettingsReady(TestSetup):
+
+    def test_get_all_settings_ready(self) -> None:
+        self.service.create_setting(
+            "crop_newest_upload_limit", "Crop Newest World Files upload limit", "integer", "5000"
+        )
+        records_raw = self.service.get_all_settings_raw()
+        assert records_raw[0]["value"] == "5000"
+
+        records = self.service.get_all_settings_ready()
+        assert records == {"crop_newest_upload_limit": 5000}
 
 
 class TestListSettings(TestSetup):
@@ -25,16 +40,6 @@ class TestListSettings(TestSetup):
 
         result = self.service.list_settings()
         assert result == mock_records
-
-    def test_get_all_settings_ready(self) -> None:
-        self.service.create_setting(
-            "crop_newest_upload_limit", "Crop Newest World Files upload limit", "integer", "5000"
-        )
-        records_raw = self.service.get_all_settings_raw()
-        assert records_raw[0]["value"] == "5000"
-
-        records = self.service.get_all_settings_ready()
-        assert records == {"crop_newest_upload_limit": 5000}
 
 
 class TestGetAllSettingsRaw(TestSetup):
@@ -147,7 +152,7 @@ class TestGetSettingByKey(TestSetup):
 
 
 class TestUpdateSetting(TestSetup):
-    """Tests for update_setting (wrapped with @db_guard)."""
+    """Tests for update_setting."""
 
     def test_updates_existing_setting(self):
         mock_setting = MagicMock()

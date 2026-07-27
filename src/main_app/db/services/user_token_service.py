@@ -25,7 +25,7 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         """Fetch the CurrentUser composite for session restoration."""
         try:
             token = (
-                db.session.query(UserTokenRecord)
+                self.session.query(UserTokenRecord)
                 .options(joinedload(UserTokenRecord.user))
                 .filter(UserTokenRecord.user_id == user_id)
                 .first()
@@ -43,7 +43,7 @@ class UserTokenService(CRUDService[UserTokenRecord]):
             return None
 
         user_id = int(user_id)
-        orm_obj = db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
+        orm_obj = self.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
         if not orm_obj:
             return None
         return orm_obj
@@ -58,14 +58,14 @@ class UserTokenService(CRUDService[UserTokenRecord]):
                 access_token=encrypted_token,
                 access_secret=encrypted_secret,
             )
-            db.session.add(record)
+            self.session.add(record)
 
-            db.session.commit()
-            db.session.refresh(record)
+            self.session.commit()
+            self.session.refresh(record)
 
             return record
         except Exception as exc:
-            db.session.rollback()
+            self.session.rollback()
             raise exc
 
     def update_user_token(self, user_id: int, access_key: str, access_secret: str) -> UserTokenRecord | None:
@@ -73,7 +73,7 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         update the encrypted OAuth credentials for a user.
         """
         try:
-            orm_obj = db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
+            orm_obj = self.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
 
             if not orm_obj:
                 return None
@@ -88,11 +88,11 @@ class UserTokenService(CRUDService[UserTokenRecord]):
             orm_obj.last_used_at = now
             orm_obj.rotated_at = now
 
-            db.session.commit()
-            db.session.refresh(orm_obj)
+            self.session.commit()
+            self.session.refresh(orm_obj)
             return orm_obj
         except Exception as exc:
-            db.session.rollback()
+            self.session.rollback()
             return None
 
     def upsert_user_token(
@@ -106,8 +106,8 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         Creates a new token row if one does not exist.
         """
         try:
-            # record = db.session.get(UserTokenRecord, user_id)
-            record = db.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
+            # record = self.session.get(UserTokenRecord, user_id)
+            record = self.session.query(UserTokenRecord).filter(UserTokenRecord.user_id == user_id).first()
             if record:
                 orm_obj = self.update_user_token(user_id, access_key, access_secret)
             else:
@@ -116,7 +116,7 @@ class UserTokenService(CRUDService[UserTokenRecord]):
             return orm_obj
 
         except Exception as exc:
-            db.session.rollback()
+            self.session.rollback()
             raise exc
 
 

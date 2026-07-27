@@ -46,7 +46,7 @@ class TemplateService(CRUDService[TemplateRecord]):
             TemplateRecord.last_world_file.not_like(search_pattern),
         )
 
-        results = db.session.scalars(stmt).all()
+        results = self.session.scalars(stmt).all()
         return list(results)
 
     def get_template(self, template_id: int) -> TemplateRecord | None:

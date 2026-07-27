@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -75,14 +75,12 @@ class TestGetCoordinatorById(TestSetup):
 
 class TestAddCoordinator(TestSetup):
     def test_empty_username_raises(self):
-        with patch("src.main_app.db.services.admin_service.db"):
-            with pytest.raises(ValueError, match="Username is required"):
-                self.service.add_coordinator("")
+        with pytest.raises(ValueError, match="Username is required"):
+            self.service.add_coordinator("")
 
     def test_whitespace_username_raises(self):
-        with patch("src.main_app.db.services.admin_service.db"):
-            with pytest.raises(ValueError, match="Username is required"):
-                self.service.add_coordinator("   ")
+        with pytest.raises(ValueError, match="Username is required"):
+            self.service.add_coordinator("   ")
 
     def test_duplicate_raises(self):
         mock_record = MagicMock()

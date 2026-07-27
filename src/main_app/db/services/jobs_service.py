@@ -33,10 +33,12 @@ class JobsService(CRUDService[JobRecord]):
             SELECT status FROM jobs WHERE id = %s AND job_type = %s
         """
         try:
-            record = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
+            record = (
+                self.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
+            )
             if record:
                 # Refresh from database to ensure we don't use a stale cached status
-                db.session.refresh(record)
+                self.session.refresh(record)
                 return (record.status or "").lower() == "cancelled"
             return False
         except Exception as e:
@@ -87,13 +89,13 @@ class JobsService(CRUDService[JobRecord]):
         limit = _normalize_limit(limit)
 
         base_query = (
-            db.session.query(JobRecord)
+            self.session.query(JobRecord)
             .filter(JobRecord.username == username)
             .filter(JobRecord.job_type.in_(jobs_types))
         )
 
         records = (
-            db.session.query(JobRecord.status, func.count(JobRecord.id))
+            self.session.query(JobRecord.status, func.count(JobRecord.id))
             .filter(JobRecord.username == username)
             .filter(JobRecord.job_type.in_(jobs_types))
             .group_by(JobRecord.status)
@@ -132,7 +134,7 @@ class JobsService(CRUDService[JobRecord]):
         """
         try:
             result = (
-                db.session.query(JobRecord.id)
+                self.session.query(JobRecord.id)
                 .filter(
                     JobRecord.job_type == job_type,
                     JobRecord.status.in_(["pending", "running"]),
@@ -156,20 +158,19 @@ class JobsService(CRUDService[JobRecord]):
         Raises:
             DuplicateRecordError: If a job of the same type is already running.
         """
-        job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
-        db.session.add(job)
-
         try:
-            db.session.commit()
+            job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
+            self.session.add(job)
+            self.session.commit()
         except IntegrityError as exc:
-            db.session.rollback()
+            self.session.rollback()
             if "idx_unique_active_job" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
                 logger.warning("Duplicate active job detected for job_type=%s", job_type)
                 raise DuplicateRecordError(
                     f"A job of type '{job_type}' is already active (pending or running)."
                 ) from exc
             raise  # Re-raise unexpected IntegrityError
-        db.session.refresh(job)
+        self.session.refresh(job)
         return job
 
     def update_job_status(
@@ -186,7 +187,7 @@ class JobsService(CRUDService[JobRecord]):
         try:
             return self._update_job_status(job_id, status, result_file, job_type=job_type)
         except Exception as exc:
-            db.session.rollback()
+            self.session.rollback()
             raise exc
 
     def update_job_status_with_retry(
@@ -212,7 +213,7 @@ class JobsService(CRUDService[JobRecord]):
             return rowcount > 0
         """
         try:
-            query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
+            query = self.session.query(JobRecord).filter(JobRecord.id == job_id)
             if job_type:
                 query = query.filter(JobRecord.job_type == job_type)
 
@@ -228,12 +229,12 @@ class JobsService(CRUDService[JobRecord]):
             job.completed_at = datetime.now(UTC)
             job.is_running = None
 
-            db.session.commit()
-            db.session.refresh(job)
+            self.session.commit()
+            self.session.refresh(job)
             return True
         except Exception as e:
             logger.error(f"Error cancelling JobRecord: {e}")
-            db.session.rollback()
+            self.session.rollback()
             return False
 
     def delete_job_by_id_and_type(self, job_id: int, job_type: str) -> bool:
@@ -242,15 +243,15 @@ class JobsService(CRUDService[JobRecord]):
         """
         try:
             affected_rows = (
-                db.session.query(JobRecord)
+                self.session.query(JobRecord)
                 .filter(JobRecord.id == job_id, JobRecord.job_type == job_type)
                 .delete(synchronize_session=False)
             )
-            db.session.commit()
+            self.session.commit()
             return affected_rows > 0
         except Exception as e:
             logger.error(f"Error deleting JobRecord: {e}")
-            db.session.rollback()
+            self.session.rollback()
             return False
 
     def _update_job_status(
@@ -264,7 +265,7 @@ class JobsService(CRUDService[JobRecord]):
         """
         Update job status and result file.
         """
-        query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
+        query = self.session.query(JobRecord).filter(JobRecord.id == job_id)
         if job_type:
             query = query.filter(JobRecord.job_type == job_type)
         job = query.first()
@@ -285,8 +286,8 @@ class JobsService(CRUDService[JobRecord]):
         if result_file:
             job.result_file = result_file
 
-        db.session.commit()
-        db.session.refresh(job)
+        self.session.commit()
+        self.session.refresh(job)
 
         return job
 
@@ -298,10 +299,10 @@ class JobsService(CRUDService[JobRecord]):
         """
         limit = _normalize_limit(limit)
 
-        base_query = db.session.query(JobRecord).filter(JobRecord.username == username)
+        base_query = self.session.query(JobRecord).filter(JobRecord.username == username)
 
         records = (
-            db.session.query(JobRecord.status, func.count(JobRecord.id))
+            self.session.query(JobRecord.status, func.count(JobRecord.id))
             .filter(JobRecord.username == username)
             .group_by(JobRecord.status)
             .all()

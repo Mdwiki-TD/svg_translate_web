@@ -15,7 +15,7 @@ from src.main_app.db.services.jobs_service import JobsService, _normalize_limit
 
 class TestSetup:
     @pytest.fixture(autouse=True)
-    def setup(self, monkeypatch):
+    def setup(self):
         self.service = JobsService()
 
 
@@ -163,44 +163,43 @@ class TestNormalizeLimit(TestSetup):
 class TestIsJobCancelled(TestSetup):
     """Tests for is_job_cancelled."""
 
-    def test_cancelled_status_returns_true(self, monkeypatch):
+    def test_cancelled_status_returns_true(self):
         mock_record = MagicMock()
         mock_record.status = "cancelled"
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = mock_record
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", lambda cls: mock_query)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.refresh", lambda x: None)
+        self.service.session.query = mock_query
+
         result = self.service.is_job_cancelled(1, "test")
         assert result is True
 
-    def test_active_statuses_return_false(self, monkeypatch):
+    def test_active_statuses_return_false(self):
         for status in ("pending", "running", "completed"):
             mock_record = MagicMock()
             mock_record.status = status
             mock_query = MagicMock()
             mock_query.filter.return_value.first.return_value = mock_record
-            monkeypatch.setattr(
-                "src.main_app.db.services.jobs_service.db.session.query", lambda cls, _mock=mock_query: _mock
-            )
-            monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.refresh", lambda x: None)
+
+            self.service.session.query = mock_query
+
             result = self.service.is_job_cancelled(1, "test")
             assert result is False
 
-    def test_no_record_returns_false(self, monkeypatch):
+    def test_no_record_returns_false(self):
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = None
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", lambda cls: mock_query)
+        self.service.session.query = mock_query
         result = self.service.is_job_cancelled(1, "test")
         assert result is False
 
-    def test_refresh_called_before_checking_status(self, monkeypatch):
+    def test_refresh_called_before_checking_status(self):
         mock_record = MagicMock()
         mock_record.status = "cancelled"
         mock_query = MagicMock()
         mock_query.filter.return_value.first.return_value = mock_record
         refresh = MagicMock()
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", lambda cls: mock_query)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.refresh", refresh)
+        self.service.session.query = mock_query
+        self.service.session.refresh = refresh
         self.service.is_job_cancelled(1, "test")
         refresh.assert_called_once_with(mock_record)
 
@@ -230,7 +229,7 @@ class TestListJobs(TestSetup):
 class TestGetAllUserJobsStats(TestSetup):
     """Tests for get_all_user_jobs_stats."""
 
-    def test_returns_stats_with_correct_counts(self, monkeypatch):
+    def test_returns_stats_with_correct_counts(self):
         mock_group_records = [("completed", 5), ("failed", 2)]
         mock_group_query = MagicMock()
         mock_group_query.filter.return_value.group_by.return_value.all.return_value = mock_group_records
@@ -247,13 +246,14 @@ class TestGetAllUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
+        self.service.session.query = query_side_effect
+
         result = self.service.get_all_user_jobs_stats("test_user")
         assert result["stats"]["total"] == 7  # type: ignore
         assert result["stats"]["completed"] == 5  # type: ignore
         assert result["stats"]["failed"] == 2  # type: ignore
 
-    def test_handles_empty_records(self, monkeypatch):
+    def test_handles_empty_records(self):
         mock_group_query = MagicMock()
         mock_group_query.filter.return_value.group_by.return_value.all.return_value = []
 
@@ -268,14 +268,15 @@ class TestGetAllUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
+        self.service.session.query = query_side_effect
+
         result = self.service.get_all_user_jobs_stats("test_user")
         assert result["stats"]["total"] == 0  # type: ignore
         assert result["stats"]["completed"] == 0  # type: ignore
         assert result["stats"]["failed"] == 0  # type: ignore
         assert result["recent_jobs"] == []
 
-    def test_respects_limit_parameter(self, monkeypatch):
+    def test_respects_limit_parameter(self):
         mock_group_records = [("completed", 3)]
         mock_group_query = MagicMock()
         mock_group_query.filter.return_value.group_by.return_value.all.return_value = mock_group_records
@@ -293,7 +294,8 @@ class TestGetAllUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
+        self.service.session.query = query_side_effect
+
         result = self.service.get_all_user_jobs_stats("test_user", limit=5)
         assert result["stats"]["total"] == 3  # type: ignore
         assert result["stats"]["completed"] == 3  # type: ignore
@@ -303,7 +305,7 @@ class TestGetAllUserJobsStats(TestSetup):
 class TestGetUserJobsStats(TestSetup):
     """Tests for get_user_jobs_stats."""
 
-    def test_with_jobs_types_filters_correctly(self, monkeypatch):
+    def test_with_jobs_types_filters_correctly(self):
         mock_group_records = [("completed", 2)]
         mock_group_query = MagicMock()
         mock_group_query.filter.return_value.filter.return_value.group_by.return_value.all.return_value = (
@@ -323,25 +325,26 @@ class TestGetUserJobsStats(TestSetup):
                 return mock_base_query
             return mock_group_query
 
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", query_side_effect)
+        self.service.session.query = query_side_effect
+
         result = self.service.get_user_jobs_stats("test_user", jobs_types=["type_a", "type_b"])
         assert result["stats"]["total"] == 2  # type: ignore
         assert result["stats"]["completed"] == 2  # type: ignore
 
-    def test_with_none_jobs_types_delegates(self, monkeypatch):
+    def test_with_none_jobs_types_delegates(self):
         mock_return = {"stats": {"total": 0}, "recent_jobs": []}
         mock_method = MagicMock(return_value=mock_return)
 
-        monkeypatch.setattr("src.main_app.db.services.jobs_service._get_all_user_jobs_stats", mock_method)
+        self.service._get_all_user_jobs_stats = mock_method
         result = self.service.get_user_jobs_stats("test_user", jobs_types=None)
         assert result == mock_return
         mock_method.assert_called_once_with("test_user", 100)
 
-    def test_with_empty_jobs_types_delegates(self, monkeypatch):
+    def test_with_empty_jobs_types_delegates(self):
         mock_return = {"stats": {"total": 5}, "recent_jobs": []}
         mock_method = MagicMock(return_value=mock_return)
 
-        monkeypatch.setattr("src.main_app.db.services.jobs_service._get_all_user_jobs_stats", mock_method)
+        self.service._get_all_user_jobs_stats = mock_method
         result = self.service.get_user_jobs_stats("test_user", jobs_types=[])
         assert result == mock_return
         mock_method.assert_called_once_with("test_user", 100)
@@ -415,7 +418,7 @@ class TestUpdateJobStatus(TestSetup):
         assert updated.status == "cancelled"
         assert updated.completed_at is not None
 
-    def test_re_raises_after_max_retries(self, monkeypatch):
+    def test_re_raises_after_max_retries(self):
         mock_job = MagicMock()
         mock_job.started_at = None
         mock_job.status = "pending"
@@ -431,11 +434,11 @@ class TestUpdateJobStatus(TestSetup):
             error.connection_invalidated = True
             raise error
 
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", lambda cls: mock_query)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.commit", mock_commit)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.refresh", lambda x: None)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.rollback", lambda: None)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.remove", lambda: None)
+        self.service.session.query = mock_query
+        self.service.session.commit = mock_commit
+
+        self.service.session.rollback = MagicMock()
+        self.service.session.remove = MagicMock()
 
         with pytest.raises(OperationalError):
             self.service.update_job_status(1, "completed", job_type="test_job")
@@ -463,7 +466,7 @@ class TestUpdateJobStatus(TestSetup):
 class TestUpdateJobStatusWithRetry(TestSetup):
     """Tests for update_job_status_with_retry."""
 
-    def test_retries_on_connection_error(self, monkeypatch):
+    def test_retries_on_connection_error(self):
         mock_job = MagicMock()
         mock_job.started_at = None
         mock_job.status = "pending"
@@ -483,11 +486,11 @@ class TestUpdateJobStatusWithRetry(TestSetup):
                 error.connection_invalidated = True
                 raise error
 
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.query", lambda cls: mock_query)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.commit", mock_commit)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.refresh", lambda x: None)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.rollback", lambda: None)
-        monkeypatch.setattr("src.main_app.db.services.jobs_service.db.session.remove", lambda: None)
+        self.service.session.query = mock_query
+        self.service.session.commit = mock_commit
+
+        self.service.session.rollback = MagicMock()
+        self.service.session.remove = MagicMock()
 
         result = self.service.update_job_status_with_retry(1, "completed", job_type="test_job")
         assert result == mock_job

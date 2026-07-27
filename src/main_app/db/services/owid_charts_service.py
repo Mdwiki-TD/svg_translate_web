@@ -29,7 +29,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         """
 
         query = (
-            db.session.query(
+            self.session.query(
                 OwidChartRecord,
                 TemplateRecord.id.label("template_id"),
                 TemplateRecord.title.label("template_title"),
@@ -43,7 +43,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         """
         Return the total number of charts.
         """
-        return db.session.query(func.count(OwidChartRecord.chart_id)).scalar()
+        return self.session.query(func.count(OwidChartRecord.chart_id)).scalar()
 
     def list_published_charts(self) -> list[OwidChartRecord]:
         """
@@ -56,7 +56,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
             ORDER BY oc.chart_id ASC
         """
         query = (
-            db.session.query(OwidChartRecord)
+            self.session.query(OwidChartRecord)
             .filter(OwidChartRecord.is_published == 1)
             .order_by(OwidChartRecord.chart_id.asc())
         )
@@ -72,7 +72,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
             WHERE oct.chart_id = %s
             and oct.chart_id = oc.chart_id
         """
-        records = db.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
+        records = self.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
         return records
 
     def get_chart_by_slug(self, slug: str) -> OwidChartRecord | None:
@@ -84,9 +84,9 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
             WHERE oc.slug = %s
             and oct.chart_id = oc.chart_id
         """
-        return db.session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug).first()
+        return self.session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug).first()
 
-    def add_chart(self, **chart_data: Any) -> OwidChartRecord:
+    def add_chart(self, **chart_data: Any) -> OwidChartRecord | None:
         """
         Add a new chart.
         """
@@ -95,12 +95,12 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         }
         try:
             chart = OwidChartRecord(**chart_data)
-            db.session.add(chart)
-            db.session.commit()
-            db.session.refresh(chart)
+            self.session.add(chart)
+            self.session.commit()
+            self.session.refresh(chart)
             return chart
         except Exception as e:
-            db.session.rollback()
+            self.session.rollback()
             logger.error(f"Error adding chart: {e}")
             return None
 
@@ -115,7 +115,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         try:
             return self._update_chart_data(chart_id, chart_data)
         except Exception as e:
-            db.session.rollback()
+            self.session.rollback()
             logger.error(f"Error updating chart data: {e}")
             return None
 
@@ -134,7 +134,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         """
         Update chart fields if they are not None.
         """
-        chart = db.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
+        chart = self.session.query(OwidChartRecord).filter(OwidChartRecord.chart_id == chart_id).first()
         if not chart:
             return None
 
@@ -142,8 +142,8 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
             if value is not None and hasattr(OwidChartRecord, key):
                 setattr(chart, key, value)
 
-        db.session.commit()
-        db.session.refresh(chart)
+        self.session.commit()
+        self.session.refresh(chart)
 
         return chart
 
