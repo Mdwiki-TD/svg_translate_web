@@ -11,18 +11,34 @@ from src.main_app.db.services.owid_charts_service import OwidChartsService
 
 
 def _mock_query_for_read(**kwargs):
-    """Set up a chained mock query on the service module's db.session.query.
+    """Set up a chained mock query on db.session.query.
 
-    When the service calls self.session.query(Model), it invokes mock_query(Model),
-    which returns mock_query.return_value. All chained methods (filter, order_by,
-    etc.) are set on mock_query.return_value so that the chain resolves correctly.
+    The service methods call self.session.query(Model).filter(...).first()
+    or self.session.query(Model).filter(...).order_by(...).all().
+
+    Since query(Model) returns mock_query.return_value, the chain is:
+      mock_query(Model).filter(...).first()
+      → mock_query.return_value.filter.return_value.first.return_value
+
+    For all=... the chain is:
+      mock_query(Model).filter(...).order_by(...).all()
+      → mock_query.return_value.filter.return_value.order_by.return_value.all.return_value
     """
     mock_query = MagicMock()
-    mock_query.return_value.order_by.return_value = MagicMock()
-    mock_query.return_value.filter.return_value = MagicMock()
-    mock_query.return_value.limit.return_value = MagicMock()
+
+    mock_filter = mock_query.return_value.filter.return_value
+    mock_order_by = mock_filter.order_by.return_value
+
     for attr, value in kwargs.items():
-        setattr(mock_query.return_value, attr, value)
+        if attr == "all":
+            mock_order_by.all.return_value = value
+        elif attr == "first":
+            mock_filter.first.return_value = value
+        elif attr == "scalar":
+            mock_query.return_value.scalar.return_value = value
+        else:
+            setattr(mock_filter, attr, value)
+
     return mock_query
 
 
@@ -37,8 +53,10 @@ class TestCountCharts(TestSetup):
 
     def test_returns_count(self, monkeypatch):
         """Return the total number of charts."""
-        mock_query = _mock_query_for_read(scalar=MagicMock(return_value=42))
-        self.service.session.query = mock_query
+        mock_query = _mock_query_for_read(scalar=42)
+        mock_db_session = MagicMock()
+        mock_db_session.query.return_value = mock_query.return_value
+        self.service.session = mock_db_session
 
         assert self.service.count_charts() == 42
 
@@ -92,24 +110,30 @@ class TestListPublishedCharts(TestSetup):
     def test_returns_only_published(self, monkeypatch):
         """Return only charts where is_published is True."""
         expected = [MagicMock(chart_id=1, is_published=True)]
-        mock_query = _mock_query_for_read(all=MagicMock(return_value=expected))
-        self.service.session.query = mock_query
+        mock_query = _mock_query_for_read(all=expected)
+        mock_db_session = MagicMock()
+        mock_db_session.query.return_value = mock_query.return_value
+        self.service.session = mock_db_session
 
         result = self.service.list_published_charts()
         assert result == expected
 
     def test_applies_filter(self, monkeypatch):
         """Verify the filter is applied to the query."""
-        mock_query = _mock_query_for_read(all=MagicMock(return_value=[]))
-        self.service.session.query = mock_query
+        mock_query = _mock_query_for_read(all=[])
+        mock_db_session = MagicMock()
+        mock_db_session.query.return_value = mock_query.return_value
+        self.service.session = mock_db_session
 
         self.service.list_published_charts()
-        mock_query.filter.assert_called_once()
+        mock_query.return_value.filter.assert_called_once()
 
     def test_returns_empty_when_none_published(self, monkeypatch):
         """Return empty list when no published charts exist."""
-        mock_query = _mock_query_for_read(all=MagicMock(return_value=[]))
-        self.service.session.query = mock_query
+        mock_query = _mock_query_for_read(all=[])
+        mock_db_session = MagicMock()
+        mock_db_session.query.return_value = mock_query.return_value
+        self.service.session = mock_db_session
 
         assert self.service.list_published_charts() == []
 
@@ -120,16 +144,20 @@ class TestGetChart(TestSetup):
     def test_returns_chart_by_id(self, monkeypatch):
         """Return the chart when the ID exists."""
         expected = MagicMock(chart_id=1, slug="test-chart")
-        mock_query = _mock_query_for_read(first=MagicMock(return_value=expected))
-        self.service.session.query = mock_query
+        mock_query = _mock_query_for_read(first=expected)
+        mock_db_session = MagicMock()
+        mock_db_session.query.return_value = mock_query.return_value
+        self.service.session = mock_db_session
 
         result = self.service.get_chart_by_id(1)
         assert result is expected
 
     def test_returns_none_for_missing_id(self, monkeypatch):
         """Return None when no chart matches the given ID."""
-        mock_query = _mock_query_for_read(first=MagicMock(return_value=None))
-        self.service.session.query = mock_query
+        mock_query = _mock_query_for_read(first=None)
+        mock_db_session = MagicMock()
+        mock_db_session.query.return_value = mock_query.return_value
+        self.service.session = mock_db_session
 
         assert self.service.get_chart_by_id(999) is None
 
@@ -140,16 +168,20 @@ class TestGetChartBySlug(TestSetup):
     def test_returns_chart_by_slug(self, monkeypatch):
         """Return the chart when the slug exists."""
         expected = MagicMock(slug="existing-chart", chart_id=5)
-        mock_query = _mock_query_for_read(first=MagicMock(return_value=expected))
-        self.service.session.query = mock_query
+        mock_query = _mock_query_for_read(first=expected)
+        mock_db_session = MagicMock()
+        mock_db_session.query.return_value = mock_query.return_value
+        self.service.session = mock_db_session
 
         result = self.service.get_chart_by_slug("existing-chart")
         assert result is expected
 
     def test_returns_none_for_missing_slug(self, monkeypatch):
         """Return None when no chart matches the given slug."""
-        mock_query = _mock_query_for_read(first=MagicMock(return_value=None))
-        self.service.session.query = mock_query
+        mock_query = _mock_query_for_read(first=None)
+        mock_db_session = MagicMock()
+        mock_db_session.query.return_value = mock_query.return_value
+        self.service.session = mock_db_session
 
         assert self.service.get_chart_by_slug("nonexistent") is None
 

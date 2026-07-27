@@ -184,8 +184,9 @@ class JobsService(CRUDService[JobRecord]):
         """
         Update job status and result file.
         """
+        job = self.get_job(job_id, job_type)
         try:
-            return self._update_job_status(job_id, status, result_file, job_type=job_type)
+            return self._update_job_status(job, status, result_file)
         except Exception as exc:
             self.session.rollback()
             raise exc
@@ -198,7 +199,8 @@ class JobsService(CRUDService[JobRecord]):
         *,
         job_type: str,
     ) -> JobRecord:
-        return retry_on_db_disconnect()(self._update_job_status)(job_id, status, result_file, job_type=job_type)
+        job = self.get_job(job_id, job_type)
+        return retry_on_db_disconnect()(self._update_job_status)(job, status, result_file)
 
     def cancel_job_db(self, job_id: int, job_type: str | None = None) -> bool:
         """
@@ -256,22 +258,13 @@ class JobsService(CRUDService[JobRecord]):
 
     def _update_job_status(
         self,
-        job_id: int,
+        job: JobRecord,
         status: str,
         result_file: str | None = None,
-        *,
-        job_type: str,
     ) -> JobRecord:
         """
         Update job status and result file.
         """
-        query = self.session.query(JobRecord).filter(JobRecord.id == job_id)
-        if job_type:
-            query = query.filter(JobRecord.job_type == job_type)
-        job = query.first()
-
-        if not job:
-            raise LookupError(f"Job id {job_id} was not found")
 
         status_lower = status.lower()
         job.status = status_lower
