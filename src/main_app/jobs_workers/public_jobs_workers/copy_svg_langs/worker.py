@@ -504,7 +504,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         """Execute the full pipeline."""
         if not self._check_site():
             return self.result
-
+        self.files_processor.site = self.site
+        
         if not self.title:
             logger.error("No title found")
             self.result.status = "failed"
