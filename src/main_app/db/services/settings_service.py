@@ -140,7 +140,6 @@ class SettingsService(CRUDService[SettingRecord]):
             logger.error("Failed to create new record: %s", exc)
             return None
 
-
     def delete_setting_by_key(self, key: str) -> bool:
         record = self.get_by(key=key)
         if record is None:
