@@ -44,7 +44,12 @@ class UsersService(CRUDService[UserRecord]):
             return existing
 
         data = {"username": username}
-        return self.create_safe(**data)
+
+        try:
+            return self.create(**data)
+        except Exception as exc:
+            logger.error("Failed to create new record: %s", exc)
+            return None
 
     def toggle_can_run_jobs(self, user_id: int, value: bool) -> UserRecord:
         """Toggle can_run_jobs."""
@@ -54,7 +59,11 @@ class UsersService(CRUDService[UserRecord]):
             raise UserNotFoundError("User record not found")
 
         data = {"can_run_jobs": value}
-        return self.update_safe(record, **data)
+        try:
+            return self.update(record, **data)
+        except Exception as exc:
+            logger.error("Failed to update record: %s", exc)
+            return None
 
     def toggle_can_run_bg_jobs(self, user_id: int, value: bool) -> UserRecord:
         """Toggle can_run_bg_jobs."""
@@ -64,8 +73,12 @@ class UsersService(CRUDService[UserRecord]):
             raise UserNotFoundError("User record not found")
 
         data = {"can_run_bg_jobs": value}
-        return self.update_safe(record, **data)
 
+        try:
+            return self.update(record, **data)
+        except Exception as exc:
+            logger.error("Failed to update record: %s", exc)
+            return None
 
 __all__ = [
     "UsersService",

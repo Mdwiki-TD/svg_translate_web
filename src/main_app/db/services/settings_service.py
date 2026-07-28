@@ -129,12 +129,17 @@ class SettingsService(CRUDService[SettingRecord]):
         if value is None:
             value = default_value_types.get(value_type, "")
 
-        return self.create_safe(
-            key=key,
-            title=title,
-            value_type=value_type,
-            value=str(value) if value is not None else None,
-        )
+        try:
+            return self.create(
+                key=key,
+                title=title,
+                value_type=value_type,
+                value=str(value) if value is not None else None,
+            )
+        except Exception as exc:
+            logger.error("Failed to create new record: %s", exc)
+            return None
+
 
     def delete_setting_by_key(self, key: str) -> bool:
         record = self.get_by(key=key)

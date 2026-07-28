@@ -162,12 +162,13 @@ class TestUpsertUserToken(TestSetup):
 
     def test_calls_create_when_no_existing_token(self) -> None:
         """Test creates a token when no existing token is found."""
-        result = self.usertoken_service.upsert_user_token(self.user_record.user_id, "key", "secret")
+        user_record = self.user_service.create_user("token_user_without_token")
+        result = self.usertoken_service.upsert_user_token(user_record.user_id, "key", "secret")
 
-        assert result.user_id == self.user_record.user_id
+        assert result.user_id == user_record.user_id
         assert result.access_token == b"enc_key"
         assert result.access_secret == b"enc_secret"
-        assert self.usertoken_service.get(self.user_record.user_id) is not None
+        assert self.usertoken_service.get(user_record.user_id) is not None
 
     def test_calls_update_when_token_exists(self) -> None:
         """Test updates the row when an existing token is found."""

@@ -136,13 +136,6 @@ class CRUDService[ModelT]:
             logger.error("Error adding %s", self.model_name)
             raise
 
-    def create_safe(self, **fields: Any) -> ModelT | None:
-        """Instantiate the model with `fields` and persist it."""
-        try:
-            return self.create(**fields)
-        except Exception as exc:
-            return None
-
     def update(self, instance: ModelT, **fields: Any) -> ModelT:
         """Set attributes on `instance` and persist the change."""
         for key, value in fields.items():
@@ -151,15 +144,9 @@ class CRUDService[ModelT]:
                 continue
             if value is not None:
                 setattr(instance, key, value)
-        self.commit()
-        return instance
 
-    def update_safe(self, instance: ModelT, **fields: Any) -> ModelT:
-        """Set attributes on `instance` and persist the change."""
-        try:
-            return self.update(instance, **fields)
-        except Exception as exc:
-            logger.error("Error updating %s: %s", self.model_name, exc)
+        self.commit()
+        self.session.refresh(instance)
 
         return instance
 
@@ -172,7 +159,7 @@ class CRUDService[ModelT]:
 
         try:
             # if validate and hasattr(record, "validate"): record.validate()
-            self.update_safe(record, **data)
+            self.update(record, **data)
             return record
         except Exception as exc:
             logger.error("Error updating %s id=%s: %s", self.model_name, pk, exc)
@@ -185,8 +172,8 @@ class CRUDService[ModelT]:
         """
         instance = self.get_record_by_id(pk)
         if instance is not None:
-            return self.update_safe(instance, **fields), False
-        return self.create_safe(**fields), True
+            return self.update(instance, **fields), False
+        return self.create(**fields), True
 
     def bulk_create(self, items: Iterable[dict[str, Any]]) -> Sequence[ModelT]:
         instances = [self.model(**fields) for fields in items]
