@@ -44,12 +44,12 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         """Fetch the encrypted OAuth credentials for a user."""
         if not user_id:
             return None
-
-        user_id = int(user_id)
-        orm_obj = self.get_record_by_id(user_id)
-        if not orm_obj:
+        try:
+            user_id = int(user_id)
+        except (TypeError, ValueError):
+            logger.warning("Invalid user_id for token lookup: %r", user_id)
             return None
-        return orm_obj
+        return self.get_record_by_id(user_id)
 
     def create_user_token(self, user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
         try:
@@ -95,6 +95,7 @@ class UserTokenService(CRUDService[UserTokenRecord]):
             self.session.refresh(orm_obj)
             return orm_obj
         except Exception as exc:
+            logger.error("Error updating token for user %s: %s", user_id, exc)
             self.session.rollback()
             return None
 
@@ -103,7 +104,7 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         user_id: int,
         access_key: str,
         access_secret: str,
-    ) -> UserTokenRecord:
+    ) -> UserTokenRecord | None:
         """
         Upsert the encrypted OAuth credentials for a user.
         Creates a new token row if one does not exist.
@@ -111,11 +112,9 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         try:
             record = self.get_record_by_id(user_id)
             if record:
-                orm_obj = self.update_user_token(user_id, access_key, access_secret)
+                return self.update_user_token(user_id, access_key, access_secret)
             else:
-                orm_obj = self.create_user_token(user_id, access_key, access_secret)
-
-            return orm_obj
+                return self.create_user_token(user_id, access_key, access_secret)
 
         except Exception as exc:
             self.session.rollback()

@@ -1,7 +1,5 @@
 """
-SQLAlchemy-based service for managing users and user tokens.
-
-Users table is the stable identity layer. Tokens are a child of users.
+SQLAlchemy-based service for managing users.
 """
 
 from __future__ import annotations
