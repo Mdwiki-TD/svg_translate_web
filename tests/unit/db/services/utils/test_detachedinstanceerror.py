@@ -15,12 +15,10 @@ from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm.exc import DetachedInstanceError
 
 import src.main_app.db.services.utils.retry_on_disconnect as decorators_module
 from src.main_app.db.models import SettingRecord
 from src.main_app.db.services.utils.retry_on_disconnect import retry_on_db_disconnect
-from src.main_app.extensions import db
 
 
 def make_operational_error(message="some error", connection_invalidated=False):
@@ -87,11 +85,11 @@ class TestRetryOnDbDisconnectDetachedInstance:
     which discards all ORM objects the caller was holding in that same thread/request.
     This is because db.session.remove() clears the scoped session, detaching all objects."""
 
-    def test_session_removed_after_retries_exhausted(self):
+    def test_session_removed_after_retries_exhausted(self, sqlite_db):
         """After retries exhaust, db.session.remove() discards the session and detaches objects."""
         record = SettingRecord(key="k", title="T", value="v", value_type="string")
-        db.session.add(record)
-        db.session.commit()
+        sqlite_db.session.add(record)
+        sqlite_db.session.commit()
 
         loaded = SettingRecord.query.first()
         assert loaded is not None
@@ -108,16 +106,16 @@ class TestRetryOnDbDisconnectDetachedInstance:
 
         # After session.remove(), the identity map is cleared — the old object
         # is no longer tracked by the current session.
-        session = db.session()
+        session = sqlite_db.session()
         assert loaded not in session.identity_map.values()
 
-    def test_session_removed_after_retry_succeeds(self):
+    def test_session_removed_after_retry_succeeds(self, sqlite_db):
         """Even when the retry succeeds, previously loaded objects get detached.
         This is the most insidious case — the decorated function appears to work,
         but the caller's objects are silently broken."""
         record = SettingRecord(key="k", title="T", value="v", value_type="string")
-        db.session.add(record)
-        db.session.commit()
+        sqlite_db.session.add(record)
+        sqlite_db.session.commit()
 
         loaded = SettingRecord.query.first()
         assert loaded is not None
@@ -140,5 +138,5 @@ class TestRetryOnDbDisconnectDetachedInstance:
 
         # After session.remove(), the identity map is cleared — the old object
         # is no longer tracked by the current session.
-        session = db.session()
+        session = sqlite_db.session()
         assert loaded not in session.identity_map.values()

@@ -4,49 +4,43 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.models import OwidChartRecord, TemplateRecord
-from src.main_app.db.services.owid_charts_service import OwidChartsService
-from src.main_app.extensions import db
-
-
-@pytest.fixture
-def chart_record() -> OwidChartRecord:
-    record = OwidChartRecord(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
-    db.session.add(record)
-    db.session.commit()
-    db.session.refresh(record)
-    return record
+from src.main_app.db.services import OwidChartsService, TemplateService
 
 
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
         self.service = OwidChartsService()
+        self.templates_service = TemplateService()
 
 
 class TestCountCharts(TestSetup):
     """Tests for count_charts function."""
 
-    def test_returns_count(self, chart_record: OwidChartRecord) -> None:
+    def test_returns_count(self) -> None:
         """Return the total number of charts."""
-        assert self.service.count_charts() == 1
+        self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+        self.service.create(slug="test-chart1", title="Test Chart1", is_published=True, max_time=2025)
+
+        assert self.service.count_charts() == 2
 
 
 class TestListCharts(TestSetup):
     """Tests for list_charts function."""
 
-    def test_returns_all_charts(self, chart_record: OwidChartRecord) -> None:
+    def test_returns_all_charts(self) -> None:
         """Return all charts when no limit is specified."""
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
         result = self.service.list_charts()
         assert len(result) == 1
         assert result[0].chart_id == chart_record.chart_id
         assert result[0].slug == chart_record.slug
 
-    def test_respects_limit(self, chart_record: OwidChartRecord) -> None:
+    def test_respects_limit(self) -> None:
         """Apply the limit argument to the query."""
-        second = OwidChartRecord(slug="second-chart", title="Second Chart")
-        db.session.add(second)
-        db.session.commit()
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+        second = self.service.create(slug="second-chart", title="Second Chart")
 
         result = self.service.list_charts(limit=1)
         assert len(result) == 1
@@ -60,11 +54,10 @@ class TestListCharts(TestSetup):
 class TestListChartsWithTemplates(TestSetup):
     """Tests for list_charts_with_templates function."""
 
-    def test_returns_charts_with_matching_template(self, chart_record: OwidChartRecord) -> None:
-        template = TemplateRecord(title="Template A", slug=chart_record.slug, source="owid")
-        db.session.add(template)
-        db.session.commit()
-        db.session.refresh(template)
+    def test_returns_charts_with_matching_template(self) -> None:
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
+        template = self.templates_service.create(title="Template A", slug=chart_record.slug, source="owid")
 
         result = self.service.list_charts_with_templates()
 
@@ -74,7 +67,9 @@ class TestListChartsWithTemplates(TestSetup):
         assert template_id == template.id
         assert template_title == template.title
 
-    def test_returns_chart_without_template(self, chart_record: OwidChartRecord) -> None:
+    def test_returns_chart_without_template(self) -> None:
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
         result = self.service.list_charts_with_templates()
 
         assert len(result) == 1
@@ -87,11 +82,11 @@ class TestListChartsWithTemplates(TestSetup):
 class TestListPublishedCharts(TestSetup):
     """Tests for list_published_charts function."""
 
-    def test_returns_only_published(self, chart_record: OwidChartRecord) -> None:
+    def test_returns_only_published(self) -> None:
         """Return only charts where is_published is True."""
-        unpublished = OwidChartRecord(slug="unpublished", title="Unpublished", is_published=False)
-        db.session.add(unpublished)
-        db.session.commit()
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
+        unpublished = self.service.create(slug="unpublished", title="Unpublished", is_published=False)
 
         result = self.service.list_published_charts()
         assert len(result) == 1
@@ -100,8 +95,7 @@ class TestListPublishedCharts(TestSetup):
 
     def test_returns_empty_when_none_published(self) -> None:
         """Return empty list when no published charts exist."""
-        db.session.add(OwidChartRecord(slug="unpublished", title="Unpublished", is_published=False))
-        db.session.commit()
+        self.service.create(slug="unpublished", title="Unpublished", is_published=False)
 
         assert self.service.list_published_charts() == []
 
@@ -109,8 +103,10 @@ class TestListPublishedCharts(TestSetup):
 class TestGetChart(TestSetup):
     """Tests for get_chart_by_id function."""
 
-    def test_returns_chart_by_id(self, chart_record: OwidChartRecord) -> None:
+    def test_returns_chart_by_id(self) -> None:
         """Return the chart when the ID exists."""
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
         result = self.service.get_chart_by_id(chart_record.chart_id)
         assert result is not None
         assert result.chart_id == chart_record.chart_id
@@ -123,8 +119,10 @@ class TestGetChart(TestSetup):
 class TestGetChartBySlug(TestSetup):
     """Tests for get_chart_by_slug function."""
 
-    def test_returns_chart_by_slug(self, chart_record: OwidChartRecord) -> None:
+    def test_returns_chart_by_slug(self) -> None:
         """Return the chart when the slug exists."""
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
         result = self.service.get_chart_by_slug(chart_record.slug)
         assert result is not None
         assert result.chart_id == chart_record.chart_id
@@ -144,7 +142,7 @@ class TestAddChart(TestSetup):
         assert result is not None
         assert result.chart_id is not None
         assert result.slug == "test-chart"
-        assert db.session.get(OwidChartRecord, result.chart_id) is not None
+        assert self.service.get(result.chart_id) is not None
 
     def test_filters_out_none_values(self) -> None:
         """Exclude None values from chart creation data and fail if required fields are missing."""
@@ -162,13 +160,15 @@ class TestAddChart(TestSetup):
 class TestUpdateChartData(TestSetup):
     """Tests for update_chart_data function."""
 
-    def test_updates_chart_fields(self, chart_record: OwidChartRecord) -> None:
+    def test_updates_chart_fields(self) -> None:
         """Update existing chart fields with provided data."""
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
         result = self.service.update_chart_data(chart_record.chart_id, {"title": "Updated"})
 
         assert result is not None
         assert result.title == "Updated"
-        persisted = db.session.get(OwidChartRecord, chart_record.chart_id)
+        persisted = self.service.get(chart_record.chart_id)
         assert persisted is not None
         assert persisted.title == "Updated"
 
@@ -177,15 +177,19 @@ class TestUpdateChartData(TestSetup):
         result = self.service.update_chart_data(999, {"title": "Updated"})
         assert result is None
 
-    def test_ignores_none_values(self, chart_record: OwidChartRecord) -> None:
+    def test_ignores_none_values(self) -> None:
         """Ignore None values in update data."""
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
         result = self.service.update_chart_data(chart_record.chart_id, {"title": "New", "max_time": None})
         assert result is not None
         assert result.title == "New"
         assert result.max_time == 2024
 
-    def test_ignores_non_existent_attributes(self, chart_record: OwidChartRecord) -> None:
+    def test_ignores_non_existent_attributes(self) -> None:
         """Ignore unknown attributes in update data."""
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
         result = self.service.update_chart_data(chart_record.chart_id, {"title": "New", "invalid_attr": "value"})
         assert result is not None
         assert result.title == "New"
@@ -195,11 +199,13 @@ class TestUpdateChartData(TestSetup):
 class TestDeleteChart(TestSetup):
     """Tests for delete_chart function."""
 
-    def test_deletes_chart(self, chart_record: OwidChartRecord) -> None:
+    def test_deletes_chart(self) -> None:
         """Delete an existing chart and return True."""
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
         result = self.service.delete(chart_record.chart_id)
         assert result is True
-        assert db.session.get(OwidChartRecord, chart_record.chart_id) is None
+        assert self.service.get(chart_record.chart_id) is None
 
     def test_returns_false_for_missing_chart(self) -> None:
         """Return False when chart ID does not exist."""

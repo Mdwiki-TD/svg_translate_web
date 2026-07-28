@@ -98,8 +98,12 @@ class SettingsService(CRUDService[SettingRecord]):
         }
         if title:
             data["title"] = title
-
-        return self.update(record, **data)
+        try:
+            self.update(record, **data)
+            return True
+        except Exception as e:
+            logger.error("Could not update setting %s: %s", key, e)
+            return False
 
     def create_setting(
         self,
@@ -107,7 +111,7 @@ class SettingsService(CRUDService[SettingRecord]):
         title: str,
         value_type: str = "boolean",
         value: Any | None = None,
-    ) -> bool:
+    ) -> SettingRecord | None:
         """
         Create new setting.
         """
@@ -125,12 +129,17 @@ class SettingsService(CRUDService[SettingRecord]):
         if value is None:
             value = default_value_types.get(value_type, "")
 
-        return self.create(
-            key=key,
-            title=title,
-            value_type=value_type,
-            value=str(value) if value is not None else None,
-        )
+        try:
+            return self.create(
+                key=key,
+                title=title,
+                value_type=value_type,
+                value=str(value) if value is not None else None,
+            )
+        except Exception as exc:
+            logger.error("Failed to create new record: %s", exc)
+            return None
+
 
     def delete_setting_by_key(self, key: str) -> bool:
         record = self.get_by(key=key)

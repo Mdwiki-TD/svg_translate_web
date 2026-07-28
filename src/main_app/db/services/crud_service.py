@@ -45,6 +45,9 @@ class CRUDService[ModelT]:
             logger.error("Error getting %s id=%s: %s", self.model_name, pk, exc)
             return None
 
+    def get(self, pk: PKT) -> ModelT | None:
+        return self.get_record_by_id(pk)
+
     def get_or_404(self, pk: PKT, description: str | None = None) -> ModelT:
         """Fetch a single row by primary key, or raise a 404."""
         instance = self.get_record_by_id(pk)
@@ -116,21 +119,22 @@ class CRUDService[ModelT]:
     # Write
     # ------------------------------------------------------------------ #
 
-    def create(self, **fields: Any) -> ModelT | None:
+    def create(self, **fields: Any) -> ModelT:
         """Instantiate the model with `fields` and persist it."""
         try:
             instance = self.model(**fields)
             self.session.add(instance)
-        except Exception as exc:
-            logger.exception("Error adding %s", self.model_name)
-            return None
+        except Exception:
+            logger.error("Error adding %s", self.model_name)
+            raise
 
         try:
             self.commit()
+            self.session.refresh(instance)
             return instance
-        except Exception as exc:
-            logger.exception("Error adding %s", self.model_name)
-            return None
+        except Exception:
+            logger.error("Error adding %s", self.model_name)
+            raise
 
     def update(self, instance: ModelT, **fields: Any) -> ModelT:
         """Set attributes on `instance` and persist the change."""
@@ -140,10 +144,9 @@ class CRUDService[ModelT]:
                 continue
             if value is not None:
                 setattr(instance, key, value)
-        try:
-            self.commit()
-        except Exception as exc:
-            logger.error("Error updating %s: %s", self.model_name, exc)
+
+        self.commit()
+        self.session.refresh(instance)
 
         return instance
 
@@ -221,6 +224,9 @@ class CRUDService[ModelT]:
 
     def _base_select(self) -> Select[tuple[ModelT]]:
         return select(self.model)
+
+    def expire_all(self) -> None:
+        self.session.expire_all()
 
 
 __all__ = [

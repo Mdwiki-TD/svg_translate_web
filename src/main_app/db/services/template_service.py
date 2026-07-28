@@ -65,7 +65,12 @@ class TemplateService(CRUDService[TemplateRecord]):
             raise DuplicateRecordError(f"Template '{title}' already exists")
 
         data = ensure_template_data(data)
-        return self.create(**data)
+
+        try:
+            return self.create(**data)
+        except Exception as exc:
+            logger.error("Failed to create new record: %s", exc)
+            return None
 
     def update_template_data(
         self,
