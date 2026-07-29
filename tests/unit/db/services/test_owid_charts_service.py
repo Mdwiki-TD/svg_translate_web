@@ -50,35 +50,6 @@ class TestListCharts(TestSetup):
         """Return empty list when no charts exist."""
         assert self.service.list_charts() == []
 
-
-class TestListChartsWithTemplates(TestSetup):
-    """Tests for list_charts_with_templates function."""
-
-    def test_returns_charts_with_matching_template(self) -> None:
-        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
-
-        template = self.templates_service.create(title="Template A", slug=chart_record.slug, source="owid")
-
-        result = self.service.list_charts_with_templates()
-
-        assert len(result) == 1
-        chart, template_id, template_title = result[0]
-        assert chart.chart_id == chart_record.chart_id
-        assert template_id == template.id
-        assert template_title == template.title
-
-    def test_returns_chart_without_template(self) -> None:
-        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
-
-        result = self.service.list_charts_with_templates()
-
-        assert len(result) == 1
-        chart, template_id, template_title = result[0]
-        assert chart.chart_id == chart_record.chart_id
-        assert template_id is None
-        assert template_title is None
-
-
 class TestListPublishedCharts(TestSetup):
     """Tests for list_published_charts function."""
 

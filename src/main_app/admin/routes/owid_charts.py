@@ -19,7 +19,7 @@ from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import ImmutableMultiDict
 
-from ...db.services import OwidChartsService
+from ...db.services import OwidChartsService, ChartsAndTemplatesService, ChartAndTemplate
 from ...shared.owid_charts_utils import charts_new_list
 from ..decorators import admin_required
 
@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 class OwidCharts:
     def __init__(self) -> None:
         self.owid_charts_service = OwidChartsService()
+        self.charts_and_templats_service = ChartsAndTemplatesService()
 
     def create_json_file(self) -> tuple[Any, int]:
         """Create a JSON file containing all charts data.
@@ -39,29 +40,14 @@ class OwidCharts:
         """
         try:
             # Optimize: use single-query list_charts_with_templates() to fetch charts and template relationships
-            charts_with_templates = self.owid_charts_service.list_charts_with_templates()
+            charts_with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_charts_with_templates()
 
             if not charts_with_templates:
                 return "No charts found to export.", 404
 
-            charts_data: list[dict[str, Any]] = []
-            for chart, temp_id, temp_title in charts_with_templates:
-                chart_data = {
-                    "chart_id": chart.chart_id,
-                    "slug": chart.slug,
-                    "title": chart.title,
-                    "has_map_tab": chart.has_map_tab,
-                    "max_time": chart.max_time,
-                    "min_time": chart.min_time,
-                    "default_tab": chart.default_tab,
-                    "is_published": chart.is_published,
-                    "single_year_data": chart.single_year_data,
-                    "len_years": chart.len_years,
-                    "has_timeline": chart.has_timeline,
-                    "template_id": temp_id,
-                    "template_title": temp_title,
-                }
-                charts_data.append(chart_data)
+            charts_data: list[dict[str, Any]] = [
+                x.to_dict_joined() for x in charts_with_templates
+            ]
 
             json_content = json.dumps(charts_data, indent=2, ensure_ascii=False)
 
@@ -269,7 +255,7 @@ class OwidChartsRoutes(OwidCharts):
 
     def dashboard(self, template_filter: str = "") -> str:
         # Optimize: use single-query list_charts_with_templates() with fallback
-        charts_with_templates = self.owid_charts_service.list_charts_with_templates()
+        charts_with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_charts_with_templates()
         results = charts_new_list(charts_with_templates, template_filter)
 
         summary = results.get("summary") or {

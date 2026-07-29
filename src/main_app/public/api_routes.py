@@ -7,9 +7,11 @@ from flask import Blueprint, jsonify
 
 from ..db.models import OwidChartRecord, TemplateRecord
 from ..db.services import (
+    ChartAndTemplate,
     OwidChartsService,
     TemplateService,
     ViewsService,
+    ChartsAndTemplatesService,
 )
 from ..shared.owid_charts_utils import OwidChartWithTemplate, charts_new_list
 
@@ -22,6 +24,7 @@ class ApiRoutes:
         self.owid_charts_service = OwidChartsService()
         self.views_service = ViewsService()
         self.templates_service = TemplateService()
+        self.charts_and_templats_service = ChartsAndTemplatesService()
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -86,7 +89,7 @@ class ApiRoutes:
         return jsonify({"data": data})
 
     def charts_templates(self):
-        with_templates: list[tuple[OwidChartRecord, int | None, str | None]] = self.owid_charts_service.list_charts_with_templates()
+        with_templates: list[tuple[OwidChartRecord, int, str]] = self.charts_and_templats_service.list_charts_with_templates()
         data = [
             OwidChartWithTemplate(
                 chart_id=x.chart_id,
@@ -104,7 +107,7 @@ class ApiRoutes:
 
     def owid_charts_list(self, template_filter: str = ""):
         # Optimize: use single-query list_charts_with_templates() with fallback
-        charts_with_templates = self.owid_charts_service.list_charts_with_templates()
+        charts_with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_charts_with_templates()
         results = charts_new_list(charts_with_templates, template_filter)
         return jsonify(results)
 
