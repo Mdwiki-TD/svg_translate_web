@@ -105,11 +105,10 @@ class ApiRoutes:
         # Optimize: use single-query list_charts_with_templates() with fallback
         charts_with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_charts_with_templates()
 
-        summary = make_charts_summary(charts_with_templates)
-
         charts_data: list[dict[str, Any]] = [
             x.to_dict_joined(template_filter) for x in charts_with_templates
         ]
+        summary = make_charts_summary(charts_with_templates)
         data = [ x for x in charts_data if x]
 
         results = {

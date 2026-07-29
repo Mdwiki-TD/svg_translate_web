@@ -1,26 +1,11 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import Any
 
 from ..db.services import ChartAndTemplate
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class OwidChartWithTemplate:
-    chart_id: int
-    template_id: int | None
-    template_title: str | None
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "chart_id": self.chart_id,
-            "template_id": self.template_id,
-            "template_title": self.template_title,
-        }
 
 def make_charts_summary( all_charts: list[ChartAndTemplate] ) -> dict[str, Any]:
 
@@ -37,13 +22,12 @@ def make_charts_summary( all_charts: list[ChartAndTemplate] ) -> dict[str, Any]:
         if chart.is_published:
             published_with += 1
 
-        has_template = bool(c.template_title) if c.template_title else False
-
-        if has_template:
+        if c.template_title:
             template_with += 1
 
         if chart.has_map_tab:
             map_tab_with += 1
+
         if chart.has_timeline:
             timeline_with += 1
 
@@ -58,6 +42,5 @@ def make_charts_summary( all_charts: list[ChartAndTemplate] ) -> dict[str, Any]:
     return summary
 
 __all__ = [
-    "OwidChartWithTemplate",
     "make_charts_summary",
 ]
