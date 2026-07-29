@@ -22,7 +22,7 @@ class ChartAndTemplate:
             "template_title": self.template_title,
         }
 
-    def to_dict_joined(self, template_filter: str) -> dict[str, Any]:
+    def to_dict_joined(self, template_filter: str = "") -> dict[str, Any]:
         data = {
             **self.chart.to_dict(),
             "template_id": self.template_id,
@@ -37,7 +37,8 @@ class ChartAndTemplate:
         if template_filter == "has_template":
             return data if self.template_id is not None else {}
 
-        raise ValueError(f"Invalid template_filter: {template_filter}")
+        logger.error("Invalid template_filter: %s", template_filter)
+        return {}
 
 class ChartsAndTemplatesService:# (CRUDService[OwidChartRecord]):
     def __init__(self) -> None:

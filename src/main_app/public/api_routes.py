@@ -68,7 +68,7 @@ class ApiRoutes:
             "with_source": with_source,
         }
 
-        return jsonify({"data": data, "summary": summary})
+        return jsonify({"summary": summary, "data": data})
 
     def templates_mismatched_years_list(self):
         try:
@@ -88,8 +88,8 @@ class ApiRoutes:
         return jsonify({"data": data})
 
     def owid_charts_list(self, template_filter: str = ""):
-        # Optimize: use single-query list_charts_with_templates() with fallback
-        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_charts_with_templates()
+        # Optimize: use single-query list_all() with fallback
+        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
 
         charts_data: list[dict[str, Any]] = [
             x.to_dict_joined(template_filter) for x in charts_with_templates
@@ -98,9 +98,9 @@ class ApiRoutes:
         data = [ x for x in charts_data if x]
 
         results = {
-            "data": data,
             "summary": summary,
             "selected_template": template_filter,
+            "data": data,
         }
         return jsonify(results)
 

@@ -39,8 +39,8 @@ class OwidCharts:
             string with appropriate status code (404 for no charts, 500 for errors).
         """
         try:
-            # Optimize: use single-query list_charts_with_templates() to fetch charts and template relationships
-            charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_charts_with_templates()
+            # Optimize: use single-query list_all() to fetch charts and template relationships
+            charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
 
             if not charts_with_templates:
                 return "No charts found to export.", 404
@@ -265,7 +265,7 @@ class OwidChartsRoutes(OwidCharts):
             self.bp.route(rule, methods=[method])(admin_required(target))
 
     def dashboard(self, template_filter: str = "") -> str:
-        # Optimize: use single-query list_charts_with_templates() with fallback
+        # Optimize: use single-query list_all() with fallback
         charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
 
         summary = make_charts_summary(charts_with_templates)
