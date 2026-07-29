@@ -24,14 +24,13 @@ class ApiRoutes:
         self.owid_charts_service = OwidChartsService()
         self.views_service = ViewsService()
         self.templates_service = TemplateService()
-        self.charts_and_templats_service = ChartsAndTemplatesService()
+        self.charts_and_tmps_service = ChartsAndTemplatesService()
         self._setup_routes()
 
     def _setup_routes(self) -> None:
         self.bp.get("/templates")(self.templates_list)
         self.bp.get("/templates-mismatched-years")(self.templates_mismatched_years_list)
         self.bp.get("/templates-need-update")(self.templates_need_update_list)
-        self.bp.get("/charts_templates")(self.charts_templates)
 
         self.bp.get("/owidcharts/")(self.owid_charts_list)
         self.bp.get("/owidcharts/<string:template_filter>")(self.owid_charts_list)
@@ -88,22 +87,9 @@ class ApiRoutes:
 
         return jsonify({"data": data})
 
-    def charts_templates(self):
-        with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_charts_with_templates()
-
-        data = [
-            {
-                "chart_id": c.chart.chart_id,
-                "template_id": c.template_id,
-                "template_title": c.template_title,
-            }
-            for c in with_templates
-        ]
-        return jsonify(data)
-
     def owid_charts_list(self, template_filter: str = ""):
         # Optimize: use single-query list_charts_with_templates() with fallback
-        charts_with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_charts_with_templates()
+        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_charts_with_templates()
 
         charts_data: list[dict[str, Any]] = [
             x.to_dict_joined(template_filter) for x in charts_with_templates

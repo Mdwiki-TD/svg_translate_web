@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class OwidCharts:
     def __init__(self) -> None:
         self.owid_charts_service = OwidChartsService()
-        self.charts_and_templats_service = ChartsAndTemplatesService()
+        self.charts_and_tmps_service = ChartsAndTemplatesService()
 
     def create_json_file(self) -> tuple[Any, int]:
         """Create a JSON file containing all charts data.
@@ -40,7 +40,7 @@ class OwidCharts:
         """
         try:
             # Optimize: use single-query list_charts_with_templates() to fetch charts and template relationships
-            charts_with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_charts_with_templates()
+            charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_charts_with_templates()
 
             if not charts_with_templates:
                 return "No charts found to export.", 404
@@ -266,7 +266,7 @@ class OwidChartsRoutes(OwidCharts):
 
     def dashboard(self, template_filter: str = "") -> str:
         # Optimize: use single-query list_charts_with_templates() with fallback
-        charts_with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_all()
+        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
 
         summary = make_charts_summary(charts_with_templates)
 
