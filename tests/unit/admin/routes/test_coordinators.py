@@ -33,14 +33,13 @@ class TestCoordinatorDashboard:
         admin_service.add_coordinator(username)
         if not is_active:
             record = admin_service.get_record_by_id(
-                admin_service.session.query(admin_service.model).filter(
-                    admin_service.model.username == username
-                ).first().id
+                admin_service.session.query(admin_service.model)
+                .filter(admin_service.model.username == username)
+                .first()
+                .id
             )
             admin_service.set_coordinator_active(record.id, False)
-        return admin_service.session.query(admin_service.model).filter(
-            admin_service.model.username == username
-        ).first()
+        return admin_service.session.query(admin_service.model).filter(admin_service.model.username == username).first()
 
     def test_dashboard_requires_auth(self, client, mock_app):
         """Dashboard should return 200 for authenticated admin."""

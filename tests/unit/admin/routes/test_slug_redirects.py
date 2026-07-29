@@ -8,8 +8,7 @@ import pytest
 from flask import Blueprint
 from werkzeug.datastructures import MultiDict
 
-from src.main_app.admin.routes.slug_redirects import (
-    SlugFuncs,
+from src.main_app.admin.routes.slug_redirects import (  # SlugFuncs,
     SlugRedirectsRoutes,
 )
 from src.main_app.db.services import OwidSlugRedirectsService
@@ -76,7 +75,9 @@ class TestSlugRedirectsRoutes:
         """Seed a slug redirect record via the real service."""
         service = OwidSlugRedirectsService()
         service.add_new_slug_redirect(slug=slug, redirect_to=redirect_to)
-        return service.list_slug_redirects()[-1]
+        record = service.add_new_slug_redirect(slug=slug, redirect_to=redirect_to)
+        assert record is not None, f"failed to seed slug redirect {slug}"
+        return record
 
     def _seed_redirects(self, count: int = 2):
         """Seed multiple slug redirect records."""

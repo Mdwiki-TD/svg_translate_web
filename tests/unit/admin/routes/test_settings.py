@@ -44,7 +44,9 @@ class TestSettingsRoutesClass:
 class TestSettingsRoutesRoutes:
     """Route-level tests using mock_app's test client with real DB/services."""
 
-    def _seed_setting(self, key: str = "test_key", title: str = "Test Setting", value_type: str = "boolean", value=None):
+    def _seed_setting(
+        self, key: str = "test_key", title: str = "Test Setting", value_type: str = "boolean", value=None
+    ):
         """Seed a setting record via the real service."""
         service = SettingsService()
         service.create_setting(key, title, value_type, value)
