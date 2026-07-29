@@ -8,8 +8,10 @@ from .template_service import TemplateService
 from .user_token_service import UserTokenService
 from .users_service import UsersService
 from .views_service import ViewsService
+from .charts_and_templates_service import ChartsAndTemplatesService
 
 __all__ = [
+    "ChartsAndTemplatesService",
     "AdminService",
     "JobsService",
     "OwidChartsService",

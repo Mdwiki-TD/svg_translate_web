@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import func
 
 from ...extensions import db
-from ..models import OwidChartRecord, TemplateRecord
+from ..models import OwidChartRecord
 from .crud_service import CRUDService
 from .utils import retry_on_db_disconnect
 
@@ -22,22 +22,6 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
             limit=limit,
             order_by=[OwidChartRecord.chart_id.asc()],
         )
-
-    def list_charts_with_templates(self) -> list[tuple[OwidChartRecord, int | None, str | None]]:
-        """
-        Retrieve all charts along with their associated template ID and title using a single LEFT OUTER JOIN.
-        """
-
-        query = (
-            self.session.query(
-                OwidChartRecord,
-                TemplateRecord.id.label("template_id"),
-                TemplateRecord.title.label("template_title"),
-            )
-            .outerjoin(TemplateRecord, TemplateRecord.slug == OwidChartRecord.slug)
-            .order_by(OwidChartRecord.chart_id.asc())
-        )
-        return query.all()
 
     def count_charts(self) -> int:
         """
