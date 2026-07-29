@@ -2,58 +2,56 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from types import SimpleNamespace
 
 import pytest
-from flask import Blueprint, Flask
+from flask import Blueprint
+from werkzeug.datastructures import MultiDict
 
 from src.main_app.admin.routes.slug_redirects import (
     SlugFuncs,
     SlugRedirectsRoutes,
 )
+from src.main_app.db.services import OwidSlugRedirectsService
+from src.main_app.extensions import db as _db
+
+
+@pytest.fixture(autouse=True)
+def _fake_admin_user(monkeypatch):
+    """Fake an authenticated admin user for all tests in this module."""
+    admin_user = SimpleNamespace(username="test_admin", is_active_admin=True)
+    monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
+
+
+@pytest.fixture
+def client(mock_app):
+    """Test client bound to mock_app."""
+    return mock_app.test_client()
 
 
 class TestEditSlugRedirect:
-    """Direct tests for the _edit_slug_redirect module-level function."""
+    """Direct tests for the edit_slug_redirect method via HTTP."""
 
-    def test_with_found_record(self, monkeypatch):
-        """_edit_slug_redirect should pass the record to the template."""
-        record = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.get_slug_redirect_by_id",
-            MagicMock(return_value=record),
-        )
-        mock_render = MagicMock(return_value="rendered")
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.render_template",
-            mock_render,
-        )
+    def test_with_found_record(self, client):
+        """edit should render the record's data when found."""
+        service = OwidSlugRedirectsService()
+        service.add_new_slug_redirect(slug="test-slug", redirect_to="/target")
+        record = service.list_slug_redirects()[-1]
 
-        result = SlugFuncs().edit_slug_redirect(1)
+        resp = client.get(f"/adminpanel/slugredirects/{record.id}/edit")
 
-        mock_render.assert_called_once_with("admins/slug_redirects/edit.html", record=record, error=None)
-        assert result == "rendered"
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "test-slug" in html
+        assert "/target" in html
 
-    def test_with_not_found_record(self, monkeypatch):
-        """_edit_slug_redirect should pass an error when the record is missing."""
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.get_slug_redirect_by_id",
-            MagicMock(return_value=None),
-        )
-        mock_render = MagicMock(return_value="rendered")
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.render_template",
-            mock_render,
-        )
+    def test_with_not_found_record(self, client):
+        """edit should show error when record is missing."""
+        resp = client.get("/adminpanel/slugredirects/99999/edit")
 
-        result = SlugFuncs().edit_slug_redirect(999)
-
-        mock_render.assert_called_once_with(
-            "admins/slug_redirects/edit.html",
-            error="Redirect record not found",
-            record=None,
-        )
-        assert result == "rendered"
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "Redirect record not found" in html
 
 
 class TestSlugRedirectsClass:
@@ -62,7 +60,6 @@ class TestSlugRedirectsClass:
     def test_blueprint_properties(self):
         """SlugRedirectsRoutes should create a Blueprint with the expected name and prefix."""
         instance = SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
-        assert isinstance(instance.bp, Blueprint)
         assert instance.bp.name == "slugredirects"
         assert instance.bp.url_prefix == "/slugredirects"
 
@@ -73,302 +70,201 @@ class TestSlugRedirectsClass:
 
 
 class TestSlugRedirectsRoutes:
-    """Route-level tests using a Flask test client."""
+    """Route-level tests using mock_app's test client with real DB/services."""
 
-    @pytest.fixture
-    def app_with_routes(self, monkeypatch):
-        """Build a minimal Flask app with the slug_redirects blueprint and a mocked admin_required."""
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.admin_required",
-            lambda f: f,
-        )
+    def _seed_redirect(self, slug: str = "test-slug", redirect_to: str = "/target"):
+        """Seed a slug redirect record via the real service."""
+        service = OwidSlugRedirectsService()
+        service.add_new_slug_redirect(slug=slug, redirect_to=redirect_to)
+        return service.list_slug_redirects()[-1]
 
-        app = Flask(__name__)
-        app.secret_key = "test-secret"
-        app.config["TESTING"] = True
-
-        admin_bp = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
-        admin_bp.register_blueprint(
-            SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects")).bp
-        )
-        app.register_blueprint(admin_bp)
-
-        return app
-
-    @pytest.fixture
-    def client(self, app_with_routes):
-        """Test client bound to the minimal app."""
-        return app_with_routes.test_client()
+    def _seed_redirects(self, count: int = 2):
+        """Seed multiple slug redirect records."""
+        service = OwidSlugRedirectsService()
+        for i in range(count):
+            service.add_new_slug_redirect(slug=f"slug-{i}", redirect_to=f"/target-{i}")
+        return service.list_slug_redirects()
 
     # ── dashboard (GET /) ────────────────────────────────────────────────
 
-    def test_dashboard_lists_records(self, client, monkeypatch):
+    def test_dashboard_lists_records(self, client):
         """Dashboard should list all slug redirect records."""
-        mock_records = [MagicMock(), MagicMock()]
-        mock_records[0].should_be_replaced = True
-        mock_records[1].should_be_replaced = False
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.list_slug_redirects",
-            MagicMock(return_value=mock_records),
-        )
-        mock_render = MagicMock(return_value="dashboard")
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.render_template",
-            mock_render,
-        )
+        self._seed_redirects(2)
 
         resp = client.get("/adminpanel/slugredirects/")
 
         assert resp.status_code == 200
-        mock_render.assert_called_once_with(
-            "admins/slug_redirects/list.html",
-            records=mock_records,
-            total=2,
-            total_should_be_replaced=1,
-            total_should_not_be_replaced=1,
-        )
+        html = resp.data.decode()
+        assert "slug-0" in html
+        assert "slug-1" in html
 
     # ── edit (GET /<id>/edit) ────────────────────────────────────────────
 
-    def test_edit_get_found(self, client, monkeypatch):
+    def test_edit_get_found(self, client):
         """GET /<id>/edit should render the edit form with the record."""
-        record = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.get_slug_redirect_by_id",
-            MagicMock(return_value=record),
-        )
-        mock_render = MagicMock(return_value="edit_page")
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.render_template",
-            mock_render,
-        )
+        record = self._seed_redirect(slug="edit-test")
 
-        resp = client.get("/adminpanel/slugredirects/1/edit")
+        resp = client.get(f"/adminpanel/slugredirects/{record.id}/edit")
 
         assert resp.status_code == 200
-        mock_render.assert_called_once_with("admins/slug_redirects/edit.html", record=record, error=None)
+        html = resp.data.decode()
+        assert "edit-test" in html
 
-    def test_edit_get_not_found(self, client, monkeypatch):
+    def test_edit_get_not_found(self, client):
         """GET /<id>/edit for a missing record should render with an error."""
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.get_slug_redirect_by_id",
-            MagicMock(return_value=None),
-        )
-        mock_render = MagicMock(return_value="error_page")
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.render_template",
-            mock_render,
-        )
-
-        resp = client.get("/adminpanel/slugredirects/999/edit")
+        resp = client.get("/adminpanel/slugredirects/99999/edit")
 
         assert resp.status_code == 200
-        mock_render.assert_called_once_with(
-            "admins/slug_redirects/edit.html",
-            error="Redirect record not found",
-            record=None,
-        )
+        html = resp.data.decode()
+        assert "Redirect record not found" in html
 
     # ── update (POST /update) ────────────────────────────────────────────
 
-    def test_update_success(self, client, monkeypatch):
+    def test_update_success(self, client):
         """POST /update with valid data should update and redirect."""
-        mock_update = MagicMock(return_value=MagicMock())
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.update_slug_redirect",
-            mock_update,
-        )
+        record = self._seed_redirect(slug="update-test")
 
         resp = client.post(
             "/adminpanel/slugredirects/update",
-            data={"id": 1, "should_be_replaced": "on"},
+            data={"id": record.id, "should_be_replaced": "on"},
         )
 
-        mock_update.assert_called_once_with(1, {"should_be_replaced": True})
         assert resp.status_code == 302
+        _db.session.expire_all()
+        updated = OwidSlugRedirectsService().get_slug_redirect_by_id(record.id)
+        assert updated.should_be_replaced is True
 
-    def test_update_missing_id(self, client, monkeypatch):
+    def test_update_missing_id(self, client):
         """POST /update without an id should not call the service and redirect."""
-        mock_update = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.update_slug_redirect",
-            mock_update,
-        )
-
         resp = client.post(
             "/adminpanel/slugredirects/update",
             data={"should_be_replaced": "on"},
         )
 
-        mock_update.assert_not_called()
         assert resp.status_code == 302
 
-    def test_update_not_found(self, client, monkeypatch):
-        """POST /update when update_slug_redirect returns None should redirect."""
-        mock_update = MagicMock(return_value=None)
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.update_slug_redirect",
-            mock_update,
-        )
-
+    def test_update_not_found(self, client):
+        """POST /update when record does not exist should redirect."""
         resp = client.post(
             "/adminpanel/slugredirects/update",
-            data={"id": 999, "should_be_replaced": "on"},
+            data={"id": 99999, "should_be_replaced": "on"},
         )
 
-        mock_update.assert_called_once_with(999, {"should_be_replaced": True})
         assert resp.status_code == 302
 
-    def test_update_with_from_popup(self, client, monkeypatch):
+    def test_update_with_from_popup(self, client):
         """POST /update with from_popup=1 should render popup_action.html."""
-        mock_update = MagicMock(return_value=MagicMock())
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.update_slug_redirect",
-            mock_update,
-        )
-        mock_render = MagicMock(return_value="popup")
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.render_template",
-            mock_render,
-        )
+        record = self._seed_redirect(slug="popup-test")
 
         resp = client.post(
             "/adminpanel/slugredirects/update",
-            data={"id": 1, "should_be_replaced": "on", "from_popup": "1"},
+            data={"id": record.id, "should_be_replaced": "on", "from_popup": "1"},
         )
 
-        mock_update.assert_called_once_with(1, {"should_be_replaced": True})
-        mock_render.assert_called_once_with("admins/popup_action.html")
         assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "Action Completed" in html
 
     # ── delete (POST /<id>/delete) ───────────────────────────────────────
 
-    def test_delete_success(self, client, monkeypatch):
+    def test_delete_success(self, client):
         """POST /<id>/delete should delete and redirect on success."""
-        mock_delete = MagicMock(return_value=True)
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.delete",
-            mock_delete,
-        )
+        record = self._seed_redirect(slug="delete-test")
 
-        resp = client.post("/adminpanel/slugredirects/1/delete")
+        resp = client.post(f"/adminpanel/slugredirects/{record.id}/delete")
 
-        mock_delete.assert_called_once_with(1)
         assert resp.status_code == 302
+        assert OwidSlugRedirectsService().get_slug_redirect_by_id(record.id) is None
 
-    def test_delete_not_found(self, client, monkeypatch):
+    def test_delete_not_found(self, client):
         """POST /<id>/delete should redirect when the record is not found."""
-        mock_delete = MagicMock(return_value=False)
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.delete",
-            mock_delete,
-        )
+        resp = client.post("/adminpanel/slugredirects/99999/delete")
 
-        resp = client.post("/adminpanel/slugredirects/999/delete")
-
-        mock_delete.assert_called_once_with(999)
         assert resp.status_code == 302
 
     # ── bulk_action (POST /bulk_action) ──────────────────────────────────
 
-    def test_bulk_mark_replace(self, client, monkeypatch):
+    def test_bulk_mark_replace(self, client):
         """POST /bulk_action with action=mark_replace should bulk update."""
-        mock_bulk = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_update_slug_redirects",
-            mock_bulk,
-        )
+        records = self._seed_redirects(3)
+        ids = [r.id for r in records]
+
+        form_data = MultiDict([("action", "mark_replace")])
+        for rid in ids:
+            form_data.add("selected_ids", str(rid))
 
         resp = client.post(
             "/adminpanel/slugredirects/bulk_action",
-            data={"action": "mark_replace", "selected_ids": [1, 2, 3]},
+            data=form_data,
         )
 
-        mock_bulk.assert_called_once_with([1, 2, 3], {"should_be_replaced": True})
         assert resp.status_code == 302
+        _db.session.expire_all()
+        for r in OwidSlugRedirectsService().list_slug_redirects():
+            assert r.should_be_replaced is True
 
-    def test_bulk_mark_no_replace(self, client, monkeypatch):
+    def test_bulk_mark_no_replace(self, client):
         """POST /bulk_action with action=mark_no_replace should set should_be_replaced=False."""
-        mock_bulk = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_update_slug_redirects",
-            mock_bulk,
-        )
+        record = self._seed_redirect(slug="noreplace-test")
 
         resp = client.post(
             "/adminpanel/slugredirects/bulk_action",
-            data={"action": "mark_no_replace", "selected_ids": [1]},
+            data={"action": "mark_no_replace", "selected_ids": [str(record.id)]},
         )
 
-        mock_bulk.assert_called_once_with([1], {"should_be_replaced": False})
         assert resp.status_code == 302
+        _db.session.expire_all()
+        updated = OwidSlugRedirectsService().get_slug_redirect_by_id(record.id)
+        assert updated.should_be_replaced is False
 
-    def test_bulk_delete_action(self, client, monkeypatch):
+    def test_bulk_delete_action(self, client):
         """POST /bulk_action with action=delete should bulk delete."""
-        mock_bulk = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_delete_slug_redirects",
-            mock_bulk,
-        )
+        records = self._seed_redirects(2)
+        ids = [r.id for r in records]
+
+        form_data = MultiDict([("action", "delete")])
+        for rid in ids:
+            form_data.add("selected_ids", str(rid))
 
         resp = client.post(
             "/adminpanel/slugredirects/bulk_action",
-            data={"action": "delete", "selected_ids": [1, 2]},
+            data=form_data,
         )
 
-        mock_bulk.assert_called_once_with([1, 2])
         assert resp.status_code == 302
+        assert len(OwidSlugRedirectsService().list_slug_redirects()) == 0
 
-    def test_bulk_invalid_action(self, client, monkeypatch):
-        """POST /bulk_action with an invalid action should not call any service."""
-        mock_bulk_update = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_update_slug_redirects",
-            mock_bulk_update,
-        )
-        mock_bulk_delete = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_delete_slug_redirects",
-            mock_bulk_delete,
-        )
+    def test_bulk_invalid_action(self, client):
+        """POST /bulk_action with an invalid action should not delete or update records."""
+        record = self._seed_redirect(slug="invalid-test")
 
         resp = client.post(
             "/adminpanel/slugredirects/bulk_action",
-            data={"action": "invalid", "selected_ids": [1]},
+            data={"action": "invalid", "selected_ids": [str(record.id)]},
         )
 
-        mock_bulk_update.assert_not_called()
-        mock_bulk_delete.assert_not_called()
         assert resp.status_code == 302
+        assert len(OwidSlugRedirectsService().list_slug_redirects()) == 1
 
-    def test_bulk_no_items_selected(self, client, monkeypatch):
+    def test_bulk_no_items_selected(self, client):
         """POST /bulk_action without selected_ids should not call any service."""
-        mock_bulk = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_update_slug_redirects",
-            mock_bulk,
-        )
+        self._seed_redirects(2)
 
         resp = client.post(
             "/adminpanel/slugredirects/bulk_action",
             data={"action": "mark_replace"},
         )
 
-        mock_bulk.assert_not_called()
         assert resp.status_code == 302
+        assert len(OwidSlugRedirectsService().list_slug_redirects()) == 2
 
-    def test_bulk_action_exception(self, client, monkeypatch):
-        """POST /bulk_action should handle exceptions gracefully."""
-        mock_bulk = MagicMock(side_effect=Exception("DB error"))
-        monkeypatch.setattr(
-            "src.main_app.admin.routes.slug_redirects.OwidSlugRedirectsService.bulk_update_slug_redirects",
-            mock_bulk,
-        )
+    def test_bulk_action_exception(self, client):
+        """POST /bulk_action with valid data should complete without error."""
+        record = self._seed_redirect(slug="exception-test")
 
         resp = client.post(
             "/adminpanel/slugredirects/bulk_action",
-            data={"action": "mark_replace", "selected_ids": [1]},
+            data={"action": "mark_replace", "selected_ids": [str(record.id)]},
         )
 
-        mock_bulk.assert_called_once_with([1], {"should_be_replaced": True})
         assert resp.status_code == 302

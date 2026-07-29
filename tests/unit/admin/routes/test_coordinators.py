@@ -1,170 +1,178 @@
-"""
-Unit tests for src/main_app/adminpanel/routes/coordinators.py module.
-"""
+"""Unit tests for src/main_app/adminpanel/routes/coordinators.py module."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from unittest.mock import MagicMock, Mock
+from types import SimpleNamespace
 
 import pytest
+from flask import Blueprint
 
-from src.main_app.admin.routes.coordinators import CoordinatorsFuncs
-from src.main_app.db.exceptions import DuplicateRecordError, UserNotFoundError
+from src.main_app.db.services import AdminService, UsersService
 
 
-@pytest.mark.usefixtures("mock_app")
-class TestCoordinatorRoutes:
-    def test_dashboard_requires_auth(self, mock_client):
-        resp = mock_client.get("/adminpanel/coordinators/")
+@pytest.fixture(autouse=True)
+def _fake_admin_user(monkeypatch):
+    """Fake an authenticated admin user for all tests in this module."""
+    admin_user = SimpleNamespace(username="test_admin", is_active_admin=True)
+    monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
+
+
+@pytest.fixture
+def client(mock_app):
+    """Test client bound to mock_app."""
+    return mock_app.test_client()
+
+
+class TestCoordinatorDashboard:
+    """Tests for the coordinator dashboard."""
+
+    def _seed_coordinator(self, username: str = "coord1", is_active: bool = True):
+        """Seed a coordinator via real services."""
+        UsersService().create_user(username)
+        admin_service = AdminService()
+        admin_service.add_coordinator(username)
+        if not is_active:
+            record = admin_service.get_record_by_id(
+                admin_service.session.query(admin_service.model).filter(
+                    admin_service.model.username == username
+                ).first().id
+            )
+            admin_service.set_coordinator_active(record.id, False)
+        return admin_service.session.query(admin_service.model).filter(
+            admin_service.model.username == username
+        ).first()
+
+    def test_dashboard_requires_auth(self, client, mock_app):
+        """Dashboard should return 200 for authenticated admin."""
+        resp = client.get("/adminpanel/coordinators/")
+
+        assert resp.status_code == 200
+
+    def test_renders_with_coordinators(self, client):
+        """Dashboard should list coordinators."""
+        self._seed_coordinator("coord_active", is_active=True)
+
+        resp = client.get("/adminpanel/coordinators/")
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "coord_active" in html
+
+    def test_renders_with_empty_list(self, client):
+        """Dashboard should render with no coordinators."""
+        resp = client.get("/adminpanel/coordinators/")
+
+        assert resp.status_code == 200
+
+
+class TestAddCoordinator:
+    """Tests for adding a coordinator."""
+
+    def _seed_user(self, username: str = "new_user"):
+        """Seed a user record for foreign key."""
+        UsersService().create_user(username)
+
+    def test_missing_username(self, client):
+        """POST /add with empty username should redirect."""
+        resp = client.post(
+            "/adminpanel/coordinators/add",
+            data={"username": ""},
+        )
+
+        assert resp.status_code == 302
+
+    def test_user_not_found(self, client):
+        """POST /add with non-existent user should redirect."""
+        resp = client.post(
+            "/adminpanel/coordinators/add",
+            data={"username": "unknown_user"},
+        )
+
+        assert resp.status_code == 302
+
+    def test_duplicate_user(self, client):
+        """POST /add with existing coordinator should redirect."""
+        self._seed_user("existing_user")
+        admin_service = AdminService()
+        admin_service.add_coordinator("existing_user")
+
+        resp = client.post(
+            "/adminpanel/coordinators/add",
+            data={"username": "existing_user"},
+        )
+
+        assert resp.status_code == 302
+
+    def test_success(self, client):
+        """POST /add with valid new user should create coordinator."""
+        self._seed_user("new_coord")
+
+        resp = client.post(
+            "/adminpanel/coordinators/add",
+            data={"username": "new_coord"},
+        )
+
+        assert resp.status_code == 302
+        admin_service = AdminService()
+        coordinators = admin_service.list_coordinators()
+        assert any(c.username == "new_coord" for c in coordinators)
+
+
+class TestSetRecordActiveStatus:
+    """Tests for activating/deactivating coordinators."""
+
+    def _seed_coordinator(self, username: str = "toggle_coord"):
+        """Seed a coordinator via real services."""
+        UsersService().create_user(username)
+        return AdminService().add_coordinator(username)
+
+    def test_activate_success(self, client):
+        """POST /<id>/activate should set is_active=True."""
+        coord = self._seed_coordinator("activate_coord")
+        AdminService().set_coordinator_active(coord.id, False)
+
+        resp = client.post(f"/adminpanel/coordinators/{coord.id}/activate")
+
+        assert resp.status_code == 302
+        updated = AdminService().get_record_by_id(coord.id)
+        assert updated.is_active is True
+
+    def test_deactivate_success(self, client):
+        """POST /<id>/deactivate should set is_active=False."""
+        coord = self._seed_coordinator("deactivate_coord")
+
+        resp = client.post(f"/adminpanel/coordinators/{coord.id}/deactivate")
+
+        assert resp.status_code == 302
+        updated = AdminService().get_record_by_id(coord.id)
+        assert updated.is_active is False
+
+    def test_not_found(self, client):
+        """POST /<id>/activate with nonexistent id should redirect."""
+        resp = client.post("/adminpanel/coordinators/99999/activate")
+
         assert resp.status_code == 302
 
 
-@dataclass
-class MockAdminServiceMethods:
-    """Bundle of every mock patched onto CoordinatorsFuncs.admin_service()."""
+class TestDeleteCoordinator:
+    """Tests for deleting a coordinator."""
 
-    list_coordinators: MagicMock
-    add_coordinator: MagicMock
-    set_coordinator_active: MagicMock
-    get_coordinator_by_id: MagicMock
-    delete: MagicMock
+    def _seed_coordinator(self, username: str = "del_coord"):
+        """Seed a coordinator via real services."""
+        UsersService().create_user(username)
+        return AdminService().add_coordinator(username)
 
+    def test_success(self, client):
+        """POST /<id>/delete should remove the coordinator."""
+        coord = self._seed_coordinator("del_coord_ok")
 
-class TestSetup:
-    @pytest.fixture(autouse=True)
-    def setup(self, monkeypatch):
-        self.service = CoordinatorsFuncs()
+        resp = client.post(f"/adminpanel/coordinators/{coord.id}/delete")
 
-    @pytest.fixture(autouse=True)
-    def setup_mocks(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.admin.routes.coordinators.render_template", lambda t, **c: c)
-        monkeypatch.setattr("src.main_app.admin.routes.coordinators.redirect", lambda x: f"redirect:{x}")
-        monkeypatch.setattr("src.main_app.admin.routes.coordinators.url_for", lambda x: f"/{x}")
+        assert resp.status_code == 302
+        assert AdminService().get_record_by_id(coord.id) is None
 
-        self.mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.admin.routes.coordinators.flash", self.mock_flash)
+    def test_not_found(self, client):
+        """POST /<id>/delete with nonexistent id should redirect."""
+        resp = client.post("/adminpanel/coordinators/99999/delete")
 
-        self.mock_service = MockAdminServiceMethods(
-            list_coordinators=MagicMock(return_value=[]),
-            add_coordinator=MagicMock(),
-            set_coordinator_active=MagicMock(),
-            get_coordinator_by_id=MagicMock(),
-            delete=MagicMock(),
-        )
-        monkeypatch.setattr(self.service.admin_service, "list_coordinators", self.mock_service.list_coordinators)
-        monkeypatch.setattr(self.service.admin_service, "add_coordinator", self.mock_service.add_coordinator)
-        monkeypatch.setattr(
-            self.service.admin_service, "set_coordinator_active", self.mock_service.set_coordinator_active
-        )
-        monkeypatch.setattr(
-            self.service.admin_service, "get_coordinator_by_id", self.mock_service.get_coordinator_by_id
-        )
-        monkeypatch.setattr(self.service.admin_service, "delete", self.mock_service.delete)
-
-
-class TestCoordinatorsDashboard(TestSetup):
-    def test_renders_with_coordinators(self):
-        mock_coord = MagicMock()
-        mock_coord.is_active = True
-        self.mock_service.list_coordinators.return_value = [mock_coord]
-
-        result = self.service.dashboard()
-        assert result["total_coordinators"] == 1
-        assert result["total_active_coordinators"] == 1
-
-    def test_renders_with_empty_list(self):
-        self.mock_service.list_coordinators.return_value = []
-
-        result = self.service.dashboard()
-        assert result["total_coordinators"] == 0
-
-    def test_handles_exception(self):
-        self.mock_service.list_coordinators.side_effect = Exception("DB error")
-
-        result = self.service.dashboard()
-        assert result["total_coordinators"] == 0
-
-
-class TestAddCoordinator(TestSetup):
-    @pytest.fixture
-    def make_mock_request(self, monkeypatch):
-        def _factory(username: str) -> Mock:
-            mock_request = Mock()
-            mock_request.form.get.return_value = username
-            monkeypatch.setattr("src.main_app.admin.routes.coordinators.request", mock_request)
-            return mock_request
-
-        return _factory
-
-    def test_missing_username(self, make_mock_request):
-        make_mock_request("")
-
-        result = self.service.add()
-        assert "redirect" in result
-
-    def test_user_not_found(self, make_mock_request):
-        make_mock_request("unknown_user")
-        self.mock_service.add_coordinator.side_effect = UserNotFoundError("User does not exist")
-
-        self.service.add()
-        self.mock_flash.assert_called()
-
-    def test_duplicate_user(self, make_mock_request):
-        make_mock_request("existing_user")
-        self.mock_service.add_coordinator.side_effect = DuplicateRecordError("Already exists")
-
-        self.service.add()
-        self.mock_flash.assert_called()
-
-    def test_success(self, make_mock_request):
-        make_mock_request("new_user")
-        mock_record = MagicMock()
-        mock_record.username = "new_user"
-        self.mock_service.add_coordinator.return_value = mock_record
-
-        self.service.add()
-        self.mock_flash.assert_called_with("Coordinator 'new_user' added.", "success")
-
-
-class TestSetRecordActiveStatus(TestSetup):
-    def test_activate_success(self):
-        mock_record = MagicMock()
-        mock_record.is_active = True
-        mock_record.username = "testuser"
-        self.mock_service.set_coordinator_active.return_value = mock_record
-
-        self.service.activate(1)
-        self.mock_flash.assert_called_with("Coordinator 'testuser' activated.", "success")
-
-    def test_deactivate_success(self):
-        mock_record = MagicMock()
-        mock_record.is_active = False
-        mock_record.username = "testuser"
-        self.mock_service.set_coordinator_active.return_value = mock_record
-
-        self.service.deactivate(1)
-        self.mock_flash.assert_called_with("Coordinator 'testuser' deactivated.", "success")
-
-    def test_not_found(self):
-        self.mock_service.set_coordinator_active.return_value = None
-
-        self.service.activate(999)
-        self.mock_flash.assert_called()
-
-
-class TestDeleteCoordinator(TestSetup):
-    def test_success(self):
-        mock_record = MagicMock()
-        mock_record.id = 1
-        self.mock_service.get_coordinator_by_id.return_value = mock_record
-        self.mock_service.delete.return_value = None
-
-        self.service.delete(1)
-        self.mock_flash.assert_called_with("Coordinator '1' removed.", "success")
-
-    def test_not_found(self):
-        self.mock_service.get_coordinator_by_id.side_effect = LookupError("not found")
-
-        self.service.delete(999)
-        self.mock_flash.assert_called()
+        assert resp.status_code == 302

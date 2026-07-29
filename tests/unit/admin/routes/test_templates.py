@@ -1,187 +1,193 @@
-"""
-Unit tests for src/main_app/adminpanel/routes/templates.py module.
-"""
+"""Unit tests for src/main_app/adminpanel/routes/templates.py module."""
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from types import SimpleNamespace
 
 import pytest
+from flask import Blueprint
 
 from src.main_app.admin.routes.templates import TemplatesRoutesFuncs
-from src.main_app.db.exceptions import DuplicateRecordError
-from src.main_app.db.models import TemplateRecord
+from src.main_app.db.services import TemplateService
+
+
+@pytest.fixture(autouse=True)
+def _fake_admin_user(monkeypatch):
+    """Fake an authenticated admin user for all tests in this module."""
+    admin_user = SimpleNamespace(username="test_admin", is_active_admin=True)
+    monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
-    """Mock template admin route dependencies."""
-
-    mocks = MagicMock()
-    mocks.update_template_data = MagicMock()
-    mocks.add_template_data = MagicMock()
-    mocks.list = MagicMock()
-    mocks.get_template = MagicMock()
-    mocks.get_template_by_title = MagicMock()
-    mocks.delete = MagicMock()
-    mocks.flash = MagicMock()
-    monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", lambda x: f"/{x}")
-
-    monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", lambda x: f"redirect:{x}")
-    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.list", mocks.list)
-    monkeypatch.setattr(
-        "src.main_app.admin.routes.templates.TemplateService.add_template_data", mocks.add_template_data
-    )
-    monkeypatch.setattr(
-        "src.main_app.admin.routes.templates.TemplateService.update_template_data", mocks.update_template_data
-    )
-    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.get_template", mocks.get_template)
-    monkeypatch.setattr(
-        "src.main_app.admin.routes.templates.TemplateService.get_template_by_title", mocks.get_template_by_title
-    )
-    monkeypatch.setattr("src.main_app.admin.routes.templates.TemplateService.delete", mocks.delete)
-    monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mocks.flash)
-    monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", lambda t, **c: c)
-    return mocks
+def client(mock_app):
+    """Test client bound to mock_app."""
+    return mock_app.test_client()
 
 
-@pytest.mark.usefixtures("mock_app")
 class TestTemplatesUnit:
+    """Tests for TemplatesRoutesFuncs methods via HTTP routes with real DB/services."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.service = TemplatesRoutesFuncs()
+    def _seed_template(self, title: str = "T1", main_file: str = "f.svg", source: str = ""):
+        """Seed a template record via the real service."""
+        service = TemplateService()
+        data = {"title": title, "main_file": main_file, "last_world_file": "", "source": source}
+        service.add_template_data(data)
+        return service.get_template_by_title(title)
 
-    def test_create_json_file_success(self, mock_services):
+    def test_create_json_file_success(self, client):
+        """Download JSON should return a file with template data."""
+        self._seed_template(title="T1", main_file="f.svg")
 
-        templates = [
-            TemplateRecord(
-                id=1,
-                title="T1",
-                main_file="f.svg",
-                last_world_file="",
-                last_world_year=None,
-                source=None,
-                created_at=None,
-                updated_at=None,
-            )
-        ]
-        mock_services.list.return_value = templates
+        resp = client.get("/adminpanel/templates/download-json")
 
-        response, status = self.service.create_json_file()
-        assert status == 200
-        assert "templates.json" in response.headers["Content-Disposition"]
+        assert resp.status_code == 200
+        assert "templates.json" in resp.headers.get("Content-Disposition", "")
+        import json
 
-    def test_create_json_file_no_templates(self, mock_services):
-        mock_services.list.return_value = []
+        data = json.loads(resp.data)
+        assert len(data) == 1
+        assert data[0]["title"] == "T1"
 
-        msg, status = self.service.create_json_file()
-        assert status == 404
-        assert "No templates found" in msg
+    def test_create_json_file_no_templates(self, client):
+        """Download JSON with no templates should redirect with warning."""
+        resp = client.get("/adminpanel/templates/download-json")
 
-    def test_create_json_file_lookup_error(self, mock_services):
-        mock_services.list.return_value = None
-        msg, status = self.service.create_json_file()
-        assert status == 404
+        assert resp.status_code == 302
 
-    def test_add_template_missing_title(self, mock_services):
+    def test_add_template_missing_title(self, client):
+        """POST /add with empty title should redirect."""
+        resp = client.post(
+            "/adminpanel/templates/add",
+            data={"title": "", "main_file": "f.svg", "last_world_file": "", "source": ""},
+        )
 
-        result = self.service._add_template({})
-        assert "redirect" in result
-        mock_services.flash.assert_called()
+        assert resp.status_code == 302
 
-    def test_add_template_success(self, mock_services):
-        mock_record = MagicMock()
-        mock_record.title = "NewT"
-        mock_services.add_template_data.return_value = mock_record
+    def test_add_template_success(self, client):
+        """POST /add with valid data should create the template."""
+        resp = client.post(
+            "/adminpanel/templates/add",
+            data={"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""},
+        )
 
-        self.service._add_template({"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""})
-        mock_services.flash.assert_called_with("Template 'NewT' added.", "success")
+        assert resp.status_code == 302
+        assert TemplateService().get_template_by_title("NewT") is not None
 
-    def test_add_template_value_error(self, mock_services):
-        mock_services.add_template_data.side_effect = DuplicateRecordError("exists")
+    def test_add_template_value_error(self, client):
+        """POST /add with duplicate title should redirect."""
+        self._seed_template(title="Dup")
 
-        self.service._add_template({"title": "Dup", "main_file": "", "last_world_file": "", "source": ""})
-        mock_services.flash.assert_called()
+        resp = client.post(
+            "/adminpanel/templates/add",
+            data={"title": "Dup", "main_file": "", "last_world_file": "", "source": ""},
+        )
 
-    def test_update_template_missing_id(self, mock_services):
+        assert resp.status_code == 302
 
-        self.service._update_template({})
-        mock_services.flash.assert_called_with("Template ID is required to update a template.", "danger")
+    def test_update_template_missing_id(self, client):
+        """POST /update without id should redirect."""
+        resp = client.post(
+            "/adminpanel/templates/update",
+            data={"title": "T", "main_file": "f.svg"},
+        )
 
-    def test_update_template_success(self, mock_services):
-        mock_record = MagicMock()
-        mock_record.title = "UpdT"
-        mock_services.update_template_data.return_value = mock_record
+        assert resp.status_code == 302
 
-        self.service._update_template({"id": 1, "title": "UpdT", "main_file": "f.svg", "from_popup": "0"})
-        mock_services.flash.assert_called()
+    def test_update_template_success(self, client):
+        """POST /update with valid data should update the template."""
+        template = self._seed_template(title="UpdT", main_file="old.svg")
 
-    def test_update_template_lookup_error(self, mock_services):
+        resp = client.post(
+            "/adminpanel/templates/update",
+            data={"id": template.id, "title": "UpdT", "main_file": "new.svg", "from_popup": "0"},
+        )
 
-        mock_services.update_template_data.side_effect = LookupError("not found")
+        assert resp.status_code == 302
+        updated = TemplateService().get_template(template.id)
+        assert updated.main_file == "new.svg"
 
-        self.service._update_template({"id": 1, "title": "T", "main_file": "f.svg"})
-        mock_services.update_template_data.assert_called()
+    def test_update_template_not_found(self, client):
+        """POST /update with nonexistent id should redirect."""
+        resp = client.post(
+            "/adminpanel/templates/update",
+            data={"id": 99999, "title": "T", "main_file": "f.svg"},
+        )
 
-    def test_update_template_from_popup(self, mock_services):
-        mock_record = MagicMock()
-        mock_record.title = "T"
-        mock_services.update_template_data.return_value = mock_record
+        assert resp.status_code == 302
 
-        result = self.service._update_template({"id": 1, "title": "T", "main_file": "f.svg", "from_popup": "1"})
-        assert result == {}
-        # assert "popup_action" in result
+    def test_update_template_from_popup(self, client):
+        """POST /update with from_popup=1 should render popup."""
+        template = self._seed_template(title="PopupT")
 
-    def test_delete_template_success(self, mock_services):
-        mock_record = MagicMock()
-        mock_record.title = "DelT"
-        mock_services.get_template.return_value = mock_record
+        resp = client.post(
+            "/adminpanel/templates/update",
+            data={"id": template.id, "title": "PopupT", "main_file": "f.svg", "from_popup": "1"},
+        )
 
-        self.service._delete_template(1, False)
-        mock_services.flash.assert_called_with("Template 'DelT' removed.", "success")
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "Action Completed" in html
 
-    def test_delete_template_not_found(self, mock_services):
-        mock_services.get_template.return_value = None
+    def test_delete_template_success(self, client):
+        """POST /<id>/delete should remove the template."""
+        template = self._seed_template(title="DelT")
 
-        self.service._delete_template(999, False)
-        mock_services.flash.assert_called()
+        resp = client.post(f"/adminpanel/templates/{template.id}/delete")
 
-    def test_delete_template_from_popup(self, mock_services):
-        mock_record = MagicMock()
-        mock_record.title = "DelT"
-        mock_services.get_template.return_value = mock_record
+        assert resp.status_code == 302
+        assert TemplateService().get_template(template.id) is None
 
-        result = self.service._delete_template(1, True)
-        assert result == {}
-        # assert "popup_action" in result
+    def test_delete_template_not_found(self, client):
+        """POST /<id>/delete with nonexistent id should redirect."""
+        resp = client.post("/adminpanel/templates/99999/delete")
 
-    def test_edit_template_found(self, mock_services):
-        mock_template = MagicMock()
-        mock_services.get_template.return_value = mock_template
+        assert resp.status_code == 302
 
-        result = self.service.edit_template(1)
-        assert result["template"] == mock_template  # pyright: ignore[reportCallIssue]
-        assert result["error"] is None  # pyright: ignore[reportCallIssue]
+    def test_delete_template_from_popup(self, client):
+        """POST /<id>/delete with from_popup=1 should render popup."""
+        template = self._seed_template(title="DelPopupT")
 
-    def test_edit_template_not_found(self, mock_services):
-        mock_services.get_template.return_value = None
+        resp = client.post(
+            f"/adminpanel/templates/{template.id}/delete",
+            data={"from_popup": "1"},
+        )
 
-        result = self.service.edit_template(999)
-        assert result["template"] is None  # pyright: ignore[reportCallIssue]
-        assert result["error"] == "Template not found"  # pyright: ignore[reportCallIssue]
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "Action Completed" in html
 
-    def test_edit_template_by_title_found(self, mock_services):
-        mock_template = MagicMock()
-        mock_services.get_template_by_title.return_value = mock_template
+    def test_edit_template_found(self, client):
+        """GET /<id>/edit should render the edit form."""
+        template = self._seed_template(title="EditT")
 
-        result = self.service.edit_by_title("Test")
-        assert result["template"] == mock_template  # pyright: ignore[reportCallIssue]
-        assert result["error"] is None  # pyright: ignore[reportCallIssue]
+        resp = client.get(f"/adminpanel/templates/{template.id}/edit")
 
-    def test_edit_template_by_title_not_found(self, mock_services):
-        mock_services.get_template_by_title.return_value = None
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "EditT" in html
 
-        result = self.service.edit_by_title("Missing")
-        assert result["template"] is None  # pyright: ignore[reportCallIssue]
-        assert result["error"] == "Template not found"  # pyright: ignore[reportCallIssue]
+    def test_edit_template_not_found(self, client):
+        """GET /<id>/edit with nonexistent id should show error."""
+        resp = client.get("/adminpanel/templates/99999/edit")
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "Template not found" in html
+
+    def test_edit_template_by_title_found(self, client):
+        """GET /<title>/edit_by_title should render the edit form."""
+        self._seed_template(title="TitleT")
+
+        resp = client.get("/adminpanel/templates/TitleT/edit_by_title")
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "TitleT" in html
+
+    def test_edit_template_by_title_not_found(self, client):
+        """GET /<title>/edit_by_title with nonexistent title should show error."""
+        resp = client.get("/adminpanel/templates/Missing/edit_by_title")
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "Template not found" in html

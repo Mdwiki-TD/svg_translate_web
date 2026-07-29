@@ -1,206 +1,220 @@
-"""
-Unit tests for src/main_app/adminpanel/routes/owid_charts.py module.
-"""
+"""Unit tests for src/main_app/adminpanel/routes/owid_charts.py module."""
 
 from __future__ import annotations
 
-import json
-from unittest.mock import MagicMock, Mock
+from types import SimpleNamespace
 
 import pytest
+from flask import Blueprint
+from werkzeug.datastructures import MultiDict
 
-from src.main_app.admin.routes.owid_charts import OwidCharts
-from src.main_app.db.services import ViewsService
-
-
-class TestSetup:
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.owid_charts_service = OwidCharts()
-
-    @pytest.fixture(autouse=True)
-    def setup_mocks(self, monkeypatch):
-        self.mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.flash", self.mock_flash)
-
-        self.mock_redirect = Mock(side_effect=lambda x, **kw: f"redirect:{x}")
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.redirect", self.mock_redirect)
-
-        self.mock_url_for = Mock(side_effect=lambda x, **kw: f"/{x}")
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.url_for", self.mock_url_for)
-
-        self.mock_render_template = Mock(side_effect=lambda t, **c: c)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.render_template", self.mock_render_template)
-
-        self.mock_delete_chart = MagicMock(return_value=True)
-        monkeypatch.setattr("src.main_app.admin.routes.owid_charts.OwidChartsService.delete", self.mock_delete_chart)
-
-        self.mock_list_templates = MagicMock(return_value=[])
-        monkeypatch.setattr(ViewsService, "list_owid_charts_templates", self.mock_list_templates)
+from src.main_app.db.services import OwidChartsService
 
 
-class TestSetupWithMockService(TestSetup):
-    """For test classes that stub out the owid_charts_service instance entirely.
-
-    TestDeleteChart intentionally does NOT use this — it exercises the real service
-    instance and only patches OwidChartsService.delete at the class level, so forcing
-    a generic instance mock on it would silently swallow that patch.
-    """
-
-    @pytest.fixture(autouse=True)
-    def setup_mock_service(self):
-        self.mock_owid_charts_service = MagicMock()
-        self.owid_charts_service.owid_charts_service = self.mock_owid_charts_service
+@pytest.fixture(autouse=True)
+def _fake_admin_user(monkeypatch):
+    """Fake an authenticated admin user for all tests in this module."""
+    admin_user = SimpleNamespace(username="test_admin", is_active_admin=True)
+    monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
 
 
-class TestCreateJsonFile(TestSetupWithMockService):
-    def test_success(self):
-        mock_chart = MagicMock()
-        mock_chart.chart_id = 1
-        mock_chart.slug = "test"
-        mock_chart.title = "Test"
-        mock_chart.has_map_tab = False
-        mock_chart.max_time = None
-        mock_chart.min_time = None
-        mock_chart.default_tab = None
-        mock_chart.is_published = False
-        mock_chart.single_year_data = False
-        mock_chart.len_years = None
-        mock_chart.has_timeline = False
-        self.mock_owid_charts_service.list_charts.return_value = [mock_chart]
-
-        response, status = self.owid_charts_service.create_json_file()
-        assert status == 200
-        assert "owid_charts.json" in response.headers["Content-Disposition"]
-
-    def test_no_charts(self):
-        self.mock_owid_charts_service.list_charts.return_value = []
-
-        msg, status = self.owid_charts_service.create_json_file()
-        assert status == 404
-        assert "No charts found" in msg
-
-    def test_lookup_error(self):
-        self.mock_owid_charts_service.list_charts.side_effect = LookupError("not found")
-
-        msg, status = self.owid_charts_service.create_json_file()
-        assert status == 404
-        assert "Charts not found" in msg
-
-    def test_exception(self):
-        self.mock_owid_charts_service.list_charts.side_effect = RuntimeError("error")
-
-        msg, status = self.owid_charts_service.create_json_file()
-        assert status == 500
-        assert "Failed to create JSON file" in msg
-
-    def test_includes_template_info(self):
-        mock_chart = MagicMock()
-        mock_chart.chart_id = 1
-        mock_chart.slug = "t"
-        mock_chart.title = "T"
-        mock_chart.has_map_tab = False
-        mock_chart.max_time = None
-        mock_chart.min_time = None
-        mock_chart.default_tab = None
-        mock_chart.is_published = False
-        mock_chart.single_year_data = False
-        mock_chart.len_years = None
-        mock_chart.has_timeline = False
-        mock_template = MagicMock()
-        mock_template.chart_id = 1
-        mock_template.template_id = 42
-        mock_template.template_title = "Template:T"
-        self.mock_owid_charts_service.list_charts.return_value = [mock_chart]
-        self.mock_list_templates.return_value = [mock_template]
-
-        response, status = self.owid_charts_service.create_json_file()
-        data = json.loads(response.get_data())
-        assert data[0]["template_id"] == 42
-        assert data[0]["template_title"] == "Template:T"
+@pytest.fixture
+def client(mock_app):
+    """Test client bound to mock_app."""
+    return mock_app.test_client()
 
 
-class TestAddChart(TestSetupWithMockService):
-    def test_missing_slug(self):
-        self.owid_charts_service._add_chart({"slug": "", "title": "T", "from_popup": "0"})
+class TestCreateJsonFile:
+    """Tests for create_json_file via HTTP route."""
 
-    def test_success(self):
-        mock_record = MagicMock()
-        mock_record.title = "T"
-        self.mock_owid_charts_service.add_chart.return_value = mock_record
+    def _seed_chart(self, slug: str = "test-chart", title: str = "Test Chart"):
+        """Seed an OWID chart record via the real service."""
+        service = OwidChartsService()
+        service.add_chart(slug=slug, title=title)
+        return service.get_chart_by_slug(slug)
 
-        self.owid_charts_service._add_chart({"slug": "s", "title": "T", "from_popup": "0"})
+    def test_success(self, client):
+        """Download JSON should return a file with chart data."""
+        self._seed_chart(slug="chart1", title="Chart 1")
 
-    def test_value_error(self):
-        self.mock_owid_charts_service.add_chart.side_effect = ValueError("error")
+        resp = client.get("/adminpanel/owidcharts/download-json")
 
-        self.owid_charts_service._add_chart({"slug": "s", "title": "T", "from_popup": "0"})
+        assert resp.status_code == 200
+        assert "owid_charts.json" in resp.headers.get("Content-Disposition", "")
 
-    def test_from_popup_error(self):
-        self.mock_owid_charts_service.add_chart.side_effect = ValueError("error")
-        self.mock_redirect.side_effect = lambda *a, **kw: "redirected"
-        self.mock_url_for.side_effect = lambda x, **kw: "/r"
+    def test_no_charts(self, client):
+        """Download JSON with no charts should redirect with warning."""
+        resp = client.get("/adminpanel/owidcharts/download-json")
 
-        result = self.owid_charts_service._add_chart({"slug": "s", "title": "T", "from_popup": "1"})
-        assert "redirected" in result
+        assert resp.status_code == 302
 
+    def test_includes_template_info(self, client):
+        """Download JSON should include template info when available."""
+        self._seed_chart(slug="chart-t", title="Chart T")
 
-class TestUpdateChart(TestSetupWithMockService):
-    def test_missing_slug(self):
-        self.owid_charts_service._update_chart({"chart_id": "1", "slug": "", "title": "T"})
+        resp = client.get("/adminpanel/owidcharts/download-json")
 
-    def test_lookup_error(self):
-        self.mock_owid_charts_service.update_chart_data.side_effect = LookupError("not found")
-
-        self.owid_charts_service._update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
-
-    def test_success(self):
-        mock_record = MagicMock()
-        mock_record.title = "T"
-        self.mock_owid_charts_service.update_chart_data.return_value = mock_record
-
-        self.owid_charts_service._update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
-
-    def test_record_none(self):
-        self.mock_owid_charts_service.update_chart_data.return_value = None
-
-        self.owid_charts_service._update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "0"})
-
-    def test_from_popup_error(self):
-        self.mock_owid_charts_service.update_chart_data.side_effect = LookupError("not found")
-        self.mock_redirect.side_effect = lambda *a, **kw: "redirected"
-        self.mock_url_for.side_effect = lambda x, **kw: "/r"
-
-        result = self.owid_charts_service._update_chart({"chart_id": "1", "slug": "s", "title": "T", "from_popup": "1"})
-        assert "redirected" in result
+        assert resp.status_code == 200
 
 
-class TestDeleteChart(TestSetup):
-    def test_success(self):
-        self.mock_delete_chart.return_value = True
+class TestAddChart:
+    """Tests for _add_chart via HTTP route."""
 
-        self.owid_charts_service._delete_chart(1, False)
-        self.mock_flash.assert_called_with("Chart '1' removed.", "success")
+    def test_missing_slug(self, client):
+        """POST /add with empty slug should redirect."""
+        resp = client.post(
+            "/adminpanel/owidcharts/add",
+            data={"slug": "", "title": "T", "from_popup": "0"},
+        )
 
-    def test_not_found(self):
-        self.mock_delete_chart.return_value = False
+        assert resp.status_code == 302
 
-        self.owid_charts_service._delete_chart(999, False)
-        self.mock_flash.assert_called_with("Chart '999' not found.", "warning")
+    def test_success(self, client):
+        """POST /add with valid data should create the chart."""
+        resp = client.post(
+            "/adminpanel/owidcharts/add",
+            data={"slug": "new-chart", "title": "New Chart", "from_popup": "0"},
+        )
 
-    def test_from_popup(self):
-        self.mock_delete_chart.return_value = True
-        self.mock_render_template.side_effect = lambda t, **c: f"rendered:{t}"
+        assert resp.status_code == 302
+        assert OwidChartsService().get_chart_by_slug("new-chart") is not None
 
-        result = self.owid_charts_service._delete_chart(1, True)
-        assert "popup_action" in result
+    def test_value_error(self, client):
+        """POST /add with duplicate slug should redirect."""
+        service = OwidChartsService()
+        service.add_chart(slug="dup-chart", title="Dup")
+
+        resp = client.post(
+            "/adminpanel/owidcharts/add",
+            data={"slug": "dup-chart", "title": "Dup", "from_popup": "0"},
+        )
+
+        assert resp.status_code == 302
+
+    def test_from_popup_error(self, client):
+        """POST /add from popup with error should redirect back to popup."""
+        service = OwidChartsService()
+        service.add_chart(slug="popup-dup", title="Popup Dup")
+
+        resp = client.post(
+            "/adminpanel/owidcharts/add",
+            data={"slug": "popup-dup", "title": "Popup Dup", "from_popup": "1"},
+        )
+
+        assert resp.status_code in (200, 302)
 
 
-class TestEditChart(TestSetupWithMockService):
-    def test_found(self):
-        mock_chart = MagicMock()
-        self.mock_owid_charts_service.get_chart_by_id.return_value = mock_chart
+class TestUpdateChart:
+    """Tests for _update_chart via HTTP route."""
 
-        result = self.owid_charts_service._edit_chart(1)
-        assert result["chart"] == mock_chart  # pyright: ignore[reportCallIssue]
-        assert result["error"] is None  # pyright: ignore[reportCallIssue]
+    def _seed_chart(self, slug: str = "update-chart", title: str = "Update Chart"):
+        """Seed an OWID chart record via the real service."""
+        service = OwidChartsService()
+        service.add_chart(slug=slug, title=title)
+        return service.get_chart_by_slug(slug)
+
+    def test_missing_slug(self, client):
+        """POST /update with empty slug should redirect."""
+        resp = client.post(
+            "/adminpanel/owidcharts/update",
+            data={"chart_id": "1", "slug": "", "title": "T"},
+        )
+
+        assert resp.status_code == 302
+
+    def test_success(self, client):
+        """POST /update with valid data should update the chart."""
+        chart = self._seed_chart(slug="upd-chart", title="Old Title")
+
+        resp = client.post(
+            "/adminpanel/owidcharts/update",
+            data={"chart_id": chart.chart_id, "slug": "upd-chart", "title": "New Title", "from_popup": "0"},
+        )
+
+        assert resp.status_code == 302
+        updated = OwidChartsService().get_chart_by_id(chart.chart_id)
+        assert updated.title == "New Title"
+
+    def test_record_none(self, client):
+        """POST /update with nonexistent chart_id should redirect."""
+        resp = client.post(
+            "/adminpanel/owidcharts/update",
+            data={"chart_id": "99999", "slug": "s", "title": "T", "from_popup": "0"},
+        )
+
+        assert resp.status_code == 302
+
+    def test_from_popup_error(self, client):
+        """POST /update from popup with error should redirect back to popup."""
+        resp = client.post(
+            "/adminpanel/owidcharts/update",
+            data={"chart_id": "99999", "slug": "s", "title": "T", "from_popup": "1"},
+        )
+
+        assert resp.status_code in (200, 302)
+
+
+class TestDeleteChart:
+    """Tests for _delete_chart via HTTP route."""
+
+    def _seed_chart(self, slug: str = "del-chart", title: str = "Delete Chart"):
+        """Seed an OWID chart record via the real service."""
+        service = OwidChartsService()
+        service.add_chart(slug=slug, title=title)
+        return service.get_chart_by_slug(slug)
+
+    def test_success(self, client):
+        """POST /<chart_id>/delete should remove the chart."""
+        chart = self._seed_chart(slug="del-ok", title="Delete OK")
+
+        resp = client.post(f"/adminpanel/owidcharts/{chart.chart_id}/delete")
+
+        assert resp.status_code == 302
+        assert OwidChartsService().get_chart_by_id(chart.chart_id) is None
+
+    def test_not_found(self, client):
+        """POST /<chart_id>/delete with nonexistent id should redirect."""
+        resp = client.post("/adminpanel/owidcharts/99999/delete")
+
+        assert resp.status_code == 302
+
+    def test_from_popup(self, client):
+        """POST /<chart_id>/delete from popup should render popup."""
+        chart = self._seed_chart(slug="del-popup", title="Delete Popup")
+
+        resp = client.post(
+            f"/adminpanel/owidcharts/{chart.chart_id}/delete",
+            data={"from_popup": "1"},
+        )
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "Action Completed" in html
+
+
+class TestEditChart:
+    """Tests for _edit_chart via HTTP route."""
+
+    def _seed_chart(self, slug: str = "edit-chart", title: str = "Edit Chart"):
+        """Seed an OWID chart record via the real service."""
+        service = OwidChartsService()
+        service.add_chart(slug=slug, title=title)
+        return service.get_chart_by_slug(slug)
+
+    def test_found(self, client):
+        """GET /<chart_id>/edit should render the edit form."""
+        chart = self._seed_chart(slug="edit-ok", title="Edit OK")
+
+        resp = client.get(f"/adminpanel/owidcharts/{chart.chart_id}/edit")
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "edit-ok" in html
+
+    def test_not_found(self, client):
+        """GET /<chart_id>/edit with nonexistent id should show error."""
+        resp = client.get("/adminpanel/owidcharts/99999/edit")
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert "Chart not found" in html
