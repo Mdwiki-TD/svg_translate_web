@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 class OneFileProcessor:
 
-    def __init__(self, site: Site, output_dir: Path, args: dict[str, Any]):
+    def __init__(self, site: Site | None, output_dir: Path, args: dict[str, Any]):
         self.site = site
         self.output_dir = output_dir
         self.args = args
@@ -504,8 +504,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         """Execute the full pipeline."""
         if not self._check_site():
             return self.result
+
+        # update site after calling _check_site
         self.files_processor.site = self.site
-        
+
         if not self.title:
             logger.error("No title found")
             self.result.status = "failed"

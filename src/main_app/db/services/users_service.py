@@ -1,7 +1,5 @@
 """
-SQLAlchemy-based service for managing users and user tokens.
-
-Users table is the stable identity layer. Tokens are a child of users.
+SQLAlchemy-based service for managing users.
 """
 
 from __future__ import annotations
@@ -79,6 +77,7 @@ class UsersService(CRUDService[UserRecord]):
         except Exception as exc:
             logger.error("Failed to update record: %s", exc)
             return None
+
 
 __all__ = [
     "UsersService",

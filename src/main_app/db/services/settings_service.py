@@ -44,7 +44,7 @@ def format_values(records: list[SettingRecord]) -> dict[str, Any]:
                 except (ValueError, TypeError):
                     val = None
         elif x.value_type == "string":
-            val = str(x.value)
+            val = None if x.value is None else str(x.value)
 
         if val is None:
             logger.warning("Could not parse setting %s with value %s", x.key, x.value)
@@ -139,7 +139,6 @@ class SettingsService(CRUDService[SettingRecord]):
         except Exception as exc:
             logger.error("Failed to create new record: %s", exc)
             return None
-
 
     def delete_setting_by_key(self, key: str) -> bool:
         record = self.get_by(key=key)

@@ -38,8 +38,13 @@ class CRUDError(Exception):
     """Base error for CRUD service failures."""
 
 
+class RecordNotFoundError(LookupError):
+    """Raised when a record not found."""
+
+
 __all__ = [
     "CRUDError",
+    "RecordNotFoundError",
     "UniqueError",
     "DuplicateRecordError",
     "DatabaseInitError",
