@@ -10,9 +10,8 @@ from typing import Any, TypeVar
 
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
-from werkzeug.exceptions import NotFound
 from sqlalchemy.exc import IntegrityError
-
+from ..exceptions import RecordNotFoundError
 logger = logging.getLogger(__name__)
 
 ModelT = TypeVar("ModelT")  # , bound=db.Model
@@ -46,13 +45,6 @@ class CRUDService[ModelT]:
 
     def get(self, pk: PKT) -> ModelT | None:  # pyright: ignore[reportInvalidTypeVarUse]
         return self.get_record_by_id(pk)
-
-    def get_or_404(self, pk: PKT, description: str | None = None) -> ModelT:  # pyright: ignore[reportInvalidTypeVarUse]
-        """Fetch a single row by primary key, or raise a 404."""
-        instance = self.get_record_by_id(pk)
-        if instance is None:
-            raise NotFound(description or f"{self.model_name} with id={pk!r} not found")
-        return instance
 
     def get_by(self, **filters: Any) -> ModelT | None:
         """Fetch a single row matching the given column=value filters."""
@@ -299,11 +291,23 @@ class CRUDService[ModelT]:
             logger.error(f"Error deleting {self.model_name} {e}")
             return False
 
+    # ------------------------------------------------------------------ #
+    # or 404
+    # ------------------------------------------------------------------ #
+
+    def get_or_404(self, pk: PKT, description: str | None = None) -> ModelT:  # pyright: ignore[reportInvalidTypeVarUse]
+        """Fetch a single row by primary key, or raise a 404."""
+        instance = self.get_record_by_id(pk)
+        if instance is None:
+            raise RecordNotFoundError(description or f"{self.model_name} with id={pk!r} not found")
+
+        return instance
+
     def update_or_404(self, pk: PKT, **kwargs) -> ModelT:  # pyright: ignore[reportInvalidTypeVarUse]
         """Update an assessment record."""
         orm_obj = self.get_record_by_id(pk)
         if not orm_obj:
-            raise ValueError(f"Record with ID {pk} not found")
+            raise RecordNotFoundError(f"Record with ID {pk} not found")
 
         if not kwargs:
             return orm_obj
