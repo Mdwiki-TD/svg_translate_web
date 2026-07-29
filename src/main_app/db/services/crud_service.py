@@ -9,9 +9,11 @@ from collections.abc import Iterable, Sequence
 from typing import Any, TypeVar
 
 from sqlalchemy import Select, func, select
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
 from ..exceptions import RecordNotFoundError
+
 logger = logging.getLogger(__name__)
 
 ModelT = TypeVar("ModelT")  # , bound=db.Model
