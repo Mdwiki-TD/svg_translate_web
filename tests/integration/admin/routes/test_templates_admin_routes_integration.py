@@ -29,7 +29,9 @@ def test_update_template_uses_request_form_type_parameter(mock_app, flash_redire
     svc = TemplateService()
     created = svc.add_template_data({"title": "Test Title", "main_file": "test.svg"})
 
-    templates.TemplatesRoutesFuncs()._update_template({"id": str(created.id), "title": "Test Title", "main_file": "test.svg"})
+    templates.TemplatesRoutesFuncs()._update_template(
+        {"id": str(created.id), "title": "Test Title", "main_file": "test.svg"}
+    )
 
     updated = svc.get_template(created.id)
     assert updated is not None

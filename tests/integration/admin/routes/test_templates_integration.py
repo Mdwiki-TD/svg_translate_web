@@ -90,12 +90,14 @@ def test_create_json_file_success(mock_app):
     from src.main_app.admin.routes.templates import create_json_file
 
     svc = TemplateService()
-    svc.add_template_data({
-        "title": "Test Template",
-        "main_file": "Example.svg",
-        "last_world_file": "World.svg",
-        "source": "Test source",
-    })
+    svc.add_template_data(
+        {
+            "title": "Test Template",
+            "main_file": "Example.svg",
+            "last_world_file": "World.svg",
+            "source": "Test source",
+        }
+    )
 
     with mock_app.app_context():
         response, status_code = create_json_file()
@@ -119,10 +121,12 @@ def test_create_json_file_no_templates(mock_app):
 def test_edit_template_found(mock_app):
     """Test TemplatesRoutesFuncs().edit_template returns template when found."""
     svc = TemplateService()
-    created = svc.add_template_data({
-        "title": "Test Template",
-        "main_file": "Example.svg",
-    })
+    created = svc.add_template_data(
+        {
+            "title": "Test Template",
+            "main_file": "Example.svg",
+        }
+    )
 
     with mock_app.test_request_context():
         with patch("src.main_app.admin.routes.templates.render_template") as mock_render:
