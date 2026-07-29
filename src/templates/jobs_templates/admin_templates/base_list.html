@@ -47,7 +47,7 @@
                         <td class="text-center">
                             <div class="d-flex gap-2">
                                 <div class="btn-group d-inline nowrap-text">
-                                    {% if job.status | is_job_running %}
+                                    {% if is_admin and (job.status | is_job_running) %}
                                     {{ form_cancel_job(url_for(
                                         'adminpanel.jobs.cancel_job',
                                         job_type=job_type,
