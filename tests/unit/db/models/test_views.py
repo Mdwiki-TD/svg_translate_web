@@ -2,12 +2,11 @@
 """
 Unit tests for src/main_app/db/models/views.py module.
 
-Classes to test: TemplateNeedUpdateView, OwidChartTemplateView
+Classes to test: TemplateNeedUpdateView
 
 TODO: write tests
 """
 
 from src.main_app.db.models.views import (
-    OwidChartTemplateView,
     TemplateNeedUpdateView,
 )

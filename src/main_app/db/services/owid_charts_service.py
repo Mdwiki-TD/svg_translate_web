@@ -32,12 +32,6 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
     def list_published_charts(self) -> list[OwidChartRecord]:
         """
         Return all published charts from the view.
-
-        Query to match:
-            SELECT * FROM owid_charts_templates oct, owid_charts oc
-            WHERE oct.chart_id = oc.chart_id
-            AND oc.is_published = 1
-            ORDER BY oc.chart_id ASC
         """
         query = (
             self.session.query(OwidChartRecord)
@@ -50,11 +44,6 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
     def get_chart_by_id(self, chart_id: int) -> OwidChartRecord | None:
         """
         Fetch a single chart by ID.
-
-        Query to match:
-            SELECT * FROM owid_charts_templates oct, owid_charts oc
-            WHERE oct.chart_id = %s
-            and oct.chart_id = oc.chart_id
         """
         record = self.get_record_by_id(chart_id)
         return record
@@ -62,11 +51,6 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
     def get_chart_by_slug(self, slug: str) -> OwidChartRecord | None:
         """
         Fetch a single chart by slug.
-
-        Query to match:
-            SELECT * FROM owid_charts_templates oct, owid_charts oc
-            WHERE oc.slug = %s
-            and oct.chart_id = oc.chart_id
         """
         return self.session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug).first()
 

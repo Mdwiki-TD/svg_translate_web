@@ -72,52 +72,6 @@ class TemplateNeedUpdateView(db.Model):
         }
 
 
-class OwidChartTemplateView(db.Model):  # type: ignore
-    """
-    Represents a database view joining charts and templates.
-    Handles extended template metadata and manual runtime overrides.
-    """
-
-    __tablename__ = "owid_charts_templates"
-
-    chart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    template_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    template_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
-
-    __table_args__ = (
-        # Prevent SQLAlchemy from trying to create this as a table
-        {
-            "info": {
-                "is_view": True,
-                "replace_the_view": True,
-                "create_query": """
-                    CREATE VIEW owid_charts_templates AS
-                    select
-                        c.chart_id AS chart_id,
-                        t.id AS template_id,
-                        t.title AS template_title
-                    from owid_charts c
-                        left join templates t on t.slug = c.slug
-                    ;
-                """,
-            }
-        },
-    )
-
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "chart_id": self.chart_id,
-            "template_id": self.template_id,
-            "template_title": self.template_title,
-        }
-
-
 __all__ = [
     "TemplateNeedUpdateView",
-    "OwidChartTemplateView",
 ]

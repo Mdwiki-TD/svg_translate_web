@@ -4,7 +4,6 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from ..db.models import OwidChartRecord, OwidChartTemplateView
 from ..db.services import ChartAndTemplate
 
 logger = logging.getLogger(__name__)

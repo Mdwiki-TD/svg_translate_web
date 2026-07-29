@@ -109,26 +109,6 @@ CREATE TABLE
   ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
 CREATE TABLE
-  `owid_charts_templates` (
-    `chart_id` int (11),
-    `template_id` int (11),
-    `template_title` varchar(255)
-  );
-
-DROP TABLE IF EXISTS `owid_charts_templates`;
-
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `owid_charts_templates` AS
-select
-  `c`.`chart_id` AS `chart_id`,
-  `t`.`id` AS `template_id`,
-  `t`.`title` AS `template_title`
-from
-  (
-    `owid_charts` `c`
-    left join `templates` `t` on (`t`.`slug` = `c`.`slug`)
-  );
-
-CREATE TABLE
   `templates_need_update` (
     `template_id` int (11),
     `template_title` varchar(255),
