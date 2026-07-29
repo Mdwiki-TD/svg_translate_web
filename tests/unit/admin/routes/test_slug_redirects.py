@@ -34,9 +34,8 @@ class TestEditSlugRedirect:
     def test_with_found_record(self, client):
         """edit should render the record's data when found."""
         service = OwidSlugRedirectsService()
-        service.add_new_slug_redirect(slug="test-slug", redirect_to="/target")
-        record = service.list_slug_redirects()[-1]
-
+        record = service.add_new_slug_redirect(slug="test-slug", redirect_to="/target")
+        assert record is not None, "failed to seed slug redirect"
         resp = client.get(f"/adminpanel/slugredirects/{record.id}/edit")
 
         assert resp.status_code == 200
@@ -74,7 +73,6 @@ class TestSlugRedirectsRoutes:
     def _seed_redirect(self, slug: str = "test-slug", redirect_to: str = "/target"):
         """Seed a slug redirect record via the real service."""
         service = OwidSlugRedirectsService()
-        service.add_new_slug_redirect(slug=slug, redirect_to=redirect_to)
         record = service.add_new_slug_redirect(slug=slug, redirect_to=redirect_to)
         assert record is not None, f"failed to seed slug redirect {slug}"
         return record
