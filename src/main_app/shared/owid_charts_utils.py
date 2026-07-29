@@ -71,7 +71,6 @@ def charts_new_list(
     charts_with_templates: list[tuple[OwidChartRecord, int | None, str | None]],
     template_filter: str = "",
 ) -> dict[str, Any]:
-    # Optimize: use single-query list_charts_with_templates() with fallback
     all_charts = []
     charts_temps = {}
     try:

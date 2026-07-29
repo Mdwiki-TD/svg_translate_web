@@ -92,6 +92,7 @@ class ApiRoutes:
         return jsonify(data)
 
     def owid_charts_list(self, template_filter: str = ""):
+        # Optimize: use single-query list_charts_with_templates() with fallback
         charts_with_templates = self.owid_charts_service.list_charts_with_templates()
         results = charts_new_list(charts_with_templates, template_filter)
         return jsonify(results)
