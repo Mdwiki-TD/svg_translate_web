@@ -7,6 +7,9 @@ import types
 import pytest
 from flask import Blueprint, Flask
 
+from src.main_app import create_app
+from src.main_app.config import TestingConfig
+from src.main_app.extensions import db as _db
 from src.main_app.public.auth.routes import AuthRoutes
 
 
@@ -41,6 +44,42 @@ def auth_app(monkeypatch: pytest.MonkeyPatch) -> Flask:
     app.add_url_rule("/", "main.index", lambda: "index")
 
     return app
+
+
+@pytest.fixture
+def auth_db_client(monkeypatch: pytest.MonkeyPatch):
+    """Flask test client with real DB for testing auth callbacks."""
+    monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
+
+    cookie = types.SimpleNamespace(
+        name="uid_enc_copy",
+        httponly=True,
+        secure=False,
+        samesite="Lax",
+        max_age=3600,
+    )
+    oauth_cfg = types.SimpleNamespace(consumer_key="key", consumer_secret="secret")
+    fake_settings = types.SimpleNamespace(
+        STATE_SESSION_KEY="state",
+        REQUEST_TOKEN_SESSION_KEY="req_token",
+        cookie=cookie,
+        oauth=oauth_cfg,
+    )
+    monkeypatch.setattr("src.main_app.public.auth.routes.settings", fake_settings)
+    monkeypatch.setattr("src.main_app.public.auth.routes.oauth_state_nonce", "state")
+    monkeypatch.setattr("src.main_app.public.auth.routes.request_token_key", "req_token")
+    monkeypatch.setattr("src.main_app.public.auth.routes.load_logged_in_user", lambda: None)
+
+    flask_app = create_app(TestingConfig)
+    flask_app.config["TESTING"] = True
+    flask_app.config["WTF_CSRF_ENABLED"] = False
+
+    with flask_app.app_context():
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.create_all(_db.engine, tables=real_tables)
+        yield flask_app.test_client()
+        _db.session.remove()
+        _db.metadata.drop_all(_db.engine, tables=real_tables)
 
 
 def test_login_success_flow(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -83,7 +122,9 @@ def test_login_success_flow(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) ->
     assert limiter.calls
 
 
-def test_callback_success(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_callback_success(auth_db_client, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test callback creates real user in DB via AuthUserService."""
+
     class DummyLimiter:
         def allow(self, key: str) -> bool:
             return True
@@ -103,15 +144,9 @@ def test_callback_success(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> N
         return access, identity
 
     monkeypatch.setattr("src.main_app.shared.auth.auth_service.complete_login", fake_complete)
-
-    fake_user = types.SimpleNamespace(user_id=123, username="Tester")
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.AuthUserService.save_and_get_user",
-        staticmethod(lambda **kwargs: fake_user),
-    )
     monkeypatch.setattr("src.main_app.public.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")
 
-    client = auth_app.test_client()
+    client = auth_db_client
     with client.session_transaction() as sess:
         sess["state"] = "state-value"
         sess["req_token"] = ["k", "s"]
@@ -123,7 +158,8 @@ def test_callback_success(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> N
     assert "uid_enc_copy" in cookie_header
 
     with client.session_transaction() as sess:
-        assert sess["uid"] == 123
+        assert sess["uid"] is not None
+        assert sess["uid"] > 0
 
 
 def test_logout_clears_session(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:

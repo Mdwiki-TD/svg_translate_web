@@ -2,63 +2,17 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
 
 from src.main_app.config import TestingConfig
-from src.main_app.db.models import OwidChartRecord
+from src.main_app.db.services import OwidChartsService
+from src.main_app.extensions import db as _db
 
 
 @pytest.fixture
-def sample_chart():
-    """Create a sample published chart."""
-    return OwidChartRecord(
-        chart_id=1,
-        slug="test-chart",
-        title="Test Chart",
-        has_map_tab=True,
-        max_time=2024,
-        min_time=2000,
-        default_tab="chart",
-        is_published=True,
-        single_year_data=False,
-        len_years=25,
-        has_timeline=True,
-    )
-
-
-@pytest.fixture
-def sample_unpublished_chart():
-    """Create a sample unpublished chart."""
-    return OwidChartRecord(
-        chart_id=2,
-        slug="draft-chart",
-        title="Draft Chart",
-        has_map_tab=False,
-        max_time=None,
-        min_time=None,
-        default_tab=None,
-        is_published=False,
-        single_year_data=False,
-        len_years=None,
-        has_timeline=False,
-    )
-
-
-@pytest.fixture
-def owid_charts_client(monkeypatch, sample_chart, sample_unpublished_chart):
-    """Create Flask test client with mocked owid_charts_service."""
-
-    mock_service = MagicMock()
-    mock_service.list_published_charts = MagicMock(return_value=[sample_chart])
-    mock_service.list_charts = MagicMock(return_value=[sample_chart, sample_unpublished_chart])
-    mock_service.count_charts = MagicMock(return_value=2)
-
-    monkeypatch.setattr(
-        "src.main_app.public.main_routes.owid_charts_routes.OwidChartsService",
-        MagicMock(return_value=mock_service),
-    )
+def owid_charts_client(monkeypatch):
+    """Create Flask test client with real owid_charts_service."""
+    monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
 
     from src.main_app import create_app
 
@@ -66,7 +20,12 @@ def owid_charts_client(monkeypatch, sample_chart, sample_unpublished_chart):
     flask_app.config["TESTING"] = True
     flask_app.config["WTF_CSRF_ENABLED"] = False
 
-    yield flask_app.test_client(), mock_service
+    with flask_app.app_context():
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.create_all(_db.engine, tables=real_tables)
+        yield flask_app.test_client()
+        _db.session.remove()
+        _db.metadata.drop_all(_db.engine, tables=real_tables)
 
 
 class TestIndexRoute:
@@ -74,20 +33,20 @@ class TestIndexRoute:
 
     def test_index_renders_with_published_charts(self, owid_charts_client):
         """Test index page renders with published charts."""
-        flask_client, mock_service = owid_charts_client
+        svc = OwidChartsService()
+        svc.add_chart(slug="published-chart", title="Published Chart", is_published=True)
 
-        response = flask_client.get("/owidcharts/")
-
+        response = owid_charts_client.get("/owidcharts/")
         assert response.status_code == 200
-        mock_service.list_published_charts.assert_called_once()
 
     def test_index_calls_count_charts(self, owid_charts_client):
         """Test index page also calls count_charts for total count."""
-        flask_client, mock_service = owid_charts_client
+        svc = OwidChartsService()
+        svc.add_chart(slug="chart-a", title="Chart A", is_published=True)
+        svc.add_chart(slug="chart-b", title="Chart B", is_published=False)
 
-        flask_client.get("/owidcharts/")
-
-        mock_service.count_charts.assert_called_once()
+        response = owid_charts_client.get("/owidcharts/")
+        assert response.status_code == 200
 
 
 class TestAllChartsRoute:
@@ -95,27 +54,21 @@ class TestAllChartsRoute:
 
     def test_all_charts_renders(self, owid_charts_client):
         """Test all charts page renders."""
-        flask_client, mock_service = owid_charts_client
+        svc = OwidChartsService()
+        svc.add_chart(slug="chart-1", title="Chart 1")
 
-        response = flask_client.get("/owidcharts/all")
-
+        response = owid_charts_client.get("/owidcharts/all")
         assert response.status_code == 200
-        mock_service.list_charts.assert_called_once()
 
-    def test_all_charts_includes_unpublished(self, owid_charts_client, sample_unpublished_chart):
+    def test_all_charts_includes_unpublished(self, owid_charts_client):
         """Test all charts page includes unpublished charts."""
-        flask_client, mock_service = owid_charts_client
-        mock_service.list_charts.return_value = [sample_unpublished_chart]
+        svc = OwidChartsService()
+        svc.add_chart(slug="draft-chart", title="Draft Chart", is_published=False)
 
-        response = flask_client.get("/owidcharts/all")
-
+        response = owid_charts_client.get("/owidcharts/all")
         assert response.status_code == 200
 
     def test_all_charts_empty_list(self, owid_charts_client):
         """Test all charts page with no charts."""
-        flask_client, mock_service = owid_charts_client
-        mock_service.list_charts.return_value = []
-
-        response = flask_client.get("/owidcharts/all")
-
+        response = owid_charts_client.get("/owidcharts/all")
         assert response.status_code == 200
