@@ -48,3 +48,18 @@ class TestListChartsWithoutTemplates(TestSetup):
         x = result[0]
         assert x.chart_id == chart_record.chart_id
 
+
+class TestListAll(TestSetup):
+    """Tests for list_all function."""
+
+    def test_returns_chart_without_template(self) -> None:
+        chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
+
+        result: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
+
+        assert len(result) == 1
+        x = result[0]
+        assert x.chart.chart_id == chart_record.chart_id
+        assert x.template_id is None
+        assert x.template_title is None
+

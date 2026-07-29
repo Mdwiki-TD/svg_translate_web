@@ -5,7 +5,7 @@ from typing import Any
 
 from flask import Blueprint, jsonify
 
-from ..db.models import OwidChartRecord, TemplateRecord
+from ..db.models import TemplateRecord
 from ..db.services import (
     ChartAndTemplate,
     OwidChartsService,
@@ -13,7 +13,7 @@ from ..db.services import (
     ViewsService,
     ChartsAndTemplatesService,
 )
-from ..shared.owid_charts_utils import OwidChartWithTemplate, charts_new_list
+from ..shared.owid_charts_utils import make_charts_summary
 
 logger = logging.getLogger(__name__)
 
@@ -89,26 +89,34 @@ class ApiRoutes:
         return jsonify({"data": data})
 
     def charts_templates(self):
-        with_templates: list[tuple[OwidChartRecord, int, str]] = self.charts_and_templats_service.list_charts_with_templates()
+        with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_charts_with_templates()
+
         data = [
-            OwidChartWithTemplate(
-                chart_id=x.chart_id,
-                template_id=template_id,
-                template_title=template_title,
-            )
-            for x, template_id, template_title in with_templates
-        ]
-        data = [
-            c.to_dict()
-            for c in data
-            # if c.template_id
+            {
+                "chart_id": c.chart.chart_id,
+                "template_id": c.template_id,
+                "template_title": c.template_title,
+            }
+            for c in with_templates
         ]
         return jsonify(data)
 
     def owid_charts_list(self, template_filter: str = ""):
         # Optimize: use single-query list_charts_with_templates() with fallback
         charts_with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_charts_with_templates()
-        results = charts_new_list(charts_with_templates, template_filter)
+
+        summary = make_charts_summary(charts_with_templates)
+
+        charts_data: list[dict[str, Any]] = [
+            x.to_dict_joined(template_filter) for x in charts_with_templates
+        ]
+        data = [ x for x in charts_data if x]
+
+        results = {
+            "data": data,
+            "summary": summary,
+            "selected_template": template_filter,
+        }
         return jsonify(results)
 
 

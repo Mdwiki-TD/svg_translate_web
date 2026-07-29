@@ -66,7 +66,9 @@ def _make_chart_template_mock(**attrs: Any) -> MagicMock:
 def mock_services(monkeypatch: pytest.MonkeyPatch, mock_app):
     mock_views_service = MagicMock()
     mock_views_service.list_templates_need_update = MagicMock()
-    mock_views_service.list_owid_charts_templates = MagicMock()
+
+    mock_charts_and_templats_service = MagicMock()
+    mock_charts_and_templats_service.list_charts_with_templates = MagicMock()
 
     mock_owidcharts_service = MagicMock()
     mock_owidcharts_service.list_charts_with_templates = MagicMock()
@@ -80,8 +82,10 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_app):
     mocks.views_service = mock_views_service
     mocks.owidcharts_service = mock_owidcharts_service
     mocks.template_service = mock_template_service
+    mocks.charts_and_templats_service = mock_charts_and_templats_service
 
     monkeypatch.setattr("src.main_app.public.api_routes.ViewsService", MagicMock(return_value=mock_views_service))
+    monkeypatch.setattr("src.main_app.public.api_routes.ChartsAndTemplatesService", MagicMock(return_value=mock_charts_and_templats_service))
     monkeypatch.setattr(
         "src.main_app.public.api_routes.OwidChartsService", MagicMock(return_value=mock_owidcharts_service)
     )
@@ -185,26 +189,6 @@ class TestTemplatesNeedUpdateList:
         ]
 
 
-class TestChartsTemplates:
-    """Tests for GET /api/charts_templates."""
-
-    def test_charts_templates(self, mock_client: FlaskClient, mock_services) -> None:
-        """Only records with a template_id are included in the response."""
-        ct1 = _make_chart_template_mock(chart_id=1, template_id=10, template_title="T1")
-        ct2 = _make_chart_template_mock(chart_id=2, template_id=None, template_title=None)
-        ct3 = _make_chart_template_mock(chart_id=3, template_id=30, template_title="T3")
-
-        mock_services.views_service.list_owid_charts_templates.return_value = [ct1, ct2, ct3]
-
-        resp = mock_client.get("/api/charts_templates")
-        body = resp.get_json()
-
-        assert body is not None
-        assert len(body) == 2
-        assert body[0]["chart_id"] == 1
-        assert body[1]["chart_id"] == 3
-
-
 class TestOwidChartsList:
     """Tests for GET /api/owidcharts/."""
 
@@ -219,7 +203,7 @@ class TestOwidChartsList:
         ct3 = _make_chart_template_mock(chart_id=3, template_id=None, template_title=None)
         self.chart_templates = [ct1, ct3]
 
-        mock_services.views_service.list_owid_charts_templates.return_value = self.chart_templates
+        mock_services.charts_and_templats_service.list_charts_with_templates.return_value = self.chart_templates
 
         chart_temps_dict = {c.chart_id: c for c in self.chart_templates}
 

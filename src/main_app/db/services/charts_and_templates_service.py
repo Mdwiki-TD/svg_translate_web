@@ -6,7 +6,6 @@ from typing import Any
 
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
-# from .crud_service import CRUDService
 
 logger = logging.getLogger(__name__)
 
@@ -23,56 +22,48 @@ class ChartAndTemplate:
             "template_title": self.template_title,
         }
 
-    def to_dict_joined(self) -> dict[str, Any]:
-        return {
+    def to_dict_joined(self, template_filter: str) -> dict[str, Any]:
+        data = {
             **self.chart.to_dict(),
             "template_id": self.template_id,
             "template_title": self.template_title,
         }
+        if not template_filter:
+            return data
+
+        if template_filter == "no_template":
+            return data if self.template_id is None else {}
+
+        if template_filter == "has_template":
+            return data if self.template_id is not None else {}
+
+        raise ValueError(f"Invalid template_filter: {template_filter}")
 
 class ChartsAndTemplatesService:# (CRUDService[OwidChartRecord]):
     def __init__(self) -> None:
         # super().__init__(db.session, OwidChartRecord)
         self.session = db.session
 
-    def list_charts_with_templates_old(self) -> list[ChartAndTemplate]:
-        """
-        Retrieve all charts along with their associated template ID and title using a single LEFT OUTER JOIN.
-        """
-        query = (
-            self.session.query(
-                OwidChartRecord,
-                TemplateRecord.id.label("template_id"),
-                TemplateRecord.title.label("template_title"),
-            )
-            .outerjoin(TemplateRecord, TemplateRecord.slug == OwidChartRecord.slug)
-            .order_by(OwidChartRecord.chart_id.asc())
-        )
-        result = query.all()
-        return [
-            ChartAndTemplate(
-                chart=chart,
-                template_id=template_id,
-                template_title=template_title,
-            )
-            for chart, template_id, template_title in result
-        ]
-
     def list_all(self) -> list[ChartAndTemplate]:
         """
         Retrieve all charts, whether they have a matching template or not (LEFT OUTER JOIN).
         If there is no matching template, template_id and template_title will be None.
         """
-        query = (
-            self.session.query(
-                OwidChartRecord,
-                TemplateRecord.id.label("template_id"),
-                TemplateRecord.title.label("template_title"),
+        try:
+            query = (
+                self.session.query(
+                    OwidChartRecord,
+                    TemplateRecord.id.label("template_id"),
+                    TemplateRecord.title.label("template_title"),
+                )
+                .outerjoin(TemplateRecord, TemplateRecord.slug == OwidChartRecord.slug)
+                .order_by(OwidChartRecord.chart_id.asc())
             )
-            .outerjoin(TemplateRecord, TemplateRecord.slug == OwidChartRecord.slug)
-            .order_by(OwidChartRecord.chart_id.asc())
-        )
-        result = query.all()
+            result = query.all()
+        except Exception as e:
+            logger.error(f"Error while querying charts and templates: {e}")
+            return []
+
         return [
             ChartAndTemplate(
                 chart=chart,

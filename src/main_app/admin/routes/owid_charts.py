@@ -20,7 +20,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import ImmutableMultiDict
 
 from ...db.services import OwidChartsService, ChartsAndTemplatesService, ChartAndTemplate
-from ...shared.owid_charts_utils import charts_new_list
+from ...shared.owid_charts_utils import make_charts_summary
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
@@ -237,14 +237,10 @@ class OwidChartsRoutes(OwidCharts):
         self._setup_routes()
 
     def _setup_routes(self) -> None:
+        """
         self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
+        self.bp.route("/<string:template_filter>", methods=["GET"])(admin_required(self.dashboard_with_filter))
 
-        self.bp.add_url_rule(
-            rule="/<string:template_filter>",
-            endpoint="filtered_dashboard",
-            view_func=admin_required(self.dashboard),
-            methods=["GET"],
-        )
         self.bp.route("/add", methods=["GET"])(admin_required(self.add_chart_popup))
         self.bp.route("/<int:chart_id>/edit", methods=["GET"])(admin_required(self.edit_chart))
         self.bp.route("/download-json", methods=["GET"])(admin_required(self.download_owid_charts_json))
@@ -252,26 +248,41 @@ class OwidChartsRoutes(OwidCharts):
         self.bp.route("/add", methods=["POST"])(admin_required(self.add_chart))
         self.bp.route("/update", methods=["POST"])(admin_required(self.update_chart))
         self.bp.route("/<int:chart_id>/delete", methods=["POST"])(admin_required(self.delete_chart))
+        """
+        routes = [
+            ("/", "GET", self.dashboard),
+            ("/<string:template_filter>", "GET", self.dashboard_with_filter),
+
+            ("/add", "GET", self.add_chart_popup),
+            ("/<int:chart_id>/edit", "GET", self.edit_chart),
+            ("/download-json", "GET", self.download_owid_charts_json),
+
+            ("/add", "POST", self.add_chart),
+            ("/update", "POST", self.update_chart),
+            ("/<int:chart_id>/delete", "POST", self.delete_chart),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(admin_required(target))
 
     def dashboard(self, template_filter: str = "") -> str:
         # Optimize: use single-query list_charts_with_templates() with fallback
-        charts_with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_charts_with_templates()
-        results = charts_new_list(charts_with_templates, template_filter)
+        charts_with_templates: list[ChartAndTemplate] = self.charts_and_templats_service.list_all()
 
-        summary = results.get("summary") or {
-            "total": 0,
-            "published": {"with": 0, "without": 0},
-            "template": {"with": 0, "without": 0},
-            "map_tab": {"with": 0, "without": 0},
-            "timeline": {"with": 0, "without": 0},
-        }
+        summary = make_charts_summary(charts_with_templates)
 
+        charts_data: list[dict[str, Any]] = [
+            x.to_dict_joined(template_filter) for x in charts_with_templates
+        ]
+        rows = [ x for x in charts_data if x]
         return render_template(
             "admins/owid_charts/list.html",
             selected_template=template_filter,
             summary=summary,
-            rows=results["data"],
+            rows=rows,
         )
+
+    def dashboard_with_filter(self, template_filter: str = "") -> str:
+        return self.dashboard(template_filter)
 
     def add_chart_popup(self) -> ResponseReturnValue:
         """Render the add chart popup form."""
