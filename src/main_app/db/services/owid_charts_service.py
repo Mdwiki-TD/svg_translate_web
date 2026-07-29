@@ -23,21 +23,26 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
             order_by=[OwidChartRecord.chart_id.asc()],
         )
 
-    def list_charts_with_templates(self) -> list[tuple[OwidChartRecord, int | None, str | None]]:
+    def list_charts_with_templates(self) -> list[tuple[OwidChartRecord, int, str]]:
         """
-        Retrieve all charts along with their associated template ID and title using a single LEFT OUTER JOIN.
+        Retrieve charts that have a matching template only (INNER JOIN).
         """
-
         query = (
             self.session.query(
                 OwidChartRecord,
                 TemplateRecord.id.label("template_id"),
                 TemplateRecord.title.label("template_title"),
             )
-            .outerjoin(TemplateRecord, TemplateRecord.slug == OwidChartRecord.slug)
+            .join(TemplateRecord, TemplateRecord.slug == OwidChartRecord.slug)
             .order_by(OwidChartRecord.chart_id.asc())
         )
         return query.all()
+
+    def list_charts_without_templates(self) -> list[OwidChartRecord]:
+        """
+        Retrieve all charts along without templates
+        """
+
 
     def count_charts(self) -> int:
         """
