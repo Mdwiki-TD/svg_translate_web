@@ -15,6 +15,12 @@ class OwidChartWithTemplate:
     template_id: int | None
     template_title: str | None
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "chart_id": self.chart_id,
+            "template_id": self.template_id,
+            "template_title": self.template_title,
+        }
 
 def make_charts_summary(
     all_charts: list[OwidChartRecord],

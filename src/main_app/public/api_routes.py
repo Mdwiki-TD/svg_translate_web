@@ -5,13 +5,13 @@ from typing import Any
 
 from flask import Blueprint, jsonify
 
-from ..db.models import OwidChartTemplateView, TemplateRecord
+from ..db.models import OwidChartRecord, TemplateRecord
 from ..db.services import (
     OwidChartsService,
     TemplateService,
     ViewsService,
 )
-from ..shared.owid_charts_utils import charts_new_list
+from ..shared.owid_charts_utils import OwidChartWithTemplate, charts_new_list
 
 logger = logging.getLogger(__name__)
 
@@ -86,9 +86,20 @@ class ApiRoutes:
         return jsonify({"data": data})
 
     def charts_templates(self):
-        all_charts_templates: list[OwidChartTemplateView] = self.views_service.list_owid_charts_templates()
-
-        data = [c.to_dict() for c in all_charts_templates if c.template_id]
+        with_templates: list[tuple[OwidChartRecord, int | None, str | None]] = self.owid_charts_service.list_charts_with_templates()
+        data = [
+            OwidChartWithTemplate(
+                chart_id=x.chart_id,
+                template_id=template_id,
+                template_title=template_title,
+            )
+            for x, template_id, template_title in with_templates
+        ]
+        data = [
+            c.to_dict()
+            for c in data
+            # if c.template_id
+        ]
         return jsonify(data)
 
     def owid_charts_list(self, template_filter: str = ""):
