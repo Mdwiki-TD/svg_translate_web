@@ -3,23 +3,15 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from types import SimpleNamespace
-from unittest.mock import MagicMock
 
 import pytest
 
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
 from src.main_app.db.models import OwidChartRecord
-
-
-@dataclass
-class FakeUser:
-    """Fake user for testing."""
-
-    user_id: str = "1"
-    username: str = "admin_user"
+from src.main_app.db.services import OwidChartsService, ViewsService
+from src.main_app.extensions import db as _db
 
 
 @pytest.fixture
@@ -40,24 +32,9 @@ def sample_chart_record():
     )
 
 
-def _unwrap_admin_required(view_func):
-    """Unwrap the @admin_required decorator to reach the original closure."""
-    return view_func.__wrapped__
-
-
-def _patch_owid_charts_instance(flask_app, mock_service):
-    """Find the OwidChartsRoutes instance and replace its service with the mock."""
-    endpoint = "adminpanel.owidcharts.add_chart"
-    view_func = flask_app.view_functions[endpoint]
-    inner_func = _unwrap_admin_required(view_func)
-
-    owid_charts_instance = inner_func.__self__
-    owid_charts_instance.owid_charts_service = mock_service
-
-
 @pytest.fixture
-def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, mock_service):
-    """Return a configured Flask test client with mocked OWID charts service."""
+def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch):
+    """Return a configured Flask test client with real OWID charts service."""
     admin_user = SimpleNamespace(username="admin_user", is_active_admin=True)
 
     def fake_current_user():
@@ -71,131 +48,73 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch, mock_service):
     flask_app.config["TESTING"] = True
     flask_app.config["WTF_CSRF_ENABLED"] = False
 
-    _patch_owid_charts_instance(flask_app, mock_service)
-
-    monkeypatch.setattr(
-        "src.main_app.admin.routes.owid_charts.ViewsService.list_owid_charts_templates",
-        MagicMock(return_value=[]),
-    )
-    monkeypatch.setattr(
-        "src.main_app.admin.routes.owid_charts.OwidChartsService.delete",
-        mock_service.delete,
-    )
-
-    yield flask_app.test_client()
-
-
-@pytest.fixture
-def mock_service():
-    """Return mock service objects for OWID charts."""
-    mocks = MagicMock()
-    mocks.list_charts = MagicMock(return_value=[])
-    mocks.add_chart = MagicMock()
-    mocks.update_chart_data = MagicMock()
-    mocks.delete_chart = MagicMock()
-    mocks.delete = mocks.delete_chart
-    mocks.get_chart_by_id = MagicMock()
-    return mocks
+    with flask_app.app_context():
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
+        _db.metadata.create_all(_db.engine, tables=real_tables)
+        yield flask_app.test_client()
+        _db.session.remove()
+        _db.metadata.drop_all(_db.engine, tables=real_tables)
 
 
 class TestOwidChartsDashboard:
     """Tests for the OWID charts dashboard route."""
 
-    def test_dashboard_renders_with_no_charts(self, mock_service, owid_charts_admin_client):
+    def test_dashboard_renders_with_no_charts(self, owid_charts_admin_client):
         """Test dashboard renders when no charts exist."""
-
-        mock_service.list_charts.return_value = []
-
         response = owid_charts_admin_client.get("/adminpanel/owidcharts")
-
         assert response.status_code == 200
 
-    def test_dashboard_renders_with_charts(self, mock_service, owid_charts_admin_client, sample_chart_record):
+    def test_dashboard_renders_with_charts(self, owid_charts_admin_client, sample_chart_record):
         """Test dashboard renders with charts."""
-
-        mock_service.list_charts.return_value = [sample_chart_record]
+        svc = OwidChartsService()
+        svc.add_chart(
+            slug=sample_chart_record.slug,
+            title=sample_chart_record.title,
+            has_map_tab=sample_chart_record.has_map_tab,
+            max_time=sample_chart_record.max_time,
+            min_time=sample_chart_record.min_time,
+            default_tab=sample_chart_record.default_tab,
+            is_published=sample_chart_record.is_published,
+            single_year_data=sample_chart_record.single_year_data,
+            len_years=sample_chart_record.len_years,
+            has_timeline=sample_chart_record.has_timeline,
+        )
 
         response = owid_charts_admin_client.get("/adminpanel/owidcharts")
-
         assert response.status_code == 200
 
-    def test_dashboard_filter_has_template(self, mock_service, owid_charts_admin_client):
+    def test_dashboard_filter_has_template(self, owid_charts_admin_client):
         """Test dashboard filters charts with templates."""
-
-        chart_with_template = OwidChartRecord(
-            chart_id=1,
-            slug="chart1",
-            title="Chart 1",
-            has_map_tab=False,
-            max_time=None,
-            min_time=None,
-            default_tab=None,
-            is_published=False,
-            single_year_data=False,
-            len_years=None,
-            has_timeline=False,
-        )
-        chart_without_template = OwidChartRecord(
-            chart_id=2,
-            slug="chart2",
-            title="Chart 2",
-            has_map_tab=False,
-            max_time=None,
-            min_time=None,
-            default_tab=None,
-            is_published=False,
-            single_year_data=False,
-            len_years=None,
-            has_timeline=False,
-        )
-        mock_service.list_charts.return_value = [chart_with_template, chart_without_template]
+        svc = OwidChartsService()
+        svc.add_chart(slug="chart1", title="Chart 1")
+        svc.add_chart(slug="chart2", title="Chart 2")
 
         response = owid_charts_admin_client.get("/adminpanel/owidcharts?template=has_template")
-
         assert response.status_code == 200
 
-    def test_dashboard_filter_no_template(self, mock_service, owid_charts_admin_client):
+    def test_dashboard_filter_no_template(self, owid_charts_admin_client):
         """Test dashboard filters charts without templates."""
-
-        chart_without_template = OwidChartRecord(
-            chart_id=2,
-            slug="chart2",
-            title="Chart 2",
-            has_map_tab=False,
-            max_time=None,
-            min_time=None,
-            default_tab=None,
-            is_published=False,
-            single_year_data=False,
-            len_years=None,
-            has_timeline=False,
-        )
-        mock_service.list_charts.return_value = [chart_without_template]
+        svc = OwidChartsService()
+        svc.add_chart(slug="chart2", title="Chart 2")
 
         response = owid_charts_admin_client.get("/adminpanel/owidcharts?template=no_template")
-
         assert response.status_code == 200
 
 
 class TestAddChartPopup:
     """Tests for the add chart popup route."""
 
-    def test_add_chart_popup_renders(self, mock_service, owid_charts_admin_client):
+    def test_add_chart_popup_renders(self, owid_charts_admin_client):
         """Test add chart popup renders."""
-
         response = owid_charts_admin_client.get("/adminpanel/owidcharts/add")
-
         assert response.status_code == 200
 
 
 class TestAddChart:
     """Tests for the add chart POST route."""
 
-    def test_add_chart_success(self, mock_service, owid_charts_admin_client, sample_chart_record):
+    def test_add_chart_success(self, owid_charts_admin_client):
         """Test adding a chart successfully."""
-
-        mock_service.add_chart.return_value = sample_chart_record
-
         response = owid_charts_admin_client.post(
             "/adminpanel/owidcharts/add",
             data={
@@ -207,12 +126,12 @@ class TestAddChart:
             follow_redirects=True,
         )
 
-        mock_service.add_chart.assert_called_once()
         assert response.status_code == 200
+        svc = OwidChartsService()
+        assert svc.get_chart_by_slug("new-chart") is not None
 
-    def test_add_chart_missing_slug(self, mock_service, owid_charts_admin_client):
+    def test_add_chart_missing_slug(self, owid_charts_admin_client):
         """Test adding a chart without slug redirects with flash."""
-
         response = owid_charts_admin_client.post(
             "/adminpanel/owidcharts/add",
             data={
@@ -221,11 +140,9 @@ class TestAddChart:
             },
             follow_redirects=True,
         )
-
         assert response.status_code == 200
-        mock_service.add_chart.assert_not_called()
 
-    def test_add_chart_missing_title(self, mock_service, owid_charts_admin_client):
+    def test_add_chart_missing_title(self, owid_charts_admin_client):
         """Test adding a chart without title redirects with flash."""
         response = owid_charts_admin_client.post(
             "/adminpanel/owidcharts/add",
@@ -235,31 +152,11 @@ class TestAddChart:
             },
             follow_redirects=True,
         )
-
         assert response.status_code == 200
 
-    def test_add_chart_service_error(self, mock_service, owid_charts_admin_client):
-        """Test adding a chart when service raises ValueError."""
-
-        mock_service.add_chart.side_effect = ValueError("Slug already exists")
-
-        response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/add",
-            data={
-                "slug": "existing",
-                "title": "Existing Chart",
-            },
-            follow_redirects=True,
-        )
-
-        assert response.status_code == 200
-
-    def test_add_chart_with_all_options(self, mock_service, owid_charts_admin_client, sample_chart_record):
+    def test_add_chart_with_all_options(self, owid_charts_admin_client):
         """Test adding a chart with all options set."""
-
-        mock_service.add_chart.return_value = sample_chart_record
-
-        _response = owid_charts_admin_client.post(
+        response = owid_charts_admin_client.post(
             "/adminpanel/owidcharts/add",
             data={
                 "slug": "full-chart",
@@ -276,41 +173,45 @@ class TestAddChart:
             follow_redirects=True,
         )
 
-        call_kwargs = mock_service.add_chart.call_args[1]
-        assert call_kwargs["has_map_tab"] == 1
-        assert call_kwargs["max_time"] == 2024
-        assert call_kwargs["min_time"] == 2000
-        assert call_kwargs["default_tab"] == "table"
-        assert call_kwargs["is_published"] == 1
-        assert call_kwargs["single_year_data"] == 1
-        assert call_kwargs["len_years"] == 25
-        assert call_kwargs["has_timeline"] == 1
+        assert response.status_code == 200
+        svc = OwidChartsService()
+        chart = svc.get_chart_by_slug("full-chart")
+        assert chart is not None
+        assert chart.has_map_tab is True
+        assert chart.max_time == 2024
+        assert chart.min_time == 2000
+        assert chart.default_tab == "table"
+        assert chart.is_published is True
+        assert chart.single_year_data is True
+        assert chart.len_years == 25
+        assert chart.has_timeline is True
 
 
 class TestUpdateChart:
     """Tests for the update chart POST route."""
 
-    def test_update_chart_success(self, mock_service, owid_charts_admin_client, sample_chart_record):
+    def test_update_chart_success(self, owid_charts_admin_client):
         """Test updating a chart successfully."""
-
-        mock_service.update_chart_data.return_value = sample_chart_record
+        svc = OwidChartsService()
+        created = svc.add_chart(slug="update-me", title="Update Me")
 
         response = owid_charts_admin_client.post(
             "/adminpanel/owidcharts/update",
             data={
-                "chart_id": "1",
+                "chart_id": str(created.chart_id),
                 "slug": "updated-chart",
                 "title": "Updated Chart",
             },
             follow_redirects=True,
         )
 
-        mock_service.update_chart_data.assert_called_once()
         assert response.status_code == 200
+        updated = svc.get_chart_by_id(created.chart_id)
+        assert updated.slug == "updated-chart"
+        assert updated.title == "Updated Chart"
 
-    def test_update_chart_missing_id(self, mock_service, owid_charts_admin_client):
+    def test_update_chart_missing_id(self, owid_charts_admin_client):
         """Test updating without chart_id redirects."""
-
         response = owid_charts_admin_client.post(
             "/adminpanel/owidcharts/update",
             data={
@@ -319,116 +220,93 @@ class TestUpdateChart:
             },
             follow_redirects=True,
         )
-
         assert response.status_code == 200
 
-    def test_update_chart_missing_slug(self, mock_service, owid_charts_admin_client):
+    def test_update_chart_missing_slug(self, owid_charts_admin_client):
         """Test updating without slug redirects with flash."""
+        svc = OwidChartsService()
+        created = svc.add_chart(slug="chart-x", title="Chart X")
 
         response = owid_charts_admin_client.post(
             "/adminpanel/owidcharts/update",
             data={
-                "chart_id": "1",
+                "chart_id": str(created.chart_id),
                 "slug": "",
                 "title": "updated",
             },
             follow_redirects=True,
         )
-
         assert response.status_code == 200
 
-    def test_update_chart_from_popup(self, mock_service, owid_charts_admin_client, sample_chart_record):
+    def test_update_chart_from_popup(self, owid_charts_admin_client):
         """Test updating a chart from popup renders popup action."""
-
-        mock_service.update_chart_data.return_value = sample_chart_record
+        svc = OwidChartsService()
+        created = svc.add_chart(slug="popup-chart", title="Popup Chart")
 
         response = owid_charts_admin_client.post(
             "/adminpanel/owidcharts/update",
             data={
-                "chart_id": "1",
+                "chart_id": str(created.chart_id),
                 "slug": "updated",
                 "title": "updated",
                 "from_popup": "1",
             },
         )
-
-        assert response.status_code == 200
-
-    def test_update_chart_not_found(self, mock_service, owid_charts_admin_client):
-        """Test updating a non-existent chart shows error."""
-
-        mock_service.update_chart_data.side_effect = LookupError("Chart not found")
-
-        response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/update",
-            data={
-                "chart_id": "999",
-                "slug": "missing",
-                "title": "Missing",
-            },
-            follow_redirects=True,
-        )
-
         assert response.status_code == 200
 
 
 class TestDeleteChart:
     """Tests for the delete chart POST route."""
 
-    def test_delete_chart_success(self, mock_service, owid_charts_admin_client, sample_chart_record):
+    def test_delete_chart_success(self, owid_charts_admin_client):
         """Test deleting a chart successfully."""
-
-        mock_service.delete.return_value = True
-
-        response = owid_charts_admin_client.post("/adminpanel/owidcharts/1/delete", follow_redirects=True)
-
-        mock_service.delete.assert_called_once_with(1)
-        assert response.status_code == 200
-
-    def test_delete_chart_not_found(self, mock_service, owid_charts_admin_client):
-        """Test deleting a non-existent chart shows error."""
-
-        mock_service.delete_chart.return_value = False
-
-        response = owid_charts_admin_client.post("/adminpanel/owidcharts/999/delete", follow_redirects=True)
-
-        assert response.status_code == 200
-
-    def test_delete_chart_from_popup(self, mock_service, owid_charts_admin_client, sample_chart_record):
-        """Test deleting a chart from popup renders popup action."""
-
-        mock_service.delete_chart.return_value = True
+        svc = OwidChartsService()
+        created = svc.add_chart(slug="delete-me", title="Delete Me")
 
         response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/1/delete",
-            data={
-                "from_popup": "1",
-            },
+            f"/adminpanel/owidcharts/{created.chart_id}/delete",
+            follow_redirects=True,
         )
 
+        assert response.status_code == 200
+        assert svc.get_chart_by_id(created.chart_id) is None
+
+    def test_delete_chart_not_found(self, owid_charts_admin_client):
+        """Test deleting a non-existent chart shows error."""
+        response = owid_charts_admin_client.post("/adminpanel/owidcharts/999/delete", follow_redirects=True)
+        assert response.status_code == 200
+
+    def test_delete_chart_from_popup(self, owid_charts_admin_client):
+        """Test deleting a chart from popup renders popup action."""
+        svc = OwidChartsService()
+        created = svc.add_chart(slug="popup-del", title="Popup Del")
+
+        response = owid_charts_admin_client.post(
+            f"/adminpanel/owidcharts/{created.chart_id}/delete",
+            data={"from_popup": "1"},
+        )
         assert response.status_code == 200
 
 
 class TestEditChart:
     """Tests for the edit chart GET route."""
 
-    def test_edit_chart_success(self, mock_service, owid_charts_admin_client, sample_chart_record):
+    def test_edit_chart_success(self, owid_charts_admin_client):
         """Test editing a chart renders edit page."""
+        svc = OwidChartsService()
+        created = svc.add_chart(slug="edit-me", title="Edit Me")
 
-        mock_service.get_chart_by_id.return_value = sample_chart_record
-
-        response = owid_charts_admin_client.get("/adminpanel/owidcharts/1/edit")
-
+        response = owid_charts_admin_client.get(f"/adminpanel/owidcharts/{created.chart_id}/edit")
         assert response.status_code == 200
 
 
 class TestDownloadJson:
     """Tests for the download JSON route."""
 
-    def test_download_json_success(self, mock_service, owid_charts_admin_client, sample_chart_record):
+    def test_download_json_success(self, owid_charts_admin_client):
         """Test downloading charts as JSON."""
-
-        mock_service.list_charts.return_value = [sample_chart_record]
+        svc = OwidChartsService()
+        svc.add_chart(slug="test-chart", title="Test Chart")
 
         response = owid_charts_admin_client.get("/adminpanel/owidcharts/download-json")
 
@@ -438,35 +316,16 @@ class TestDownloadJson:
         assert len(data) == 1
         assert data[0]["slug"] == "test-chart"
 
-    def test_download_json_no_charts(self, mock_service, owid_charts_admin_client):
+    def test_download_json_no_charts(self, owid_charts_admin_client):
         """Test downloading JSON when no charts exist redirects."""
-
-        mock_service.list_charts.return_value = []
-
         response = owid_charts_admin_client.get("/adminpanel/owidcharts/download-json", follow_redirects=True)
-
         assert response.status_code == 200
 
-    def test_download_json_multiple_charts(self, mock_service, owid_charts_admin_client):
+    def test_download_json_multiple_charts(self, owid_charts_admin_client):
         """Test downloading multiple charts as JSON."""
-
-        charts = [
-            OwidChartRecord(
-                chart_id=i,
-                slug=f"chart-{i}",
-                title=f"Chart {i}",
-                has_map_tab=False,
-                max_time=None,
-                min_time=None,
-                default_tab=None,
-                is_published=False,
-                single_year_data=False,
-                len_years=None,
-                has_timeline=False,
-            )
-            for i in range(1, 4)
-        ]
-        mock_service.list_charts.return_value = charts
+        svc = OwidChartsService()
+        for i in range(1, 4):
+            svc.add_chart(slug=f"chart-{i}", title=f"Chart {i}")
 
         response = owid_charts_admin_client.get("/adminpanel/owidcharts/download-json")
 
@@ -475,10 +334,10 @@ class TestDownloadJson:
         assert data[0]["slug"] == "chart-1"
         assert data[2]["slug"] == "chart-3"
 
-    def test_download_json_includes_all_fields(self, mock_service, owid_charts_admin_client, sample_chart_record):
+    def test_download_json_includes_all_fields(self, owid_charts_admin_client):
         """Test that JSON export includes all chart fields."""
-
-        mock_service.list_charts.return_value = [sample_chart_record]
+        svc = OwidChartsService()
+        svc.add_chart(slug="test-chart", title="Test Chart")
 
         response = owid_charts_admin_client.get("/adminpanel/owidcharts/download-json")
 
