@@ -24,8 +24,10 @@ title_new dict data like:
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
+
 
 class ByLanguage:
 
@@ -63,6 +65,9 @@ class ByLanguage:
         return None
 
     def run(self) -> str | None:
+        if "{year}" not in self.text:
+            return None
+
         langs_funcs = {
             "abr": self.abr,
             "ja": self.ja,
@@ -72,40 +77,36 @@ class ByLanguage:
 
         return self.multi_langs()
 
+
 def text_by_lang(lang: str, text: str) -> str | None:
-    if "{year}" not in text:
-        return None
+    return ByLanguage(lang, text).run()
 
-    ends_data = [
-        ", {year}",
-        ",{year}",
-        "، {year}",
-        "،{year}",
-    ]
 
-    # "abr"	Parkinson yareɛ a ebu soɔ, afe {year}
-    if lang == "abr":
-        if text.endswith(", afe {year}"):
-            return text.removesuffix(", afe {year}").strip()
-        else:
-            return None
+def render_titles_translations(title_new: dict[str, dict[str, str]]) -> dict[str, dict[str, Any]]:
+    """
+    """
+    data = {}
 
-    # "ja": {year}年のパーキンソン病の流行
-    if lang == "ja":
-        if text.startswith("{year}年"):
-            return text.removeprefix("{year}年").strip()
-        elif text.endswith("年{year}"):
-            return text.removesuffix("年{year}").strip()
-        else:
-            return None
+    for en_key, translations in title_new.items():
+        new_key = text_by_lang("en", en_key)
+        if new_key == en_key:
+            continue
 
-    # other languages
-    for end_data in ends_data:
-        if text.endswith(end_data):
-            return text.removesuffix(end_data).strip()
+        new_key_data = {}
+        for lang, str_text in translations.items():
+            if not str_text:
+                continue
 
-    return None
+            new_text = text_by_lang(lang, str_text)
+            if new_text and new_text != str_text:
+                new_key_data[lang] = new_text
+
+        if new_key_data:
+            data[new_key] = new_key_data
+
+    return data
+
 
 __all__ = [
-    "text_by_lang",
+    "render_titles_translations",
 ]
