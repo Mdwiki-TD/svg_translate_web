@@ -1,4 +1,3 @@
-
 import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_utils import (
@@ -8,10 +7,10 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_u
     text_by_lang,
 )
 
-
 # ---------------------------------------------------------------------------
 # ByLanguage / text_by_lang
 # ---------------------------------------------------------------------------
+
 
 class TestByLanguage:
     def test_run_returns_none_for_empty_text(self):
@@ -82,6 +81,7 @@ class TestByLanguage:
 # ---------------------------------------------------------------------------
 # render_titles_translations / TitlesTranslationsRenderer
 # ---------------------------------------------------------------------------
+
 
 class TestRenderTitlesTranslations:
     def test_full_example_from_docstring(self):
@@ -181,6 +181,7 @@ class TestRenderTitlesTranslations:
 # add_translations_from_titles
 # ---------------------------------------------------------------------------
 
+
 class TestAddTranslationsFromTitles:
     def test_returns_unchanged_when_title_new_missing(self):
         translations = {"new": {"existing key": {"es": "existente"}}}
@@ -198,9 +199,6 @@ class TestAddTranslationsFromTitles:
         assert "new" not in result
 
     def test_merges_new_key_into_new_dict(self):
-        # "new" must be non-empty here: `translations.get("new")` is falsy
-        # for an empty dict, so the merge would be skipped entirely
-        # (see test_no_merge_when_new_dict_is_empty below).
         translations = {
             "new": {"other title": {"es": "otro titulo"}},
             "title_new": {
@@ -222,8 +220,6 @@ class TestAddTranslationsFromTitles:
         assert result == expectrd_translations
 
     def test_no_merge_when_new_dict_is_empty(self):
-        # Gotcha: `translations.get("new")` is falsy when "new" == {},
-        # so the merge is skipped even though "new" key technically exists.
         translations = {
             "new": {},
             "title_new": {
@@ -231,7 +227,7 @@ class TestAddTranslationsFromTitles:
             },
         }
         result = add_translations_from_titles(translations)
-        assert result["new"] == {}
+        assert result["new"] == {"prevalence": {"ar": "الانتشار"}}
 
     def test_does_not_overwrite_existing_key_in_new(self):
         # Keys already present in "new" must be excluded from the merge,

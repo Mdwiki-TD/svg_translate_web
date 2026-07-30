@@ -150,10 +150,10 @@ def add_translations_from_titles(translations: dict[str, Any]) -> dict[str, Any]
     if title_new is None or new_translations is None:
         return translations
 
-    new_keys = list(translations["new"].keys())
-    add_translations = _add_from_titles(translations["title_new"], new_keys)
+    new_keys = list(new_translations.keys())
+    add_translations = _add_from_titles(title_new, new_keys)
     if add_translations:
-        translations["new"].update(add_translations)
+        new_translations.update(add_translations)
 
     return translations
 
