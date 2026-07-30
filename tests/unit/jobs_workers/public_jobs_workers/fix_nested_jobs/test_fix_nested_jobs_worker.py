@@ -558,7 +558,7 @@ class TestRun:
             ),
             "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled"),
             "get_site": patch(
-                "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.get_user_site",
+                "src.main_app.jobs_workers.base_worker.get_user_site",
                 return_value=MagicMock(),
             ),
             "download": patch(

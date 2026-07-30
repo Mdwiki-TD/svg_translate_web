@@ -14,6 +14,27 @@ from src.main_app.jobs_workers.base_worker import (
 )
 
 
+@pytest.fixture
+def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
+    """Override parent conftest — keep file/mwclient mocks, let DB methods be real.
+
+    Tests in this file assert on DB state changes, so ``update_job_status``
+    and ``update_job_status_with_retry`` must not be mocked.
+    """
+    mocks = {
+        "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
+        "save_job_result_by_name": MagicMock(),
+    }
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.get_user_site", mocks["get_user_site"]
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+        mocks["save_job_result_by_name"],
+    )
+    return mocks
+
+
 class MockWorker(BaseObjectsJobWorker):
     def get_job_type(self) -> str:
         return "mock_job"

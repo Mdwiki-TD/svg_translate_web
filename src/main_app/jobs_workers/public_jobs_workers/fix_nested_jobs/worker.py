@@ -228,7 +228,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
     def process(self) -> FixNestedJobsWorkerObject:
         """Execute the full pipeline."""
 
-        self.site = get_user_site(self.user)
+        self._check_site()
 
         if not self.filename:
             logger.error("No filename found")
