@@ -5,7 +5,7 @@ Logging configuration with colored output.
 import logging
 import os
 import sys
-from logging.handlers import WatchedFileHandler
+from logging.handlers import TimedRotatingFileHandler, WatchedFileHandler
 from pathlib import Path
 
 import colorlog
@@ -26,6 +26,35 @@ def prepare_log_file(log_file: str | None, project_logger: logging.Logger) -> Pa
         project_logger.error("Failed to create log directory: %s", e)
         log_file_path = None
     return log_file_path
+
+
+def setup_file_handler(
+    project_logger: logging.Logger,
+    log_file: Path,
+    level: int,
+    daily_rotation: bool = False,
+) -> None:
+    if not log_file:
+        return
+    file_formatter = logging.Formatter(
+        fmt="%(asctime)s - %(name)s - %(levelname)-8s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    if daily_rotation:
+        file_handler = TimedRotatingFileHandler(
+            log_file,
+            when="midnight",
+            interval=1,
+            backupCount=90,
+            encoding="utf-8",
+            utc=True,
+        )
+        file_handler.namer = _daily_log_namer
+    else:
+        file_handler = WatchedFileHandler(log_file, mode="a", encoding="utf-8")
+    file_handler.setFormatter(file_formatter)
+    file_handler.setLevel(level)
+    project_logger.addHandler(file_handler)
 
 
 def setup_logging(
@@ -82,21 +111,19 @@ def setup_logging(
     if error_log_file:
         error_log_file_path = prepare_log_file(error_log_file, project_logger)
         if error_log_file_path:
-            setup_file_handler(project_logger, error_log_file_path, logging.WARNING)
+            setup_file_handler(project_logger, error_log_file_path, logging.WARNING, daily_rotation=True)
 
 
-def setup_file_handler(project_logger: logging.Logger, log_file: Path, level: int) -> None:
-    if not log_file:
-        return
-    file_formatter = logging.Formatter(
-        fmt="%(asctime)s - %(name)s - %(levelname)-8s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    # file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
-    file_handler = WatchedFileHandler(log_file, mode="a", encoding="utf-8")
-    file_handler.setFormatter(file_formatter)
-    file_handler.setLevel(level)
-    project_logger.addHandler(file_handler)
+def _daily_log_namer(default_name: str) -> str:
+    """Rename rotated log from 'errors.log.2024-01-15' to '2024-01-15.log'."""
+    directory = os.path.dirname(default_name)
+    basename = os.path.basename(default_name)
+    # default format: "errors.log.YYYY-MM-DD"
+    parts = basename.rsplit(".", 1)
+    if len(parts) == 2:
+        date_part = parts[1]
+        return os.path.join(directory, f"{date_part}.log")
+    return default_name
 
 
 def get_log_dir() -> Path:
