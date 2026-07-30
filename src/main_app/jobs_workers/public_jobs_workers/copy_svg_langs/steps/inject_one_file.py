@@ -9,8 +9,9 @@ from typing import Any
 
 from CopySVGTranslation import inject
 
-logger = logging.getLogger(__name__)
+from .inject_utils import text_by_lang
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class InjectResult:
@@ -19,6 +20,35 @@ class InjectResult:
     new_languages: int | None = None
     updated_translations: int | None = None
 
+def render_titles_translations(title_new: dict[str, dict[str, str]]) -> dict[str, dict[str, Any]]:
+    """
+    title_new = {
+        "death rate from obesity, {year}": {
+            "ar": "معدل الوفيات بسبب السمنة، {year}",
+            "ko": "비만으로 인한 사망률, {year}"
+        }
+    }
+    """
+    data = {}
+
+    for en_key, translations in title_new.items():
+        new_key = en_key.removesuffix(", {year}").removesuffix(",{year}").removesuffix("{year}")
+        if new_key == en_key:
+            continue
+
+        new_key_data = {}
+        for lang, str_text in translations.items():
+            if not str_text:
+                continue
+
+            new_text = text_by_lang(lang, str_text)
+            if new_text and new_text != str_text:
+                new_key_data[lang] = new_text
+
+        if new_key_data:
+            data[new_key] = new_key_data
+
+    return data
 
 def start_injects(
     file: Path,
@@ -88,6 +118,9 @@ def inject_step_one_file(
     overwrite: bool = False,
 ) -> InjectResult:
     """ """
+    if translations.get("title_new") and translations.get("new"):
+        title_new_translations = render_titles_translations(translations["title_new"])
+        translations["new"].update(title_new_translations)
     try:
         injects_result: InjectResult = start_injects(
             file_path,
