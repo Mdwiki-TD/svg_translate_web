@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 class DownloadResult:
     success: bool = False
     size_bytes: int | None = None
-    path: bool | None = None
-    error: bool | None = None
+    path: str | None = None
+    error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

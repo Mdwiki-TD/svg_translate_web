@@ -50,7 +50,9 @@ class ByLanguage:
 
     def ja(self) -> str | None:
         # "ja": {year}年のパーキンソン病の流行
-        if self.text.startswith("{year}年"):
+        if self.text.startswith("{year}年の"):
+            return self.text.removeprefix("{year}年の").strip()
+        elif self.text.startswith("{year}年"):
             return self.text.removeprefix("{year}年").strip()
         elif self.text.endswith("年{year}"):
             return self.text.removesuffix("年{year}").strip()

@@ -21,7 +21,10 @@ def work_file(filename: str) -> dict[str, Any]:
 
     logger.info("Starting extract translations for file: %s", filename)
 
-    # TODO: Reject invalid filesystem filenames before calling download_one_file()
+    # Reject invalid filesystem filenames before calling download_one_file()
+    if not filename or filename != Path(filename).name or filename in {".", ".."}:
+        flash(f"Invalid file name: {filename}", "danger")
+        return {}
 
     # Create temporary directory for download
     temp_dir = Path(tempfile.mkdtemp())
