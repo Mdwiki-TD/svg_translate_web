@@ -60,7 +60,8 @@ class TestByLanguage:
 
     def test_ja_strips_prefix(self):
         text = "{year}年のパーキンソン病の流行"
-        expected = "のパーキンソン病の流行"
+        # expected = "のパーキンソン病の流行"
+        expected = "パーキンソン病の流行"
         assert ByLanguage("ja", text).run() == expected
 
     def test_ja_strips_suffix(self):
@@ -106,7 +107,8 @@ class TestRenderTitlesTranslations:
         expected_key = "parkinson's disease prevalence"
         assert expected_key in result
         assert result[expected_key]["ar"] == "انتشار مرض باركنسون"
-        assert result[expected_key]["ja"] == "のパーキンソン病の流行"
+        # assert result[expected_key]["ja"] == "のパーキンソン病の流行"
+        assert result[expected_key]["ja"] == "パーキンソン病の流行"
         # "abr" recognizes its own specific suffix.
         assert result[expected_key]["abr"] == "Parkinson yareɛ a ebu soɔ"
         assert result[expected_key]["es"] == "Prevalencia de la enfermedad de Parkinson"
