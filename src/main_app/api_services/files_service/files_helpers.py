@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -45,6 +45,8 @@ class FileInfo:
     error: str | None = None
     exists: bool | None = None
 
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 def get_file_info(
     prefixed_file_name: str,
@@ -103,7 +105,7 @@ def get_file_info(
     if not imageinfo:
         return FileInfo(error=f"imageinfo not found for {page.get('title')}", exists=True)
 
-    return FileInfo(error=None, imageinfo=imageinfo, exists=False)
+    return FileInfo(error=None, imageinfo=imageinfo, exists=True)
 
 
 def download_svg_file(

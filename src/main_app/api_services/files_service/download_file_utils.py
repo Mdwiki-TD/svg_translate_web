@@ -93,7 +93,7 @@ def download_one_file(
     out_dir: Path,
     i: int = 0,
     session: requests.Session | None = None,
-    overwrite: bool = False,
+    overwrite: bool = True,
 ) -> dict[str, str]:
     """Download a single Commons file, skipping already-downloaded copies.
 

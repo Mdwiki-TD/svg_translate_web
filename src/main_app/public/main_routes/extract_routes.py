@@ -97,7 +97,7 @@ class ExtractRoutes:
 
     def show_result(self, filename: str) -> str:
         """Process SVG file and extract translations."""
-        original_filename = str(filename).strip()
+        filename = str(filename).strip()
 
         # Remove "File:" prefix if present (keep original for display)
         if filename.lower().startswith("file:"):
@@ -112,24 +112,24 @@ class ExtractRoutes:
         file_info = get_file_info(prefixed_file_name)
         if not file_info.exists:
             flash(f"File {prefixed_file_name} not exists", "danger")
+            logger.error(file_info.to_dict())
             return render_template("extract/form.html", filename=prefixed_file_name)
 
         # ========================
         translations = work_file(filename)
+
         translations_new = translations.get("new", {})
+        languages = {}
 
-        if not translations or not translations_new:
-            # flash and logs messages already added in work_file()
-            return render_template("extract/form.html", filename=prefixed_file_name)
+        if translations_new:
+            languages = sorted(
+                {lang for entry in translations["new"].values() if isinstance(entry, dict) for lang in entry}
+            )
+            flash("Translations extracted successfully", "success")
+        else:
+            flash("No translations found", "warning")
 
-        languages = sorted(
-            {lang for entry in translations["new"].values() if isinstance(entry, dict) for lang in entry}
-        )
         logger.info("Extracted languages: %s", len(languages))
-
-        # ========================
-
-        flash("Translations extracted successfully", "success")
 
         return render_template(
             "extract/result.html",

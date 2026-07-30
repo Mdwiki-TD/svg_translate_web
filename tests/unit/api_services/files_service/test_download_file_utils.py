@@ -52,7 +52,7 @@ class TestDownloadOneFile:
         title = "test.svg"
         file_path = temp_output_dir / title
         file_path.write_text("existing content")
-        result = download_one_file(title, temp_output_dir, 1)
+        result = download_one_file(title, temp_output_dir, 1, overwrite=False)
         assert result["result"] == "existing"
         assert result["msg"] == "Skip existing file, no overwrite"
         assert result["path"] == str(file_path)
