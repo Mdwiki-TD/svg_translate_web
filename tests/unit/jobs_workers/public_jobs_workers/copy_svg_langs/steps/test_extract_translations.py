@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations import (
-    extract_translations_step,
+    extract_translations_step_with_download,
 )
 
 
@@ -37,7 +37,7 @@ def test_translations_task_stops_on_failure(monkeypatch, tmp_path, extract_retur
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract", fake_extract
     )
 
-    result = extract_translations_step("Example.svg", dummy_main_path)
+    result = extract_translations_step_with_download("Example.svg", dummy_main_path)
 
     assert result["success"] is False
     assert result["translations"] == {}
@@ -53,7 +53,7 @@ def test_extract_translations_download_failure(monkeypatch, tmp_path):
         fake_download_one_file,
     )
 
-    result = extract_translations_step("Example.svg", tmp_path)
+    result = extract_translations_step_with_download("Example.svg", tmp_path)
 
     assert result["success"] is False
     assert result["translations"] == {}
@@ -78,7 +78,7 @@ def test_extract_translations_extract_exception(monkeypatch, tmp_path):
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract", fake_extract
     )
 
-    result = extract_translations_step("Example.svg", tmp_path)
+    result = extract_translations_step_with_download("Example.svg", tmp_path)
 
     assert result["success"] is False
     assert result["translations"] == {}
@@ -103,7 +103,7 @@ def test_extract_translations_success(monkeypatch, tmp_path):
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract", fake_extract
     )
 
-    result = extract_translations_step("Example.svg", tmp_path)
+    result = extract_translations_step_with_download("Example.svg", tmp_path)
 
     assert result["success"] is True
     assert result["error"] is None

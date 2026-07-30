@@ -48,6 +48,7 @@ class FileInfo:
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
+
 def get_file_info(
     prefixed_file_name: str,
     *,
