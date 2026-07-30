@@ -8,7 +8,11 @@ from src.main_app.public.main_routes.routes import MainRoutes
 
 @pytest.fixture
 def app_main_mock():
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        template_folder="../templates",
+        static_folder="../static",
+    )
     bp_main = Blueprint("main", __name__)
     app.register_blueprint(MainRoutes(bp_main).bp)
     app.secret_key = "test"
@@ -30,8 +34,8 @@ def test_index(mock_render, app_main_mock):
         assert not kwargs["set_titles_limit"]
 
 
-def test_favicon(app_main_mock):
+def test_favicon(mock_client):
 
-    with app_main_mock.test_client() as client:
+    with mock_client as client:
         resp = client.get("/favicon.ico")
-        assert '404 Not Found' not in resp.text
+        assert resp.status_code == 200
