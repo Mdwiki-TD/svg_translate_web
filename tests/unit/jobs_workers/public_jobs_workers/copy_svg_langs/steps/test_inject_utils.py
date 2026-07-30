@@ -207,9 +207,19 @@ class TestAddTranslationsFromTitles:
                 "prevalence, {year}": {"ar": "الانتشار، {year}"},
             },
         }
+        expectrd_translations = {
+            "new": {
+                "other title": {"es": "otro titulo"},
+                "prevalence": {"ar": "الانتشار"},
+            },
+            "title_new": {
+                "prevalence, {year}": {"ar": "الانتشار، {year}"},
+            },
+        }
         result = add_translations_from_titles(translations)
         assert "prevalence" in result["new"]
         assert result["new"]["prevalence"]["ar"] == "الانتشار"
+        assert result == expectrd_translations
 
     def test_no_merge_when_new_dict_is_empty(self):
         # Gotcha: `translations.get("new")` is falsy when "new" == {},
@@ -236,6 +246,7 @@ class TestAddTranslationsFromTitles:
         }
         result = add_translations_from_titles(translations)
         assert result["new"]["prevalence"]["ar"] == "قيمة قديمة"
+        assert result == translations
 
     def test_no_update_when_title_new_produces_nothing(self):
         # If title_new yields no valid translations, "new" stays untouched.
