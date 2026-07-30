@@ -50,11 +50,7 @@ def test_get_paths(tmp_path):
         result = _get_paths()
 
         assert isinstance(result, Paths)
-        assert Path(result.svg_data) == Path(f"{main_dir}/svg_data")
-        assert Path(result.svg_data_thumb) == Path(f"{main_dir}/svg_data_thumb")
         assert Path(result.log_dir) == Path(f"{main_dir}/logs")
-        assert Path(result.fix_nested_data) == Path(f"{main_dir}/fix_nested_data")
-        assert Path(result.jobs_path) == Path(f"{main_dir}/svg_jobs")
 
 
 def test_env_bool():

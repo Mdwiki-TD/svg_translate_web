@@ -1,11 +1,12 @@
-"""Unit tests for src/main_app/adminpanel/routes/coordinators.py module."""
+"""
+Unit tests for src/main_app/adminpanel/routes/coordinators.py module.
+"""
 
 from __future__ import annotations
 
 from types import SimpleNamespace
 
 import pytest
-from flask import Blueprint
 
 from src.main_app.db.services import AdminService, UsersService
 

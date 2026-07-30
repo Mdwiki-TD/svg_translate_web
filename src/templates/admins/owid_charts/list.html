@@ -69,7 +69,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}"
-                            href="{{ url_for('adminpanel.owidcharts.dashboard', template_filter='has_template') }}">
+                            href="{{ url_for('adminpanel.owidcharts.dashboard_with_filter', template_filter='has_template') }}">
                             With Templates <span id="tabWithTemplateTotal">
                                 ({{ summary.template.with }})
                             </span>
@@ -77,7 +77,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}"
-                            href="{{ url_for('adminpanel.owidcharts.dashboard', template_filter='no_template') }}">
+                            href="{{ url_for('adminpanel.owidcharts.dashboard_with_filter', template_filter='no_template') }}">
                             Without Templates <span id="tabWithoutTemplateTotal">
                                 ({{ summary.template.without }})
                             </span>

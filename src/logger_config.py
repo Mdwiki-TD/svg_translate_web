@@ -99,10 +99,7 @@ def setup_file_handler(project_logger: logging.Logger, log_file: Path, level: in
     project_logger.addHandler(file_handler)
 
 
-def configure_logging(
-    level: str | int,
-    use_colorlog: bool = False,
-) -> None:
+def get_log_dir() -> Path:
     """
     NOTE: Don't use settings.paths.log_dir here, logger must initialize before the app/config is created.
     """
@@ -113,14 +110,23 @@ def configure_logging(
     log_dir = Path(main_dir) / "logs"
 
     if not log_dir.exists():
-        try:
-            log_dir.mkdir(parents=True, exist_ok=True)
-        except OSError as exc:
-            setup_logging(level=level, name="main_app", use_colorlog=use_colorlog)
-            logging.getLogger("main_app").warning(
-                "Falling back to console logging; could not create log directory %s: %s", log_dir, exc
-            )
-            return
+        log_dir.mkdir(parents=True, exist_ok=True)
+
+    return log_dir
+
+def configure_logging(
+    level: str | int,
+    use_colorlog: bool = False,
+) -> None:
+    # Create log directory if needed
+    try:
+        log_dir = get_log_dir()
+    except OSError as exc:
+        setup_logging(level=level, name="main_app", use_colorlog=use_colorlog)
+        logging.getLogger("main_app").warning(
+            "Falling back to console logging; could not create log directory %s: %s", log_dir, exc
+        )
+        return
 
     # Define paths
     all_log_path = str(log_dir / "app.log")

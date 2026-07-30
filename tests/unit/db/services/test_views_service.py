@@ -44,18 +44,3 @@ class TestViewsService:
 
     def test_list_templates_need_update_returns_empty_list(self) -> None:
         assert self.service.list_templates_need_update() == []
-
-    def test_list_owid_charts_templates_returns_records(
-        self, chart_template_records: tuple[OwidChartRecord, TemplateRecord]
-    ) -> None:
-        chart_record, template_record = chart_template_records
-
-        result = self.service.list_owid_charts_templates()
-
-        assert len(result) == 1
-        assert result[0].chart_id == chart_record.chart_id
-        assert result[0].template_id == template_record.id
-        assert result[0].template_title == template_record.title
-
-    def test_list_owid_charts_templates_returns_empty_list(self) -> None:
-        assert self.service.list_owid_charts_templates() == []

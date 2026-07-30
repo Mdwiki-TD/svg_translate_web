@@ -111,16 +111,6 @@ CREATE TABLE IF NOT EXISTS owid_slug_redirects (
     KEY idx_redirect_to (redirect_to)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
-CREATE OR REPLACE VIEW owid_charts_templates AS
-SELECT
-    c.chart_id,
-    t.id AS template_id,
-    t.title AS template_title
-FROM owid_charts c
-LEFT JOIN templates t
-    -- ON t.source LIKE '%/grapher/%'
-    -- AND SUBSTRING_INDEX(SUBSTRING_INDEX(t.source, '/grapher/', -1), '?', 1) = c.slug;
-    ON t.slug = c.slug;
 
 CREATE OR REPLACE VIEW templates_need_update AS
 SELECT

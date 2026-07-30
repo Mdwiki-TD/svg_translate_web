@@ -19,49 +19,17 @@ from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import ImmutableMultiDict
 
-from ...db.models import OwidChartRecord, OwidChartTemplateView
-from ...db.services import OwidChartsService, ViewsService
-from ...shared.owid_charts_utils import charts_new_list
+from ...db.services import ChartAndTemplate, ChartsAndTemplatesService, OwidChartsService
+from ...shared.owid_charts_utils import make_charts_summary
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
 
-def get_charts_data(charts: list[OwidChartRecord]) -> list[dict[str, Any]]:
-
-    all_charts_templates: list[OwidChartTemplateView] = ViewsService().list_owid_charts_templates()
-
-    charts_temps = {c.chart_id: c for c in all_charts_templates}
-
-    charts_data: list[dict[str, Any]] = []
-    for chart in charts:
-        chart_data = {
-            "chart_id": chart.chart_id,
-            "slug": chart.slug,
-            "title": chart.title,
-            "has_map_tab": chart.has_map_tab,
-            "max_time": chart.max_time,
-            "min_time": chart.min_time,
-            "default_tab": chart.default_tab,
-            "is_published": chart.is_published,
-            "single_year_data": chart.single_year_data,
-            "len_years": chart.len_years,
-            "has_timeline": chart.has_timeline,
-            "template_id": None,
-            "template_title": None,
-        }
-        temp = charts_temps.get(chart.chart_id)
-        if temp:
-            chart_data["template_id"] = temp.template_id
-            chart_data["template_title"] = temp.template_title
-
-        charts_data.append(chart_data)
-    return charts_data
-
-
 class OwidCharts:
     def __init__(self) -> None:
         self.owid_charts_service = OwidChartsService()
+        self.charts_and_tmps_service = ChartsAndTemplatesService()
 
     def create_json_file(self) -> tuple[Any, int]:
         """Create a JSON file containing all charts data.
@@ -72,12 +40,13 @@ class OwidCharts:
             string with appropriate status code (404 for no charts, 500 for errors).
         """
         try:
-            charts: list[OwidChartRecord] = self.owid_charts_service.list_charts()
+            # Optimize: use single-query list_all() to fetch charts and template relationships
+            charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
 
-            charts_data: list[dict[str, Any]] = get_charts_data(charts)
-
-            if not charts_data:
+            if not charts_with_templates:
                 return "No charts found to export.", 404
+
+            charts_data: list[dict[str, Any]] = [x.to_dict_joined() for x in charts_with_templates]
 
             json_content = json.dumps(charts_data, indent=2, ensure_ascii=False)
 
@@ -267,14 +236,10 @@ class OwidChartsRoutes(OwidCharts):
         self._setup_routes()
 
     def _setup_routes(self) -> None:
+        """
         self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
+        self.bp.route("/<string:template_filter>", methods=["GET"])(admin_required(self.dashboard_with_filter))
 
-        self.bp.add_url_rule(
-            rule="/<string:template_filter>",
-            endpoint="filtered_dashboard",
-            view_func=admin_required(self.dashboard),
-            methods=["GET"],
-        )
         self.bp.route("/add", methods=["GET"])(admin_required(self.add_chart_popup))
         self.bp.route("/<int:chart_id>/edit", methods=["GET"])(admin_required(self.edit_chart))
         self.bp.route("/download-json", methods=["GET"])(admin_required(self.download_owid_charts_json))
@@ -282,25 +247,37 @@ class OwidChartsRoutes(OwidCharts):
         self.bp.route("/add", methods=["POST"])(admin_required(self.add_chart))
         self.bp.route("/update", methods=["POST"])(admin_required(self.update_chart))
         self.bp.route("/<int:chart_id>/delete", methods=["POST"])(admin_required(self.delete_chart))
+        """
+        routes = [
+            ("/", "GET", self.dashboard),
+            ("/<string:template_filter>", "GET", self.dashboard_with_filter),
+            ("/add", "GET", self.add_chart_popup),
+            ("/<int:chart_id>/edit", "GET", self.edit_chart),
+            ("/download-json", "GET", self.download_owid_charts_json),
+            ("/add", "POST", self.add_chart),
+            ("/update", "POST", self.update_chart),
+            ("/<int:chart_id>/delete", "POST", self.delete_chart),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(admin_required(target))
 
     def dashboard(self, template_filter: str = "") -> str:
-        charts_with_templates = self.owid_charts_service.list_charts_with_templates()
-        results = charts_new_list(charts_with_templates, template_filter)
+        # Optimize: use single-query list_all() with fallback
+        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
 
-        summary = results.get("summary") or {
-            "total": 0,
-            "published": {"with": 0, "without": 0},
-            "template": {"with": 0, "without": 0},
-            "map_tab": {"with": 0, "without": 0},
-            "timeline": {"with": 0, "without": 0},
-        }
+        summary = make_charts_summary(charts_with_templates)
 
+        charts_data: list[dict[str, Any]] = [x.to_dict_joined(template_filter) for x in charts_with_templates]
+        rows = [x for x in charts_data if x]
         return render_template(
             "admins/owid_charts/list.html",
             selected_template=template_filter,
             summary=summary,
-            rows=results["data"],
+            rows=rows,
         )
+
+    def dashboard_with_filter(self, template_filter: str = "") -> str:
+        return self.dashboard(template_filter)
 
     def add_chart_popup(self) -> ResponseReturnValue:
         """Render the add chart popup form."""

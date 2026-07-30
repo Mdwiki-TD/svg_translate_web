@@ -13,7 +13,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import download_svg_file, get_user_site, upload_fixed_svg
+from ....api_services import download_svg_file, upload_fixed_svg
 from ....shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
@@ -228,7 +228,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
     def process(self) -> FixNestedJobsWorkerObject:
         """Execute the full pipeline."""
 
-        self.site = get_user_site(self.user)
+        self._check_site()
 
         if not self.filename:
             logger.error("No filename found")

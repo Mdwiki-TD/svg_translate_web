@@ -1761,7 +1761,7 @@ migrate = Migrate()
 -   [ ] Job creation and status updates
 -   [ ] OWID chart import and listing
 -   [ ] Settings read/write
--   [ ] View queries (templates_need_update, owid_charts_templates)
+-   [ ] View queries (templates_need_update)
 
 **API Routes:**
 

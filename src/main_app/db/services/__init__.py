@@ -1,4 +1,5 @@
 from .admin_service import AdminService
+from .charts_and_templates_service import ChartAndTemplate, ChartsAndTemplatesService
 from .crud_service import CRUDService
 from .jobs_service import JobsService
 from .owid_charts_service import OwidChartsService
@@ -10,6 +11,8 @@ from .users_service import UsersService
 from .views_service import ViewsService
 
 __all__ = [
+    "ChartAndTemplate",
+    "ChartsAndTemplatesService",
     "AdminService",
     "JobsService",
     "OwidChartsService",

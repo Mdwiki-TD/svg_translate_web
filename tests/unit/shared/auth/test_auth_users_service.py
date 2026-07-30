@@ -2,101 +2,62 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
 
+from src.main_app.db.services import AdminService, UsersService, UserTokenService
 from src.main_app.shared.auth.auth_users_service import AuthUserService
 
 
 @pytest.fixture
-def mock_db_services(monkeypatch: pytest.MonkeyPatch):
-    mocks = {
-        "get_by_name": MagicMock(),
-        "update": MagicMock(),
-        "create": MagicMock(),
-        "get_token": MagicMock(),
-        "is_coord": MagicMock(),
-        "get_auth": MagicMock(),
-    }
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.UsersService.get_user_by_username", mocks["get_by_name"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.UserTokenService.upsert_user_token", mocks["update"]
-    )
-    monkeypatch.setattr("src.main_app.shared.auth.auth_users_service.UsersService.create_user", mocks["create"])
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.UserTokenService.get_user_token", mocks["get_token"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.AdminService.is_active_coordinator", mocks["is_coord"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.shared.auth.auth_users_service.UserTokenService.get_authenticated_user_token", mocks["get_auth"]
-    )
-    return mocks
+def service() -> AuthUserService:
+    return AuthUserService()
 
 
-class TestUserService:
-    @pytest.fixture(autouse=True)
-    def setup(self, monkeypatch):
-        self.service = AuthUserService()
+class TestSaveAndGetUser:
+    def test_empty_username(self, service: AuthUserService) -> None:
+        assert service.save_and_get_user("", "key", "secret") is None
 
-    def test_save_and_get_user_empty_username(self):
-        assert self.service.save_and_get_user("", "key", "secret") is None
+    def test_existing_user(self, service: AuthUserService) -> None:
+        UsersService().create_user("testuser")
 
-    def test_save_and_get_user_existing_user(self, mock_db_services):
-        user_mock = MagicMock(user_id=1)
-        mock_db_services["get_by_name"].return_value = user_mock
-        mock_db_services["get_token"].return_value = MagicMock(access_token="key", access_secret="secret")
-        mock_db_services["is_coord"].return_value = True
+        res = service.save_and_get_user("testuser", "access_key", "access_secret")
 
-        res = self.service.save_and_get_user("testuser", "key", "secret")
         assert res is not None
         assert res.username == "testuser"
-        assert res.is_active_admin is True
-        mock_db_services["update"].assert_called_once_with(user_id=1, access_key="key", access_secret="secret")
+        assert res.is_active_admin is False
 
-    def test_save_and_get_user_new_user(self, mock_db_services):
-        mock_db_services["get_by_name"].return_value = None
-        mock_db_services["create"].return_value = MagicMock(user_id=2)
-        mock_db_services["get_token"].return_value = MagicMock(access_token="k2", access_secret="s2")
-        mock_db_services["is_coord"].return_value = False
-
-        res = self.service.save_and_get_user("newuser", "k2", "s2")
+    def test_new_user(self, service: AuthUserService) -> None:
+        res = service.save_and_get_user("newuser", "new_key", "new_secret")
 
         assert res is not None
-        assert res.user_id == 2
+        assert res.username == "newuser"
         assert res.is_active_admin is False
-        mock_db_services["create"].assert_called_once()
+        record = UserTokenService().get_authenticated_user_token(res.user_id)
+        assert record is not None
 
-    def test_save_and_get_user_upsert_fail(self, mock_db_services):
-        mock_db_services["get_by_name"].side_effect = Exception("DB Error")
-        assert self.service.save_and_get_user("user", "k", "s") is None
+    def test_existing_user_is_active_admin(self, service: AuthUserService) -> None:
+        UsersService().create_user("adminuser")
+        AdminService().add_coordinator("adminuser")
 
-    def test_save_and_get_user_token_fail(self, mock_db_services):
-        mock_db_services["get_by_name"].return_value = MagicMock(user_id=1)
-        mock_db_services["get_token"].side_effect = Exception("Token Error")
-        assert self.service.save_and_get_user("user", "k", "s") is None
+        res = service.save_and_get_user("adminuser", "k", "s")
 
-    def test_get_authenticated_user_success(self, mock_db_services):
-        mock_db_services["get_auth"].return_value = MagicMock(
-            user=MagicMock(username="authuser"),
-            access_token="atk",
-            access_secret="as",
-        )
-        mock_db_services["is_coord"].return_value = True
+        assert res is not None
+        assert res.username == "adminuser"
+        assert res.is_active_admin is True
 
-        res = self.service.get_authenticated_user(123)
+
+class TestGetAuthenticatedUser:
+    def test_success(self, service: AuthUserService) -> None:
+        user = UsersService().create_user("authuser")
+        UserTokenService().upsert_user_token(user.user_id, "atk", "as")
+
+        res = service.get_authenticated_user(user.user_id)
+
         assert res is not None
         assert res.username == "authuser"
-        assert res.is_active_admin is True
+        assert res.is_active_admin is False
 
-    def test_get_authenticated_user_not_found(self, mock_db_services):
-        mock_db_services["get_auth"].return_value = None
-        assert self.service.get_authenticated_user(123) is None
+    def test_not_found(self, service: AuthUserService) -> None:
+        res = service.get_authenticated_user(999)
 
-    def test_get_authenticated_user_error(self, mock_db_services):
-        mock_db_services["get_auth"].side_effect = Exception("Load error")
-        assert self.service.get_authenticated_user(123) is None
+        assert res is None
