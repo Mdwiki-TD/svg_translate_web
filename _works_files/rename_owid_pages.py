@@ -47,6 +47,7 @@ import mwclient
 import mwclient.errors
 from dotenv import load_dotenv
 from mwclient.client import Site
+from mwclient.page import Page
 
 logger = logging.getLogger("rename_owid_pages")
 
@@ -110,7 +111,7 @@ def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:
     return False, title
 
 
-def iter_owid_pages(site: Site, namespace: int, prefix: str) -> Iterable:
+def iter_owid_pages(site: Site, namespace: int, prefix: str) -> Iterable[Page]:
     """Yield non-redirect pages with the given prefix in *namespace*."""
     # filterredir='nonredirects' avoids picking up redirects that previous
     # runs of this script may have left behind.
@@ -135,6 +136,7 @@ def process(
     for namespace, prefix, full_prefix in PREFIXES:
         logger.info("Listing pages with prefix %r (namespace %d)", full_prefix, namespace)
         ns_count = 0
+
         for page in iter_owid_pages(site, namespace, prefix):
             stats["checked"] += 1
             ns_count += 1
@@ -155,6 +157,11 @@ def process(
                 stats["skipped_exists"] += 1
                 continue
 
+            if not page.can('move'):
+                stats["failed"] += 1
+                logger.error("InsufficientPermission: User does not have move permissions for title: %s", title)
+                continue
+
             try:
                 page.move(
                     new_title,
@@ -165,14 +172,10 @@ def process(
                 stats["renamed"] += 1
                 logger.info("  MOVED: %s -> %s", title, new_title)
             except mwclient.errors.APIError as exc:
+                code = getattr(exc, "code", "?")
+                info = getattr(exc, "info", "?")
                 stats["failed"] += 1
-                logger.error(
-                    "  FAILED (%s): %s -> %s : %s",
-                    getattr(exc, "code", "?"),
-                    title,
-                    new_title,
-                    getattr(exc, "info", exc),
-                )
+                logger.error("  FAILED (%s): %s -> %s : %s", code, title, new_title, info)
             except Exception as exc:  # pragma: no cover - safety net
                 stats["failed"] += 1
                 logger.exception("  FAILED: %s -> %s : %s", title, new_title, exc)
