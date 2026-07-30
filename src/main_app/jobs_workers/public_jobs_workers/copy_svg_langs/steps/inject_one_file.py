@@ -82,7 +82,6 @@ def start_injects(
             updated_translations=updated_translations,
         )
 
-
 def inject_step_one_file(
     file_path: Path,
     translations: dict[str, Any],
