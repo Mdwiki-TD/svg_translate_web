@@ -160,9 +160,7 @@ def seeded_job(jobs_service: JobsService) -> JobRecord:
 
 @pytest.fixture
 def seeded_job_with_result(seeded_job: JobRecord, jobs_service: JobsService) -> JobRecord:
-    return jobs_service.update_job_status(
-        seeded_job.id, "completed", result_file="result.json", job_type="test_job"
-    )
+    return jobs_service.update_job_status(seeded_job.id, "completed", result_file="result.json", job_type="test_job")
 
 
 # =========================================================================
@@ -262,7 +260,9 @@ class TestStartJob:
 
 
 class TestJobsList:
-    def test_normal_listing(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord) -> None:
+    def test_normal_listing(
+        self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord
+    ) -> None:
         result = jobs_list_handler("test_job", mock_template_data)
 
         assert result == "rendered"
@@ -299,7 +299,9 @@ class TestJobsList:
 
 
 class TestJobDetail:
-    def test_job_found_without_result(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord) -> None:
+    def test_job_found_without_result(
+        self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord
+    ) -> None:
         mock_deps.load_job_result.return_value = None
 
         result = job_detail_handler(seeded_job.id, "test_job", mock_template_data, "public_jobs")
@@ -336,7 +338,9 @@ class TestJobDetail:
             expand_all=False,
         )
 
-    def test_job_found_with_expand_all(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord) -> None:
+    def test_job_found_with_expand_all(
+        self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord
+    ) -> None:
         mock_deps.load_job_result.return_value = None
 
         result = job_detail_handler(seeded_job.id, "test_job", mock_template_data, "public_jobs", expand_all=True)
@@ -387,11 +391,13 @@ class TestJobsPublicRoutesRoutes:
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", mock_deps.get_job)
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.list_jobs", mock_deps.list_jobs)
         monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type", mock_deps.delete_job_by_id_and_type
+            "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type",
+            mock_deps.delete_job_by_id_and_type,
         )
         monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete", mock_deps.delete_job)
         monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.SettingsService.get_all_settings_ready", mock_deps.get_all_settings_ready
+            "src.main_app.public.jobs_routes_utils.SettingsService.get_all_settings_ready",
+            mock_deps.get_all_settings_ready,
         )
 
         mock_deps.get_job.return_value = mock_job

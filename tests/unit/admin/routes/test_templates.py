@@ -5,9 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from flask import Blueprint
 
-from src.main_app.admin.routes.templates import TemplatesRoutesFuncs
 from src.main_app.db.services import TemplateService
 
 
