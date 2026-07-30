@@ -111,7 +111,7 @@ class TestDownloadOneFile:
         mock_download_core.return_value = b"<svg>content</svg>"
         mock_session = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.api_services.files_service.download_file_utils.create_commons_session",
+            "src.main_app.api_services.clients.commons_client.create_commons_session",
             lambda ua: mock_session,
         )
         result = download_one_file(title, temp_output_dir, 1)
@@ -132,37 +132,51 @@ class TestDownloadCommonsFileCore:
         session = MagicMock()
         mock_response = MagicMock()
         mock_response.content = b"<svg>test</svg>"
-        session.get.return_value = mock_response
+        session.request.return_value = mock_response
 
         result = download_commons_file_core("Test.svg", session)
 
         assert result == b"<svg>test</svg>"
         expected_url = f"{BASE_COMMONS_URL}Test.svg"
-        session.get.assert_called_once_with(expected_url, timeout=60, allow_redirects=True)
+        session.request.assert_called_once_with(
+            method="GET",
+            data=None,
+            params=None,
+            url=expected_url,
+            timeout=60,
+            allow_redirects=True,
+        )
 
     def test_spaces_converted_to_underscores(self):
         """Test that spaces in filename are converted to underscores."""
         session = MagicMock()
         mock_response = MagicMock()
         mock_response.content = b"content"
-        session.get.return_value = mock_response
+        session.request.return_value = mock_response
 
         download_commons_file_core("My File.svg", session)
 
         expected_url = f"{BASE_COMMONS_URL}My_File.svg"
-        session.get.assert_called_once_with(expected_url, timeout=60, allow_redirects=True)
+        session.request.assert_called_once_with(
+            method="GET",
+            data=None,
+            params=None,
+            url=expected_url,
+            timeout=60,
+            allow_redirects=True,
+        )
 
     def test_custom_timeout(self):
         """Test custom timeout is passed through."""
         session = MagicMock()
         mock_response = MagicMock()
         mock_response.content = b"content"
-        session.get.return_value = mock_response
+        session.request.return_value = mock_response
 
         download_commons_file_core("Test.svg", session, timeout=30)
 
-        session.get.assert_called_once()
-        call_kwargs = session.get.call_args[1]
+        session.request.assert_called_once()
+        call_kwargs = session.request.call_args[1]
         assert call_kwargs["timeout"] == 30
 
     def test_http_error_raises_exception(self):
@@ -170,7 +184,7 @@ class TestDownloadCommonsFileCore:
         session = MagicMock()
         mock_response = MagicMock()
         mock_response.raise_for_status.side_effect = requests.HTTPError("404 Not Found")
-        session.get.return_value = mock_response
+        session.request.return_value = mock_response
 
         with pytest.raises(requests.HTTPError):
             download_commons_file_core("Missing.svg", session)
@@ -178,7 +192,7 @@ class TestDownloadCommonsFileCore:
     def test_network_error_raises_exception(self):
         """Test that network errors raise exceptions."""
         session = MagicMock()
-        session.get.side_effect = requests.ConnectionError("Connection refused")
+        session.request.side_effect = requests.ConnectionError("Connection refused")
 
         with pytest.raises(requests.ConnectionError):
             download_commons_file_core("Test.svg", session)
@@ -186,7 +200,7 @@ class TestDownloadCommonsFileCore:
     def test_timeout_error_raises_exception(self):
         """Test that timeouts raise exceptions."""
         session = MagicMock()
-        session.get.side_effect = requests.Timeout("Request timed out")
+        session.request.side_effect = requests.Timeout("Request timed out")
 
         with pytest.raises(requests.Timeout):
             download_commons_file_core("Test.svg", session)
@@ -196,9 +210,16 @@ class TestDownloadCommonsFileCore:
         session = MagicMock()
         mock_response = MagicMock()
         mock_response.content = b"content"
-        session.get.return_value = mock_response
+        session.request.return_value = mock_response
 
         download_commons_file_core("File (with parens).svg", session)
 
         expected_url = f"{BASE_COMMONS_URL}File_%28with_parens%29.svg"
-        session.get.assert_called_once_with(expected_url, timeout=60, allow_redirects=True)
+        session.request.assert_called_once_with(
+            method="GET",
+            data=None,
+            params=None,
+            url=expected_url,
+            timeout=60,
+            allow_redirects=True,
+        )
