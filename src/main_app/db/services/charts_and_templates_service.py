@@ -4,6 +4,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
 
@@ -63,6 +65,9 @@ class ChartsAndTemplatesService:  # (CRUDService[OwidChartRecord]):
                 .order_by(OwidChartRecord.chart_id.asc())
             )
             result = query.all()
+        except SQLAlchemyError:
+            logger.exception("Error while querying charts and templates")
+            return []
         except Exception as e:
             logger.error(f"Error while querying charts and templates: {e}")
             return []

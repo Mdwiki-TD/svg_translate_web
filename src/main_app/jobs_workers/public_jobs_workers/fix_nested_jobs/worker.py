@@ -227,7 +227,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
     def process(self) -> FixNestedJobsWorkerObject:
         """Execute the full pipeline."""
-
+        # no need to cancel job if self.site is False
         self._check_site()
 
         if not self.filename:
