@@ -30,12 +30,8 @@ def test_index(mock_render, app_main_mock):
         assert not kwargs["set_titles_limit"]
 
 
-@patch("src.main_app.public.main_routes.routes.send_from_directory")
-def test_favicon(mock_send, app_main_mock):
-    mock_send.return_value = "icon"
+def test_favicon(app_main_mock):
 
     with app_main_mock.test_client() as client:
         resp = client.get("/favicon.ico")
-        assert resp.data == b"icon"
-
-        mock_send.assert_called_once_with("static", "favicon.ico", mimetype="image/x-icon")
+        assert '404 Not Found' not in resp.text

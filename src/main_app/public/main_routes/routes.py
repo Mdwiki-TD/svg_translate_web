@@ -34,7 +34,7 @@ class MainRoutes:
                 all_settings=all_settings,
             )
 
-        @self.bp.get("/favicon.ico")
+        @self.bp.route("/favicon.ico", methods=["GET"])
         def favicon() -> Response:
             return send_from_directory("static", "favicon.ico", mimetype="image/x-icon")
 
