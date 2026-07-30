@@ -9,7 +9,7 @@ from typing import Any
 
 from CopySVGTranslation import inject
 
-from .inject_utils import render_titles_translations
+from .inject_utils import add_translations_from_titles
 
 logger = logging.getLogger(__name__)
 
@@ -90,9 +90,8 @@ def inject_step_one_file(
     overwrite: bool = False,
 ) -> InjectResult:
     """ """
-    if translations.get("title_new") and translations.get("new"):
-        title_new_translations = render_titles_translations(translations["title_new"])
-        translations["new"].update(title_new_translations)
+    translations = add_translations_from_titles(translations)
+
     try:
         injects_result: InjectResult = start_injects(
             file_path,

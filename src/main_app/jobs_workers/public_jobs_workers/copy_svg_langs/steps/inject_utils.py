@@ -24,6 +24,7 @@ title_new dict data like:
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,9 @@ class ByLanguage:
         return None
 
     def run(self) -> str | None:
+        if not self.text:
+            return None
+
         if "{year}" not in self.text:
             return None
 
@@ -91,12 +95,6 @@ class TitlesTranslationsRenderer:
     def _text_by_lang(lang: str, text: str) -> str | None:
         return ByLanguage(lang, text).run()
 
-    def _render_key(self, en_key: str) -> str | None:
-        new_key = self._text_by_lang("en", en_key)
-        if new_key == en_key:
-            return None
-        return new_key
-
     def _render_translations(self, translations: dict[str, str]) -> dict[str, str]:
         new_key_data = {}
         for lang, str_text in translations.items():
@@ -113,9 +111,8 @@ class TitlesTranslationsRenderer:
         data: dict[str, dict[str, str]] = {}
 
         for en_key, translations in self.title_new.items():
-            new_key = self._render_key(en_key)
-            if new_key is None and self._text_by_lang("en", en_key) == en_key:
-                # matches original "continue" branch
+            new_key = self._text_by_lang("en", en_key)
+            if new_key is None or new_key == en_key:
                 continue
 
             new_key_data = self._render_translations(translations)
@@ -125,9 +122,37 @@ class TitlesTranslationsRenderer:
         return data
 
 
+def text_by_lang(lang: str, text: str) -> str | None:
+    return ByLanguage(lang, text).run()
+
+
 def render_titles_translations(title_new: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
     return TitlesTranslationsRenderer(title_new).run()
 
+
+def _add_from_titles(titles_new: dict[str, dict[str, str]], new_keys: list[str]) -> dict[str, dict[str, str]]:
+    title_new_translations = render_titles_translations(titles_new)
+    result = {}
+
+    for x, data in title_new_translations.items():
+        if x not in new_keys:
+            result[x] = data
+
+    return result
+
+
+def add_translations_from_titles(translations: dict[str, Any]) -> dict[str, Any]:
+    """Insert new translations into the translations dictionary."""
+
+    if translations.get("title_new") and translations.get("new"):
+        new_keys = list(translations["new"].keys())
+        add_translations = _add_from_titles(translations["title_new"], new_keys)
+        if add_translations:
+            translations["new"].update(add_translations)
+
+    return translations
+
+
 __all__ = [
-    "render_titles_translations",
+    "add_translations_from_titles",
 ]
