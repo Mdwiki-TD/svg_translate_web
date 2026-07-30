@@ -92,7 +92,6 @@ def test_settings():
     )
 
     jobs_config = JobsConfig(
-        disable_uploads="",
         jobs_max_workers=10,
         jobs_log_lines=10,
     )

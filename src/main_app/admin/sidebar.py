@@ -352,6 +352,13 @@ def load_groups_menu() -> list[SidebarGroup]:
                 title="Settings",
                 icon="bi-gear",
             ),
+            SidebarItem(
+                id="errors",
+                admin=1,
+                href=_safe_url_for("adminpanel.errors.dashboard", "/adminpanel/errors/"),
+                title="App Errors",
+                icon="bi-exclamation-triangle"
+            ),
         ],
     )
 

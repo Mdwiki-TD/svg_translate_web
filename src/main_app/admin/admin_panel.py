@@ -26,6 +26,8 @@ def _get_display_name(job_type: str) -> str:
 
 
 class AdminPanel:
+    """admin panel routes."""
+
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
         self._setup_routes()

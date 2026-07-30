@@ -23,12 +23,13 @@ logger = logging.getLogger(__name__)
 
 
 class CoordinatorsFuncs:
-    def __init__(self):
+    def __init__(self) -> None:
         self.admin_service = AdminService()
 
-    def dashboard(self):
+    def dashboard(self) -> str:
         """Render the coordinator management dashboard."""
         try:
+
             coordinators = self.admin_service.list_coordinators()
         except Exception as e:  # pragma: no cover - defensive guard
             logger.error(f"Unable to list coordinators: {e}")
@@ -55,6 +56,7 @@ class CoordinatorsFuncs:
             return redirect(url_for("adminpanel.coordinators.dashboard"))
 
         try:
+
             record = self.admin_service.add_coordinator(username)
         except UserNotFoundError as exc:
             logger.error("UserNotFoundError: %s", exc)
@@ -83,6 +85,7 @@ class CoordinatorsFuncs:
         """Remove a coordinator entirely."""
 
         try:
+
             record = self.admin_service.get_coordinator_by_id(coordinator_id)
             if record is None:
                 raise LookupError(f"Coordinator with id {coordinator_id} not found")

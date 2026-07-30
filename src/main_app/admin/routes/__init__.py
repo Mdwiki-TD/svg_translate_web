@@ -11,6 +11,7 @@ from .settings import SettingsRoutes
 from .slug_redirects import SlugRedirectsRoutes
 from .templates import TemplatesRoutes
 from .users import UsersRoutes
+from .errors_route import CheckErrorsRoutes
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,7 @@ ADMIN_ROUTE_MODULES: list[AdminRouteModule] = [
             "bp_name": "adminpanel.jobs",
         },
     ),
+    AdminRouteModule(route_cls=CheckErrorsRoutes, name="errors", url_prefix="/errors"),
 ]
 
 __all__ = [
