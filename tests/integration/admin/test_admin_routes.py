@@ -20,7 +20,6 @@ class TestSetup:
         self.users_service = UsersService()
         self.users_token_service = UserTokenService()
 
-
     def _upsert_u_token(self, username: str, access_key: str, access_secret: str) -> int:
         user = self.users_service.create_user(username)
         encrypted_token = self.users_token_service.encrypt_value(access_key)

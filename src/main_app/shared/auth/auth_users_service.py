@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import logging
 
-from ..core.crypto import encrypt_value
-
 from ...db.models import UserRecord
 from ...db.services import (
     AdminService,
     UsersService,
     UserTokenService,
 )
+from ..core.crypto import encrypt_value
 from .current_user import CurrentUser
 
 logger = logging.getLogger(__name__)
