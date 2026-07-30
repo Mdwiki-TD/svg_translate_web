@@ -71,7 +71,7 @@ def test_extract_post_empty_filename_shows_error(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.flash", fake_flash)
 
     client = app_client.test_client()
-    response = client.post("/extract/", data={"filename": ""})
+    response = client.post("/extract/", data={"filename": ""}, follow_redirects=True,)
 
     assert response.status_code == 200
     assert response.data.decode() == "rendered:extract/form.html"
@@ -98,7 +98,7 @@ def test_extract_post_strips_file_prefix(
     mocker.patch("src.main_app.public.main_routes.extract_routes.flash")
 
     client = app_client.test_client()
-    client.post("/extract/", data={"filename": "File: Test.svg"})
+    client.post("/extract/", data={"filename": "File: Test.svg"}, follow_redirects=True,)
 
     mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, overwrite=True)
 
@@ -130,7 +130,7 @@ def test_extract_post_download_failure(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
     client = app_client.test_client()
-    response = client.post("/extract/", data={"filename": "Test.svg"})
+    response = client.post("/extract/", data={"filename": "Test.svg"}, follow_redirects=True,)
 
     assert response.status_code == 200
     assert response.data.decode() == "rendered:extract/form.html"
@@ -166,7 +166,7 @@ def test_extract_post_extraction_error(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
     client = app_client.test_client()
-    response = client.post("/extract/", data={"filename": "Test.svg"})
+    response = client.post("/extract/", data={"filename": "Test.svg"}, follow_redirects=True,)
 
     assert response.status_code == 200
     assert response.data.decode() == "rendered:extract/form.html"
@@ -207,7 +207,7 @@ def test_extract_post_successful_extraction(
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
     client = app_client.test_client()
-    response = client.post("/extract/", data={"filename": "Test.svg"})
+    response = client.post("/extract/", data={"filename": "Test.svg"}, follow_redirects=True,)
 
     assert response.status_code == 200
     assert response.data.decode() == "rendered:extract/result.html"
