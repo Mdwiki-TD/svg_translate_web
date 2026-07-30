@@ -14,6 +14,30 @@ from .upload_bot import upload_file
 
 logger = logging.getLogger(__name__)
 
+ALL_II_PROPS = [
+    "timestamp",
+    "user",
+    "metadata",
+    "mediatype",
+    "userid",
+    "url",
+    "uploadwarning",
+    "thumburls",
+    "thumbmime",
+    "size",
+    "sha1",
+    "parsedcomment",
+    "mime",
+    "extmetadata",
+    "commonmetadata",
+    "dimensions",
+    "comment",
+    "canonicaltitle",
+    "bitdepth",
+    "archivename",
+    "badfile",
+]
+
 
 @dataclass
 class FileInfo:
@@ -28,14 +52,11 @@ def get_file_info(
     session: requests.Session | None = None,
     iiprops: list[str] | None = None,
 ) -> FileInfo:
-    """ """
-    all_iiprops = [ # black: line-length
-        "timestamp", "user", "metadata", "mediatype", "userid", "url", "uploadwarning", "thumburls",
-        "thumbmime", "size", "sha1", "parsedcomment", "mime", "extmetadata", "commonmetadata", "dimensions",
-        "comment", "canonicaltitle", "bitdepth", "archivename", "badfile"
-    ]
+    """
+    Get file info from Commons API.
+    """
     if iiprops:
-        iiprops = [p for p in iiprops if p in all_iiprops]
+        iiprops = [p for p in iiprops if p in ALL_II_PROPS]
     else:
         iiprops = ["metadata"]
 
