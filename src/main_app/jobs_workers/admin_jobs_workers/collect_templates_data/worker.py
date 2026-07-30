@@ -12,9 +12,8 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....db.exceptions import DuplicateRecordError
-
 from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_members
+from ....db.exceptions import DuplicateRecordError
 from ....db.models import TemplateRecord
 from ....db.services import (
     OwidChartsService,

@@ -157,7 +157,7 @@ def process(
                 stats["skipped_exists"] += 1
                 continue
 
-            if not page.can('move'):
+            if not page.can("move"):
                 stats["failed"] += 1
                 logger.error("InsufficientPermission: User does not have move permissions for title: %s", title)
                 continue

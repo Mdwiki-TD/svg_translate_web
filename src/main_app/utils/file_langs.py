@@ -134,6 +134,7 @@ LANG_CODE_CATEGORY_MAP: dict[str, str] = {
 def lang_code_category(langcode: str) -> str | None:
     return LANG_CODE_CATEGORY_MAP.get(langcode)
 
+
 def get_file_languages(file_name: str, session: requests.Session | None = None) -> dict[str, Any]:
     """
     Extract available SVG translation languages for a given Commons file.

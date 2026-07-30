@@ -12,8 +12,8 @@ from .clients import (
     get_user_site,
 )
 from .files_service import (
-    get_file_info,
     download_svg_file,
+    get_file_info,
     upload_fixed_svg,
 )
 from .mwclient_page import MwClientPage

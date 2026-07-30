@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 # Session key for preserving filename across OAuth redirect for extract
 EXTRACT_FILENAME_KEY = "extract_filename"
 
+
 def work_file(filename: str) -> dict[str, Any]:
 
     logger.info("Starting extract translations for file: %s", filename)
@@ -83,7 +84,7 @@ class ExtractRoutes:
             return render_template("extract/form.html", filename=filename)
 
         # redirect to extract_get to update browser URL
-        return redirect(url_for('extract.extract_get', file_name=filename))
+        return redirect(url_for("extract.extract_get", file_name=filename))
 
     def extract_get(self, file_name: str) -> str:
         return self.show_result(file_name.strip())
@@ -136,6 +137,7 @@ class ExtractRoutes:
             languages=languages,
             translations=translations,
         )
+
 
 __all__ = [
     "ExtractRoutes",

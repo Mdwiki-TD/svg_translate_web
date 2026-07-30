@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import requests
 from mwclient.client import Site
+
 from ..clients.commons_client import create_commons_session
 from .download_file_utils import download_one_file
 from .upload_bot import upload_file
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class FileInfo:
@@ -19,9 +21,24 @@ class FileInfo:
     error: str | None = None
     exists: bool | None = None
 
-def get_file_info(prefixed_file_name: str, session: requests.Session | None = None) -> FileInfo:
-    """
-    """
+
+def get_file_info(
+    prefixed_file_name: str,
+    *,
+    session: requests.Session | None = None,
+    iiprops: list[str] | None = None,
+) -> FileInfo:
+    """ """
+    all_iiprops = [ # black: line-length
+        "timestamp", "user", "metadata", "mediatype", "userid", "url", "uploadwarning", "thumburls",
+        "thumbmime", "size", "sha1", "parsedcomment", "mime", "extmetadata", "commonmetadata", "dimensions",
+        "comment", "canonicaltitle", "bitdepth", "archivename", "badfile"
+    ]
+    if iiprops:
+        iiprops = [p for p in iiprops if p in all_iiprops]
+    else:
+        iiprops = ["metadata"]
+
     if not prefixed_file_name:
         return FileInfo(error="No file name provided")
 
@@ -37,7 +54,7 @@ def get_file_info(prefixed_file_name: str, session: requests.Session | None = No
         "prop": "imageinfo",
         "titles": prefixed_file_name,
         "formatversion": "2",
-        "iiprop": "metadata"
+        "iiprop": "|".join(iiprops),
     }
 
     try:
@@ -60,7 +77,7 @@ def get_file_info(prefixed_file_name: str, session: requests.Session | None = No
     if page.get("missing") and not page.get("known"):
         return FileInfo(error=f"File {page.get('title', prefixed_file_name)} does not exist.", exists=False)
 
-    # Extract metadata array
+    # Extract imageinfo array
     imageinfo = page.get("imageinfo", [])
     if not imageinfo:
         return FileInfo(error=f"imageinfo not found for {page.get('title')}", exists=True)

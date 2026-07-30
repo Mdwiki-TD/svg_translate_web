@@ -422,7 +422,9 @@ class TestWithMocks(TestSetup):
         # Keep this mock: the retry path requires a synthetic connection-invalidated OperationalError.
         monkeypatch.setattr(self.service.session, "commit", mock_commit)
 
-        result = self.service.update_job_status_with_retry(job.id, "completed", job_type="test_job", remove_session=False)
+        result = self.service.update_job_status_with_retry(
+            job.id, "completed", job_type="test_job", remove_session=False
+        )
         assert result.id == job.id
         assert result.status == "completed"
         assert commit_call_count[0] == 2

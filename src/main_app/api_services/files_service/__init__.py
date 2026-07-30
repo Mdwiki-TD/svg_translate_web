@@ -3,8 +3,8 @@
 from .download_file_utils import download_one_file
 from .files_helpers import (
     download_svg_file,
-    upload_fixed_svg,
     get_file_info,
+    upload_fixed_svg,
 )
 from .upload_bot import UploadFile, upload_file
 
