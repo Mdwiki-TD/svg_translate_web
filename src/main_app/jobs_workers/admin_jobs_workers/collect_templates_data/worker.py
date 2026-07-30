@@ -12,6 +12,8 @@ from typing import Any
 
 from mwclient.client import Site
 
+from ....db.exceptions import DuplicateRecordError
+
 from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_members
 from ....db.models import TemplateRecord
 from ....db.services import (
@@ -144,7 +146,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
                 self.template_service.add_template_data({"title": title})
                 self.result.pages_added.append(tmp_info.to_dict())
                 logger.info(f"Job {self.job_id}: Added new template: {title}")
-            except ValueError as e:
+            except (DuplicateRecordError, ValueError) as e:
                 # Template already exists (race condition)
                 logger.debug(f"Job {self.job_id}: Template {title} already exists: {e}")
                 # no need to count this as failed
@@ -303,7 +305,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # ------------------
         # template_info step # 5 slug
         try:
-            _slug = self._load_slug(template.title, template.slug, template_data.get("source", ""))
+            _slug = self._load_slug(template.title, template.slug, template_data.get("source"))
             if not _slug:
                 raise Exception("Could not find slug")
         except Exception as e:
@@ -379,7 +381,9 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
                 return None
         return None
 
-    def _load_slug(self, template_title: str, template_slug: str, template_source: str) -> str | None:
+    def _load_slug(self, template_title: str, template_slug: str, template_source: str | None) -> str | None:
+        if template_source is None:
+            template_source = ""
         _slug = extract_slug(template_source)
 
         if not _slug:
@@ -428,11 +432,11 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         self._save_progress()
 
-        logger.info(f"Job {self.job_id}: Processing single template {template.title}")
+        logger.debug(f"Job {self.job_id}: Processing single template {template.title}")
 
         _updated = self._process_one_item(template)
         if _updated:
-            logger.info(f"Job {self.job_id}: Template {template.title} updated")
+            logger.debug(f"Job {self.job_id}: Template {template.title} updated")
 
         self.finish()
 
@@ -489,7 +493,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-            logger.info(f"Job {self.job_id}: Processing template {n}/{len(templates_data)}: {template.title}")
+            logger.debug(f"Job {self.job_id}: Processing template {n}/{len(templates_data)}: {template.title}")
 
             _updated = self._process_one_item(template)
 

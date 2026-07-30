@@ -118,7 +118,7 @@ class MwClientPage:
             logger.warning("Could not check if page '%s' exists: %s", self.title, exc)
             return False
 
-        logger.info("Page '%s' exists", self.title)
+        logger.debug("Page '%s' exists", self.title)
         return True
 
     def get_text(self) -> str:
