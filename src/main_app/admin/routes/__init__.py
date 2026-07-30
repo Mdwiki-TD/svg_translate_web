@@ -5,13 +5,13 @@ from typing import Any
 
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from .coordinators import CoordinatorsRoutes
+from .errors_route import CheckErrorsRoutes
 from .jobs import AdminJobsRoutes
 from .owid_charts import OwidChartsRoutes
 from .settings import SettingsRoutes
 from .slug_redirects import SlugRedirectsRoutes
 from .templates import TemplatesRoutes
 from .users import UsersRoutes
-from .errors_route import CheckErrorsRoutes
 
 
 @dataclass(frozen=True)

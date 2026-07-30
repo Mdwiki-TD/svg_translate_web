@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from flask.app import Flask
 import pytest
+from flask.app import Flask
 from sqlalchemy import text
 
 from src.main_app.db.models.jobs import JobRecord
@@ -30,11 +30,11 @@ class MockWorker(BaseObjectsJobWorker):
         return self.result.to_json()
 
 
-
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
         self.job_service = JobsService()
+
 
 class TestJob(TestSetup):
     def test_before_run_updates_status(self, mock_app: Flask) -> None:
@@ -46,7 +46,6 @@ class TestJob(TestSetup):
             worker.before_run()
             # This is expected to fail currently based on the issue description
             assert worker.result.status == "running"
-
 
     def test_is_job_cancelled_detects_external_change(self, mock_app: Flask) -> None:
         with mock_app.app_context():
@@ -67,7 +66,6 @@ class TestJob(TestSetup):
 
             # Now self.job_service.is_job_cancelled should return True.
             assert self.job_service.is_job_cancelled(job.id, "mock_job_cancel_detect") is True
-
 
     def test_is_cancelled_sets_cancelled_at(self, mock_app: Flask) -> None:
         with mock_app.app_context():

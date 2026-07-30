@@ -59,12 +59,11 @@ def test_runner():
     assert _get_jobs_cancel_event(job_id) is None
 
 
-
-
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
         self.job_service = JobsService()
+
 
 @pytest.mark.usefixtures("mock_app")
 class TestCancelJobWorker(TestSetup):
@@ -75,9 +74,7 @@ class TestCancelJobWorker(TestSetup):
             job = self.job_service.create_job("test_job", "testuser")
             job_id = job.id
             # Set result_file so the cancelled-file branch executes
-            self.job_service.update_job_status(
-                job_id, "running", "test_job_job_1.json", job_type="test_job"
-            )
+            self.job_service.update_job_status(job_id, "running", "test_job_job_1.json", job_type="test_job")
             # Re-fetch to get the updated result_file
             job = self.job_service.get_job(job_id, "test_job")
 

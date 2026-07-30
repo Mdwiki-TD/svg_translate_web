@@ -357,7 +357,7 @@ def load_groups_menu() -> list[SidebarGroup]:
                 admin=1,
                 href=_safe_url_for("adminpanel.errors.dashboard", "/adminpanel/errors/"),
                 title="App Errors",
-                icon="bi-exclamation-triangle"
+                icon="bi-exclamation-triangle",
             ),
         ],
     )

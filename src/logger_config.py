@@ -114,6 +114,7 @@ def get_log_dir() -> Path:
 
     return log_dir
 
+
 def configure_logging(
     level: str | int,
     use_colorlog: bool = False,
@@ -123,9 +124,7 @@ def configure_logging(
         log_dir = get_log_dir()
     except OSError as exc:
         setup_logging(level=level, name="main_app", use_colorlog=use_colorlog)
-        logging.getLogger("main_app").warning(
-            "Falling back to console logging; could not create log directory %s", exc
-        )
+        logging.getLogger("main_app").warning("Falling back to console logging; could not create log directory %s", exc)
         return
 
     # Define paths

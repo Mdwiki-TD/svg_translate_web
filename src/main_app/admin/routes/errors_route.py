@@ -3,19 +3,21 @@ Admin-only routes for checking errors.
 """
 
 from __future__ import annotations
-import logging
 
+import logging
 from pathlib import Path
 
-from flask import Blueprint, render_template, flash, request
+from flask import Blueprint, flash, render_template, request
 
 from ...config import settings
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
+
 def get_log_dir() -> Path:
     return Path(settings.paths.log_dir)
+
 
 class CheckErrorsRoutes:
     def __init__(self, bp: Blueprint) -> None:
@@ -71,6 +73,7 @@ class CheckErrorsRoutes:
             logger.error(f"Error reading error log: {e}")
             text = ""
         return text
+
 
 __all__ = [
     "CheckErrorsRoutes",
