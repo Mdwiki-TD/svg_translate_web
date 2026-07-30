@@ -24,7 +24,6 @@ title_new dict data like:
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -78,33 +77,56 @@ class ByLanguage:
         return self.multi_langs()
 
 
-def text_by_lang(lang: str, text: str) -> str | None:
-    return ByLanguage(lang, text).run()
+class TitlesTranslationsRenderer:
+    """
+    Builds a translations dict from `title_new`-shaped input by stripping
+    the trailing/leading `{year}` pattern from both the English key and
+    each language's translated text.
+    """
 
+    def __init__(self, title_new: dict[str, dict[str, str]]) -> None:
+        self.title_new = title_new
 
-def render_titles_translations(title_new: dict[str, dict[str, str]]) -> dict[str, dict[str, Any]]:
-    """ """
-    data = {}
+    @staticmethod
+    def _text_by_lang(lang: str, text: str) -> str | None:
+        return ByLanguage(lang, text).run()
 
-    for en_key, translations in title_new.items():
-        new_key = text_by_lang("en", en_key)
+    def _render_key(self, en_key: str) -> str | None:
+        new_key = self._text_by_lang("en", en_key)
         if new_key == en_key:
-            continue
+            return None
+        return new_key
 
+    def _render_translations(self, translations: dict[str, str]) -> dict[str, str]:
         new_key_data = {}
         for lang, str_text in translations.items():
             if not str_text:
                 continue
 
-            new_text = text_by_lang(lang, str_text)
+            new_text = self._text_by_lang(lang, str_text)
             if new_text and new_text != str_text:
                 new_key_data[lang] = new_text
 
-        if new_key_data:
-            data[new_key] = new_key_data
+        return new_key_data
 
-    return data
+    def run(self) -> dict[str, dict[str, str]]:
+        data: dict[str, dict[str, str]] = {}
 
+        for en_key, translations in self.title_new.items():
+            new_key = self._render_key(en_key)
+            if new_key is None and self._text_by_lang("en", en_key) == en_key:
+                # matches original "continue" branch
+                continue
+
+            new_key_data = self._render_translations(translations)
+            if new_key_data:
+                data[new_key] = new_key_data
+
+        return data
+
+
+def render_titles_translations(title_new: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
+    return TitlesTranslationsRenderer(title_new).run()
 
 __all__ = [
     "render_titles_translations",
