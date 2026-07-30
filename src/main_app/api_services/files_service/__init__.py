@@ -1,6 +1,6 @@
 """Utility modules for the main application."""
 
-from .download_file_utils import download_one_file
+from .download_file_utils import download_commons_file_core, download_one_file
 from .files_helpers import (
     download_svg_file,
     get_file_info,
@@ -9,6 +9,7 @@ from .files_helpers import (
 from .upload_bot import UploadFile, upload_file
 
 __all__ = [
+    "download_commons_file_core",
     "get_file_info",
     "download_svg_file",
     "download_one_file",

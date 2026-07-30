@@ -180,7 +180,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
     def _load_temp_info(self, template: TemplateData) -> TemplateInfo:
         template_info = TemplateInfo(
-            id=template.id,
+            id=template.id,  # pyright: ignore[reportCallIssue]
             title=template.title,
             new_main_file="",
             last_world_file="",

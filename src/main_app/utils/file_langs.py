@@ -159,18 +159,20 @@ def get_file_languages(file_name: str, session: requests.Session | None = None) 
     # Extract metadata array
     imageinfo = file_info.imageinfo
     if not imageinfo:
-        return {"error": f"Metadata not found for {prefixed_file_name}", "langs": None}
+        return {"error": f"Metadata not found for {prefixed_file_name}. Error: {file_info.error}", "langs": None}
 
+    # metadata shema: [ { "name": "version", "value": 2 }, ... , { "name": "translations", "value": []} ]
     metadata = imageinfo[0].get("metadata", [])
     if not metadata:
         return {"error": f"Metadata array empty for {prefixed_file_name}", "langs": None}
 
-    translations = {}
+    translations = []
     for x in metadata:
-        if x["name"] == "ImageDescription":
+        if isinstance(x, dict) and x["name"] == "translations":
             translations = x["value"]
             break
 
+    # translations shema: [ { "name": "abr", "value": 2 }, { "name": "ar", "value": 2 }, ... ]
     if isinstance(translations, list) and len(translations) > 0:
         # Extract language codes from translation entries
         langs_keys = [t["name"] for t in translations if isinstance(t, dict) and "name" in t]

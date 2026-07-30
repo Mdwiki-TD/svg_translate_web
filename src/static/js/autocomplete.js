@@ -8,11 +8,13 @@ const API_USER_AGENT = "Copy SVG Translations/1.0 (https://copy-svg-langs.toolfo
  */
 function setupWikiAutocomplete(inputSelector, wikimedia_api_url, psnamespace="*") {
     // attach autocomplete behavior to input field
+    // @ts-ignore
     $(inputSelector).autocomplete({
         delay: 300,
         minLength: 2,
         source: function (/** @type {{ term: any; }} */ request, /** @type {(arg0: any[]) => void} */ response) {
             // make AJAX request to Wikipedia API
+            // @ts-ignore
             $.ajax({
                 url: wikimedia_api_url,
                 headers: {
@@ -31,6 +33,7 @@ function setupWikiAutocomplete(inputSelector, wikimedia_api_url, psnamespace="*"
                 success: function (/** @type {{ query: { prefixsearch: any; }; }} */ data) {
                     // extract titles from API response and pass to autocomplete
                     var items = (data && data.query && data.query.prefixsearch) || [];
+                    // @ts-ignore
                     response($.map(items, function (/** @type {{ title: any; }} */ item) {
                         return item.title;
                     }));

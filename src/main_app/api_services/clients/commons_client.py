@@ -9,13 +9,14 @@ from __future__ import annotations
 
 import logging
 import time
-from urllib.parse import quote
+from typing import Any
 
 import requests
 
 logger = logging.getLogger(__name__)
 
-BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
+# Define API endpoint and parameters
+COMMONS_API_ENDPOINT = "https://commons.wikimedia.org/w/api.php"
 
 
 def create_commons_session(user_agent: str | None = None) -> requests.Session:
@@ -37,103 +38,112 @@ def create_commons_session(user_agent: str | None = None) -> requests.Session:
     return session
 
 
-def download_commons_file_core(
-    filename: str,
-    session: requests.Session,
-    timeout: int = 60,
-) -> bytes:
-    """
-    Download a file from Wikimedia Commons and return raw content.
+class CommonsSession:
+    def __init__(
+        self,
+        session: requests.Session | None = None,
+        user_agent: str | None = None,
+        timeout: int = 60,
+    ) -> None:
+        self.session = session or create_commons_session(user_agent)
+        self.timeout = timeout
 
-    This is the lowest-level download function that handles the actual HTTP
-    request to Commons. It performs no file I/O or application-level validation;
-    network and HTTP errors are raised as exceptions for callers to handle.
-
-    Args:
-        filename: Clean filename without "File:" prefix. Spaces will be
-            converted to underscores for the URL.
-        session: Pre-configured requests Session with appropriate headers
-            (User-Agent, etc.).
-        timeout: Request timeout in seconds. Defaults to 60s for compatibility
-            with larger SVG files.
-
-    Returns:
-        Raw bytes content of the downloaded file.
-
-    Raises:
-        requests.RequestException: On network errors, HTTP errors (4xx, 5xx),
-            or timeouts.
-
-    Example:
-        >>> session = create_commons_session("MyBot/1.0")
-        >>> try:
-        ...     content = download_commons_file_core("Example.svg", session)
-        ...     Path("Example.svg").write_bytes(content)
-        ... except requests.RequestException as e:
-        ...     logger.error(f"Download failed: {e}")
-    """
-    # Normalize filename: convert spaces to underscores for URL
-    normalized_name = filename.replace(" ", "_")
-    url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
-
-    response = session.get(url, timeout=timeout, allow_redirects=True)
-    response.raise_for_status()
-    return response.content
-
-
-def download_file_rate_limit(
-    filename: str,
-    session: requests.Session,
-    timeout: int = 60,
-    max_attempts: int = 5,
-) -> bytes | None:
-    """
-    Download a file from Wikimedia Commons and return raw content.
-    """
-    # Normalize filename: convert spaces to underscores for URL
-    normalized_name = filename.replace(" ", "_")
-    url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
-
-    attempts = 0
-    while attempts < max_attempts:
+    def get(self, params: dict[str, Any]) -> dict[str, Any]:
         try:
-            response = session.get(url, timeout=timeout, allow_redirects=True)
-
-            # If successful, return the text content immediately
-            if response.status_code == 200:
-                return response.content
-
-            # If 404, return None
-            elif response.status_code == 404:
-                return None
-
-            # Handle Rate Limiting (Error 429)
-            elif response.status_code == 429:
-                retry_after = response.headers.get("Retry-After")
-                try:
-                    wait_time = int(retry_after) if retry_after else 5
-                except ValueError:
-                    wait_time = 5
-                logger.error(f"Hit 429 (Rate Limit). Attempt {attempts + 1}/{max_attempts}. Waiting {wait_time}s...")
-                time.sleep(wait_time)
-
-            # Handle other HTTP errors (e.g., 500, 503)
-            else:
-                response.raise_for_status()
-
+            response = self.request("GET", params=params)
+            response.raise_for_status()
+            return response.json()
         except requests.RequestException as e:
-            # Handle network failures, timeouts, etc.
-            logger.error(f"🔌 Connection error on attempt {attempts + 1}/{max_attempts}: {e}. Retrying in 2s...")
-            time.sleep(2)
+            logger.error(f"Request failed: {e}")
+            raise
 
-        attempts += 1
+    def post(self, data: dict[str, Any]) -> dict[str, Any]:
+        try:
+            response = self.request("POST", data=data)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            logger.error(f"Request failed: {e}")
+            raise
 
-    # raise if all 5 attempts failed
-    return None
+    def request(
+        self,
+        method: str,
+        params: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+        url: str | None = COMMONS_API_ENDPOINT,
+    ) -> requests.Response:
+        """Perform a request to the Commons API.
+
+        Args:
+            params: Parameters to pass to the Commons API.
+            session: Pre-configured requests Session with appropriate headers
+                (User-Agent, etc.).
+        Returns:
+            Response from the Commons API.
+        """
+        if url is None:
+            url = COMMONS_API_ENDPOINT
+
+        response = self.session.request(
+            method=method,
+            url=url,
+            params=params,
+            data=data,
+            timeout=self.timeout,
+            allow_redirects=True,
+        )
+        return response
+
+    def get_with_retry(
+        self,
+        url: str,
+        max_attempts: int = 5,
+    ) -> requests.Response | None:
+        """
+        Get a URL with retry logic for handling rate limiting and network errors.
+        """
+        attempts = 0
+        while attempts < max_attempts:
+            try:
+                response = self.request(method="GET", url=url)
+
+                # If successful, return the text content immediately
+                if response.status_code == 200:
+                    return response
+
+                # If 404, return None
+                elif response.status_code == 404:
+                    return None
+
+                # Handle Rate Limiting (Error 429)
+                elif response.status_code == 429:
+                    retry_after = response.headers.get("Retry-After")
+                    try:
+                        wait_time = int(retry_after) if retry_after else 5
+                    except ValueError:
+                        wait_time = 5
+                    logger.error(
+                        f"Hit 429 (Rate Limit). Attempt {attempts + 1}/{max_attempts}. Waiting {wait_time}s..."
+                    )
+                    time.sleep(wait_time)
+
+                # Handle other HTTP errors (e.g., 500, 503)
+                else:
+                    response.raise_for_status()
+
+            except requests.RequestException as e:
+                # Handle network failures, timeouts, etc.
+                logger.error(f"🔌 Connection error on attempt {attempts + 1}/{max_attempts}: {e}. Retrying in 2s...")
+                time.sleep(2)
+
+            attempts += 1
+
+        # raise if all 5 attempts failed
+        return None
 
 
 __all__ = [
-    "download_commons_file_core",
-    "download_file_rate_limit",
+    "CommonsSession",
     "create_commons_session",
 ]
