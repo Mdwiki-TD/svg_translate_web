@@ -54,11 +54,26 @@ def test_extract_get_restores_filename_from_session(mock_client) -> None:
     assert b'value="test_file.svg"' in response.data
 
 
+@pytest.fixture
+def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict:
+    """Mock render_template to capture context without template processing."""
+    captured: dict[str, Any] = {}
+
+    def fake_render(template: str, **context):
+        captured["template"] = template
+        captured["context"] = context
+        return f"rendered:{template}"
+
+    monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.render_template", fake_render)
+    return captured
+
+
 class TestExtractPost:
 
     def test_extract_post_empty_filename_shows_error(
         self,
         mock_client,
+        patch_render: dict,
         mock_flash,
     ) -> None:
         """Test that submitting an empty filename shows an error."""
@@ -77,6 +92,7 @@ class TestExtractPost:
         self,
         mock_client,
         monkeypatch: pytest.MonkeyPatch,
+        patch_render: dict,
         mock_flash,
         tmp_path,
     ) -> None:
@@ -96,20 +112,6 @@ class TestExtractPost:
         assert response.status_code == 200
         assert response.data.decode() == "rendered:extract/form.html"
         assert any("Failed to download file" in msg for msg, cat in mock_flash)
-
-
-@pytest.fixture
-def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict:
-    """Mock render_template to capture context without template processing."""
-    captured: dict[str, Any] = {}
-
-    def fake_render(template: str, **context):
-        captured["template"] = template
-        captured["context"] = context
-        return f"rendered:{template}"
-
-    monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.render_template", fake_render)
-    return captured
 
 
 class TestExtractRender:
@@ -144,6 +146,7 @@ class TestExtractRender:
         self,
         mock_client,
         monkeypatch: pytest.MonkeyPatch,
+        patch_render: dict,
         mock_flash,
         tmp_path,
     ) -> None:

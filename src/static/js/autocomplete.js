@@ -1,6 +1,6 @@
 
 // @ts-ignore
-const API_USER_AGENT = "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)";
+const API_USER_AGENT = "toolforge tool/1.0 (https://tool.toolforge.org; tool@toolforge.org)";
 
 /**
  * @param {any} inputSelector
