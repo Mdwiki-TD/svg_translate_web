@@ -124,7 +124,7 @@ def configure_logging(
     except OSError as exc:
         setup_logging(level=level, name="main_app", use_colorlog=use_colorlog)
         logging.getLogger("main_app").warning(
-            "Falling back to console logging; could not create log directory %s: %s", log_dir, exc
+            "Falling back to console logging; could not create log directory %s", exc
         )
         return
 
