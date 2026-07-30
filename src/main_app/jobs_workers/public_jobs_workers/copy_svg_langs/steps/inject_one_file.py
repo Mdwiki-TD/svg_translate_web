@@ -21,6 +21,7 @@ class InjectResult:
     new_languages: int | None = None
     updated_translations: int | None = None
 
+
 def start_injects(
     file: Path,
     translations: dict,

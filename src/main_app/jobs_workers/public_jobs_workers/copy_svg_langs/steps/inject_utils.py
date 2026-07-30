@@ -83,8 +83,7 @@ def text_by_lang(lang: str, text: str) -> str | None:
 
 
 def render_titles_translations(title_new: dict[str, dict[str, str]]) -> dict[str, dict[str, Any]]:
-    """
-    """
+    """ """
     data = {}
 
     for en_key, translations in title_new.items():
