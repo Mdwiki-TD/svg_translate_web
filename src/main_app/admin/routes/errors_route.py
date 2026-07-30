@@ -69,8 +69,8 @@ class CheckErrorsRoutes:
 
         try:
             text = error_file.read_text(encoding="utf-8")
-        except Exception as e:
-            logger.error(f"Error reading error log: {e}")
+        except (OSError, UnicodeDecodeError):
+            logger.exception("Error reading error log: %s", error_file)
             text = ""
         return text
 
