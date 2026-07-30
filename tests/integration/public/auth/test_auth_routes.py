@@ -1,261 +1,220 @@
-"""Tests for authentication routes."""
+"""Tests for authentication routes.
+
+Uses the full app factory (TestingConfig) with a real SQLite database.
+Only external OAuth calls and non-deterministic utilities are mocked.
+"""
 
 from __future__ import annotations
 
 import types
+from urllib.parse import quote
 
 import pytest
-from flask import Blueprint, Flask
-
-from src.main_app import create_app
-from src.main_app.config import TestingConfig
-from src.main_app.extensions import db as _db
-from src.main_app.public.auth.routes import AuthRoutes
-
-
-@pytest.fixture
-def auth_app(monkeypatch: pytest.MonkeyPatch) -> Flask:
-    app = Flask(__name__)
-    app.secret_key = "test-secret"
-    app.config["SERVER_NAME"] = "example.com"
-
-    cookie = types.SimpleNamespace(
-        name="uid_enc_copy",
-        httponly=True,
-        secure=False,
-        samesite="Lax",
-        max_age=3600,
-    )
-    oauth_cfg = types.SimpleNamespace(consumer_key="key", consumer_secret="secret")
-    settings = types.SimpleNamespace(
-        STATE_SESSION_KEY="state",
-        REQUEST_TOKEN_SESSION_KEY="req_token",
-        cookie=cookie,
-        oauth=oauth_cfg,
-    )
-    monkeypatch.setattr("src.main_app.public.auth.routes.settings", settings)
-    monkeypatch.setattr("src.main_app.public.auth.routes.oauth_state_nonce", "state")
-    monkeypatch.setattr("src.main_app.public.auth.routes.request_token_key", "req_token")
-    monkeypatch.setattr("src.main_app.public.auth.routes.load_logged_in_user", lambda: None)
-
-    bp = Blueprint("auth", __name__)
-    AuthRoutes(bp)
-    app.register_blueprint(bp)
-    app.add_url_rule("/", "main.index", lambda: "index")
-
-    return app
-
-
-@pytest.fixture
-def auth_db_client(monkeypatch: pytest.MonkeyPatch):
-    """Flask test client with real DB for testing auth callbacks."""
-    monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
-
-    cookie = types.SimpleNamespace(
-        name="uid_enc_copy",
-        httponly=True,
-        secure=False,
-        samesite="Lax",
-        max_age=3600,
-    )
-    oauth_cfg = types.SimpleNamespace(consumer_key="key", consumer_secret="secret")
-    fake_settings = types.SimpleNamespace(
-        STATE_SESSION_KEY="state",
-        REQUEST_TOKEN_SESSION_KEY="req_token",
-        cookie=cookie,
-        oauth=oauth_cfg,
-    )
-    monkeypatch.setattr("src.main_app.public.auth.routes.settings", fake_settings)
-    monkeypatch.setattr("src.main_app.public.auth.routes.oauth_state_nonce", "state")
-    monkeypatch.setattr("src.main_app.public.auth.routes.request_token_key", "req_token")
-    monkeypatch.setattr("src.main_app.public.auth.routes.load_logged_in_user", lambda: None)
-
-    flask_app = create_app(TestingConfig)
-    flask_app.config["TESTING"] = True
-    flask_app.config["WTF_CSRF_ENABLED"] = False
-
-    with flask_app.app_context():
-        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
-        _db.metadata.create_all(_db.engine, tables=real_tables)
-        yield flask_app.test_client()
-        _db.session.remove()
-        _db.metadata.drop_all(_db.engine, tables=real_tables)
-
-
-def test_login_success_flow(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
-    class DummyLimiter:
-        def __init__(self) -> None:
-            self.calls: list[str] = []
-
-        def allow(self, key: str) -> bool:
-            self.calls.append(key)
-            return True
-
-        def try_after(self, key: str):  # pragma: no cover - defensive guard
-            raise AssertionError("try_after should not be called")
-
-    limiter = DummyLimiter()
-    monkeypatch.setattr("src.main_app.public.auth.routes.login_rate_limiter", limiter)
-    monkeypatch.setattr(
-        "src.main_app.public.auth.routes.secrets",
-        types.SimpleNamespace(token_urlsafe=lambda _: "nonce"),
-    )
-    monkeypatch.setattr("src.main_app.public.auth.routes.sign_state_token", lambda state: f"signed:{state}")
-
-    class DummyStart:
-        def __call__(self, token: str):
-            assert token == "signed:nonce"
-            return "https://auth.example", ("a", "b")
+from flask import Flask
+from flask.testing import FlaskClient
 
-    monkeypatch.setattr("src.main_app.public.auth.routes.start_login", DummyStart())
+from src.main_app.db.services import UsersService, UserTokenService
+from src.main_app.public.auth.routes import _load_request_token
+from src.main_app.shared.core.cookies import sign_state_token
 
-    client = auth_app.test_client()
-    response = client.get("/login")
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
-    assert response.status_code == 302
-    assert response.headers["Location"] == "https://auth.example"
 
-    with client.session_transaction() as sess:
-        assert sess["state"] == "nonce"
-        assert sess["req_token"] == ["a", "b"]
+def _seed_user_with_token(app: Flask, username: str = "Tester") -> int:
+    """Create a user + OAuth token record and return the user_id."""
+    with app.app_context():
+        user = UsersService().create_user(username)
+        UserTokenService().upsert_user_token(
+            user_id=user.user_id,
+            access_key="ak",
+            access_secret="as",
+        )
+        return user.user_id
+
 
-    assert limiter.calls
+# ---------------------------------------------------------------------------
+# Login
+# ---------------------------------------------------------------------------
 
 
-def test_callback_success(auth_db_client, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test callback creates real user in DB via AuthUserService."""
+@pytest.mark.usefixtures("mock_app")
+class TestLogin:
+    def test_login_success_flow(
+        self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Login should redirect to MediaWiki and store state + request token in session."""
+
+        # Mock only external OAuth handshake and non-deterministic nonce
+        monkeypatch.setattr(
+            "src.main_app.public.auth.routes.secrets",
+            types.SimpleNamespace(token_urlsafe=lambda _: "nonce"),
+        )
 
-    class DummyLimiter:
-        def allow(self, key: str) -> bool:
-            return True
+        class DummyStart:
+            def __call__(self, token: str):
+                # token is the signed state — just verify it's a non-empty string
+                assert token
+                return "https://auth.example", ("a", "b")
 
-    monkeypatch.setattr("src.main_app.public.auth.routes.callback_rate_limiter", DummyLimiter())
-    monkeypatch.setattr(
-        "src.main_app.public.auth.routes.verify_state_token",
-        lambda token: "state-value" if token == "token" else None,
-    )
-    monkeypatch.setattr("src.main_app.public.auth.routes._load_request_token", lambda raw: ("k", "s"))
+        monkeypatch.setattr("src.main_app.public.auth.routes.start_login", DummyStart())
 
-    def fake_complete(request_token, query_string: str):
-        assert request_token == ("k", "s")
-        assert query_string == "state=token&oauth_verifier=code"
-        access = types.SimpleNamespace(key="ak", secret="as")
-        identity = {"sub": "123", "username": "Tester"}
-        return access, identity
+        response = mock_client.get("/login")
 
-    monkeypatch.setattr("src.main_app.shared.auth.auth_service.complete_login", fake_complete)
-    monkeypatch.setattr("src.main_app.public.auth.routes.sign_user_id", lambda user_id: f"signed:{user_id}")
+        assert response.status_code == 302
+        assert response.headers["Location"] == "https://auth.example"
 
-    client = auth_db_client
-    with client.session_transaction() as sess:
-        sess["state"] = "state-value"
-        sess["req_token"] = ["k", "s"]
+        with mock_client.session_transaction() as sess:
+            # Real session key from settings (oauth_state_nonce)
+            assert sess["oauth_state_nonce"] == "nonce"
+            # Real session key from settings (state = request_token_key)
+            assert sess["state"] == ["a", "b"]
 
-    response = client.get("/callback?state=token&oauth_verifier=code")
-    cookie_header = response.headers.get("Set-Cookie", "")
+    def test_login_rate_limited(
+        self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Login should redirect when rate limited."""
 
-    assert response.status_code == 302
-    assert "uid_enc_copy" in cookie_header
+        class DummyLimiter:
+            def allow(self, key: str) -> bool:
+                return False
 
-    with client.session_transaction() as sess:
-        assert sess["uid"] is not None
-        assert sess["uid"] > 0
+            def try_after(self, key: str):
+                return type("obj", (object,), {"total_seconds": lambda self: 60})()
 
+        monkeypatch.setattr("src.main_app.public.auth.routes.login_rate_limiter", DummyLimiter())
 
-def test_logout_clears_session(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("src.main_app.public.auth.routes.delete_user_token", lambda uid: None)
-    monkeypatch.setattr("src.main_app.public.auth.routes.extract_user_id", lambda token: 55)
+        response = mock_client.get("/login")
+        assert response.status_code == 302
 
-    client = auth_app.test_client()
-    with client.session_transaction() as sess:
-        sess["uid"] = 42
-        sess["username"] = "Tester"
 
-    response = client.get("/logout")
+# ---------------------------------------------------------------------------
+# Callback
+# ---------------------------------------------------------------------------
 
-    assert response.status_code == 302
-    assert response.headers["Location"] == "/"
 
-    with client.session_transaction() as sess:
-        assert "uid" not in sess
+@pytest.mark.usefixtures("mock_app")
+class TestCallback:
+    def test_callback_success(self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Callback should complete OAuth, persist user to DB, set session and cookie."""
 
+        # Mock only the external OAuth completion — returns access token + identity
+        def fake_complete(request_token, query_string: str):
+            assert request_token == ("k", "s")
+            assert "oauth_verifier=code" in query_string
+            access = types.SimpleNamespace(key="ak", secret="as")
+            identity = {"sub": "123", "username": "Tester"}
+            return access, identity
 
-def test_login_rate_limited(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test login redirects when rate limited."""
+        monkeypatch.setattr("src.main_app.shared.auth.auth_service.complete_login", fake_complete)
 
-    class DummyLimiter:
-        def allow(self, key: str) -> bool:
-            return False
+        # Sign a state nonce using the real signing utility
+        state_nonce = "test-nonce"
+        signed_state = sign_state_token(state_nonce)
 
-        def try_after(self, key: str):
-            return type("obj", (object,), {"total_seconds": lambda self: 60})()
+        # Seed session with state nonce + request token (real session keys)
+        with mock_client.session_transaction() as sess:
+            sess["oauth_state_nonce"] = state_nonce
+            sess["state"] = ["k", "s"]
 
-    limiter = DummyLimiter()
-    monkeypatch.setattr("src.main_app.public.auth.routes.login_rate_limiter", limiter)
+        # The state query param must be the signed token (MediaWiki echoes it back)
+        response = mock_client.get(f"/callback?state={quote(signed_state)}&oauth_verifier=code")
+        cookie_header = response.headers.get("Set-Cookie", "")
 
-    client = auth_app.test_client()
-    response = client.get("/login")
+        assert response.status_code == 302
+        # Real cookie name from settings
+        assert "uid_enc" in cookie_header
 
-    assert response.status_code == 302
+        # Verify user was persisted to the real DB
+        with mock_app.app_context():
+            user = UsersService().get_user_by_username("Tester")
+            assert user is not None
+            token = UserTokenService().get_user_token(user.user_id)
+            assert token is not None
 
+        with mock_client.session_transaction() as sess:
+            assert sess["uid"] == user.user_id
+            assert sess["username"] == "Tester"
 
-def test_callback_rate_limited(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test callback redirects when rate limited."""
+    def test_callback_rate_limited(
+        self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Callback should redirect when rate limited."""
 
-    class DummyLimiter:
-        def allow(self, key: str) -> bool:
-            return False
+        class DummyLimiter:
+            def allow(self, key: str) -> bool:
+                return False
 
-    limiter = DummyLimiter()
-    monkeypatch.setattr("src.main_app.public.auth.routes.callback_rate_limiter", limiter)
+        monkeypatch.setattr("src.main_app.public.auth.routes.callback_rate_limiter", DummyLimiter())
 
-    client = auth_app.test_client()
-    response = client.get("/callback?state=token&oauth_verifier=code")
+        response = mock_client.get("/callback?state=token&oauth_verifier=code")
+        assert response.status_code == 302
 
-    assert response.status_code == 302
+    def test_callback_missing_state(
+        self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Callback should fail when state is missing."""
 
+        response = mock_client.get("/callback")
+        assert response.status_code == 302
 
-def test_callback_missing_state(auth_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test callback fails when state is missing."""
 
-    class DummyLimiter:
-        def allow(self, key: str) -> bool:
-            return True
+# ---------------------------------------------------------------------------
+# Logout
+# ---------------------------------------------------------------------------
 
-    monkeypatch.setattr("src.main_app.public.auth.routes.callback_rate_limiter", DummyLimiter())
 
-    client = auth_app.test_client()
-    response = client.get("/callback")
+@pytest.mark.usefixtures("mock_app")
+class TestLogout:
+    def test_logout_clears_session(self, mock_app: Flask, mock_client: FlaskClient) -> None:
+        """Logout should delete the user token from DB and clear the session."""
 
-    assert response.status_code == 302
+        # Seed a real user + token in the DB
+        user_id = _seed_user_with_token(mock_app, username="LogoutUser")
 
+        with mock_client.session_transaction() as sess:
+            sess["uid"] = user_id
+            sess["username"] = "LogoutUser"
 
-def test_load_request_token_valid(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test _load_request_token parses valid token."""
-    from mwoauth import RequestToken
+        response = mock_client.get("/logout")
 
-    from src.main_app.public.auth.routes import _load_request_token
+        assert response.status_code == 302
+        assert response.headers["Location"].endswith("/")
 
-    result = _load_request_token(["key", "secret"])
-    assert isinstance(result, RequestToken)
-    assert result.key == "key"
-    assert result.secret == "secret"
+        # Verify token was deleted from the real DB
+        with mock_app.app_context():
+            token = UserTokenService().get_user_token(user_id)
+            assert token is None
 
+        with mock_client.session_transaction() as sess:
+            assert "uid" not in sess
 
-def test_load_request_token_invalid_empty(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test _load_request_token raises on empty token."""
-    from src.main_app.public.auth.routes import _load_request_token
 
-    with pytest.raises(ValueError, match="Missing OAuth request token"):
-        _load_request_token(None)
+# ---------------------------------------------------------------------------
+# _load_request_token (pure utility — no DB involved)
+# ---------------------------------------------------------------------------
 
-    with pytest.raises(ValueError, match="Missing OAuth request token"):
-        _load_request_token([])
 
+class TestLoadRequestToken:
+    def test_load_request_token_valid(self) -> None:
+        """Test _load_request_token parses valid token."""
+        from mwoauth import RequestToken
 
-def test_load_request_token_invalid_short(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test _load_request_token raises on short token."""
-    from src.main_app.public.auth.routes import _load_request_token
+        result = _load_request_token(["key", "secret"])
+        assert isinstance(result, RequestToken)
+        assert result.key == "key"
+        assert result.secret == "secret"
 
-    with pytest.raises(ValueError, match="Invalid OAuth request token"):
-        _load_request_token(["key"])
+    def test_load_request_token_invalid_empty(self) -> None:
+        """Test _load_request_token raises on empty token."""
+        with pytest.raises(ValueError, match="Missing OAuth request token"):
+            _load_request_token(None)
+
+        with pytest.raises(ValueError, match="Missing OAuth request token"):
+            _load_request_token([])
+
+    def test_load_request_token_invalid_short(self) -> None:
+        """Test _load_request_token raises on short token."""
+        with pytest.raises(ValueError, match="Invalid OAuth request token"):
+            _load_request_token(["key"])

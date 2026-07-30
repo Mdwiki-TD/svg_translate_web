@@ -119,11 +119,6 @@ class SettingsRoutes(SettingsFuncs):
         self.bp.post("/create")(admin_required(self.create))
         self.bp.post("/update")(admin_required(self.update))
 
-
-def settings_update_form(request_form: ImmutableMultiDict) -> tuple[list[str], list[str]]:
-    return SettingsFuncs().settings_update_form(request_form)
-
-
 __all__ = [
     "SettingsRoutes",
 ]

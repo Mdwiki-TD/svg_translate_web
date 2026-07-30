@@ -1,4 +1,6 @@
-"""Unit tests for src/main_app/adminpanel/routes/coordinators.py module."""
+"""
+Unit tests for src/main_app/adminpanel/routes/coordinators.py module.
+"""
 
 from __future__ import annotations
 
