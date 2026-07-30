@@ -17,14 +17,14 @@ logger = logging.getLogger(__name__)
 EXTRACT_FILENAME_KEY = "extract_filename"
 
 
-def work_file(filename: str) -> dict[str, Any]:
+def work_file(filename: str) -> dict[str, Any] | None:
 
     logger.info("Starting extract translations for file: %s", filename)
 
     # Reject invalid filesystem filenames before calling download_one_file()
     if not filename or filename != Path(filename).name or filename in {".", ".."}:
         flash(f"Invalid file name: {filename}", "danger")
-        return {}
+        return None
 
     # Create temporary directory for download
     temp_dir = Path(tempfile.mkdtemp())
@@ -34,7 +34,7 @@ def work_file(filename: str) -> dict[str, Any]:
 
         if result.get("result") != "success" or not result.get("path"):
             flash(f"Failed to download file: {filename}", "danger")
-            return {}
+            return None
 
         file_path = Path(result["path"])
 
@@ -43,12 +43,12 @@ def work_file(filename: str) -> dict[str, Any]:
             translations = extract(svg_file_path=file_path, case_insensitive=True)
             if not isinstance(translations, dict):
                 flash("Invalid or empty translation data", "danger")
-                return {}
+                return None
 
         except Exception as e:
             logger.error("Error extracting translations: %s", e, exc_info=True)
             flash("An error occurred while extracting translations", "danger")
-            return {}
+            return None
 
         translations.pop("tspans_by_id", None)
 
@@ -121,16 +121,20 @@ class ExtractRoutes:
         # ========================
         translations = work_file(filename)
 
-        translations_new = translations.get("new", {})
-        languages = {}
-
-        if translations_new:
-            languages = sorted(
-                {lang for entry in translations["new"].values() if isinstance(entry, dict) for lang in entry}
-            )
-            flash("Translations extracted successfully", "success")
+        if translations is None:
+            translations = {}
+            languages: list[str] = []
         else:
-            flash("No translations found", "warning")
+            translations_new = translations.get("new", {})
+            languages = []
+            if translations_new:
+                languages = sorted(
+                    {lang for entry in translations["new"].values() if isinstance(entry, dict) for lang in entry}
+                )
+                flash("Translations extracted successfully", "success")
+            else:
+                flash("No translations found", "warning")
+
 
         logger.info("Extracted languages: %s", len(languages))
 
