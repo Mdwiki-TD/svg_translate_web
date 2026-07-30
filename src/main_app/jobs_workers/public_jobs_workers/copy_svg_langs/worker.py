@@ -15,7 +15,7 @@ import requests
 from mwclient.client import Site
 
 from ....api_services import create_commons_session
-from ....api_services.files_service import download_svg_file, upload_fixed_svg
+from ....api_services.files_service import download_one_file, upload_fixed_svg
 from ....config import settings
 from ....shared.fix_nested.worker import (
     DetectionResult,
@@ -30,7 +30,7 @@ from .steps import (
     InjectResult,
     extract_text_step,
     extract_titles_step,
-    extract_translations_step,
+    extract_translations_step_with_download,
     inject_step_one_file,
 )
 
@@ -42,6 +42,8 @@ class OneFileProcessor:
     def __init__(self, site: Site | None, output_dir: Path, args: dict[str, Any]):
         self.site = site
         self.output_dir = output_dir
+        self.output_dir_files = (self.output_dir / "files") if self.output_dir else None
+
         self.args = args
 
         upload_limit = self.args.get("upload_limit") or 0
@@ -60,32 +62,14 @@ class OneFileProcessor:
         # ----------------------------------------------
         # File step 1: download
 
-        try:
-            download = download_svg_file(
-                title,
-                self.output_dir / "files",
-                session=self.session,
-            )
-        except Exception as e:
-            logger.exception("Error downloading SVG file")
-            title_info.steps.download._update(result=False, msg="Error downloading", details={"error": str(e)})
-            title_info.status = "failed"
+        file_path_str: str | None = self.get_download_path(title, title_info)
+
+        if not file_path_str:
             return False
 
-        if not download.get("ok"):
-            title_info.steps.download._update(result=False, msg="Failed to download file", details=download)
-            title_info.status = "failed"
-            return False
+        title_info.file_path = file_path_str
 
-        title_info.steps.download._update(result=True, msg="Downloaded successfully", details=download)
-
-        file_path: Path | None = download.get("path")
-        if not file_path:
-            title_info.steps.download._update(result=False, msg="Failed to get file path", details=download)
-            title_info.status = "failed"
-            return False
-
-        title_info.file_path = str(file_path)
+        file_path = Path(file_path_str)
 
         # ----------------------------------------------
         # File step 2: fix nested tags
@@ -307,6 +291,49 @@ class OneFileProcessor:
 
         return summary
 
+    def get_download_path(self, title: str, title_info: FilesProcessedItem):
+        down_step = title_info.steps.download
+        try:
+            file_data = download_one_file(
+                title=title,
+                out_dir=self.output_dir_files,
+                overwrite=True,
+                session=self.session,
+            )
+        except Exception as e:
+            logger.exception("Error downloading SVG file")
+            down_step._update(result=False, msg="Error downloading", details={"error": str(e)})
+            title_info.status = "failed"
+            return None
+
+        if file_data.get("result") != "success":
+            download_result = {
+                "ok": False,
+                "path": None,
+                "error": "download_failed",
+                "details": file_data,
+            }
+            down_step._update(result=False, msg="Failed to download file", details=download_result)
+            title_info.status = "failed"
+            return None
+
+        file_path: str | None = file_data.get("path")
+
+        download_result = {
+            "ok": True,
+            "path": file_path,
+            "error": None,
+            "details": {},
+        }
+
+        if file_path:
+            down_step._update(result=True, msg="Downloaded successfully", details=download_result)
+            return file_path
+
+        down_step._update(result=False, msg="Failed to get file path", details=download_result)
+        title_info.status = "failed"
+        return None
+
 
 class CopySvgLangsWorker(BaseObjectsJobWorker):
     """
@@ -332,6 +359,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.limit_items = self.args.get("limit_items") or 0
 
         self.output_dir = self._compute_output_dir(self.title)
+        self.output_dir_files = (self.output_dir / "files") if self.output_dir else None
+
         self.files_dict: list[str] = []
         self.site: Site | None = None
 
@@ -427,11 +456,25 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def _extract_translations_step(self) -> bool | None:
         stage = self.result.stages.translations
         stage.status = "running"
+        output_dir_main = self.output_dir_files
+
+        main_file_download = download_one_file(title=self.main_title, out_dir=output_dir_main, overwrite=True)
+
+        if not main_file_download.get("path"):
+            error = f"Error when downloading main file: {self.main_title}"
+            logger.error(error)
+            stage.status = "failed"
+            stage.message = error
+            self.result.status = "failed"
+
+            return False
+
+        main_title_path = main_file_download["path"]
 
         try:
-            step_result = extract_translations_step(
+            step_result = extract_translations_step_with_download(
                 self.main_title,
-                self.output_dir / "files",
+                self.output_dir_files,
             )
         except Exception as e:
             logger.exception("Error in stage translations")

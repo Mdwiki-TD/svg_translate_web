@@ -4,7 +4,7 @@ import logging
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
 from .exceptions import DatabaseInitError
 
@@ -51,8 +51,15 @@ def create_views(_db: SQLAlchemy) -> None:
             try:
                 with conn.begin():
                     conn.execute(text(create_sql))
-            except Exception:
-                logger.error("Failed to create view %s", table.name)
+            except OperationalError as exc:
+                code = getattr(exc, "code", None)
+                if code == 1050:
+                    logger.warning("View %s already exists, skipping", table.name)
+                else:
+                    logger.exception("Failed to create view %s", table.name)
+
+            except Exception as exc:
+                logger.error("Failed to create view %s. error: %s", table.name, str(exc))
 
 
 __all__ = [

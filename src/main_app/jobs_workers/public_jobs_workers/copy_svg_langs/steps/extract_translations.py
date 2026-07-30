@@ -13,7 +13,39 @@ from .....api_services.files_service import download_one_file
 logger = logging.getLogger(__name__)
 
 
-def extract_translations_step(main_title: str, output_dir_main: Path) -> dict[str, Any]:
+def _extract_step(main_title: str, main_title_path: Path) -> dict[str, Any]:
+    """
+    Load SVG translations from a Wikimedia Commons main file.
+
+    Args:
+        main_title: Commons file title (e.g., "Example.svg") to download and extract translations from.
+        output_dir_main: Directory where the downloaded main file is placed.
+
+    Returns:
+        dict with keys: success (bool), translations (dict), error (str|None)
+    """
+    logger.info(f"Extracting translations from main file: {main_title}")
+
+    try:
+        translations = extract(main_title_path, case_insensitive=True)
+    except Exception:
+        logger.exception("Failed to extract translations from main SVG")
+        return {"success": False, "translations": {}, "error": "Failed to parse main SVG", "message": ""}
+
+    new_translations = (translations.get("new") or {}) if isinstance(translations, dict) else {}
+    new_translations_count = len(new_translations)
+
+    if new_translations_count == 0:
+        error = f"No translations found in main file: {main_title}"
+        logger.debug(error)
+        return {"success": False, "translations": {}, "error": error, "message": ""}
+
+    message = f"Loaded {new_translations_count} translations from main file"
+
+    return {"success": True, "translations": translations, "error": None, "message": message}
+
+
+def extract_translations_step_with_download(main_title: str, output_dir_main: Path) -> dict[str, Any]:
     """
     Load SVG translations from a Wikimedia Commons main file.
 
@@ -35,25 +67,9 @@ def extract_translations_step(main_title: str, output_dir_main: Path) -> dict[st
 
     main_title_path = files1["path"]
 
-    try:
-        translations = extract(main_title_path, case_insensitive=True)
-    except Exception:
-        logger.exception("Failed to extract translations from main SVG")
-        return {"success": False, "translations": {}, "error": "Failed to parse main SVG", "message": ""}
-
-    new_translations = (translations.get("new") or {}) if isinstance(translations, dict) else {}
-    new_translations_count = len(new_translations)
-
-    if new_translations_count == 0:
-        error = f"No translations found in main file: {main_title}"
-        logger.debug(error)
-        return {"success": False, "translations": {}, "error": error, "message": ""}
-
-    message = f"Loaded {new_translations_count} translations from main file"
-
-    return {"success": True, "translations": translations, "error": None, "message": message}
+    return _extract_step(main_title, main_title_path)
 
 
 __all__ = [
-    "extract_translations_step",
+    "extract_translations_step_with_download",
 ]

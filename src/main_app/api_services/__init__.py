@@ -2,17 +2,18 @@
 
 from .category import get_category_members
 from .clients import (
+    CommonsSession,
     _fetch_grapher_metadata,
     create_commons_session,
-    download_commons_file_core,
-    download_file_rate_limit,
     fetch_grapher_metadata,
     fetch_indicators_metadata,
     get_cronjob_site,
     get_user_site,
 )
 from .files_service import (
+    download_commons_file_core,
     download_svg_file,
+    get_file_info,
     upload_fixed_svg,
 )
 from .mwclient_page import MwClientPage
@@ -25,6 +26,9 @@ from .query_api import (
 )
 
 __all__ = [
+    "CommonsSession",
+    "download_commons_file_core",
+    "get_file_info",
     "_fetch_grapher_metadata",
     "download_svg_file",
     "upload_fixed_svg",
@@ -37,8 +41,6 @@ __all__ = [
     "search_pages",
     "get_category_members",
     "create_commons_session",
-    "download_commons_file_core",
-    "download_file_rate_limit",
     "get_cronjob_site",
     "fetch_indicators_metadata",
     "fetch_grapher_metadata",

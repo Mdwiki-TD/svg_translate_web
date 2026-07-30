@@ -6,7 +6,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.download_helper import download_file_from_commons
+from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.download_helper import (
+    download_file_from_commons,
+    run_download_file,
+)
 
 
 @pytest.fixture
@@ -47,3 +50,26 @@ class TestDownloadFileFromCommons:
 
         assert result["success"] is False
         assert "Download failed" in result["error"]
+
+
+class TestRunDownloadFile:
+    def test_run_download_file_success(self, mock_download_core, tmp_path, mock_session):
+        """Test successful file download."""
+        output_dir = tmp_path
+        filename = "Test.svg"
+
+        result = run_download_file(filename, output_dir, mock_session)
+
+        assert result.success is True
+        assert result.path == "Test.svg"
+        assert result.size_bytes == len(b"svg-content")
+        assert (output_dir / "Test.svg").read_bytes() == b"svg-content"
+
+    def test_run_download_file_failure(self, mock_download_core, tmp_path, mock_session):
+        """Test handled download failure."""
+        mock_download_core.side_effect = Exception("API Error")
+
+        result = run_download_file("Error.svg", tmp_path, mock_session)
+
+        assert result.success is False
+        assert "Download failed" in result.error

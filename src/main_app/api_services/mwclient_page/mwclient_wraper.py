@@ -184,6 +184,10 @@ class MwClientPage:
         if not self.page.exists:
             return {"success": False, "error": "missing"}
 
+        if not self.page.can("move"):
+            logger.error("InsufficientPermission: User does not have move permissions for title: %s", self.title)
+            return {"success": False, "error": "InsufficientPermission"}
+
         return self._with_retry(self._move_page, self.page, new_title, reason, move_talk, no_redirect)
 
     # ------------------------------------------------------------------

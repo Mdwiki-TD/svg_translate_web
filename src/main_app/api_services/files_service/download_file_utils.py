@@ -4,16 +4,88 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from urllib.parse import quote
 
 import requests
 
-from ...config import settings
-from .. import (
-    create_commons_session,
-    download_file_rate_limit,
-)
+from ..clients import CommonsSession
 
 logger = logging.getLogger(__name__)
+
+BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
+
+
+def download_commons_file_core(
+    filename: str,
+    session: requests.Session,
+    timeout: int = 60,
+) -> bytes:
+    """
+    Download a file from Wikimedia Commons and return raw content.
+
+    This is the lowest-level download function that handles the actual HTTP
+    request to Commons. It performs no file I/O or application-level validation;
+    network and HTTP errors are raised as exceptions for callers to handle.
+
+    Args:
+        filename: Clean filename without "File:" prefix. Spaces will be
+            converted to underscores for the URL.
+        session: Pre-configured requests Session with appropriate headers
+            (User-Agent, etc.).
+        timeout: Request timeout in seconds. Defaults to 60s for compatibility
+            with larger SVG files.
+
+    Returns:
+        Raw bytes content of the downloaded file.
+
+    Raises:
+        requests.RequestException: On network errors, HTTP errors (4xx, 5xx),
+            or timeouts.
+
+    Example:
+        >>> session = create_commons_session("MyBot/1.0")
+        >>> try:
+        ...     content = download_commons_file_core("Example.svg", session)
+        ...     Path("Example.svg").write_bytes(content)
+        ... except requests.RequestException as e:
+        ...     logger.error(f"Download failed: {e}")
+    """
+    # Normalize filename: convert spaces to underscores for URL
+    normalized_name = filename.replace(" ", "_")
+    url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
+
+    bot = CommonsSession(session, timeout=timeout)
+    response = bot.request(
+        method="GET",
+        url=url,
+    )
+    response.raise_for_status()
+    return response.content
+
+
+def download_file_rate_limit(
+    filename: str,
+    session: requests.Session | None = None,
+    timeout: int = 60,
+    max_attempts: int = 5,
+) -> bytes | None:
+    """
+    Download a file from Wikimedia Commons and return raw content.
+    """
+    # Normalize filename: convert spaces to underscores for URL
+    normalized_name = filename.replace(" ", "_")
+    url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
+
+    bot = CommonsSession(session, timeout=timeout)
+
+    try:
+        response = bot.get_with_retry(url=url, max_attempts=max_attempts)
+        if response:
+            return response.content
+    except Exception as e:
+        logger.error(f"Error downloading file {filename}: {e}")
+
+    return None
 
 
 def download_one_file(
@@ -21,7 +93,7 @@ def download_one_file(
     out_dir: Path,
     i: int = 0,
     session: requests.Session | None = None,
-    overwrite: bool = False,
+    overwrite: bool = True,
 ) -> dict[str, str]:
     """Download a single Commons file, skipping already-downloaded copies.
 
@@ -54,9 +126,6 @@ def download_one_file(
         data["msg"] = "Skip existing file, no overwrite"
         data["path"] = str(out_path)
         return data
-
-    if not session:
-        session = create_commons_session(settings.other.user_agent)
 
     # Use the core download function with shorter timeout
     try:

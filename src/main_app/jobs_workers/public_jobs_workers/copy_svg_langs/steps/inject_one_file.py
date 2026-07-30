@@ -9,6 +9,8 @@ from typing import Any
 
 from CopySVGTranslation import inject
 
+from .inject_utils import add_translations_from_titles
+
 logger = logging.getLogger(__name__)
 
 
@@ -80,7 +82,6 @@ def start_injects(
             updated_translations=updated_translations,
         )
 
-
 def inject_step_one_file(
     file_path: Path,
     translations: dict[str, Any],
@@ -88,6 +89,8 @@ def inject_step_one_file(
     overwrite: bool = False,
 ) -> InjectResult:
     """ """
+    translations = add_translations_from_titles(translations)
+
     try:
         injects_result: InjectResult = start_injects(
             file_path,

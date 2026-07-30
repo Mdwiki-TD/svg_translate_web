@@ -62,7 +62,11 @@ def register_error_pages(app: Flask) -> None:
     def page_not_found(e: Exception) -> tuple[str | Response, int]:
         """Handle 404 errors"""
         # Skip logging for `/.well-known/` which is used in browser console
-        if not request.path.startswith("/.well-known/"):
+        skip_routs = (
+            "/robots.txt",
+            "/.well-known",
+        )
+        if not request.path.startswith(skip_routs):
             logger.error("%s Page not found: %s", request.path, e)
 
         # Return JSON response for API requests

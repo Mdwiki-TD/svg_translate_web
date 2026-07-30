@@ -58,6 +58,8 @@
             });
             const WIKIMEDIA_API_URL = "https://{{ wiki_domain }}/w/api.php";
             setupWikiAutocomplete(".wiki-autocomplete", WIKIMEDIA_API_URL);
+            setupWikiAutocomplete(".wiki-autocomplete-files", WIKIMEDIA_API_URL, 6);
+            setupWikiAutocomplete(".wiki-autocomplete-templates", WIKIMEDIA_API_URL, 10);
         });
         function pup_window_new(element, width = 700, height = 650) {
             var target = $(element).attr("pup-target");

@@ -299,7 +299,9 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     def _step_upload(self, file_info: CropFileProcessingInfo) -> bool | None:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""
         file_name = ensure_file_prefix(file_info.original_file)
-        wikitext = MwClientPage(file_name, self.site).get_text()
+        page = MwClientPage(file_name, self.site)
+        wikitext = page.get_text()
+
         cropped_file_wikitext = create_cropped_file_text(file_info.original_file, wikitext)
 
         upload_result = upload_cropped_file(

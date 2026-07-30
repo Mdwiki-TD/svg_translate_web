@@ -12,9 +12,8 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....db.exceptions import DuplicateRecordError
-
 from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_members
+from ....db.exceptions import DuplicateRecordError
 from ....db.models import TemplateRecord
 from ....db.services import (
     OwidChartsService,
@@ -181,7 +180,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
     def _load_temp_info(self, template: TemplateData) -> TemplateInfo:
         template_info = TemplateInfo(
-            id=template.id,
+            id=template.id,  # pyright: ignore[reportCallIssue]
             title=template.title,
             new_main_file="",
             last_world_file="",

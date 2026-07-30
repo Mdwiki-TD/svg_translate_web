@@ -115,16 +115,23 @@ class BaseObjectsJobWorker(ABC):
         self._save_progress()
 
         # Update final status
-        try:
-            self._jobs_service.update_job_status_with_retry(
-                self.job_id, final_status, self.result_file, job_type=self.job_type
-            )
-        except (StaleDataError, LookupError):
-            logger.error("Job %s: Could not update final status, job record might have been deleted.", self.job_id)
-        except Exception:
-            logger.exception("Job %s: Failed to update final status", self.job_id)
+        self.update_final_status(final_status)
 
         logger.info("Job %s: Finished with status %s", self.job_id, final_status)
+
+    def update_final_status(self, final_status: str) -> None:
+        try:
+            self._jobs_service.update_job_status_with_retry(
+                self.job_id,
+                final_status,
+                self.result_file,
+                job_type=self.job_type,
+            )
+        except (StaleDataError, LookupError) as exc:
+            logger.error("Job %s: Could not update final status, job record might have been deleted.", self.job_id)
+            logger.error("Error: %s", str(exc))
+        except Exception:
+            logger.exception("Job %s: Failed to update final status", self.job_id)
 
     def _save_progress(self, insert_last_update: bool = True) -> None:
         if insert_last_update:

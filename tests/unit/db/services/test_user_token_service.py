@@ -1,4 +1,6 @@
-"""Tests for user_token_service module."""
+"""
+Integration tests for user_token_service module.
+"""
 
 from __future__ import annotations
 
