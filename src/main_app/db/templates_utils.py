@@ -29,7 +29,7 @@ def extract_slug(chart_url: str | None) -> str | None:
         return None
 
     # Remove query parameters from the URL
-    chart_url = chart_url.split("?")[0]
+    chart_url = str(chart_url).split("?")[0]
 
     slug = None
     # Check if it's a valid grapher URL and extract the slug
