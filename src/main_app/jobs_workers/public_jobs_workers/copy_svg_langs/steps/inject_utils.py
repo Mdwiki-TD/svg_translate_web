@@ -144,11 +144,16 @@ def _add_from_titles(titles_new: dict[str, dict[str, str]], new_keys: list[str])
 def add_translations_from_titles(translations: dict[str, Any]) -> dict[str, Any]:
     """Insert new translations into the translations dictionary."""
 
-    if translations.get("title_new") and translations.get("new"):
-        new_keys = list(translations["new"].keys())
-        add_translations = _add_from_titles(translations["title_new"], new_keys)
-        if add_translations:
-            translations["new"].update(add_translations)
+    title_new = translations.get("title_new")
+    new_translations = translations.get("new")
+
+    if title_new is None or new_translations is None:
+        return translations
+
+    new_keys = list(translations["new"].keys())
+    add_translations = _add_from_titles(translations["title_new"], new_keys)
+    if add_translations:
+        translations["new"].update(add_translations)
 
     return translations
 
