@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 
+from ..core.crypto import encrypt_value
+
 from ...db.models import UserRecord
 from ...db.services import (
     AdminService,
@@ -15,8 +17,8 @@ from .current_user import CurrentUser
 logger = logging.getLogger(__name__)
 
 
-class AuthUserService:
-    def __init__(self):
+class AuthUsersNewService:
+    def __init__(self) -> None:
         self.users_service = UsersService()
         self.user_token_service = UserTokenService()
         self.admin_service = AdminService()
@@ -50,11 +52,14 @@ class AuthUserService:
             return None
 
         try:
+            encrypted_token = encrypt_value(access_key)
+            encrypted_secret = encrypt_value(access_secret)
+
             # 1. Update or insert into database via repository
             self.user_token_service.upsert_user_token(
                 user_id=user_id,
-                access_key=access_key,
-                access_secret=access_secret,
+                encrypted_token=encrypted_token,
+                encrypted_secret=encrypted_secret,
             )
 
         except Exception as e:
@@ -103,6 +108,21 @@ class AuthUserService:
             return None
 
 
+class AuthUserService:
+    @staticmethod
+    def save_and_get_user(
+        username: str,
+        access_key: str,
+        access_secret: str,
+    ) -> CurrentUser | None:
+        return AuthUsersNewService().save_and_get_user(username, access_key, access_secret)
+
+    @staticmethod
+    def get_authenticated_user(user_id: int) -> CurrentUser | None:
+        return AuthUsersNewService().get_authenticated_user(user_id)
+
+
 __all__ = [
+    "AuthUsersNewService",
     "AuthUserService",
 ]

@@ -5,16 +5,30 @@ SQLAlchemy-based service for managing user tokens.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import Session, joinedload
 
 from ...extensions import db
 from ...shared.core.crypto import encrypt_value
-from ..models import UserTokenRecord
+from ..models import UserRecord, UserTokenRecord
 from .crud_service import CRUDService
 
 logger = logging.getLogger(__name__)
+
+
+def _get_user_token_by_username(username: str, session: Session | Any) -> UserTokenRecord | None:
+    try:
+        return (
+            session.query(UserTokenRecord)
+            .join(UserRecord, UserTokenRecord.user_id == UserRecord.user_id)
+            .filter(UserRecord.username == username)
+            .first()
+        )
+    except Exception as exc:
+        logger.error("Error getting token by username %s: %s", username, exc)
+        return None
 
 
 class UserTokenService(CRUDService[UserTokenRecord]):
@@ -51,11 +65,13 @@ class UserTokenService(CRUDService[UserTokenRecord]):
             return None
         return self.get_record_by_id(user_id)
 
-    def create_user_token(self, user_id: int, access_key: str, access_secret: str) -> UserTokenRecord:
+    def create_user_token(
+        self,
+        user_id: int,
+        encrypted_token: bytes,
+        encrypted_secret: bytes,
+    ) -> UserTokenRecord:
         try:
-            encrypted_token = self.encrypt_value(access_key)
-            encrypted_secret = self.encrypt_value(access_secret)
-
             record = UserTokenRecord(
                 user_id=user_id,
                 access_token=encrypted_token,
@@ -71,54 +87,48 @@ class UserTokenService(CRUDService[UserTokenRecord]):
             self.session.rollback()
             raise exc
 
-    def update_user_token(self, user_id: int, access_key: str, access_secret: str) -> UserTokenRecord | None:
+    def update_user_token(
+        self,
+        orm_obj: UserTokenRecord,
+        encrypted_token: bytes,
+        encrypted_secret: bytes,
+    ) -> UserTokenRecord | None:
         """
         update the encrypted OAuth credentials for a user.
         """
-        orm_obj = self.get_record_by_id(user_id)
-
-        if not orm_obj:
-            return None
-
+        now = func.current_timestamp()
+        data = {
+            "access_token": encrypted_token,
+            "access_secret": encrypted_secret,
+            "updated_at": now,
+            "last_used_at": now,
+            "rotated_at": now,
+        }
         try:
-            encrypted_token = self.encrypt_value(access_key)
-            encrypted_secret = self.encrypt_value(access_secret)
-            now = func.current_timestamp()
-
-            orm_obj.access_token = encrypted_token
-            orm_obj.access_secret = encrypted_secret
-            orm_obj.updated_at = now
-            orm_obj.last_used_at = now
-            orm_obj.rotated_at = now
-
-            self.session.commit()
-            self.session.refresh(orm_obj)
+            self.update(orm_obj, **data)
             return orm_obj
         except Exception as exc:
-            logger.error("Error updating token for user %s: %s", user_id, exc)
-            self.session.rollback()
+            logger.error("Error updating token for user %s: %s", orm_obj.user_id, exc)
             return None
 
     def upsert_user_token(
         self,
         user_id: int,
-        access_key: str,
-        access_secret: str,
+        encrypted_token: bytes,
+        encrypted_secret: bytes,
     ) -> UserTokenRecord | None:
         """
         Upsert the encrypted OAuth credentials for a user.
         Creates a new token row if one does not exist.
         """
-        try:
-            record = self.get_record_by_id(user_id)
-            if record:
-                return self.update_user_token(user_id, access_key, access_secret)
-            else:
-                return self.create_user_token(user_id, access_key, access_secret)
+        record = self.get_record_by_id(user_id)
+        if record:
+            return self.update_user_token(record, encrypted_token, encrypted_secret)
+        else:
+            return self.create_user_token(user_id, encrypted_token, encrypted_secret)
 
-        except Exception as exc:
-            self.session.rollback()
-            raise exc
+    def get_user_token_by_username(self, username: str) -> UserTokenRecord | None:
+        return _get_user_token_by_username(username, self.session)
 
 
 __all__ = [

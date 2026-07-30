@@ -48,10 +48,6 @@ oauth_state_nonce = settings.sessions.state_key
 request_token_key = settings.sessions.request_token_key
 
 
-def delete_user_token(record_id: int) -> bool:
-    return UserTokenService().delete(record_id)
-
-
 # ---------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------
@@ -219,7 +215,7 @@ class AuthRoutesFuncs:
         # delete user token if possible
         if isinstance(user_id, int):
             try:
-                delete_user_token(user_id)
+                UserTokenService().delete(user_id)
                 flash("You have been logged out successfully.", "info")
                 logger.info("User token deleted for user_id: %s", user_id)
             except Exception:
