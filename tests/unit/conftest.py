@@ -21,11 +21,26 @@ def mock_before_run(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture
 def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
-    """Mock non-DB services common to workers (file I/O, mwclient site)."""
+    """Mock non-DB services common to workers (file I/O, mwclient site, DB calls).
+
+    ``update_job_status`` and ``update_job_status_with_retry`` are kept mocked
+    because most worker tests exercise orchestration logic and do not create
+    real JobRecords in the database.  Tests that need real DB updates should
+    use a ``seeded_job`` fixture instead.
+    """
     mocks = {
         "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
         "save_job_result_by_name": MagicMock(),
+        "update_job_status": MagicMock(),
+        "update_job_status_with_retry": MagicMock(),
     }
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.JobsService.update_job_status", mocks["update_job_status"]
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.JobsService.update_job_status_with_retry",
+        mocks["update_job_status_with_retry"],
+    )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mocks["save_job_result_by_name"]
     )

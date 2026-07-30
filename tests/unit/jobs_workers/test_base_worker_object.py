@@ -52,6 +52,15 @@ def worker(seeded_job):
     return worker
 
 
+@pytest.fixture
+def worker_no_job():
+    """Worker without a real DB record — before_run will raise LookupError."""
+    user = {"username": "testuser"}
+    worker = MockWorker(job_id=999, user=user)
+    worker.result = WorkerObject()
+    return worker
+
+
 def test_worker_object_to_json():
     obj = WorkerObject(status="running", error="some error")
     data = obj.to_json()
@@ -66,8 +75,8 @@ class TestBaseObjectsJobWorker:
         job = JobsService().get_job(seeded_job.id, job_type="mock_job")
         assert job.status == "running"
 
-    def test_before_run_lookup_error(self, worker, mock_base_worker):
-        assert worker.before_run() is False
+    def test_before_run_lookup_error(self, worker_no_job, mock_base_worker):
+        assert worker_no_job.before_run() is False
 
     def test_after_run_success(self, worker, mock_base_worker, seeded_job):
         worker.result.status = "running"
@@ -124,8 +133,8 @@ class TestBaseObjectsJobWorker:
         result = worker.run()
         assert result["status"] == "completed"
 
-    def test_run_before_fail(self, worker, mock_base_worker):
-        result = worker.run()
+    def test_run_before_fail(self, worker_no_job, mock_base_worker):
+        result = worker_no_job.run()
         assert result["status"] == "pending"
 
     def test_run_exception(self, worker, mock_base_worker, seeded_job):
