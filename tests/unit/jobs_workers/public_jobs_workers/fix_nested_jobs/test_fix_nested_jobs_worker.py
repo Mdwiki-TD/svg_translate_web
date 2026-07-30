@@ -538,11 +538,12 @@ class TestRunStage:
 class TestRun:
 
     @pytest.fixture(autouse=True)
-    def setup(self, mock_before_run):
-        pass
+    def setup(self, mock_before_run, tmp_path):
+        self.patchers = self._patch_all(tmp_path)
+        self.mocks = {k: v.start() for k, v in self.patchers.items()}
 
     def _patch_all(self, tmp_path):
-        """Return a context-manager-compatible list of patchers."""
+        """Return a context-manager-compatible list of self.patchers."""
         svg = tmp_path / "test.svg"
         svg.touch()
         patches = {
@@ -585,9 +586,7 @@ class TestRun:
         return patches
 
     def test_happy_path_returns_completed(self, tmp_path):
-        patchers = self._patch_all(tmp_path)
-        mocks = {k: v.start() for k, v in patchers.items()}
-        mocks["is_job_cancelled"].return_value = False
+        self.mocks["is_job_cancelled"].return_value = False
 
         try:
             proc = _make_processor()
@@ -595,42 +594,36 @@ class TestRun:
             assert result["status"] == "completed"
             assert result.get("completed_at") is not None
         finally:
-            for p in patchers.values():
+            for p in self.patchers.values():
                 p.stop()
 
     def test_missing_filename_returns_failed(self, tmp_path):
-        patchers = self._patch_all(tmp_path)
-        mocks = {k: v.start() for k, v in patchers.items()}
-        mocks["is_job_cancelled"].return_value = False
+        self.mocks["is_job_cancelled"].return_value = False
 
         try:
             proc = _make_processor(args={})
             result = proc.run()
             assert result["status"] == "failed"
         finally:
-            for p in patchers.values():
+            for p in self.patchers.values():
                 p.stop()
 
     def test_download_failure_stops_pipeline(self, tmp_path):
-        patchers = self._patch_all(tmp_path)
-        mocks = {k: v.start() for k, v in patchers.items()}
-        mocks["is_job_cancelled"].return_value = False
-        mocks["download"].return_value = {"ok": False, "error": "timeout"}
+        self.mocks["is_job_cancelled"].return_value = False
+        self.mocks["download"].return_value = {"ok": False, "error": "timeout"}
 
         try:
             proc = _make_processor()
             result = proc.run()
             assert result["status"] == "failed"
-            mocks["detect"].assert_not_called()
+            self.mocks["detect"].assert_not_called()
         finally:
-            for p in patchers.values():
+            for p in self.patchers.values():
                 p.stop()
 
     def test_cancellation_mid_pipeline_stops_run(self, tmp_path, monkeypatch):
         """Cancellation detected at the fix stage stops further stages."""
-        patchers = self._patch_all(tmp_path)
-        mocks = {k: v.start() for k, v in patchers.items()}
-        mocks["is_job_cancelled"].return_value = False
+        self.mocks["is_job_cancelled"].return_value = False
 
         # _run_step calls self.is_cancelled() without check_db=True, so we
         # drive cancellation through is_job_cancelled_file_exist(file path)
@@ -655,15 +648,13 @@ class TestRun:
             # BaseObjectsJobWorker._mark_as_cancelled_in_result sets status to
             # lowercase "cancelled".
             assert result["status"] == "cancelled"
-            mocks["upload"].assert_not_called()
+            self.mocks["upload"].assert_not_called()
         finally:
-            for p in patchers.values():
+            for p in self.patchers.values():
                 p.stop()
 
     def test_all_stages_keys_present_in_result(self, tmp_path):
-        patchers = self._patch_all(tmp_path)
-        mocks = {k: v.start() for k, v in patchers.items()}
-        mocks["is_job_cancelled"].return_value = False
+        self.mocks["is_job_cancelled"].return_value = False
 
         try:
             proc = _make_processor()
@@ -671,5 +662,5 @@ class TestRun:
             for stage in ("download", "analyze", "fix", "verify", "upload"):
                 assert stage in result["stages"]
         finally:
-            for p in patchers.values():
+            for p in self.patchers.values():
                 p.stop()
