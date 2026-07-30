@@ -164,8 +164,8 @@ class TestOauthRequired:
                 return "never reached"
 
             resp = dummy()
-            assert resp.status_code == 302
-            assert resp.location == "/login"
+            assert resp.status_code == 302  # type: ignore
+            assert resp.location == "/login"  # type: ignore
 
     def test_sets_post_login_redirect_in_session(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         with mock_app.test_request_context(
