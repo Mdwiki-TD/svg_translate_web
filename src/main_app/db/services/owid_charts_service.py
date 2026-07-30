@@ -91,9 +91,10 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         self,
         chart_id: int,
         chart_data: dict[str, Any],
+        remove_session: bool = True,
     ) -> OwidChartRecord | None:
 
-        @retry_on_db_disconnect()
+        @retry_on_db_disconnect(remove_session=remove_session)
         def with_retry() -> OwidChartRecord | None:
             return self._update_chart_data(chart_id, chart_data)
 
