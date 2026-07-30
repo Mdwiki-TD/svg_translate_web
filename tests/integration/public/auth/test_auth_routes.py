@@ -18,23 +18,6 @@ from src.main_app.public.auth.routes import _load_request_token
 from src.main_app.shared.core.cookies import sign_state_token
 
 # ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _seed_user_with_token(app: Flask, username: str = "Tester") -> int:
-    """Create a user + OAuth token record and return the user_id."""
-    with app.app_context():
-        user = UsersService().create_user(username)
-        UserTokenService().upsert_user_token(
-            user_id=user.user_id,
-            access_key="ak",
-            access_secret="as",
-        )
-        return user.user_id
-
-
-# ---------------------------------------------------------------------------
 # Login
 # ---------------------------------------------------------------------------
 
@@ -169,9 +152,15 @@ class TestCallback:
 class TestLogout:
     def test_logout_clears_session(self, mock_app: Flask, mock_client: FlaskClient) -> None:
         """Logout should delete the user token from DB and clear the session."""
-
         # Seed a real user + token in the DB
-        user_id = _seed_user_with_token(mock_app, username="LogoutUser")
+        with mock_app.app_context():
+            user = UsersService().create_user("LogoutUser")
+            UserTokenService().upsert_user_token(
+                user_id=user.user_id,
+                encrypted_token=b"ak",
+                encrypted_secret=b"as",
+            )
+            user_id = user.user_id
 
         with mock_client.session_transaction() as sess:
             sess["uid"] = user_id

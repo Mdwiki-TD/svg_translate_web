@@ -63,8 +63,11 @@ class UsersRoutes:
             logger.exception("Unable to update user permissions.")
             flash("Unable to update user permissions. Please try again.", "danger")
         else:
-            flash(f"User '{record.username}' permissions updated.", "success")
-            logger.info(f"User '{record.username}' [can_run_jobs]={desired} updated.")
+            if record is None:
+                flash("Unable to update user permissions. Please try again.", "danger")
+            else:
+                flash(f"User '{record.username}' permissions updated.", "success")
+                logger.info(f"User '{record.username}' [can_run_jobs]={desired} updated.")
 
         return redirect(url_for("adminpanel.users.dashboard"))
 
@@ -81,8 +84,11 @@ class UsersRoutes:
             logger.exception("Unable to update user permissions.")
             flash("Unable to update user permissions. Please try again.", "danger")
         else:
-            flash(f"User '{record.username}' permissions updated.", "success")
-            logger.info(f"User '{record.username}' [can_run_bg_jobs]={desired} updated.")
+            if record is None:
+                flash("Unable to update user permissions. Please try again.", "danger")
+            else:
+                flash(f"User '{record.username}' permissions updated.", "success")
+                logger.info(f"User '{record.username}' [can_run_bg_jobs]={desired} updated.")
 
         return redirect(url_for("adminpanel.users.dashboard"))
 

@@ -155,7 +155,7 @@ class TestingConfig(Config):
     CORS_DISABLED: bool = True
 
     # Use SQLite in-memory for tests (no MySQL dependency)
-    SQLALCHEMY_DATABASE_URI: str = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URI: str = "sqlite:///:memory:"  # pyright: ignore[reportIncompatibleVariableOverride]
     SQLALCHEMY_ENGINE_OPTIONS: dict[str, Any] = {}  # SQLite doesn't need MySQL options
 
 

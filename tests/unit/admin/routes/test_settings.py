@@ -20,6 +20,7 @@ from src.main_app.db.services import SettingsService
 # SettingsRoutes class structure (no DB needed)
 # ---------------------------------------------------------------------------
 
+
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:

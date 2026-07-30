@@ -112,7 +112,6 @@ SESSION_COOKIE_SAMESITE=Lax
 #### Other Settings
 
 ```bash
-DISABLE_UPLOADS=0
 WIKI_DOMAIN=commons.wikimedia.org
 # Replace with your actual contact email
 USER_AGENT="Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; your-contact-email@example.org)"

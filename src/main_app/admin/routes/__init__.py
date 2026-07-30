@@ -5,6 +5,7 @@ from typing import Any
 
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from .coordinators import CoordinatorsRoutes
+from .errors_route import CheckErrorsRoutes
 from .jobs import AdminJobsRoutes
 from .owid_charts import OwidChartsRoutes
 from .settings import SettingsRoutes
@@ -37,6 +38,7 @@ ADMIN_ROUTE_MODULES: list[AdminRouteModule] = [
             "bp_name": "adminpanel.jobs",
         },
     ),
+    AdminRouteModule(route_cls=CheckErrorsRoutes, name="errors", url_prefix="/errors"),
 ]
 
 __all__ = [

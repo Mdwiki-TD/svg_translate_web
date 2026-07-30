@@ -1,0 +1,39 @@
+{% extends "admins/base1.html" %}
+
+{% block title %}Check Errors · {{ tool_title }}{% endblock %}
+
+{% block admin_contents %}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="headline mb-0">Errors ({{ files | length }} files):</h3>
+        <div>
+            <form method="get" action="{{ url_for('adminpanel.errors.dashboard') }}" class="d-flex gap-2">
+                <select name="log_file" class="form-select form-select-sm" required>
+                    <option value="" disabled {% if not selected_file %}selected{% endif %}>
+                        Select a file&hellip;
+                    </option>
+                    {% for file_name in files %}
+                    <option value="{{ file_name }}" {% if file_name == selected_file %}selected{% endif %}>
+                        {{ file_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">View</button>
+            </form>
+        </div>
+    </div>
+
+    {% if selected_file and file_content is not none %}
+    <div class="card-body">
+        <h5 class="card-title">{{ selected_file }}</h5>
+        <pre class="bg-light p-3 rounded border"
+            style="max-height: 60vh; overflow-y: auto; white-space: pre-wrap;">{{ file_content }}</pre>
+    </div>
+    {% elif files | length == 0 %}
+    <div class="card-body">
+        <p class="text-muted mb-0">No log files found in the logs directory.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

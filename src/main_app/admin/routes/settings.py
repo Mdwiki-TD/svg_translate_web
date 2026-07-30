@@ -119,6 +119,7 @@ class SettingsRoutes(SettingsFuncs):
         self.bp.post("/create")(admin_required(self.create))
         self.bp.post("/update")(admin_required(self.update))
 
+
 __all__ = [
     "SettingsRoutes",
 ]

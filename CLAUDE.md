@@ -112,9 +112,6 @@ OAUTH_ENCRYPTION_KEY=       # Generate: python -c "from cryptography.fernet impo
 
 # Storage
 MAIN_DIR=/path/to/data      # Root for svg_data/, logs/, etc.
-
-# Optional
-DISABLE_UPLOADS=0           # Set to 1 to disable uploads
 ```
 
 ### Background Jobs (Admin)

@@ -218,7 +218,6 @@ def _load_jobs_config() -> JobsConfig:
         jobs_max_workers=jobs_max_workers,
         jobs_log_lines=jobs_log_lines,
         priority_per_item=priority_per_item,
-        disable_uploads=os.getenv("DISABLE_UPLOADS", ""),
     )
 
     return _config

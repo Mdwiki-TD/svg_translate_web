@@ -4,7 +4,7 @@ const EVENT_KEY = `.${DATA_KEY}`
 
 const EVENT_EXPANDED = `expanded${EVENT_KEY}`
 const EVENT_COLLAPSED = `collapsed${EVENT_KEY}`
-const childrens = `.card-body, .card-footer`
+const childrens = `.card-body1, .card-body, .card-footer`
 
 
 function collapse(element) {
