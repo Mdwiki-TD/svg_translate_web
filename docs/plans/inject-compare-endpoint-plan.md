@@ -63,6 +63,7 @@ class InjectRoutes:
 **`inject_post`** — validates both filenames, redirects to `inject_get`.
 
 **`inject_get`** — main workflow:
+
 1. Create temp dir
 2. Download source file → extract → `source_translations`
 3. Download target file → extract → `target_before`
@@ -74,6 +75,7 @@ class InjectRoutes:
 9. Cleanup temp dir in `finally`
 
 **Diff logic:**
+
 ```python
 def compute_diff(before: dict, after: dict) -> dict:
     """Compare two translations dicts, return added/removed/changed entries."""
@@ -85,28 +87,28 @@ def compute_diff(before: dict, after: dict) -> dict:
 ```
 
 **Template variables for result:**
-- `source_filename` — display name of source file
-- `target_filename` — display name of target file
-- `source_translations` — extracted from source
-- `target_before` — extracted from target before inject
-- `inject_result` — `InjectResult` (result, msg, new_languages, updated_translations)
-- `target_after` — extracted from target after inject (only if inject succeeded)
-- `diff` — added/removed/changed translations
-- `target_changed` — bool, whether the file was actually modified
+
+-   `source_filename` — display name of source file
+-   `target_filename` — display name of target file
+-   `source_translations` — extracted from source
+-   `target_before` — extracted from target before inject
+-   `inject_result` — `InjectResult` (result, msg, new_languages, updated_translations)
+-   `target_after` — extracted from target after inject (only if inject succeeded)
+-   `diff` — added/removed/changed translations
+-   `target_changed` — bool, whether the file was actually modified
 
 ### 2. `src/templates/inject/form.html`
 
 Two-field form (source + target), similar structure to `extract/form.html`.
 
 ```html
-{% extends "base.html" %}
-{% block title %}Inject SVG Translations{% endblock %}
+{% extends "base.html" %} {% block title %}Inject SVG Translations{% endblock %}
 {% block content_fluid %}
-  <!-- Card with form -->
-  <!-- Two inputs: source_filename, target_filename -->
-  <!-- Both use wiki-autocomplete-files class -->
-  <!-- POST to url_for('inject.inject_post') -->
-  <!-- CSRF token hidden field -->
+<!-- Card with form -->
+<!-- Two inputs: source_filename, target_filename -->
+<!-- Both use wiki-autocomplete-files class -->
+<!-- POST to url_for('inject.inject_post') -->
+<!-- CSRF token hidden field -->
 {% endblock %}
 ```
 
@@ -140,18 +142,23 @@ Reuses existing macros: `card_header`, `commons_file_link`, `render_extract_deta
 ### 4. `src/main_app/public/main_routes/__init__.py`
 
 Add import:
+
 ```python
 from .inject_routes import InjectRoutes
 ```
+
 Add to `__all__`.
 
 ### 5. `src/main_app/public/__init__.py`
 
 Add import:
+
 ```python
 from .main_routes import InjectRoutes
 ```
+
 Add to `PUBLIC_ROUTE_MODULES`:
+
 ```python
 PublicRouteModule(InjectRoutes, "inject", "/inject"),
 ```
@@ -169,16 +176,16 @@ from ..api_services.files_service import download_one_file, get_file_info
 
 ## Edge Cases
 
-- Source or target file doesn't exist → flash error, return form
-- Inject makes no changes (result=None) → still show result, note "no changes"
-- Inject fails (result=False, e.g. nested tspan error) → show error, skip re-extract
-- Source and target are the same file → allow (valid use case for adding translations)
-- Both files have same translations → inject result shows "No changes"
+-   Source or target file doesn't exist → flash error, return form
+-   Inject makes no changes (result=None) → still show result, note "no changes"
+-   Inject fails (result=False, e.g. nested tspan error) → show error, skip re-extract
+-   Source and target are the same file → allow (valid use case for adding translations)
+-   Both files have same translations → inject result shows "No changes"
 
 ## Testing Strategy
 
-- Unit test `extract_from_file` mock: download returns temp file, extract returns translations
-- Unit test `inject_translations` mock: calls `inject_step_one_file`
-- Unit test `compute_diff` with known before/after dicts
-- Integration test: full workflow with mocked network (no real Commons calls)
-- Edge cases: file not found, inject failure, no changes
+-   Unit test `extract_from_file` mock: download returns temp file, extract returns translations
+-   Unit test `inject_translations` mock: calls `inject_step_one_file`
+-   Unit test `compute_diff` with known before/after dicts
+-   Integration test: full workflow with mocked network (no real Commons calls)
+-   Edge cases: file not found, inject failure, no changes
