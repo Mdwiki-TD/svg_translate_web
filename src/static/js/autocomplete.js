@@ -6,7 +6,7 @@ const API_USER_AGENT = "Copy SVG Translations/1.0 (https://copy-svg-langs.toolfo
  * @param {any} inputSelector
  * @param {any} wikimedia_api_url
  */
-function setupWikiAutocomplete(inputSelector, wikimedia_api_url) {
+function setupWikiAutocomplete(inputSelector, wikimedia_api_url, psnamespace="*") {
     // attach autocomplete behavior to input field
     $(inputSelector).autocomplete({
         delay: 300,
@@ -24,7 +24,7 @@ function setupWikiAutocomplete(inputSelector, wikimedia_api_url) {
                     list: "prefixsearch",
                     format: "json",
                     pssearch: request.term,
-                    psnamespace: 0,
+                    psnamespace: psnamespace,
                     psbackend: "CirrusSearch",
                     cirrusUseCompletionSuggester: "yes"
                 },

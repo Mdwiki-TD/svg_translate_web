@@ -103,6 +103,10 @@ def download_file_rate_limit(
             if response.status_code == 200:
                 return response.content
 
+            # If 404, return None
+            elif response.status_code == 404:
+                return None
+
             # Handle Rate Limiting (Error 429)
             elif response.status_code == 429:
                 retry_after = response.headers.get("Retry-After")

@@ -4,10 +4,12 @@ from .download_file_utils import download_one_file
 from .files_helpers import (
     download_svg_file,
     upload_fixed_svg,
+    get_file_info,
 )
 from .upload_bot import UploadFile, upload_file
 
 __all__ = [
+    "get_file_info",
     "download_svg_file",
     "download_one_file",
     "upload_fixed_svg",

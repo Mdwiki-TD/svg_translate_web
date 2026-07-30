@@ -8,7 +8,7 @@ from pathlib import Path
 import requests
 
 from ...config import settings
-from .. import (
+from ..clients.commons_client import (
     create_commons_session,
     download_file_rate_limit,
 )

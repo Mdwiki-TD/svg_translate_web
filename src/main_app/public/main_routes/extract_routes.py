@@ -9,7 +9,7 @@ from typing import Any
 from CopySVGTranslation import extract  # type: ignore
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
-from ...api_services.files_service import download_one_file
+from ...api_services.files_service import download_one_file, get_file_info
 
 logger = logging.getLogger(__name__)
 
@@ -96,17 +96,22 @@ class ExtractRoutes:
 
     def show_result(self, filename: str) -> str:
         """Process SVG file and extract translations."""
-        filename = str(filename).strip()
+        original_filename = str(filename).strip()
 
         # Remove "File:" prefix if present (keep original for display)
         if filename.lower().startswith("file:"):
             filename = filename[5:].lstrip()
 
-        if not filename:
+        if not filename.strip():
             flash("Please provide a file name", "danger")
             return render_template("extract/form.html", filename=filename)
 
-        original_filename = f"File:{filename}"
+        prefixed_file_name = f"File:{filename}"
+
+        file_info = get_file_info(prefixed_file_name)
+        if not file_info.exists:
+            flash(f"File {prefixed_file_name} not exists", "danger")
+            return render_template("extract/form.html", filename=prefixed_file_name)
 
         # ========================
         translations = work_file(filename)
@@ -114,7 +119,7 @@ class ExtractRoutes:
 
         if not translations or not translations_new:
             # flash and logs messages already added in work_file()
-            return render_template("extract/form.html", filename=original_filename)
+            return render_template("extract/form.html", filename=prefixed_file_name)
 
         languages = sorted(
             {lang for entry in translations["new"].values() if isinstance(entry, dict) for lang in entry}
@@ -127,7 +132,7 @@ class ExtractRoutes:
 
         return render_template(
             "extract/result.html",
-            filename=original_filename,
+            filename=prefixed_file_name,
             languages=languages,
             translations=translations,
         )

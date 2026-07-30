@@ -12,6 +12,7 @@ from .clients import (
     get_user_site,
 )
 from .files_service import (
+    get_file_info,
     download_svg_file,
     upload_fixed_svg,
 )
@@ -25,6 +26,7 @@ from .query_api import (
 )
 
 __all__ = [
+    "get_file_info",
     "_fetch_grapher_metadata",
     "download_svg_file",
     "upload_fixed_svg",

@@ -1,16 +1,71 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
 from pathlib import Path
 from typing import Any
 
 import requests
 from mwclient.client import Site
-
+from ..clients.commons_client import create_commons_session
 from .download_file_utils import download_one_file
 from .upload_bot import upload_file
 
 logger = logging.getLogger(__name__)
+
+@dataclass
+class FileInfo:
+    imageinfo: list[dict[str, Any]] | None = None
+    error: str | None = None
+    exists: bool | None = None
+
+def get_file_info(prefixed_file_name: str, session: requests.Session | None = None) -> FileInfo:
+    """
+    """
+    if not prefixed_file_name:
+        return FileInfo(error="No file name provided")
+
+    if not session:
+        session = create_commons_session()
+
+    # Define API endpoint and parameters
+    url = "https://commons.wikimedia.org/w/api.php"
+
+    params = {
+        "action": "query",
+        "format": "json",
+        "prop": "imageinfo",
+        "titles": prefixed_file_name,
+        "formatversion": "2",
+        "iiprop": "metadata"
+    }
+
+    try:
+        response = session.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+    except requests.RequestException as err:
+        logger.exception("Commons API request failed for %s", prefixed_file_name)
+        return FileInfo(error=f"API error: {err}")
+
+    # { "batchcomplete": true, "query": { "pages": [ { "ns": 6, "title": "File:34", "missing": true, "imagerepository": "" } ] } }
+
+    pages = data.get("query", {}).get("pages", [])
+    if not pages:
+        return FileInfo(error="Unexpected API response")
+
+    page = pages[0]
+
+    # Check if file exists
+    if page.get("missing") and not page.get("known"):
+        return FileInfo(error=f"File {page.get('title', prefixed_file_name)} does not exist.", exists=False)
+
+    # Extract metadata array
+    imageinfo = page.get("imageinfo", [])
+    if not imageinfo:
+        return FileInfo(error=f"imageinfo not found for {page.get('title')}", exists=True)
+
+    return FileInfo(error=None, imageinfo=imageinfo, exists=False)
 
 
 def download_svg_file(
@@ -92,6 +147,7 @@ def upload_fixed_svg(
 
 
 __all__ = [
+    "get_file_info",
     "download_svg_file",
     "upload_fixed_svg",
 ]

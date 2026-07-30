@@ -5,8 +5,7 @@ from typing import Any
 
 import requests
 
-from ..api_services import create_commons_session
-from ..config import settings
+from ..api_services import get_file_info
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +134,6 @@ LANG_CODE_CATEGORY_MAP: dict[str, str] = {
 def lang_code_category(langcode: str) -> str | None:
     return LANG_CODE_CATEGORY_MAP.get(langcode)
 
-
 def get_file_languages(file_name: str, session: requests.Session | None = None) -> dict[str, Any]:
     """
     Extract available SVG translation languages for a given Commons file.
@@ -148,61 +146,29 @@ def get_file_languages(file_name: str, session: requests.Session | None = None) 
         Dictionary containing an 'error' message (if any) and a 'langs' list.
     """
     if not file_name:
-
         return {"error": "Empty fileName", "langs": None}
-    if not session:
-        session = create_commons_session(settings.other.user_agent)
 
     # Normalize file name by stripping leading "File:" prefix
-    stripped_name = file_name.strip()
-    normalized_name = stripped_name[5:] if stripped_name.lower().startswith("file:") else stripped_name
+    file_name = file_name.strip()
+    normalized_name = file_name[5:] if file_name.lower().startswith("file:") else file_name
+    prefixed_file_name = f"File:{normalized_name}"
 
-    # Define API endpoint and parameters
-    url = "https://commons.wikimedia.org/w/api.php"
-    params = {
-        "action": "query",
-        "titles": f"File:{normalized_name}",
-        "prop": "imageinfo",
-        "iiprop": "metadata",
-        "formatversion": "2",
-        "format": "json",
-    }
-
-    try:
-        response = session.get(url, params=params, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-    except requests.RequestException as err:
-        logger.exception("Commons API request failed for %s", file_name)
-        return {"error": f"API error: {err}", "langs": None}
-
-    pages = data.get("query", {}).get("pages", [])
-    if not pages:
-        return {"error": "Unexpected API response", "langs": None}
-
-    page = pages[0]
-
-    # Check if file exists
-    if page.get("missing") and not page.get("known"):
-        return {"error": f"File {page.get('title', normalized_name)} does not exist.", "langs": None}
+    file_info = get_file_info(prefixed_file_name, session=session)
 
     # Extract metadata array
-    imageinfo = page.get("imageinfo", [])
+    imageinfo = file_info.imageinfo
     if not imageinfo:
-        return {"error": f"Metadata not found for {page.get('title')}", "langs": None}
+        return {"error": f"Metadata not found for {prefixed_file_name}", "langs": None}
 
     metadata = imageinfo[0].get("metadata", [])
     if not metadata:
-        return {"error": f"Metadata array empty for {page.get('title')}", "langs": None}
+        return {"error": f"Metadata array empty for {prefixed_file_name}", "langs": None}
 
-    # Convert list of dicts [{'name': ..., 'value': ...}] into a single dictionary
-    meta = {
-        item["name"]: item["value"]
-        for item in metadata
-        if isinstance(item, dict) and "name" in item and "value" in item
-    }
-
-    translations = meta.get("translations", [])
+    translations = {}
+    for x in metadata:
+        if x["name"] == "ImageDescription":
+            translations = x["value"]
+            break
 
     if isinstance(translations, list) and len(translations) > 0:
         # Extract language codes from translation entries
