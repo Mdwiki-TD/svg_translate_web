@@ -26,6 +26,7 @@ class UsersRoutes:
 
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
+        self.user_service = UsersService()
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -36,7 +37,7 @@ class UsersRoutes:
     def dashboard(self) -> str:
         """Render the user management dashboard."""
         try:
-            users = UsersService().list_users()
+            users = self.user_service.list_users()
         except Exception as e:  # pragma: no cover - defensive guard
             logger.error(f"Error listing users: {e}")
             flash("Error listing users", "error")
@@ -54,7 +55,7 @@ class UsersRoutes:
         """Toggle the can_run_jobs column for a user."""
         desired = 1 if request.form.get("can_run_jobs", "0") == "1" else 0
         try:
-            record = UsersService().toggle_can_run_jobs(user_id, bool(desired))
+            record = self.user_service.toggle_can_run_jobs(user_id, bool(desired))
         except LookupError:
             logger.exception("Unable to update user permissions.")
             flash(f"User with id {user_id} was not found", "warning")
@@ -72,7 +73,7 @@ class UsersRoutes:
         desired = 1 if request.form.get("can_run_bg_jobs", "0") == "1" else 0
 
         try:
-            record = UsersService().toggle_can_run_bg_jobs(user_id, bool(desired))
+            record = self.user_service.toggle_can_run_bg_jobs(user_id, bool(desired))
         except LookupError:
             logger.exception("Unable to update user permissions.")
             flash(f"User with id {user_id} was not found", "warning")
