@@ -11,6 +11,7 @@ import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
+from src.main_app.db.services import AdminService
 from src.main_app.shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
@@ -44,9 +45,15 @@ def _make_processor(
 # ---------------------------------------------------------------------------
 
 
-class TestFixNestedJobsProcessorSteps:
+class TestSetup:
+    @pytest.fixture(autouse=True)
+    def setup(self, monkeypatch):
+        self.pro = _make_processor( )
+
+
+class TestFixNestedJobsProcessorSteps(TestSetup):
     def test_verify_step_success(self, mock_services, tmp_path) -> None:
-        processor = _make_processor()
+        processor = self.pro
         processor.result.stages.fix.status = "success"
         processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_before=2)
 
@@ -58,7 +65,7 @@ class TestFixNestedJobsProcessorSteps:
         assert processor.result.stages.verify.status == "success"
 
     def test_verify_step_failure_no_tags_fixed(self, mock_services, tmp_path) -> None:
-        processor = _make_processor()
+        processor = self.pro
         processor.result.stages.fix.status = "success"
         processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_before=2)
 
@@ -70,7 +77,7 @@ class TestFixNestedJobsProcessorSteps:
         assert processor.result.stages.verify.status == "failed"
 
     def test_upload_step_success(self, mock_services, tmp_path) -> None:
-        processor = _make_processor()
+        processor = self.pro
         processor.site = MagicMock()
         processor.result.stages.verify.status = "success"
         processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
@@ -82,7 +89,7 @@ class TestFixNestedJobsProcessorSteps:
         assert processor.result.stages.upload.status == "success"
 
     def test_upload_step_failure(self, mock_services, tmp_path) -> None:
-        processor = _make_processor()
+        processor = self.pro
         processor.site = MagicMock()
         processor.result.stages.verify.status = "success"
         processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
@@ -94,7 +101,7 @@ class TestFixNestedJobsProcessorSteps:
         assert processor.result.stages.upload.status == "failed"
 
 
-class TestFixNestedJobsProcessor:
+class TestFixNestedJobsProcessor(TestSetup):
     def test_get_job_type(self) -> None:
         worker = FixNestedJobsProcessor(
             job_id=1,
@@ -142,11 +149,11 @@ class TestFixNestedJobsProcessor:
         assert worker.cancel_event is cancel_event
 
     def test_filename_from_args(self) -> None:
-        processor = _make_processor()
+        processor = self.pro
         assert processor.filename == "File:test.svg"
 
     def test_filename_from_args_with_file_prefix(self) -> None:
-        processor = _make_processor()
+        processor = self.pro
         assert processor.filename == "File:test.svg"
 
     def test_filename_empty(self) -> None:
@@ -155,7 +162,7 @@ class TestFixNestedJobsProcessor:
 
     def test_is_cancelled_no_event(self, mock_services) -> None:
         mock_services["is_job_cancelled"].return_value = False
-        processor = _make_processor()
+        processor = self.pro
         assert processor.is_cancelled() is False
 
     def test_is_cancelled_with_event(self) -> None:
@@ -166,7 +173,7 @@ class TestFixNestedJobsProcessor:
         assert processor.result.status == "cancelled"
 
     def test_run_step_success(self) -> None:
-        processor = _make_processor()
+        processor = self.pro
 
         def mock_step():
             return True
@@ -175,7 +182,7 @@ class TestFixNestedJobsProcessor:
         assert result is True
 
     def test_run_step_failure(self) -> None:
-        processor = _make_processor()
+        processor = self.pro
 
         def mock_step():
             return False
@@ -190,7 +197,7 @@ class TestFixNestedJobsProcessor:
 # ---------------------------------------------------------------------------
 
 
-class TestPostInit:
+class TestPostInit(TestSetup):
     def test_filename_extracted_from_args(self):
         proc = _make_processor(filename="File:foo.svg")
         assert proc.filename == "File:foo.svg"
@@ -200,7 +207,7 @@ class TestPostInit:
         assert proc.filename is None
 
     def test_site_and_session_default_to_none(self):
-        proc = _make_processor()
+        proc = self.pro
         assert proc.site is None
         assert not hasattr(proc, "session")
 
@@ -210,15 +217,15 @@ class TestPostInit:
 # ---------------------------------------------------------------------------
 
 
-class TestSaveProgress:
+class TestSaveProgress(TestSetup):
     def test_delegates_to_jobs_service(self, mock_services):
-        proc = _make_processor()
+        proc = self.pro
         proc._save_progress()
         mock_services["save_job_result_by_name"].assert_called_once_with(proc.result_file, proc.result.to_json())
 
     def test_swallows_exceptions(self, mock_services):
         mock_services["save_job_result_by_name"].side_effect = RuntimeError("disk full")
-        proc = _make_processor()
+        proc = self.pro
         # Must not raise
         proc._save_progress()
 
@@ -228,10 +235,10 @@ class TestSaveProgress:
 # ---------------------------------------------------------------------------
 
 
-class TestIsCancelled:
+class TestIsCancelled(TestSetup):
     def test_returns_false_when_not_cancelled(self, mock_services):
         mock_services["is_job_cancelled"].return_value = False
-        proc = _make_processor()
+        proc = self.pro
         assert proc.is_cancelled() is False
 
     def test_cancel_event_set_returns_true(self, mock_services):
@@ -243,31 +250,31 @@ class TestIsCancelled:
 
     def test_jobs_service_cancelled_returns_true(self, mock_services):
         mock_services["is_job_cancelled"].return_value = True
-        proc = _make_processor()
+        proc = self.pro
         assert proc.is_cancelled(check_db=True) is True
 
     def test_sets_result_status_to_cancelled(self, mock_services):
         mock_services["is_job_cancelled"].return_value = True
-        proc = _make_processor()
+        proc = self.pro
         proc.is_cancelled(check_db=True)
         assert proc.result.status == "cancelled"
 
     def test_sets_cancelled_at_timestamp(self, mock_services):
         mock_services["is_job_cancelled"].return_value = True
-        proc = _make_processor()
+        proc = self.pro
         proc.is_cancelled(check_db=True)
         assert proc.result.cancelled_at is not None
 
     def test_does_not_overwrite_existing_cancelled_at(self, mock_services):
         mock_services["is_job_cancelled"].return_value = True
-        proc = _make_processor()
+        proc = self.pro
         proc.result.cancelled_at = "original"
         proc.is_cancelled(check_db=True)
         assert proc.result.cancelled_at == "original"
 
     def test_updates_stage_status_when_stage_name_given(self, mock_services):
         mock_services["is_job_cancelled"].return_value = True
-        proc = _make_processor()
+        proc = self.pro
         # is_cancelled's only positional arg is `check_db` (bool); a truthy
         # value triggers the DB cancellation check. The base worker sets the
         # global result status to "cancelled" but does NOT update per-stage
@@ -277,7 +284,7 @@ class TestIsCancelled:
 
     def test_ignores_unknown_stage_name(self, mock_services):
         mock_services["is_job_cancelled"].return_value = True
-        proc = _make_processor()
+        proc = self.pro
         # should not raise
         proc.is_cancelled("nonexistent_stage")
 
@@ -287,12 +294,12 @@ class TestIsCancelled:
 # ---------------------------------------------------------------------------
 
 
-class TestDownloadStep:
+class TestDownloadStep(TestSetup):
     def test_success_populates_file_result(self, mock_services, tmp_path):
         svg = tmp_path / "test.svg"
         svg.touch()
         mock_services["download_svg_file"].return_value = {"ok": True, "path": svg}
-        proc = _make_processor()
+        proc = self.pro
         result = proc._download_step()
         assert result is True
         assert proc.result.file_result.success is True
@@ -300,7 +307,7 @@ class TestDownloadStep:
 
     def test_failure_populates_file_result_with_error(self, mock_services):
         mock_services["download_svg_file"].return_value = {"ok": False, "error": "network_error"}
-        proc = _make_processor()
+        proc = self.pro
         result = proc._download_step()
         assert result is False
         assert proc.result.file_result.success is False
@@ -309,20 +316,20 @@ class TestDownloadStep:
 
     def test_failure_defaults_error_when_missing(self, mock_services):
         mock_services["download_svg_file"].return_value = {"ok": False}
-        proc = _make_processor()
+        proc = self.pro
         proc._download_step()
         assert proc.result.file_result.error == "download_failed"
 
 
-class TestAnalyzeStep:
+class TestAnalyzeStep(TestSetup):
     def _proc_with_download_success(self, path):
-        proc = _make_processor()
+        proc = self.pro
         proc.result.stages.download.status = "success"
         proc.result.file_result = FileResult(path=str(path), success=True)
         return proc
 
     def test_skips_when_download_not_success(self, mock_services):
-        proc = _make_processor()
+        proc = self.pro
         proc.result.stages.download.status = "failed"
         result = proc._analyze_step()
         assert result is None
@@ -354,16 +361,16 @@ class TestAnalyzeStep:
         assert proc.result.stages.analyze.status == "success"
 
 
-class TestFixStep:
+class TestFixStep(TestSetup):
     def _proc_after_analyze(self, path):
-        proc = _make_processor()
+        proc = self.pro
         proc.result.stages.analyze.status = "success"
         proc.result.stages.analyze.message = "found tags"
         proc.result.file_result = FileResult(path=str(path))
         return proc
 
     def test_skips_when_analyze_not_success(self, mock_services):
-        proc = _make_processor()
+        proc = self.pro
         proc.result.stages.analyze.status = "skipped"
         proc.result.stages.analyze.message = "No nested tags found"
         result = proc._fix_step()
@@ -385,15 +392,15 @@ class TestFixStep:
         assert proc.result.stages.fix.status == "failed"
 
 
-class TestVerifyStep:
+class TestVerifyStep(TestSetup):
     def _proc_after_fix(self, path, before_count=5):
-        proc = _make_processor()
+        proc = self.pro
         proc.result.stages.fix.status = "success"
         proc.result.file_result = FileResult(path=str(path), nested_tags_before=before_count)
         return proc
 
     def test_skips_when_fix_not_success(self, mock_services):
-        proc = _make_processor()
+        proc = self.pro
         proc.result.stages.fix.status = "failed"
         result = proc._verify_step()
         assert result is None
@@ -416,9 +423,9 @@ class TestVerifyStep:
         assert proc.result.stages.verify.status == "failed"
 
 
-class TestUploadStep:
+class TestUploadStep(TestSetup):
     def _proc_after_verify(self, path, tags_fixed=3):
-        proc = _make_processor()
+        proc = self.pro
         proc.site = MagicMock()
         proc.result.stages.verify.status = "success"
         proc.result.file_result = FileResult(
@@ -475,27 +482,27 @@ class TestUploadStep:
 # ---------------------------------------------------------------------------
 
 
-class TestRunStage:
+class TestRunStage(TestSetup):
     def test_returns_true_when_step_returns_true(self, mock_services):
         mock_services["is_job_cancelled"].return_value = False
-        proc = _make_processor()
+        proc = self.pro
         assert proc._run_step(proc.result.stages.download, lambda: True) is True
 
     def test_returns_false_and_sets_failed_when_step_returns_false(self, mock_services):
         mock_services["is_job_cancelled"].return_value = False
-        proc = _make_processor()
+        proc = self.pro
         assert proc._run_step(proc.result.stages.download, lambda: False) is False
         assert proc.result.status == "failed"
 
     def test_returns_false_and_sets_skipped_when_step_returns_none(self, mock_services):
         mock_services["is_job_cancelled"].return_value = False
-        proc = _make_processor()
+        proc = self.pro
         assert proc._run_step(proc.result.stages.download, lambda: None) is False
         assert proc.result.status == "skipped"
 
     def test_handles_exception_and_sets_failed(self, mock_services):
         mock_services["is_job_cancelled"].return_value = False
-        proc = _make_processor()
+        proc = self.pro
 
         def boom():
             raise ValueError("oops")
@@ -525,7 +532,7 @@ class TestRunStage:
             statuses.append(proc.result.stages.download.status)
             return True
 
-        proc = _make_processor()
+        proc = self.pro
         proc._run_step(proc.result.stages.download, capture_status)
         assert statuses[0] == "running"
 
@@ -535,10 +542,10 @@ class TestRunStage:
 # ---------------------------------------------------------------------------
 
 
-class TestRun:
+class TestRun(TestSetup):
 
     @pytest.fixture(autouse=True)
-    def setup(self, mock_before_run, tmp_path):
+    def _setup(self, mock_before_run, tmp_path):
         self.patchers = self._patch_all(tmp_path)
         self.mocks = {k: v.start() for k, v in self.patchers.items()}
 
@@ -558,6 +565,10 @@ class TestRun:
                 return_value=None,
             ),
             "is_job_cancelled": patch("src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled"),
+            "is_job_cancelled_file": patch(
+                "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
+                return_value=False,
+            ),
             "get_site": patch(
                 "src.main_app.jobs_workers.base_worker.get_user_site",
                 return_value=MagicMock(),
@@ -589,7 +600,7 @@ class TestRun:
         self.mocks["is_job_cancelled"].return_value = False
 
         try:
-            proc = _make_processor()
+            proc = self.pro
             result = proc.run()
             assert result["status"] == "completed"
             assert result.get("completed_at") is not None
@@ -613,7 +624,7 @@ class TestRun:
         self.mocks["download"].return_value = {"ok": False, "error": "timeout"}
 
         try:
-            proc = _make_processor()
+            proc = self.pro
             result = proc.run()
             assert result["status"] == "failed"
             self.mocks["detect"].assert_not_called()
@@ -643,7 +654,7 @@ class TestRun:
         mock_is_job_cancelled_file_exist.side_effect = cancel_on_third
 
         try:
-            proc = _make_processor()
+            proc = self.pro
             result = proc.run()
             # BaseObjectsJobWorker._mark_as_cancelled_in_result sets status to
             # lowercase "cancelled".
@@ -657,7 +668,7 @@ class TestRun:
         self.mocks["is_job_cancelled"].return_value = False
 
         try:
-            proc = _make_processor()
+            proc = self.pro
             result = proc.run()
             for stage in ("download", "analyze", "fix", "verify", "upload"):
                 assert stage in result["stages"]
