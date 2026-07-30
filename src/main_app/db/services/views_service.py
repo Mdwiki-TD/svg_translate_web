@@ -17,6 +17,7 @@ class ViewsService:
         query = db.session.query(TemplateNeedUpdateView).order_by(TemplateNeedUpdateView.template_title)
         return query.all()
 
+
 __all__ = [
     "ViewsService",
 ]

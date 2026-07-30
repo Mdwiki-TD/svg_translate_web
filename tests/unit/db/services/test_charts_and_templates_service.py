@@ -6,10 +6,10 @@ import pytest
 
 from src.main_app.db.models import OwidChartRecord
 from src.main_app.db.services import (
-    OwidChartsService,
-    ChartsAndTemplatesService,
-    TemplateService,
     ChartAndTemplate,
+    ChartsAndTemplatesService,
+    OwidChartsService,
+    TemplateService,
 )
 
 
@@ -19,6 +19,7 @@ class TestSetup:
         self.service = OwidChartsService()
         self.charts_and_tmps_service = ChartsAndTemplatesService()
         self.templates_service = TemplateService()
+
 
 class TestListChartsWithTemplates(TestSetup):
     """Tests for list_charts_with_templates function."""
@@ -35,6 +36,7 @@ class TestListChartsWithTemplates(TestSetup):
         assert x.chart.chart_id == chart_record.chart_id
         assert x.template_id == template.id
         assert x.template_title == template.title
+
 
 class TestListChartsWithoutTemplates(TestSetup):
     """Tests for list_charts_without_templates function."""
@@ -62,4 +64,3 @@ class TestListAll(TestSetup):
         assert x.chart.chart_id == chart_record.chart_id
         assert x.template_id is None
         assert x.template_title is None
-

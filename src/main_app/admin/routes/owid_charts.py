@@ -19,11 +19,12 @@ from flask.typing import ResponseReturnValue
 from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import ImmutableMultiDict
 
-from ...db.services import OwidChartsService, ChartsAndTemplatesService, ChartAndTemplate
+from ...db.services import ChartAndTemplate, ChartsAndTemplatesService, OwidChartsService
 from ...shared.owid_charts_utils import make_charts_summary
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
+
 
 class OwidCharts:
     def __init__(self) -> None:
@@ -45,9 +46,7 @@ class OwidCharts:
             if not charts_with_templates:
                 return "No charts found to export.", 404
 
-            charts_data: list[dict[str, Any]] = [
-                x.to_dict_joined() for x in charts_with_templates
-            ]
+            charts_data: list[dict[str, Any]] = [x.to_dict_joined() for x in charts_with_templates]
 
             json_content = json.dumps(charts_data, indent=2, ensure_ascii=False)
 
@@ -252,11 +251,9 @@ class OwidChartsRoutes(OwidCharts):
         routes = [
             ("/", "GET", self.dashboard),
             ("/<string:template_filter>", "GET", self.dashboard_with_filter),
-
             ("/add", "GET", self.add_chart_popup),
             ("/<int:chart_id>/edit", "GET", self.edit_chart),
             ("/download-json", "GET", self.download_owid_charts_json),
-
             ("/add", "POST", self.add_chart),
             ("/update", "POST", self.update_chart),
             ("/<int:chart_id>/delete", "POST", self.delete_chart),
@@ -270,10 +267,8 @@ class OwidChartsRoutes(OwidCharts):
 
         summary = make_charts_summary(charts_with_templates)
 
-        charts_data: list[dict[str, Any]] = [
-            x.to_dict_joined(template_filter) for x in charts_with_templates
-        ]
-        rows = [ x for x in charts_data if x]
+        charts_data: list[dict[str, Any]] = [x.to_dict_joined(template_filter) for x in charts_with_templates]
+        rows = [x for x in charts_data if x]
         return render_template(
             "admins/owid_charts/list.html",
             selected_template=template_filter,

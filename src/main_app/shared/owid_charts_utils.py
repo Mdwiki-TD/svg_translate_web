@@ -7,7 +7,8 @@ from ..db.services import ChartAndTemplate
 
 logger = logging.getLogger(__name__)
 
-def make_charts_summary( all_charts: list[ChartAndTemplate] ) -> dict[str, Any]:
+
+def make_charts_summary(all_charts: list[ChartAndTemplate]) -> dict[str, Any]:
 
     total = len(all_charts)
     published_with = 0
@@ -40,6 +41,7 @@ def make_charts_summary( all_charts: list[ChartAndTemplate] ) -> dict[str, Any]:
     }
 
     return summary
+
 
 __all__ = [
     "make_charts_summary",

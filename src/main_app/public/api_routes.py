@@ -8,10 +8,10 @@ from flask import Blueprint, jsonify
 from ..db.models import TemplateRecord
 from ..db.services import (
     ChartAndTemplate,
+    ChartsAndTemplatesService,
     OwidChartsService,
     TemplateService,
     ViewsService,
-    ChartsAndTemplatesService,
 )
 from ..shared.owid_charts_utils import make_charts_summary
 
@@ -91,11 +91,9 @@ class ApiRoutes:
         # Optimize: use single-query list_all() with fallback
         charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
 
-        charts_data: list[dict[str, Any]] = [
-            x.to_dict_joined(template_filter) for x in charts_with_templates
-        ]
+        charts_data: list[dict[str, Any]] = [x.to_dict_joined(template_filter) for x in charts_with_templates]
         summary = make_charts_summary(charts_with_templates)
-        data = [ x for x in charts_data if x]
+        data = [x for x in charts_data if x]
 
         results = {
             "summary": summary,

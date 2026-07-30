@@ -41,16 +41,20 @@ class TestTemplatesList:
 
     def test_templates_list_summary_counts(self, mock_client: FlaskClient, template_svc: TemplateService) -> None:
         """Summary counts reflect which optional fields are set."""
-        template_svc.add_template_data({
-            "title": "T1",
-            "main_file": "f1.svg",
-            "last_world_file": "w1.svg",
-            "last_world_year": 2022,
-            "source": "src1",
-        })
-        template_svc.add_template_data({
-            "title": "T2",
-        })
+        template_svc.add_template_data(
+            {
+                "title": "T1",
+                "main_file": "f1.svg",
+                "last_world_file": "w1.svg",
+                "last_world_year": 2022,
+                "source": "src1",
+            }
+        )
+        template_svc.add_template_data(
+            {
+                "title": "T2",
+            }
+        )
 
         resp = mock_client.get("/api/templates")
         body = resp.get_json()
@@ -82,24 +86,34 @@ class TestTemplatesNeedUpdateList:
     ) -> None:
         """list_templates_need_update returns records; JSON has data key."""
         owid_charts_svc.create(
-            slug="chart-a", title="Chart A", max_time=2024, owid_variable_id=123,
+            slug="chart-a",
+            title="Chart A",
+            max_time=2024,
+            owid_variable_id=123,
         )
-        template_svc.add_template_data({
-            "title": "T1",
-            "slug": "chart-a",
-            "last_world_year": 2023,
-            "source": "owid",
-        })
+        template_svc.add_template_data(
+            {
+                "title": "T1",
+                "slug": "chart-a",
+                "last_world_year": 2023,
+                "source": "owid",
+            }
+        )
 
         owid_charts_svc.create(
-            slug="chart-b", title="Chart B", max_time=2025, owid_variable_id=456,
+            slug="chart-b",
+            title="Chart B",
+            max_time=2025,
+            owid_variable_id=456,
         )
-        template_svc.add_template_data({
-            "title": "T2",
-            "slug": "chart-b",
-            "last_world_year": 2024,
-            "source": "owid",
-        })
+        template_svc.add_template_data(
+            {
+                "title": "T2",
+                "slug": "chart-b",
+                "last_world_year": 2024,
+                "source": "owid",
+            }
+        )
 
         resp = mock_client.get("/api/templates-need-update")
         body = resp.get_json()
@@ -116,18 +130,33 @@ class TestOwidChartsList:
     def _setup_data(self, template_svc: TemplateService, owid_charts_svc: OwidChartsService) -> None:
         # chart1: published, has map, has timeline, has matching template
         owid_charts_svc.create(
-            slug="s1", title="Chart 1", is_published=True, has_map_tab=True, has_timeline=True, max_time=2024,
+            slug="s1",
+            title="Chart 1",
+            is_published=True,
+            has_map_tab=True,
+            has_timeline=True,
+            max_time=2024,
         )
         template_svc.add_template_data({"title": "T1", "slug": "s1", "source": "owid"})
 
         # chart2: not published, no map, no timeline, no matching template
         owid_charts_svc.create(
-            slug="s2", title="Chart 2", is_published=False, has_map_tab=False, has_timeline=False, max_time=2024,
+            slug="s2",
+            title="Chart 2",
+            is_published=False,
+            has_map_tab=False,
+            has_timeline=False,
+            max_time=2024,
         )
 
         # chart3: published, no map, has timeline, has template record but template_id will be set
         owid_charts_svc.create(
-            slug="s3", title="Chart 3", is_published=True, has_map_tab=False, has_timeline=True, max_time=2024,
+            slug="s3",
+            title="Chart 3",
+            is_published=True,
+            has_map_tab=False,
+            has_timeline=True,
+            max_time=2024,
         )
         template_svc.add_template_data({"title": "T3", "slug": "s3", "source": "owid"})
 

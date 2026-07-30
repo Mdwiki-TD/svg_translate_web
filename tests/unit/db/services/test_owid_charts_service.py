@@ -50,6 +50,7 @@ class TestListCharts(TestSetup):
         """Return empty list when no charts exist."""
         assert self.service.list_charts() == []
 
+
 class TestListPublishedCharts(TestSetup):
     """Tests for list_published_charts function."""
 

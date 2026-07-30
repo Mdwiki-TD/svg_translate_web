@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from typing import Any
 
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class ChartAndTemplate:
@@ -40,7 +41,8 @@ class ChartAndTemplate:
         logger.error("Invalid template_filter: %s", template_filter)
         return {}
 
-class ChartsAndTemplatesService:# (CRUDService[OwidChartRecord]):
+
+class ChartsAndTemplatesService:  # (CRUDService[OwidChartRecord]):
     def __init__(self) -> None:
         # super().__init__(db.session, OwidChartRecord)
         self.session = db.session
@@ -85,6 +87,7 @@ class ChartsAndTemplatesService:# (CRUDService[OwidChartRecord]):
         Retrieve charts that have no matching template.
         """
         return [x.chart for x in self.list_all() if x.template_id is None]
+
 
 __all__ = [
     "ChartsAndTemplatesService",
