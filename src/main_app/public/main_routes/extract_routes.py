@@ -41,6 +41,7 @@ def work_file(filename: str) -> dict[str, Any] | None:
         extract_result: ExtractResult = extract_from_path(file_path)
 
         if not extract_result.success:
+            flash(extract_result.error or "Failed to extract translations", "danger")
             return None
 
         file_translations = extract_result.translations or {}

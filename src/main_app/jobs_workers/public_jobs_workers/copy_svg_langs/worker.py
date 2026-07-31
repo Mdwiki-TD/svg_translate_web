@@ -495,7 +495,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         if step_result.success and file_translations:
             stage.status = "completed"
-            stage.message = f"Loaded {len(file_translations)} translations from (File:{self.main_title})"
+            # stage.message = f"Loaded {len(file_translations)} translations from (File:{self.main_title})"
+            stage.message = step_result.message or f"Loaded translations from (File:{self.main_title})"
             self.translations = file_translations
             self.files_processor.update_translations(file_translations)
             return True
