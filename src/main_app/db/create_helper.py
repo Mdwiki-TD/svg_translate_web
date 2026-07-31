@@ -43,8 +43,8 @@ def create_views(_db: SQLAlchemy) -> None:
                     try:
                         with conn.begin():
                             conn.execute(text(f"DROP VIEW IF EXISTS {table.name}"))
-                    except Exception:
-                        logger.exception("Failed to drop view %s", table.name)
+                    except Exception as exc:
+                        logger.error("Failed to drop view %s: exc: %s", table.name, str(exc))
                         continue
                 else:
                     continue
@@ -52,11 +52,10 @@ def create_views(_db: SQLAlchemy) -> None:
                 with conn.begin():
                     conn.execute(text(create_sql))
             except OperationalError as exc:
-                code = getattr(exc, "code", None)
-                if code == 1050:
+                if "already exists" in str(exc):
                     logger.warning("View %s already exists, skipping", table.name)
                 else:
-                    logger.exception("Failed to create view %s", table.name)
+                    logger.error("Failed to create view %s", table.name)
 
             except Exception as exc:
                 logger.error("Failed to create view %s. error: %s", table.name, str(exc))
