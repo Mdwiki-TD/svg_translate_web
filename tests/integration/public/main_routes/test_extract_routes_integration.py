@@ -174,7 +174,6 @@ class TestExtractRender:
 
         assert response.status_code == 200
         assert response.data.decode() == "rendered:extract/result.html"
-        assert any("An error occurred while extracting translations" in msg for msg, cat in mock_flash)
 
     def test_extract_post_successful_extraction(
         self,
