@@ -160,28 +160,29 @@ def upload_fixed_svg(
     )
     result_status = result.get("result") or ""
     error_details = result.get("error_details", "")
+    result_error = result.get("error", "upload_failed")
 
     if result_status.lower() == "success":
         return {
             "ok": True,
             "error": None,
-            "error_details": None,
+            "error_details": error_details,
             "msg": None,
             "result": result,
         }
 
-    if "fileexists-no-change" in str(error_details) or result_status == "fileexists-no-change":
+    if result_error == "fileexists-no-change" or result_status == "fileexists-no-change":
         return {
             "ok": None,
             "error": "skipped",
-            "error_details": None,
+            "error_details": error_details,
             "msg": "File already exists with same content",
             "result": None,
         }
 
     return {
         "ok": False,
-        "error": result.get("error", "upload_failed"),
+        "error": result_error,
         "error_details": error_details,
         "msg": None,
         "result": None,
