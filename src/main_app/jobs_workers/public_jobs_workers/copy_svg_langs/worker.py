@@ -27,10 +27,11 @@ from ....shared.fix_nested.worker import (
 from ...base_worker import BaseObjectsJobWorker
 from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
 from .steps import (
+    ExtractResult,
     InjectResult,
+    extract_from_path,
     extract_text_step,
     extract_titles_step,
-    extract_translations_step_with_download,
     inject_step_one_file,
 )
 
@@ -472,10 +473,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         main_title_path = main_file_download["path"]
 
         try:
-            step_result = extract_translations_step_with_download(
-                self.main_title,
-                self.output_dir_files,
-            )
+            step_result: ExtractResult = extract_from_path(main_title_path)
         except Exception as e:
             logger.exception("Error in stage translations")
             stage.status = "failed"
@@ -483,7 +481,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.status = "failed"
             return False
 
-        file_translations = step_result.get("translations", {})
+        file_translations = step_result.translations or {}
 
         new_translations = file_translations.get("new", {})
 
@@ -493,7 +491,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.result.translations = self._render_new_translations(new_translations, languages)
         self.result.languages = languages
 
-        if step_result.get("success") and file_translations:
+        if step_result.success and file_translations:
             stage.status = "completed"
             stage.message = f"Loaded {len(file_translations)} translations from (File:{self.main_title})"
             self.translations = file_translations
@@ -501,7 +499,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return True
 
         stage.status = "failed"
-        stage.message = step_result.get("error") or step_result.get("message") or "Unknown error"
+        stage.message = step_result.error or "Unknown error"
         self.result.status = "failed"
 
         return False

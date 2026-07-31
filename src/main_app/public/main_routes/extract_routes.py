@@ -6,10 +6,10 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import extract  # type: ignore
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from ...api_services.files_service import download_one_file, get_file_info
+from ...jobs_workers.public_jobs_workers.copy_svg_langs.steps import ExtractResult, extract_from_path
 
 logger = logging.getLogger(__name__)
 
@@ -38,31 +38,21 @@ def work_file(filename: str) -> dict[str, Any] | None:
 
         file_path = Path(result["path"])
 
-        # Extract translations using CopySVGTranslation
-        try:
-            translations = extract(svg_file_path=file_path, case_insensitive=True)
-            if not isinstance(translations, dict):
-                flash("Invalid or empty translation data", "danger")
-                return None
+        extract_result: ExtractResult = extract_from_path(file_path)
 
-        except Exception as e:
-            logger.error("Error extracting translations: %s", e, exc_info=True)
-            flash("An error occurred while extracting translations", "danger")
+        if not extract_result.success:
             return None
 
-        translations.pop("tspans_by_id", None)
+        file_translations = extract_result.translations or {}
+        if not isinstance(file_translations, dict):
+            flash("Invalid or empty translation data", "danger")
+            return None
 
-        # {"new":"150": { "ar": "150", "ca": "150", "es": "150", "hr": "150", "pt": "150", "si": "150", "uk": "150", "id": "150" },}
-        new_data = translations.get("new", {})
+        if file_translations and not any(file_translations.values()):
+            flash("Invalid or empty translation data", "danger")
+            return None
 
-        # sort new_data by keys, but numbers at last
-        translations["new"] = dict(
-            sorted(
-                new_data.items(),
-                key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
-            )
-        )
-        return translations
+        return file_translations
 
     finally:
         # Clean up temporary directory
@@ -134,7 +124,6 @@ class ExtractRoutes:
                 flash("Translations extracted successfully", "success")
             else:
                 flash("No translations found", "warning")
-
 
         logger.info("Extracted languages: %s", len(languages))
 

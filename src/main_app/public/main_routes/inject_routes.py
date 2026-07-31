@@ -7,10 +7,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import extract  # type: ignore
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from ...api_services.files_service import download_one_file, get_file_info
+from ...jobs_workers.public_jobs_workers.copy_svg_langs.steps import ExtractResult, extract_from_path
 from ...jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file import (
     InjectResult,
     inject_step_one_file,
@@ -34,6 +34,33 @@ class DiffResult:
         return bool(self.added or self.removed or self.changed)
 
 
+def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
+    """Extract translations from a local file path.
+
+    Args:
+        file_path: Path to the SVG file.
+
+    Returns:
+        Translations dict or None on failure.
+    """
+    step_result: ExtractResult = extract_from_path(file_path)
+
+    if not step_result.success:
+        flash(f"Invalid or empty translation data in {file_path.name}", "danger")
+        return None
+
+    file_translations = step_result.translations or {}
+    if not isinstance(file_translations, dict):
+        flash(f"Invalid or empty translation data in {file_path.name}", "danger")
+        return None
+
+    if file_translations and not any(file_translations.values()):
+        flash(f"Empty translation data in {file_path.name}", "danger")
+        return None
+
+    return file_translations
+
+
 def _download_and_extract(filename: str, temp_dir: Path) -> dict[str, Any] | None:
     """Download a file from Commons and extract translations.
 
@@ -52,27 +79,7 @@ def _download_and_extract(filename: str, temp_dir: Path) -> dict[str, Any] | Non
 
     file_path = Path(result["path"])
 
-    try:
-        translations = extract(svg_file_path=file_path, case_insensitive=True)
-        if not isinstance(translations, dict):
-            flash(f"Invalid or empty translation data for {filename}", "danger")
-            return None
-    except Exception:
-        logger.exception("Error extracting translations from %s", filename)
-        flash("An error occurred while extracting translations", "danger")
-        return None
-
-    translations.pop("tspans_by_id", None)
-
-    # Sort new data: alphabetical keys first, numeric keys last
-    new_data = translations.get("new", {})
-    translations["new"] = dict(
-        sorted(
-            new_data.items(),
-            key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
-        )
-    )
-    return translations
+    return _extract_from_path(file_path)
 
 
 def compute_diff(before: dict[str, Any], after: dict[str, Any]) -> DiffResult:
@@ -107,35 +114,6 @@ def compute_diff(before: dict[str, Any], after: dict[str, Any]) -> DiffResult:
     return DiffResult(added=added, removed=removed, changed=changed)
 
 
-def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
-    """Extract translations from a local file path.
-
-    Args:
-        file_path: Path to the SVG file.
-
-    Returns:
-        Translations dict or None on failure.
-    """
-    try:
-        translations = extract(svg_file_path=file_path, case_insensitive=True)
-        if not isinstance(translations, dict):
-            return None
-    except Exception:
-        logger.exception("Error extracting translations from %s", file_path)
-        return None
-
-    translations.pop("tspans_by_id", None)
-
-    new_data = translations.get("new", {})
-    translations["new"] = dict(
-        sorted(
-            new_data.items(),
-            key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
-        )
-    )
-    return translations
-
-
 class InjectRoutes:
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
@@ -168,8 +146,9 @@ class InjectRoutes:
                 source_filename=source,
                 target_filename=target,
             )
-
-        return redirect(url_for("inject.inject_get", source=source, target=target))
+        _source = source.replace(" ", "_")
+        _target = target.replace(" ", "_")
+        return redirect(url_for("inject.inject_get", source=_source, target=_target))
 
     def inject_get(self, source: str, target: str) -> str:
         """Execute the inject workflow and render the result."""
@@ -249,7 +228,7 @@ class InjectRoutes:
             output_dir.mkdir(exist_ok=True)
             output_file = output_dir / target
 
-            inject_result = inject_step_one_file(
+            inject_result: InjectResult = inject_step_one_file(
                 file_path=target_file_path,
                 translations=source_translations,
                 output_file=output_file,

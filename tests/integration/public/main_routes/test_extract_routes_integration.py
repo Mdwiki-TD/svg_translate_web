@@ -129,7 +129,9 @@ class TestExtractRender:
         mock_download = mocker.patch("src.main_app.public.main_routes.extract_routes.download_one_file")
         mock_download.return_value = {"result": "success", "path": str(tmp_path / "test_dir/test.svg")}
 
-        mock_extract = mocker.patch("src.main_app.public.main_routes.extract_routes.extract")
+        mock_extract = mocker.patch(
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract"
+        )
         mock_extract.return_value = {"new": {}, "title": {}}
 
         mock_client.post(
@@ -159,7 +161,10 @@ class TestExtractRender:
             raise ValueError("Invalid SVG format")
 
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
-        monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.extract", mock_extract)
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract",
+            mock_extract,
+        )
 
         response = mock_client.post(
             "/extract/",
@@ -193,7 +198,10 @@ class TestExtractRender:
             return sample_translations
 
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
-        monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.extract", mock_extract)
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract",
+            mock_extract,
+        )
 
         response = mock_client.post(
             "/extract/",

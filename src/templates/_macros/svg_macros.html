@@ -61,6 +61,7 @@
 <!-- Container card for displaying formatted JSON data -->
 
 {% set data_bs_target_id = "extracted-json-" ~ range(100000) | random %}
+{% set json_content_id = "data-json-content-" ~ range(100000) | random %}
 <div class="card {{ card_class }}">
     <!-- Card header containing title and action buttons -->
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -74,7 +75,7 @@
             </button>
             <!-- Copy content to clipboard button -->
             <button class="btn btn-sm btn-outline-primary"
-                onclick="navigator.clipboard.writeText(document.getElementById('json-content').innerText)">
+                onclick="navigator.clipboard.writeText(document.getElementById('{{ json_content_id }}').innerText)">
                 Copy
             </button>
         </div>
@@ -83,10 +84,10 @@
     <!-- Collapsible card body holding the JSON pre block -->
     <div id="{{ data_bs_target_id }}" class="collapse show">
         <div class="card-body p-0">
-            <!-- <code id="json-content">{{- data -}}</code> -->
+            <!-- <code id="{{ json_content_id }}">{{- data -}}</code> -->
             <pre class="mb-0 p-3 bg-light"
                 style="max-height: 400px; overflow:auto; white-space: pre-wrap; word-break: break-word;"
-                id="json-content">
+                id="{{ json_content_id }}">
                 {{- data | to_json -}}
             </pre>
         </div>
