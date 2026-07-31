@@ -59,6 +59,8 @@
 
 {%- macro render_json(data, title='Extracted Translations', card_class='mb-4') -%}
 <!-- Container card for displaying formatted JSON data -->
+
+{% set data_bs_target_id = "extracted-json-" ~ range(100000) | random %}
 <div class="card {{ card_class }}">
     <!-- Card header containing title and action buttons -->
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -67,7 +69,7 @@
         </h4>
         <div>
             <!-- Toggle collapse button -->
-            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#extracted-json">
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#{{ data_bs_target_id }}">
                 Show / Hide
             </button>
             <!-- Copy content to clipboard button -->
@@ -79,7 +81,7 @@
     </div>
 
     <!-- Collapsible card body holding the JSON pre block -->
-    <div id="extracted-json" class="collapse show">
+    <div id="{{ data_bs_target_id }}" class="collapse show">
         <div class="card-body p-0">
             <!-- <code id="json-content">{{- data -}}</code> -->
             <pre class="mb-0 p-3 bg-light"
