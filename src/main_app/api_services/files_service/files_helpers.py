@@ -170,7 +170,7 @@ def upload_fixed_svg(
             "result": result,
         }
 
-    if error_details.get("error") == "fileexists-no-change" or result_status == "fileexists-no-change":
+    if "fileexists-no-change" in str(error_details) or result_status == "fileexists-no-change":
         return {
             "ok": None,
             "error": "skipped",

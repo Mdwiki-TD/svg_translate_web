@@ -265,7 +265,7 @@ class OneFileProcessor:
             "error_details": error_details,
         }
 
-        is_no_changes = upload_error == "skipped" or error_details.get("error") == "fileexists-no-change"
+        is_no_changes = upload_error == "skipped" or "fileexists-no-change" in str(error_details)
         if upload_success is None and is_no_changes:
             title_info.steps.upload._update(
                 result=None,
