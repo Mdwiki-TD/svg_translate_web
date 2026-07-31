@@ -14,8 +14,7 @@ from typing import Any
 import requests
 from mwclient.client import Site
 
-from ....api_services import create_commons_session
-from ....api_services.files_service import download_one_file, upload_fixed_svg
+from ....api_services import create_commons_session, download_one_file, upload_fixed_svg
 from ....config import settings
 from ....shared.fix_nested.worker import (
     DetectionResult,
@@ -27,10 +26,11 @@ from ....shared.fix_nested.worker import (
 from ...base_worker import BaseObjectsJobWorker
 from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
 from .steps import (
+    ExtractResult,
     InjectResult,
+    extract_from_path,
     extract_text_step,
     extract_titles_step,
-    extract_translations_step_with_download,
     inject_step_one_file,
 )
 
@@ -238,13 +238,13 @@ class OneFileProcessor:
         upload = upload_fixed_svg(
             title_info.title,
             new_path,
-            0,
             self.site,
             summary=summary,
         )
         upload_success = upload.get("ok")
         upload_error = upload.get("error") or ""
         upload_msg = upload.get("msg") or ""
+        error_details = upload.get("error_details", "")
 
         if upload_success is True:
             title_info.steps.upload._update(
@@ -260,15 +260,17 @@ class OneFileProcessor:
 
         error_and_details = {
             "error": upload_error,
-            "error_details": upload.get("error_details", ""),
+            "error_details": error_details,
         }
 
-        if upload_success is None and upload_error == "skipped":
+        is_no_changes = upload_error in {"skipped", "fileexists-no-change"}
+        if upload_success is None and is_no_changes:
             title_info.steps.upload._update(
                 result=None,
                 msg=upload_msg,
                 details=error_and_details,
             )
+            title_info.status = "skipped"
             return False
 
         title_info.error = upload_error
@@ -277,6 +279,7 @@ class OneFileProcessor:
             msg="Upload failed.",
             details=error_and_details,
         )
+        title_info.status = "failed"
         return False
 
     def _create_language_summary(self, main_title: str, new_languages: int) -> str:
@@ -472,10 +475,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         main_title_path = main_file_download["path"]
 
         try:
-            step_result = extract_translations_step_with_download(
-                self.main_title,
-                self.output_dir_files,
-            )
+            step_result: ExtractResult = extract_from_path(main_title_path)
         except Exception as e:
             logger.exception("Error in stage translations")
             stage.status = "failed"
@@ -483,7 +483,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.status = "failed"
             return False
 
-        file_translations = step_result.get("translations", {})
+        file_translations = step_result.translations or {}
 
         new_translations = file_translations.get("new", {})
 
@@ -493,15 +493,16 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.result.translations = self._render_new_translations(new_translations, languages)
         self.result.languages = languages
 
-        if step_result.get("success") and file_translations:
+        if step_result.success and file_translations:
             stage.status = "completed"
-            stage.message = f"Loaded {len(file_translations)} translations from (File:{self.main_title})"
+            # stage.message = f"Loaded {len(file_translations)} translations from (File:{self.main_title})"
+            stage.message = step_result.message or f"Loaded translations from (File:{self.main_title})"
             self.translations = file_translations
             self.files_processor.update_translations(file_translations)
             return True
 
         stage.status = "failed"
-        stage.message = step_result.get("error") or step_result.get("message") or "Unknown error"
+        stage.message = step_result.error or "Unknown error"
         self.result.status = "failed"
 
         return False

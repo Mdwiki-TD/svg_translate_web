@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 from urllib.parse import quote
 
 import requests
@@ -152,6 +153,37 @@ def download_one_file(
     return data
 
 
+def download_svg_file(
+    filename: str,
+    temp_dir: Path,
+    session: requests.Session | None = None,
+) -> dict[str, Any]:
+    """Download SVG file and return file path or error info."""
+    logger.info(f"Downloading file: {filename}")
+
+    file_data = download_one_file(
+        title=filename,
+        out_dir=temp_dir,
+        overwrite=True,
+        session=session,
+    )
+
+    if file_data.get("result") != "success":
+        return {
+            "ok": False,
+            "path": None,
+            "error": "download_failed",
+            "details": file_data,
+        }
+    return {
+        "ok": True,
+        "path": Path(file_data["path"]),
+        "error": None,
+        "details": {},
+    }
+
+
 __all__ = [
     "download_one_file",
+    "download_svg_file",
 ]

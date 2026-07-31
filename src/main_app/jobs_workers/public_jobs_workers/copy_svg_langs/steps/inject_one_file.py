@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +20,9 @@ class InjectResult:
     msg: str | None = None
     new_languages: int | None = None
     updated_translations: int | None = None
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 def start_injects(
@@ -81,6 +84,7 @@ def start_injects(
             new_languages=new_languages,
             updated_translations=updated_translations,
         )
+
 
 def inject_step_one_file(
     file_path: Path,

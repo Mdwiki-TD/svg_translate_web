@@ -89,11 +89,13 @@ def repair_nested_svg_tags(
             "details": verify.to_dict(),
         }
 
+    summary = f"Fixed {verify.fixed} nested tag(s)"
+
     upload = upload_fixed_svg(
         filename,
         file_path,
-        verify.fixed,
         site,
+        summary,
     )
 
     if not upload.get("ok"):

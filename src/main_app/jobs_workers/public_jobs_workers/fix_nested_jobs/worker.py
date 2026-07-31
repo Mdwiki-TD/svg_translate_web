@@ -174,11 +174,13 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         file_path = Path(self.result.file_result.path)
         tags_fixed = self.result.file_result.nested_tags_fixed
 
+        summary = f"Fixed {tags_fixed} nested tag(s)"
+
         upload_result = upload_fixed_svg(
             self.filename,
             file_path,
-            tags_fixed,
             self.site,
+            summary,
         )
 
         if upload_result.get("ok"):

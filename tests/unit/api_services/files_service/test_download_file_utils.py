@@ -4,6 +4,7 @@ Comprehensive unit tests for download_file_utils module.
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -13,6 +14,7 @@ from src.main_app.api_services.files_service.download_file_utils import (
     BASE_COMMONS_URL,
     download_commons_file_core,
     download_one_file,
+    download_svg_file,
 )
 
 
@@ -41,6 +43,36 @@ def mock_download_core(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
         _mock,
     )
     return _mock
+
+
+class TestDownloadSvgFile:
+
+    @pytest.fixture(autouse=True)
+    def setup(self, monkeypatch: pytest.MonkeyPatch):
+        self.mock_down = MagicMock()
+        monkeypatch.setattr(
+            "src.main_app.api_services.files_service.download_file_utils.download_one_file",
+            self.mock_down,
+        )
+
+    def test_download_svg_file_no_user(self):
+        self.mock_down.return_value = {"result": "failed", "msg": "", "path": ""}
+        res = download_svg_file("Test.svg", Path("test.svg"))
+        assert res.get("ok") is False
+        assert res.get("error") == "download_failed"
+        assert res.get("details") == {"msg": "", "path": "", "result": "failed"}
+
+    def test_download_svg_file_success(self, tmp_path):
+        self.mock_down.return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
+        res = download_svg_file("Test.svg", tmp_path)
+        assert res.get("ok") is True
+        assert res.get("path") == tmp_path / "test.svg"
+
+    def test_download_svg_file_fail(self, tmp_path):
+        self.mock_down.return_value = {"result": "error"}
+        res = download_svg_file("Test.svg", tmp_path)
+        assert res.get("ok") is False
+        assert res.get("error") == "download_failed"
 
 
 class TestDownloadOneFile:
