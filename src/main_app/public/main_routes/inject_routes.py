@@ -1,0 +1,289 @@
+from __future__ import annotations
+
+import logging
+import shutil
+import tempfile
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+from CopySVGTranslation import extract  # type: ignore
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+
+from ...api_services.files_service import download_one_file, get_file_info
+from ...jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file import (
+    InjectResult,
+    inject_step_one_file,
+)
+
+logger = logging.getLogger(__name__)
+
+# Session key for preserving filenames across OAuth redirect for inject
+INJECT_SOURCE_KEY = "inject_source_filename"
+INJECT_TARGET_KEY = "inject_target_filename"
+
+
+@dataclass
+class DiffResult:
+    added: dict[str, dict[str, str]] = field(default_factory=dict)
+    removed: dict[str, dict[str, str]] = field(default_factory=dict)
+    changed: dict[str, dict[str, Any]] = field(default_factory=dict)
+
+    @property
+    def has_changes(self) -> bool:
+        return bool(self.added or self.removed or self.changed)
+
+
+def _download_and_extract(filename: str, temp_dir: Path) -> dict[str, Any] | None:
+    """Download a file from Commons and extract translations.
+
+    Args:
+        filename: The file name (without "File:" prefix).
+        temp_dir: Directory to download into.
+
+    Returns:
+        Translations dict or None on failure (with flash message).
+    """
+    result = download_one_file(title=filename, out_dir=temp_dir, overwrite=True)
+
+    if result.get("result") != "success" or not result.get("path"):
+        flash(f"Failed to download file: {filename}", "danger")
+        return None
+
+    file_path = Path(result["path"])
+
+    try:
+        translations = extract(svg_file_path=file_path, case_insensitive=True)
+        if not isinstance(translations, dict):
+            flash(f"Invalid or empty translation data for {filename}", "danger")
+            return None
+    except Exception:
+        logger.exception("Error extracting translations from %s", filename)
+        flash("An error occurred while extracting translations", "danger")
+        return None
+
+    translations.pop("tspans_by_id", None)
+
+    # Sort new data: alphabetical keys first, numeric keys last
+    new_data = translations.get("new", {})
+    translations["new"] = dict(
+        sorted(
+            new_data.items(),
+            key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
+        )
+    )
+    return translations
+
+
+def compute_diff(before: dict[str, Any], after: dict[str, Any]) -> DiffResult:
+    """Compare two translations dicts and return added/removed/changed entries.
+
+    Compares the ``"new"`` section of each translations dict.
+
+    Args:
+        before: Translations dict extracted before injection.
+        after: Translations dict extracted after injection.
+
+    Returns:
+        DiffResult with added, removed, and changed entries.
+    """
+    before_new: dict[str, dict[str, str]] = before.get("new", {})
+    after_new: dict[str, dict[str, str]] = after.get("new", {})
+
+    before_keys = set(before_new.keys())
+    after_keys = set(after_new.keys())
+
+    added = {k: after_new[k] for k in sorted(after_keys - before_keys)}
+    removed = {k: before_new[k] for k in sorted(before_keys - after_keys)}
+
+    changed: dict[str, dict[str, Any]] = {}
+    for key in sorted(before_keys & after_keys):
+        if before_new[key] != after_new[key]:
+            changed[key] = {
+                "before": before_new[key],
+                "after": after_new[key],
+            }
+
+    return DiffResult(added=added, removed=removed, changed=changed)
+
+
+def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
+    """Extract translations from a local file path.
+
+    Args:
+        file_path: Path to the SVG file.
+
+    Returns:
+        Translations dict or None on failure.
+    """
+    try:
+        translations = extract(svg_file_path=file_path, case_insensitive=True)
+        if not isinstance(translations, dict):
+            return None
+    except Exception:
+        logger.exception("Error extracting translations from %s", file_path)
+        return None
+
+    translations.pop("tspans_by_id", None)
+
+    new_data = translations.get("new", {})
+    translations["new"] = dict(
+        sorted(
+            new_data.items(),
+            key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
+        )
+    )
+    return translations
+
+
+class InjectRoutes:
+    def __init__(self, bp: Blueprint) -> None:
+        self.bp = bp
+        self._setup_routes()
+
+    def _setup_routes(self) -> None:
+        self.bp.route("/", methods=["GET"])(self.dashboard)
+        self.bp.route("/", methods=["POST"])(self.inject_post)
+        self.bp.route("/<string:source>/<string:target>", methods=["GET"])(self.inject_get)
+
+    def dashboard(self) -> str:
+        """Display the inject form."""
+        source_filename = session.pop(INJECT_SOURCE_KEY, "")
+        target_filename = session.pop(INJECT_TARGET_KEY, "")
+        return render_template(
+            "inject/form.html",
+            source_filename=source_filename,
+            target_filename=target_filename,
+        )
+
+    def inject_post(self) -> str:
+        """Validate form inputs and redirect to the GET endpoint."""
+        source = request.form.get("source_filename", "").strip()
+        target = request.form.get("target_filename", "").strip()
+
+        if not source or not target:
+            flash("Please provide both source and target file names", "danger")
+            return render_template(
+                "inject/form.html",
+                source_filename=source,
+                target_filename=target,
+            )
+
+        return redirect(url_for("inject.inject_get", source=source, target=target))
+
+    def inject_get(self, source: str, target: str) -> str:
+        """Execute the inject workflow and render the result."""
+        source = source.strip()
+        target = target.strip()
+
+        # Strip "File:" prefix for processing, keep for display
+        source_display = source
+        target_display = target
+
+        if source.lower().startswith("file:"):
+            source = source[5:].lstrip()
+            source_display = f"File:{source}"
+        else:
+            source_display = f"File:{source}"
+
+        if target.lower().startswith("file:"):
+            target = target[5:].lstrip()
+            target_display = f"File:{target}"
+        else:
+            target_display = f"File:{target}"
+
+        # Validate filenames
+        if not source or not target:
+            flash("Please provide both source and target file names", "danger")
+            return render_template("inject/form.html")
+
+        for name, label in [(source, "Source"), (target, "Target")]:
+            if name != Path(name).name or name in {".", ".."}:
+                flash(f"Invalid {label.lower()} file name: {name}", "danger")
+                return render_template("inject/form.html")
+
+        # Check files exist on Commons
+        source_info = get_file_info(f"File:{source}")
+        if not source_info.exists:
+            flash(f"Source file File:{source} does not exist", "danger")
+            logger.error("Source file info: %s", source_info.to_dict())
+            return render_template(
+                "inject/form.html",
+                source_filename=source_display,
+                target_filename=target_display,
+            )
+
+        target_info = get_file_info(f"File:{target}")
+        if not target_info.exists:
+            flash(f"Target file File:{target} does not exist", "danger")
+            logger.error("Target file info: %s", target_info.to_dict())
+            return render_template(
+                "inject/form.html",
+                source_filename=source_display,
+                target_filename=target_display,
+            )
+
+        temp_dir = Path(tempfile.mkdtemp())
+        try:
+            # Step 1: Download and extract from source
+            source_translations = _download_and_extract(source, temp_dir)
+            if source_translations is None:
+                return render_template(
+                    "inject/form.html",
+                    source_filename=source_display,
+                    target_filename=target_display,
+                )
+
+            # Step 2: Download and extract from target (before inject)
+            target_before = _download_and_extract(target, temp_dir)
+            if target_before is None:
+                return render_template(
+                    "inject/form.html",
+                    source_filename=source_display,
+                    target_filename=target_display,
+                )
+
+            # Step 3: Copy target file to output location and inject
+            target_file_path = temp_dir / target
+            output_dir = temp_dir / "output"
+            output_dir.mkdir(exist_ok=True)
+            output_file = output_dir / target
+
+            inject_result = inject_step_one_file(
+                file_path=target_file_path,
+                translations=source_translations,
+                output_file=output_file,
+                overwrite=True,
+            )
+
+            # Step 4: Re-extract from the injected file (only if inject succeeded)
+            target_after: dict[str, Any] | None = None
+            diff = DiffResult()
+
+            if inject_result.result is True and output_file.exists():
+                target_after = _extract_from_path(output_file)
+                if target_after is not None and target_before is not None:
+                    diff = compute_diff(target_before, target_after)
+
+            target_changed = inject_result.result is True
+
+            return render_template(
+                "inject/result.html",
+                source_filename=source_display,
+                target_filename=target_display,
+                source_translations=source_translations,
+                target_before=target_before,
+                inject_result=inject_result,
+                target_after=target_after,
+                diff=diff,
+                target_changed=target_changed,
+            )
+
+        finally:
+            if temp_dir.exists():
+                shutil.rmtree(temp_dir)
+
+
+__all__ = [
+    "InjectRoutes",
+]

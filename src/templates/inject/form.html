@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Inject SVG Translations{% endblock %}
+
+{% block content_fluid %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="bi bi-arrow-left-right"></i> Inject SVG Translations
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Extract translations from a <strong>source</strong> file and inject them into a
+                        <strong>target</strong> file.
+                        The result shows a before/after diff of the target's translations.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('inject.inject_post') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                        <div class="mb-3">
+                            <label for="source_filename" class="form-label">
+                                Source File <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control wiki-autocomplete-files" id="source_filename"
+                                name="source_filename" placeholder=""
+                                value="{{ source_filename|default('File:parkinsons-disease-prevalence-ihme,World,1990.svg', true) }}"
+                                required>
+                            <div class="form-text">
+                                File to extract translations from (you can omit the "File:" prefix)
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="target_filename" class="form-label">
+                                Target File <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control wiki-autocomplete-files" id="target_filename"
+                                name="target_filename" placeholder=""
+                                value="{{ target_filename|default('File:Parkinsons-disease-prevalence-ihme, 1990 to 2021, BMU.svg', true) }}"
+                                required>
+                            <div class="form-text">
+                                File to inject translations into (you can omit the "File:" prefix)
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-arrow-left-right"></i> Inject &amp; Compare
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-info-circle"></i> What does this do?
+                        </h5>
+                        <ol class="mb-0">
+                            <li>Downloads the <strong>source</strong> SVG and extracts its translations</li>
+                            <li>Downloads the <strong>target</strong> SVG and extracts its current translations</li>
+                            <li>Injects the source translations into the target SVG</li>
+                            <li>Re-extracts translations from the modified target</li>
+                            <li>Shows a diff of what was added, changed, or removed</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
