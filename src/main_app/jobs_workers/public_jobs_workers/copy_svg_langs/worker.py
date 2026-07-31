@@ -14,8 +14,7 @@ from typing import Any
 import requests
 from mwclient.client import Site
 
-from ....api_services import create_commons_session
-from ....api_services.files_service import download_one_file, upload_fixed_svg
+from ....api_services import create_commons_session, download_one_file, upload_fixed_svg
 from ....config import settings
 from ....shared.fix_nested.worker import (
     DetectionResult,
@@ -239,7 +238,6 @@ class OneFileProcessor:
         upload = upload_fixed_svg(
             title_info.title,
             new_path,
-            0,
             self.site,
             summary=summary,
         )

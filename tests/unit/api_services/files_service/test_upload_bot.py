@@ -7,7 +7,11 @@ import mwclient.errors
 import pytest
 import requests
 
-from src.main_app.api_services.files_service.upload_bot import _RETRY_DELAYS, UploadFile
+from src.main_app.api_services.files_service.upload_bot import (
+    _RETRY_DELAYS,
+    UploadFile,
+    upload_fixed_svg,
+)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Fixtures & Helpers
@@ -148,7 +152,7 @@ class TestUploadFileInternal:
         "exception, expected_code",
         [
             (mwclient.errors.AssertUserFailedError(), "assertuserfailed"),
-            (mwclient.errors.UserBlocked(MagicMock()), "userblocked"), # type: ignore
+            (mwclient.errors.UserBlocked(MagicMock()), "userblocked"),  # type: ignore
             (mwclient.errors.InsufficientPermission(MagicMock()), "insufficientpermission"),
             (mwclient.errors.FileExists("Test.jpg"), "fileexists"),
             (mwclient.errors.MaximumRetriesExceeded(MagicMock(), MagicMock()), "maxretriesexceeded"),
@@ -223,3 +227,28 @@ class TestUploadWithRetry:
         result = uploader._upload_with_retry()
         assert result["result"] == "success"
         assert uploader._upload_file.call_count == 3
+
+
+class TestUploadFixedSvg:
+    @pytest.fixture(autouse=True)
+    def setup(self, monkeypatch: pytest.MonkeyPatch):
+        self.mock_up = MagicMock()
+        monkeypatch.setattr(
+            "src.main_app.api_services.files_service.upload_bot.upload_file",
+            self.mock_up,
+        )
+
+    def test_upload_fixed_svg_no_user(self, mock_site):
+        res = upload_fixed_svg("Test.svg", Path("testzzz.svg"), mock_site, "")
+        assert res.get("ok") is False
+
+    def test_upload_fixed_svg_success(self, mock_site):
+        self.mock_up.return_value = {"result": "success", "newrevid": 123}
+        res = upload_fixed_svg("Test.svg", Path("test.svg"), mock_site, "")
+        assert res.get("ok") is True
+
+    def test_upload_fixed_svg_fail(self, mock_site):
+        self.mock_up.return_value = {"result": "Failure", "error": "ratelimited"}
+        res = upload_fixed_svg("Test.svg", Path("test.svg"), mock_site, "")
+        assert res.get("ok") is False
+        assert res.get("error") == "ratelimited"

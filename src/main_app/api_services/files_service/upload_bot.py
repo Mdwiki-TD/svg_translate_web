@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import time
 from pathlib import Path
+from typing import Any
 
 import mwclient
 import mwclient.errors
@@ -249,7 +250,55 @@ def upload_file(
     return bot.upload()
 
 
+def upload_fixed_svg(
+    filename: str,
+    file_path: Path,
+    site: Site,
+    summary: str,
+) -> dict[str, Any]:
+    """Upload SVG file to Commons."""
+
+    logger.info(f"Uploading file: {filename}")
+
+    result = upload_file(
+        file_name=filename,
+        file_path=file_path,
+        site=site,
+        summary=summary,
+    )
+    result_status = result.get("result") or ""
+    error_details = result.get("error_details", "")
+    result_error = result.get("error", "upload_failed")
+
+    if result_status.lower() == "success":
+        return {
+            "ok": True,
+            "error": None,
+            "error_details": error_details,
+            "msg": None,
+            "result": result,
+        }
+
+    if result_error == "fileexists-no-change" or result_status == "fileexists-no-change":
+        return {
+            "ok": None,
+            "error": "skipped",
+            "error_details": error_details,
+            "msg": "File already exists with same content",
+            "result": None,
+        }
+
+    return {
+        "ok": False,
+        "error": result_error,
+        "error_details": error_details,
+        "msg": None,
+        "result": None,
+    }
+
+
 __all__ = [
     "upload_file",
     "UploadFile",
+    "upload_fixed_svg",
 ]
