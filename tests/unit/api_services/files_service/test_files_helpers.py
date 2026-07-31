@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.api_services.files_service.files_helpers import (
-    get_file_info,  # noqa: F401
-)
+from src.main_app.api_services.files_service.files_helpers import get_file_info  # noqa: F401
 
 
 class TestGetFileInfo:
