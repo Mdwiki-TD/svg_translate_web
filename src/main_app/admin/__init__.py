@@ -3,6 +3,7 @@
 from flask import Blueprint, Flask
 
 from .admin_panel import AdminPanel
+from .flask_admin_panel import add_admin_dashboard
 from .routes import ADMIN_ROUTE_MODULES
 
 
@@ -23,5 +24,6 @@ def register_bp_admin_blueprints(app: Flask) -> None:
 
 
 __all__ = [
+    "add_admin_dashboard",
     "register_bp_admin_blueprints",
 ]
