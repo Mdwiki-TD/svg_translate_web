@@ -159,6 +159,7 @@ def upload_fixed_svg(
         summary=summary,
     )
     result_status = result.get("result") or ""
+    error_details = result.get("error_details", "")
 
     if result_status.lower() == "success":
         return {
@@ -169,7 +170,7 @@ def upload_fixed_svg(
             "result": result,
         }
 
-    if result_status == "fileexists-no-change":
+    if error_details.get("error") == "fileexists-no-change" or result_status == "fileexists-no-change":
         return {
             "ok": None,
             "error": "skipped",
@@ -181,7 +182,7 @@ def upload_fixed_svg(
     return {
         "ok": False,
         "error": result.get("error", "upload_failed"),
-        "error_details": result.get("error_details", ""),
+        "error_details": error_details,
         "msg": None,
         "result": None,
     }

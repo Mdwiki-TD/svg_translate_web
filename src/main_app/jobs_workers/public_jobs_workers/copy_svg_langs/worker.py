@@ -246,6 +246,7 @@ class OneFileProcessor:
         upload_success = upload.get("ok")
         upload_error = upload.get("error") or ""
         upload_msg = upload.get("msg") or ""
+        error_details = upload.get("error_details", "")
 
         if upload_success is True:
             title_info.steps.upload._update(
@@ -261,15 +262,17 @@ class OneFileProcessor:
 
         error_and_details = {
             "error": upload_error,
-            "error_details": upload.get("error_details", ""),
+            "error_details": error_details,
         }
 
-        if upload_success is None and upload_error == "skipped":
+        is_no_changes = upload_error == "skipped" or error_details.get("error") == "fileexists-no-change"
+        if upload_success is None and is_no_changes:
             title_info.steps.upload._update(
                 result=None,
                 msg=upload_msg,
                 details=error_and_details,
             )
+            title_info.status = "skipped"
             return False
 
         title_info.error = upload_error
@@ -278,6 +281,7 @@ class OneFileProcessor:
             msg="Upload failed.",
             details=error_and_details,
         )
+        title_info.status = "failed"
         return False
 
     def _create_language_summary(self, main_title: str, new_languages: int) -> str:

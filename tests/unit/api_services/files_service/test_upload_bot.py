@@ -148,7 +148,7 @@ class TestUploadFileInternal:
         "exception, expected_code",
         [
             (mwclient.errors.AssertUserFailedError(), "assertuserfailed"),
-            (mwclient.errors.UserBlocked(MagicMock()), "userblocked"),
+            (mwclient.errors.UserBlocked(MagicMock()), "userblocked"), # type: ignore
             (mwclient.errors.InsufficientPermission(MagicMock()), "insufficientpermission"),
             (mwclient.errors.FileExists("Test.jpg"), "fileexists"),
             (mwclient.errors.MaximumRetriesExceeded(MagicMock(), MagicMock()), "maxretriesexceeded"),
