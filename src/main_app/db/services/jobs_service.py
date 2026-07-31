@@ -200,10 +200,9 @@ class JobsService(CRUDService[JobRecord]):
         job_type: str,
         remove_session: bool = True,
     ) -> JobRecord:
-        job = self.get_job(job_id, job_type)
-
         @retry_on_db_disconnect(remove_session=remove_session)
         def with_retry() -> JobRecord:
+            job = self.get_job(job_id, job_type)
             return self._update_job_status(job, status, result_file)
 
         return with_retry()
