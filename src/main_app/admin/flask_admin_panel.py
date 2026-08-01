@@ -1,10 +1,12 @@
 """Admin blueprint package."""
 
-from flask import Flask
+from flask import Flask, abort, redirect, request, url_for
 from flask_admin import Admin, AdminIndexView  # , BaseView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.theme import Bootstrap4Theme
 from flask_babel import Babel
+
+from ..public.auth.utils import load_user
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -21,6 +23,18 @@ from ..db.models import (  # UserTokenRecord,; TemplateNeedUpdateView,
 )
 
 
+class MyAdminIndexView(AdminIndexView):
+    def is_accessible(self) -> bool:
+        user = load_user()
+        return bool(user and user.is_active_admin)
+
+    def inaccessible_callback(self, name: str, **kwargs: Any) -> Any:
+        user = load_user()
+        if not user:
+            return redirect(url_for("auth.login", next=request.url))
+        abort(403)
+
+
 class WrapModelView(ModelView):
     ignore_hidden = True
     form_excluded_columns = ("created_at", "updated_at", "token")
@@ -32,6 +46,16 @@ class WrapModelView(ModelView):
     can_edit: bool = True
     can_delete: bool = False
     can_view_details: bool = True
+
+    def is_accessible(self) -> bool:
+        user = load_user()
+        return bool(user and user.is_active_admin)
+
+    def inaccessible_callback(self, name: str, **kwargs: Any) -> Any:
+        user = load_user()
+        if not user:
+            return redirect(url_for("auth.login", next=request.url))
+        abort(403)
 
 
 # 1. Dataclass to represent individual models with optional parameters like custom names
@@ -101,7 +125,7 @@ def add_admin_dashboard(app: Flask, _db) -> None:
         name="DB admin",
         theme=theme,
         endpoint=None,
-        index_view=AdminIndexView(
+        index_view=MyAdminIndexView(
             name="DB admin",
             template="admin/index_with_sidebar.html",
             url="/adminpanel/db_admin",
