@@ -6,6 +6,10 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.theme import Bootstrap4Theme
 from flask_babel import Babel
 
+from dataclasses import dataclass, field
+from typing import Any
+
+
 from ..db.models import (  # UserTokenRecord,; TemplateNeedUpdateView,
     AdminUserRecord,
     JobRecord,
@@ -30,6 +34,60 @@ class WrapModelView(ModelView):
     can_view_details: bool = True
 
 
+# 1. Dataclass to represent individual models with optional parameters like custom names
+@dataclass
+class ModelItem:
+    model: Any
+    name: str | None = None
+
+
+# 2. Dataclass to represent an Admin Category
+@dataclass
+class AdminCategory:
+    name: str | None  # None for uncategorized/standalone models
+    icon_value: str = "fa-folder"
+    models: list[Any] = field(default_factory=list)  # Accepts a raw model or a ModelItem instance
+    icon_type: str = "fa"
+    class_name: Any = None
+
+
+# 3. Primary categories configuration
+categories: list[AdminCategory] = [
+    AdminCategory(
+        name="Templates",
+        icon_value="fa-cubes",
+        models=[
+            TemplateRecord,
+            # ModelItem(model=TemplateNeedUpdateView, name="Templates Need Update"),
+        ],
+    ),
+    AdminCategory(
+        name="OwidCharts",
+        icon_value="fa-chart-line",  # Changed icon to better represent charts/analytics
+        models=[
+            ModelItem(model=OwidChartRecord, name="OwidChartRecord"),
+            ModelItem(model=OwidSlugRedirectRecord, name="OwidSlugRedirectRecord"),
+        ],
+    ),
+    AdminCategory(
+        name="Users",
+        icon_value="fa-users",
+        models=[
+            AdminUserRecord,
+            UserRecord,
+        ],
+    ),
+    # Standalone category for models without a specific category group
+    AdminCategory(
+        name=None,
+        models=[
+            JobRecord,
+            SettingRecord,
+        ],
+    ),
+]
+
+
 def add_admin_dashboard(app: Flask, _db) -> None:
     babel = Babel(app)  # pyright: ignore
     # Initialize Admin and add views
@@ -44,10 +102,44 @@ def add_admin_dashboard(app: Flask, _db) -> None:
         theme=theme,
         endpoint=None,
         index_view=AdminIndexView(
-            name="DB admin", template="admin/index_with_sidebar.html", url="/adminpanel/db_admin"
+            name="DB admin",
+            template="admin/index_with_sidebar.html",
+            url="/adminpanel/db_admin",
         ),
     )
 
+    add_views_new(_db, admin)
+    # add_views(_db, admin)
+
+def add_views_new(_db, admin):
+    # 4. Dynamically build and construct WrapModelView instances
+    all_models = []
+
+    for cat in categories:
+        # Register category only if a category name is defined
+        if cat.name:
+            admin.add_category(
+                name=cat.name,
+                class_name=cat.class_name,
+                icon_type=cat.icon_type,
+                icon_value=cat.icon_value,
+            )
+
+        # Process and wrap models within the category
+        for item in cat.models:
+            if isinstance(item, ModelItem):
+                kwargs = {"category": cat.name} if cat.name else {}
+                if item.name:
+                    kwargs["name"] = item.name
+                all_models.append(WrapModelView(item.model, _db, **kwargs))
+            else:
+                kwargs = {"category": cat.name} if cat.name else {}
+                all_models.append(WrapModelView(item, _db, **kwargs))
+
+    # 5. Register all wrapped view instances in a single call
+    admin.add_views(*all_models)
+
+def add_views(_db, admin):
     admin.add_category(
         name="Templates",
         class_name=None,
