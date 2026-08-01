@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, abort, redirect, request, url_for
 from flask_admin import Admin, AdminIndexView  # , BaseView, expose
 from flask_admin.contrib.sqla import ModelView
@@ -47,7 +48,7 @@ class WrapModelView(ModelView):
         abort(403)
 
 
-def add_admin_dashboard(app: Flask, _db) -> None:
+def add_admin_dashboard(app: Flask, _db: SQLAlchemy) -> None:
     babel = Babel(app)
     # Initialize Admin and add views
     theme = Bootstrap4Theme(
