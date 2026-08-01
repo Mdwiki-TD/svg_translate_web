@@ -31,3 +31,4 @@ run_tests.py
 /.commandcode
 errors.log
 /src/templates/admin/admin
+/src/templates/admin/bs4_admin
