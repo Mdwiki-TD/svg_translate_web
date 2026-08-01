@@ -14,6 +14,8 @@ def _fake_admin_user(monkeypatch):
     """Fake an authenticated admin user for all tests in this module."""
     admin_user = SimpleNamespace(username="test_admin", is_active_admin=True)
     monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
+    monkeypatch.setattr("src.main_app.public.auth.utils.load_user", lambda: admin_user)
+    monkeypatch.setattr("src.main_app.public.utils.routes_utils.load_user", lambda: admin_user)
 
 
 @pytest.fixture

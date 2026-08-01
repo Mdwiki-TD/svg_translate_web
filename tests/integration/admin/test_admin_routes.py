@@ -109,6 +109,67 @@ class TestAdminDashboard(TestSetup):
 
 
 @pytest.mark.usefixtures("mock_app")
+class TestDbAdminPanel(TestSetup):
+    """GET /adminpanel/db_admin/ — Flask-Admin DB admin panel."""
+
+    def test_db_admin_requires_login(self, mock_client):
+        """Unauthenticated user should be redirected to login when trying to access DB admin."""
+        resp = mock_client.get("/adminpanel/db_admin/")
+        assert resp.status_code == 302
+        assert "login" in resp.headers["Location"]
+
+    def test_db_admin_requires_admin_role(self, mock_app, mock_client):
+        """A regular user (not coordinator/admin) should get 403 when trying to access DB admin."""
+        with mock_app.app_context():
+            uid = self._upsert_u_token(
+                username="RegularUser",
+                access_key="k",
+                access_secret="s",
+            )
+
+        with mock_client.session_transaction() as sess:
+            sess["uid"] = uid
+            sess["username"] = "RegularUser"
+
+        resp = mock_client.get("/adminpanel/db_admin/")
+        assert resp.status_code == 403
+
+    def test_db_admin_loads_for_admin(self, mock_app, mock_client):
+        """An admin user should be able to load the DB admin dashboard."""
+        self._login_admin(mock_app, mock_client)
+        resp = mock_client.get("/adminpanel/db_admin/")
+        assert resp.status_code == 200
+
+    def test_db_admin_model_view_requires_login(self, mock_client):
+        """Unauthenticated user should be redirected to login when trying to access a model view."""
+        resp = mock_client.get("/adminpanel/db_admin/templaterecord/")
+        assert resp.status_code == 302
+        assert "login" in resp.headers["Location"]
+
+    def test_db_admin_model_view_requires_admin_role(self, mock_app, mock_client):
+        """A regular user should get 403 when trying to access a model view."""
+        with mock_app.app_context():
+            uid = self._upsert_u_token(
+                username="RegularUser",
+                access_key="k",
+                access_secret="s",
+            )
+
+        with mock_client.session_transaction() as sess:
+            sess["uid"] = uid
+            sess["username"] = "RegularUser"
+
+        resp = mock_client.get("/adminpanel/db_admin/templaterecord/")
+        assert resp.status_code == 403
+
+    def test_db_admin_model_view_loads_for_admin(self, mock_app, mock_client):
+        """An admin user should be able to load a model view."""
+        self._login_admin(mock_app, mock_client)
+        resp = mock_client.get("/adminpanel/db_admin/templaterecord/")
+        assert resp.status_code == 200
+
+
+@pytest.mark.usefixtures("mock_app")
 class TestAdminUsersPage(TestSetup):
     """GET /adminpanel/users — list all registered users."""
 
