@@ -3,7 +3,6 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-
 from ..db.models import (  # UserTokenRecord,; TemplateNeedUpdateView,
     AdminUserRecord,
     JobRecord,
@@ -13,6 +12,7 @@ from ..db.models import (  # UserTokenRecord,; TemplateNeedUpdateView,
     TemplateRecord,
     UserRecord,
 )
+
 
 # 1. Dataclass to represent individual models with optional parameters like custom names
 @dataclass

@@ -1,6 +1,7 @@
 """Admin blueprint package."""
 
 from typing import Any
+
 from flask import Flask, abort, redirect, request, url_for
 from flask_admin import Admin, AdminIndexView  # , BaseView, expose
 from flask_admin.contrib.sqla import ModelView
@@ -8,7 +9,8 @@ from flask_admin.theme import Bootstrap4Theme
 from flask_babel import Babel
 
 from ..public.auth.utils import load_user
-from .flask_admin_panel_models import categories, ModelItem
+from .flask_admin_panel_models import ModelItem, categories
+
 
 class MyAdminIndexView(AdminIndexView):
     def is_accessible(self) -> bool:
@@ -44,8 +46,9 @@ class WrapModelView(ModelView):
             return redirect(url_for("auth.login", next=request.url))
         abort(403)
 
+
 def add_admin_dashboard(app: Flask, _db) -> None:
-    babel = Babel(app)  # noqa: F841
+    babel = Babel(app)
     # Initialize Admin and add views
     theme = Bootstrap4Theme(
         base_template="admin/index_with_sidebar.html",
@@ -65,6 +68,7 @@ def add_admin_dashboard(app: Flask, _db) -> None:
     )
 
     add_views(_db, admin)
+
 
 def add_views(_db, admin):
     # 4. Dynamically build and construct WrapModelView instances
@@ -94,6 +98,7 @@ def add_views(_db, admin):
 
     # 5. Register all wrapped view instances in a single call
     admin.add_views(*all_models)
+
 
 __all__ = [
     "add_admin_dashboard",
