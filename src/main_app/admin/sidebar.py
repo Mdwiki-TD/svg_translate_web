@@ -359,7 +359,13 @@ def load_groups_menu() -> list[SidebarGroup]:
                 title="App Errors",
                 icon="bi-exclamation-triangle",
             ),
-            SidebarItem(id="db_admin", admin=1, href="/adminpanel/db_admin", title="DB admin", icon="bi-database"),
+            SidebarItem(
+                id="db_admin",
+                admin=1,
+                href="/adminpanel/db_admin",
+                title="DB admin",
+                icon="bi-database",
+            ),
         ],
     )
 
