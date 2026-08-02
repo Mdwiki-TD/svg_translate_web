@@ -98,7 +98,8 @@ class OneFileProcessor:
 
         if inject_result.result is True:
             # inject success
-            new_languages_count = inject_result.details.get("new_languages", 0) if inject_result.details else 0
+            translation_details = title_info.steps.translations.details or {}
+            new_languages_count = translation_details.get("new", 0)
             summary = self._create_language_summary(main_title, new_languages_count)
             return self._upload_step(title_info, summary, new_path)
 
