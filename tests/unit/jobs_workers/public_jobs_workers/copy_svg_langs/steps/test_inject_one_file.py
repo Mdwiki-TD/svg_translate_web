@@ -15,7 +15,7 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_o
 def mock_inject(monkeypatch: pytest.MonkeyPatch):
     mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file.inject",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file.start_svg_injection",
         mock,
     )
     return mock

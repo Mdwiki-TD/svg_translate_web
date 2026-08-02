@@ -7,7 +7,12 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import inject
+try:
+    from CopySVGTranslation import InjectorData, SVGTranslationInjector  # type: ignore
+except ImportError:
+    from CopySVGTranslation import inject
+
+    perform_svg_injection = None
 
 from .inject_utils import add_translations_from_titles
 
@@ -25,6 +30,45 @@ class InjectResult:
         return asdict(self)
 
 
+def start_svg_injection(
+    *,
+    inject_file: Path | str,
+    all_mappings: dict[str, Any] | None = None,
+    overwrite: bool = False,
+    save_result: bool = False,
+) -> InjectorData:
+    """
+    Legacy function-style wrapper around SVGTranslationInjector, kept for
+    backward compatibility with existing callers.
+    """
+    if not perform_svg_injection:
+        return inject(
+            inject_file=inject_file,
+            all_mappings=all_mappings,
+            save_result=False,
+            return_stats=True,
+            overwrite=overwrite,
+        )
+
+    injector = SVGTranslationInjector(
+        case_insensitive=True,
+        overwrite=overwrite,
+        pretty_print=True,
+    )
+    inject_path = Path(str(inject_file))
+
+    target_path = inject_path.parent / inject_path.name
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+
+    data: InjectorData = injector.inject(
+        inject_file=inject_file,
+        all_mappings=all_mappings,
+        save_result=save_result,
+        target_path=target_path,
+    )
+    return data.tree, data.stats
+
+
 def start_injects(
     file: Path,
     translations: dict,
@@ -38,11 +82,13 @@ def start_injects(
         "new_languages": 0,
         "updated_translations": 0,
     }
-    tree, stats = inject(
-        file,
+    tree = None
+    stats = {}
+
+    tree, stats = start_svg_injection(
+        inject_file=file,
         all_mappings=translations,
         save_result=False,
-        return_stats=True,
         overwrite=overwrite,
     )
 
