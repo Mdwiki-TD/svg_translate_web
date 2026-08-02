@@ -147,6 +147,11 @@ class TestCopySvgLangsWorkerProcess:
         mock_steps["titles"].return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
         mock_steps["translations"].return_value = ExtractResult(success=True, translations={"new": {"en": "Text"}})
         mock_services["download"].return_value = {"result": "success", "path": "path.svg"}
+        mock_services["detect"].return_value = MagicMock(count=0)
+        mock_services["inject"].return_value = InjectResult(
+            result=True, msg="ok", new_languages_count=1, updated_translations=0
+        )
+        mock_services["upload"].return_value = {"ok": True, "error": "", "msg": "uploaded"}
 
         result = mock_worker.process()
 
