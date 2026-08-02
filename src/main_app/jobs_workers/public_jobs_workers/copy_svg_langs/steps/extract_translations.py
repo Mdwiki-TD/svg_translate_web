@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import extract  # type: ignore
+from CopySVGTranslation import ExtractorData, SVGTranslationExtractor  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,28 @@ class ExtractResult:
         return asdict(self)
 
 
+def extract_file_translations(
+    svg_file_path: str | Path,
+) -> ExtractorData:
+    """
+    Legacy function-style wrapper around SVGTranslationExtractor, kept for
+    backward compatibility with existing callers.
+
+    Parameters:
+        svg_file_path (str | Path): Path to the SVG file to process.
+        case_insensitive (bool): If true, treat default text keys
+            case-insensitively by lowercasing them.
+    """
+    extractor = SVGTranslationExtractor(
+        svg_file_path,
+        case_insensitive=True,
+    )
+
+    result = extractor.extract()
+
+    return result
+
+
 def extract_from_path(main_title_path: Path) -> ExtractResult:
     """
     Load SVG translations from a Wikimedia Commons main file.
@@ -38,13 +60,12 @@ def extract_from_path(main_title_path: Path) -> ExtractResult:
     """
 
     try:
-        translations = extract(main_title_path, case_insensitive=True)
+        translations = extract_file_translations(main_title_path)
     except Exception:
         logger.exception("Failed to extract translations from main SVG")
         return ExtractResult(success=False, message="", error="Failed to parse main SVG", translations={})
-    translations = translations or {}
 
-    new_translations = translations.get("new") or {}
+    new_translations = translations.new
     new_translations_count = len(new_translations)
 
     if new_translations_count == 0:
@@ -53,7 +74,7 @@ def extract_from_path(main_title_path: Path) -> ExtractResult:
         return ExtractResult(success=False, message="", error="No translations found in main file", translations={})
 
     # Sort new data: alphabetical keys first, numeric keys last
-    translations["new"] = dict(
+    translations.new = dict(
         sorted(
             new_translations.items(),
             key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
@@ -61,7 +82,12 @@ def extract_from_path(main_title_path: Path) -> ExtractResult:
     )
     message = f"Loaded {new_translations_count} translations from main file"
 
-    return ExtractResult(success=True, message=message, error=None, translations=translations)
+    return ExtractResult(
+        success=True,
+        message=message,
+        error=None,
+        translations=translations.to_json(),
+    )
 
 
 __all__ = [

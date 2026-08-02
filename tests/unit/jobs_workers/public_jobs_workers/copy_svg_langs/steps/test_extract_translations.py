@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations import (
+    ExtractorData,
     extract_from_path,
 )
 
@@ -12,9 +13,8 @@ class TestExtractFromPath:
     @pytest.mark.parametrize(
         "extract_return, expected_message",
         [
-            ({"existing": {"en": {}}, "new": {}}, "No translations found in main file"),
+            ({"new": {}}, "No translations found in main file"),
             ({}, "No translations found in main file"),
-            (None, "No translations found in main file"),
         ],
     )
     def test_translations_task_stops_on_failure(self, monkeypatch, tmp_path, extract_return, expected_message):
@@ -24,12 +24,12 @@ class TestExtractFromPath:
         fake_svg_path = dummy_main_path / "Example.svg"
         fake_svg_path.write_text("<svg></svg>")
 
-        def fake_extract(path, case_insensitive):
+        def fake_extract(path):
             assert Path(path) == fake_svg_path
-            return extract_return
+            return ExtractorData(**extract_return)
 
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",
             fake_extract,
         )
 
@@ -52,11 +52,11 @@ class TestExtractFromPath:
         fake_svg_path = tmp_path / "Example.svg"
         fake_svg_path.write_text("<svg></svg>")
 
-        def fake_extract(path, case_insensitive):
+        def fake_extract(path):
             raise ValueError("SVG parse error")
 
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",
             fake_extract,
         )
 
@@ -71,11 +71,11 @@ class TestExtractFromPath:
         fake_svg_path = tmp_path / "Example.svg"
         fake_svg_path.write_text("<svg></svg>")
 
-        def fake_extract(path, case_insensitive):
-            return {"new": {"en": {"text": "Hello"}, "fr": {"text": "Bonjour"}}, "existing": {}}
+        def fake_extract(path):
+            return ExtractorData(new={"en": {"text": "Hello"}, "fr": {"text": "Bonjour"}})
 
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",
             fake_extract,
         )
 

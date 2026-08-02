@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
 
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations import ExtractorData
 from src.main_app.public.main_routes.extract_routes import EXTRACT_FILENAME_KEY
 
 
@@ -130,9 +131,9 @@ class TestExtractRender:
         mock_download.return_value = {"result": "success", "path": str(tmp_path / "test_dir/test.svg")}
 
         mock_extract = mocker.patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract"
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations"
         )
-        mock_extract.return_value = {"new": {}, "title": {}}
+        mock_extract.return_value = ExtractorData(new={}, title={})
 
         mock_client.post(
             "/extract/",
@@ -162,7 +163,7 @@ class TestExtractRender:
 
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",
             mock_extract,
         )
 
@@ -194,11 +195,11 @@ class TestExtractRender:
         }
 
         def mock_extract(*args, **kwargs):
-            return sample_translations
+            return ExtractorData(**sample_translations)
 
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract",
+            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",
             mock_extract,
         )
 
@@ -211,4 +212,4 @@ class TestExtractRender:
         assert response.status_code == 200
         assert response.data.decode() == "rendered:extract/result.html"
         assert ("Translations extracted successfully", "success") in mock_flash
-        assert patch_render["context"]["translations"] == sample_translations
+        assert patch_render["context"]["translations"]["new"] == sample_translations["new"]

@@ -2,12 +2,12 @@
 
 from typing import Any
 
-from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, abort, redirect, request, url_for
 from flask_admin import Admin, AdminIndexView  # , BaseView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.theme import Bootstrap4Theme
 from flask_babel import Babel
+from flask_sqlalchemy import SQLAlchemy
 
 from ..public.auth.utils import load_user
 from .flask_admin_panel_models import ModelItem, categories

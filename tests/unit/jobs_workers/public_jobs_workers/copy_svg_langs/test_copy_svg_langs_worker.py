@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps import InjectResult
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations import (
     ExtractResult,
 )
@@ -146,6 +147,11 @@ class TestCopySvgLangsWorkerProcess:
         mock_steps["titles"].return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
         mock_steps["translations"].return_value = ExtractResult(success=True, translations={"new": {"en": "Text"}})
         mock_services["download"].return_value = {"result": "success", "path": "path.svg"}
+        mock_services["detect"].return_value = MagicMock(count=0)
+        mock_services["inject"].return_value = InjectResult(
+            result=True, msg="ok", new_languages_count=1, updated_translations=0
+        )
+        mock_services["upload"].return_value = {"ok": True, "error": "", "msg": "uploaded"}
 
         result = mock_worker.process()
 
@@ -291,7 +297,13 @@ class TestCopySvgLangsWorkerInjectStepFile:
         mock_worker.files_processor.output_dir = tmp_path
 
         mock_inject = MagicMock(
-            return_value=MagicMock(result=True, msg="2 languages injected", new_languages=2, updated_translations=1)
+            return_value=InjectResult(
+                result=True,
+                msg="2 languages injected",
+                new_languages_count=2,
+                languages_after=["ar", "de"],
+                updated_translations=1,
+            )
         )
         monkeypatch.setattr(
             "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.inject_step_one_file",
@@ -307,7 +319,7 @@ class TestCopySvgLangsWorkerInjectStepFile:
 
         assert step_result.result is True
         assert step_result.msg == "2 languages injected"
-        assert title_info.steps.translations.details == {"new": 2, "updated": 1}
+        assert title_info.steps.translations.details == {"new": 2, "updated": 1, "new_list": ["ar", "de"]}
         assert new_path == tmp_path / "translated" / file_name
 
 
@@ -348,7 +360,7 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path.write_text("<svg></svg>")
         mock_services["download"].return_value = {"result": "success", "path": str(dl_path)}
         mock_services["detect"].return_value = MagicMock(count=0)
-        mock_services["inject"].return_value = MagicMock(result=None, msg="No changes")
+        mock_services["inject"].return_value = InjectResult(result=None, msg="No changes")
 
         title_info = FilesProcessedItem(title="File:Test.svg")
 
@@ -393,8 +405,10 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path.write_text("<svg></svg>")
         mock_services["download"].return_value = {"result": "success", "path": str(dl_path)}
         mock_services["detect"].return_value = MagicMock(count=0)
-        mock_services["inject"].return_value = MagicMock(result=True, msg="ok", new_languages=1, updated_translations=0)
-        mock_services["inject"].return_value.details = {"new_languages": 1, "updated_translations": 0}
+        mock_services["inject"].return_value = InjectResult(
+            result=True, msg="ok", new_languages_count=1, updated_translations=0
+        )
+        # mock_services["inject"].return_value.details = {"new_languages_count": 1, "updated_translations": 0}
         mock_services["upload"].return_value = {"ok": True, "error": "", "msg": "uploaded"}
         mock_worker.main_title = "Main.svg"
         title_info = FilesProcessedItem(title="File:Test.svg")
@@ -410,7 +424,7 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path.write_text("<svg></svg>")
         mock_services["download"].return_value = {"result": "success", "path": str(dl_path)}
         mock_services["detect"].return_value = MagicMock(count=0)
-        mock_services["inject"].return_value = MagicMock(result=None, msg="No changes")
+        mock_services["inject"].return_value = InjectResult(result=None, msg="No changes")
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_worker._process_one_item("File:Test.svg", title_info, "")
@@ -422,7 +436,7 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path.write_text("<svg></svg>")
         mock_services["download"].return_value = {"result": "success", "path": str(dl_path)}
         mock_services["detect"].return_value = MagicMock(count=0)
-        mock_services["inject"].return_value = MagicMock(result=False, msg="Failed")
+        mock_services["inject"].return_value = InjectResult(result=False, msg="Failed")
         title_info = FilesProcessedItem(title="File:Test.svg", steps=MagicMock(inject=MagicMock(result=False)))
 
         result = mock_worker._process_one_item("File:Test.svg", title_info, "")
@@ -436,7 +450,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_services["detect"].return_value = MagicMock(count=2)
         mock_services["fix"].return_value = True
         mock_services["verify"].return_value = MagicMock(fixed=2)
-        mock_services["inject"].return_value = MagicMock(result=False, msg="Failed")
+        mock_services["inject"].return_value = InjectResult(result=False, msg="Failed")
         mock_services["upload"].return_value = {"ok": True, "msg": "uploaded", "error": ""}
 
         title_info = FilesProcessedItem(title="File:Test.svg")
@@ -458,8 +472,10 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path.write_text("<svg></svg>")
         mock_services["download"].return_value = {"result": "success", "path": str(dl_path)}
         mock_services["detect"].return_value = MagicMock(count=0)
-        mock_services["inject"].return_value = MagicMock(result=True, msg="ok", new_languages=1, updated_translations=0)
-        mock_services["inject"].return_value.details = {"new_languages": 1, "updated_translations": 0}
+        mock_services["inject"].return_value = InjectResult(
+            result=True, msg="ok", new_languages_count=1, updated_translations=0
+        )
+        # mock_services["inject"].return_value.details = {"new_languages_count": 1, "updated_translations": 0}
         mock_worker.main_title = "Main.svg"
         title_info = FilesProcessedItem(title="File:Test.svg")
 
@@ -678,14 +694,14 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             ),
             patch(
                 "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.inject_step_one_file",
-                return_value=MagicMock(result=True, msg="ok", new_languages=0, updated_translations=0),
+                return_value=InjectResult(result=True, msg="ok", new_languages_count=0, updated_translations=0),
             ) as m_inject,
             patch(
                 "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.upload_fixed_svg",
                 return_value={"ok": True, "error": "", "msg": "uploaded"},
             ),
         ):
-            m_inject.return_value.details = {"new_languages": 0, "updated_translations": 0}
+            m_inject.return_value.details = {"new_languages_count": 0, "updated_translations": 0}
             result = mock_worker.process()
 
         # periodic check breaks loop early - only first file processed
@@ -722,7 +738,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             ),
             patch(
                 "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.inject_step_one_file",
-                return_value=MagicMock(result=None, msg="No changes"),
+                return_value=InjectResult(result=None, msg="No changes"),
             ),
         ):
             result = mock_worker.process()
@@ -755,7 +771,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             ),
             patch(
                 "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.inject_step_one_file",
-                return_value=MagicMock(result=None, msg="No changes"),
+                return_value=InjectResult(result=None, msg="No changes"),
             ),
         ):
             result = mock_worker.process()
