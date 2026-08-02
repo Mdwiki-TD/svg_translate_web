@@ -18,9 +18,6 @@ except ImportError:
 
     perform_svg_extract = True
 
-logger = logging.getLogger(__name__)
-
-
 @dataclass
 class Translations:
     """Container for extracted SVG translation data."""
@@ -33,6 +30,8 @@ class Translations:
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
