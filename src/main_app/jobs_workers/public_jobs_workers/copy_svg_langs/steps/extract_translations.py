@@ -5,31 +5,11 @@ Step for extracting translations from a SVG file.
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-try:
-    from CopySVGTranslation import SVGTranslationExtractor  # type: ignore
-
-    perform_svg_extract = False
-except ImportError:
-    from CopySVGTranslation import extract
-
-    perform_svg_extract = True
-
-@dataclass
-class Translations:
-    """Container for extracted SVG translation data."""
-
-    new: dict[str, dict[str, str]] = field(default_factory=dict)
-    tspans_by_id: dict[str, str] = field(default_factory=dict)
-    title: dict[str, Any] = field(default_factory=dict)
-    title_new: dict[str, Any] = field(default_factory=dict)
-    error: str = ""
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
+from CopySVGTranslation import SVGTranslationExtractor, Translations  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -57,16 +37,12 @@ def extract_file_translations(
         case_insensitive (bool): If true, treat default text keys
             case-insensitively by lowercasing them.
     """
-    if perform_svg_extract:
-        translations = extract(svg_file_path, case_insensitive=True)
-        return Translations(**translations) if translations else Translations()
-
     extractor = SVGTranslationExtractor(
         svg_file_path,
         case_insensitive=True,
     )
 
-    result = extractor.extract_file_translations()
+    result = extractor.extract()
 
     return result
 
