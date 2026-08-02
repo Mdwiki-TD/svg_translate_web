@@ -9,10 +9,12 @@ from typing import Any
 
 try:
     from CopySVGTranslation import InjectorData, SVGTranslationInjector  # type: ignore
+
+    perform_svg_injection = False
 except ImportError:
     from CopySVGTranslation import inject
 
-    perform_svg_injection = None
+    perform_svg_injection = True
 
 from .inject_utils import add_translations_from_titles
 
@@ -43,7 +45,7 @@ def start_svg_injection(
     Legacy function-style wrapper around SVGTranslationInjector, kept for
     backward compatibility with existing callers.
     """
-    if not perform_svg_injection:
+    if perform_svg_injection:
         return inject(
             inject_file=inject_file,
             all_mappings=all_mappings,
