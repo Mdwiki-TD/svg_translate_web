@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import SVGTranslationExtractor, Translations  # type: ignore
+from CopySVGTranslation import ExtractorData, SVGTranslationExtractor  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class ExtractResult:
 
 def extract_file_translations(
     svg_file_path: str | Path,
-) -> Translations:
+) -> ExtractorData:
     """
     Legacy function-style wrapper around SVGTranslationExtractor, kept for
     backward compatibility with existing callers.

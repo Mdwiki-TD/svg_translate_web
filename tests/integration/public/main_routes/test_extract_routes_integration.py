@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations import Translations
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations import ExtractorData
 from src.main_app.public.main_routes.extract_routes import EXTRACT_FILENAME_KEY
 
 
@@ -133,7 +133,7 @@ class TestExtractRender:
         mock_extract = mocker.patch(
             "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations"
         )
-        mock_extract.return_value = Translations(new={}, title={})
+        mock_extract.return_value = ExtractorData(new={}, title={})
 
         mock_client.post(
             "/extract/",
@@ -195,7 +195,7 @@ class TestExtractRender:
         }
 
         def mock_extract(*args, **kwargs):
-            return Translations(**sample_translations)
+            return ExtractorData(**sample_translations)
 
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
         monkeypatch.setattr(

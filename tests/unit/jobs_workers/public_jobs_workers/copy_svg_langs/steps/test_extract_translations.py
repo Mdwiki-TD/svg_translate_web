@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations import (
-    Translations,
+    ExtractorData,
     extract_from_path,
 )
 
@@ -26,7 +26,7 @@ class TestExtractFromPath:
 
         def fake_extract(path):
             assert Path(path) == fake_svg_path
-            return Translations(**extract_return)
+            return ExtractorData(**extract_return)
 
         monkeypatch.setattr(
             "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",
@@ -72,7 +72,7 @@ class TestExtractFromPath:
         fake_svg_path.write_text("<svg></svg>")
 
         def fake_extract(path):
-            return Translations(new={"en": {"text": "Hello"}, "fr": {"text": "Bonjour"}})
+            return ExtractorData(new={"en": {"text": "Hello"}, "fr": {"text": "Bonjour"}})
 
         monkeypatch.setattr(
             "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",
