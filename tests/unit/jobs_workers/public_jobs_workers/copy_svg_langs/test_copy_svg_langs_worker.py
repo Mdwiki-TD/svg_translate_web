@@ -296,7 +296,7 @@ class TestCopySvgLangsWorkerInjectStepFile:
                 result=True,
                 msg="2 languages injected",
                 new_languages_count=2,
-                new_languages_list=["ar", "de"],
+                languages_after=["ar", "de"],
                 updated_translations=1,
             )
         )

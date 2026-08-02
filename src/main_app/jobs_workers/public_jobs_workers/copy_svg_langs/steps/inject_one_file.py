@@ -25,7 +25,9 @@ class InjectResult:
     msg: str | None = None
     new_languages_count: int | None = None
     updated_translations: int | None = None
-    new_languages_list: list[str] = field(default_factory=list)
+
+    languages_before: list[str] = field(default_factory=list)
+    languages_after: list[str] = field(default_factory=list)
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
@@ -36,7 +38,6 @@ def start_svg_injection(
     inject_file: Path | str,
     all_mappings: dict[str, Any] | None = None,
     overwrite: bool = False,
-    save_result: bool = False,
 ):
     """
     Legacy function-style wrapper around SVGTranslationInjector, kept for
@@ -64,7 +65,7 @@ def start_svg_injection(
     data: InjectorData = injector.inject(
         inject_file=inject_file,
         all_mappings=all_mappings,
-        save_result=save_result,
+        save_result=False,
         target_path=target_path,
     )
 
@@ -90,7 +91,6 @@ def start_injects(
     tree, stats = start_svg_injection(
         inject_file=file,
         all_mappings=translations,
-        save_result=False,
         overwrite=overwrite,
     )
 
@@ -101,8 +101,8 @@ def start_injects(
 
         return InjectResult(result=False, msg="Failed to translate")
 
-    new_languages_list = stats.get("new_languages_list") or []
-    new_languages_count = stats.get("new_languages", 0) or len(new_languages_list)
+    languages_after = stats.get("languages_after") or []
+    new_languages_count = stats.get("new_languages", 0) or len(languages_after)
 
     updated_translations = stats.get("updated_translations", 0)
 
@@ -123,7 +123,7 @@ def start_injects(
         return InjectResult(
             result=True,
             msg=msg,
-            new_languages_list=new_languages_list,
+            languages_after=languages_after,
             new_languages_count=new_languages_count,
             updated_translations=updated_translations,
         )
@@ -132,7 +132,7 @@ def start_injects(
         return InjectResult(
             result=False,
             msg="Failed to write file",
-            new_languages_list=new_languages_list,
+            languages_after=languages_after,
             new_languages_count=new_languages_count,
             updated_translations=updated_translations,
         )
