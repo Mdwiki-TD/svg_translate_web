@@ -95,7 +95,6 @@ class OneFileProcessor:
 
         # ----------------------------------------------
         # File step 5: upload
-
         if inject_result.result is True:
             # inject success
             translation_details = title_info.steps.translations.details or {}
