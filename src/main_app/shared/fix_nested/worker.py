@@ -31,7 +31,9 @@ class VerificationResult:
 
 def detect_nested_tags(file_path: Path) -> DetectionResult:
     """Detect nested tags in SVG file."""
-    nested = match_nested_tags(str(file_path))
+    nested = match_nested_tags(
+        source_file=str(file_path),
+    )
     return DetectionResult(
         count=len(nested),
         tags=nested,
@@ -41,12 +43,18 @@ def detect_nested_tags(file_path: Path) -> DetectionResult:
 def fix_nested_tags(file_path: Path) -> bool:
     """Fix nested tags in-place."""
     logger.info("Fixing nested tags in: %s", file_path.name)
-    return bool(fix_nested_file(file_path, file_path))
+    result = fix_nested_file(
+        source_file=file_path,
+        new_path=file_path,
+    )
+    return bool(result)
 
 
 def verify_fix(file_path: Path, before_count: int) -> VerificationResult:
     """Verify nested tags count after fix."""
-    after = match_nested_tags(str(file_path))
+    after = match_nested_tags(
+        source_file=str(file_path),
+    )
     after_count = len(after)
 
     return VerificationResult(

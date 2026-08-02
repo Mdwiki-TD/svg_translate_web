@@ -43,16 +43,11 @@ def start_svg_injection(
         overwrite=overwrite,
         pretty_print=True,
     )
-    inject_path = Path(str(inject_file))
-
-    target_path = inject_path.parent / inject_path.name
-    target_path.parent.mkdir(parents=True, exist_ok=True)
 
     data: InjectorData = injector.inject(
         inject_file=inject_file,
         all_mappings=all_mappings,
         save_result=False,
-        target_path=target_path,
     )
 
     stats = data.new_stats.to_json()

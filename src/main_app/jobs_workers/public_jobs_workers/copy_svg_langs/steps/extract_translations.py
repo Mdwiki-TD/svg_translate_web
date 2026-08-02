@@ -26,19 +26,19 @@ class ExtractResult:
 
 
 def extract_file_translations(
-    svg_file_path: str | Path,
+    source_file: str | Path,
 ) -> ExtractorData:
     """
     Legacy function-style wrapper around SVGTranslationExtractor, kept for
     backward compatibility with existing callers.
 
     Parameters:
-        svg_file_path (str | Path): Path to the SVG file to process.
+        source_file (str | Path): Path to the SVG file to process.
         case_insensitive (bool): If true, treat default text keys
             case-insensitively by lowercasing them.
     """
     extractor = SVGTranslationExtractor(
-        svg_file_path,
+        source_file=source_file,
         case_insensitive=True,
     )
 
