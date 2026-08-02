@@ -66,7 +66,9 @@ class StepResult:
 class FileSteps:
     download: StepResult = field(default_factory=lambda: StepResult())
     nested: StepResult = field(default_factory=lambda: StepResult())
-    translations: StepResult = field(default_factory=lambda: StepResult())
+    translations: StepResult = field(
+        default_factory=lambda: StepResult(details={"new": 0, "updated": 0, "new_list": []})
+    )
     inject: StepResult = field(default_factory=lambda: StepResult())
     upload: StepResult = field(default_factory=lambda: StepResult())
 

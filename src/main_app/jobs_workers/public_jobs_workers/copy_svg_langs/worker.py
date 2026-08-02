@@ -98,8 +98,8 @@ class OneFileProcessor:
 
         if inject_result.result is True:
             # inject success
-            new_languages = inject_result.details.get("new_languages", 0) if inject_result.details else 0
-            summary = self._create_language_summary(main_title, new_languages)
+            new_languages_count = inject_result.details.get("new_languages", 0) if inject_result.details else 0
+            summary = self._create_language_summary(main_title, new_languages_count)
             return self._upload_step(title_info, summary, new_path)
 
         # ----------------------------------------------
@@ -183,7 +183,8 @@ class OneFileProcessor:
         title_info.steps.translations._update(
             result=True,
             details={
-                "new": inject_result.new_languages or 0,
+                "new_list": inject_result.new_languages_list,
+                "new": inject_result.new_languages_count or 0,
                 "updated": inject_result.updated_translations or 0,
             },
         )
@@ -282,13 +283,13 @@ class OneFileProcessor:
         title_info.status = "failed"
         return False
 
-    def _create_language_summary(self, main_title: str, new_languages: int) -> str:
+    def _create_language_summary(self, main_title: str, new_languages_count: int) -> str:
         file_name = main_title.removeprefix("File:")
         main_title_link = f"[[File:{file_name}]]"
 
         summary = (
-            f"Adding {new_languages} languages translations from {main_title_link}"
-            if new_languages > 0
+            f"Adding {new_languages_count} languages translations from {main_title_link}"
+            if new_languages_count > 0
             else f"Adding translations from {main_title_link}"
         )
 
@@ -605,7 +606,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 steps=FileSteps(
                     download=StepResult(msg=""),
                     nested=StepResult(msg=""),
-                    translations=StepResult(msg="", details={"new": 0, "updated": 0}),
+                    translations=StepResult(msg="", details={"new": 0, "updated": 0, "new_list": []}),
                     inject=StepResult(msg=""),
                     upload=StepResult(msg=""),
                 ),
