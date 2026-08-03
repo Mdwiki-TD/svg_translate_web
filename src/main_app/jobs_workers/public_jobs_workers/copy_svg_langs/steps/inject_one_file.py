@@ -47,7 +47,6 @@ def start_svg_injection(
     data: InjectorData = injector.inject(
         inject_file=inject_file,
         all_mappings=all_mappings,
-        save_result=False,
     )
 
     stats = data.new_stats.to_json()
