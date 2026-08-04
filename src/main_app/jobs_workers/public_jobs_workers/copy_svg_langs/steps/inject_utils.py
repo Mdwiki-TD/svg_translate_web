@@ -66,6 +66,9 @@ class ByLanguage:
         for end_data in self.ends_data:
             if self.text.endswith(end_data):
                 return self.text.removesuffix(end_data).strip()
+        
+        if "," in self.text:
+            return self.text.rsplit(",", 1)[0].strip()
         return None
 
     def run(self) -> str | None:
