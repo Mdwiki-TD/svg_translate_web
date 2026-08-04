@@ -37,7 +37,7 @@ def start_svg_injection(
     injector = SVGTranslationInjector(config=config)
 
     data: InjectorData | Any = injector.inject(
-        inject_file=inject_file,
+        svg_path=inject_file,
         mapping=mapping,
     )
     if not isinstance(data, InjectorData):

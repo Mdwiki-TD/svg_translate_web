@@ -5,10 +5,13 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import fix_nested_file, match_nested_tags  # type: ignore
+from CopySVGTranslation import fix_nested_file, NestedTspanDetector  # type: ignore
 
 logger = logging.getLogger(__name__)
 
+def match_nested_tags(source_file: Path) -> list:
+    detector = NestedTspanDetector()
+    return detector.find_in_file(source_file)
 
 @dataclass
 class DetectionResult:
