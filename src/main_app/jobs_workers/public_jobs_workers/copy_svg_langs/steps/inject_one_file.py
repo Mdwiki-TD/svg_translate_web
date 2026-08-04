@@ -6,7 +6,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import SVGTranslationInjector  # type: ignore
+from CopySVGTranslation import SVGTranslationInjector, TranslationConfig  # type: ignore
+from lxml.etree import _ElementTree
 
 from .inject_utils import add_translations_from_titles
 from .mapping import (
@@ -21,22 +22,23 @@ logger = logging.getLogger(__name__)
 def start_svg_injection(
     *,
     inject_file: Path | str,
-    all_mappings: dict[str, Any] | None = None,
+    mapping: dict[str, Any] | None = None,
     overwrite: bool = False,
-):
+) -> tuple[_ElementTree | Any | None, dict[str, Any] | Any]:
     """
     Legacy function-style wrapper around SVGTranslationInjector, kept for
     backward compatibility with existing callers.
     """
-    injector = SVGTranslationInjector(
+    config = TranslationConfig(
         case_insensitive=True,
         overwrite=overwrite,
         pretty_print=True,
     )
+    injector = SVGTranslationInjector(config=config)
 
     data: InjectorData | Any = injector.inject(
         inject_file=inject_file,
-        all_mappings=all_mappings,
+        mapping=mapping,
     )
     if not isinstance(data, InjectorData):
         data = InjectorData(
@@ -64,7 +66,7 @@ def start_injects(
 
     tree, stats = start_svg_injection(
         inject_file=file,
-        all_mappings=translations,
+        mapping=translations,
         overwrite=overwrite,
     )
 

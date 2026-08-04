@@ -31,7 +31,7 @@ def extract_file_translations(
         case_insensitive=True,
     )
 
-    extractor = SVGTranslationExtractor(config)
+    extractor = SVGTranslationExtractor(config=config)
 
     try:
         result_json: dict[str, Any] = extractor.extract_json(source_file)
