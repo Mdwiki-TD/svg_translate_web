@@ -3,30 +3,19 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import InjectorData, SVGTranslationInjector  # type: ignore
+from CopySVGTranslation import SVGTranslationInjector  # type: ignore
 
 from .inject_utils import add_translations_from_titles
+from .mapping import (
+    InjectResult,
+    InjectorStats,
+    InjectorData,
+)
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class InjectResult:
-    result: bool | None = None
-    msg: str | None = None
-    new_languages_count: int | None = None
-    updated_translations: int | None = None
-
-    languages_before: list[str] = field(default_factory=list)
-    languages_after: list[str] = field(default_factory=list)
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
-
 
 def start_svg_injection(
     *,
@@ -44,11 +33,15 @@ def start_svg_injection(
         pretty_print=True,
     )
 
-    data: InjectorData = injector.inject(
+    data: InjectorData | Any = injector.inject(
         inject_file=inject_file,
         all_mappings=all_mappings,
     )
-
+    if not isinstance(data, InjectorData):
+        data = InjectorData(
+            tree=getattr(data, "tree", None),
+            new_stats=getattr(data, "new_stats", InjectorStats()),
+        )
     stats = data.new_stats.to_json()
 
     return data.tree, stats

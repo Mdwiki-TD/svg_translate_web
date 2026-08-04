@@ -5,25 +5,13 @@ Step for extracting translations from a SVG file.
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
 
-from CopySVGTranslation import ExtractorData, SVGTranslationExtractor  # type: ignore
+from CopySVGTranslation import SVGTranslationExtractor  # type: ignore
+
+from .mapping import ExtractorData, ExtractResult
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class ExtractResult:
-    success: bool | None = None
-    message: str | None = None
-    error: str | None = None
-    translations: dict | None = None
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
-
 
 def extract_file_translations(
     source_file: str | Path,
@@ -44,7 +32,13 @@ def extract_file_translations(
 
     result = extractor.extract()
 
-    return result
+    return ExtractorData(
+        new=getattr(result, "new", {}),
+        tspans_by_id=getattr(result, "tspans_by_id", {}),
+        title=getattr(result, "title", {}),
+        title_new=getattr(result, "title_new", {}),
+        error=getattr(result, "error", ""),
+    )
 
 
 def extract_from_path(main_title_path: Path) -> ExtractResult:

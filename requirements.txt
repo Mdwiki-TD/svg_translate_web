@@ -5,6 +5,7 @@ flask-limiter
 Flask-WTF
 gunicorn
 lxml
+# lxml-stubs # For type stubs
 mwclient
 mwoauth
 pymysql
