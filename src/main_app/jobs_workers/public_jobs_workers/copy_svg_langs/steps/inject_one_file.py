@@ -10,12 +10,13 @@ from CopySVGTranslation import SVGTranslationInjector  # type: ignore
 
 from .inject_utils import add_translations_from_titles
 from .mapping import (
-    InjectResult,
-    InjectorStats,
     InjectorData,
+    InjectorStats,
+    InjectResult,
 )
 
 logger = logging.getLogger(__name__)
+
 
 def start_svg_injection(
     *,

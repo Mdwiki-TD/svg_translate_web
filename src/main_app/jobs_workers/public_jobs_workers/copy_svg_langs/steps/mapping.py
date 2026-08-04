@@ -1,12 +1,13 @@
-
 from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass, field
 from typing import Any
-from lxml import etree # type: ignore
+
+from lxml import etree  # type: ignore
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class InjectorStats:
@@ -42,6 +43,7 @@ class InjectorStats:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+
 @dataclass
 class InjectorData:
     """Container for SVG data."""
@@ -56,6 +58,7 @@ class InjectorData:
             "new_stats": new_stats,
             "error": new_stats["error"],
         }
+
 
 @dataclass
 class InjectResult:
@@ -83,6 +86,7 @@ class ExtractorData:
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
+
 
 @dataclass
 class ExtractResult:

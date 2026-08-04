@@ -13,6 +13,7 @@ from .mapping import ExtractorData, ExtractResult
 
 logger = logging.getLogger(__name__)
 
+
 def extract_file_translations(
     source_file: str | Path,
 ) -> ExtractorData:
