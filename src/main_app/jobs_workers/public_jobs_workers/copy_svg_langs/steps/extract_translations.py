@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import SVGTranslationExtractor  # type: ignore
+from CopySVGTranslation import SVGTranslationExtractor, TranslationConfig  # type: ignore
 
 from .mapping import ExtractorData, ExtractResult
 
@@ -27,21 +27,29 @@ def extract_file_translations(
         case_insensitive (bool): If true, treat default text keys
             case-insensitively by lowercasing them.
     """
-    extractor = SVGTranslationExtractor(
-        source_file=source_file,
+    config = TranslationConfig(
         case_insensitive=True,
     )
 
-    result: ExtractorData | Any = extractor.extract()
+    extractor = SVGTranslationExtractor(config)
 
-    if not isinstance(result, ExtractorData):
-        result = ExtractorData(
-            new=getattr(result, "new", {}),
-            tspans_by_id=getattr(result, "tspans_by_id", {}),
-            title=getattr(result, "title", {}),
-            title_new=getattr(result, "title_new", {}),
-            error=getattr(result, "error", ""),
-        )
+    result_json: dict[str, Any] = extractor.extract_json(source_file)
+
+    if not result_json:
+        return ExtractorData()
+
+    error = result_json.get("error", "")
+    meta = result_json.get("meta", {})
+    if not error and meta:
+        error = meta.get("error", "")
+
+    result = ExtractorData(
+        new=result_json.get("new", {}),
+        tspans_by_id=result_json.get("tspans_by_id", {}),
+        title=result_json.get("title", {}),
+        title_new=result_json.get("title_new", {}),
+        error=error,
+    )
 
     return result
 
