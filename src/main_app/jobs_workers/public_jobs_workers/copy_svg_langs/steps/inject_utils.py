@@ -45,6 +45,8 @@ class ByLanguage:
         # "abr"	Parkinson yareɛ a ebu soɔ, afe {year}
         if self.text.endswith(", afe {year}"):
             return self.text.removesuffix(", afe {year}").strip()
+        elif "," in self.text:
+            return self.text.rsplit(",", 1)[0].strip()
         else:
             return None
 
