@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from CopySVGTranslation import SVGTranslationExtractor  # type: ignore
 
@@ -31,15 +32,18 @@ def extract_file_translations(
         case_insensitive=True,
     )
 
-    result = extractor.extract()
+    result: ExtractorData | Any = extractor.extract()
 
-    return ExtractorData(
-        new=getattr(result, "new", {}),
-        tspans_by_id=getattr(result, "tspans_by_id", {}),
-        title=getattr(result, "title", {}),
-        title_new=getattr(result, "title_new", {}),
-        error=getattr(result, "error", ""),
-    )
+    if not isinstance(result, ExtractorData):
+        result = ExtractorData(
+            new=getattr(result, "new", {}),
+            tspans_by_id=getattr(result, "tspans_by_id", {}),
+            title=getattr(result, "title", {}),
+            title_new=getattr(result, "title_new", {}),
+            error=getattr(result, "error", ""),
+        )
+
+    return result
 
 
 def extract_from_path(main_title_path: Path) -> ExtractResult:
