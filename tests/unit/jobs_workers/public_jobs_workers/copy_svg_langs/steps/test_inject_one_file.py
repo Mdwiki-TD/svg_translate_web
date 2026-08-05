@@ -18,6 +18,7 @@ def mock_tree():
     tree.write = MagicMock()
     return tree
 
+
 @pytest.fixture
 def mock_inject(monkeypatch: pytest.MonkeyPatch):
     mock = MagicMock()
@@ -25,15 +26,18 @@ def mock_inject(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file.start_svg_injection",
         mock,
     )
+
     def mock_return(tree, stats):
         data = InjectorData(
             tree=tree,
         )
         data.inject_stats._update(**stats)
         mock.return_value = data
+
     mock.mock_return = mock_return
 
     return mock
+
 
 @pytest.fixture
 def svg_file(tmp_path: Path) -> Path:

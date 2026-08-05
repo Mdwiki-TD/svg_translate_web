@@ -1,44 +1,22 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
 
-from CopySVGTranslation import NestedTspanDetector, fix_nested_file  # type: ignore
+from .fixer import MatchFixNestedTags
+from .objects import DetectionResult, VerificationResult
 
 logger = logging.getLogger(__name__)
 
 
-def match_nested_tags(source_file: Path) -> list:
-    detector = NestedTspanDetector()
-    return detector.find_in_file(source_file)
-
-
-@dataclass
-class DetectionResult:
-    count: int
-    tags: list[str] = field(default_factory=list)
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-
-@dataclass
-class VerificationResult:
-    before: int
-    after: int
-    fixed: int
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-
 def detect_nested_tags(file_path: Path) -> DetectionResult:
     """Detect nested tags in SVG file."""
-    nested = match_nested_tags(
-        source_file=str(file_path),
+    processer = MatchFixNestedTags(
+        pretty_print=True,
+        source_file=file_path,
+        new_path=file_path,
     )
+    nested = processer.match_nested()
     return DetectionResult(
         count=len(nested),
         tags=nested,
@@ -48,30 +26,26 @@ def detect_nested_tags(file_path: Path) -> DetectionResult:
 def fix_nested_tags(file_path: Path) -> bool:
     """Fix nested tags in-place."""
     logger.info("Fixing nested tags in: %s", file_path.name)
-    result = fix_nested_file(
+    processer = MatchFixNestedTags(
+        pretty_print=True,
         source_file=file_path,
         new_path=file_path,
     )
-    return bool(result)
+    return processer.fix_file()
 
 
 def verify_fix(file_path: Path, before_count: int) -> VerificationResult:
     """Verify nested tags count after fix."""
-    after = match_nested_tags(
-        source_file=str(file_path),
+    processer = MatchFixNestedTags(
+        pretty_print=True,
+        source_file=file_path,
+        new_path=file_path,
     )
-    after_count = len(after)
-
-    return VerificationResult(
-        before=before_count,
-        after=after_count,
-        fixed=max(0, before_count - after_count),
-    )
+    processer.len_tags_before_fix = before_count
+    return processer.verify_after_fix()
 
 
 __all__ = [
-    "DetectionResult",
-    "VerificationResult",
     "detect_nested_tags",
     "fix_nested_tags",
     "verify_fix",
