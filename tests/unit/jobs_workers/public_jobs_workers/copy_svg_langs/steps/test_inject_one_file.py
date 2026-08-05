@@ -9,16 +9,7 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_o
     inject_step_one_file,
     start_injects,
 )
-
-
-@pytest.fixture
-def mock_inject(monkeypatch: pytest.MonkeyPatch):
-    mock = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file.start_svg_injection",
-        mock,
-    )
-    return mock
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.mapping import InjectorData
 
 
 @pytest.fixture
@@ -27,6 +18,22 @@ def mock_tree():
     tree.write = MagicMock()
     return tree
 
+@pytest.fixture
+def mock_inject(monkeypatch: pytest.MonkeyPatch):
+    mock = MagicMock()
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file.start_svg_injection",
+        mock,
+    )
+    def mock_return(tree, stats):
+        data = InjectorData(
+            tree=tree,
+        )
+        data.inject_stats._update(**stats)
+        mock.return_value = data
+    mock.mock_return = mock_return
+
+    return mock
 
 @pytest.fixture
 def svg_file(tmp_path: Path) -> Path:
@@ -44,7 +51,7 @@ def output_file(tmp_path: Path) -> Path:
 
 class TestStartInjects:
     def test_new_languages(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (
+        mock_inject.mock_return(
             mock_tree,
             {"new_languages": 3, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
@@ -60,7 +67,7 @@ class TestStartInjects:
         )
 
     def test_updated_translations_only(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (
+        mock_inject.mock_return(
             mock_tree,
             {"new_languages": 0, "updated_translations": 5, "error": None, "nested_tspan_error": False},
         )
@@ -73,7 +80,7 @@ class TestStartInjects:
         assert result.updated_translations == 5
 
     def test_no_changes(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (
+        mock_inject.mock_return(
             mock_tree,
             {"new_languages": 0, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
@@ -86,7 +93,7 @@ class TestStartInjects:
         assert result.updated_translations is None
 
     def test_failed_to_translate(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (None, {"nested_tspan_error": False})
+        mock_inject.mock_return(None, {"nested_tspan_error": False})
 
         result = start_injects(svg_file, {}, output_file, overwrite=False)
 
@@ -94,7 +101,7 @@ class TestStartInjects:
         assert result.msg == "Failed to translate"
 
     def test_stats_error(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (
+        mock_inject.mock_return(
             mock_tree,
             {
                 "new_languages": 0,
@@ -111,7 +118,7 @@ class TestStartInjects:
 
     def test_tree_write_oserror(self, mock_inject, mock_tree, svg_file, output_file):
         mock_tree.write.side_effect = OSError("Permission denied")
-        mock_inject.return_value = (
+        mock_inject.mock_return(
             mock_tree,
             {"new_languages": 2, "updated_translations": 1, "error": None, "nested_tspan_error": False},
         )
@@ -125,7 +132,7 @@ class TestStartInjects:
 
     def test_tree_write_generic_exception(self, mock_inject, mock_tree, svg_file, output_file):
         mock_tree.write.side_effect = RuntimeError("disk full")
-        mock_inject.return_value = (
+        mock_inject.mock_return(
             mock_tree,
             {"new_languages": 2, "updated_translations": 1, "error": None, "nested_tspan_error": False},
         )
@@ -136,7 +143,7 @@ class TestStartInjects:
         assert result.msg == "Failed to write file"
 
     def test_new_and_updated_both_present(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (
+        mock_inject.mock_return(
             mock_tree,
             {"new_languages": 2, "updated_translations": 3, "error": None, "nested_tspan_error": False},
         )
@@ -151,7 +158,7 @@ class TestStartInjects:
 
 class TestInjectStepOneFile:
     def test_success(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (
+        mock_inject.mock_return(
             mock_tree,
             {"new_languages": 1, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
@@ -163,7 +170,7 @@ class TestInjectStepOneFile:
         assert result.new_languages_count == 1
 
     def test_passthrough_no_changes(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (
+        mock_inject.mock_return(
             mock_tree,
             {"new_languages": 0, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
@@ -185,7 +192,7 @@ class TestInjectStepOneFile:
 
 class TestInjectStepOneFileNestedError:
     def test_passthrough_failure(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (None, {"nested_tspan_error": True})
+        mock_inject.mock_return(None, {"nested_tspan_error": True})
 
         result = inject_step_one_file(svg_file, {}, output_file, overwrite=False)
 
@@ -193,7 +200,7 @@ class TestInjectStepOneFileNestedError:
         assert result.msg == "Nested tspan error"
 
     def test_nested_tspan_error(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (None, {"nested_tspan_error": True})
+        mock_inject.mock_return(None, {"nested_tspan_error": True})
 
         result = start_injects(svg_file, {}, output_file, overwrite=False)
 
@@ -201,7 +208,7 @@ class TestInjectStepOneFileNestedError:
         assert result.msg == "Nested tspan error"
 
     def test_nested_tspan_error_new(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.return_value = (None, {"error": "nested_tspan_error"})
+        mock_inject.mock_return(None, {"error": "nested_tspan_error"})
 
         result = start_injects(svg_file, {}, output_file, overwrite=False)
 
