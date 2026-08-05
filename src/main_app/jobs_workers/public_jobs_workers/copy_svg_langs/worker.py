@@ -16,13 +16,17 @@ from mwclient.client import Site
 
 from ....api_services import create_commons_session, download_one_file, upload_fixed_svg
 from ....config import settings
-from ....shared.fix_nested.worker import (
+from ....shared.fix_nested import (
     DetectionResult,
     VerificationResult,
+    MatchFixNestedTags,
+)
+from ....shared.fix_nested.worker import (
     detect_nested_tags,
     fix_nested_tags,
     verify_fix,
 )
+
 from ...base_worker import BaseObjectsJobWorker
 from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
 from .steps import (
@@ -54,6 +58,7 @@ class OneFileProcessor:
         self.session: requests.Session = create_commons_session(settings.other.user_agent)
         self.translations: dict[str, str] = {}
         self.upload_done = 0
+        self.nested_processer: MatchFixNestedTags
 
     def update_translations(self, translations: dict[str, str]) -> None:
         self.translations.update(translations)
@@ -112,15 +117,18 @@ class OneFileProcessor:
         return False
 
     def handle_nested_tag_repair_step(self, title_info: FilesProcessedItem, file_path: Path) -> tuple[int, bool]:
-
-        detect_before: DetectionResult = detect_nested_tags(file_path)
+        nested_processer = MatchFixNestedTags(
+            source_file=file_path,
+            new_path=file_path,
+        )
+        detect_before: DetectionResult = nested_processer.detect_nested_tags()
         if detect_before.count == 0:
             title_info.steps.nested._update(msg="No nested tags found")
             # no nested tags, process to inject translations step
             return 0, True
 
         # Try to fix nested tags
-        if not fix_nested_tags(file_path):
+        if not nested_processer.fix_file():
             title_info.steps.nested._update(
                 result=False,
                 msg="Failed to fix nested tags",
@@ -129,7 +137,7 @@ class OneFileProcessor:
             # no nested tags fixed, break the file process
             return 0, False
 
-        verify: VerificationResult = verify_fix(file_path, detect_before.count)
+        verify: VerificationResult = nested_processer.verify_after_fix()
 
         if verify.fixed == 0:
             title_info.steps.nested._update(

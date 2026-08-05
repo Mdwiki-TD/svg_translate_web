@@ -6,7 +6,7 @@ from pathlib import Path
 from CopySVGTranslation import NestedTspanDetector, NestedTspanFlattener  # type: ignore
 from lxml import etree
 
-from .objects import VerificationResult
+from .objects import VerificationResult, DetectionResult
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,14 @@ class MatchFixNestedTags:
             before=self.len_tags_before_fix,
             after=after_count,
             fixed=max(0, self.len_tags_before_fix - after_count),
+        )
+
+    def detect_nested_tags(self) -> DetectionResult:
+        """Detect nested tags in SVG file."""
+        nested = self.match_nested()
+        return DetectionResult(
+            count=len(nested),
+            tags=nested,
         )
 
 
