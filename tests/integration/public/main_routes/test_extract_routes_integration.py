@@ -133,7 +133,7 @@ class TestExtractRender:
         mock_extract = mocker.patch(
             "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations"
         )
-        mock_extract.return_value = ExtractorData(new={}, title={})
+        mock_extract.return_value = ExtractorData(new={})
 
         mock_client.post(
             "/extract/",
@@ -191,7 +191,7 @@ class TestExtractRender:
 
         sample_translations = {
             "new": {"hello": {"ar": "مرحبا", "fr": "Bonjour"}},
-            "title": {"music in": {"ar": "الموسيقى في عام", "fr": "La musique en"}},
+            "title_new": {"music in {year}": {"ar": "الموسيقى في عام {year}", "fr": "La musique en {year}"}},
         }
 
         def mock_extract(*args, **kwargs):
@@ -213,3 +213,4 @@ class TestExtractRender:
         assert response.data.decode() == "rendered:extract/result.html"
         assert ("Translations extracted successfully", "success") in mock_flash
         assert patch_render["context"]["translations"]["new"] == sample_translations["new"]
+        # assert ('Translations extracted successfully', 'success') in [('Failed to parse main SVG', 'danger')]

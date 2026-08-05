@@ -50,7 +50,6 @@ def extract_file_translations(
     result = ExtractorData(
         new=result_json.get("new", {}),
         tspans_by_id=result_json.get("tspans_by_id", {}),
-        title=result_json.get("title", {}),
         title_new=result_json.get("title_new", {}),
         error=error,
     )
