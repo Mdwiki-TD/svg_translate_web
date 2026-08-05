@@ -35,6 +35,7 @@ class InjectorStats:
     languages_before: list[str] = field(default_factory=list)
     languages_after: list[str] = field(default_factory=list)
     error: str = ""
+    nested_tspan_error: bool = False
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
