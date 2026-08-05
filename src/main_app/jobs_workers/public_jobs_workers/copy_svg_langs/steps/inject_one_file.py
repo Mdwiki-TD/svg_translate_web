@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any
 
 from CopySVGTranslation import SVGTranslationInjector, TranslationConfig  # type: ignore
-from lxml.etree import _ElementTree
 
 from .inject_utils import add_translations_from_titles
 from .mapping import (
@@ -24,7 +23,7 @@ def start_svg_injection(
     inject_file: Path | str,
     mapping: dict[str, Any] | None = None,
     overwrite: bool = False,
-) -> tuple[_ElementTree | Any | None, dict[str, Any] | Any]:
+) -> InjectorData:
     """
     Legacy function-style wrapper around SVGTranslationInjector, kept for
     backward compatibility with existing callers.
@@ -43,11 +42,12 @@ def start_svg_injection(
     if not isinstance(data, InjectorData):
         data = InjectorData(
             tree=getattr(data, "tree", None),
-            new_stats=getattr(data, "new_stats", InjectorStats()),
+            inject_stats=getattr(data, "inject_stats", InjectorStats()),
         )
-    stats = data.new_stats.to_json()
+    # stats = data.inject_stats.to_json()
+    # return data.tree, stats
 
-    return data.tree, stats
+    return data
 
 
 def start_injects(
@@ -59,23 +59,25 @@ def start_injects(
     """Inject translations into a collection of SVG files and write the results."""
     _stats = {
         "error": None,
-        "nested_tspan_error": False,
         "new_languages": 0,
         "updated_translations": 0,
     }
-
-    tree, stats = start_svg_injection(
+    data = start_svg_injection(
         inject_file=file,
         mapping=translations,
         overwrite=overwrite,
     )
 
+    tree, stats = data.tree, data.inject_stats.to_json()
+
     if not tree:
         logger.debug(f"Failed to translate {file.name}")
-        if stats.get("nested_tspan_error") or stats.get("error") == "nested_tspan_error":
-            return InjectResult(result=False, msg="Nested tspan error")
+        msg = "Failed to translate"
 
-        return InjectResult(result=False, msg="Failed to translate")
+        if stats.get("error") == "nested_tspan_error":
+            msg = "Nested tspan error"
+
+        return InjectResult(result=False, msg=msg)
 
     languages_after = stats.get("languages_after") or []
     new_languages_count = stats.get("new_languages", 0) or len(languages_after)

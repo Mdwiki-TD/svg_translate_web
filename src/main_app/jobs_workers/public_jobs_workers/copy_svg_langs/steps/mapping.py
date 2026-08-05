@@ -49,14 +49,14 @@ class InjectorData:
     """Container for SVG data."""
 
     tree: etree._ElementTree | None = None
-    new_stats: InjectorStats = field(default_factory=InjectorStats)
+    inject_stats: InjectorStats = field(default_factory=InjectorStats)
 
     def to_json(self) -> dict[str, Any]:
-        new_stats = self.new_stats.to_json()
+        inject_stats = self.inject_stats.to_json()
         return {
             "tree": self.tree,
-            "new_stats": new_stats,
-            "error": new_stats["error"],
+            "inject_stats": inject_stats,
+            "error": inject_stats["error"],
         }
 
 
