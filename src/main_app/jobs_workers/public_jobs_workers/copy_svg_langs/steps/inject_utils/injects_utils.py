@@ -225,4 +225,5 @@ def add_translations_from_header(translations: dict[str, Any] | ExtractorData) -
 
 __all__ = [
     "add_translations_from_titles",
+    "add_translations_from_header",
 ]

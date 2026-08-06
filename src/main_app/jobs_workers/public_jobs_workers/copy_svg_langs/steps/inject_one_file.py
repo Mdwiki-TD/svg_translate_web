@@ -8,7 +8,7 @@ from typing import Any
 
 from CopySVGTranslation import SVGTranslationInjector, TranslationConfig, TranslationMapping  # type: ignore
 
-from .inject_utils import add_translations_from_titles
+from .inject_utils import add_translations_from_titles, add_translations_from_header
 from .mapping import (
     InjectorData,
     InjectorStats,
@@ -124,6 +124,7 @@ def inject_step_one_file(
 ) -> InjectResult:
     """ """
     translations = add_translations_from_titles(translations)
+    translations = add_translations_from_header(translations)
 
     try:
         injects_result: InjectResult = start_injects(
