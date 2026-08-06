@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import threading
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest

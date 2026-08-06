@@ -161,7 +161,7 @@ def _get_paths() -> Paths:
         "main_files_path": f"{main_dir}/main_files",
         "crop_main_files_path": crop_main_files_path,
     }
-    return Paths(**_dirs)
+    return Paths.from_any(_dirs)
 
 
 def load_other_config() -> OtherConfig:

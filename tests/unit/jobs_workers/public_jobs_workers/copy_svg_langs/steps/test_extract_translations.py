@@ -26,7 +26,7 @@ class TestExtractFromPath:
 
         def fake_extract(path):
             assert Path(path) == fake_svg_path
-            return ExtractorData(**extract_return)
+            return ExtractorData.from_any(extract_return)
 
         monkeypatch.setattr(
             "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",

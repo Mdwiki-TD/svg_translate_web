@@ -195,7 +195,7 @@ class TestExtractRender:
         }
 
         def mock_extract(*args, **kwargs):
-            return ExtractorData(**sample_translations)
+            return ExtractorData.from_any(sample_translations)
 
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
         monkeypatch.setattr(

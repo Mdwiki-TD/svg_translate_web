@@ -18,8 +18,8 @@ from ....api_services import create_commons_session, download_one_file, upload_f
 from ....config import settings
 from ....shared.fix_nested import (
     DetectionResult,
-    VerificationResult,
     MatchFixNestedTags,
+    VerificationResult,
 )
 from ...base_worker import BaseObjectsJobWorker
 from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult

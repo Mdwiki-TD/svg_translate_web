@@ -3,22 +3,39 @@ Step for injecting translations into SVG files.
 
 title_new dict data like:
 {
+  "meta": {
+    "header": {
+      "parkinson's disease prevalence, 1990": {
+        "abr": "Parkinson yareɛ a ebu soɔ, afe 1990",
+        "ar": "انتشار مرض باركنسون، 1990",
+        "ca": "Prevalència de la malaltia de Parkinson",
+        "cs": "Prevalence Parkinsonovy nemoci, 1990",
+        "es": "Prevalencia de la enfermedad de Parkinson, 1990",
+        "eu": "Parkinsonen gaixotasunaren prebalentzia, 1990",
+        "gpe": "Parkinson ein disease prevalence, 1990",
+        "id": "Prevalensi penyakit Parkinson, 1990",
+        "ja": "1990年のパーキンソン病の流行",
+        "pt": "Prevalência de doença de Parkinson, 1990",
+        "si": "පාකින්සන් රෝග ව්‍යාප්තිය, 1990",
+        "uk": "Поширеність хвороби Паркінсона, 1990"
+      }
+    },
     "title_new": {
-        "parkinson's disease prevalence, {year}": {
-            "abr": "Parkinson yareɛ a ebu soɔ, afe {year}",
-            "ar": "انتشار مرض باركنسون، {year}",
-            "cs": "Prevalence Parkinsonovy nemoci, {year}",
-            "es": "Prevalencia de la enfermedad de Parkinson, {year}",
-            "eu": "Parkinsonen gaixotasunaren prebalentzia, {year}",
-            "gpe": "Parkinson ein disease prevalence, {year}",
-            "id": "Prevalensi penyakit Parkinson, {year}",
-            "ja": "{year}年のパーキンソン病の流行",
-            "pt": "Prevalência de doença de Parkinson, {year}",
-            "si": "පාකින්සන් රෝග ව්‍යාප්තිය, {year}",
-            "uk": "Поширеність хвороби Паркінсона, {year}"
-        }
+      "parkinson's disease prevalence, {year}": {
+        "abr": "Parkinson yareɛ a ebu soɔ, afe {year}",
+        "ar": "انتشار مرض باركنسون، {year}",
+        "cs": "Prevalence Parkinsonovy nemoci, {year}",
+        "es": "Prevalencia de la enfermedad de Parkinson, {year}",
+        "eu": "Parkinsonen gaixotasunaren prebalentzia, {year}",
+        "gpe": "Parkinson ein disease prevalence, {year}",
+        "id": "Prevalensi penyakit Parkinson, {year}",
+        "ja": "{year}年のパーキンソン病の流行",
+        "pt": "Prevalência de doença de Parkinson, {year}",
+        "si": "පාකින්සන් රෝග ව්‍යාප්තිය, {year}",
+        "uk": "Поширеність хвороби Паркінсона, {year}"
+      }
     }
-}
+  }
 """
 
 from __future__ import annotations
@@ -124,40 +141,41 @@ class TitlesTranslationsRenderer:
         return data
 
 
-def text_by_lang(lang: str, text: str) -> str | None:
-    return ByLanguage(lang, text).run()
+class AddTitlesTranslationsFromTitles:
 
+    def __init__(self, translations: dict[str, Any]) -> None:
+        self.translations = translations
 
-def render_titles_translations(title_new: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
-    return TitlesTranslationsRenderer(title_new).run()
+    def _add_from_titles(self, titles_new: dict[str, dict[str, str]], new_keys: list[str]) -> dict[str, dict[str, str]]:
+        title_new_translations = TitlesTranslationsRenderer(titles_new).run()
+        result = {}
 
+        for x, data in title_new_translations.items():
+            if x not in new_keys:
+                result[x] = data
 
-def _add_from_titles(titles_new: dict[str, dict[str, str]], new_keys: list[str]) -> dict[str, dict[str, str]]:
-    title_new_translations = render_titles_translations(titles_new)
-    result = {}
+        return result
 
-    for x, data in title_new_translations.items():
-        if x not in new_keys:
-            result[x] = data
+    def run(self) -> dict[str, Any]:
+        """Insert new translations into the translations dictionary."""
 
-    return result
+        titles_new = self.translations.get("title_new")
+        new_translations = self.translations.get("new")
+
+        if titles_new is None or new_translations is None:
+            return self.translations
+
+        new_keys = list(new_translations.keys())
+        add_translations = self._add_from_titles(titles_new, new_keys)
+        if add_translations:
+            new_translations.update(add_translations)
+
+        return self.translations
 
 
 def add_translations_from_titles(translations: dict[str, Any]) -> dict[str, Any]:
     """Insert new translations into the translations dictionary."""
-
-    title_new = translations.get("title_new")
-    new_translations = translations.get("new")
-
-    if title_new is None or new_translations is None:
-        return translations
-
-    new_keys = list(new_translations.keys())
-    add_translations = _add_from_titles(title_new, new_keys)
-    if add_translations:
-        new_translations.update(add_translations)
-
-    return translations
+    return AddTitlesTranslationsFromTitles(translations).run()
 
 
 __all__ = [

@@ -2,13 +2,17 @@ import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_utils import (
     ByLanguage,
+    TitlesTranslationsRenderer,
     add_translations_from_titles,
-    render_titles_translations,
-    text_by_lang,
 )
 
+
+def render_translations_for_titles(title_new: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
+    return TitlesTranslationsRenderer(title_new).run()
+
+
 # ---------------------------------------------------------------------------
-# ByLanguage / text_by_lang
+# ByLanguage
 # ---------------------------------------------------------------------------
 
 
@@ -73,14 +77,9 @@ class TestByLanguage:
         text = "パーキンソン病の流行 {year}"
         assert ByLanguage("ja", text).run() is None
 
-    def test_text_by_lang_wrapper_matches_class(self):
-        # The functional wrapper should behave identically to the class.
-        text = "Prevalencia de la enfermedad de Parkinson, {year}"
-        assert text_by_lang("es", text) == ByLanguage("es", text).run()
-
 
 # ---------------------------------------------------------------------------
-# render_titles_translations / TitlesTranslationsRenderer
+# TitlesTranslationsRenderer
 # ---------------------------------------------------------------------------
 
 
@@ -102,7 +101,7 @@ class TestRenderTitlesTranslations:
             }
         }
 
-        result = render_titles_translations(title_new)
+        result = render_translations_for_titles(title_new)
 
         expected_key = "parkinson's disease prevalence"
         assert expected_key in result
@@ -123,7 +122,7 @@ class TestRenderTitlesTranslations:
                 "es": "un titulo sin marcador de año",
             }
         }
-        result = render_titles_translations(title_new)
+        result = render_translations_for_titles(title_new)
         assert result == {}
         assert None not in result
 
@@ -135,7 +134,7 @@ class TestRenderTitlesTranslations:
                 "es": "algun titulo {year} en el medio",
             }
         }
-        result = render_titles_translations(title_new)
+        result = render_translations_for_titles(title_new)
         assert result == {}
 
     def test_skips_translation_when_stripped_text_unchanged(self):
@@ -147,7 +146,7 @@ class TestRenderTitlesTranslations:
                 "ar": "الانتشار، {year}",
             }
         }
-        result = render_titles_translations(title_new)
+        result = render_translations_for_titles(title_new)
         assert "prevalence" in result
         assert "es" not in result["prevalence"]
         assert result["prevalence"]["ar"] == "الانتشار"
@@ -160,7 +159,7 @@ class TestRenderTitlesTranslations:
                 "ar": "الانتشار، {year}",
             }
         }
-        result = render_titles_translations(title_new)
+        result = render_translations_for_titles(title_new)
         assert "es" not in result["prevalence"]
         assert result["prevalence"]["ar"] == "الانتشار"
 
@@ -172,11 +171,11 @@ class TestRenderTitlesTranslations:
                 "es": "prevalencia {year}",  # unmatched suffix -> None
             }
         }
-        result = render_titles_translations(title_new)
+        result = render_translations_for_titles(title_new)
         assert result == {}
 
     def test_empty_input_returns_empty_dict(self):
-        assert render_titles_translations({}) == {}
+        assert render_translations_for_titles({}) == {}
 
 
 # ---------------------------------------------------------------------------

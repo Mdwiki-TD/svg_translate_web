@@ -47,13 +47,10 @@ def extract_file_translations(
     if not error and meta:
         error = meta.get("error", "")
 
-    result = ExtractorData(
-        new=result_json.get("new", {}),
-        tspans_by_id=result_json.get("tspans_by_id", {}),
-        title_new=result_json.get("title_new", {}),
-        meta=result_json.get("meta", {}),
-        error=error,
-    )
+    result = ExtractorData.from_any(result_json)
+
+    if error and not result.error:
+        result.error = error
 
     return result
 
