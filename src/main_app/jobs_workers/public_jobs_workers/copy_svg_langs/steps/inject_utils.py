@@ -43,6 +43,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from .mapping import ExtractorData
+
 logger = logging.getLogger(__name__)
 
 
@@ -143,7 +145,7 @@ class TitlesTranslationsRenderer:
 
 class AddTitlesTranslationsFromTitles:
 
-    def __init__(self, translations: dict[str, Any]) -> None:
+    def __init__(self, translations: ExtractorData) -> None:
         self.translations = translations
 
     def _add_from_titles(self, titles_new: dict[str, dict[str, str]], new_keys: list[str]) -> dict[str, dict[str, str]]:
@@ -156,16 +158,17 @@ class AddTitlesTranslationsFromTitles:
 
         return result
 
-    def run(self) -> dict[str, Any]:
+    def run(self) -> ExtractorData:
         """Insert new translations into the translations dictionary."""
 
-        titles_new = self.translations.get("title_new")
-        new_translations = self.translations.get("new")
+        titles_new = self.translations.title_new
+        new_translations = self.translations.new
 
         if titles_new is None or new_translations is None:
             return self.translations
 
         new_keys = list(new_translations.keys())
+
         add_translations = self._add_from_titles(titles_new, new_keys)
         if add_translations:
             new_translations.update(add_translations)
@@ -173,9 +176,16 @@ class AddTitlesTranslationsFromTitles:
         return self.translations
 
 
-def add_translations_from_titles(translations: dict[str, Any]) -> dict[str, Any]:
+def add_translations_from_titles(translations: dict[str, Any] | ExtractorData) -> dict[str, Any]:
     """Insert new translations into the translations dictionary."""
-    return AddTitlesTranslationsFromTitles(translations).run()
+    object = ExtractorData.from_any(translations)
+    result = AddTitlesTranslationsFromTitles(object).run()
+
+    data = result.to_json()
+    if "tspans_by_id" not in translations:
+        data.pop("tspans_by_id")
+
+    return data
 
 
 __all__ = [

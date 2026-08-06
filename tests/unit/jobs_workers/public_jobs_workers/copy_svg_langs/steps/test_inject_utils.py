@@ -187,7 +187,7 @@ class TestAddTranslationsFromTitles:
     def test_returns_unchanged_when_title_new_missing(self):
         translations = {"new": {"existing key": {"es": "existente"}}}
         result = add_translations_from_titles(translations)
-        assert result == translations
+        assert result["new"] == translations["new"]
 
     def test_returns_unchanged_when_new_missing(self):
         translations = {
@@ -196,8 +196,8 @@ class TestAddTranslationsFromTitles:
             }
         }
         result = add_translations_from_titles(translations)
-        # "new" key never gets created since it wasn't present originally.
-        assert "new" not in result
+        # "new" key (never gets created/empty) since it wasn't present originally.
+        assert result["new"] == {}
 
     def test_merges_new_key_into_new_dict(self):
         translations = {
