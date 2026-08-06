@@ -218,7 +218,7 @@ def add_translations_from_header(translations: dict[str, Any] | ExtractorData) -
     if not new_data:
         return translations
 
-    object.new = new_data
+    object.new.update(new_data)
 
     return object.to_json()
 

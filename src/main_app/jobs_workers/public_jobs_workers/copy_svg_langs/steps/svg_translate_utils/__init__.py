@@ -1,4 +1,4 @@
-from .injects_utils import (
+from .adds_utils import (
     AddTitlesTranslationsFromTitles,
     ByLanguage,
     TitlesTranslationsRenderer,

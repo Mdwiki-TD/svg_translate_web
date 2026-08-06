@@ -8,12 +8,12 @@ from typing import Any
 
 from CopySVGTranslation import SVGTranslationInjector, TranslationConfig, TranslationMapping  # type: ignore
 
-from .inject_utils import add_translations_from_titles, add_translations_from_header
 from .mapping import (
     InjectorData,
     InjectorStats,
     InjectResult,
 )
+from .svg_translate_utils import add_translations_from_header, add_translations_from_titles
 
 logger = logging.getLogger(__name__)
 

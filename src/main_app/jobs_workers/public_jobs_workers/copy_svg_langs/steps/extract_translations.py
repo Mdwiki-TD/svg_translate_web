@@ -11,6 +11,7 @@ from typing import Any
 from CopySVGTranslation import SVGTranslationExtractor, TranslationConfig  # type: ignore
 
 from .mapping import ExtractorData, ExtractResult
+from .svg_translate_utils import add_translations_from_header, add_translations_from_titles
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,11 @@ def extract_file_translations(
     meta = result_json.get("meta", {})
     if not error and meta:
         error = meta.get("error", "")
+
+    result_json = add_translations_from_titles(result_json)
+
+    if meta:
+        result_json = add_translations_from_header(result_json)
 
     result = ExtractorData.from_any(result_json)
 

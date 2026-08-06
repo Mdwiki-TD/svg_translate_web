@@ -1,15 +1,13 @@
-import json
-
 import pytest
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_utils import (
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.mapping import ExtractorData
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.svg_translate_utils import (
     AddTitlesTranslationsFromTitles,
     ByLanguage,
     TitlesTranslationsRenderer,
     add_translations_from_header,
     add_translations_from_titles,
 )
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.mapping import ExtractorData
 
 
 def render_translations_for_titles(title_new: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
