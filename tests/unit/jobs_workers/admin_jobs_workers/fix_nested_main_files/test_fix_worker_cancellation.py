@@ -28,7 +28,7 @@ def test_fix_nested_main_files_worker_cancellation(mock_base_worker, monkeypatch
         return {"success": True, "message": "OK"}
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.repair_nested_svg_tags",
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.FixNestedMainFilesWorker.repair_nested_svg_tags",
         mock_repair_nested_svg_tags,
     )
     templates = [

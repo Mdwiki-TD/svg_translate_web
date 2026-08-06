@@ -138,7 +138,6 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
         return self.result
 
-
     def repair_nested_svg_tags(
         self,
         filename: str,
