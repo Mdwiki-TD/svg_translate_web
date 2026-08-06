@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import shutil
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +33,8 @@ class DiffResult:
     def has_changes(self) -> bool:
         return bool(self.added or self.removed or self.changed)
 
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
 
 def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
     """Extract translations from a local file path.
