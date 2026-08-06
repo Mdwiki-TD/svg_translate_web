@@ -13,7 +13,6 @@ from .mapping import (
     InjectorStats,
     InjectResult,
 )
-from .svg_translate_utils import add_translations_from_header, add_translations_from_titles
 
 logger = logging.getLogger(__name__)
 
@@ -123,9 +122,6 @@ def inject_step_one_file(
     overwrite: bool = False,
 ) -> InjectResult:
     """ """
-    translations = add_translations_from_titles(translations)
-    translations = add_translations_from_header(translations)
-
     try:
         injects_result: InjectResult = start_injects(
             file_path,
