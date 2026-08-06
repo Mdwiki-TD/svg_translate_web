@@ -82,6 +82,7 @@ class ExtractorData:
     new: dict[str, dict[str, str]] = field(default_factory=dict)
     tspans_by_id: dict[str, str] = field(default_factory=dict)
     title_new: dict[str, Any] = field(default_factory=dict)
+    meta: dict[str, Any] = field(default_factory=dict)
     error: str = ""
 
     def to_json(self) -> dict[str, Any]:

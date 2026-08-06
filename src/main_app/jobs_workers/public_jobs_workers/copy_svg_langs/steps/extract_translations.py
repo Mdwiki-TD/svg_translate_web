@@ -51,6 +51,7 @@ def extract_file_translations(
         new=result_json.get("new", {}),
         tspans_by_id=result_json.get("tspans_by_id", {}),
         title_new=result_json.get("title_new", {}),
+        meta=result_json.get("meta", {}),
         error=error,
     )
 
