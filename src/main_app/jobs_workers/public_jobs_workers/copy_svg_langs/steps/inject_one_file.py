@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import SVGTranslationInjector, TranslationConfig  # type: ignore
+from CopySVGTranslation import TranslationMapping, SVGTranslationInjector, TranslationConfig  # type: ignore
 
 from .inject_utils import add_translations_from_titles
 from .mapping import (
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def start_svg_injection(
     *,
     inject_file: Path | str,
-    mapping: dict[str, Any] | None = None,
+    mapping: dict[str, Any] | TranslationMapping | None = None,
     overwrite: bool = False,
 ) -> InjectorData:
     """
@@ -52,7 +52,7 @@ def start_svg_injection(
 
 def start_injects(
     file: Path,
-    translations: dict,
+    translations: dict[str, Any],
     output_file: Path,
     overwrite: bool = False,
 ) -> InjectResult:
