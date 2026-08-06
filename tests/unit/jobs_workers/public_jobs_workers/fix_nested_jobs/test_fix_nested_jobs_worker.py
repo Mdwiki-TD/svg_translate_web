@@ -297,6 +297,7 @@ class TestAnalyzeStep(TestSetup):
         proc = self.processor
         proc.result.stages.download.status = "success"
         proc.result.file_result = FileResult(path=str(path), success=True)
+        proc.file_path = path
         return proc
 
     def test_skips_when_download_not_success(self, mock_services):
@@ -309,7 +310,7 @@ class TestAnalyzeStep(TestSetup):
     def test_returns_false_when_file_missing(self, mock_services, tmp_path):
         proc = self._proc_with_download_success(tmp_path / "missing.svg")
         result = proc._analyze_step()
-        assert result is None
+        assert result is False
         mock_services["detect_nested_tags"].assert_not_called()
 
     def test_returns_none_when_no_nested_tags(self, mock_services, tmp_path):
@@ -320,6 +321,7 @@ class TestAnalyzeStep(TestSetup):
         result = proc._analyze_step()
         assert result is None
         assert proc.result.stages.analyze.status == "skipped"
+        mock_services["detect_nested_tags"].assert_called_once()
 
     def test_returns_true_when_nested_tags_found(self, mock_services, tmp_path):
         svg = tmp_path / "b.svg"
@@ -327,7 +329,7 @@ class TestAnalyzeStep(TestSetup):
         mock_services["detect_nested_tags"].return_value = DetectionResult(count=3, tags=["g", "g", "svg"])
         proc = self._proc_with_download_success(svg)
         result = proc._analyze_step()
-        assert result is None
+        assert result is True
         assert proc.result.file_result.nested_tags_before == 3
         assert proc.result.stages.analyze.status == "success"
 
