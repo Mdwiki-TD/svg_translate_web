@@ -20,16 +20,9 @@ def test_fix_nested_main_files_worker_cancellation(mock_base_worker, monkeypatch
         mock_list_templates,
     )
 
-    def mock_repair_nested_svg_tags(
-        filename,
-        site,
-        temp_dir,
-    ) -> dict[str, Any]:
-        return {"success": True, "message": "OK"}
-
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.FixNestedMainFilesWorker.repair_nested_svg_tags",
-        mock_repair_nested_svg_tags,
+        MagicMock(return_value={"success": True, "message": "OK"}),
     )
     templates = [
         TemplateRecord(id=1, title="T1", main_file="f1.svg", last_world_file=None),
