@@ -1,10 +1,15 @@
+import json
+
 import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_utils import (
+    AddTitlesTranslationsFromTitles,
     ByLanguage,
     TitlesTranslationsRenderer,
+    add_translations_from_header,
     add_translations_from_titles,
 )
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.mapping import ExtractorData
 
 
 def render_translations_for_titles(title_new: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
@@ -187,17 +192,7 @@ class TestAddTranslationsFromTitles:
     def test_returns_unchanged_when_title_new_missing(self):
         translations = {"new": {"existing key": {"es": "existente"}}}
         result = add_translations_from_titles(translations)
-        assert result["new"] == translations["new"]
-
-    def test_returns_unchanged_when_new_missing(self):
-        translations = {
-            "title_new": {
-                "prevalence, {year}": {"ar": "الانتشار، {year}"},
-            }
-        }
-        result = add_translations_from_titles(translations)
-        # "new" key (never gets created/empty) since it wasn't present originally.
-        assert result["new"] == {}
+        assert result == translations
 
     def test_merges_new_key_into_new_dict(self):
         translations = {
@@ -218,11 +213,24 @@ class TestAddTranslationsFromTitles:
         result = add_translations_from_titles(translations)
         assert "prevalence" in result["new"]
         assert result["new"]["prevalence"]["ar"] == "الانتشار"
-        assert result == expectrd_translations
+        assert result["new"] == expectrd_translations["new"]
+        assert result["title_new"] == expectrd_translations["title_new"]
+        assert result["error"] == ""
+        assert result["meta"] == {}
 
-    def test_no_merge_when_new_dict_is_empty(self):
+    def test_merge_when_new_dict_is_empty(self):
         translations = {
             "new": {},
+            "title_new": {
+                "prevalence, {year}": {"ar": "الانتشار، {year}"},
+            },
+        }
+        result = add_translations_from_titles(translations)
+        assert result["new"] == {"prevalence": {"ar": "الانتشار"}}
+
+    def test_merge_with_undifined_keys(self):
+        translations = {
+            "zz": {},
             "title_new": {
                 "prevalence, {year}": {"ar": "الانتشار، {year}"},
             },
@@ -258,12 +266,184 @@ class TestAddTranslationsFromTitles:
         assert result["new"] == original_new
 
     def test_returns_same_dict_object(self):
-        # The function mutates and returns the same translations dict.
+        # The function mutates and returns the same translations dict. when no title_new found
         translations = {
             "new": {},
-            "title_new": {
+            "title_newz": {
                 "prevalence, {year}": {"ar": "الانتشار، {year}"},
             },
         }
         result = add_translations_from_titles(translations)
         assert result is translations
+
+
+class TestAddTranslationsWithExtractorData:
+
+    def test_adds_translations(self):
+        data = {
+            "new": {
+                "test": {
+                    "ar": "تجربة",
+                },
+            },
+            "title_new": {
+                "prevalence, {year}": {
+                    "ar": "الانتشار، {year}",
+                },
+            },
+        }
+        translations = ExtractorData.from_any(data)
+
+        result = add_translations_from_titles(translations)
+        assert result["new"]["prevalence"]["ar"] == "الانتشار"
+        # assert result == translations
+
+    def test_return_same_object(self):
+        data = {
+            "new": {},
+            "random": {
+                "prevalence, {year}": {
+                    "ar": "الانتشار، {year}",
+                },
+            },
+        }
+        translations = ExtractorData.from_any(data)
+
+        result = add_translations_from_titles(translations)
+        assert result is translations
+
+    def test_new_obj(self):
+        data = {
+            "new": {
+                "parkinson's disease prevalence, 1990": {
+                    "ja": "1990年のパーキンソン病の流行",
+                    "abr": "Parkinson yareɛ a ebu soɔ, afe 1990",
+                    "ar": "انتشار مرض باركنسون، 1990",
+                    "ca": "Prevalència de la malaltia de Parkinson",
+                },
+            },
+            "title_new": {
+                "prevalence, {year}": {
+                    "ar": "الانتشار، {year}",
+                },
+            },
+        }
+        translations = ExtractorData.from_any(data)
+
+        bot = AddTitlesTranslationsFromTitles(translations)
+
+        bot.run()
+
+        result = bot.translations
+
+        assert isinstance(result, ExtractorData)
+
+        assert result == translations
+        assert result.to_json() == {
+            "new": {
+                "parkinson's disease prevalence, 1990": {
+                    "ja": "1990年のパーキンソン病の流行",
+                    "abr": "Parkinson yareɛ a ebu soɔ, afe 1990",
+                    "ar": "انتشار مرض باركنسون، 1990",
+                    "ca": "Prevalència de la malaltia de Parkinson",
+                },
+                "prevalence": {"ar": "الانتشار"},
+            },
+            "tspans_by_id": {},
+            "title_new": {"prevalence, {year}": {"ar": "الانتشار، {year}"}},
+            "meta": {},
+            "error": "",
+        }
+
+
+class TestWithMeta:
+
+    def test_new_obj(self):
+        data = {
+            "new": {},
+            "meta": {
+                "header": {
+                    "parkinson's disease prevalence, 1990": {
+                        "abr": "Parkinson yareɛ a ebu soɔ, afe 1990",
+                        "ar": "انتشار مرض باركنسون، 1990",
+                        "ca": "Prevalència de la malaltia de Parkinson",
+                        "cs": "Prevalence Parkinsonovy nemoci, 1990",
+                        "es": "Prevalencia de la enfermedad de Parkinson, 1990",
+                        "eu": "Parkinsonen gaixotasunaren prebalentzia, 1990",
+                        "gpe": "Parkinson ein disease prevalence, 1990",
+                        "id": "Prevalensi penyakit Parkinson, 1990",
+                        "ja": "1990年のパーキンソン病の流行",
+                        "pt": "Prevalência de doença de Parkinson, 1990",
+                        "si": "පාකින්සන් රෝග ව්‍යාප්තිය, 1990",
+                        "uk": "Поширеність хвороби Паркінсона, 1990",
+                    }
+                }
+            },
+            "title_new": {},
+        }
+        translations = ExtractorData.from_any(data)
+
+        bot = AddTitlesTranslationsFromTitles(translations)
+
+        bot.run()
+
+        result = bot.translations
+        assert isinstance(result, ExtractorData)
+        assert result.new == data["new"]
+
+        # assert json.dumps(result.to_json(), ensure_ascii=False) == "{}"
+
+
+class TestFromHeader:
+
+    def test_new_obj_with_header(self):
+        data = {
+            "new": {},
+            "meta": {
+                "header": {
+                    "parkinson's disease prevalence, 1990": {
+                        "dag": "Parkinson's doro yɔlibu biɛɣigu ni, yuuni 1990 puli ni",
+                        "abr": "Parkinson yareɛ a ebu soɔ, afe 1990",
+                        "ar": "انتشار مرض باركنسون، 1990",
+                        "ca": "Prevalència de la malaltia de Parkinson",
+                        "cs": "Prevalence Parkinsonovy nemoci, 1990",
+                        "es": "Prevalencia de la enfermedad de Parkinson, 1990",
+                        "eu": "Parkinsonen gaixotasunaren prebalentzia, 1990",
+                        "gpe": "Parkinson ein disease prevalence, 1990",
+                        "id": "Prevalensi penyakit Parkinson, 1990",
+                        "ja": "1990年のパーキンソン病の流行",
+                        "pt": "Prevalência de doença de Parkinson, 1990",
+                        "si": "පාකින්සන් රෝග ව්‍යාප්තිය, 1990",
+                        "uk": "Поширеність хвороби Паркінсона, 1990",
+                    }
+                },
+            },
+            "title_new": {},
+        }
+        result = add_translations_from_header(data)
+
+        assert result["new"] == {
+            "parkinson's disease prevalence": {
+                "abr": "Parkinson yareɛ a ebu soɔ",
+                "ar": "انتشار مرض باركنسون",
+                "ca": "Prevalència de la malaltia de Parkinson",
+                "dag": "Parkinson's doro yɔlibu biɛɣigu ni",
+                "cs": "Prevalence Parkinsonovy nemoci",
+                "es": "Prevalencia de la enfermedad de Parkinson",
+                "eu": "Parkinsonen gaixotasunaren prebalentzia",
+                "gpe": "Parkinson ein disease prevalence",
+                "id": "Prevalensi penyakit Parkinson",
+                "ja": "パーキンソン病の流行",
+                "pt": "Prevalência de doença de Parkinson",
+                "si": "පාකින්සන් රෝග ව්‍යාප්තිය",
+                "uk": "Поширеність хвороби Паркінсона",
+            }
+        }
+        header_lang_keys = list(data["meta"]["header"]["parkinson's disease prevalence, 1990"].keys())
+        result_lang_keys = list(result["new"]["parkinson's disease prevalence"].keys())
+
+        assert header_lang_keys == result_lang_keys
+
+        assert len(header_lang_keys) == len(result_lang_keys)
+
+        # assert json.dumps(result, ensure_ascii=False) == "{}"

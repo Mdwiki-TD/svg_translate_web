@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import TranslationMapping, SVGTranslationInjector, TranslationConfig  # type: ignore
+from CopySVGTranslation import SVGTranslationInjector, TranslationConfig, TranslationMapping  # type: ignore
 
 from .inject_utils import add_translations_from_titles
 from .mapping import (

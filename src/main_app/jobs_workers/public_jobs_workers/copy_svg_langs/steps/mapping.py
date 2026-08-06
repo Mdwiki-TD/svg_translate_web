@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import logging
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -95,6 +96,8 @@ class ExtractorData:
     def from_any(cls, data: dict[str, Any] | ExtractorData) -> ExtractorData:
         if isinstance(data, ExtractorData):
             return data
+
+        data = copy.deepcopy(data)
         return cls(
             new=dict(data.get("new", {})),
             tspans_by_id=dict(data.get("tspans_by_id", {})),

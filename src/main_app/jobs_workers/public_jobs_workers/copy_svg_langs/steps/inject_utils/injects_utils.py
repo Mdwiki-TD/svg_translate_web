@@ -43,7 +43,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from .mapping import ExtractorData
+from ..mapping import ExtractorData
+from .year_handler import YearTitleHandler
 
 logger = logging.getLogger(__name__)
 
@@ -147,14 +148,11 @@ class AddTitlesTranslationsFromTitles:
 
     def __init__(self, translations: ExtractorData) -> None:
         self.translations = translations
+        self.changes: bool | None = None
 
     def _add_from_titles(self, titles_new: dict[str, dict[str, str]], new_keys: list[str]) -> dict[str, dict[str, str]]:
         title_new_translations = TitlesTranslationsRenderer(titles_new).run()
-        result = {}
-
-        for x, data in title_new_translations.items():
-            if x not in new_keys:
-                result[x] = data
+        result = {x: v for x, v in title_new_translations.items() if x not in new_keys}
 
         return result
 
@@ -164,28 +162,65 @@ class AddTitlesTranslationsFromTitles:
         titles_new = self.translations.title_new
         new_translations = self.translations.new
 
-        if titles_new is None or new_translations is None:
-            return self.translations
+        if not titles_new:
+            self.changes = False
+            return
 
         new_keys = list(new_translations.keys())
 
-        add_translations = self._add_from_titles(titles_new, new_keys)
-        if add_translations:
-            new_translations.update(add_translations)
-
-        return self.translations
+        new_data = self._add_from_titles(titles_new, new_keys)
+        if new_data:
+            new_translations.update(new_data)
+            self.changes = True
+        else:
+            self.changes = False
 
 
 def add_translations_from_titles(translations: dict[str, Any] | ExtractorData) -> dict[str, Any]:
     """Insert new translations into the translations dictionary."""
     object = ExtractorData.from_any(translations)
-    result = AddTitlesTranslationsFromTitles(object).run()
 
-    data = result.to_json()
-    if "tspans_by_id" not in translations:
-        data.pop("tspans_by_id")
+    bot = AddTitlesTranslationsFromTitles(object)
+
+    bot.run()
+    if bot.changes is False:
+        return translations
+
+    # if isinstance(translations, ExtractorData): return bot.translations
+
+    data = bot.translations.to_json()
 
     return data
+
+
+def add_translations_from_header(translations: dict[str, Any] | ExtractorData) -> dict[str, Any]:
+    """Insert new translations into the translations dictionary."""
+    object = ExtractorData.from_any(translations)
+    header_data = object.meta.get("header", {})
+
+    if not header_data:
+        return translations
+
+    new_object = ExtractorData.from_any({"new": header_data})
+
+    bot = YearTitleHandler()
+    bot.build_templates(new_object)
+
+    titles_new = new_object.title_new
+
+    if not titles_new:
+        return translations
+
+    bot = AddTitlesTranslationsFromTitles(new_object)
+
+    new_data = bot._add_from_titles(titles_new, [])
+
+    if not new_data:
+        return translations
+
+    object.new = new_data
+
+    return object.to_json()
 
 
 __all__ = [
