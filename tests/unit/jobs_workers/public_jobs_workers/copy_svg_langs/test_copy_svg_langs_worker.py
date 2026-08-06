@@ -217,6 +217,8 @@ class TestCopySvgLangsWorkerProcess:
         )
         mock_services.upload.return_value = {"ok": True, "error": "", "msg": "uploaded"}
 
+        mock_services.is_cancelled.return_value = False
+
         result = mock_worker.process()
 
         # BaseObjectsJobWorker.run sets it to completed, but process() returns current state
