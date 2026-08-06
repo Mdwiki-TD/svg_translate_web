@@ -21,12 +21,6 @@ from ....shared.fix_nested import (
     VerificationResult,
     MatchFixNestedTags,
 )
-from ....shared.fix_nested.worker import (
-    detect_nested_tags,
-    fix_nested_tags,
-    verify_fix,
-)
-
 from ...base_worker import BaseObjectsJobWorker
 from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
 from .steps import (
