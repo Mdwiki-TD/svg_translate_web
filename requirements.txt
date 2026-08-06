@@ -5,6 +5,7 @@ flask-limiter
 Flask-WTF
 gunicorn
 lxml
+# lxml-stubs # For type stubs
 mwclient
 mwoauth
 pymysql
@@ -14,7 +15,7 @@ tqdm
 uvicorn
 wikitextparser
 colorlog
-CopySVGTranslation>=0.2.0
+CopySVGTranslation>=0.2.1
 sqlalchemy
 Flask-SQLAlchemy>=3.1.0
 Flask-Migrate>=4.0.0

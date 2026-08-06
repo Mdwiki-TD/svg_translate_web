@@ -102,7 +102,7 @@ def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_serv
 
     # We need to patch repair_nested_svg_tags directly since it's a module level function
     with patch(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.repair_nested_svg_tags"
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.FixNestedMainFilesWorker.repair_nested_svg_tags"
     ) as mock_repair:
         mock_repair.side_effect = repair_side_effect
         fix_nested_main_files_for_templates(job_id=1, user=None)
@@ -119,7 +119,7 @@ def test_fix_nested_worker_handles_failed_fix_without_no_nested_tags(mock_fix_ne
 
     # repair utility returns success=False and NO no_nested_tags flag
     with patch(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.repair_nested_svg_tags"
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.FixNestedMainFilesWorker.repair_nested_svg_tags"
     ) as mock_repair:
         mock_repair.return_value = {"success": False, "message": "Actual Error"}
         fix_nested_main_files_for_templates(job_id=1, user=None)

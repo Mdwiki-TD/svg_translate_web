@@ -28,93 +28,6 @@ from .objects import FixNestedMainFilesWorkerObject, TemplateInfo
 
 logger = logging.getLogger(__name__)
 
-
-def repair_nested_svg_tags(
-    filename: str,
-    site: Site,
-    temp_dir: Path,
-) -> dict:
-    """High-level orchestration for fixing nested SVG tags.
-
-    Args:
-        filename: Name of the SVG file to fix
-        site: site object
-
-    Returns:
-        Dictionary with success status, message, and details.
-    """
-    # Use temp directory for processing
-    try:
-        download = download_svg_file(filename, temp_dir)
-    except Exception as e:
-        logger.exception("Error downloading SVG file")
-        return {
-            "success": False,
-            "message": f"Error downloading {filename}",
-            "details": str(e),
-        }
-
-    if not download.get("ok"):
-        return {
-            "success": False,
-            "message": f"Failed to download file: {filename}",
-            "details": download,
-        }
-
-    file_path = download.get("path")
-
-    detect_before: DetectionResult = detect_nested_tags(file_path)
-
-    if detect_before.count == 0:
-        return {
-            "success": False,
-            "message": f"No nested tags found in {filename}",
-            "details": {"nested_count": 0},
-            "no_nested_tags": True,
-        }
-
-    if not fix_nested_tags(file_path):
-        return {
-            "success": False,
-            "message": f"Failed to fix nested tags in {filename}",
-            "details": {"nested_count": detect_before.count},
-        }
-
-    verify: VerificationResult = verify_fix(file_path, detect_before.count)
-
-    if verify.fixed == 0:
-        return {
-            "success": False,
-            "message": f"No nested tags were fixed in {filename}",
-            "details": verify.to_dict(),
-        }
-
-    summary = f"Fixed {verify.fixed} nested tag(s)"
-
-    upload = upload_fixed_svg(
-        filename,
-        file_path,
-        site,
-        summary,
-    )
-
-    if not upload.get("ok"):
-        return {
-            "success": False,
-            "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
-            "details": {**verify.to_dict(), **upload},
-        }
-
-    return {
-        "success": True,
-        "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
-        "details": {
-            **verify.to_dict(),
-            "upload_result": upload.get("result"),
-        },
-    }
-
-
 class FixNestedMainFilesWorker(BaseObjectsJobWorker):
     """Worker for fixing nested tags in main files of templates."""
 
@@ -154,9 +67,8 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         with tempfile.TemporaryDirectory() as tmp_dir:
             temp_dir = Path(tmp_dir)
             # Process without job_id and db_store since we're tracking in the job
-            fix_result = repair_nested_svg_tags(
+            fix_result = self.repair_nested_svg_tags(
                 filename=template.main_file,
-                site=self.site,
                 temp_dir=temp_dir,
             )
 
@@ -225,6 +137,90 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         )
 
         return self.result
+
+    def repair_nested_svg_tags(
+        self,
+        filename: str,
+        temp_dir: Path,
+    ) -> dict:
+        """High-level orchestration for fixing nested SVG tags.
+
+        Args:
+            filename: Name of the SVG file to fix
+
+        Returns:
+            Dictionary with success status, message, and details.
+        """
+        # Use temp directory for processing
+        try:
+            download = download_svg_file(filename, temp_dir)
+        except Exception as e:
+            logger.exception("Error downloading SVG file")
+            return {
+                "success": False,
+                "message": f"Error downloading {filename}",
+                "details": str(e),
+            }
+
+        if not download.get("ok"):
+            return {
+                "success": False,
+                "message": f"Failed to download file: {filename}",
+                "details": download,
+            }
+
+        file_path = download.get("path")
+
+        detect_before: DetectionResult = detect_nested_tags(file_path)
+
+        if detect_before.count == 0:
+            return {
+                "success": False,
+                "message": f"No nested tags found in {filename}",
+                "details": {"nested_count": 0},
+                "no_nested_tags": True,
+            }
+
+        if not fix_nested_tags(file_path):
+            return {
+                "success": False,
+                "message": f"Failed to fix nested tags in {filename}",
+                "details": {"nested_count": detect_before.count},
+            }
+
+        verify: VerificationResult = verify_fix(file_path, detect_before.count)
+
+        if verify.fixed == 0:
+            return {
+                "success": False,
+                "message": f"No nested tags were fixed in {filename}",
+                "details": verify.to_dict(),
+            }
+
+        summary = f"Fixed {verify.fixed} nested tag(s)"
+
+        upload = upload_fixed_svg(
+            filename,
+            file_path,
+            self.site,
+            summary,
+        )
+
+        if not upload.get("ok"):
+            return {
+                "success": False,
+                "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
+                "details": {**verify.to_dict(), **upload},
+            }
+
+        return {
+            "success": True,
+            "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
+            "details": {
+                **verify.to_dict(),
+                "upload_result": upload.get("result"),
+            },
+        }
 
 
 __all__ = [

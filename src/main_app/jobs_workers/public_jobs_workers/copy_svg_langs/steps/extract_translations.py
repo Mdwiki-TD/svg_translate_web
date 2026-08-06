@@ -5,44 +5,54 @@ Step for extracting translations from a SVG file.
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import ExtractorData, SVGTranslationExtractor  # type: ignore
+from CopySVGTranslation import SVGTranslationExtractor, TranslationConfig  # type: ignore
+
+from .mapping import ExtractorData, ExtractResult
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class ExtractResult:
-    success: bool | None = None
-    message: str | None = None
-    error: str | None = None
-    translations: dict | None = None
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
-
-
 def extract_file_translations(
-    svg_file_path: str | Path,
+    source_file: str | Path,
 ) -> ExtractorData:
     """
     Legacy function-style wrapper around SVGTranslationExtractor, kept for
     backward compatibility with existing callers.
 
     Parameters:
-        svg_file_path (str | Path): Path to the SVG file to process.
+        source_file (str | Path): Path to the SVG file to process.
         case_insensitive (bool): If true, treat default text keys
             case-insensitively by lowercasing them.
     """
-    extractor = SVGTranslationExtractor(
-        svg_file_path,
+    config = TranslationConfig(
         case_insensitive=True,
     )
 
-    result = extractor.extract()
+    extractor = SVGTranslationExtractor(config=config)
+
+    try:
+        result_json: dict[str, Any] = extractor.extract_json(source_file)
+    except Exception as e:
+        logger.error(f"Failed to extract translations from {source_file}: {e}")
+        return ExtractorData()
+
+    if not result_json:
+        return ExtractorData()
+
+    error = result_json.get("error", "")
+    meta = result_json.get("meta", {})
+    if not error and meta:
+        error = meta.get("error", "")
+
+    result = ExtractorData(
+        new=result_json.get("new", {}),
+        tspans_by_id=result_json.get("tspans_by_id", {}),
+        title_new=result_json.get("title_new", {}),
+        error=error,
+    )
 
     return result
 

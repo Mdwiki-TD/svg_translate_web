@@ -3,61 +3,51 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import InjectorData, SVGTranslationInjector  # type: ignore
+from CopySVGTranslation import SVGTranslationInjector, TranslationConfig  # type: ignore
 
 from .inject_utils import add_translations_from_titles
+from .mapping import (
+    InjectorData,
+    InjectorStats,
+    InjectResult,
+)
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class InjectResult:
-    result: bool | None = None
-    msg: str | None = None
-    new_languages_count: int | None = None
-    updated_translations: int | None = None
-
-    languages_before: list[str] = field(default_factory=list)
-    languages_after: list[str] = field(default_factory=list)
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
 
 
 def start_svg_injection(
     *,
     inject_file: Path | str,
-    all_mappings: dict[str, Any] | None = None,
+    mapping: dict[str, Any] | None = None,
     overwrite: bool = False,
-):
+) -> InjectorData:
     """
     Legacy function-style wrapper around SVGTranslationInjector, kept for
     backward compatibility with existing callers.
     """
-    injector = SVGTranslationInjector(
+    config = TranslationConfig(
         case_insensitive=True,
         overwrite=overwrite,
         pretty_print=True,
     )
-    inject_path = Path(str(inject_file))
+    injector = SVGTranslationInjector(config=config)
 
-    target_path = inject_path.parent / inject_path.name
-    target_path.parent.mkdir(parents=True, exist_ok=True)
-
-    data: InjectorData = injector.inject(
-        inject_file=inject_file,
-        all_mappings=all_mappings,
-        save_result=False,
-        target_path=target_path,
+    data: InjectorData | Any = injector.inject(
+        svg_path=inject_file,
+        mapping=mapping,
     )
+    if not isinstance(data, InjectorData):
+        data = InjectorData(
+            tree=getattr(data, "tree", None),
+            inject_stats=getattr(data, "inject_stats", InjectorStats()),
+        )
+    # stats = data.inject_stats.to_json()
+    # return data.tree, stats
 
-    stats = data.new_stats.to_json()
-
-    return data.tree, stats
+    return data
 
 
 def start_injects(
@@ -69,23 +59,25 @@ def start_injects(
     """Inject translations into a collection of SVG files and write the results."""
     _stats = {
         "error": None,
-        "nested_tspan_error": False,
         "new_languages": 0,
         "updated_translations": 0,
     }
-
-    tree, stats = start_svg_injection(
+    data = start_svg_injection(
         inject_file=file,
-        all_mappings=translations,
+        mapping=translations,
         overwrite=overwrite,
     )
 
+    tree, stats = data.tree, data.inject_stats.to_json()
+
     if not tree:
         logger.debug(f"Failed to translate {file.name}")
-        if stats.get("nested_tspan_error") or stats.get("error") == "nested_tspan_error":
-            return InjectResult(result=False, msg="Nested tspan error")
+        msg = "Failed to translate"
 
-        return InjectResult(result=False, msg="Failed to translate")
+        if stats.get("error") == "nested_tspan_error" or stats.get("nested_tspan_error"):
+            msg = "Nested tspan error"
+
+        return InjectResult(result=False, msg=msg)
 
     languages_after = stats.get("languages_after") or []
     new_languages_count = stats.get("new_languages", 0) or len(languages_after)
