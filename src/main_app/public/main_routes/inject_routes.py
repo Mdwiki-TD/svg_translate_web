@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+import json
 import logging
 import shutil
 import tempfile
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
 from ...api_services.files_service import download_one_file, get_file_info
 from ...jobs_workers.public_jobs_workers.copy_svg_langs.steps import ExtractResult, extract_from_path
@@ -28,13 +37,17 @@ class DiffResult:
     added: dict[str, dict[str, str]] = field(default_factory=dict)
     removed: dict[str, dict[str, str]] = field(default_factory=dict)
     changed: dict[str, dict[str, Any]] = field(default_factory=dict)
+    target_changed: bool = False
 
     @property
     def has_changes(self) -> bool:
         return bool(self.added or self.removed or self.changed)
 
     def to_json(self) -> dict[str, Any]:
-        return asdict(self)
+        data = asdict(self)
+        data["has_changes"] = self.has_changes
+        return data
+
 
 def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
     """Extract translations from a local file path.
@@ -125,6 +138,7 @@ class InjectRoutes:
         self.bp.route("/", methods=["GET"])(self.dashboard)
         self.bp.route("/", methods=["POST"])(self.inject_post)
         self.bp.route("/<string:source>/<string:target>", methods=["GET"])(self.inject_get)
+        self.bp.route("/demo", methods=["GET"])(self.inject_demo)
 
     def dashboard(self) -> str:
         """Display the inject form."""
@@ -224,45 +238,87 @@ class InjectRoutes:
                     target_filename=target_display,
                 )
 
-            # Step 3: Copy target file to output location and inject
-            target_file_path = temp_dir / target
-            output_dir = temp_dir / "output"
-            output_dir.mkdir(exist_ok=True)
-            output_file = output_dir / target
-
-            inject_result: InjectResult = inject_step_one_file(
-                file_path=target_file_path,
-                translations=source_translations,
-                output_file=output_file,
-                overwrite=True,
-            )
-
-            # Step 4: Re-extract from the injected file (only if inject succeeded)
-            target_after: dict[str, Any] | None = None
-            diff = DiffResult()
-
-            if inject_result.result is True and output_file.exists():
-                target_after = _extract_from_path(output_file)
-                if target_after is not None and target_before is not None:
-                    diff = compute_diff(target_before, target_after)
-
-            target_changed = inject_result.result is True
+            data = self.load_data(target, temp_dir, source_translations, target_before)
 
             return render_template(
                 "inject/result.html",
                 source_filename=source_display,
                 target_filename=target_display,
-                source_translations=source_translations,
-                target_before=target_before,
-                inject_result=inject_result,
-                target_after=target_after,
-                diff=diff,
-                target_changed=target_changed,
+                data=data,
             )
 
         finally:
             if temp_dir.exists():
                 shutil.rmtree(temp_dir)
+
+    def load_data(self, target, temp_dir, source_translations, target_before):
+        data = {}
+        # Extract unique languages from source_translations['new']
+        src_langs_sorted = self.extract_sorted_languages(source_translations.get("new") or {})
+
+        # Step 3: Copy target file to output location and inject
+        target_file_path = temp_dir / target
+        output_dir = temp_dir / "output"
+        output_dir.mkdir(exist_ok=True)
+        output_file = output_dir / target
+
+        inject_result: InjectResult = inject_step_one_file(
+            file_path=target_file_path,
+            translations=source_translations,
+            output_file=output_file,
+            overwrite=True,
+        )
+
+        # Step 4: Re-extract from the injected file (only if inject succeeded)
+        target_after: dict[str, Any] | None = None
+        diff = DiffResult()
+
+        target_changed = inject_result.result is True
+
+        if target_changed and output_file.exists():
+            target_after = _extract_from_path(output_file)
+            if target_after is not None and target_before is not None:
+                diff = compute_diff(target_before, target_after)
+
+        diff.target_changed = target_changed
+
+        data = {
+            "source_translations": source_translations,
+            "src_langs_sorted": src_langs_sorted,
+            "target_before": target_before,
+            "inject_result": inject_result.to_json(),
+            "target_after": target_after,
+            "diff": diff.to_json(),
+        }
+
+        return data
+
+    def extract_sorted_languages(self, new_translations) -> list[str]:
+        src_langs_sorted = []
+        src_langs = set()
+
+        for entry in new_translations.values():
+            if isinstance(entry, dict):
+                src_langs.update(entry.keys())
+
+        src_langs_sorted = sorted(src_langs)
+        return src_langs_sorted
+
+    def inject_demo(self) -> str:
+        dir = Path(__file__).parent.parent.parent.parent
+        file_path = Path(f"{dir}/templates/inject/example.json")
+        file_data = {}
+        if file_path.exists():
+            file_data = json.loads(file_path.read_text(encoding="utf-8"))
+        else:
+            logger.error(f"File {file_path} not found")
+
+        return render_template(
+            "inject/result.html",
+            source_filename="File:parkinsons-disease-prevalence-ihme,World,1990.svg",
+            target_filename="File:Parkinsons-disease-prevalence-ihme,_1990_to_2021,_BMU.svg",
+            data=file_data,
+        )
 
 
 __all__ = [
