@@ -332,7 +332,7 @@ class TestAddTranslationsWithExtractorData:
 
         bot.run()
 
-        result = bot.translations
+        result = bot.mapping
 
         assert isinstance(result, ExtractorData)
 
@@ -385,7 +385,7 @@ class TestWithMeta:
 
         bot.run()
 
-        result = bot.translations
+        result = bot.mapping
         assert isinstance(result, ExtractorData)
         assert result.new == data["new"]
 

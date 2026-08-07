@@ -146,8 +146,8 @@ class TitlesTranslationsRenderer:
 
 class AddTitlesTranslationsFromTitles:
 
-    def __init__(self, translations: ExtractorData) -> None:
-        self.translations = translations
+    def __init__(self, mapping: ExtractorData) -> None:
+        self.mapping = mapping
         self.changes: bool | None = None
 
     def _add_from_titles(self, titles_new: dict[str, dict[str, str]], new_keys: list[str]) -> dict[str, dict[str, str]]:
@@ -159,8 +159,8 @@ class AddTitlesTranslationsFromTitles:
     def run(self) -> None:
         """Insert new translations into the translations dictionary."""
 
-        titles_new = self.translations.title_new
-        new_translations = self.translations.new
+        titles_new = self.mapping.title_new
+        new_translations = self.mapping.new
 
         if not titles_new:
             self.changes = False
@@ -200,12 +200,13 @@ def add_translations_from_header(translations: dict[str, Any] | ExtractorData) -
         return translations
 
     bot = YearTitleHandler()
-    titles_new = bot.build_title_new_templates(header_data, create_lang_template=True)
+    extra_titles_new = bot.build_title_new_templates(header_data, create_lang_template=True)
 
-    if not titles_new:
+    if not extra_titles_new:
         return translations
 
-    new_object = ExtractorData.from_any({"title_new": titles_new})
+    # create new object with new titles, so we don't modify the original title_new or most likely overwrite it
+    new_object = ExtractorData.from_any({"title_new": extra_titles_new})
 
     adder = AddTitlesTranslationsFromTitles(new_object)
     adder.run()
