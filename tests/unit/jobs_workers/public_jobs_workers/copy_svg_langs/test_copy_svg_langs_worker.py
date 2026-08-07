@@ -777,8 +777,8 @@ class TestCopySvgLangsWorkerProcessAdvanced:
 
         result = mock_worker.process()
 
-        assert len(result.files_processed) == 1
-        assert result.files_processed[0].status in ["completed", "failed"]
+        assert len(result.files_skipped) == 1
+        assert result.files_skipped[0].status == "skipped"
 
 
 class TestCopySvgLangsWorkerStageMethods:

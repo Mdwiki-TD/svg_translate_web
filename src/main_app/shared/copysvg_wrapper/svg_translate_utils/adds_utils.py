@@ -146,8 +146,8 @@ class TitlesTranslationsRenderer:
 
 class AddTitlesTranslationsFromTitles:
 
-    def __init__(self, translations: ExtractorData) -> None:
-        self.translations = translations
+    def __init__(self, mapping: ExtractorData) -> None:
+        self.mapping = mapping
         self.changes: bool | None = None
 
     def _add_from_titles(self, titles_new: dict[str, dict[str, str]], new_keys: list[str]) -> dict[str, dict[str, str]]:
@@ -159,8 +159,8 @@ class AddTitlesTranslationsFromTitles:
     def run(self) -> None:
         """Insert new translations into the translations dictionary."""
 
-        titles_new = self.translations.title_new
-        new_translations = self.translations.new
+        titles_new = self.mapping.title_new
+        new_translations = self.mapping.new
 
         if not titles_new:
             self.changes = False
@@ -181,11 +181,13 @@ def add_translations_from_titles(
 ) -> dict[str, Any] | ExtractorData:
     """Insert new translations into the translations dictionary."""
     extractor_data = ExtractorData.from_any(translations)
-    bot = AddTitlesTranslationsFromTitles(extractor_data)
-    bot.run()
-    if bot.changes is False:
+    adder = AddTitlesTranslationsFromTitles(extractor_data)
+    adder.run()
+
+    if adder.changes is False:
         return translations
-    data = bot.translations.to_json()
+
+    data = extractor_data.to_json()
     return data
 
 
@@ -197,23 +199,22 @@ def add_translations_from_header(translations: dict[str, Any] | ExtractorData) -
     if not header_data:
         return translations
 
-    new_object = ExtractorData.from_any({"new": header_data})
-
     bot = YearTitleHandler()
-    bot.build_templates(new_object)
+    extra_titles_new = bot.build_title_new_templates(header_data, create_lang_template=True)
 
-    titles_new = new_object.title_new
-
-    if not titles_new:
+    if not extra_titles_new:
         return translations
+
+    # create new object with new titles, so we don't modify the original title_new or most likely overwrite it
+    new_object = ExtractorData.from_any({"title_new": extra_titles_new})
 
     adder = AddTitlesTranslationsFromTitles(new_object)
-    new_data = adder._add_from_titles(titles_new, [])
+    adder.run()
 
-    if not new_data:
+    if adder.changes is False:
         return translations
 
-    object.new.update(new_data)
+    object.new.update(new_object.new)
     return object.to_json()
 
 
