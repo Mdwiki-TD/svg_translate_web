@@ -181,11 +181,13 @@ def add_translations_from_titles(
 ) -> dict[str, Any] | ExtractorData:
     """Insert new translations into the translations dictionary."""
     extractor_data = ExtractorData.from_any(translations)
-    bot = AddTitlesTranslationsFromTitles(extractor_data)
-    bot.run()
-    if bot.changes is False:
+    adder = AddTitlesTranslationsFromTitles(extractor_data)
+    adder.run()
+
+    if adder.changes is False:
         return translations
-    data = bot.translations.to_json()
+
+    data = extractor_data.to_json()
     return data
 
 
@@ -197,23 +199,21 @@ def add_translations_from_header(translations: dict[str, Any] | ExtractorData) -
     if not header_data:
         return translations
 
-    new_object = ExtractorData.from_any({"new": header_data})
-
     bot = YearTitleHandler()
-    bot.build_templates(new_object)
-
-    titles_new = new_object.title_new
+    titles_new = bot.build_title_new_templates(header_data, create_lang_template=True)
 
     if not titles_new:
         return translations
 
-    adder = AddTitlesTranslationsFromTitles(new_object)
-    new_data = adder._add_from_titles(titles_new, [])
+    new_object = ExtractorData.from_any({"title_new": titles_new})
 
-    if not new_data:
+    adder = AddTitlesTranslationsFromTitles(new_object)
+    adder.run()
+
+    if adder.changes is False:
         return translations
 
-    object.new.update(new_data)
+    object.new.update(new_object.new)
     return object.to_json()
 
 
