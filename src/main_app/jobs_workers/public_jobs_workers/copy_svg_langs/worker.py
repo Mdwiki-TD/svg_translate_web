@@ -109,7 +109,8 @@ class OneFileProcessor:
             summary = f"{verify_fixed} nested tags fixed"
             return self._upload_step(title_info, summary, file_path)
 
-        # No nested tags were fixed, and inject failed
+        # No nested tags were fixed
+        # inject_result.result is one of (None/False)
         return False
 
     def handle_nested_tag_repair_step(self, title_info: FilesProcessedItem, file_path: Path) -> tuple[int, bool]:
@@ -171,6 +172,9 @@ class OneFileProcessor:
         )
 
         if inject_result.result is None:
+            if inject_result.msg == "No changes":
+                title_info.status = "skipped"
+
             title_info.steps.inject._update(
                 result=None,
                 msg=inject_result.msg,
