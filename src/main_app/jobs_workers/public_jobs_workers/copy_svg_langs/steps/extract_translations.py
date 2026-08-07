@@ -48,12 +48,12 @@ def extract_file_translations(
     if not error and meta:
         error = meta.get("error", "")
 
-    result_json = add_translations_from_titles(result_json)
+    results = add_translations_from_titles(result_json)
 
     if meta:
-        result_json = add_translations_from_header(result_json)
+        results = add_translations_from_header(results)
 
-    result = ExtractorData.from_any(result_json)
+    result = ExtractorData.from_any(results)
 
     if error and not result.error:
         result.error = error

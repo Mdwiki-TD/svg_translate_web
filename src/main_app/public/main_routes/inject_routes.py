@@ -309,7 +309,10 @@ class InjectRoutes:
         file_path = Path(f"{dir}/templates/inject/example.json")
         file_data = {}
         if file_path.exists():
-            file_data = json.loads(file_path.read_text(encoding="utf-8"))
+            try:
+                file_data = json.loads(file_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                logger.exception(f"Failed to read demo data from {file_path}")
         else:
             logger.error(f"File {file_path} not found")
 

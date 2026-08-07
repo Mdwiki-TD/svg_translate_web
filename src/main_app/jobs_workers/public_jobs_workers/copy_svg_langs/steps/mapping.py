@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 class InjectorStats:
     """
     {
-        "all_languages": 0,
-        "new_languages": 0,
+        "all_languages_count": 0,
+        "new_languages_count": 0,
         "languages_before": [],
         "languages_after": [],
         "processed_switches": 0,
@@ -25,8 +25,8 @@ class InjectorStats:
         "error": "",
     }"""
 
-    all_languages: int = 0
-    new_languages: int = 0
+    all_languages_count: int = 0
+    new_languages_count: int = 0
 
     processed_switches: int = 0
     inserted_translations: int = 0

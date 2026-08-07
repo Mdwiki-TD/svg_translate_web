@@ -34,9 +34,9 @@
                         <span class="badge bg-success fs-6">
                             {{ inject_result.msg }}
                         </span>
-                        {% if inject_result.new_languages %}
+                        {% if inject_result.new_languages_count %}
                         <span class="badge bg-info">
-                            {{ inject_result.new_languages }} new language{{ 's' if inject_result.new_languages != 1 }}
+                            {{ inject_result.new_languages_count }} new language{{ 's' if inject_result.new_languages_count != 1 }}
                         </span>
                         {% endif %}
                         {% if inject_result.updated_translations is not none and inject_result.updated_translations > 0 %}

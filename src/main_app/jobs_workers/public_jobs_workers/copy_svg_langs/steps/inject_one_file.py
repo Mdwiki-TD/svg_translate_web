@@ -58,7 +58,7 @@ def start_injects(
     """Inject translations into a collection of SVG files and write the results."""
     _stats = {
         "error": None,
-        "new_languages": 0,
+        "new_languages_count": 0,
         "updated_translations": 0,
     }
     data = start_svg_injection(
@@ -79,7 +79,7 @@ def start_injects(
         return InjectResult(result=False, msg=msg)
 
     languages_after = stats_obj.languages_after
-    new_languages_count = stats_obj.new_languages or len(languages_after)
+    new_languages_count = stats_obj.new_languages_count or len(languages_after)
 
     inserted_translations = stats_obj.inserted_translations
     updated_translations = stats_obj.updated_translations

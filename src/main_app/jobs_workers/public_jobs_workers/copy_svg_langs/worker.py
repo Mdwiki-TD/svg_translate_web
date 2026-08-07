@@ -194,7 +194,7 @@ class OneFileProcessor:
             result=True,
             msg=inject_result.msg,
             # details={
-            #     "new_languages": inject_result.new_languages,
+            #     "new_languages_count": inject_result.new_languages_count,
             #     "updated_translations": inject_result.updated_translations,
             #     "output_file": output_file,
             # },
