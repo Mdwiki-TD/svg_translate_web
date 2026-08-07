@@ -68,6 +68,7 @@ class InjectResult:
     msg: str | None = None
     new_languages_count: int | None = None
     updated_translations: int | None = None
+    inserted_translations: int | None = None
 
     languages_before: list[str] = field(default_factory=list)
     languages_after: list[str] = field(default_factory=list)

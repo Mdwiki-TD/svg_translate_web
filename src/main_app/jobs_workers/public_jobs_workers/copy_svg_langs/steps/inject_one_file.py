@@ -66,34 +66,39 @@ def start_injects(
         mapping=translations,
         overwrite=overwrite,
     )
-
-    tree, stats = data.tree, data.inject_stats.to_json()
+    stats_obj = data.inject_stats
+    tree = data.tree
 
     if not tree:
         logger.debug(f"Failed to translate {file.name}")
         msg = "Failed to translate"
 
-        if stats.get("error") == "nested_tspan_error" or stats.get("nested_tspan_error"):
+        if stats_obj.error == "nested_tspan_error" or stats_obj.nested_tspan_error:
             msg = "Nested tspan error"
 
         return InjectResult(result=False, msg=msg)
 
-    languages_after = stats.get("languages_after") or []
-    new_languages_count = stats.get("new_languages", 0) or len(languages_after)
+    languages_after = stats_obj.languages_after
+    new_languages_count = stats_obj.new_languages or len(languages_after)
 
-    updated_translations = stats.get("updated_translations", 0)
+    inserted_translations = stats_obj.inserted_translations
+    updated_translations = stats_obj.updated_translations
 
-    if stats.get("error"):
+    if stats_obj.error:
         logger.debug(f"Failed to translate {file.name}")
-        return InjectResult(result=False, msg=stats.get("error"))
+        return InjectResult(result=False, msg=stats_obj.error)
 
-    if new_languages_count == 0 and updated_translations == 0:
+    if not any((new_languages_count, updated_translations, inserted_translations)):
         return InjectResult(result=None, msg="No changes")
 
-    msg = f"{new_languages_count} languages injected"
+    if new_languages_count > 0:
+        msg = f"{new_languages_count} languages injected"
 
-    if new_languages_count == 0 and updated_translations > 0:
+    elif updated_translations > 0:
         msg = f"{updated_translations} translations Updated"
+
+    elif inserted_translations > 0:
+        msg = f"{inserted_translations} translations inserted"
 
     try:
         tree.write(str(output_file), encoding="utf-8", xml_declaration=True, pretty_print=True)  # type: ignore
@@ -103,6 +108,7 @@ def start_injects(
             languages_after=languages_after,
             new_languages_count=new_languages_count,
             updated_translations=updated_translations,
+            inserted_translations=inserted_translations,
         )
     except (OSError, Exception):
         logger.error("Failed to write translated SVG: %s", output_file)
@@ -112,6 +118,7 @@ def start_injects(
             languages_after=languages_after,
             new_languages_count=new_languages_count,
             updated_translations=updated_translations,
+            inserted_translations=inserted_translations,
         )
 
 

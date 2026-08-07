@@ -34,6 +34,7 @@ except ImportError:
 from logger_config import configure_logging  # noqa: E402
 
 configure_logging(logging.DEBUG, use_colorlog=True)
+configure_logging(logging.DEBUG, use_colorlog=True, name="CopySVGTranslation")
 
 from main_app.config import DevelopmentConfig  # noqa: E402
 from main_app import create_app  # noqa: E402
