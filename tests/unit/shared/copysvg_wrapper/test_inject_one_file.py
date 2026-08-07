@@ -5,11 +5,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file import (
+from src.main_app.shared.copysvg_wrapper.inject_one_file import (
     inject_step_one_file,
     start_injects,
 )
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.mapping import InjectorData
+from src.main_app.shared.copysvg_wrapper.mapping import InjectorData
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def mock_tree():
 def mock_inject(monkeypatch: pytest.MonkeyPatch):
     mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file.start_svg_injection",
+        "src.main_app.shared.copysvg_wrapper.inject_one_file.start_svg_injection",
         mock,
     )
 

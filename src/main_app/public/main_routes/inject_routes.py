@@ -19,9 +19,10 @@ from flask import (
 )
 
 from ...api_services.files_service import download_one_file, get_file_info
-from ...jobs_workers.public_jobs_workers.copy_svg_langs.steps import ExtractResult, extract_from_path
-from ...jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file import (
+from ...shared.copysvg_wrapper import (
+    ExtractResult,
     InjectResult,
+    extract_from_path,
     inject_step_one_file,
 )
 

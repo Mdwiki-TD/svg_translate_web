@@ -1,7 +1,7 @@
 import pytest
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.mapping import ExtractorData
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.svg_translate_utils import (
+from src.main_app.shared.copysvg_wrapper import ExtractorData
+from src.main_app.shared.copysvg_wrapper.svg_translate_utils import (
     AddTitlesTranslationsFromTitles,
     ByLanguage,
     TitlesTranslationsRenderer,

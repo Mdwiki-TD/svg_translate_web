@@ -16,6 +16,12 @@ from mwclient.client import Site
 
 from ....api_services import create_commons_session, download_one_file, upload_fixed_svg
 from ....config import settings
+from ....shared.copysvg_wrapper import (
+    ExtractResult,
+    InjectResult,
+    extract_from_path,
+    inject_step_one_file,
+)
 from ....shared.fix_nested import (
     DetectionResult,
     MatchFixNestedTags,
@@ -24,12 +30,8 @@ from ....shared.fix_nested import (
 from ...base_worker import BaseObjectsJobWorker
 from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
 from .steps import (
-    ExtractResult,
-    InjectResult,
-    extract_from_path,
     extract_text_step,
     extract_titles_step,
-    inject_step_one_file,
 )
 
 logger = logging.getLogger(__name__)

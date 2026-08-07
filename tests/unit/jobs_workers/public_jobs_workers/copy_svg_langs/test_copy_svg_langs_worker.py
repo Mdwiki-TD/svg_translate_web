@@ -11,11 +11,11 @@ import pytest
 
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps import InjectResult
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations import (
-    ExtractResult,
-)
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (  # OneFileProcessor,
     CopySvgLangsWorker,
+)
+from src.main_app.shared.copysvg_wrapper.extract_translations import (
+    ExtractResult,
 )
 
 
