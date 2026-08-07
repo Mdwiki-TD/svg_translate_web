@@ -79,8 +79,8 @@ def start_injects(
         return InjectResult(result=False, msg=msg)
 
     languages_after = stats_obj.languages_after
-    new_languages_count = stats_obj.new_languages_count or len(languages_after)
 
+    new_languages_count = stats_obj.new_languages_count
     inserted_translations = stats_obj.inserted_translations
     updated_translations = stats_obj.updated_translations
 
