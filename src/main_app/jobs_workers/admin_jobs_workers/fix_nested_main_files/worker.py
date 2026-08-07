@@ -28,6 +28,7 @@ from .objects import FixNestedMainFilesWorkerObject, TemplateInfo
 
 logger = logging.getLogger(__name__)
 
+
 class FixNestedMainFilesWorker(BaseObjectsJobWorker):
     """Worker for fixing nested tags in main files of templates."""
 

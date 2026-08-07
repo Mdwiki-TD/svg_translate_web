@@ -167,7 +167,7 @@ PublicRouteModule(InjectRoutes, "inject", "/inject"),
 
 ```python
 from CopySVGTranslation import extract
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file import (
+from src.main_app.shared.copysvg_wrapper.inject_one_file import (
     inject_step_one_file,
     InjectResult,
 )

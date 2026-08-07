@@ -2,10 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations import (
-    ExtractorData,
-    extract_from_path,
-)
+from src.main_app.shared.copysvg_wrapper.extract_translations import extract_from_path
+from src.main_app.shared.copysvg_wrapper.mapping import ExtractorData
 
 
 class TestExtractFromPath:
@@ -26,10 +24,10 @@ class TestExtractFromPath:
 
         def fake_extract(path):
             assert Path(path) == fake_svg_path
-            return ExtractorData(**extract_return)
+            return ExtractorData.from_any(extract_return)
 
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",
+            "src.main_app.shared.copysvg_wrapper.extract_translations.extract_file_translations",
             fake_extract,
         )
 
@@ -56,7 +54,7 @@ class TestExtractFromPath:
             raise ValueError("SVG parse error")
 
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",
+            "src.main_app.shared.copysvg_wrapper.extract_translations.extract_file_translations",
             fake_extract,
         )
 
@@ -75,7 +73,7 @@ class TestExtractFromPath:
             return ExtractorData(new={"en": {"text": "Hello"}, "fr": {"text": "Bonjour"}})
 
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_translations.extract_file_translations",
+            "src.main_app.shared.copysvg_wrapper.extract_translations.extract_file_translations",
             fake_extract,
         )
 

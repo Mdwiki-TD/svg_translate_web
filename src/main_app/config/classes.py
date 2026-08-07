@@ -53,6 +53,23 @@ class Paths:
     fix_nested_data: str
     crop_main_files_path: str
 
+    # ------------------------------------------------------------------
+    # Factory helpers
+    # ------------------------------------------------------------------
+    @classmethod
+    def from_any(cls, data: dict[str, Any] | Paths) -> Paths:
+        if isinstance(data, Paths):
+            return data
+        return cls(
+            log_dir=data.get("log_dir", ""),
+            jobs_path=data.get("jobs_path", ""),
+            main_files_path=data.get("main_files_path", ""),
+            svg_data=data.get("svg_data", ""),
+            svg_data_thumb=data.get("svg_data_thumb", ""),
+            fix_nested_data=data.get("fix_nested_data", ""),
+            crop_main_files_path=data.get("crop_main_files_path", ""),
+        )
+
 
 @dataclass(frozen=True)
 class CookieConfig:

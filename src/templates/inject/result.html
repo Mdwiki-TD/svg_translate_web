@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% from "_macros.html" import card_header, commons_file_link %}
 {% from '_macros/svg_macros.html' import render_extract_details, render_json %}
-
-{% block title %}Inject SVG Translations — Result{% endblock %}
+{% from '_macros/compare_forms.html' import render_simple_table %}
 
 {% block content_fluid %}
 <div class="container">
@@ -30,17 +29,18 @@
 
                     {# Inject result badge #}
                     <div class="mb-3">
+                        {% set inject_result = data.inject_result if data and data.inject_result else {} %}
                         {% if inject_result.result is true %}
                         <span class="badge bg-success fs-6">
-                            <i class="bi bi-check-circle"></i> {{ inject_result.msg }}
+                            {{ inject_result.msg }}
                         </span>
-                        {% if inject_result.new_languages is not none %}
+                        {% if inject_result.new_languages_count %}
                         <span class="badge bg-info">
-                            {{ inject_result.new_languages }} new language{{ 's' if inject_result.new_languages != 1 }}
+                            {{ inject_result.new_languages_count }} new language{{ 's' if inject_result.new_languages_count != 1 }}
                         </span>
                         {% endif %}
                         {% if inject_result.updated_translations is not none and inject_result.updated_translations > 0 %}
-                        <span class="badge bg-warning text-dark">
+                        <span class="badge bg-warning">
                             {{ inject_result.updated_translations }} updated
                         </span>
                         {% endif %}
@@ -62,7 +62,8 @@
             </div>
 
             {# ── Diff section ── #}
-            {% if target_changed and diff %}
+            {% set diff = data.diff if data and data.diff else {} %}
+            {% if diff and diff.target_changed %}
             <div class="card shadow mb-4">
                 <div class="card-header">
                     {{ card_header('<i class="bi bi-file-diff"></i> Translation Diff') }}
@@ -72,61 +73,57 @@
 
                     {# Added #}
                     {% if diff.added %}
-                    <h5 class="text-success"><i class="bi bi-plus-circle"></i> Added ({{ diff.added|length }})</h5>
+                    <h5 class="text-success">
+                        <i class="bi bi-plus-circle"></i> Added ({{ diff.added|length }})
+                    </h5>
                     <div class="table-responsive mb-3">
-                        <table class="table table-sm table-striped table-bordered">
-                            <thead class="table-success">
-                                <tr>
-                                    <th style="width: 25%;">Key (EN)</th>
-                                    <th>Translations</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for key, langs in diff.added.items() %}
-                                <tr>
-                                    <td><strong>{{ key }}</strong></td>
-                                    <td>
-                                        {% for lang, text in langs.items() %}
-                                        <span class="badge bg-light text-dark me-1 mb-1">{{ lang }}:</span>
-                                        {{ text }}{% if not loop.last %}<br>{% endif %}
-                                        {% endfor %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        {{ render_simple_table(diff.added, 'added') }}
                     </div>
                     {% endif %}
 
                     {# Changed #}
                     {% if diff.changed %}
-                    <h5 class="text-warning"><i class="bi bi-pencil-square"></i> Changed ({{ diff.changed|length }})</h5>
+                    <h5 class="text-warning">
+                        <i class="bi bi-pencil-square"></i> Changed ({{ diff.changed|length }})
+                    </h5>
                     <div class="table-responsive mb-3">
-                        <table class="table table-sm table-striped table-bordered">
+                        <table class="table table-sm table-striped table-bordered ">
                             <thead class="table-warning">
                                 <tr>
                                     <th style="width: 25%;">Key (EN)</th>
+                                    <th style="width: 15%;">Language</th>
                                     <th>Before</th>
                                     <th>After</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for key, val in diff.changed.items() %}
-                                <tr>
-                                    <td><strong>{{ key }}</strong></td>
-                                    <td>
-                                        {% for lang, text in val.before.items() %}
-                                        <span class="badge bg-light text-dark me-1 mb-1">{{ lang }}:</span>
-                                        {{ text }}{% if not loop.last %}<br>{% endif %}
-                                        {% endfor %}
-                                    </td>
-                                    <td>
-                                        {% for lang, text in val.after.items() %}
-                                        <span class="badge bg-light text-dark me-1 mb-1">{{ lang }}:</span>
-                                        {{ text }}{% if not loop.last %}<br>{% endif %}
-                                        {% endfor %}
-                                    </td>
+                                {# Collect all unique language codes present in both 'before' and 'after' #}
+                                {% set all_langs = (val.before.keys() | list + val.after.keys() | list) | unique | sort %}
+                                {% set row_span = all_langs | length %}
+
+                                {% for lang in all_langs %}
+                                {% set before_text = val.before.get(lang) %}
+                                {% set after_text = val.after.get(lang) %}
+
+                                {# Determine row CSS class based on translation status #}
+                                {% if before_text is none and after_text is not none %}
+                                {% set status_class = "table-success" %}
+                                {% elif before_text is not none and after_text is none %}
+                                {% set status_class = "table-warning" %}
+                                {% endif %}
+
+                                <tr class="{{ status_class }}">
+                                    {# Merge key column cells for all language rows under the same key #}
+                                    {% if loop.first %}
+                                    <td rowspan="{{ row_span }}" class="align-middle fw-bold">{{ key }}</td>
+                                    {% endif %}
+
+                                    <td>{{ lang }}</td>
+                                    <td>{{ before_text if before_text is not none else '-' }}</td>
+                                    <td>{{ after_text if after_text is not none else '-' }}</td>
                                 </tr>
+                                {% endfor %}
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -135,35 +132,18 @@
 
                     {# Removed #}
                     {% if diff.removed %}
-                    <h5 class="text-danger"><i class="bi bi-dash-circle"></i> Removed ({{ diff.removed|length }})</h5>
+                    <h5 class="text-danger">
+                        <i class="bi bi-dash-circle"></i> Removed ({{ diff.removed|length }})
+                    </h5>
                     <div class="table-responsive mb-3">
-                        <table class="table table-sm table-striped table-bordered">
-                            <thead class="table-danger">
-                                <tr>
-                                    <th style="width: 25%;">Key (EN)</th>
-                                    <th>Translations</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for key, langs in diff.removed.items() %}
-                                <tr>
-                                    <td><strong>{{ key }}</strong></td>
-                                    <td>
-                                        {% for lang, text in langs.items() %}
-                                        <span class="badge bg-light text-dark me-1 mb-1">{{ lang }}:</span>
-                                        {{ text }}{% if not loop.last %}<br>{% endif %}
-                                        {% endfor %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        {{ render_simple_table(diff.removed, 'removed') }}
                     </div>
                     {% endif %}
 
                     {% else %}
                     <div class="alert alert-secondary mb-0">
-                        <i class="bi bi-info-circle"></i> No differences detected — the target translations are unchanged.
+                        <i class="bi bi-info-circle"></i>
+                        No differences detected — the target translations are unchanged.
                     </div>
                     {% endif %}
                 </div>
@@ -171,57 +151,41 @@
             {% endif %}
 
             {# ── Source translations ── #}
-            {% if source_translations %}
+            {% if data and data.source_translations %}
             <div class="card shadow mb-4">
                 <div class="card-header">
                     {{ card_header('<i class="bi bi-file-earmark-text"></i> Source Translations (extracted from ' ~ source_filename ~ ')') }}
                 </div>
                 <div class="card-body">
-                    {% set src_langs = [] %}
-                    {% if source_translations.new %}
-                        {% for entry in source_translations.new.values() %}
-                            {% if entry is mapping %}
-                                {% for lang in entry.keys() %}
-                                    {% if lang not in src_langs %}
-                                        {% if src_langs.append(lang) %}{% endif %}
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
-                        {% endfor %}
+                    {% set len_src_new = data.source_translations.new|length if data.source_translations.new else 0 %}
+                    {{ render_extract_details(source_filename, data.src_langs_sorted or [], len_src_new) }}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    {{ card_header('<i class="bi bi-clock-history"></i> Raw Json Data') }}
+                </div>
+                <div class="card-body">
+                    {# ── Source Translations ── #}
+                    {% if data and data.source_translations %}
+                    {{ render_json(data.source_translations, title='Source Translations', card_class='mb-3', default_stats='closed') }}
                     {% endif %}
-                    {% set src_langs_sorted = src_langs | sort %}
-                    {% set len_src_new = source_translations.new|length if source_translations.new else 0 %}
-                    {{ render_extract_details(source_filename, src_langs_sorted, len_src_new) }}
 
-                    {{ render_json(source_translations, title='Source Translations JSON', card_class='mb-3') }}
+                    {# ── Target before ── #}
+                    {% if data and data.target_before %}
+                    {{ render_json(data.target_before, title='Target Before', card_class='mb-3', default_stats='closed') }}
+                    {% endif %}
+
+                    {# ── Target after ── #}
+                    {% if data and data.target_after %}
+                    {{ render_json(data.target_after, title='Target After', card_class='mb-3', default_stats='closed') }}
+                    {% endif %}
+
+                    {{ render_json(data, title='Full Data', card_class='mb-3', default_stats='closed') }}
                 </div>
             </div>
-            {% endif %}
-
-            {# ── Target before ── #}
-            {% if target_before %}
-            <div class="card shadow mb-4">
-                <div class="card-header">
-                    {{ card_header('<i class="bi bi-clock-history"></i> Target Translations — Before Inject') }}
-                </div>
-                <div class="card-body">
-                    {{ render_json(target_before, title='Target Before JSON', card_class='mb-3') }}
-                </div>
-            </div>
-            {% endif %}
-
-            {# ── Target after ── #}
-            {% if target_after %}
-            <div class="card shadow mb-4">
-                <div class="card-header">
-                    {{ card_header('<i class="bi bi-check2-square"></i> Target Translations — After Inject') }}
-                </div>
-                <div class="card-body">
-                    {{ render_json(target_after, title='Target After JSON', card_class='mb-3') }}
-                </div>
-            </div>
-            {% endif %}
-
         </div>
     </div>
 </div>

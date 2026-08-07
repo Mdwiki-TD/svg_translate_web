@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import logging
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -13,8 +14,8 @@ logger = logging.getLogger(__name__)
 class InjectorStats:
     """
     {
-        "all_languages": 0,
-        "new_languages": 0,
+        "all_languages_count": 0,
+        "new_languages_count": 0,
         "languages_before": [],
         "languages_after": [],
         "processed_switches": 0,
@@ -24,8 +25,8 @@ class InjectorStats:
         "error": "",
     }"""
 
-    all_languages: int = 0
-    new_languages: int = 0
+    all_languages_count: int = 0
+    new_languages_count: int = 0
 
     processed_switches: int = 0
     inserted_translations: int = 0
@@ -67,6 +68,7 @@ class InjectResult:
     msg: str | None = None
     new_languages_count: int | None = None
     updated_translations: int | None = None
+    inserted_translations: int | None = None
 
     languages_before: list[str] = field(default_factory=list)
     languages_after: list[str] = field(default_factory=list)
@@ -82,10 +84,28 @@ class ExtractorData:
     new: dict[str, dict[str, str]] = field(default_factory=dict)
     tspans_by_id: dict[str, str] = field(default_factory=dict)
     title_new: dict[str, Any] = field(default_factory=dict)
+    meta: dict[str, Any] = field(default_factory=dict)
     error: str = ""
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
+
+    # ------------------------------------------------------------------
+    # Factory helpers
+    # ------------------------------------------------------------------
+    @classmethod
+    def from_any(cls, data: dict[str, Any] | ExtractorData) -> ExtractorData:
+        if isinstance(data, ExtractorData):
+            return data
+
+        data = copy.deepcopy(data)
+        return cls(
+            new=dict(data.get("new", {})),
+            tspans_by_id=dict(data.get("tspans_by_id", {})),
+            title_new=dict(data.get("title_new", {})),
+            meta=dict(data.get("meta", {})),
+            error=data.get("error", ""),
+        )
 
 
 @dataclass

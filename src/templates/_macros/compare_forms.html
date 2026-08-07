@@ -1,0 +1,36 @@
+{% block title %}Inject SVG Translations — Result{% endblock %}
+{# Macro to render translation tables for Added and Removed keys #}
+{% macro render_simple_table(diff_data, table_type='added') %}
+{% if table_type == 'added' %}
+{% set header_class = "table-success" %}
+{% set row_class = "table-success" %}
+{% else %}
+{% set header_class = "table-danger" %}
+{% set row_class = "table-danger" %}
+{% endif %}
+
+<table class="table table-sm table-striped table-bordered mb-4">
+    <thead>
+        <tr>
+            <th style="width: 25%;">Key (EN)</th>
+            <th style="width: 15%;">Language</th>
+            <th>Translation</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key, langs in diff_data.items() %}
+        {% set row_span = langs | length %}
+        {% for lang, text in langs.items() %}
+        <tr>
+            {# Merge key column cells for all language rows under the same key #}
+            {% if loop.first %}
+            <td rowspan="{{ row_span }}" class="align-middle fw-bold">{{ key }}</td>
+            {% endif %}
+            <td>{{ lang }}</td>
+            <td>{{ text }}</td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}

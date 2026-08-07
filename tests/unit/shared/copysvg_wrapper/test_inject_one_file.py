@@ -5,11 +5,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file import (
+from src.main_app.shared.copysvg_wrapper.inject_one_file import (
     inject_step_one_file,
     start_injects,
 )
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.mapping import InjectorData
+from src.main_app.shared.copysvg_wrapper.mapping import InjectorData
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def mock_tree():
 def mock_inject(monkeypatch: pytest.MonkeyPatch):
     mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.inject_one_file.start_svg_injection",
+        "src.main_app.shared.copysvg_wrapper.inject_one_file.start_svg_injection",
         mock,
     )
 
@@ -57,7 +57,7 @@ class TestStartInjects:
     def test_new_languages(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.mock_return(
             mock_tree,
-            {"new_languages": 3, "updated_translations": 0, "error": None, "nested_tspan_error": False},
+            {"new_languages_count": 3, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
 
         result = start_injects(svg_file, {"new": {"en": "Hello"}}, output_file, overwrite=False)
@@ -73,7 +73,7 @@ class TestStartInjects:
     def test_updated_translations_only(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.mock_return(
             mock_tree,
-            {"new_languages": 0, "updated_translations": 5, "error": None, "nested_tspan_error": False},
+            {"new_languages_count": 0, "updated_translations": 5, "error": None, "nested_tspan_error": False},
         )
 
         result = start_injects(svg_file, {}, output_file, overwrite=False)
@@ -86,7 +86,7 @@ class TestStartInjects:
     def test_no_changes(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.mock_return(
             mock_tree,
-            {"new_languages": 0, "updated_translations": 0, "error": None, "nested_tspan_error": False},
+            {"new_languages_count": 0, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
 
         result = start_injects(svg_file, {}, output_file, overwrite=False)
@@ -108,7 +108,7 @@ class TestStartInjects:
         mock_inject.mock_return(
             mock_tree,
             {
-                "new_languages": 0,
+                "new_languages_count": 0,
                 "updated_translations": 0,
                 "error": "Some error occurred",
                 "nested_tspan_error": False,
@@ -124,7 +124,7 @@ class TestStartInjects:
         mock_tree.write.side_effect = OSError("Permission denied")
         mock_inject.mock_return(
             mock_tree,
-            {"new_languages": 2, "updated_translations": 1, "error": None, "nested_tspan_error": False},
+            {"new_languages_count": 2, "updated_translations": 1, "error": None, "nested_tspan_error": False},
         )
 
         result = start_injects(svg_file, {}, output_file, overwrite=False)
@@ -138,7 +138,7 @@ class TestStartInjects:
         mock_tree.write.side_effect = RuntimeError("disk full")
         mock_inject.mock_return(
             mock_tree,
-            {"new_languages": 2, "updated_translations": 1, "error": None, "nested_tspan_error": False},
+            {"new_languages_count": 2, "updated_translations": 1, "error": None, "nested_tspan_error": False},
         )
 
         result = start_injects(svg_file, {}, output_file, overwrite=False)
@@ -149,7 +149,7 @@ class TestStartInjects:
     def test_new_and_updated_both_present(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.mock_return(
             mock_tree,
-            {"new_languages": 2, "updated_translations": 3, "error": None, "nested_tspan_error": False},
+            {"new_languages_count": 2, "updated_translations": 3, "error": None, "nested_tspan_error": False},
         )
 
         result = start_injects(svg_file, {}, output_file, overwrite=False)
@@ -164,7 +164,7 @@ class TestInjectStepOneFile:
     def test_success(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.mock_return(
             mock_tree,
-            {"new_languages": 1, "updated_translations": 0, "error": None, "nested_tspan_error": False},
+            {"new_languages_count": 1, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
 
         result = inject_step_one_file(svg_file, {"new": {"en": "Hi"}}, output_file, overwrite=False)
@@ -176,7 +176,7 @@ class TestInjectStepOneFile:
     def test_passthrough_no_changes(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.mock_return(
             mock_tree,
-            {"new_languages": 0, "updated_translations": 0, "error": None, "nested_tspan_error": False},
+            {"new_languages_count": 0, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
 
         result = inject_step_one_file(svg_file, {}, output_file, overwrite=False)

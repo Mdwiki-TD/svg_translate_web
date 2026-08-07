@@ -32,3 +32,4 @@ run_tests.py
 errors.log
 /src/templates/admin/admin
 /src/templates/admin/bs4_admin
+src/templates/inject/example.json

@@ -129,7 +129,7 @@
                         {% set inject_step = item.steps.get('inject') if item.steps else {} %}
                         {% set translations_step_details = item.steps.get('translations', {}).get('details', {}) %}
                         <td>
-                            {{ translations_step_details.new or inject_step.details.new_languages}}
+                            {{ translations_step_details.new or inject_step.details.new_languages_count}}
                         </td>
                         <td>
                             {{ translations_step_details.updated or inject_step.details.updated_translations }}

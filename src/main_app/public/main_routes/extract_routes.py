@@ -9,7 +9,10 @@ from typing import Any
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from ...api_services.files_service import download_one_file, get_file_info
-from ...jobs_workers.public_jobs_workers.copy_svg_langs.steps import ExtractResult, extract_from_path
+from ...shared.copysvg_wrapper import (
+    ExtractResult,
+    extract_from_path,
+)
 
 logger = logging.getLogger(__name__)
 
