@@ -176,15 +176,15 @@ class AddTitlesTranslationsFromTitles:
             self.changes = False
 
 
-def add_translations_from_titles(translations: dict[str, Any] | ExtractorData) -> dict[str, Any]:
+def add_translations_from_titles(
+    translations: dict[str, Any] | ExtractorData,
+) -> dict[str, Any] | ExtractorData:
     """Insert new translations into the translations dictionary."""
     extractor_data = ExtractorData.from_any(translations)
     bot = AddTitlesTranslationsFromTitles(extractor_data)
-
     bot.run()
     if bot.changes is False:
         return translations
-
     data = bot.translations.to_json()
     return data
 
