@@ -159,37 +159,34 @@
                 <div class="card-body">
                     {% set len_src_new = data.source_translations.new|length if data.source_translations.new else 0 %}
                     {{ render_extract_details(source_filename, data.src_langs_sorted or [], len_src_new) }}
-                    {{ render_json(data.source_translations, title='Source Translations JSON', card_class='mb-3') }}
                 </div>
             </div>
             {% endif %}
 
-            {# ── Target before ── #}
-            {% if data and data.target_before %}
             <div class="card shadow mb-4">
                 <div class="card-header">
-                    {{ card_header('<i class="bi bi-clock-history"></i> Target Translations — Before Inject') }}
+                    {{ card_header('<i class="bi bi-clock-history"></i> Raw Json Data') }}
                 </div>
                 <div class="card-body">
-                    {{ render_json(data.target_before, title='Target Before JSON', card_class='mb-3') }}
+                    {# ── Source Translations ── #}
+                    {% if data and data.source_translations %}
+                    {{ render_json(data.source_translations, title='Source Translations', card_class='mb-3', default_stats='closed') }}
+                    {% endif %}
+
+                    {# ── Target before ── #}
+                    {% if data and data.target_before %}
+                    {{ render_json(data.target_before, title='Target Before', card_class='mb-3', default_stats='closed') }}
+                    {% endif %}
+
+                    {# ── Target after ── #}
+                    {% if data and data.target_after %}
+                    {{ render_json(data.target_after, title='Target After', card_class='mb-3', default_stats='closed') }}
+                    {% endif %}
+
+                    {{ render_json(data, title='Full Data', card_class='mb-3', default_stats='closed') }}
                 </div>
             </div>
-            {% endif %}
-
-            {# ── Target after ── #}
-            {% if data and data.target_after %}
-            <div class="card shadow mb-4">
-                <div class="card-header">
-                    {{ card_header('<i class="bi bi-check2-square"></i> Target Translations — After Inject') }}
-                </div>
-                <div class="card-body">
-                    {{ render_json(data.target_after, title='Target After JSON', card_class='mb-3') }}
-                </div>
-            </div>
-            {% endif %}
-
         </div>
     </div>
-    {{ render_json(data, title='Data JSON', card_class='mb-3') }}
 </div>
 {% endblock %}

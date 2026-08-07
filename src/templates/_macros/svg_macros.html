@@ -57,7 +57,7 @@
 </div>
 {% endmacro %}
 
-{%- macro render_json(data, title='Extracted Translations', card_class='mb-4') -%}
+{%- macro render_json(data, title='Extracted Translations', card_class='mb-4', default_stats='open') -%}
 <!-- Container card for displaying formatted JSON data -->
 
 {% set data_bs_target_id = "extracted-json-" ~ range(100000) | random %}
@@ -82,7 +82,7 @@
     </div>
 
     <!-- Collapsible card body holding the JSON pre block -->
-    <div id="{{ data_bs_target_id }}" class="collapse show">
+    <div id="{{ data_bs_target_id }}" class="collapse {% if default_stats == 'open' %}show{% endif %}">
         <div class="card-body p-0">
             <!-- <code id="{{ json_content_id }}">{{- data -}}</code> -->
             <pre class="mb-0 p-3 bg-light"
