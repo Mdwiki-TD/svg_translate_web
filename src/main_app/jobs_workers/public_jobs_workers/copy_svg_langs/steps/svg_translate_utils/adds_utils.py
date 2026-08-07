@@ -207,15 +207,13 @@ def add_translations_from_header(translations: dict[str, Any] | ExtractorData) -
     if not titles_new:
         return translations
 
-    bot = AddTitlesTranslationsFromTitles(new_object)
-
-    new_data = bot._add_from_titles(titles_new, [])
+    adder = AddTitlesTranslationsFromTitles(new_object)
+    new_data = adder._add_from_titles(titles_new, [])
 
     if not new_data:
         return translations
 
     object.new.update(new_data)
-
     return object.to_json()
 
 
