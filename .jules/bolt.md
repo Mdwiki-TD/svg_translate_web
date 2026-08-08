@@ -1,3 +1,0 @@
-## 2025-10-27 - [Fixing Silent Background Thread Failures due to Argument Mismatches]
-**Learning:** In multi-threaded applications like Flask background tasks, running tasks in standard daemon threads without catching thread-startup or positional-argument errors can result in tasks permanently hanging in a "Pending" state without any logs or progress indicators. Always ensure the thread's target function signature perfectly matches the positional and keyword arguments passed via `threading.Thread(args=...)`.
-**Action:** Always check python's unhandled thread exception warnings in test suites and explicitly align argument lists in `threading.Thread` calls with target function signatures, including defaults for optional arguments like `form_data`.
