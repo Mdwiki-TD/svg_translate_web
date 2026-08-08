@@ -39,10 +39,10 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         )
 
         mock_worker_class.assert_called_once_with(
-            job_id=1,
-            user={"username": "tester"},
-            cancel_event=None,
-            args=None,
+            JobsRunner(
+                job_id=1,
+                user={"username": "tester"},
+            )
         )
         mock_worker_class.return_value.run.assert_called_once()
 
@@ -66,10 +66,10 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         )
 
         mock_worker_class.assert_called_once_with(
-            job_id=2,
-            user={},
-            cancel_event=None,
-            args=None,
+            JobsRunner(
+                job_id=2,
+                user={},
+            )
         )
         mock_worker_class.return_value.run.assert_called_once()
 
@@ -84,10 +84,11 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         )
 
         mock_worker_class.assert_called_once_with(
-            job_id=3,
-            user={},
-            cancel_event=cancel_event,
-            args=None,
+            JobsRunner(
+                job_id=3,
+                user={},
+                cancel_event=cancel_event,
+            )
         )
         mock_worker_class.return_value.run.assert_called_once()
 
@@ -101,8 +102,9 @@ class TestRenameOwidPagesForTemplatesEntryPoint:
         )
 
         mock_worker_class.assert_called_once_with(
-            job_id=4,
-            user={},
-            cancel_event=None,
-            args={"update_all": "true"},
+            JobsRunner(
+                job_id=4,
+                user={},
+                args={"update_all": "true"},
+            )
         )

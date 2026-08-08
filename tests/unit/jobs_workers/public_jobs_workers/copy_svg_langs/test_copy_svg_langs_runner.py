@@ -54,10 +54,11 @@ class TestCopySvgLangsWorkerEntry:
         )
 
         mock_worker_class.assert_called_once_with(
-            job_id=123,
-            args={"title": "Test.svg"},
-            user={"id": 1},
-            cancel_event=None,
+            JobsRunner(
+                job_id=123,
+                args={"title": "Test.svg"},
+                user={"id": 1},
+            )
         )
         mock_worker_class.return_value.run.assert_called_once()
 
@@ -89,10 +90,11 @@ class TestCopySvgLangsWorkerEntry:
         )
 
         mock_worker_class.assert_called_once_with(
-            job_id=1,
-            args={"title": "Test.svg"},
-            user={},
-            cancel_event=None,
+            JobsRunner(
+                job_id=1,
+                user={},
+                args={"title": "Test.svg"},
+            )
         )
         mock_worker_class.return_value.run.assert_called_once()
 
@@ -105,10 +107,10 @@ class TestCopySvgLangsWorkerEntry:
         )
 
         mock_worker_class.assert_called_once_with(
-            job_id=99,
-            args=None,
-            user={"username": "tester"},
-            cancel_event=None,
+            JobsRunner(
+                job_id=99,
+                user={"username": "tester"},
+            )
         )
 
     def test_worker_entry_user_is_second_positional(self, mock_worker_class) -> None:

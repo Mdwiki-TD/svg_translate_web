@@ -21,7 +21,7 @@ class TestAddLangCategoriesRunner:
         runner_data = JobsRunner(job_id=1, user=user, cancel_event=cancel_event)
         add_lang_categories_to_owid_pages_entry(runner_data)
 
-        mock_worker_class.assert_called_once_with(job_id=1, user=user, cancel_event=cancel_event, args=None)
+        mock_worker_class.assert_called_once_with(runner_data)
         mock_worker_instance.run.assert_called_once()
 
     def test_function_accepts_args_keyword_param(self, mock_lang_categories_services):
@@ -31,7 +31,7 @@ class TestAddLangCategoriesRunner:
         runner_data = JobsRunner(job_id=1, user={}, args={"limit_items": 10})
         add_lang_categories_to_owid_pages_entry(runner_data)
 
-        mock_worker_class.assert_called_once_with(job_id=1, user={}, cancel_event=None, args={"limit_items": 10})
+        mock_worker_class.assert_called_once_with(runner_data)
         mock_worker_instance.run.assert_called_once()
 
     def test_function_args_defaults_to_none(self, mock_lang_categories_services):
@@ -41,5 +41,5 @@ class TestAddLangCategoriesRunner:
         runner_data = JobsRunner(job_id=2, user={})
         add_lang_categories_to_owid_pages_entry(runner_data)
 
-        mock_worker_class.assert_called_once_with(job_id=2, user={}, cancel_event=None, args=None)
+        mock_worker_class.assert_called_once_with(runner_data)
         mock_worker_instance.run.assert_called_once()

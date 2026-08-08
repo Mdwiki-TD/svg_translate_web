@@ -96,10 +96,11 @@ class TestFixNestedJobsProcessorEntry:
             )
 
             MockWorker.assert_called_once_with(
-                job_id=1,
-                user={},
-                cancel_event=None,
-                args={"filename": "Test.svg"},
+                JobsRunner(
+                    job_id=1,
+                    user={},
+                    args={"filename": "Test.svg"},
+                )
             )
             mock_instance.run.assert_called_once()
 
@@ -120,10 +121,10 @@ class TestFixNestedJobsProcessorEntry:
             )
 
             MockWorker.assert_called_once_with(
-                job_id=42,
-                args=None,
-                user={"username": "tester"},
-                cancel_event=None,
+                JobsRunner(
+                    job_id=42,
+                    user={"username": "tester"},
+                )
             )
 
     def test_worker_entry_user_is_second_positional(self) -> None:

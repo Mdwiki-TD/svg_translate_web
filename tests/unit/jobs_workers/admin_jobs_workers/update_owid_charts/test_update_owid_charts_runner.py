@@ -30,10 +30,10 @@ class TestUpdateOwidChartsWorkerEntry:
             )
 
             MockWorker.assert_called_once_with(
-                job_id=1,
-                user={"username": "test"},
-                cancel_event=None,
-                args=None,
+                JobsRunner(
+                    job_id=1,
+                    user={"username": "test"},
+                )
             )
             mock_instance.run.assert_called_once()
 
