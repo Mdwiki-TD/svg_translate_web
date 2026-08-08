@@ -10,17 +10,9 @@ import pytest
 
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import (
     CropMainFilesWorkerObject,
-)
-from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files import (
-    crop_main_files_worker_entry as _original_crop_entry,
+    crop_main_files_worker_entry,
 )
 from src.main_app.jobs_workers.objects import JobsRunner
-
-
-def crop_main_files_worker_entry(job_id, user, cancel_event=None, args=None, form_data=None):
-    data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
-    return _original_crop_entry(data)
-
 
 # ---------------------------------------------------------------------------
 # Fixture for a completed result returned by process()

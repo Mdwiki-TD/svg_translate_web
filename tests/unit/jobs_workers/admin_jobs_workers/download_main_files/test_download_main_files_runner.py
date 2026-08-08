@@ -13,19 +13,9 @@ from src.main_app.jobs_workers.admin_jobs_workers.download_main_files import run
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner import (
     MAIN_FILES_ZIP_NAME,
     create_main_files_zip,
-)
-from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner import (
-    download_main_files_for_templates as _original_download_entry,
+    download_main_files_for_templates,
 )
 from src.main_app.jobs_workers.objects import JobsRunner
-
-
-def download_main_files_for_templates(job_id, user, cancel_event=None, args=None, form_data=None):
-    data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
-    return _original_download_entry(data)
-
-
-runner.download_main_files_for_templates = download_main_files_for_templates
 
 
 @dataclass

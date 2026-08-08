@@ -6,14 +6,9 @@ import threading
 from unittest.mock import MagicMock, patch
 
 from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.runner import (
-    update_owid_charts_worker_entry as _original_update_entry,
+    update_owid_charts_worker_entry,
 )
 from src.main_app.jobs_workers.objects import JobsRunner
-
-
-def update_owid_charts_worker_entry(job_id, user, cancel_event=None, args=None, form_data=None):
-    data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
-    return _original_update_entry(data)
 
 
 class TestUpdateOwidChartsWorkerEntry:

@@ -8,15 +8,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.runner import (
-    rename_owid_pages_for_templates as _original_rename_entry,
+    rename_owid_pages_for_templates,
 )
 from src.main_app.jobs_workers.objects import JobsRunner
-
-
-def rename_owid_pages_for_templates(job_id, user, cancel_event=None, args=None, form_data=None):
-    data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
-    return _original_rename_entry(data)
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────────
 
