@@ -168,7 +168,7 @@ class OneFileProcessor:
             file_path,
             self.translations,
             output_file,
-            overwrite=self.overwrite_translations,
+            overwrite_translations=self.overwrite_translations,
         )
 
         if inject_result.result is None:
@@ -309,7 +309,7 @@ class OneFileProcessor:
             file_data = download_one_file(
                 title=title,
                 out_dir=self.output_dir_files,
-                overwrite=True,
+                overwrite_download=True,
                 session=self.session,
             )
         except Exception as e:
@@ -470,7 +470,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         stage.status = "running"
         output_dir_main = self.output_dir_files
 
-        main_file_download = download_one_file(title=self.main_title, out_dir=output_dir_main, overwrite=True)
+        main_file_download = download_one_file(title=self.main_title, out_dir=output_dir_main, overwrite_download=True)
 
         if not main_file_download.get("path"):
             error = f"Error when downloading main file: {self.main_title}"

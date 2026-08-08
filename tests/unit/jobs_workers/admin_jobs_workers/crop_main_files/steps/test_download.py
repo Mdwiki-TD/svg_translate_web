@@ -32,7 +32,7 @@ class TestDownloadFileForCropping:
                 title="test.svg",
                 out_dir=tmp_path,
                 session=mock_session,
-                overwrite=True,
+                overwrite_download=True,
             )
             assert result["success"] is True
             assert result["path"] == tmp_path / "test.svg"
@@ -52,7 +52,7 @@ class TestDownloadFileForCropping:
                 title="test.svg",
                 out_dir=tmp_path,
                 session=mock_session,
-                overwrite=True,
+                overwrite_download=True,
             )
             assert result["success"] is True
 
@@ -109,6 +109,6 @@ class TestDownloadFileForCropping:
                 title="test.svg",
                 out_dir=tmp_path,
                 session=None,
-                overwrite=True,
+                overwrite_download=True,
             )
             assert result["success"] is True

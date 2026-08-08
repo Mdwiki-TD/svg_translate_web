@@ -235,7 +235,7 @@ class TestRenameOne:
         assert result is False
         assert self.worker.result.summary.failed == 1
 
-    # ── branch: new_title exists, is redirect → overwrite via move ───────
+    # ── branch: new_title exists, is redirect → overwrite_translations via move ───────
 
     def test_target_is_redirect_overwrite_succeeds(self):
 

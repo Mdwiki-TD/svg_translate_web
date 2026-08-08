@@ -21,7 +21,7 @@ def start_svg_injection(
     *,
     inject_file: Path | str,
     mapping: dict[str, Any] | TranslationMapping | None = None,
-    overwrite: bool = False,
+    overwrite_translations: bool = False,
 ) -> InjectorData:
     """
     Legacy function-style wrapper around SVGTranslationInjector, kept for
@@ -29,7 +29,7 @@ def start_svg_injection(
     """
     config = TranslationConfig(
         case_insensitive=True,
-        overwrite=overwrite,
+        overwrite_translations=overwrite_translations,
         pretty_print=True,
     )
     injector = SVGTranslationInjector(config=config)
@@ -53,7 +53,7 @@ def start_injects(
     file: Path,
     translations: dict[str, Any],
     output_file: Path,
-    overwrite: bool = False,
+    overwrite_translations: bool = False,
 ) -> InjectResult:
     """Inject translations into a collection of SVG files and write the results."""
     _stats = {
@@ -64,7 +64,7 @@ def start_injects(
     data = start_svg_injection(
         inject_file=file,
         mapping=translations,
-        overwrite=overwrite,
+        overwrite_translations=overwrite_translations,
     )
     stats_obj = data.inject_stats
     tree = data.tree
@@ -126,7 +126,7 @@ def inject_step_one_file(
     file_path: Path,
     translations: dict[str, Any],
     output_file: Path,
-    overwrite: bool = False,
+    overwrite_translations: bool = False,
 ) -> InjectResult:
     """ """
     try:
@@ -134,7 +134,7 @@ def inject_step_one_file(
             file_path,
             translations,
             output_file,
-            overwrite=overwrite,
+            overwrite_translations=overwrite_translations,
         )
     except Exception:
         logger.exception("Failed during SVG translation injection")

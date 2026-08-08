@@ -60,7 +60,7 @@ class TestStartInjects:
             {"new_languages_count": 3, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
 
-        result = start_injects(svg_file, {"new": {"en": "Hello"}}, output_file, overwrite=False)
+        result = start_injects(svg_file, {"new": {"en": "Hello"}}, output_file, overwrite_translations=False)
 
         assert result.result is True
         assert result.msg == "3 languages injected"
@@ -76,7 +76,7 @@ class TestStartInjects:
             {"new_languages_count": 0, "updated_translations": 5, "error": None, "nested_tspan_error": False},
         )
 
-        result = start_injects(svg_file, {}, output_file, overwrite=False)
+        result = start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is True
         assert result.msg == "5 translations Updated"
@@ -89,7 +89,7 @@ class TestStartInjects:
             {"new_languages_count": 0, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
 
-        result = start_injects(svg_file, {}, output_file, overwrite=False)
+        result = start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is None
         assert result.msg == "No changes"
@@ -99,7 +99,7 @@ class TestStartInjects:
     def test_failed_to_translate(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.mock_return(None, {"nested_tspan_error": False})
 
-        result = start_injects(svg_file, {}, output_file, overwrite=False)
+        result = start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Failed to translate"
@@ -115,7 +115,7 @@ class TestStartInjects:
             },
         )
 
-        result = start_injects(svg_file, {}, output_file, overwrite=False)
+        result = start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Some error occurred"
@@ -127,7 +127,7 @@ class TestStartInjects:
             {"new_languages_count": 2, "updated_translations": 1, "error": None, "nested_tspan_error": False},
         )
 
-        result = start_injects(svg_file, {}, output_file, overwrite=False)
+        result = start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Failed to write file"
@@ -141,7 +141,7 @@ class TestStartInjects:
             {"new_languages_count": 2, "updated_translations": 1, "error": None, "nested_tspan_error": False},
         )
 
-        result = start_injects(svg_file, {}, output_file, overwrite=False)
+        result = start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Failed to write file"
@@ -152,7 +152,7 @@ class TestStartInjects:
             {"new_languages_count": 2, "updated_translations": 3, "error": None, "nested_tspan_error": False},
         )
 
-        result = start_injects(svg_file, {}, output_file, overwrite=False)
+        result = start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is True
         assert result.msg == "2 languages injected"
@@ -167,7 +167,7 @@ class TestInjectStepOneFile:
             {"new_languages_count": 1, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
 
-        result = inject_step_one_file(svg_file, {"new": {"en": "Hi"}}, output_file, overwrite=False)
+        result = inject_step_one_file(svg_file, {"new": {"en": "Hi"}}, output_file, overwrite_translations=False)
 
         assert result.result is True
         assert result.msg == "1 languages injected"
@@ -179,7 +179,7 @@ class TestInjectStepOneFile:
             {"new_languages_count": 0, "updated_translations": 0, "error": None, "nested_tspan_error": False},
         )
 
-        result = inject_step_one_file(svg_file, {}, output_file, overwrite=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is None
         assert result.msg == "No changes"
@@ -187,7 +187,7 @@ class TestInjectStepOneFile:
     def test_exception_handling(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.side_effect = RuntimeError("Unexpected error")
 
-        result = inject_step_one_file(svg_file, {}, output_file, overwrite=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Failed during SVG translation injection"
@@ -198,7 +198,7 @@ class TestInjectStepOneFileNestedError:
     def test_passthrough_failure(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.mock_return(None, {"nested_tspan_error": True})
 
-        result = inject_step_one_file(svg_file, {}, output_file, overwrite=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Nested tspan error"
@@ -206,7 +206,7 @@ class TestInjectStepOneFileNestedError:
     def test_nested_tspan_error(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.mock_return(None, {"nested_tspan_error": True})
 
-        result = start_injects(svg_file, {}, output_file, overwrite=False)
+        result = start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Nested tspan error"
@@ -214,7 +214,7 @@ class TestInjectStepOneFileNestedError:
     def test_nested_tspan_error_new(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.mock_return(None, {"error": "nested_tspan_error"})
 
-        result = start_injects(svg_file, {}, output_file, overwrite=False)
+        result = start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Nested tspan error"
