@@ -71,21 +71,24 @@ class TestCreateOwidPagesForTemplates:
         runner_data = JobsRunner(job_id=1, user={}, args={"limit_items": 5})
         create_owid_pages_for_templates(runner_data)
 
-        call_kwargs = mock_init.call_args.kwargs
-        assert call_kwargs["args"]["limit_items"] == 5
+        call_args = mock_init.call_args[0]
+        assert call_args == (runner_data,)
+        assert call_args[0].args["limit_items"] == 5
 
     def test_entry_point_does_not_map_when_key_absent(self, mock_services, mock_init, mock_run):
         """Test that args are passed unchanged when limit_items is absent."""
         runner_data = JobsRunner(job_id=1, user={}, args={"other_key": "value"})
         create_owid_pages_for_templates(runner_data)
 
-        call_kwargs = mock_init.call_args.kwargs
-        assert "limit_items" not in call_kwargs["args"]
+        call_args = mock_init.call_args[0]
+        assert call_args == (runner_data,)
+        assert "limit_items" not in call_args[0].args
 
     def test_entry_point_does_not_modify_args_when_args_is_none(self, mock_services, mock_init, mock_run):
         """Test that entry point works correctly when args is None."""
         runner_data = JobsRunner(job_id=1, user={}, args=None)
         create_owid_pages_for_templates(runner_data)
 
-        call_kwargs = mock_init.call_args.kwargs
-        assert call_kwargs["args"] is None
+        call_args = mock_init.call_args[0]
+        assert call_args == (runner_data,)
+        assert call_args[0].args is None
