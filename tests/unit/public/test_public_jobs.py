@@ -276,8 +276,6 @@ class TestJobsList(TestSetup):
             "test_list.html",
             jobs=[seeded_job],
             template_data=mock_template_data,
-
-            start_confirm_message="Start?",
             form=None,
         )
 
