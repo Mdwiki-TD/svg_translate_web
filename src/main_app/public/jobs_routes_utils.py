@@ -167,9 +167,14 @@ def jobs_list_handler(job_type: str, template_data: JobData) -> str:
         all_settings = SettingsService().get_all_settings_ready()
 
     template_name = template_data.job_list_template
+    form = None
+
+    if template_data.form_class:
+        form = template_data.form_class()
 
     return render_template(
         template_name,
+        form=form,
         jobs=jobs,
         job_type=job_type,
         list_title=template_data.job_name,
