@@ -11,9 +11,12 @@ from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.runner i
 )
 from src.main_app.jobs_workers.objects import JobsRunner
 
+
 def fix_nested_main_files_for_templates(job_id, user, cancel_event=None, args=None, form_data=None):
     data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
     return _original_nested_entry(data)
+
+
 from src.main_app.shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
