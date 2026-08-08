@@ -123,7 +123,11 @@ class TestRunner:
 
     @pytest.fixture(autouse=True)
     def setup(self, mock_services):
-        self.collect_runner = runner.collect_templates_data_entry
+        from src.main_app.jobs_workers.objects import JobsRunner
+        def run_wrapper(job_id, user, cancel_event=None, args=None, form_data=None):
+            data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
+            return runner.collect_templates_data_entry(data)
+        self.collect_runner = run_wrapper
         self.services = mock_services
 
     def test_collect_templates_data_with_no_templates(self):

@@ -9,6 +9,13 @@ import pytest
 
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import runner as fix_runner
+from src.main_app.jobs_workers.objects import JobsRunner
+
+_original_nested_entry = fix_runner.fix_nested_main_files_for_templates
+def fix_nested_main_files_for_templates(job_id, user, cancel_event=None, args=None, form_data=None):
+    data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
+    return _original_nested_entry(data)
+fix_runner.fix_nested_main_files_for_templates = fix_nested_main_files_for_templates
 
 
 def test_fix_nested_main_files_worker_cancellation(mock_base_worker, monkeypatch: pytest.MonkeyPatch):

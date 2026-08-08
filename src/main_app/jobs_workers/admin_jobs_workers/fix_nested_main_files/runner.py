@@ -17,26 +17,13 @@ from ...objects import JobsRunner
 
 
 def fix_nested_main_files_for_templates(
-    data: JobsRunner | None = None,
-    *,
-    job_id: int | None = None,
-    user: dict[str, Any] | None = None,
-    cancel_event: threading.Event | None = None,
-    args: dict[str, Any] | None = None,
-    form_data: dict[str, Any] | None = None,
+    data: JobsRunner,
 ) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.
     """
-    if data is not None:
-        job_id = data.job_id
-        user = data.user
-        cancel_event = data.cancel_event
-        args = data.args
-        form_data = data.form_data
-
-    logger.info("Starting job %s: fix nested tags for template main files", job_id)
-    worker = FixNestedMainFilesWorker(job_id, user, cancel_event, args)  # type: ignore
+    logger.info("Starting job %s: fix nested tags for template main files", data.job_id)
+    worker = FixNestedMainFilesWorker(data.job_id, data.user, data.cancel_event, data.args)
     worker.run()
 
 
