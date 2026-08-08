@@ -25,7 +25,12 @@ def test_fix_nested_main_files_with_no_templates(mock_fix_nested_services):
     """Test worker entry point when no templates exist."""
     mock_fix_nested_services["list"].return_value = []
 
-    fix_nested_main_files_for_templates(JobsRunner(job_id=1, user=None,))
+    fix_nested_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     assert mock_fix_nested_services["save_job_result_by_name"].called
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
@@ -37,7 +42,12 @@ def test_fix_nested_main_files_skips_templates_without_main_file(mock_fix_nested
     templates = [TemplateRecord(id=1, title="T1", main_file=None)]
     mock_fix_nested_services["list"].return_value = templates
 
-    fix_nested_main_files_for_templates(JobsRunner(job_id=1, user=None,))
+    fix_nested_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["total"] == 1
@@ -58,7 +68,12 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=1, after=0, fixed=1)
     mock_fix_nested_services["upload_fixed_svg"].return_value = {"ok": True, "result": {}}
 
-    fix_nested_main_files_for_templates(JobsRunner(job_id=1, user=None,))
+    fix_nested_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert len(result_dict["pages_success"]) == 1
@@ -73,7 +88,12 @@ def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
     mock_fix_nested_services["download_svg_file"].return_value = {"ok": True, "path": Path("path")}
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=0)
 
-    fix_nested_main_files_for_templates(JobsRunner(job_id=1, user=None,))
+    fix_nested_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert len(result_dict["pages_skipped"]) == 1
@@ -86,7 +106,12 @@ def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
     mock_fix_nested_services["list"].return_value = templates
     mock_fix_nested_services["download_svg_file"].side_effect = Exception("Fatal repair error")
 
-    fix_nested_main_files_for_templates(JobsRunner(job_id=1, user=None,))
+    fix_nested_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert len(result_dict["pages_failed"]) == 1
@@ -111,7 +136,12 @@ def test_fix_nested_main_files_processes_multiple_templates(mock_fix_nested_serv
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.FixNestedMainFilesWorker.repair_nested_svg_tags"
     ) as mock_repair:
         mock_repair.side_effect = repair_side_effect
-        fix_nested_main_files_for_templates(JobsRunner(job_id=1, user=None,))
+        fix_nested_main_files_for_templates(
+            JobsRunner(
+                job_id=1,
+                user={},
+            )
+        )
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert len(result_dict["pages_success"]) == 1
@@ -128,7 +158,12 @@ def test_fix_nested_worker_handles_failed_fix_without_no_nested_tags(mock_fix_ne
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.FixNestedMainFilesWorker.repair_nested_svg_tags"
     ) as mock_repair:
         mock_repair.return_value = {"success": False, "message": "Actual Error"}
-        fix_nested_main_files_for_templates(JobsRunner(job_id=1, user=None,))
+        fix_nested_main_files_for_templates(
+            JobsRunner(
+                job_id=1,
+                user={},
+            )
+        )
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert len(result_dict["pages_failed"]) == 1
@@ -137,7 +172,13 @@ def test_fix_nested_worker_handles_failed_fix_without_no_nested_tags(mock_fix_ne
 def test_fix_nested_main_files_for_templates_accepts_args_keyword_param(mock_fix_nested_services):
     """Test entry point unified signature."""
     mock_fix_nested_services["list"].return_value = []
-    fix_nested_main_files_for_templates(JobsRunner(job_id=1, user=None, args={"some": "val"},))
+    fix_nested_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+            args={"some": "val"},
+        )
+    )
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["total"] == 0
@@ -146,7 +187,12 @@ def test_fix_nested_main_files_for_templates_accepts_args_keyword_param(mock_fix
 def test_fix_nested_main_files_for_templates_args_defaults_to_none(mock_fix_nested_services):
     """Test entry point defaults args to None."""
     mock_fix_nested_services["list"].return_value = []
-    fix_nested_main_files_for_templates(JobsRunner(job_id=99, user=None,))
+    fix_nested_main_files_for_templates(
+        JobsRunner(
+            job_id=99,
+            user={},
+        )
+    )
 
     result_dict = mock_fix_nested_services["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["total"] == 0

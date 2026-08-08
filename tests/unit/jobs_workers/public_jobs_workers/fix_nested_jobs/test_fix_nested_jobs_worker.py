@@ -9,14 +9,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
 from src.main_app.shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
 )
-
-from src.main_app.jobs_workers.objects import JobsRunner
 
 # ---------------------------------------------------------------------------
 # steps
@@ -101,7 +100,7 @@ class TestFixNestedJobsProcessor(TestSetup):
         worker = FixNestedJobsProcessor(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"filename": "Test.svg"},
             )
         )
@@ -111,7 +110,7 @@ class TestFixNestedJobsProcessor(TestSetup):
         worker = FixNestedJobsProcessor(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"filename": "Test.svg"},
             )
         )
@@ -144,7 +143,7 @@ class TestFixNestedJobsProcessor(TestSetup):
         worker = FixNestedJobsProcessor(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"filename": "Test.svg"},
                 cancel_event=cancel_event,
             )

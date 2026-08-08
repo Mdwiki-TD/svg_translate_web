@@ -14,7 +14,7 @@ class TestBaseObjectsJobWorkerAbstract:
             BaseObjectsJobWorker(
                 JobsRunner(
                     job_id=1,
-                    user=None,
+                    user={},
                     cancel_event=None,
                 )
             )  # type: ignore

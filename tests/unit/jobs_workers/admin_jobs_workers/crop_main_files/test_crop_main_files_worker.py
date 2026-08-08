@@ -14,7 +14,6 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import 
     CropFileProcessingInfo,
     CropMainFilesWorker,
 )
-
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -115,7 +114,7 @@ def test_crop_main_files_worker_entry_started_at_timestamp(mock_base_worker):
     w = CropMainFilesWorker(
         JobsRunner(
             job_id=1,
-            user=None,
+            user={},
         )
     )
     result = w.result
@@ -128,7 +127,7 @@ def test_crop_main_files_worker_entry_initializes_result(mock_base_worker):
     w = CropMainFilesWorker(
         JobsRunner(
             job_id=1,
-            user=None,
+            user={},
         )
     )
     result = w.result
@@ -151,7 +150,7 @@ def test_crop_main_files_worker_reads_upload_limit_from_args(mock_base_worker):
     w = CropMainFilesWorker(
         JobsRunner(
             job_id=1,
-            user=None,
+            user={},
             cancel_event=None,
             args={"upload_limit": 5},
         )
@@ -164,7 +163,7 @@ def test_crop_main_files_worker_defaults_upload_limit_when_args_none(mock_base_w
     w = CropMainFilesWorker(
         JobsRunner(
             job_id=1,
-            user=None,
+            user={},
             cancel_event=None,
             args=None,
         )
@@ -177,7 +176,7 @@ def test_crop_main_files_worker_defaults_upload_limit_when_key_missing(mock_base
     w = CropMainFilesWorker(
         JobsRunner(
             job_id=1,
-            user=None,
+            user={},
             cancel_event=None,
             args={"other_key": "value"},
         )
@@ -272,7 +271,7 @@ class TestCropMainFilesProcessorInitialization:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -334,7 +333,7 @@ class TestCropMainFilesProcessorLoadTemplates:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -354,7 +353,7 @@ class TestCropMainFilesProcessorLoadTemplates:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"upload_limit": 2},
             )
         )
@@ -374,7 +373,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -400,7 +399,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -427,7 +426,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -452,7 +451,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -480,7 +479,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -510,7 +509,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         processor.site = MagicMock()
@@ -538,7 +537,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         processor.site = MagicMock()
@@ -565,7 +564,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         processor.site = MagicMock()
@@ -593,7 +592,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         processor.site = MagicMock()
@@ -620,7 +619,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         processor.site = MagicMock()
@@ -646,7 +645,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         processor.site = MagicMock()
@@ -672,7 +671,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         processor.site = MagicMock()
@@ -700,7 +699,7 @@ class TestCropMainFilesProcessorSteps:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         processor.site = MagicMock()
@@ -727,7 +726,7 @@ class TestCropMainFilesProcessorHelpers:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -751,7 +750,7 @@ class TestCropMainFilesProcessorHelpers:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -773,7 +772,7 @@ class TestCropMainFilesProcessorHelpers:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -801,7 +800,7 @@ class TestCropMainFilesProcessorHelpers:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=cancel_event,
             )
         )
@@ -819,7 +818,7 @@ class TestCropMainFilesProcessorHelpers:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -832,7 +831,7 @@ class TestCropMainFilesProcessorHelpers:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 
@@ -860,7 +859,7 @@ class TestCropMainFilesProcessorProcessTemplate:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"upload_files": True},
             )
         )
@@ -893,7 +892,7 @@ class TestCropMainFilesProcessorProcessTemplate:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"upload_files": True},
             )
         )
@@ -919,7 +918,7 @@ class TestCropMainFilesProcessorProcessTemplate:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"upload_files": False},
             )
         )
@@ -964,7 +963,7 @@ class TestCropMainFilesProcessorRun:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"upload_files": True},
             )
         )
@@ -999,7 +998,7 @@ class TestCropMainFilesProcessorRun:
         processor = CropMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
 

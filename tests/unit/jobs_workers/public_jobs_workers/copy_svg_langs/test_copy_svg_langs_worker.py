@@ -9,13 +9,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (  # OneFileProcessor,
     CopySvgLangsWorker,
 )
 from src.main_app.shared.copysvg_wrapper import ExtractResult, InjectResult
-
-from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @dataclass
@@ -155,7 +154,7 @@ class TestCopySvgLangsWorker:
         worker = CopySvgLangsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"title": "Test.svg"},
             )
         )
@@ -165,7 +164,7 @@ class TestCopySvgLangsWorker:
         worker = CopySvgLangsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"title": "Test.svg"},
             )
         )
@@ -196,7 +195,7 @@ class TestCopySvgLangsWorker:
         worker = CopySvgLangsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"title": "Test.svg"},
                 cancel_event=cancel_event,
             )
@@ -207,7 +206,7 @@ class TestCopySvgLangsWorker:
         worker = CopySvgLangsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"title": "Test.svg", "upload_limit": 5},
             )
         )
@@ -217,7 +216,7 @@ class TestCopySvgLangsWorker:
         worker = CopySvgLangsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args=None,
             )
         )
@@ -227,7 +226,7 @@ class TestCopySvgLangsWorker:
         worker = CopySvgLangsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"title": "Test.svg"},
             )
         )

@@ -6,23 +6,18 @@ import threading
 from unittest.mock import MagicMock, patch
 
 from src.main_app.jobs_workers.objects import JobsRunner
-from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.runner import (
-    fix_nested_jobs_worker_entry as _original_nested_entry,
-)
-
-
-def fix_nested_jobs_worker_entry(job_id, user, *, cancel_event=None, args=None, form_data=None):
-    data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
-    return _original_nested_entry(data)
+from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.runner import fix_nested_jobs_worker_entry
 
 
 class TestFixNestedJobsProcessorEntry:
     def test_worker_entry_missing_args(self) -> None:
         with patch("src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.runner.FixNestedJobsProcessor"):
             fix_nested_jobs_worker_entry(
-                job_id=1,
-                args={},
-                user=None,
+                JobsRunner(
+                    job_id=1,
+                    args={},
+                    user={},
+                )
             )
 
     def test_worker_entry_creates_worker(self) -> None:
@@ -33,9 +28,11 @@ class TestFixNestedJobsProcessorEntry:
             MockWorker.return_value = mock_instance
 
             fix_nested_jobs_worker_entry(
-                job_id=1,
-                args={"filename": "Test.svg"},
-                user=None,
+                JobsRunner(
+                    job_id=1,
+                    args={"filename": "Test.svg"},
+                    user={},
+                )
             )
 
             MockWorker.assert_called_once()
@@ -50,9 +47,11 @@ class TestFixNestedJobsProcessorEntry:
             user = {"username": "testuser"}
 
             fix_nested_jobs_worker_entry(
-                job_id=1,
-                args={"filename": "Test.svg"},
-                user=user,
+                JobsRunner(
+                    job_id=1,
+                    args={"filename": "Test.svg"},
+                    user=user,
+                )
             )
 
             call_kwargs = MockWorker.call_args.kwargs
@@ -67,10 +66,12 @@ class TestFixNestedJobsProcessorEntry:
             cancel_event = threading.Event()
 
             fix_nested_jobs_worker_entry(
-                job_id=1,
-                args={"filename": "Test.svg"},
-                user=None,
-                cancel_event=cancel_event,
+                JobsRunner(
+                    job_id=1,
+                    args={"filename": "Test.svg"},
+                    user={},
+                    cancel_event=cancel_event,
+                )
             )
 
             call_kwargs = MockWorker.call_args.kwargs
@@ -86,11 +87,17 @@ class TestFixNestedJobsProcessorEntry:
 
             # New signature: (job_id, user, *, cancel_event=None, args=None)
             # args must be keyword-only; user is now the 2nd positional
-            fix_nested_jobs_worker_entry(JobsRunner(job_id=1, user=None, args={"filename": "Test.svg"},))
+            fix_nested_jobs_worker_entry(
+                JobsRunner(
+                    job_id=1,
+                    user={},
+                    args={"filename": "Test.svg"},
+                )
+            )
 
             MockWorker.assert_called_once_with(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args={"filename": "Test.svg"},
             )
@@ -105,7 +112,12 @@ class TestFixNestedJobsProcessorEntry:
             MockWorker.return_value = mock_instance
 
             # Call without args - should default to None
-            fix_nested_jobs_worker_entry(JobsRunner(job_id=42, user={"username": "tester"},))
+            fix_nested_jobs_worker_entry(
+                JobsRunner(
+                    job_id=42,
+                    user={"username": "tester"},
+                )
+            )
 
             MockWorker.assert_called_once_with(
                 job_id=42,
@@ -124,7 +136,12 @@ class TestFixNestedJobsProcessorEntry:
             MockWorker.return_value = mock_instance
 
             # Pass user as 2nd positional arg (new signature)
-            fix_nested_jobs_worker_entry(JobsRunner(job_id=77, user=user,))
+            fix_nested_jobs_worker_entry(
+                JobsRunner(
+                    job_id=77,
+                    user=user,
+                )
+            )
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["user"] is user

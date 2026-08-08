@@ -11,7 +11,6 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pa
     AddLangCategoriesWorker,
     PageInfo,
 )
-
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -20,7 +19,7 @@ def mock_lang_worker(mock_base_worker, mock_before_run) -> AddLangCategoriesWork
     worker = AddLangCategoriesWorker(
         JobsRunner(
             job_id=1,
-            user=None,
+            user={},
         )
     )
     worker.site = mock_base_worker["get_user_site"]
@@ -102,7 +101,7 @@ class TestWorkerInit:
         worker = AddLangCategoriesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         assert worker.get_job_type() == "add_lang_categories_to_owid_pages"
@@ -111,7 +110,7 @@ class TestWorkerInit:
         worker = AddLangCategoriesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"limit_items": 5},
             )
         )
@@ -121,7 +120,7 @@ class TestWorkerInit:
         worker = AddLangCategoriesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args=None,
             )
         )
@@ -131,7 +130,7 @@ class TestWorkerInit:
         worker = AddLangCategoriesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"other_key": "value"},
             )
         )
@@ -141,7 +140,7 @@ class TestWorkerInit:
         worker = AddLangCategoriesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         result = worker.result
@@ -531,7 +530,7 @@ class TestProcess:
         worker = AddLangCategoriesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
             )
         )
         result = worker.run()

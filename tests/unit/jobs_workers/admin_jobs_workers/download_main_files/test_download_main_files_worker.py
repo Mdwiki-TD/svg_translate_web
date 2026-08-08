@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker import DownloadMainFilesWorker
-
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -14,7 +13,7 @@ class TestDownloadMainFilesWorkerApplyLimits:
         w = DownloadMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"limit_items": 1},
             )
         )
@@ -26,7 +25,7 @@ class TestDownloadMainFilesWorkerApplyLimits:
         w = DownloadMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"limit_items": 0},
             )
         )

@@ -11,13 +11,12 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.work
     AddSvgSVGLanguagesTemplate,
     TemplateInfo,
 )
-
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
 def mock_add_svg_worker(mock_base_worker, mock_before_run) -> AddSvgSVGLanguagesTemplate:
-    worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user=None))
+    worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user={}))
     worker.site = mock_base_worker["get_user_site"]
     return worker
 
@@ -88,7 +87,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
         worker = AddSvgSVGLanguagesTemplate(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args={"limit_items": 10},
             )
@@ -98,7 +97,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
 
     def test_worker_defaults_limit_items_when_args_none(self):
         """Test worker defaults limit_items to 0 when args is None."""
-        worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user=None, cancel_event=None, args=None))
+        worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user={}, cancel_event=None, args=None))
 
         assert worker.limit_items == 0
 
@@ -107,7 +106,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
         worker = AddSvgSVGLanguagesTemplate(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args={"other_key": "value"},
             )
@@ -117,12 +116,12 @@ class TestAddSvgSVGLanguagesTemplateInit:
 
     def test_get_job_type(self):
         """Test get_job_type returns correct job type."""
-        worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user=None))
+        worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user={}))
         assert worker.get_job_type() == "add_svglanguages_template"
 
     def test_get_initial_result(self):
         """Test initial result structure."""
-        worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user=None))
+        worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user={}))
         result = worker.result
 
         assert result.status == "pending"
@@ -150,7 +149,7 @@ class TestLoadTemplates:
         ]
         mock_add_svglanguages_services["list"].return_value = mock_templates
 
-        worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user=None))
+        worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user={}))
         templates = worker._load_templates()
 
         assert len(templates) == 3
@@ -440,7 +439,7 @@ class TestProcessMethod:
         """Test that process fails when site authentication is not available."""
         mock_add_svglanguages_services["get_user_site"].return_value = None
 
-        worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user=None))
+        worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user={}))
         result = worker.run()
 
         assert result["status"] == "failed"

@@ -11,7 +11,6 @@ from src.main_app.db.models import OwidChartRecord
 from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker import (
     UpdateOwidChartsWorker,
 )
-
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -74,7 +73,7 @@ class TestUpdateOwidChartsWorkerInitialization:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args={"limit_items": 5},
             )
@@ -87,7 +86,7 @@ class TestUpdateOwidChartsWorkerInitialization:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args=None,
             )
@@ -100,7 +99,7 @@ class TestUpdateOwidChartsWorkerInitialization:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args={"other_key": "value"},
             )
@@ -113,7 +112,7 @@ class TestUpdateOwidChartsWorkerInitialization:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -124,7 +123,7 @@ class TestUpdateOwidChartsWorkerInitialization:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -156,7 +155,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args={"limit_items": 2},
             )
@@ -175,7 +174,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -192,7 +191,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -210,7 +209,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args={"limit_items": "not_an_int"},
             )
@@ -230,7 +229,7 @@ class TestProcessChart:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -257,7 +256,7 @@ class TestProcessChart:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -285,7 +284,7 @@ class TestProcessChart:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -313,7 +312,7 @@ class TestProcessChart:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -342,7 +341,7 @@ class TestProcessChart:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -369,7 +368,7 @@ class TestProcessChart:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -398,7 +397,7 @@ class TestProcessChart:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -426,7 +425,7 @@ class TestProcessChart:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -454,7 +453,7 @@ class TestProcessChart:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -483,7 +482,7 @@ class TestProcessChart:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -514,7 +513,7 @@ class TestProcess:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -544,7 +543,7 @@ class TestProcess:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -570,7 +569,7 @@ class TestProcess:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -599,7 +598,7 @@ class TestProcess:
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )

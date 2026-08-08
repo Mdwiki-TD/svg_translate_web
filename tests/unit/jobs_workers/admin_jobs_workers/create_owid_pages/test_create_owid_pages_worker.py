@@ -12,7 +12,6 @@ from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker impor
     CreateOwidPagesWorker,
     TemplateProcessingInfo,
 )
-
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -78,7 +77,7 @@ class TestCreateOwidPagesWorkerInitialization:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args={"limit_items": 5},
             )
@@ -91,7 +90,7 @@ class TestCreateOwidPagesWorkerInitialization:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args=None,
             )
@@ -104,7 +103,7 @@ class TestCreateOwidPagesWorkerInitialization:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args={"other_key": "value"},
             )
@@ -117,7 +116,7 @@ class TestCreateOwidPagesWorkerInitialization:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -128,7 +127,7 @@ class TestCreateOwidPagesWorkerInitialization:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -162,7 +161,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -181,7 +180,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -200,7 +199,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
                 args={"limit_items": 2},
             )
@@ -219,7 +218,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -236,7 +235,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -255,7 +254,7 @@ class TestCreateOwidPagesWorkerSteps:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -275,7 +274,7 @@ class TestCreateOwidPagesWorkerSteps:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -298,7 +297,7 @@ class TestCreateNewTextStep:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -319,7 +318,7 @@ class TestCreateNewTextStep:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -342,7 +341,7 @@ class TestUpdateStep:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -363,7 +362,7 @@ class TestUpdateStep:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -385,7 +384,7 @@ class TestUpdateStep:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -406,7 +405,7 @@ class TestCreateNewPageStep:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -432,7 +431,7 @@ class TestCreateNewPageStep:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -456,7 +455,7 @@ class TestCreateOwidPagesWorkerHelpers:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -471,7 +470,7 @@ class TestCreateOwidPagesWorkerHelpers:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -486,7 +485,7 @@ class TestCreateOwidPagesWorkerHelpers:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -505,7 +504,7 @@ class TestCreateOwidPagesWorkerHelpers:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -527,7 +526,7 @@ class TestCreateOwidPagesWorkerProcess:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -544,7 +543,7 @@ class TestCreateOwidPagesWorkerProcess:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -568,7 +567,7 @@ class TestCreateOwidPagesWorkerProcess:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -594,7 +593,7 @@ class TestCreateOwidPagesWorkerProcess:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -629,7 +628,7 @@ class TestCreateOwidPagesWorkerProcess:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=None,
             )
         )
@@ -658,7 +657,7 @@ class TestCreateOwidPagesWorkerProcess:
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=cancel_event,
             )
         )

@@ -13,7 +13,6 @@ from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker 
     CollectMainFilesWorker,
     TemplateData,
 )
-
 from src.main_app.jobs_workers.objects import JobsRunner
 
 # The db.models.TemplateRecord.__init__ also uses hasattr(self, key) but
@@ -130,7 +129,7 @@ class TestLoadTempInfoFromTemplateData:
         w = CollectMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=threading.Event(),
             )
         )
@@ -171,7 +170,7 @@ class TestProcessOneItemWithTemplateData:
         w = CollectMainFilesWorker(
             JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 cancel_event=threading.Event(),
             )
         )
