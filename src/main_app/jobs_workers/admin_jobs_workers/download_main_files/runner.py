@@ -5,13 +5,13 @@ Worker module for downloading main files from remote source to local filesystem.
 from __future__ import annotations
 
 import logging
-import threading
 from pathlib import Path
 from typing import Any
 
 from flask import send_file
 
 from ....config import settings
+from ...objects import JobsRunner
 from .worker import DownloadMainFilesWorker
 
 # Zip file name constant
@@ -50,12 +50,7 @@ def create_main_files_zip() -> tuple[Any, int]:
     )
 
 
-from ...objects import JobsRunner
-
-
-def download_main_files_for_templates(
-    data: JobsRunner,
-) -> None:
+def download_main_files_for_templates(data: JobsRunner) -> None:
     """
     Background worker to download main files for all templates.
     """

@@ -5,25 +5,24 @@ Worker module for fixing nested tags in main files of templates.
 from __future__ import annotations
 
 import logging
-import threading
-from typing import Any
 
+from ...objects import JobsRunner
 from .worker import FixNestedMainFilesWorker
 
 logger = logging.getLogger(__name__)
 
 
-from ...objects import JobsRunner
-
-
-def fix_nested_main_files_for_templates(
-    data: JobsRunner,
-) -> None:
+def fix_nested_main_files_for_templates(data: JobsRunner) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.
     """
     logger.info("Starting job %s: fix nested tags for template main files", data.job_id)
-    worker = FixNestedMainFilesWorker(data.job_id, data.user, data.cancel_event, data.args)
+    worker = FixNestedMainFilesWorker(
+        data.job_id,
+        data.user,
+        data.cancel_event,
+        data.args,
+    )
     worker.run()
 
 

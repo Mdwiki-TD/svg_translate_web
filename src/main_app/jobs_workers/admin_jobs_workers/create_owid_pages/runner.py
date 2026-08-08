@@ -5,20 +5,14 @@ Worker module for create_owid_pages.
 from __future__ import annotations
 
 import logging
-import threading
-from typing import Any
 
+from ...objects import JobsRunner
 from .worker import CreateOwidPagesWorker
 
 logger = logging.getLogger(__name__)
 
 
-from ...objects import JobsRunner
-
-
-def create_owid_pages_for_templates(
-    data: JobsRunner,
-) -> None:
+def create_owid_pages_for_templates(data: JobsRunner) -> None:
     """
     Background worker
     """

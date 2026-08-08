@@ -5,21 +5,15 @@ Worker module for fix_nested_jobs.
 from __future__ import annotations
 
 import logging
-import threading
-from typing import Any
 
+from ...objects import JobsRunner
 from .worker import FixNestedJobsProcessor
 
 logger = logging.getLogger(__name__)
 
 
-from ...objects import JobsRunner
-
-
 # --- main pipeline --------------------------------------------
-def fix_nested_jobs_worker_entry(
-    data: JobsRunner,
-) -> None:
+def fix_nested_jobs_worker_entry(data: JobsRunner) -> None:
     """Entry point for the background job."""
 
     worker = FixNestedJobsProcessor(

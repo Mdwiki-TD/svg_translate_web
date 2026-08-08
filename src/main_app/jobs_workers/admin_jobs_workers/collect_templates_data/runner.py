@@ -5,20 +5,14 @@ runner module for collecting main files for templates.
 from __future__ import annotations
 
 import logging
-import threading
-from typing import Any
 
+from ...objects import JobsRunner
 from .worker import CollectMainFilesWorker
 
 logger = logging.getLogger(__name__)
 
 
-from ...objects import JobsRunner
-
-
-def collect_templates_data_entry(
-    data: JobsRunner,
-) -> None:
+def collect_templates_data_entry(data: JobsRunner) -> None:
     """
     Background worker to collect templates data.
 

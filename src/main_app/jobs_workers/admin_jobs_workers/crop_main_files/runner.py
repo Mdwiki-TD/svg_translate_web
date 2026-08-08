@@ -5,20 +5,14 @@ Worker module for cropping main files and uploading them with (cropped) suffix.
 from __future__ import annotations
 
 import logging
-import threading
-from typing import Any
 
+from ...objects import JobsRunner
 from .worker import CropMainFilesWorker
 
 logger = logging.getLogger(__name__)
 
 
-from ...objects import JobsRunner
-
-
-def crop_main_files_worker_entry(
-    data: JobsRunner,
-) -> None:
+def crop_main_files_worker_entry(data: JobsRunner) -> None:
     """
     Entry point for crop newest world files background job.
     """

@@ -5,9 +5,9 @@ Worker module for copy_svg_langs.
 from __future__ import annotations
 
 import logging
-import threading
 from typing import Any
 
+from ...objects import JobsRunner
 from .forms import CopySvgLangsForm
 from .worker import CopySvgLangsWorker
 
@@ -24,10 +24,6 @@ def setup_svg_langs_form(all_settings: dict[str, Any] | None = None) -> CopySvgL
     return form
 
 
-from ...objects import JobsRunner
-
-
-# --- main pipeline --------------------------------------------
 def copy_svg_langs_worker_entry(
     data: JobsRunner,
 ) -> None:

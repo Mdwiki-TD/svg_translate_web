@@ -5,20 +5,14 @@ Runner module for update_owid_charts.
 from __future__ import annotations
 
 import logging
-import threading
-from typing import Any
 
+from ...objects import JobsRunner
 from .worker import UpdateOwidChartsWorker
 
 logger = logging.getLogger(__name__)
 
 
-from ...objects import JobsRunner
-
-
-def update_owid_charts_worker_entry(
-    data: JobsRunner,
-) -> None:
+def update_owid_charts_worker_entry(data: JobsRunner) -> None:
     """Background worker entry-point for update_owid_charts."""
     logger.info("Starting job %s: update OWID charts timespan data", data.job_id)
 

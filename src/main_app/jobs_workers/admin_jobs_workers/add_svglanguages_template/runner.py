@@ -5,20 +5,14 @@ Runner module for add_svglanguages_template.
 from __future__ import annotations
 
 import logging
-import threading
-from typing import Any
 
+from ...objects import JobsRunner
 from .worker import AddSvgSVGLanguagesTemplate
 
 logger = logging.getLogger(__name__)
 
 
-from ...objects import JobsRunner
-
-
-def add_svglanguages_template_to_templates(
-    data: JobsRunner,
-) -> None:
+def add_svglanguages_template_to_templates(data: JobsRunner) -> None:
     """
     Background worker
     """
