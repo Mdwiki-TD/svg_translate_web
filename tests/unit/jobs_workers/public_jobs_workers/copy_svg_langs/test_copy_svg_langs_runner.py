@@ -65,17 +65,17 @@ class TestCopySvgLangsWorkerEntry:
     def test_worker_entry_with_cancel_event(self, mock_worker_class) -> None:
         cancel_event = threading.Event()
 
-        copy_svg_langs_worker_entry(
-            JobsRunner(
-                job_id=456,
-                args={"title": "Another.svg"},
-                user={},
-                cancel_event=cancel_event,
-            )
+        data = JobsRunner(
+            job_id=456,
+            args={"title": "Another.svg"},
+            user={},
+            cancel_event=cancel_event,
         )
+        copy_svg_langs_worker_entry(data)
 
-        _, kwargs = mock_worker_class.call_args
-        assert kwargs["cancel_event"] is cancel_event
+        call_args = mock_worker_class.call_args[0]
+        assert call_args == (data,)
+        assert call_args[0].cancel_event is cancel_event
 
     def test_worker_entry_args_is_keyword_only(self, mock_worker_class) -> None:
         with pytest.raises(TypeError):
@@ -116,48 +116,48 @@ class TestCopySvgLangsWorkerEntry:
     def test_worker_entry_user_is_second_positional(self, mock_worker_class) -> None:
         user = {"username": "testuser"}
 
-        copy_svg_langs_worker_entry(
-            JobsRunner(
-                job_id=123,
-                user=user,
-            )
+        data = JobsRunner(
+            job_id=123,
+            user=user,
         )
+        copy_svg_langs_worker_entry(data)
 
-        call_kwargs = mock_worker_class.call_args.kwargs
-        assert call_kwargs["user"] is user
+        call_args = mock_worker_class.call_args[0]
+        assert call_args == (data,)
+        assert call_args[0].user is user
 
     def test_worker_entry_maps_copy_svg_langs_upload_limit(self, mock_worker_class) -> None:
-        copy_svg_langs_worker_entry(
-            JobsRunner(
-                job_id=1,
-                user={},
-                args={"upload_limit": 5},
-            )
+        data = JobsRunner(
+            job_id=1,
+            user={},
+            args={"upload_limit": 5},
         )
+        copy_svg_langs_worker_entry(data)
 
-        call_kwargs = mock_worker_class.call_args.kwargs
-        assert call_kwargs["args"]["upload_limit"] == 5
+        call_args = mock_worker_class.call_args[0]
+        assert call_args == (data,)
+        assert call_args[0].args["upload_limit"] == 5
 
     def test_worker_entry_does_not_map_when_key_absent(self, mock_worker_class) -> None:
-        copy_svg_langs_worker_entry(
-            JobsRunner(
-                job_id=1,
-                user={},
-                args={"other_key": "value"},
-            )
+        data = JobsRunner(
+            job_id=1,
+            user={},
+            args={"other_key": "value"},
         )
+        copy_svg_langs_worker_entry(data)
 
-        call_kwargs = mock_worker_class.call_args.kwargs
-        assert "upload_limit" not in call_kwargs["args"]
+        call_args = mock_worker_class.call_args[0]
+        assert call_args == (data,)
+        assert "upload_limit" not in call_args[0].args
 
     def test_worker_entry_does_not_modify_args_when_none(self, mock_worker_class) -> None:
-        copy_svg_langs_worker_entry(
-            JobsRunner(
-                job_id=1,
-                user={},
-                args=None,
-            )
+        data = JobsRunner(
+            job_id=1,
+            user={},
+            args=None,
         )
+        copy_svg_langs_worker_entry(data)
 
-        call_kwargs = mock_worker_class.call_args.kwargs
-        assert call_kwargs["args"] is None
+        call_args = mock_worker_class.call_args[0]
+        assert call_args == (data,)
+        assert call_args[0].args is None
