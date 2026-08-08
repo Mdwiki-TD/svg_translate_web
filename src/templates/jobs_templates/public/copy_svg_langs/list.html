@@ -21,9 +21,9 @@
         <div class="row">
             <div class="col-sm-12">
                 <div class="form-check form-switch mt-2">
-                    <input class="form-check-input" type="checkbox" value="z" id="overwrite_translations"
+                    <input class="form-check-input" type="checkbox" value="1" id="overwrite_translations"
                         name="overwrite_translations"
-                        {{ 'checked' if not form or form.overwrite_translations == "z" else '' }}>
+                        {{ 'checked' if not form or form.overwrite_translations == "1" else '' }}>
                     <label class="form-check-label" for="overwrite_translations">
                         Overwrite Existing translations
                     </label>
@@ -33,19 +33,28 @@
                 {# Determine initial checked state based on settings or form data #}
                 {% set is_checked = false %}
 
-                {% if form and form.upload == "z" %}
+                {% if form and form.upload == "1" %}
                 {% set is_checked = true %}
                 {% elif not form and not (all_settings and all_settings.copy_svg_langs_upload_disabled_by_default) %}
                 {% set is_checked = true %}
                 {% endif %}
 
                 <div class="form-check form-switch mt-2">
-                    <input class="form-check-input" type="checkbox" value="z" id="upload" name="upload"
+                    <input class="form-check-input" type="checkbox" value="1" id="upload" name="upload"
                         {% if is_checked %}checked{% endif %}>
                     <label class="form-check-label" for="upload">
                         Upload Files
                     </label>
                 </div>
+                <!-- <div class="col-sm-12">
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" value="1" id="ignore_existing_task"
+                            name="ignore_existing_task" {{ 'checked' if form and form.ignore_existing_task else '' }}>
+                        <label class="form-check-label" for="ignore_existing_task">
+                            Ignore existing tasks
+                        </label>
+                    </div>
+                </div> -->
             </div>
         </div>
     </div>
