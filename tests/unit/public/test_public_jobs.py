@@ -12,13 +12,8 @@ from flask import Blueprint, Flask
 from src.main_app.db.exceptions import DuplicateRecordError
 from src.main_app.db.models import JobRecord
 from src.main_app.db.services import JobsService
-from src.main_app.public.jobs_routes_utils import (
-    cancel_job_handler,
-    delete_job_handler,
-    job_detail_handler,
-    jobs_list_handler,
-    start_job_handler,
-)
+
+from src.main_app.public.shared_jobs_routes import SharedJobRoutes
 from src.main_app.public.public_jobs import PublicJobsRoutes
 
 MOCK_URL = "/redirected"
@@ -51,16 +46,16 @@ def mock_deps(
     mock_job: MagicMock,
 ) -> MockJobRoutesDeps:
     deps = MockJobRoutesDeps()
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.flash", deps.flash)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.redirect", deps.redirect)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.url_for", deps.url_for)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.render_template", deps.render_template)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", deps.load_user)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.can_manage_job", deps.can_manage_job)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.cancel_job_worker", deps.cancel_job_worker)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_auth_payload", deps.load_auth_payload)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.start_job", deps.start_job)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_job_result", deps.load_job_result)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.flash", deps.flash)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.redirect", deps.redirect)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.url_for", deps.url_for)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.render_template", deps.render_template)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_user", deps.load_user)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.can_manage_job", deps.can_manage_job)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.cancel_job_worker", deps.cancel_job_worker)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_auth_payload", deps.load_auth_payload)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.start_job", deps.start_job)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_job_result", deps.load_job_result)
 
     deps.redirect.return_value = "redirected"
     deps.url_for.return_value = MOCK_URL
@@ -121,6 +116,7 @@ def mock_template_data() -> MagicMock:
     td.job_name = "Test Job"
     td.start_confirm_message = "Start?"
     td.load_settings = False
+    td.form_class = None
     return td
 
 
@@ -168,32 +164,40 @@ def seeded_job_with_result(seeded_job: JobRecord, jobs_service: JobsService) -> 
 # =========================================================================
 
 
-class TestCancelJob:
+class TestSetup:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        """Setup test."""
+        self.service = SharedJobRoutes()
+
+
+class TestCancelJob(TestSetup):
+
     def test_not_logged_in(self, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.load_user.return_value = None
-        result = cancel_job_handler(1, "test_job")
+        result = self.service.cancel_job_handler(1, "test_job")
         assert result == "job_detail"
         mock_deps.flash.assert_called_once_with("You must be logged in to cancel jobs.", "danger")
 
     def test_job_not_found(self, mock_deps: MockJobRoutesDeps) -> None:
-        result = cancel_job_handler(999, "test_job")
+        result = self.service.cancel_job_handler(999, "test_job")
         assert result == "jobs_list"
         mock_deps.flash.assert_called_once_with("Job not found.", "warning")
 
     def test_no_permission(self, mock_deps: MockJobRoutesDeps, seeded_job: JobRecord) -> None:
         mock_deps.can_manage_job.return_value = False
-        result = cancel_job_handler(seeded_job.id, "test_job")
+        result = self.service.cancel_job_handler(seeded_job.id, "test_job")
         assert result == "job_detail"
         mock_deps.flash.assert_called_once_with("You don't have permission to cancel this job.", "danger")
 
     def test_cancel_successful(self, mock_deps: MockJobRoutesDeps, seeded_job: JobRecord) -> None:
         mock_deps.cancel_job_worker.return_value = True
-        result = cancel_job_handler(seeded_job.id, "test_job")
+        result = self.service.cancel_job_handler(seeded_job.id, "test_job")
         assert result == "job_detail"
         mock_deps.flash.assert_called_once_with(f"Job {seeded_job.id} cancellation requested.", "success")
 
     def test_cancel_fails(self, mock_deps: MockJobRoutesDeps, seeded_job: JobRecord) -> None:
-        result = cancel_job_handler(seeded_job.id, "test_job")
+        result = self.service.cancel_job_handler(seeded_job.id, "test_job")
         assert result == "job_detail"
         mock_deps.flash.assert_called_once_with(f"Job {seeded_job.id} is not running or already cancelled.", "warning")
 
@@ -203,15 +207,15 @@ class TestCancelJob:
 # =========================================================================
 
 
-class TestDeleteJob:
+class TestDeleteJob(TestSetup):
     def test_delete_successful(self, mock_deps: MockJobRoutesDeps, seeded_job: JobRecord) -> None:
-        result = delete_job_handler(seeded_job.id, "test_job")
+        result = self.service.delete_job_handler(seeded_job.id, "test_job")
         assert result == "jobs_list"
         mock_deps.flash.assert_called_once_with(f"Job {seeded_job.id} deleted successfully.", "success")
 
     def test_cancel_then_delete(self, mock_deps: MockJobRoutesDeps, seeded_job: JobRecord) -> None:
         mock_deps.cancel_job_worker.return_value = True
-        result = delete_job_handler(seeded_job.id, "test_job")
+        result = self.service.delete_job_handler(seeded_job.id, "test_job")
         assert result == "jobs_list"
         mock_deps.flash.assert_called_once_with(f"Job {seeded_job.id} deleted successfully.", "success")
 
@@ -221,22 +225,22 @@ class TestDeleteJob:
 # =========================================================================
 
 
-class TestStartJob:
+class TestStartJob(TestSetup):
     def test_not_logged_in(self, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.load_user.return_value = None
-        result = start_job_handler("test_job", {})
+        result = self.service.start_job_handler("test_job", {})
         assert result is None
         mock_deps.flash.assert_called_once_with("You must be logged in to start this job.", "danger")
 
     def test_auth_payload_failure(self, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.load_auth_payload.side_effect = RuntimeError("OAuth error")
-        result = start_job_handler("test_job", {})
+        result = self.service.start_job_handler("test_job", {})
         assert result is None
         mock_deps.flash.assert_called_once_with("Failed to load auth payload. Please try again.", "danger")
 
     def test_duplicate_job_error(self, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.start_job.side_effect = DuplicateRecordError()
-        result = start_job_handler("test_job", {})
+        result = self.service.start_job_handler("test_job", {})
         assert result is None
         mock_deps.flash.assert_called_once_with(
             "A job of this type is already running. Please wait for it to complete.", "warning"
@@ -244,12 +248,12 @@ class TestStartJob:
 
     def test_generic_exception(self, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.start_job.side_effect = ValueError("unexpected")
-        result = start_job_handler("test_job", {})
+        result = self.service.start_job_handler("test_job", {})
         assert result is None
         mock_deps.flash.assert_called_once_with("Failed to start job. Please try again.", "danger")
 
     def test_successful_start(self, mock_deps: MockJobRoutesDeps) -> None:
-        result = start_job_handler("test_job", {})
+        result = self.service.start_job_handler("test_job", {})
         assert result == 42
         mock_deps.flash.assert_called_once_with("Job 42 started to test_job.", "success")
 
@@ -259,11 +263,11 @@ class TestStartJob:
 # =========================================================================
 
 
-class TestJobsList:
+class TestJobsList(TestSetup):
     def test_normal_listing(
         self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord
     ) -> None:
-        result = jobs_list_handler("test_job", mock_template_data)
+        result = self.service.jobs_list_handler("test_job", mock_template_data)
 
         assert result == "rendered"
         mock_deps.flash.assert_not_called()
@@ -274,18 +278,18 @@ class TestJobsList:
             list_title="Test Job",
             list_headline="Test Job",
             start_confirm_message="Start?",
-            all_settings={},
+            form=None,
         )
 
     def test_listing_with_0_jobs(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
-        result = jobs_list_handler("test_job", mock_template_data)
+        result = self.service.jobs_list_handler("test_job", mock_template_data)
         assert result == "rendered"
         mock_deps.render_template.assert_called_once()
         _args, kwargs = mock_deps.render_template.call_args
         assert kwargs["jobs"] == []
 
     def test_exception_falls_back_to_empty(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
-        result = jobs_list_handler("test_job", mock_template_data)
+        result = self.service.jobs_list_handler("test_job", mock_template_data)
         assert result == "rendered"
         mock_deps.flash.assert_not_called()
         mock_deps.render_template.assert_called_once()
@@ -298,13 +302,13 @@ class TestJobsList:
 # =========================================================================
 
 
-class TestJobDetail:
+class TestJobDetail(TestSetup):
     def test_job_found_without_result(
         self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord
     ) -> None:
         mock_deps.load_job_result.return_value = None
 
-        result = job_detail_handler(seeded_job.id, "test_job", mock_template_data, "public_jobs")
+        result = self.service.job_detail_handler(seeded_job.id, "test_job", mock_template_data, "public_jobs")
 
         assert result == "rendered"
         mock_deps.render_template.assert_called_once_with(
@@ -325,7 +329,7 @@ class TestJobDetail:
     ) -> None:
         mock_deps.load_job_result.return_value = {"key": "value"}
 
-        result = job_detail_handler(seeded_job_with_result.id, "test_job", mock_template_data, "public_jobs")
+        result = self.service.job_detail_handler(seeded_job_with_result.id, "test_job", mock_template_data, "public_jobs")
 
         assert result == "rendered"
         mock_deps.render_template.assert_called_once_with(
@@ -343,7 +347,7 @@ class TestJobDetail:
     ) -> None:
         mock_deps.load_job_result.return_value = None
 
-        result = job_detail_handler(seeded_job.id, "test_job", mock_template_data, "public_jobs", expand_all=True)
+        result = self.service.job_detail_handler(seeded_job.id, "test_job", mock_template_data, "public_jobs", expand_all=True)
 
         assert result == "rendered"
         mock_deps.render_template.assert_called_once_with(
@@ -357,7 +361,7 @@ class TestJobDetail:
         )
 
     def test_job_not_found(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
-        result = job_detail_handler(999, "test_job", mock_template_data, "public_jobs")
+        result = self.service.job_detail_handler(999, "test_job", mock_template_data, "public_jobs")
         assert result == "redirected"
         mock_deps.flash.assert_called_once_with("Job id 999 was not found", "warning")
         mock_deps.redirect.assert_called_once()
@@ -368,7 +372,7 @@ class TestJobDetail:
 # =========================================================================
 
 
-class TestJobsPublicRoutesRoutes:
+class TestJobsPublicRoutesRoutes(TestSetup):
     """Integration tests for routes registered by PublicJobsRoutes.
 
     These tests use a standalone Flask app (mock_p_app) with custom templates
@@ -384,19 +388,19 @@ class TestJobsPublicRoutesRoutes:
         from flask import render_template as _real_render_template
         from flask import url_for as _real_url_for
 
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.render_template", _real_render_template)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.redirect", _real_redirect)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.url_for", _real_url_for)
+        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.render_template", _real_render_template)
+        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.redirect", _real_redirect)
+        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.url_for", _real_url_for)
 
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.get_job", mock_deps.get_job)
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.list_jobs", mock_deps.list_jobs)
+        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobsService.get_job", mock_deps.get_job)
+        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobsService.list_jobs", mock_deps.list_jobs)
         monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.JobsService.delete_job_by_id_and_type",
+            "src.main_app.public.shared_jobs_routes.JobsService.delete_job_by_id_and_type",
             mock_deps.delete_job_by_id_and_type,
         )
-        monkeypatch.setattr("src.main_app.public.jobs_routes_utils.JobsService.delete", mock_deps.delete_job)
+        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobsService.delete", mock_deps.delete_job)
         monkeypatch.setattr(
-            "src.main_app.public.jobs_routes_utils.SettingsService.get_all_settings_ready",
+            "src.main_app.public.shared_jobs_routes.SettingsService.get_all_settings_ready",
             mock_deps.get_all_settings_ready,
         )
 

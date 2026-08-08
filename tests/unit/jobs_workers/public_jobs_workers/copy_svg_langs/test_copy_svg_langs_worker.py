@@ -193,7 +193,7 @@ class TestCopySvgLangsWorker:
             user=None,
             args={"title": "Test.svg", "upload_limit": 5},
         )
-        assert worker.files_processor.upload_limit == 5
+        assert worker.files_processor.config.upload_limit == 5
 
     def test_worker_defaults_upload_limit_when_args_none(self) -> None:
         worker = CopySvgLangsWorker(
@@ -201,7 +201,7 @@ class TestCopySvgLangsWorker:
             user=None,
             args=None,
         )
-        assert worker.files_processor.upload_limit == 0
+        assert worker.files_processor.config.upload_limit == 0
 
     def test_worker_upload_limit_none_when_key_missing(self) -> None:
         worker = CopySvgLangsWorker(
@@ -209,7 +209,7 @@ class TestCopySvgLangsWorker:
             user=None,
             args={"title": "Test.svg"},
         )
-        assert worker.files_processor.upload_limit == 0
+        assert worker.files_processor.config.upload_limit == 0
 
 
 class TestCopySvgLangsWorkerProcess:
@@ -226,8 +226,8 @@ class TestCopySvgLangsWorkerProcess:
         mock_clients,
         tmp_path,
     ):
-        mock_worker.output_dir = tmp_path
-        mock_worker.files_processor.output_dir = tmp_path
+        # mock_worker.config = mock_worker.load_config()
+        mock_worker.config.output_dir = tmp_path
 
         mock_steps.text.return_value = {"success": True, "text": "some text"}
         mock_steps.titles.return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
@@ -261,8 +261,8 @@ class TestCopySvgLangsWorkerProcess:
         assert result.stages.text.message == "Extraction failed"
 
     def test_process_auth_failed(self, mock_worker: CopySvgLangsWorker, mock_clients, tmp_path):
-        mock_worker.output_dir = tmp_path
-        mock_worker.files_processor.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
+        mock_worker.files_processor.config.output_dir = tmp_path
 
         mock_clients["site"].return_value = None
 
@@ -279,7 +279,7 @@ class TestCopySvgLangsWorkerProcess:
         assert mock_worker._compute_output_dir(None) is None
 
     def test_save_files_stats_error(self, mock_worker: CopySvgLangsWorker, tmp_path):
-        mock_worker.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
         bad_path = tmp_path / "files_stats.json"
         bad_path.mkdir()
 
@@ -287,7 +287,7 @@ class TestCopySvgLangsWorkerProcess:
         mock_worker._save_files_stats({"data": "test"})
 
     def test_save_files_stats_unexpected_exception(self, mock_worker: CopySvgLangsWorker, tmp_path):
-        mock_worker.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
 
         with patch(
             "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.json.dump",
@@ -309,7 +309,7 @@ class TestCopySvgLangsWorkerInjectStepFile:
         assert new_path is None
 
     def test_inject_result_none(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices, tmp_path):
-        mock_worker.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
         mock_services.inject.return_value = MagicMock(result=None, msg="No changes")
 
         title_info = FilesProcessedItem(title="File:Test.svg")
@@ -322,7 +322,7 @@ class TestCopySvgLangsWorkerInjectStepFile:
         assert new_path is None
 
     def test_inject_result_false(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices, tmp_path):
-        mock_worker.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
 
         mock_services.inject.return_value = MagicMock(result=False, msg="Nested tspan error")
 
@@ -335,8 +335,8 @@ class TestCopySvgLangsWorkerInjectStepFile:
         assert new_path is None
 
     def test_inject_result_true(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices, tmp_path):
-        mock_worker.output_dir = tmp_path
-        mock_worker.files_processor.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
+        mock_worker.files_processor.config.output_dir = tmp_path
 
         mock_services.inject.return_value = InjectResult(
             result=True,
@@ -502,8 +502,9 @@ class TestCopySvgLangsWorkerProcessOne:
         assert result is True
 
     def test_upload_disabled(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices, tmp_path):
-        mock_worker.args = {"upload": False}
-        mock_worker.files_processor.args = mock_worker.args
+        mock_worker.config = mock_worker.load_config({"upload": False})
+        mock_worker.config.output_dir = tmp_path
+        mock_worker.files_processor.config = mock_worker.config
 
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
@@ -529,8 +530,8 @@ class TestCopySvgLangsWorkerProcessOne:
 
 class TestCopySvgLangsWorkerUploadStep:
     def test_upload_disabled(self, mock_worker: CopySvgLangsWorker):
-        mock_worker.args = {"upload": False}
-        mock_worker.files_processor.args = mock_worker.args
+        mock_worker.config = mock_worker.load_config({"upload": False})
+        mock_worker.files_processor.config = mock_worker.config
 
         title_info = FilesProcessedItem("")
 
@@ -542,10 +543,10 @@ class TestCopySvgLangsWorkerUploadStep:
         assert title_info.status == "skipped"
 
     def test_upload_limit_reached(self, mock_worker: CopySvgLangsWorker):
-        mock_worker.args = {"upload": True}
-        mock_worker.files_processor.args = mock_worker.args
+        mock_worker.config = mock_worker.load_config({"upload": True})
+        mock_worker.files_processor.config = mock_worker.config
 
-        mock_worker.files_processor.upload_limit = 5
+        mock_worker.files_processor.config.upload_limit = 5
         mock_worker.files_processor.upload_done = 5
         title_info = FilesProcessedItem("")
 
@@ -560,10 +561,10 @@ class TestCopySvgLangsWorkerUploadStep:
         assert title_info.status == "skipped"
 
     def test_upload_success(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices):
-        mock_worker.args = {"upload": True}
-        mock_worker.files_processor.args = mock_worker.args
+        mock_worker.config = mock_worker.load_config({"upload": True})
+        mock_worker.files_processor.config = mock_worker.config
 
-        mock_worker.files_processor.upload_limit = 5
+        mock_worker.files_processor.config.upload_limit = 5
         mock_worker.files_processor.upload_done = 0
         mock_worker.site = MagicMock()
         mock_worker.files_processor.site = MagicMock()
@@ -580,8 +581,8 @@ class TestCopySvgLangsWorkerUploadStep:
         assert mock_worker.files_processor.upload_done == 1
 
     def test_upload_skipped(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices):
-        mock_worker.args = {"upload": True}
-        mock_worker.files_processor.args = mock_worker.args
+        mock_worker.config = mock_worker.load_config({"upload": True})
+        mock_worker.files_processor.config = mock_worker.config
 
         mock_worker.site = MagicMock()
         mock_worker.files_processor.site = MagicMock()
@@ -601,8 +602,8 @@ class TestCopySvgLangsWorkerUploadStep:
         assert title_info.steps.upload.msg == "File exists"
 
     def test_upload_failure(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices):
-        mock_worker.args = {"upload": True}
-        mock_worker.files_processor.args = mock_worker.args
+        mock_worker.config = mock_worker.load_config({"upload": True})
+        mock_worker.files_processor.config = mock_worker.config
 
         mock_worker.site = MagicMock()
         mock_worker.files_processor.site = MagicMock()
@@ -625,7 +626,7 @@ class TestCopySvgLangsWorkerUploadStep:
 
 class TestCopySvgLangsWorkerLimits:
     def test_apply_limits_applied(self, mock_worker: CopySvgLangsWorker):
-        mock_worker.limit_items = 2
+        mock_worker.config.limit_items = 2
         titles = ["a.svg", "b.svg", "c.svg", "d.svg"]
 
         result = mock_worker._apply_limits(titles)
@@ -634,7 +635,7 @@ class TestCopySvgLangsWorkerLimits:
         assert result == ["a.svg", "b.svg"]
 
     def test_apply_limits_no_limit(self, mock_worker: CopySvgLangsWorker):
-        mock_worker.limit_items = 0
+        mock_worker.config.limit_items = 0
         titles = ["a.svg", "b.svg", "c.svg"]
 
         result = mock_worker._apply_limits(titles)
@@ -642,7 +643,7 @@ class TestCopySvgLangsWorkerLimits:
         assert len(result) == 3
 
     def test_apply_limits_below_limit(self, mock_worker: CopySvgLangsWorker):
-        mock_worker.limit_items = 5
+        mock_worker.config.limit_items = 5
         titles = ["a.svg"]
 
         result = mock_worker._apply_limits(titles)
@@ -679,8 +680,8 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_clients,
         tmp_path,
     ):
-        mock_worker.output_dir = tmp_path
-        mock_worker.files_processor.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
+        mock_worker.files_processor.config.output_dir = tmp_path
 
         mock_steps.text.return_value = {"success": True, "text": "some text"}
         mock_steps.titles.return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
@@ -702,8 +703,8 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_clients,
         tmp_path,
     ):
-        mock_worker.output_dir = tmp_path
-        mock_worker.files_processor.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
+        mock_worker.files_processor.config.output_dir = tmp_path
 
         mock_steps.text.return_value = {"success": True, "text": "some text"}
         mock_steps.titles.return_value = {
@@ -737,8 +738,8 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_clients,
         tmp_path,
     ):
-        mock_worker.output_dir = tmp_path
-        mock_worker.files_processor.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
+        mock_worker.files_processor.config.output_dir = tmp_path
 
         mock_steps.text.return_value = {"success": True, "text": "some text"}
         mock_steps.titles.return_value = {
@@ -765,8 +766,8 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_clients,
         tmp_path,
     ):
-        mock_worker.output_dir = tmp_path
-        mock_worker.files_processor.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
+        mock_worker.files_processor.config.output_dir = tmp_path
 
         mock_steps.text.return_value = {"success": True, "text": "some text"}
         mock_steps.titles.return_value = {"success": True, "main_title": "Main.svg", "titles": ["F1.svg"]}
@@ -825,8 +826,8 @@ class TestCopySvgLangsWorkerStageMethods:
         self, mock_worker: CopySvgLangsWorker, mock_steps: MockSteps, tmp_path
     ):
         mock_worker.main_title = "Main.svg"
-        mock_worker.output_dir = tmp_path
-        mock_worker.files_processor.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
+        mock_worker.files_processor.config.output_dir = tmp_path
 
         mock_steps.translations.side_effect = RuntimeError("DB error")
 
@@ -838,8 +839,8 @@ class TestCopySvgLangsWorkerStageMethods:
 
     def test_extract_translations_step_failed(self, mock_worker: CopySvgLangsWorker, mock_steps: MockSteps, tmp_path):
         mock_worker.main_title = "Main.svg"
-        mock_worker.output_dir = tmp_path
-        mock_worker.files_processor.output_dir = tmp_path
+        mock_worker.config.output_dir = tmp_path
+        mock_worker.files_processor.config.output_dir = tmp_path
 
         mock_steps.translations.return_value = ExtractResult(success=False, error="No translations")
 
