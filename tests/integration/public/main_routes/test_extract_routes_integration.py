@@ -141,7 +141,7 @@ class TestExtractRender:
             follow_redirects=True,
         )
 
-        mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, overwrite=True)
+        mock_download.assert_called_once_with(title="Test.svg", out_dir=mocker.ANY, overwrite_download=True)
 
         assert patch_render["context"]["filename"] == "File:Test.svg"
 

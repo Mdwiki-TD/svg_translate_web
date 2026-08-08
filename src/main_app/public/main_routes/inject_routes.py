@@ -87,7 +87,7 @@ def _download_and_extract(filename: str, temp_dir: Path) -> dict[str, Any] | Non
     Returns:
         Translations dict or None on failure (with flash message).
     """
-    result = download_one_file(title=filename, out_dir=temp_dir, overwrite=True)
+    result = download_one_file(title=filename, out_dir=temp_dir, overwrite_download=True)
 
     if result.get("result") != "success" or not result.get("path"):
         flash(f"Failed to download file: {filename}", "danger")
@@ -267,7 +267,7 @@ class InjectRoutes:
             file_path=target_file_path,
             translations=source_translations,
             output_file=output_file,
-            overwrite=True,
+            overwrite_translations=True,
         )
 
         # Step 4: Re-extract from the injected file (only if inject succeeded)

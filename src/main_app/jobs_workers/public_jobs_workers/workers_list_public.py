@@ -1,5 +1,5 @@
 from ..objects import JobData
-from .copy_svg_langs.runner import copy_svg_langs_worker_entry
+from .copy_svg_langs.runner import copy_svg_langs_worker_entry, setup_svg_langs_form
 from .fix_nested_jobs.runner import fix_nested_jobs_worker_entry
 
 jobs_data_public: dict[str, JobData] = {
@@ -16,6 +16,7 @@ jobs_data_public: dict[str, JobData] = {
         ],
         start_confirm_message="",
         load_settings=True,
+        form_class=setup_svg_langs_form,
     ),
     "fix_nested_jobs": JobData(
         job_type="fix_nested_jobs",

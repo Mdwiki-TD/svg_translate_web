@@ -13,6 +13,7 @@ class JobData:
     job_args: list[dict[str, str]] = field(default_factory=list)
     start_confirm_message: str | None = None
     load_settings: bool = False
+    form_class: Callable | None = None
 
 
 __all__ = [

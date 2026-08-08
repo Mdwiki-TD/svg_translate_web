@@ -30,8 +30,6 @@ def test_index(mock_render, app_main_mock):
         mock_render.assert_called_once()
         args, kwargs = mock_render.call_args
         assert args[0] == "index.html"
-        assert kwargs["form"] == {}
-        assert not kwargs["set_titles_limit"]
 
 
 def test_favicon(mock_client):

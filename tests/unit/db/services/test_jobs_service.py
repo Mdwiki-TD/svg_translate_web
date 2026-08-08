@@ -19,7 +19,7 @@ class TestSetup:
 class TestGet(TestSetup):
     def test_get_job(self) -> None:
         """Test retrieving a job by ID."""
-        created_job = self.service.create_job("collect_templates_data", username="z")
+        created_job = self.service.create_job("collect_templates_data", username="userx")
 
         retrieved_job = self.service.get_job(created_job.id, job_type="collect_templates_data")
 
@@ -35,10 +35,10 @@ class TestGet(TestSetup):
 class TestList(TestSetup):
     def test_list_jobs(self) -> None:
         """Test listing jobs."""
-        job1 = self.service.create_job("collect_templates_data", username="z")
+        job1 = self.service.create_job("collect_templates_data", username="userx")
         self.service.update_job_status(job1.id, "completed", job_type="collect_templates_data")
-        self.service.create_job("collect_templates_data", username="z")
-        self.service.create_job("other_job", username="z")
+        self.service.create_job("collect_templates_data", username="userx")
+        self.service.create_job("other_job", username="userx")
 
         jobs = self.service.list_jobs()
 
@@ -48,7 +48,7 @@ class TestList(TestSetup):
     def test_list_jobs_with_limit(self) -> None:
         """Test listing jobs with a limit."""
         for i in range(5):
-            job = self.service.create_job("collect_templates_data", username="z")
+            job = self.service.create_job("collect_templates_data", username="userx")
             if i < 4:
                 self.service.update_job_status(job.id, "completed", job_type="collect_templates_data")
 
@@ -58,11 +58,11 @@ class TestList(TestSetup):
 
     def test_list_jobs_filtered_by_type(self) -> None:
         """Test listing jobs filtered by job_type."""
-        job1 = self.service.create_job("collect_templates_data", username="z")
+        job1 = self.service.create_job("collect_templates_data", username="userx")
         self.service.update_job_status(job1.id, "completed", job_type="collect_templates_data")
-        self.service.create_job("collect_templates_data", username="z")
-        self.service.create_job("fix_nested_main_files", username="z")
-        self.service.create_job("other_job_type", username="z")
+        self.service.create_job("collect_templates_data", username="userx")
+        self.service.create_job("fix_nested_main_files", username="userx")
+        self.service.create_job("other_job_type", username="userx")
 
         collect_jobs = self.service.list_jobs(job_type="collect_templates_data")
         assert len(collect_jobs) == 2
@@ -78,11 +78,11 @@ class TestList(TestSetup):
     def test_list_jobs_filtered_with_limit(self) -> None:
         """Test listing jobs filtered by job_type with a limit."""
         for i in range(5):
-            job = self.service.create_job("collect_templates_data", username="z")
+            job = self.service.create_job("collect_templates_data", username="userx")
             if i < 4:
                 self.service.update_job_status(job.id, "completed", job_type="collect_templates_data")
         for i in range(3):
-            job = self.service.create_job("fix_nested_main_files", username="z")
+            job = self.service.create_job("fix_nested_main_files", username="userx")
             if i < 2:
                 self.service.update_job_status(job.id, "completed", job_type="fix_nested_main_files")
 
@@ -94,7 +94,7 @@ class TestList(TestSetup):
 class TestDelete(TestSetup):
     def test_delete_job(self) -> None:
         """Test deleting a job."""
-        job = self.service.create_job("collect_templates_data", username="z")
+        job = self.service.create_job("collect_templates_data", username="userx")
         assert len(self.service.list_jobs()) == 1
 
         self.service.delete_job_by_id_and_type(job.id, "collect_templates_data")
@@ -103,8 +103,8 @@ class TestDelete(TestSetup):
 
     def test_delete_job_with_correct_type(self) -> None:
         """Test deleting a job with correct job type."""
-        job1 = self.service.create_job("collect_templates_data", username="z")
-        job2 = self.service.create_job("fix_nested_main_files", username="z")
+        job1 = self.service.create_job("collect_templates_data", username="userx")
+        job2 = self.service.create_job("fix_nested_main_files", username="userx")
         assert len(self.service.list_jobs()) == 2
 
         self.service.delete_job_by_id_and_type(job1.id, "collect_templates_data")
@@ -115,7 +115,7 @@ class TestDelete(TestSetup):
 
     def test_delete_job_with_wrong_type(self) -> None:
         """Test deleting a job with wrong job type doesn't delete it."""
-        job = self.service.create_job("collect_templates_data", username="z")
+        job = self.service.create_job("collect_templates_data", username="userx")
         assert len(self.service.list_jobs()) == 1
 
         self.service.delete_job_by_id_and_type(job.id, "fix_nested_main_files")
@@ -337,7 +337,7 @@ class TestUpdateJobStatus(TestSetup):
 
     def test_update_job_status(self) -> None:
         """Test updating a job's status."""
-        job = self.service.create_job("collect_templates_data", username="z")
+        job = self.service.create_job("collect_templates_data", username="userx")
 
         updated_job = self.service.update_job_status(job.id, "running", job_type="collect_templates_data")
 
@@ -345,7 +345,7 @@ class TestUpdateJobStatus(TestSetup):
 
     def test_update_job_status_with_result_file(self) -> None:
         """Test updating a job's status with a result file."""
-        job = self.service.create_job("collect_templates_data", username="z")
+        job = self.service.create_job("collect_templates_data", username="userx")
 
         updated_job = self.service.update_job_status(
             job.id, "completed", "/path/to/result.json", job_type="collect_templates_data"

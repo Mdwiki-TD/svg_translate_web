@@ -49,7 +49,7 @@ def download_file_for_cropping(
             title=clean_filename,
             out_dir=output_dir,
             session=session,
-            overwrite=True,
+            overwrite_download=True,
         )
 
         if download_result["result"] == "success":

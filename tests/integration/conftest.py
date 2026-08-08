@@ -24,7 +24,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         return admin_user
 
     monkeypatch.setattr("src.main_app.public.auth.utils.load_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.public.jobs_routes_utils.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_user", fake_current_user)
     monkeypatch.setattr("src.main_app.admin.decorators.load_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.public.utils.routes_utils._is_admin",

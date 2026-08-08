@@ -94,7 +94,7 @@ def download_one_file(
     out_dir: Path,
     i: int = 0,
     session: requests.Session | None = None,
-    overwrite: bool = True,
+    overwrite_download: bool = True,
 ) -> dict[str, str]:
     """Download a single Commons file, skipping already-downloaded copies.
 
@@ -104,7 +104,7 @@ def download_one_file(
         i (int): 1-based index used only for logging context.
         session (requests.Session | None): Optional shared session. A new session
             with an appropriate User-Agent is created when omitted.
-        overwrite (bool): Whether to overwrite existing files.
+        overwrite_download (bool): Whether to overwrite existing files.
 
     Returns:
         dict: Outcome dictionary with keys ``result`` ("success", "existing", or
@@ -121,7 +121,7 @@ def download_one_file(
 
     out_path = out_dir / title
 
-    if out_path.exists() and not overwrite:
+    if out_path.exists() and not overwrite_download:
         logger.debug(f"[{i}] Skipped existing: {title}")
         data["result"] = "existing"
         data["msg"] = "Skip existing file, no overwrite"
@@ -164,7 +164,7 @@ def download_svg_file(
     file_data = download_one_file(
         title=filename,
         out_dir=temp_dir,
-        overwrite=True,
+        overwrite_download=True,
         session=session,
     )
 

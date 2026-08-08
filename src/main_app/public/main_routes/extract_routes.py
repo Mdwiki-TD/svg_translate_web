@@ -33,7 +33,7 @@ def work_file(filename: str) -> dict[str, Any] | None:
     temp_dir = Path(tempfile.mkdtemp())
     try:
         # Download the file
-        result = download_one_file(title=filename, out_dir=temp_dir, overwrite=True)
+        result = download_one_file(title=filename, out_dir=temp_dir, overwrite_download=True)
 
         if result.get("result") != "success" or not result.get("path"):
             flash(f"Failed to download file: {filename}", "danger")

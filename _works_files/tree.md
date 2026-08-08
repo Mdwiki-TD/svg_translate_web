@@ -187,7 +187,7 @@ src/
 │   │   │   └── thumbnail_utils.py
 │   │   ├── __init__.py
 │   │   ├── api_routes.py
-│   │   ├── jobs_routes_utils.py
+│   │   ├── shared_jobs_routes.py
 │   │   ├── jobs_utils_bp.py
 │   │   ├── profile.py
 │   │   └── public_jobs.py

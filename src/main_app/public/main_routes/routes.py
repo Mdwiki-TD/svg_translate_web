@@ -14,7 +14,7 @@ from flask import (
 )
 from werkzeug.wrappers.response import Response
 
-from ...db.services import SettingsService
+from ...jobs_workers.public_jobs_workers.workers_list_public import setup_svg_langs_form
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +29,11 @@ class MainRoutes:
         self.bp.get("/favicon.ico")(self.favicon)
 
     def index(self) -> str:
-        all_settings = SettingsService().get_all_settings_ready()
+        form = setup_svg_langs_form()
+
         return render_template(
             "index.html",
-            form={},
-            set_titles_limit=False,
-            all_settings=all_settings,
+            form=form,
         )
 
     def favicon(self) -> Response:

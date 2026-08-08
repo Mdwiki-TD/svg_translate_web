@@ -88,7 +88,9 @@ class YearTitleHandler:
         if data:
             mapping.title_new.update(data)
 
-    def build_title_new_templates(self, mapping_new: dict[str, Any], create_lang_template: bool = False) -> dict[str, Any]:
+    def build_title_new_templates(
+        self, mapping_new: dict[str, Any], create_lang_template: bool = False
+    ) -> dict[str, Any]:
         """
         Extract valid title translations by verifying that all translations in a mapping
         end with the same 4-digit year as the key.
@@ -134,6 +136,7 @@ class YearTitleHandler:
                 data[source_template] = templated
                 logger.debug("Title template: %r → %s", source_template, list(templated))
         return data
+
 
 __all__ = [
     "YearTitleHandler",

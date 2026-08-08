@@ -220,7 +220,7 @@ tests/
 │   │   │   ├── test_routes_utils_unit.py
 │   │   │   └── test_thumbnail_utils.py
 │   │   ├── test_api_routes.py
-│   │   ├── test_jobs_routes_utils.py
+│   │   ├── test_shared_jobs_routes.py
 │   │   ├── test_jobs_utils_bp.py
 │   │   ├── test_profile.py
 │   │   └── test_public_jobs.py
