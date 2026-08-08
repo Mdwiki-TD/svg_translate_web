@@ -66,9 +66,32 @@ def test_runner(flask_app):
     cancel_event = threading.Event()
     _register_cancel_event(1, cancel_event)
 
+    _runner(1, {"user": "test"}, cancel_event, target, flask_app, {"a": 1}, {"form_key": "form_val"})
+
+    target.assert_called_once_with(
+        job_id=1,
+        user={"user": "test"},
+        cancel_event=cancel_event,
+        args={"a": 1},
+        form_data={"form_key": "form_val"},
+    )
+    assert _pop_cancel_event(1) is None  # should be popped
+
+
+def test_runner_no_form_data(flask_app):
+    target = MagicMock()
+    cancel_event = threading.Event()
+    _register_cancel_event(1, cancel_event)
+
     _runner(1, {"user": "test"}, cancel_event, target, flask_app, {"a": 1})
 
-    target.assert_called_once_with(job_id=1, user={"user": "test"}, cancel_event=cancel_event, args={"a": 1})
+    target.assert_called_once_with(
+        job_id=1,
+        user={"user": "test"},
+        cancel_event=cancel_event,
+        args={"a": 1},
+        form_data=None,
+    )
     assert _pop_cancel_event(1) is None  # should be popped
 
 
