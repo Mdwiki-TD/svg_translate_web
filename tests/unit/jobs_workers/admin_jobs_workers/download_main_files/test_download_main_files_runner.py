@@ -382,18 +382,16 @@ def test_entry_point_maps_limit_items(mock_services: MockServices):
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 
-        runner.download_main_files_for_templates(
-            JobsRunner(
-                job_id=1,
-                user={},
-                args={"limit_items": 123},
-            )
+        data = JobsRunner(
+            job_id=1,
+            user={},
+            args={"limit_items": 123},
         )
+        runner.download_main_files_for_templates(data)
 
-        call_args = MockWorker.call_args
-        passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
-        assert isinstance(passed_args, dict)
-        assert passed_args.get("limit_items") == 123
+        call_args = MockWorker.call_args[0]
+        assert call_args == (data,)
+        assert call_args[0].args["limit_items"] == 123
 
 
 class TestCreateMainFilesZip:
@@ -461,16 +459,15 @@ class TestDownloadMainFilesForTemplates:
         mock_worker_cls.return_value = mock_worker
 
         cancel_event = MagicMock()
-        download_main_files_for_templates(
-            JobsRunner(
-                job_id=42,
-                user={"name": "test"},
-                cancel_event=cancel_event,
-                args={"key": "value"},
-            )
+        data = JobsRunner(
+            job_id=42,
+            user={"name": "test"},
+            cancel_event=cancel_event,
+            args={"key": "value"},
         )
+        download_main_files_for_templates(data)
 
-        mock_worker_cls.assert_called_once_with(42, {"name": "test"}, cancel_event, {"key": "value"})
+        mock_worker_cls.assert_called_once_with(data)
         mock_worker.run.assert_called_once()
 
     @patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.DownloadMainFilesWorker")
@@ -478,12 +475,11 @@ class TestDownloadMainFilesForTemplates:
         mock_worker = MagicMock()
         mock_worker_cls.return_value = mock_worker
 
-        download_main_files_for_templates(
-            JobsRunner(
-                job_id=1,
-                user={},
-            )
+        data = JobsRunner(
+            job_id=1,
+            user={},
         )
+        download_main_files_for_templates(data)
 
-        mock_worker_cls.assert_called_once_with(1, {}, None, None)
+        mock_worker_cls.assert_called_once_with(data)
         mock_worker.run.assert_called_once()

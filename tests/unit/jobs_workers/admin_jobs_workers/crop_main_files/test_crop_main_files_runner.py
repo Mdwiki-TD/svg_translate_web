@@ -425,46 +425,42 @@ def test_crop_main_files_worker_entry_args_defaults_to_none(mock_base_worker, mo
 
 def test_crop_main_files_worker_entry_maps_crop_newest_upload_limit(mock_instance_class, mock_base_worker):
     """Test that upload_limit is mapped to upload_limit in args."""
-    crop_main_files_worker_entry(
-        JobsRunner(
-            job_id=1,
-            user={},
-            args={"upload_limit": 3},
-        )
+    data = JobsRunner(
+        job_id=1,
+        user={},
+        args={"upload_limit": 3},
     )
+    crop_main_files_worker_entry(data)
 
-    call_args = mock_instance_class.call_args
-    passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
-    assert passed_args is not None
-    assert passed_args["upload_limit"] == 3
+    call_args = mock_instance_class.call_args[0]
+    assert call_args == (data,)
+    assert call_args[0].args is not None
+    assert call_args[0].args["upload_limit"] == 3
 
 
 def test_crop_main_files_worker_entry_does_not_map_when_key_absent(mock_instance_class, mock_base_worker):
     """Test that args are passed unchanged when upload_limit is absent."""
-
-    crop_main_files_worker_entry(
-        JobsRunner(
-            job_id=1,
-            user={},
-            args={"other_key": "value"},
-        )
+    data = JobsRunner(
+        job_id=1,
+        user={},
+        args={"other_key": "value"},
     )
+    crop_main_files_worker_entry(data)
 
-    call_args = mock_instance_class.call_args
-    passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
-    assert "upload_limit" not in passed_args
+    call_args = mock_instance_class.call_args[0]
+    assert call_args == (data,)
+    assert "upload_limit" not in call_args[0].args
 
 
 def test_crop_main_files_worker_entry_does_not_modify_args_when_none(mock_instance_class, mock_base_worker):
     """Test that entry point works correctly when args is None."""
-    crop_main_files_worker_entry(
-        JobsRunner(
-            job_id=1,
-            user={},
-            args=None,
-        )
+    data = JobsRunner(
+        job_id=1,
+        user={},
+        args=None,
     )
+    crop_main_files_worker_entry(data)
 
-    call_args = mock_instance_class.call_args
-    passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
-    assert passed_args is None
+    call_args = mock_instance_class.call_args[0]
+    assert call_args == (data,)
+    assert call_args[0].args is None
