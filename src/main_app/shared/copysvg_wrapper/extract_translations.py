@@ -11,12 +11,11 @@ from typing import Any
 from CopySVGTranslation import SVGTranslationExtractor, TranslationConfig  # type: ignore
 
 from .mapping import ExtractorData, ExtractResult
-from .svg_translate_utils import add_translations_from_header, add_translations_from_titles
 
 logger = logging.getLogger(__name__)
 
 
-def extract_file_translations(
+def _extract_file_translations(
     source_file: str | Path,
 ) -> ExtractorData:
     """
@@ -48,12 +47,7 @@ def extract_file_translations(
     if not error and meta:
         error = meta.get("error", "")
 
-    results = add_translations_from_titles(result_json)
-
-    if meta:
-        results = add_translations_from_header(results)
-
-    result = ExtractorData.from_any(results)
+    result = ExtractorData.from_any(result_json)
 
     if error and not result.error:
         result.error = error
@@ -74,7 +68,7 @@ def extract_from_path(main_title_path: Path) -> ExtractResult:
     """
 
     try:
-        translations = extract_file_translations(main_title_path)
+        translations = _extract_file_translations(main_title_path)
     except Exception:
         logger.exception("Failed to extract translations from main SVG")
         return ExtractResult(success=False, message="", error="Failed to parse main SVG", translations={})
