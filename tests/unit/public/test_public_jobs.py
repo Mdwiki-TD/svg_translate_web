@@ -316,6 +316,7 @@ class TestJobDetail(TestSetup):
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job,
+            job_type="test_job",
             result_data=None,
             template_data=mock_template_data,
             expand_all=False,
@@ -335,6 +336,7 @@ class TestJobDetail(TestSetup):
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job_with_result,
+            job_type="test_job",
             result_data={"key": "value"},
             template_data=mock_template_data,
             expand_all=False,
@@ -351,6 +353,7 @@ class TestJobDetail(TestSetup):
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job,
+            job_type="test_job",
             result_data=None,
             template_data=mock_template_data,
             expand_all=True,

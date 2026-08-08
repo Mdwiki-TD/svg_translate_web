@@ -15,7 +15,7 @@
                 {% if (is_admin or current_username == job.username) and (job.status | is_job_running) %}
                 {{
                     form_cancel_job(
-                        url_for('public_jobs.cancel_job', job_type=job_type, job_id=job.id),
+                        url_for('public_jobs.cancel_job', job_type=template_data.job_type, job_id=job.id),
                         btn_class="btn btn-outline-warning text-muted"
                     )
                 }}
@@ -23,7 +23,7 @@
                 {% if is_admin %}
                 {{
                     form_delete_job(
-                    url_for('public_jobs.delete_job', job_type=job_type, job_id=job.id),btn_class="btn btn-outline-danger"
+                    url_for('public_jobs.delete_job', job_type=template_data.job_type, job_id=job.id),btn_class="btn btn-outline-danger"
                     )
                 }}
                 {% endif %}

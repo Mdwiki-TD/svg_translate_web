@@ -199,7 +199,6 @@ class SharedJobRoutes:
             template_data.job_details_template,
             template_data=template_data,
             job=job,
-            job_type=job_type,
             result_data=result_data,
             expand_all=expand_all,
         )

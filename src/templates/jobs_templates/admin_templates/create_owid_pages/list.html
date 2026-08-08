@@ -11,7 +11,8 @@
 {% endblock %}
 {% set hide_start_button = True %}
 {% block header_actions %}
-<form method="post" action="{{ url_for('adminpanel.jobs.start_job', job_type=template_data.job_type) }}" class="d-inline">
+<form method="post" action="{{ url_for('adminpanel.jobs.start_job', job_type=template_data.job_type) }}"
+    class="d-inline">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <input type="hidden" name="update_all" value="true" />
     <button type="submit" class="btn btn-outline-warning text-muted"
