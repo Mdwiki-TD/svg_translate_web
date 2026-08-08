@@ -102,7 +102,7 @@ def mock_jobs_data() -> dict[str, MagicMock]:
             job_list_template="test_list.html",
             job_details_template="test_detail.html",
             job_name="Test Job",
-            job_type="test_job",
+
             start_confirm_message="Start?",
         ),
     }
@@ -276,7 +276,7 @@ class TestJobsList(TestSetup):
             "test_list.html",
             jobs=[seeded_job],
             template_data=mock_template_data,
-            job_type="test_job",
+
             start_confirm_message="Start?",
             form=None,
         )
@@ -316,7 +316,7 @@ class TestJobDetail(TestSetup):
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job,
-            job_type="test_job",
+
             result_data=None,
             template_data=mock_template_data,
             expand_all=False,
@@ -336,7 +336,7 @@ class TestJobDetail(TestSetup):
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job_with_result,
-            job_type="test_job",
+
             result_data={"key": "value"},
             template_data=mock_template_data,
             expand_all=False,
@@ -353,7 +353,6 @@ class TestJobDetail(TestSetup):
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job,
-            job_type="test_job",
             result_data=None,
             template_data=mock_template_data,
             expand_all=True,
