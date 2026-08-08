@@ -147,9 +147,7 @@ def test_runner_calls_target_and_cleans_up():
         flask_app=flask_app,
     )
 
-    mock_target.assert_called_once_with(
-        data
-    )
+    mock_target.assert_called_once_with(data)
     flask_app.app_context.assert_called_once()
     # After runner finishes, event should be popped from CANCEL_EVENTS
     assert jobs_worker._get_jobs_cancel_event(job_id) is None
@@ -223,20 +221,18 @@ def test_runner_passes_args_to_target():
     from src.main_app.jobs_workers.jobs_worker import _runner
 
     data = JobsRunner(
-            job_id=job_id,
-            user=user,
-            cancel_event=event,
-            args=args,
-            form_data=None,
-        )
+        job_id=job_id,
+        user=user,
+        cancel_event=event,
+        args=args,
+        form_data=None,
+    )
     _runner(
         runner_data=data,
         target_func=mock_target,
         flask_app=flask_app,
     )
-    mock_target.assert_called_once_with(
-        data
-    )
+    mock_target.assert_called_once_with(data)
 
 
 def test_runner_passes_none_args_by_default():
@@ -250,21 +246,20 @@ def test_runner_passes_none_args_by_default():
     jobs_worker._register_cancel_event(job_id, event)
 
     from src.main_app.jobs_workers.jobs_worker import _runner
+
     data = JobsRunner(
-            job_id=job_id,
-            user=user,
-            cancel_event=event,
-            args=None,
-            form_data=None,
-        )
+        job_id=job_id,
+        user=user,
+        cancel_event=event,
+        args=None,
+        form_data=None,
+    )
     _runner(
         runner_data=data,
         target_func=mock_target,
         flask_app=flask_app,
     )
-    mock_target.assert_called_once_with(
-        data
-    )
+    mock_target.assert_called_once_with(data)
 
 
 def test_start_job_param(mock_services):

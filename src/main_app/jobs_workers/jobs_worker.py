@@ -76,6 +76,7 @@ def _runner(
         finally:
             _pop_cancel_event(runner_data.job_id)
 
+
 def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord | None = None) -> bool:
     """
     Cancel a running job.
