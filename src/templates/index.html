@@ -12,7 +12,10 @@
 
         <div class="col-sm-12 col-md-4">
             {{ form.title.label(class="form-label") }}
-            {{ form.title(class="form-control wiki-autocomplete-templates") }}
+            {{ form.title(class="form-control wiki-autocomplete-templates" ~ (" is-invalid" if form.title.errors else "")) }}
+            {% for error in form.title.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
         </div>
 
         <div class="col-sm-12 col-md-4">
