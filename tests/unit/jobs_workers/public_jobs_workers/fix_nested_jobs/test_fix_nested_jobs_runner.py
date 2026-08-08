@@ -86,7 +86,7 @@ class TestFixNestedJobsProcessorEntry:
 
             # New signature: (job_id, user, *, cancel_event=None, args=None)
             # args must be keyword-only; user is now the 2nd positional
-            fix_nested_jobs_worker_entry(job_id=1, user=None, args={"filename": "Test.svg"})
+            fix_nested_jobs_worker_entry(JobsRunner(job_id=1, user=None, args={"filename": "Test.svg"},))
 
             MockWorker.assert_called_once_with(
                 job_id=1,
@@ -105,7 +105,7 @@ class TestFixNestedJobsProcessorEntry:
             MockWorker.return_value = mock_instance
 
             # Call without args - should default to None
-            fix_nested_jobs_worker_entry(job_id=42, user={"username": "tester"})
+            fix_nested_jobs_worker_entry(JobsRunner(job_id=42, user={"username": "tester"},))
 
             MockWorker.assert_called_once_with(
                 job_id=42,
@@ -124,7 +124,7 @@ class TestFixNestedJobsProcessorEntry:
             MockWorker.return_value = mock_instance
 
             # Pass user as 2nd positional arg (new signature)
-            fix_nested_jobs_worker_entry(job_id=77, user=user)
+            fix_nested_jobs_worker_entry(JobsRunner(job_id=77, user=user,))
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["user"] is user

@@ -27,7 +27,7 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, user={"username": "test"})
+            update_owid_charts_worker_entry(JobsRunner(job_id=1, user={"username": "test"},))
 
             MockWorker.assert_called_once_with(
                 job_id=1,
@@ -46,7 +46,7 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, user=None, cancel_event=cancel_event)
+            update_owid_charts_worker_entry(JobsRunner(job_id=1, user=None, cancel_event=cancel_event,))
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["cancel_event"] is cancel_event
@@ -59,7 +59,7 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, user=None, args={"some_key": "value"})
+            update_owid_charts_worker_entry(JobsRunner(job_id=1, user=None, args={"some_key": "value"},))
 
             mock_instance.run.assert_called_once()
 
@@ -71,7 +71,7 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=99, user=None)
+            update_owid_charts_worker_entry(JobsRunner(job_id=99, user=None,))
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["args"] is None
@@ -118,7 +118,7 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, user=None, args=None)
+            update_owid_charts_worker_entry(JobsRunner(job_id=1, user=None, args=None,))
 
             call_kwargs = MockWorker.call_args.kwargs
             assert call_kwargs["args"] is None

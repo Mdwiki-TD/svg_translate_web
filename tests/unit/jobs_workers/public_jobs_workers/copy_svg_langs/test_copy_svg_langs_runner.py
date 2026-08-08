@@ -77,7 +77,7 @@ class TestCopySvgLangsWorkerEntry:
         with pytest.raises(TypeError):
             copy_svg_langs_worker_entry(1, None, {"title": "Test.svg"})  # type: ignore
 
-        copy_svg_langs_worker_entry(job_id=1, user=None, args={"title": "Test.svg"})
+        copy_svg_langs_worker_entry(JobsRunner(job_id=1, user=None, args={"title": "Test.svg"},))
 
         mock_worker_class.assert_called_once_with(
             job_id=1,
@@ -88,7 +88,7 @@ class TestCopySvgLangsWorkerEntry:
         mock_worker_class.return_value.run.assert_called_once()
 
     def test_worker_entry_args_defaults_to_none(self, mock_worker_class) -> None:
-        copy_svg_langs_worker_entry(job_id=99, user={"username": "tester"})
+        copy_svg_langs_worker_entry(JobsRunner(job_id=99, user={"username": "tester"},))
 
         mock_worker_class.assert_called_once_with(
             job_id=99,
@@ -100,7 +100,7 @@ class TestCopySvgLangsWorkerEntry:
     def test_worker_entry_user_is_second_positional(self, mock_worker_class) -> None:
         user = {"username": "testuser"}
 
-        copy_svg_langs_worker_entry(job_id=123, user=user)
+        copy_svg_langs_worker_entry(JobsRunner(job_id=123, user=user,))
 
         call_kwargs = mock_worker_class.call_args.kwargs
         assert call_kwargs["user"] is user
@@ -126,7 +126,7 @@ class TestCopySvgLangsWorkerEntry:
         assert "upload_limit" not in call_kwargs["args"]
 
     def test_worker_entry_does_not_modify_args_when_none(self, mock_worker_class) -> None:
-        copy_svg_langs_worker_entry(job_id=1, user=None, args=None)
+        copy_svg_langs_worker_entry(JobsRunner(job_id=1, user=None, args=None,))
 
         call_kwargs = mock_worker_class.call_args.kwargs
         assert call_kwargs["args"] is None
