@@ -19,6 +19,7 @@ def collect_templates_data_entry(
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: dict[str, Any] | None = None,
+    form_data: dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker to collect templates data.

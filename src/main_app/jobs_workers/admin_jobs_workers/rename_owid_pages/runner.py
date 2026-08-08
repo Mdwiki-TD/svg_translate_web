@@ -19,6 +19,7 @@ def rename_owid_pages_for_templates(
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: dict[str, Any] | None = None,
+    form_data: dict[str, Any] | None = None,
 ) -> None:
     """Background worker entry-point.
 

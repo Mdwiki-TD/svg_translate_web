@@ -19,6 +19,7 @@ def update_owid_charts_worker_entry(
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: dict[str, Any] | None = None,
+    form_data: dict[str, Any] | None = None,
 ) -> None:
     """Background worker entry-point for update_owid_charts."""
     logger.info("Starting job %s: update OWID charts timespan data", job_id)

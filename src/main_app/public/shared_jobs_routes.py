@@ -16,6 +16,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from flask_wtf import FlaskForm
 from werkzeug.wrappers.response import Response
 
 from ..db.exceptions import DuplicateRecordError
@@ -116,6 +117,7 @@ class SharedJobRoutes:
         job_type: str,
         args: dict[str, Any],
         check_can_run_bg_jobs: bool = False,
+        form_data: dict[str, Any] | None = None,
     ) -> int | None:
         """Start a job."""
         user = load_user()
@@ -227,7 +229,7 @@ class JobsBp(ABC):
     def _redirect_to_job_detail(self, job_type, job_id):
         return redirect(url_for(f"{self.bp_name}.job_detail", job_type=job_type, job_id=job_id))
 
-    def load_form(self, template_data: JobData):
+    def load_form(self, template_data: JobData) -> FlaskForm:
         all_settings = {}
 
         if template_data.load_settings:
@@ -294,6 +296,8 @@ class JobsBp(ABC):
         if not template_data:
             abort(404)
 
+        form_data = {}
+
         if template_data.form_class is not None:
             form = self.load_form(template_data)
             if not form.validate_on_submit():
@@ -301,10 +305,12 @@ class JobsBp(ABC):
                 # target = request.referrer or url_for(f"{self.bp_name}.jobs_list", job_type=job_type)
                 # return redirect(target)
                 return self.shared_service.jobs_list_handler(template_data, form)
+            else:
+                form_data = form.data
 
         args = request.form.to_dict()
 
-        job_id = self.shared_service.start_job_handler(job_type, args)
+        job_id = self.shared_service.start_job_handler(job_type, args, form_data=form_data)
 
         if not job_id:
             return self._redirect_to_job_list(job_type)
