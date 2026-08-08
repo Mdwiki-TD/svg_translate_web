@@ -2,17 +2,17 @@
 {% from "_macros.html" import status_icon, csrf %}
 {% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job %}
 
-{% block title %}{{ list_title }}{% endblock %}
+{% block title %}{{ template_data.job_name }}{% endblock %}
 
 {% block content_fluid %}
 <div class="container">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h3 class="headline mb-0">{{ list_headline }}</h3>
+            <h3 class="headline mb-0">{{ template_data.job_name }}</h3>
             <div class="d-flex gap-2">
                 {% block header_actions %}{% endblock %}
                 {% if not hide_start_button %}
-                {{ form_start_job(url_for('public_jobs.start_job', job_type=job_type), start_confirm_message) }}
+                {{ form_start_job(url_for('public_jobs.start_job', job_type=template_data.job_type), template_data.start_confirm_message) }}
                 {% endif %}
             </div>
         </div>
