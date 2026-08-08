@@ -19,7 +19,7 @@ class MockWorker(BaseObjectsJobWorker):
         self.site = None
         self._job_type_name = job_type_name
 
-        super().__init__(JobsRunner(job_id, None, None))
+        super().__init__(JobsRunner(job_id=job_id, user={}))
 
         self.result: WorkerObject = WorkerObject()
 
