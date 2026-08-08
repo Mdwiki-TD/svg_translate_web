@@ -51,6 +51,10 @@ class OneFileProcessor:
 
         self.overwrite_translations = bool(self.args.get("overwrite_translations"))
 
+        default_overwrite_download = True
+        if self.args.get("overwrite_download") is not None:
+            self.overwrite_download = bool(self.args.get("overwrite_download"))
+
         self.session: requests.Session = create_commons_session(settings.other.user_agent)
         self.translations: dict[str, str] = {}
         self.upload_done = 0
@@ -470,7 +474,11 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         stage.status = "running"
         output_dir_main = self.output_dir_files
 
-        main_file_download = download_one_file(title=self.main_title, out_dir=output_dir_main, overwrite_download=True)
+        main_file_download = download_one_file(
+            title=self.main_title,
+            out_dir=output_dir_main,
+            overwrite_download=True,
+        )
 
         if not main_file_download.get("path"):
             error = f"Error when downloading main file: {self.main_title}"
