@@ -67,7 +67,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
     def __init__(self, data: JobsRunner) -> None:
         self.output_dir = Path(settings.paths.main_files_path)
 
-        super().__init__(data.job_id, data.user, data.cancel_event)
+        super().__init__(data)
         self.result: DownloadMainFilesWorkerObject = DownloadMainFilesWorkerObject()
         self.result.output_path = str(self.output_dir)
         self.session: requests.Session | None = None

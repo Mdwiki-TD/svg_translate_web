@@ -359,7 +359,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def __init__(self, data: JobsRunner) -> None:
         self.user: dict[str, Any] = data.user
 
-        super().__init__(data.job_id, data.user, data.cancel_event)
+        super().__init__(data)
         self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject()
         self.result.job_id = self.job_id
 

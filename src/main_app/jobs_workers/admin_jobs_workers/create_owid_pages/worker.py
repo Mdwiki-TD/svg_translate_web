@@ -73,7 +73,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
 
-        super().__init__(data.job_id, data.user, data.cancel_event)
+        super().__init__(data)
         self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject()
 
         self.args = data.args or {}

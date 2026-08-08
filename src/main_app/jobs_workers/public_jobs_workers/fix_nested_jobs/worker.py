@@ -32,7 +32,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
     """
 
     def __init__(self, data: JobsRunner) -> None:
-        super().__init__(data.job_id, data.user, data.cancel_event)
+        super().__init__(data)
         self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject()
         self.result.job_id = self.job_id
         self.args = data.args or {}

@@ -16,6 +16,8 @@ from src.main_app.shared.fix_nested.worker import (
     VerificationResult,
 )
 
+from ......src.main_app.jobs_workers.objects import JobsRunner
+
 # ---------------------------------------------------------------------------
 # steps
 # ---------------------------------------------------------------------------
@@ -38,10 +40,12 @@ class TestSetup:
             args = {"filename": filename, "upload": True}
 
         return FixNestedJobsProcessor(
-            job_id=1,
-            args=args,
-            user=user or {"username": "testuser"},
-            cancel_event=cancel_event,
+            JobsRunner(
+                job_id=1,
+                args=args,
+                user=user or {"username": "testuser"},
+                cancel_event=cancel_event,
+            )
         )
 
 
@@ -95,17 +99,21 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
 class TestFixNestedJobsProcessor(TestSetup):
     def test_get_job_type(self) -> None:
         worker = FixNestedJobsProcessor(
-            job_id=1,
-            user=None,
-            args={"filename": "Test.svg"},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                args={"filename": "Test.svg"},
+            )
         )
         assert worker.get_job_type() == "fix_nested_jobs"
 
     def test_result_initial_structure(self) -> None:
         worker = FixNestedJobsProcessor(
-            job_id=1,
-            user=None,
-            args={"filename": "Test.svg"},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                args={"filename": "Test.svg"},
+            )
         )
         result = worker.result
 
@@ -123,19 +131,23 @@ class TestFixNestedJobsProcessor(TestSetup):
     def test_worker_init_with_user(self) -> None:
         user = {"username": "testuser", "id": 123}
         worker = FixNestedJobsProcessor(
-            job_id=1,
-            args={"filename": "Test.svg"},
-            user=user,
+            JobsRunner(
+                job_id=1,
+                args={"filename": "Test.svg"},
+                user=user,
+            )
         )
         assert worker.user == user
 
     def test_worker_init_with_cancel_event(self) -> None:
         cancel_event = threading.Event()
         worker = FixNestedJobsProcessor(
-            job_id=1,
-            user=None,
-            args={"filename": "Test.svg"},
-            cancel_event=cancel_event,
+            JobsRunner(
+                job_id=1,
+                user=None,
+                args={"filename": "Test.svg"},
+                cancel_event=cancel_event,
+            )
         )
         assert worker.cancel_event is cancel_event
 

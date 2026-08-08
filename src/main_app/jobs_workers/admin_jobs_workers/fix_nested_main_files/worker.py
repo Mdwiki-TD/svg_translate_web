@@ -32,7 +32,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
     """Worker for fixing nested tags in main files of templates."""
 
     def __init__(self, data: JobsRunner) -> None:
-        super().__init__(data.job_id, data.user, data.cancel_event)
+        super().__init__(data)
         self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject()
         self.args = data.args or {}
         self.result.args = self.args

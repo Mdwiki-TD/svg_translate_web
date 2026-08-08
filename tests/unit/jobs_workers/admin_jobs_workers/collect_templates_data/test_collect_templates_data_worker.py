@@ -42,11 +42,11 @@ def test_worker_init_update_all_can_be_set_true():
     import threading
 
     _worker = worker.CollectMainFilesWorker(
-        job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": "true"}
+        JobsRunner(job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": "true"})
     )
     assert _worker.update_all is True
 
     worker2 = worker.CollectMainFilesWorker(
-        job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": True}
+        JobsRunner(job_id=1, user=None, cancel_event=threading.Event(), args={"update_all": True})
     )
     assert worker2.update_all is True

@@ -12,8 +12,7 @@ from src.main_app.jobs_workers.base_worker import (
     BaseObjectsJobWorker,
     WorkerObject,
 )
-
-from ....src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
