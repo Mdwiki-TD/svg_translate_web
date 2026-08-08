@@ -8,7 +8,7 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="col-sm-12 col-md-4">
         <label for="title" class="form-label">Template Title</label>
-        <input type="text" class="form-control wiki-autocomplete" id="title" name="title"
+        <input type="text" class="form-control wiki-autocomplete-templates" id="title" name="title"
             value="{{ form.title if form and form.title else 'Template:OWID/Death rate from obesity'}}" required>
     </div>
     <div class="col-sm-12 col-md-3">
@@ -21,7 +21,8 @@
         <div class="row">
             <div class="col-sm-12">
                 <div class="form-check form-switch mt-2">
-                    <input class="form-check-input" type="checkbox" value="z" id="overwrite_translations" name="overwrite_translations"
+                    <input class="form-check-input" type="checkbox" value="z" id="overwrite_translations"
+                        name="overwrite_translations"
                         {{ 'checked' if not form or form.overwrite_translations == "z" else '' }}>
                     <label class="form-check-label" for="overwrite_translations">
                         Overwrite Existing translations
