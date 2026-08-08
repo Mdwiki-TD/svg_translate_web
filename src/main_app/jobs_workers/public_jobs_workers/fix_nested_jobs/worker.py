@@ -12,7 +12,7 @@ from pathlib import Path
 from mwclient.client import Site
 
 from ....api_services.files_service import download_svg_file, upload_fixed_svg
-from ....shared.fix_nested.worker import (  # MatchFixNestedTags,
+from ....shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
     detect_nested_tags,

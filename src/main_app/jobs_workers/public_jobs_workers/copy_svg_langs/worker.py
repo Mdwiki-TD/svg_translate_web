@@ -18,10 +18,10 @@ from ....shared.copysvg_wrapper import (
     InjectResult,
     extract_from_path,
     inject_step_one_file,
+    MatchFixNestedTags,
 )
 from ....shared.fix_nested import (
     DetectionResult,
-    MatchFixNestedTags,
     VerificationResult,
 )
 from ...base_worker import BaseObjectsJobWorker

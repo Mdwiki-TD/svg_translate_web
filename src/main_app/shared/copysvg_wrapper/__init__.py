@@ -10,8 +10,10 @@ from .mapping import (
     InjectorStats,
     InjectResult,
 )
+from .nested_fixer import MatchFixNestedTags
 
 __all__ = [
+    "MatchFixNestedTags",
     "extract_from_path",
     "start_injects",
     "inject_step_one_file",

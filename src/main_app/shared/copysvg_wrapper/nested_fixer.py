@@ -6,7 +6,7 @@ from pathlib import Path
 from CopySVGTranslation import NestedTspanDetector, NestedTspanFlattener  # type: ignore
 from lxml import etree
 
-from .objects import DetectionResult, VerificationResult
+from ..fix_nested.objects import DetectionResult, VerificationResult
 
 logger = logging.getLogger(__name__)
 
