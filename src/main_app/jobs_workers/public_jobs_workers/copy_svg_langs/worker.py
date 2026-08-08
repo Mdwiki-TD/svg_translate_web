@@ -4,7 +4,6 @@ Worker module for copy_svg_langs.
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 from dataclasses import dataclass
@@ -59,9 +58,6 @@ class OneFileProcessor:
         self.translations: dict[str, str] = {}
         self.upload_done = 0
         self.nested_processer: MatchFixNestedTags
-
-    def update_translations(self, translations: dict[str, str]) -> None:
-        self.translations.update(translations)
 
     def _process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
         # ----------------------------------------------
@@ -378,9 +374,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.result.args = args
         self.title = args.get("title")
 
-        self.config = self.load_config(args)
+        self.config = self._load_config(args)
 
-        self.files_dict: list[str] = []
         self.site: Site | None = None
 
         self.text: str = ""
@@ -390,7 +385,11 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         self.files_processor = OneFileProcessor(self.site, self.config)
 
-    def load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
+    def _update_translations(self, translations: dict[str, str]) -> None:
+        self.translations.update(translations)
+        self.files_processor.translations.update(translations)
+
+    def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
         output_dir = self._compute_output_dir(args.get("title"))
         output_dir_files = (output_dir / "files") if output_dir else None
 
@@ -418,10 +417,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             output_dir=output_dir,
             output_dir_files=output_dir_files,
         )
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "copy_svg_langs"
 
     def _apply_limits(self, titles: list[str]) -> list[str]:
         _limit = self.config.limit_items
@@ -536,8 +531,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             stage.status = "completed"
             # stage.message = f"Loaded {len(file_translations)} translations from (File:{self.main_title})"
             stage.message = step_result.message or f"Loaded translations from (File:{self.main_title})"
-            self.translations = file_translations
-            self.files_processor.update_translations(file_translations)
+            self._update_translations(file_translations)
             return True
 
         stage.status = "failed"
@@ -582,6 +576,25 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     def _process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
         return self.files_processor._process_one_item(title, title_info, main_title)
+
+    def _render_new_translations(self, translations: dict[str, Any], languages: list[str]) -> list[dict[str, str]]:
+        data = []
+
+        for en, row in translations.items():
+            # empty data
+            if not row:
+                continue
+            item = {"en": en}
+            for lang in languages:
+                item[lang] = row.get(lang, "")
+            data.append(item)
+
+        return data
+
+
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "copy_svg_langs"
 
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
@@ -678,21 +691,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             processfiles_stage.status = "completed"
 
         return self.result
-
-    def _render_new_translations(self, translations: dict[str, Any], languages: list[str]) -> list[dict[str, str]]:
-        data = []
-
-        for en, row in translations.items():
-            # empty data
-            if not row:
-                continue
-            item = {"en": en}
-            for lang in languages:
-                item[lang] = row.get(lang, "")
-            data.append(item)
-
-        return data
-
 
 __all__ = [
     "CopySvgLangsWorker",

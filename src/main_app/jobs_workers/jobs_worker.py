@@ -14,7 +14,7 @@ from ..db.services import (
     JobsService,
     SettingsService,
 )
-from ..su_services.jobs_files_service import create_job_cancelled_file
+from ..io.jobs_files_service import create_job_cancelled_file
 from .admin_jobs_workers.workers_list import jobs_data_admins
 from .objects import JobData, JobsRunner
 from .public_jobs_workers.workers_list_public import jobs_data_public

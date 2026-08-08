@@ -247,7 +247,7 @@ class TestCopySvgLangsWorkerProcess:
         mock_clients,
         tmp_path,
     ):
-        # mock_worker.config = mock_worker.load_config()
+        # mock_worker.config = mock_worker._load_config()
         mock_worker.config.output_dir = tmp_path
 
         mock_steps.text.return_value = {"success": True, "text": "some text"}
@@ -511,7 +511,7 @@ class TestCopySvgLangsWorkerProcessOne:
         assert result is True
 
     def test_upload_disabled(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices, tmp_path):
-        mock_worker.config = mock_worker.load_config({"upload": False})
+        mock_worker.config = mock_worker._load_config({"upload": False})
         mock_worker.config.output_dir = tmp_path
         mock_worker.files_processor.config = mock_worker.config
 
@@ -539,7 +539,7 @@ class TestCopySvgLangsWorkerProcessOne:
 
 class TestCopySvgLangsWorkerUploadStep:
     def test_upload_disabled(self, mock_worker: CopySvgLangsWorker):
-        mock_worker.config = mock_worker.load_config({"upload": False})
+        mock_worker.config = mock_worker._load_config({"upload": False})
         mock_worker.files_processor.config = mock_worker.config
 
         title_info = FilesProcessedItem("")
@@ -552,7 +552,7 @@ class TestCopySvgLangsWorkerUploadStep:
         assert title_info.status == "skipped"
 
     def test_upload_limit_reached(self, mock_worker: CopySvgLangsWorker):
-        mock_worker.config = mock_worker.load_config({"upload": True})
+        mock_worker.config = mock_worker._load_config({"upload": True})
         mock_worker.files_processor.config = mock_worker.config
 
         mock_worker.files_processor.config.upload_limit = 5
@@ -570,7 +570,7 @@ class TestCopySvgLangsWorkerUploadStep:
         assert title_info.status == "skipped"
 
     def test_upload_success(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices):
-        mock_worker.config = mock_worker.load_config({"upload": True})
+        mock_worker.config = mock_worker._load_config({"upload": True})
         mock_worker.files_processor.config = mock_worker.config
 
         mock_worker.files_processor.config.upload_limit = 5
@@ -590,7 +590,7 @@ class TestCopySvgLangsWorkerUploadStep:
         assert mock_worker.files_processor.upload_done == 1
 
     def test_upload_skipped(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices):
-        mock_worker.config = mock_worker.load_config({"upload": True})
+        mock_worker.config = mock_worker._load_config({"upload": True})
         mock_worker.files_processor.config = mock_worker.config
 
         mock_worker.site = MagicMock()
@@ -611,7 +611,7 @@ class TestCopySvgLangsWorkerUploadStep:
         assert title_info.steps.upload.msg == "File exists"
 
     def test_upload_failure(self, mock_worker: CopySvgLangsWorker, mock_services: MockServices):
-        mock_worker.config = mock_worker.load_config({"upload": True})
+        mock_worker.config = mock_worker._load_config({"upload": True})
         mock_worker.files_processor.config = mock_worker.config
 
         mock_worker.site = MagicMock()

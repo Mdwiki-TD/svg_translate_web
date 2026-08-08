@@ -11,7 +11,6 @@ from .clients import (
     get_user_site,
 )
 from .files_service import (
-    download_commons_file_core,
     download_one_file,
     download_svg_file,
     get_file_info,
@@ -29,7 +28,6 @@ from .query_api import (
 __all__ = [
     "download_one_file",
     "CommonsSession",
-    "download_commons_file_core",
     "get_file_info",
     "_fetch_grapher_metadata",
     "download_svg_file",
