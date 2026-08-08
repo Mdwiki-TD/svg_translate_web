@@ -74,12 +74,14 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         self.site: Site | None = None
 
         super().__init__(data)
-        self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject()
-
         self.args = data.args or {}
-        self.result.args = self.args
-        self.limit_items = self.args.get("limit_items") or 0
 
+        self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
+
+        self.limit_items = self.args.get("limit_items") or 0
         self.update_all = str(self.args.get("update_all", "")).lower() == "true"
 
     def get_job_type(self) -> str:

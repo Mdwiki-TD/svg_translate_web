@@ -89,10 +89,13 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         self.site: Site | None = None
 
         super().__init__(data)
-        self.result: AddLangCategoriesWorkerObject = AddLangCategoriesWorkerObject()
-
         self.args = data.args or {}
-        self.result.args = self.args
+
+        self.result: AddLangCategoriesWorkerObject = AddLangCategoriesWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
+
         self.limit_items = self.args.get("limit_items") or 0
 
     # ------------------------------------------------------------------

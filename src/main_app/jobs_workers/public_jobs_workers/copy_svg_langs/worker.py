@@ -352,21 +352,19 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     """
 
     def __init__(self, data: JobsRunner) -> None:
-        self.user: dict[str, Any] = data.user
-
         super().__init__(data)
-        self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject()
-        self.result.job_id = self.job_id
-
         args = data.args or {}
+
+        self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject(
+            job_id=self.job_id,
+            args=args,
+        )
+
         self.manual_main_title = args.get("manual_main_title")
-        self.result.args = args
         self.title = args.get("title")
 
         self.config = self._load_config(args)
-
         self.site: Site | None = None
-
         self.text: str = ""
         self.main_title: str = ""
         self.titles: list[str] = []

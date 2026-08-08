@@ -33,10 +33,12 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
     def __init__(self, data: JobsRunner) -> None:
         super().__init__(data)
-        self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject()
-        self.result.job_id = self.job_id
         self.args = data.args or {}
-        self.result.args = self.args
+
+        self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
 
         self.upload_limit = self.args.get("upload_limit") or 0
 

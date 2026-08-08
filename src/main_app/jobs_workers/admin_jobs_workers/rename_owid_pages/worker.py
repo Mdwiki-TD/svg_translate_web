@@ -88,11 +88,13 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
 
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
-
         super().__init__(data)
-        self.result: RenameOwidPagesWorkerObject = RenameOwidPagesWorkerObject()
         self.args = data.args or {}
-        self.result.args = self.args
+
+        self.result: RenameOwidPagesWorkerObject = RenameOwidPagesWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
 
     # ------------------------------------------------------------------
     # BaseObjectsJobWorker hooks

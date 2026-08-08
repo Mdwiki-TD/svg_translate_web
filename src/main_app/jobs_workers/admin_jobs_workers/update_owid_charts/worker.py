@@ -134,10 +134,13 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
     def __init__(self, data: JobsRunner) -> None:
         super().__init__(data)
-        self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject()
-
         self.args = data.args or {}
-        self.result.args = self.args
+
+        self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
+
         self.limit_items = self.args.get("limit_items") or 0
         self.owid_charts_service = OwidChartsService()
 

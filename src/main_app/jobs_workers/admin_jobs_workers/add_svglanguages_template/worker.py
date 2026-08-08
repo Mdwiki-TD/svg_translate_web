@@ -70,12 +70,14 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
 
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
-
         super().__init__(data)
-        self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject()
-
         self.args = data.args or {}
-        self.result.args = self.args
+
+        self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
+
         self.limit_items = self.args.get("limit_items") or 0
 
     def get_job_type(self) -> str:

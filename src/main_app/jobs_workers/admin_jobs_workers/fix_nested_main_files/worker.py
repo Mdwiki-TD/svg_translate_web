@@ -33,9 +33,12 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
     def __init__(self, data: JobsRunner) -> None:
         super().__init__(data)
-        self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject()
         self.args = data.args or {}
-        self.result.args = self.args
+
+        self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
         self.site: Site | None = None
 
     def get_job_type(self) -> str:
