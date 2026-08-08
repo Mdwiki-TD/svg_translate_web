@@ -72,10 +72,12 @@ class TestUpdateOwidChartsWorkerInitialization:
     def test_worker_initialization_with_limit_items(self):
         """Test worker reads limit_items from args."""
         worker = UpdateOwidChartsWorker(
-            job_id=1,
-            user=None,
-            cancel_event=None,
-            args={"limit_items": 5},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                cancel_event=None,
+                args={"limit_items": 5},
+            )
         )
 
         assert worker.limit_items == 5
@@ -96,10 +98,12 @@ class TestUpdateOwidChartsWorkerInitialization:
     def test_worker_initialization_limit_items_none_when_key_missing(self):
         """Test worker sets limit_items to None when args has no limit_items key."""
         worker = UpdateOwidChartsWorker(
-            job_id=1,
-            user=None,
-            cancel_event=None,
-            args={"other_key": "value"},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                cancel_event=None,
+                args={"other_key": "value"},
+            )
         )
 
         assert worker.limit_items == 0
@@ -150,10 +154,12 @@ class TestUpdateOwidChartsWorkerApplyLimits:
         ]
 
         worker = UpdateOwidChartsWorker(
-            job_id=1,
-            user=None,
-            cancel_event=None,
-            args={"limit_items": 2},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                cancel_event=None,
+                args={"limit_items": 2},
+            )
         )
         result = worker._apply_limits(charts)
 
@@ -202,10 +208,12 @@ class TestUpdateOwidChartsWorkerApplyLimits:
         ]
 
         worker = UpdateOwidChartsWorker(
-            job_id=1,
-            user=None,
-            cancel_event=None,
-            args={"limit_items": "not_an_int"},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                cancel_event=None,
+                args={"limit_items": "not_an_int"},
+            )
         )
         result = worker._apply_limits(charts)
 

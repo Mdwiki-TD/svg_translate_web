@@ -254,9 +254,11 @@ class TestCropMainFilesProcessorInitialization:
     def test_processor_initialization(self, mock_services):
         """Test processor initializes correctly."""
         processor = CropMainFilesWorker(
-            job_id=1,
-            user={"username": "test"},
-            args={"upload_files": True},
+            JobsRunner(
+                job_id=1,
+                user={"username": "test"},
+                args={"upload_files": True},
+            )
         )
 
         assert processor.job_id == 1
@@ -268,8 +270,10 @@ class TestCropMainFilesProcessorInitialization:
         """Test processor defaults upload_files to None."""
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         assert processor.args.get("upload_files") is None
@@ -282,8 +286,10 @@ class TestCropMainFilesProcessorBeforeRun:
         """Test before_run with successful initialization."""
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user={"username": "test"},
+            JobsRunner(
+                job_id=1,
+                user={"username": "test"},
+            )
         )
 
         mock_services["get_user_site"].return_value = MagicMock()
@@ -300,8 +306,10 @@ class TestCropMainFilesProcessorBeforeRun:
         """Test before_run when job record not found."""
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user={"username": "test"},
+            JobsRunner(
+                job_id=1,
+                user={"username": "test"},
+            )
         )
 
         mock_services["update_job_status"].side_effect = LookupError("Job not found")
@@ -324,8 +332,10 @@ class TestCropMainFilesProcessorLoadTemplates:
         mock_services["list"].return_value = templates
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         result = processor._load_templates()
@@ -342,9 +352,11 @@ class TestCropMainFilesProcessorLoadTemplates:
         ]
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
-            args={"upload_limit": 2},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                args={"upload_limit": 2},
+            )
         )
 
         result = processor._apply_limits(templates)
@@ -360,8 +372,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         file_info = CropFileProcessingInfo(
@@ -384,8 +398,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["download_file"].return_value = {"success": False, "error": "Network error"}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         file_info = CropFileProcessingInfo(
@@ -409,8 +425,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["download_file"].side_effect = ConnectionError("Connection refused")
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         file_info = CropFileProcessingInfo(
@@ -432,8 +450,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["crop_svg_file"].return_value = {"success": True}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         file_info = CropFileProcessingInfo(
@@ -458,8 +478,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["crop_svg_file"].return_value = {"success": False, "error": "Invalid SVG"}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         file_info = CropFileProcessingInfo(
@@ -486,8 +508,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["upload_cropped_file"].return_value = {"success": True}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
         processor.site = MagicMock()
 
@@ -512,8 +536,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["upload_cropped_file"].return_value = {"success": False, "file_exists": True}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
         processor.site = MagicMock()
 
@@ -537,8 +563,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["upload_cropped_file"].return_value = {"success": False, "error": "Upload failed"}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
         processor.site = MagicMock()
 
@@ -563,8 +591,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["update_original_file_text"].return_value = "Original file text"  # No change
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
         processor.site = MagicMock()
 
@@ -588,8 +618,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
         processor.site = MagicMock()
 
@@ -612,8 +644,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["MwClientPage"].return_value.edit.return_value = {"success": False, "error": "Edit conflict"}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
         processor.site = MagicMock()
 
@@ -636,8 +670,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["update_template_page_file_reference"].return_value = "Some text"  # No change
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
         processor.site = MagicMock()
 
@@ -662,8 +698,10 @@ class TestCropMainFilesProcessorSteps:
         mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
         processor.site = MagicMock()
 
@@ -687,8 +725,10 @@ class TestCropMainFilesProcessorHelpers:
         """Test _fail updates info status and result summary."""
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         file_info = CropFileProcessingInfo(
@@ -709,8 +749,10 @@ class TestCropMainFilesProcessorHelpers:
         """Test _skip_step updates step status."""
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         file_info = CropFileProcessingInfo(
@@ -729,8 +771,10 @@ class TestCropMainFilesProcessorHelpers:
         """Test _skip_upload_steps marks upload steps as skipped."""
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         file_info = CropFileProcessingInfo(
@@ -755,9 +799,11 @@ class TestCropMainFilesProcessorHelpers:
         cancel_event = threading.Event()
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
-            cancel_event=cancel_event,
+            JobsRunner(
+                job_id=1,
+                user=None,
+                cancel_event=cancel_event,
+            )
         )
 
         assert processor.is_cancelled(check_db=True) is False
@@ -771,8 +817,10 @@ class TestCropMainFilesProcessorHelpers:
         mock_services["is_job_cancelled"].return_value = True
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         assert processor.is_cancelled(check_db=True) is True
@@ -782,8 +830,10 @@ class TestCropMainFilesProcessorHelpers:
         """Test get_priority calculates correct interval."""
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         assert processor.get_priority(5) == 1
@@ -808,9 +858,11 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
-            args={"upload_files": True},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                args={"upload_files": True},
+            )
         )
         processor.site = _site
 
@@ -839,9 +891,11 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
-            args={"upload_files": True},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                args={"upload_files": True},
+            )
         )
         processor.site = _site
         processor.original_dir = tmp_path / "original"
@@ -863,9 +917,11 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_services["crop_svg_file"].return_value = {"success": True}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
-            args={"upload_files": False},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                args={"upload_files": False},
+            )
         )
         _site = mock_site_pages(False)
         processor.site = _site
@@ -906,9 +962,11 @@ class TestCropMainFilesProcessorRun:
         mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
-            args={"upload_files": True},
+            JobsRunner(
+                job_id=1,
+                user=None,
+                args={"upload_files": True},
+            )
         )
 
         result = processor.run()
@@ -939,8 +997,10 @@ class TestCropMainFilesProcessorRun:
         mock_update_job_status.side_effect = LookupError("Job not found")
 
         processor = CropMainFilesWorker(
-            job_id=1,
-            user=None,
+            JobsRunner(
+                job_id=1,
+                user=None,
+            )
         )
 
         result = processor.run()
