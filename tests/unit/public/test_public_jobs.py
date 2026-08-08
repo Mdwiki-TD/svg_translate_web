@@ -99,6 +99,7 @@ def mock_admin() -> MagicMock:
 def mock_jobs_data() -> dict[str, MagicMock]:
     return {
         "test_job": MagicMock(
+            job_type="test_job",
             job_list_template="test_list.html",
             job_details_template="test_detail.html",
             job_name="Test Job",
@@ -125,7 +126,7 @@ def mock_template_data() -> MagicMock:
 def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
     templates_dir = tmp_path / "templates"
     templates_dir.mkdir()
-    (templates_dir / "test_list.html").write_text("list_{{ job_type }}_{{ list_title }}")
+    (templates_dir / "test_list.html").write_text("list_{{ template_data.job_type }}_{{ template_data.job_name }}")
     (templates_dir / "test_detail.html").write_text("detail_{{ job_id }}_{{ job_type }}_{{ expand_all }}")
 
     app = Flask(__name__, template_folder=str(templates_dir))
