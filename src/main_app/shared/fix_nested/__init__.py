@@ -1,4 +1,3 @@
-
 from .objects import DetectionResult, VerificationResult
 
 __all__ = [

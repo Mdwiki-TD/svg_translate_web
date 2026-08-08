@@ -16,9 +16,9 @@ from ....config import settings
 from ....shared.copysvg_wrapper import (
     ExtractResult,
     InjectResult,
+    MatchFixNestedTags,
     extract_from_path,
     inject_step_one_file,
-    MatchFixNestedTags,
 )
 from ....shared.fix_nested import (
     DetectionResult,
