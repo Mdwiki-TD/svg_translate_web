@@ -5,61 +5,40 @@
 {% block list_info %}
 <form method="post" action="{{ url_for('public_jobs.start_job', job_type=job_type) }}"
     class="row gy-2 gx-3 align-items-center mb-4">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    {{ form.hidden_tag() }}
+
     <div class="col-sm-12 col-md-4">
-        <label for="title" class="form-label">Template Title</label>
-        <input type="text" class="form-control wiki-autocomplete-templates" id="title" name="title"
-            value="{{ form.title if form and form.title else 'Template:OWID/Death rate from obesity'}}" required>
+        {{ form.title.label(class="form-label") }}
+        {{ form.title(class="form-control wiki-autocomplete-templates" ~ (" is-invalid" if form.title.errors else "")) }}
+        {% for error in form.title.errors %}
+        <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
     </div>
+
     <div class="col-sm-12 col-md-3">
-        <label for="manual_main_title" class="form-label">Manual Oldest File Title (optional)</label>
-        <input type="text" class="form-control" id="manual_main_title" name="manual_main_title"
-            value="{{ form.manual_main_title if form and form.manual_main_title else '' }}"
-            placeholder="File:Example.svg">
+        {{ form.manual_main_title.label(class="form-label") }}
+        {{ form.manual_main_title(class="form-control") }}
     </div>
+
     <div class="col-6 col-md-3 col-sm-12">
         <div class="row">
             <div class="col-sm-12">
                 <div class="form-check form-switch mt-2">
-                    <input class="form-check-input" type="checkbox" value="1" id="overwrite_translations"
-                        name="overwrite_translations"
-                        {{ 'checked' if not form or form.overwrite_translations == "1" else '' }}>
-                    <label class="form-check-label" for="overwrite_translations">
-                        Overwrite Existing translations
-                    </label>
+                    {{ form.overwrite_translations(class="form-check-input") }}
+                    {{ form.overwrite_translations.label(class="form-check-label") }}
                 </div>
             </div>
             <div class="col-sm-12">
-                {# Determine initial checked state based on settings or form data #}
-                {% set is_checked = false %}
-
-                {% if form and form.upload == "1" %}
-                {% set is_checked = true %}
-                {% elif not form and not (all_settings and all_settings.copy_svg_langs_upload_disabled_by_default) %}
-                {% set is_checked = true %}
-                {% endif %}
-
                 <div class="form-check form-switch mt-2">
-                    <input class="form-check-input" type="checkbox" value="1" id="upload" name="upload"
-                        {% if is_checked %}checked{% endif %}>
-                    <label class="form-check-label" for="upload">
-                        Upload Files
-                    </label>
+                    {{ form.upload(class="form-check-input") }}
+                    {{ form.upload.label(class="form-check-label") }}
                 </div>
-                <!-- <div class="col-sm-12">
-                    <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" value="1" id="ignore_existing_task"
-                            name="ignore_existing_task" {{ 'checked' if form and form.ignore_existing_task else '' }}>
-                        <label class="form-check-label" for="ignore_existing_task">
-                            Ignore existing tasks
-                        </label>
-                    </div>
-                </div> -->
             </div>
         </div>
     </div>
     <div class="col-sm-12 col-md-2 d-flex align-items-end">
-        <button type="submit" class="btn btn-outline-primary w-100">Start</button>
+        {{ form.submit(class="btn btn-outline-primary w-100") }}
+    </div>
     </div>
 </form>
 {% endblock %}
