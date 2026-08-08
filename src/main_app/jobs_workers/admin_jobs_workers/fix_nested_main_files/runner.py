@@ -13,25 +13,17 @@ from .worker import FixNestedMainFilesWorker
 logger = logging.getLogger(__name__)
 
 
+from ...objects import JobsRunner
+
+
 def fix_nested_main_files_for_templates(
-    *,
-    job_id: int,
-    user: dict[str, Any],
-    cancel_event: threading.Event | None = None,
-    args: dict[str, Any] | None = None,
-    form_data: dict[str, Any] | None = None,
+    data: JobsRunner,
 ) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.
-
-    Args:
-        job_id: The job ID
-        user: User authentication data for OAuth uploads
-        cancel_event: Optional event to check for cancellation
-        args: Optional arguments dict (unused, for unified signature)
     """
-    logger.info("Starting job %s: fix nested tags for template main files", job_id)
-    worker = FixNestedMainFilesWorker(job_id, user, cancel_event, args)
+    logger.info("Starting job %s: fix nested tags for template main files", data.job_id)
+    worker = FixNestedMainFilesWorker(data.job_id, data.user, data.cancel_event, data.args)
     worker.run()
 
 

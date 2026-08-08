@@ -50,25 +50,17 @@ def create_main_files_zip() -> tuple[Any, int]:
     )
 
 
+from ...objects import JobsRunner
+
+
 def download_main_files_for_templates(
-    *,
-    job_id: int,
-    user: dict[str, Any],
-    cancel_event: threading.Event | None = None,
-    args: dict[str, Any] | None = None,
-    form_data: dict[str, Any] | None = None,
+    data: JobsRunner,
 ) -> None:
     """
     Background worker to download main files for all templates.
-
-    Args:
-        job_id: The job ID
-        user: User authentication data (not used for downloads, but kept for consistency)
-        cancel_event: Optional event to check for cancellation
-        args: Optional arguments dict (unused, for unified signature)
     """
-    logger.info("Starting job %s: download main files for templates", job_id)
-    worker = DownloadMainFilesWorker(job_id, user, cancel_event, args)
+    logger.info("Starting job %s: download main files for templates", data.job_id)
+    worker = DownloadMainFilesWorker(data.job_id, data.user, data.cancel_event, data.args)
     worker.run()
 
 

@@ -13,22 +13,20 @@ from .worker import FixNestedJobsProcessor
 logger = logging.getLogger(__name__)
 
 
+from ...objects import JobsRunner
+
+
 # --- main pipeline --------------------------------------------
 def fix_nested_jobs_worker_entry(
-    *,
-    job_id: int,
-    user: dict[str, Any],
-    cancel_event: threading.Event | None = None,
-    args: dict[str, Any] | None = None,
-    form_data: dict[str, Any] | None = None,
+    data: JobsRunner,
 ) -> None:
     """Entry point for the background job."""
 
     worker = FixNestedJobsProcessor(
-        job_id=job_id,
-        user=user,
-        cancel_event=cancel_event,
-        args=args,
+        job_id=data.job_id,
+        user=data.user,
+        cancel_event=data.cancel_event,
+        args=data.args,
     )
     worker.run()
 
