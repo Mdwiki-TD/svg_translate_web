@@ -21,12 +21,7 @@ def collect_templates_data_entry(data: JobsRunner) -> None:
     """
 
     logger.info(f"Starting job {data.job_id}: collect templates data")
-    worker = CollectMainFilesWorker(
-        job_id=data.job_id,
-        user=data.user,
-        cancel_event=data.cancel_event,
-        args=data.args,
-    )
+    worker = CollectMainFilesWorker(data)
     worker.run()
 
 

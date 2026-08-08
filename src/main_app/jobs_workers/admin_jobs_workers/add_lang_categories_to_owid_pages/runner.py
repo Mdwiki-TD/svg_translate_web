@@ -15,12 +15,7 @@ logger = logging.getLogger(__name__)
 def add_lang_categories_to_owid_pages_entry(data: JobsRunner) -> None:
     """Background worker entry-point."""
     logger.info("Starting job %s: add language categories to OWID pages", data.job_id)
-    worker = AddLangCategoriesWorker(
-        job_id=data.job_id,
-        user=data.user,
-        cancel_event=data.cancel_event,
-        args=data.args,
-    )
+    worker = AddLangCategoriesWorker(data)
     worker.run()
 
 

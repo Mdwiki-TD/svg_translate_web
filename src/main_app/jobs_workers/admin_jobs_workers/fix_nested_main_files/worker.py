@@ -6,10 +6,8 @@ from __future__ import annotations
 
 import logging
 import tempfile
-import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 from mwclient.client import Site
 
@@ -24,6 +22,7 @@ from ....shared.fix_nested.worker import (
     verify_fix,
 )
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from .objects import FixNestedMainFilesWorkerObject, TemplateInfo
 
 logger = logging.getLogger(__name__)
@@ -32,16 +31,10 @@ logger = logging.getLogger(__name__)
 class FixNestedMainFilesWorker(BaseObjectsJobWorker):
     """Worker for fixing nested tags in main files of templates."""
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
-        super().__init__(job_id, user, cancel_event)
+    def __init__(self, data: JobsRunner) -> None:
+        super().__init__(data.job_id, data.user, data.cancel_event)
         self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject()
-        self.args = args or {}
+        self.args = data.args or {}
         self.result.args = self.args
         self.site: Site | None = None
 

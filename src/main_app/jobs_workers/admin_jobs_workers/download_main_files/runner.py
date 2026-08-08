@@ -55,7 +55,7 @@ def download_main_files_for_templates(data: JobsRunner) -> None:
     Background worker to download main files for all templates.
     """
     logger.info("Starting job %s: download main files for templates", data.job_id)
-    worker = DownloadMainFilesWorker(data.job_id, data.user, data.cancel_event, data.args)
+    worker = DownloadMainFilesWorker(data)
     worker.run()
 
 

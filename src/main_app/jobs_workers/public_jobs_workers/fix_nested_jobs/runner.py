@@ -16,12 +16,7 @@ logger = logging.getLogger(__name__)
 def fix_nested_jobs_worker_entry(data: JobsRunner) -> None:
     """Entry point for the background job."""
 
-    worker = FixNestedJobsProcessor(
-        job_id=data.job_id,
-        user=data.user,
-        cancel_event=data.cancel_event,
-        args=data.args,
-    )
+    worker = FixNestedJobsProcessor(data)
     worker.run()
 
 

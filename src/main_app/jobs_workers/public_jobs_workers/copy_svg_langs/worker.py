@@ -7,7 +7,6 @@ from __future__ import annotations
 import json
 import logging
 import re
-import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -29,6 +28,7 @@ from ....shared.fix_nested import (
     VerificationResult,
 )
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
 from .steps import (
     extract_text_step,
@@ -356,20 +356,14 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     Worker for copying SVG translations from a main file to its versions.
     """
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
-        self.user: dict[str, Any] = user
+    def __init__(self, data: JobsRunner) -> None:
+        self.user: dict[str, Any] = data.user
 
-        super().__init__(job_id, user, cancel_event)
+        super().__init__(data.job_id, data.user, data.cancel_event)
         self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject()
         self.result.job_id = self.job_id
 
-        args = args or {}
+        args = data.args or {}
         self.manual_main_title = args.get("manual_main_title")
         self.result.args = args
         self.title = args.get("title")

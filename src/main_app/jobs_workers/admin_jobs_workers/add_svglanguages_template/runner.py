@@ -18,12 +18,7 @@ def add_svglanguages_template_to_templates(data: JobsRunner) -> None:
     """
     logger.info("Starting job %s: add {{SVGLanguages|...}} template to templates pages.", data.job_id)
 
-    worker = AddSvgSVGLanguagesTemplate(
-        job_id=data.job_id,
-        user=data.user,
-        cancel_event=data.cancel_event,
-        args=data.args,
-    )
+    worker = AddSvgSVGLanguagesTemplate(data)
     worker.run()
 
 

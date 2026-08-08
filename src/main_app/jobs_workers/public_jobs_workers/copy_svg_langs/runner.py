@@ -24,17 +24,10 @@ def setup_svg_langs_form(all_settings: dict[str, Any] | None = None) -> CopySvgL
     return form
 
 
-def copy_svg_langs_worker_entry(
-    data: JobsRunner,
-) -> None:
+def copy_svg_langs_worker_entry(data: JobsRunner) -> None:
     """Entry point for the background job."""
 
-    worker = CopySvgLangsWorker(
-        job_id=data.job_id,
-        user=data.user,
-        cancel_event=data.cancel_event,
-        args=data.args,
-    )
+    worker = CopySvgLangsWorker(data)
     worker.run()
 
 

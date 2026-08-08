@@ -16,12 +16,7 @@ def crop_main_files_worker_entry(data: JobsRunner) -> None:
     """
     Entry point for crop newest world files background job.
     """
-    worker = CropMainFilesWorker(
-        job_id=data.job_id,
-        user=data.user,
-        cancel_event=data.cancel_event,
-        args=data.args,
-    )
+    worker = CropMainFilesWorker(data)
     worker.run()
 
 

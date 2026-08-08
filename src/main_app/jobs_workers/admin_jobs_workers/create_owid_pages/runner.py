@@ -18,12 +18,7 @@ def create_owid_pages_for_templates(data: JobsRunner) -> None:
     """
     logger.info("Starting job %s: create OWID pages for templates", data.job_id)
 
-    worker = CreateOwidPagesWorker(
-        job_id=data.job_id,
-        user=data.user,
-        cancel_event=data.cancel_event,
-        args=data.args,
-    )
+    worker = CreateOwidPagesWorker(data)
     worker.run()
 
 

@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import logging
 import re
-import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -29,6 +28,7 @@ from ....api_services import _fetch_grapher_metadata
 from ....db.models import OwidChartRecord
 from ....db.services import OwidChartsService
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from ..slugs_helpers import check_slugs
 from .objects import UpdateOwidChartsWorkerObject
 
@@ -132,17 +132,11 @@ class ChartUpdateInfo:
 class UpdateOwidChartsWorker(BaseObjectsJobWorker):
     """Refresh ``min_time`` / ``max_time`` / ``len_years`` for every OWID chart."""
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
-        super().__init__(job_id, user, cancel_event)
+    def __init__(self, data: JobsRunner) -> None:
+        super().__init__(data.job_id, data.user, data.cancel_event)
         self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject()
 
-        self.args = args or {}
+        self.args = data.args or {}
         self.result.args = self.args
         self.limit_items = self.args.get("limit_items") or 0
         self.owid_charts_service = OwidChartsService()
