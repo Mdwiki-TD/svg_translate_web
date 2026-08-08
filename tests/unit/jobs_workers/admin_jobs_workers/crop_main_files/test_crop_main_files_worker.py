@@ -15,6 +15,8 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import 
     CropMainFilesWorker,
 )
 
+from ......src.main_app.jobs_workers.objects import JobsRunner
+
 
 @pytest.fixture
 def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_worker):
@@ -110,7 +112,12 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_worker):
 
 def test_crop_main_files_worker_entry_started_at_timestamp(mock_base_worker):
     """Test that started_at timestamp is set correctly."""
-    w = CropMainFilesWorker(job_id=1, user=None)
+    w = CropMainFilesWorker(
+        JobsRunner(
+            job_id=1,
+            user=None,
+        )
+    )
     result = w.result
     assert result.started_at is not None
     datetime.fromisoformat(result.started_at)
@@ -118,7 +125,12 @@ def test_crop_main_files_worker_entry_started_at_timestamp(mock_base_worker):
 
 def test_crop_main_files_worker_entry_initializes_result(mock_base_worker):
     """Test that result structure is properly initialized."""
-    w = CropMainFilesWorker(job_id=1, user=None)
+    w = CropMainFilesWorker(
+        JobsRunner(
+            job_id=1,
+            user=None,
+        )
+    )
     result = w.result
 
     assert result.status == "pending"
@@ -136,19 +148,40 @@ def test_crop_main_files_worker_entry_initializes_result(mock_base_worker):
 
 def test_crop_main_files_worker_reads_upload_limit_from_args(mock_base_worker):
     """Test CropMainFilesWorker reads upload_limit from args."""
-    w = CropMainFilesWorker(job_id=1, user=None, cancel_event=None, args={"upload_limit": 5})
+    w = CropMainFilesWorker(
+        JobsRunner(
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"upload_limit": 5},
+        )
+    )
     assert w.upload_limit == 5
 
 
 def test_crop_main_files_worker_defaults_upload_limit_when_args_none(mock_base_worker):
     """Test CropMainFilesWorker defaults upload_limit to None when args is None."""
-    w = CropMainFilesWorker(job_id=1, user=None, cancel_event=None, args=None)
+    w = CropMainFilesWorker(
+        JobsRunner(
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args=None,
+        )
+    )
     assert w.upload_limit == 0
 
 
 def test_crop_main_files_worker_defaults_upload_limit_when_key_missing(mock_base_worker):
     """Test CropMainFilesWorker defaults upload_limit to None when key is missing."""
-    w = CropMainFilesWorker(job_id=1, user=None, cancel_event=None, args={"other_key": "value"})
+    w = CropMainFilesWorker(
+        JobsRunner(
+            job_id=1,
+            user=None,
+            cancel_event=None,
+            args={"other_key": "value"},
+        )
+    )
     assert w.upload_limit == 0
 
 

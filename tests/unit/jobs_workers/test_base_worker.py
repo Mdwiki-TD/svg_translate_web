@@ -6,8 +6,16 @@ import pytest
 
 from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker
 
+from ....src.main_app.jobs_workers.objects import JobsRunner
+
 
 class TestBaseObjectsJobWorkerAbstract:
     def test_cannot_instantiate_without_methods(self):
         with pytest.raises(TypeError):
-            BaseObjectsJobWorker(job_id=1, user=None, cancel_event=None)
+            BaseObjectsJobWorker(
+                JobsRunner(
+                    job_id=1,
+                    user=None,
+                    cancel_event=None,
+                )
+            )

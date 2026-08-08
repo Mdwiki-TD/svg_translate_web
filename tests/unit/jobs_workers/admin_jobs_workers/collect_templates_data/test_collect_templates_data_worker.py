@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker
 
+from ......src.main_app.jobs_workers.objects import JobsRunner
+
 
 def test_worker_class_get_job_type():
     """Test CollectMainFilesWorker.get_job_type returns correct type."""
     import threading
 
-    _worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+    _worker = worker.CollectMainFilesWorker(JobsRunner(job_id=1, user=None, cancel_event=threading.Event()))
     assert _worker.get_job_type() == "collect_templates_data"
 
 
@@ -17,7 +19,7 @@ def test_worker_class_get_initial_result():
     """Test CollectMainFilesWorker initial result structure."""
     import threading
 
-    _worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+    _worker = worker.CollectMainFilesWorker(JobsRunner(job_id=1, user=None, cancel_event=threading.Event()))
     result = _worker.result
 
     assert result.summary.total == 0
@@ -31,7 +33,7 @@ def test_worker_init_update_all_defaults_to_false():
     """Test CollectMainFilesWorker initializes update_all=False by default."""
     import threading
 
-    _worker = worker.CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+    _worker = worker.CollectMainFilesWorker(JobsRunner(job_id=1, user=None, cancel_event=threading.Event()))
     assert _worker.update_all is False
 
 

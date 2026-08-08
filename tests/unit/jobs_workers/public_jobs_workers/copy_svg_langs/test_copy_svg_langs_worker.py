@@ -15,6 +15,8 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import 
 )
 from src.main_app.shared.copysvg_wrapper import ExtractResult, InjectResult
 
+from ......src.main_app.jobs_workers.objects import JobsRunner
+
 
 @dataclass
 class MockSteps:
@@ -137,7 +139,13 @@ def mock_clients(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
 def mock_worker():
     user = {"username": "testuser", "id": 123}
     args = {"title": "File:Test.svg", "upload": True}
-    _worker = CopySvgLangsWorker(job_id=1, user=user, args=args)
+    _worker = CopySvgLangsWorker(
+        JobsRunner(
+            job_id=1,
+            user=user,
+            args=args,
+        )
+    )
     _worker._save_progress = MagicMock()
     return _worker
 
