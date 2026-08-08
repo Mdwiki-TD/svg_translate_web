@@ -18,6 +18,7 @@ from src.main_app.jobs_workers.jobs_worker import (
     start_job,
     start_job_cli,
 )
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
@@ -69,11 +70,13 @@ def test_runner(flask_app):
     _runner(1, {"user": "test"}, cancel_event, target, flask_app, {"a": 1}, {"form_key": "form_val"})
 
     target.assert_called_once_with(
-        job_id=1,
-        user={"user": "test"},
-        cancel_event=cancel_event,
-        args={"a": 1},
-        form_data={"form_key": "form_val"},
+        JobsRunner(
+            job_id=1,
+            user={"user": "test"},
+            cancel_event=cancel_event,
+            args={"a": 1},
+            form_data={"form_key": "form_val"},
+        )
     )
     assert _pop_cancel_event(1) is None  # should be popped
 
@@ -86,11 +89,13 @@ def test_runner_no_form_data(flask_app):
     _runner(1, {"user": "test"}, cancel_event, target, flask_app, {"a": 1})
 
     target.assert_called_once_with(
-        job_id=1,
-        user={"user": "test"},
-        cancel_event=cancel_event,
-        args={"a": 1},
-        form_data=None,
+        JobsRunner(
+            job_id=1,
+            user={"user": "test"},
+            cancel_event=cancel_event,
+            args={"a": 1},
+            form_data=None,
+        )
     )
     assert _pop_cancel_event(1) is None  # should be popped
 
@@ -115,7 +120,7 @@ def test_cancel_job_worker(mock_db_services):
 class TestStartJob:
     @patch(
         "src.main_app.jobs_workers.jobs_worker.jobs_data_admins",
-        {"test": MagicMock(job_callable=lambda **kwargs: None, job_args=[])},
+        {"test": MagicMock(job_callable=lambda *args, **kwargs: None, job_args=[])},
     )
     def test_start_job_success(self, mock_db_services, flask_app):
         mock_db_services["create"].return_value = MagicMock(id=123)
@@ -136,7 +141,7 @@ class TestStartJob:
 
     @patch(
         "src.main_app.jobs_workers.jobs_worker.jobs_data_admins",
-        {"test": MagicMock(job_callable=lambda **kwargs: None, job_args=[])},
+        {"test": MagicMock(job_callable=lambda *args, **kwargs: None, job_args=[])},
     )
     def test_start_job_duplicate(self, mock_db_services, flask_app):
         mock_db_services["create"].side_effect = DuplicateRecordError()
@@ -146,7 +151,7 @@ class TestStartJob:
 
     @patch(
         "src.main_app.jobs_workers.jobs_worker.jobs_data_admins",
-        {"test": MagicMock(job_callable=lambda **kwargs: None, job_args=[])},
+        {"test": MagicMock(job_callable=lambda *args, **kwargs: None, job_args=[])},
     )
     def test_start_job_cli_success(self, mock_db_services, flask_app):
         mock_db_services["create"].return_value = MagicMock(id=456)

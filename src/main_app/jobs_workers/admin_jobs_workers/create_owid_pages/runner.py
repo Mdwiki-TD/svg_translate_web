@@ -13,28 +13,33 @@ from .worker import CreateOwidPagesWorker
 logger = logging.getLogger(__name__)
 
 
+from ...objects import JobsRunner
+
+
 def create_owid_pages_for_templates(
+    data: JobsRunner | None = None,
     *,
-    job_id: int,
-    user: dict[str, Any],
+    job_id: int | None = None,
+    user: dict[str, Any] | None = None,
     cancel_event: threading.Event | None = None,
     args: dict[str, Any] | None = None,
     form_data: dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker
-
-    Args:
-        job_id: The job ID
-        user: User authentication data
-        cancel_event: Threading event for cancellation
-        args: Optional arguments dict (unused, for unified signature)
     """
+    if data is not None:
+        job_id = data.job_id
+        user = data.user
+        cancel_event = data.cancel_event
+        args = data.args
+        form_data = data.form_data
+
     logger.info("Starting job %s: create OWID pages for templates", job_id)
 
     worker = CreateOwidPagesWorker(
-        job_id=job_id,
-        user=user,
+        job_id=job_id,  # type: ignore
+        user=user,      # type: ignore
         cancel_event=cancel_event,
         args=args,
     )
