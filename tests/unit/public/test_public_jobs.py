@@ -51,7 +51,7 @@ def mock_deps(
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.url_for", deps.url_for)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.render_template", deps.render_template)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_user", deps.load_user)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.can_manage_job", deps.can_manage_job)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.SharedJobRoutes.can_manage_job", deps.can_manage_job)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.cancel_job_worker", deps.cancel_job_worker)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_auth_payload", deps.load_auth_payload)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.start_job", deps.start_job)
