@@ -23,7 +23,7 @@ from ..db.exceptions import DuplicateRecordError
 from ..db.services import JobsService, SettingsService
 from ..jobs_workers.jobs_worker import (
     cancel_job_worker,
-    start_job,
+    start_job_form,
 )
 from ..jobs_workers.objects import JobData
 from ..su_services import load_job_result
@@ -138,7 +138,7 @@ class SharedJobRoutes:
             return None
 
         try:
-            job_id = start_job(auth_payload, job_type, args)
+            job_id = start_job_form(auth_payload, job_type, args, form_data)
             flash(f"Job {job_id} started to {job_type}.", "success")
             return job_id
         except DuplicateRecordError:

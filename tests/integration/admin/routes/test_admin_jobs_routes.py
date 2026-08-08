@@ -97,7 +97,7 @@ class TestJobsRoutes(TestSetup):
         assert response.status_code == 200
         mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
 
-    @patch("src.main_app.public.shared_jobs_routes.start_job")
+    @patch("src.main_app.public.shared_jobs_routes.start_job_form")
     @patch("src.main_app.public.shared_jobs_routes.load_auth_payload")
     def test_start_collect_templates_data_job_route(
         self, mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch
@@ -228,7 +228,7 @@ class TestJobsRoutes(TestSetup):
         assert response.status_code == 200
         mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
 
-    @patch("src.main_app.public.shared_jobs_routes.start_job")
+    @patch("src.main_app.public.shared_jobs_routes.start_job_form")
     @patch("src.main_app.public.shared_jobs_routes.load_auth_payload")
     def test_start_fix_nested_main_files_job_route(
         self, mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch
@@ -530,7 +530,7 @@ class TestJobsRoutes(TestSetup):
         assert response.status_code == 200
         mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
 
-    @patch("src.main_app.public.shared_jobs_routes.start_job")
+    @patch("src.main_app.public.shared_jobs_routes.start_job_form")
     @patch("src.main_app.public.shared_jobs_routes.load_auth_payload")
     def test_start_download_main_files_job_route(self, mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch):
         """Test that the start download main files job route works."""
@@ -664,7 +664,7 @@ class TestJobsRoutes(TestSetup):
         assert response.status_code == 200
         mock_flash.assert_called_once_with("You must be logged in to start this job.", "danger")
 
-    @patch("src.main_app.public.shared_jobs_routes.start_job")
+    @patch("src.main_app.public.shared_jobs_routes.start_job_form")
     @patch("src.main_app.public.shared_jobs_routes.load_auth_payload")
     def test_start_job_handles_exception(self, mock_load_auth, mock_start_job, admin_jobs_client, monkeypatch):
         """Test that job start handles exceptions gracefully."""

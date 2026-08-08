@@ -170,6 +170,7 @@ def _start_job_impl(
 
     return job.id
 
+
 def start_job_form(
     auth_payload: dict[str, Any] | None,
     job_type: str,
