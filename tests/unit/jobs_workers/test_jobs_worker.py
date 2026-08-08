@@ -24,6 +24,7 @@ from src.main_app.jobs_workers.jobs_worker import (
     cancel_job_worker,
     start_job,
 )
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 def test_cancel_event_management():
@@ -51,11 +52,13 @@ def test_runner():
     _runner(job_id, user, cancel_event, target_func, src, args)
 
     target_func.assert_called_once_with(
-        job_id=job_id,
-        user=user,
-        cancel_event=cancel_event,
-        args=args,
-        form_data=None,
+        JobsRunner(
+            job_id=job_id,
+            user=user,
+            cancel_event=cancel_event,
+            args=args,
+            form_data=None,
+        )
     )
     assert _get_jobs_cancel_event(job_id) is None
 

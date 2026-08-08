@@ -16,7 +16,7 @@ from ..db.services import (
 )
 from ..su_services.jobs_files_service import create_job_cancelled_file
 from .admin_jobs_workers.workers_list import jobs_data_admins
-from .objects import JobData
+from .objects import JobData, JobsRunner
 from .public_jobs_workers.workers_list_public import jobs_data_public
 
 logger = logging.getLogger(__name__)
@@ -76,13 +76,14 @@ def _runner(
     """
     with flask_app.app_context():
         try:
-            target_func(
+            runner_data = JobsRunner(
                 job_id=job_id,
                 user=user,
                 cancel_event=cancel_event,
                 args=args,
                 form_data=form_data,
             )
+            target_func(runner_data)
         finally:
             _pop_cancel_event(job_id)
 
