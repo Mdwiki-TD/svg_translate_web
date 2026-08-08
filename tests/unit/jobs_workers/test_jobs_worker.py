@@ -55,6 +55,7 @@ def test_runner():
         user=user,
         cancel_event=cancel_event,
         args=args,
+        form_data=None,
     )
     assert _get_jobs_cancel_event(job_id) is None
 

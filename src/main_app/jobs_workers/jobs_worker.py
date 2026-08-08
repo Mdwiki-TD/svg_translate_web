@@ -69,9 +69,10 @@ def _runner(
     target_func: Any,
     flask_app: Flask,
     args: dict[str, Any] | None = None,
+    form_data: dict[str, Any] | None = None,
 ) -> None:
     """
-    args=(job.id, user, cancel_event, target_func, flask_app, args),
+    args=(job.id, user, cancel_event, target_func, flask_app, args, form_data),
     """
     with flask_app.app_context():
         try:
@@ -80,6 +81,7 @@ def _runner(
                 user=user,
                 cancel_event=cancel_event,
                 args=args,
+                form_data=form_data,
             )
         finally:
             _pop_cancel_event(job_id)
