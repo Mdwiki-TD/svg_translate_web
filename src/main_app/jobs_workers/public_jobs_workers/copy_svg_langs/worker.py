@@ -449,17 +449,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         return out
 
-    def _save_files_stats(self, stats_data) -> None:
-        files_stats_path = self.config.output_dir / "files_stats.json"
-        try:
-            with open(files_stats_path, "w", encoding="utf-8") as f:
-                json.dump(stats_data, f, indent=4, ensure_ascii=False)
-
-        except (OSError, TypeError, ValueError) as e:
-            logger.error(f"Error saving json: {e!s}, path: {files_stats_path!s}")
-        except Exception:
-            logger.exception(f"Unexpected error saving json, path: {files_stats_path!s}")
-
     def _extract_titles_step(self) -> bool:
         stage = self.result.stages.titles
 

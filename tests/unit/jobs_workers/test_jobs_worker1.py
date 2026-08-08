@@ -71,10 +71,12 @@ def test_start_collect_templates_data_job(mock_services):
     mock_services["create_job"].assert_called_once_with("collect_templates_data", "22")
     mock_services["Thread"].assert_called_once()
     # Verify the thread was started with correct arguments
-    args = mock_services["Thread"].call_args[1]["args"]
-    assert args[0] == 1  # job_id
-    assert args[1] == {"username": "22"}  # user
-    assert isinstance(args[2], threading.Event)
+    thread_args = mock_services["Thread"].call_args[1]["args"]
+    runner_data = thread_args[0]
+    assert isinstance(runner_data, JobsRunner)
+    assert runner_data.job_id == 1
+    assert runner_data.user == {"username": "22"}
+    assert isinstance(runner_data.cancel_event, threading.Event)
     mock_thread_instance.start.assert_called_once()
 
     # Verify event was registered
@@ -279,8 +281,9 @@ def test_start_job_param(mock_services):
     assert job_id == 10
     mock_services["Thread"].assert_called_once()
     thread_args = mock_services["Thread"].call_args[1]["args"]
-    # args tuple: (job_id, user, cancel_event, target_func, flask_app, args)
-    assert thread_args[5] == args
+    runner_data = thread_args[0]
+    assert isinstance(runner_data, JobsRunner)
+    assert runner_data.args == args
 
 
 def test_start_job_without_args_passes_none(mock_services):
@@ -298,8 +301,9 @@ def test_start_job_without_args_passes_none(mock_services):
 
     assert job_id == 11
     thread_args = mock_services["Thread"].call_args[1]["args"]
-    # args tuple: (job_id, user, cancel_event, target_func, flask_app, args)
-    assert thread_args[5] == {}
+    runner_data = thread_args[0]
+    assert isinstance(runner_data, JobsRunner)
+    assert runner_data.args == {}
 
 
 def test_start_job_is_alias_for_start_job():
@@ -325,4 +329,6 @@ def test_start_job_alias_works(mock_services):
     assert job_id == 12
     mock_services["create_job"].assert_called_once_with("collect_templates_data", "alias_user")
     thread_args = mock_services["Thread"].call_args[1]["args"]
-    assert thread_args[5] == args
+    runner_data = thread_args[0]
+    assert isinstance(runner_data, JobsRunner)
+    assert runner_data.args == args

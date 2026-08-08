@@ -299,23 +299,6 @@ class TestCopySvgLangsWorkerProcess:
     def test_compute_output_dir_none(self, mock_worker: CopySvgLangsWorker):
         assert mock_worker._compute_output_dir(None) is None
 
-    def test_save_files_stats_error(self, mock_worker: CopySvgLangsWorker, tmp_path):
-        mock_worker.config.output_dir = tmp_path
-        bad_path = tmp_path / "files_stats.json"
-        bad_path.mkdir()
-
-        # Should not raise exception
-        mock_worker._save_files_stats({"data": "test"})
-
-    def test_save_files_stats_unexpected_exception(self, mock_worker: CopySvgLangsWorker, tmp_path):
-        mock_worker.config.output_dir = tmp_path
-
-        with patch(
-            "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.json.dump",
-            side_effect=RuntimeError("unexpected"),
-        ):
-            mock_worker._save_files_stats({"key": "value"})
-
 
 class TestCopySvgLangsWorkerInjectStepFile:
     """tests for the inject_step_file function"""
