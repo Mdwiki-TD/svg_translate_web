@@ -5,9 +5,22 @@ Objects for copy_svg_langs worker.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import Any
 
 from ...shared_objects import StandardAdminWorkerObject
+
+
+@dataclass
+class SvgLangsConfig:
+    upload: bool | None
+    upload_files: bool | None
+    upload_limit: int = 0
+    limit_items: int = 0
+    overwrite_translations: bool = True
+    overwrite_download: bool = True
+    output_dir: Path | None = None
+    output_dir_files: Path | None = None
 
 
 @dataclass
@@ -104,6 +117,7 @@ class CopySvgLangsWorkerObject(StandardAdminWorkerObject):
 
 
 __all__ = [
+    "SvgLangsConfig",
     "StepResult",
     "FileSteps",
     "FilesProcessedItem",

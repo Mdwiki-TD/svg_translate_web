@@ -30,10 +30,10 @@ def mock_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
         "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.check_slugs", mock_check_slugs
     )
 
-    # _fetch_grapher_metadata returns (metadata, status_code)
+    # fetch_grapher_metadata_raw returns (metadata, status_code)
     mock_fetch = MagicMock(return_value=(None, 200))
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker._fetch_grapher_metadata", mock_fetch
+        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.fetch_grapher_metadata_raw", mock_fetch
     )
 
     mock_service = MagicMock()

@@ -78,7 +78,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
     mock_download = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.download_one_file", mock_download
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.FilesService.download_one_file",
+        mock_download,
     )
 
     mock_detect = MagicMock()
@@ -105,7 +106,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
     mock_upload = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.upload_fixed_svg", mock_upload
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.FilesService.upload_fixed_svg", mock_upload
     )
 
     return MockServices(
@@ -576,7 +577,7 @@ class TestCopySvgLangsWorkerUploadStep:
         mock_worker.files_processor.config.upload_limit = 5
         mock_worker.files_processor.upload_done = 0
         mock_worker.site = MagicMock()
-        mock_worker.files_processor.site = MagicMock()
+        mock_worker.files_service.site = MagicMock()
 
         mock_services.upload.return_value = {"ok": True, "error": "", "msg": "uploaded"}
         title_info = FilesProcessedItem(title="File:Test.svg")
@@ -594,7 +595,7 @@ class TestCopySvgLangsWorkerUploadStep:
         mock_worker.files_processor.config = mock_worker.config
 
         mock_worker.site = MagicMock()
-        mock_worker.files_processor.site = MagicMock()
+        mock_worker.files_service.site = MagicMock()
 
         mock_services.upload.return_value = {
             "ok": None,
@@ -615,7 +616,7 @@ class TestCopySvgLangsWorkerUploadStep:
         mock_worker.files_processor.config = mock_worker.config
 
         mock_worker.site = MagicMock()
-        mock_worker.files_processor.site = MagicMock()
+        mock_worker.files_service.site = MagicMock()
 
         mock_services.upload.return_value = {
             "ok": False,
@@ -861,7 +862,7 @@ class TestCopySvgLangsWorkerStageMethods:
     def test_extract_text_step_exception(self, mock_worker: CopySvgLangsWorker, mock_steps: MockSteps):
         mock_worker.title = "File:Test.svg"
         mock_worker.site = MagicMock()
-        mock_worker.files_processor.site = MagicMock()
+        mock_worker.files_service.site = MagicMock()
 
         mock_steps.text.side_effect = ValueError("connection error")
 

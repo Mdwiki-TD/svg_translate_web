@@ -11,7 +11,7 @@ from pathlib import Path
 
 from mwclient.client import Site
 
-from ....api_services import download_svg_file, upload_fixed_svg
+from ....api_services.files_service import download_svg_file, upload_fixed_svg
 from ....db.models import TemplateRecord
 from ....db.services import TemplateService
 from ....shared.fix_nested.worker import (

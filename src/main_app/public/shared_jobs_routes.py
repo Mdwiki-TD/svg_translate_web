@@ -21,12 +21,12 @@ from werkzeug.wrappers.response import Response
 
 from ..db.exceptions import DuplicateRecordError
 from ..db.services import JobsService, SettingsService
+from ..io import load_job_result
 from ..jobs_workers.jobs_worker import (
     cancel_job_worker,
     start_job_form,
 )
 from ..jobs_workers.objects import JobData
-from ..io import load_job_result
 from .auth.utils import load_user
 from .utils.routes_utils import can_run_bg_jobs, load_auth_payload
 

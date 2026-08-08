@@ -6,14 +6,12 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import requests
 from mwclient.client import Site
 
-from ....api_services import create_commons_session, download_one_file, upload_fixed_svg
+from ....api_services.files_service import FilesService
 from ....config import settings
 from ....shared.copysvg_wrapper import (
     ExtractResult,
@@ -28,7 +26,13 @@ from ....shared.fix_nested import (
 )
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
+from .objects import (
+    CopySvgLangsWorkerObject,
+    FilesProcessedItem,
+    FileSteps,
+    StepResult,
+    SvgLangsConfig,
+)
 from .steps import (
     extract_text_step,
     extract_titles_step,
@@ -37,24 +41,11 @@ from .steps import (
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class SvgLangsConfig:
-    upload: bool | None
-    upload_files: bool | None
-    upload_limit: int = 0
-    limit_items: int = 0
-    overwrite_translations: bool = True
-    overwrite_download: bool = True
-    output_dir: Path | None = None
-    output_dir_files: Path | None = None
-
-
 class OneFileProcessor:
 
-    def __init__(self, site: Site | None, config: SvgLangsConfig):
-        self.site = site
+    def __init__(self, config: SvgLangsConfig, files_service: FilesService) -> None:
         self.config = config
-        self.session: requests.Session = create_commons_session(settings.other.user_agent)
+        self.files_service = files_service
         self.translations: dict[str, str] = {}
         self.upload_done = 0
         self.nested_processer: MatchFixNestedTags
@@ -244,10 +235,9 @@ class OneFileProcessor:
             return False
 
         # Start uploading
-        upload = upload_fixed_svg(
+        upload = self.files_service.upload_fixed_svg(
             title_info.title,
             new_path,
-            self.site,
             summary=summary,
         )
         upload_success = upload.get("ok")
@@ -316,11 +306,10 @@ class OneFileProcessor:
     def get_download_path(self, title: str, title_info: FilesProcessedItem):
         down_step = title_info.steps.download
         try:
-            file_data = download_one_file(
+            file_data = self.files_service.download_one_file(
                 title=title,
                 out_dir=self.config.output_dir_files,
                 overwrite_download=self.config.overwrite_download,
-                session=self.session,
             )
         except Exception as e:
             logger.exception("Error downloading SVG file")
@@ -382,8 +371,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.main_title: str = ""
         self.titles: list[str] = []
         self.translations: dict[str, str] = {}
+        self.files_service = FilesService(self.site)
 
-        self.files_processor = OneFileProcessor(self.site, self.config)
+        self.files_processor = OneFileProcessor(self.config, self.files_service)
 
     def _update_translations(self, translations: dict[str, str]) -> None:
         self.translations.update(translations)
@@ -491,7 +481,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         stage.status = "running"
         output_dir_main = self.config.output_dir_files
 
-        main_file_download = download_one_file(
+        main_file_download = self.files_service.download_one_file(
             title=self.main_title,
             out_dir=output_dir_main,
             overwrite_download=self.config.overwrite_download,
@@ -591,7 +581,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         return data
 
-
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "copy_svg_langs"
@@ -602,7 +591,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return self.result
 
         # update site after calling _check_site
-        self.files_processor.site = self.site
+        if self.site is None:
+            raise ValueError("Site is not set")
+
+        self.files_service.site = self.site
 
         if not self.title:
             logger.error("No title found")
@@ -691,6 +683,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             processfiles_stage.status = "completed"
 
         return self.result
+
 
 __all__ = [
     "CopySvgLangsWorker",

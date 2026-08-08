@@ -14,7 +14,9 @@ def test_upload_cropped_file_success(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -54,7 +56,9 @@ def test_upload_cropped_file_exception_during_upload(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.side_effect = RuntimeError("Network timeout")
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -72,7 +76,9 @@ def test_upload_cropped_file_strips_file_prefix(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -90,7 +96,9 @@ def test_upload_cropped_file_without_file_prefix(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -108,7 +116,9 @@ def test_upload_cropped_file_with_special_characters(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -125,7 +135,9 @@ def test_upload_cropped_file_uses_new_file_flag(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -142,7 +154,9 @@ def test_upload_cropped_file_uses_correct_summary(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -172,7 +186,9 @@ def test_upload_cropped_file_with_very_long_filename(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -187,7 +203,9 @@ def test_upload_cropped_file_upload_result_missing_keys(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         # Return a result without 'error' key
         mock_upload.return_value = {"result": "Failure"}
 
@@ -205,7 +223,9 @@ def test_upload_cropped_file_with_unicode_filename(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -223,7 +243,9 @@ def test_upload_cropped_file_passes_correct_site(tmp_path):
     site = Mock()
     site.name = "commons"
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -241,7 +263,9 @@ def test_upload_cropped_file_with_path_object(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -259,7 +283,9 @@ def test_upload_cropped_file_empty_filename(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
@@ -276,7 +302,9 @@ def test_upload_cropped_file_with_wikitext(tmp_path):
     site = Mock()
     wikitext = "==Summary==\nTest description"
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "success"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site, wikitext)
@@ -293,7 +321,9 @@ def test_upload_cropped_file_upload_fails(tmp_path):
     cropped_path.write_text("<svg></svg>")
     site = Mock()
 
-    with patch("src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.upload_file") as mock_upload:
+    with patch(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile.upload"
+    ) as mock_upload:
         mock_upload.return_value = {"result": "Failure", "error": "File already exists"}
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)

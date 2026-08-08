@@ -234,7 +234,7 @@ class TestUploadFixedSvg:
     def setup(self, monkeypatch: pytest.MonkeyPatch):
         self.mock_up = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.api_services.files_service.upload_bot.upload_file",
+            "src.main_app.api_services.files_service.upload_bot.UploadFile.upload",
             self.mock_up,
         )
 

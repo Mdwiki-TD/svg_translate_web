@@ -218,38 +218,6 @@ class UploadFile:
         return self._err("ratelimited", "Exceeded rate limit after all retry attempts")
 
 
-def upload_file(
-    file_name: str,
-    file_path: Path,
-    site: Site | None = None,
-    summary: str | None = None,
-    description: str | None = None,
-    new_file: bool = False,
-) -> dict:
-    """
-    Upload a file to Wikimedia Commons using mwclient.
-
-    Returns:
-        dict with keys:
-            - result (str): 'Success' on success
-            - error (str | None): error code on failure
-            - error_details (str): additional error info
-    """
-    if not site:
-        return {"success": False, "error": "No site provided", "error_details": ""}
-
-    bot = UploadFile(
-        file_name=file_name,
-        file_path=file_path,
-        site=site,
-        summary=summary,
-        description=description,
-        new_file=new_file,
-    )
-
-    return bot.upload()
-
-
 def upload_fixed_svg(
     filename: str,
     file_path: Path,
@@ -260,12 +228,22 @@ def upload_fixed_svg(
 
     logger.info(f"Uploading file: {filename}")
 
-    result = upload_file(
+    if not site:
+        return {
+            "ok": False,
+            "error": "No site provided",
+            "error_details": "",
+            "msg": None,
+            "result": None,
+        }
+    bot = UploadFile(
         file_name=filename,
         file_path=file_path,
         site=site,
         summary=summary,
     )
+    result = bot.upload()
+
     result_status = result.get("result") or ""
     error_details = result.get("error_details", "")
     result_error = result.get("error", "upload_failed")
@@ -298,7 +276,6 @@ def upload_fixed_svg(
 
 
 __all__ = [
-    "upload_file",
     "UploadFile",
     "upload_fixed_svg",
 ]

@@ -10,7 +10,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from .....api_services.files_service import upload_file
+from .....api_services.files_service import UploadFile
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ def upload_cropped_file(
     summary = f"[[:File:{original_file}]] cropped to remove the footer."
 
     try:
-        upload_result = upload_file(
+        uploader = UploadFile(
             file_name=clean_cropped_name,
             file_path=cropped_path,
             description=wikitext,
@@ -61,6 +61,8 @@ def upload_cropped_file(
             summary=summary,
             new_file=True,
         )
+
+        upload_result = uploader.upload()
 
         result_status = upload_result.get("result") or ""
         if result_status.lower() == "success":

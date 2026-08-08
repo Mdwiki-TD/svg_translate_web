@@ -19,6 +19,7 @@ def patch_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
     return svg_dir
 
+
 def test_get_files_full_path_returns_all_files(tmp_path: Path) -> None:
     title_dir = tmp_path / "svg" / "folder" / "files"
     title_dir.mkdir(parents=True)
