@@ -55,8 +55,9 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         runner_data = JobsRunner(job_id=1, user={}, args={"limit_items": 10})
         add_svglanguages_template_to_templates(runner_data)
 
-        call_kwargs = mock_worker_class.call_args.kwargs
-        assert call_kwargs["data"]["args"]["limit_items"] == 10
+        call_args = mock_worker_class.call_args[0]
+        assert call_args == (runner_data,)
+        assert call_args[0].args["limit_items"] == 10
 
     def test_function_does_not_map_when_key_absent(self, mock_add_svglanguages_services):
         """Test that args are passed unchanged when limit_items is absent."""
@@ -65,8 +66,9 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         runner_data = JobsRunner(job_id=1, user={}, args={"other_key": "value"})
         add_svglanguages_template_to_templates(runner_data)
 
-        call_kwargs = mock_worker_class.call_args.kwargs
-        assert "limit_items" not in call_kwargs["args"]
+        call_args = mock_worker_class.call_args[0]
+        assert call_args == (runner_data,)
+        assert "limit_items" not in call_args[0].args
 
     def test_function_does_not_modify_args_when_args_is_none(self, mock_add_svglanguages_services):
         """Test that entry point works correctly when args is None."""
@@ -75,5 +77,6 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         runner_data = JobsRunner(job_id=1, user={}, args=None)
         add_svglanguages_template_to_templates(runner_data)
 
-        call_kwargs = mock_worker_class.call_args.kwargs
-        assert call_kwargs["args"] is None
+        call_args = mock_worker_class.call_args[0]
+        assert call_args == (runner_data,)
+        assert call_args[0].args is None
