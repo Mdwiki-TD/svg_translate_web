@@ -19,18 +19,6 @@ def patch_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
     return svg_dir
 
-
-def test_get_main_data_reads_json(tmp_path: Path) -> None:
-    title_dir = tmp_path / "svg" / "topic"
-    title_dir.mkdir(parents=True)
-    stats = {"main_title": "Main", "values": 1}
-    (title_dir / "files_stats.json").write_text(json.dumps(stats), encoding="utf-8")
-
-    data = explorer_utils.get_main_data("topic")
-
-    assert data == stats
-
-
 def test_get_files_full_path_returns_all_files(tmp_path: Path) -> None:
     title_dir = tmp_path / "svg" / "folder" / "files"
     title_dir.mkdir(parents=True)

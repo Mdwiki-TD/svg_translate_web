@@ -149,7 +149,6 @@ def get_informations(title: str) -> dict:
 
 
 __all__ = [
-    "get_main_data",
     "get_files_full_path",
     "get_files",
     "get_languages",
