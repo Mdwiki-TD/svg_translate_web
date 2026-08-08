@@ -34,16 +34,19 @@ class PublicJobsRoutes(JobsBp):
         super().__init__(jobs_data_infos, bp_name)
 
     def _setup_routes(self) -> None:
-        self.bp.route("/<string:job_type>", methods=["GET"])(self.jobs_list)
-        self.bp.route("/<string:job_type>/<int:job_id>", methods=["GET"])(self.job_detail)
-        self.bp.route("/<string:job_type>/<int:job_id>/expand", methods=["GET"])(self.job_detail_expand)
-        self.bp.route("/job-file/<string:result_file>/<string:job_type>", methods=["GET"])(
-            user_login_required(self.read_job_result_file)
-        )
+        routes = [
+            ("/<string:job_type>", "GET", self.jobs_list),
+            ("/<string:job_type>/<int:job_id>", "GET", self.job_detail),
+            ("/<string:job_type>/<int:job_id>/expand", "GET", self.job_detail_expand),
+            ("/job-file/<string:result_file>/<string:job_type>", "GET", user_login_required(self.read_job_result_file)),
 
-        self.bp.route("/<string:job_type>/<int:job_id>/cancel", methods=["POST"])(user_login_required(self.cancel_job))
-        self.bp.route("/<string:job_type>/start", methods=["POST"])(user_login_required(self.start_job))
-        self.bp.route("/<string:job_type>/<int:job_id>/delete", methods=["POST"])(admin_required(self.delete_job))
+            ("/<string:job_type>/<int:job_id>/cancel", "POST", user_login_required(self.cancel_job)),
+            ("/<string:job_type>/start", "POST", user_login_required(self.start_job)),
+            ("/<string:job_type>/<int:job_id>/delete", "POST", admin_required(self.delete_job)),
+
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(target)
 
     def cancel_job(self, job_type: str, job_id: int) -> Response:
         return self.cancel_running_job(job_type, job_id)
