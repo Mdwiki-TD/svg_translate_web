@@ -1,5 +1,18 @@
+from __future__ import annotations
+
+import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class JobsRunner:
+    job_id: int
+    user: dict[str, Any]
+    cancel_event: threading.Event | None = None
+    args: dict[str, Any] | None = None
+    form_data: dict[str, Any] | None = None
 
 
 @dataclass
@@ -17,5 +30,6 @@ class JobData:
 
 
 __all__ = [
+    "JobsRunner",
     "JobData",
 ]

@@ -5,7 +5,6 @@ Worker module for cropping main files and uploading them with (cropped) suffix.
 from __future__ import annotations
 
 import logging
-import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -23,6 +22,7 @@ from ....utils.wikitext import (
     update_template_page_file_reference,
 )
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject
 from .steps.crop_file import crop_svg_file
 from .steps.crop_utils import generate_cropped_filename
@@ -45,18 +45,12 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         6. Update page      - point the content page at the cropped file
     """
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
+    def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
 
-        super().__init__(job_id, user, cancel_event)
+        super().__init__(data)
         self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject()
-        self.args = args or {}
+        self.args = data.args or {}
         self.result.args = self.args
         self.upload_limit = self.args.get("upload_limit") or 0
 

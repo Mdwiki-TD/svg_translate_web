@@ -12,6 +12,7 @@ from src.main_app.jobs_workers.base_worker import (
     BaseObjectsJobWorker,
     WorkerObject,
 )
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
@@ -66,7 +67,12 @@ def seeded_job():
 @pytest.fixture
 def worker(seeded_job):
     user = {"username": "testuser"}
-    worker = MockWorker(job_id=seeded_job.id, user=user)
+    worker = MockWorker(
+        JobsRunner(
+            job_id=seeded_job.id,
+            user=user,
+        )
+    )
     worker.result = WorkerObject()
     return worker
 
@@ -75,7 +81,12 @@ def worker(seeded_job):
 def worker_no_job():
     """Worker without a real DB record — before_run will raise LookupError."""
     user = {"username": "testuser"}
-    worker = MockWorker(job_id=999, user=user)
+    worker = MockWorker(
+        JobsRunner(
+            job_id=999,
+            user=user,
+        )
+    )
     worker.result = WorkerObject()
     return worker
 

@@ -17,7 +17,6 @@ credentials).
 from __future__ import annotations
 
 import logging
-import threading
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -28,6 +27,7 @@ from mwclient.client import Site
 from ....api_services import MwClientPage
 from ....db.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from .objects import RenameOwidPagesWorkerObject
 
 logger = logging.getLogger(__name__)
@@ -86,18 +86,12 @@ def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:
 class RenameOwidPagesWorker(BaseObjectsJobWorker):
     """Background worker that capitalizes OWID subpage names."""
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
+    def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
 
-        super().__init__(job_id, user, cancel_event)
+        super().__init__(data)
         self.result: RenameOwidPagesWorkerObject = RenameOwidPagesWorkerObject()
-        self.args = args or {}
+        self.args = data.args or {}
         self.result.args = self.args
 
     # ------------------------------------------------------------------

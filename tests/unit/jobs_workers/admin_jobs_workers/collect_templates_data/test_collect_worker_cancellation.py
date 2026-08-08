@@ -9,6 +9,7 @@ import pytest
 
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture(autouse=True)
@@ -79,7 +80,13 @@ def test_collect_templates_data_worker_cancellation(monkeypatch, mock_services):
         lambda user: MagicMock(),
     )
 
-    w = worker.CollectMainFilesWorker(job_id=1, user={"username": "test"}, cancel_event=mock_services["cancel_event"])
+    w = worker.CollectMainFilesWorker(
+        JobsRunner(
+            job_id=1,
+            user={"username": "test"},
+            cancel_event=mock_services["cancel_event"],
+        )
+    )
     w.run()
 
     result = mock_save_job_result_by_name.call_args[0][1]

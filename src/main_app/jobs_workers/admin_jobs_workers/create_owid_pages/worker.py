@@ -5,7 +5,6 @@ Worker module for create_owid_pages.
 from __future__ import annotations
 
 import logging
-import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -18,6 +17,7 @@ from ....db.models import TemplateRecord
 from ....db.services import TemplateService
 from ....utils.wikitext import merge_categories, sort_categories
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from .objects import CreateOwidPagesWorkerObject
 from .owid_template_converter import create_new_text
 
@@ -70,19 +70,13 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         4. create new page with new wikitext
     """
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
+    def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
 
-        super().__init__(job_id, user, cancel_event)
+        super().__init__(data)
         self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject()
 
-        self.args = args or {}
+        self.args = data.args or {}
         self.result.args = self.args
         self.limit_items = self.args.get("limit_items") or 0
 

@@ -123,7 +123,13 @@ class TestRunner:
 
     @pytest.fixture(autouse=True)
     def setup(self, mock_services):
-        self.collect_runner = runner.collect_templates_data_entry
+        from src.main_app.jobs_workers.objects import JobsRunner
+
+        def run_wrapper(job_id, user, cancel_event=None, args=None, form_data=None):
+            data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
+            return runner.collect_templates_data_entry(data)
+
+        self.collect_runner = run_wrapper
         self.services = mock_services
 
     def test_collect_templates_data_with_no_templates(self):
@@ -131,7 +137,7 @@ class TestRunner:
         self.services["get_category_members"].return_value = []
         self.services["list"].return_value = []
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should save result
         self.services["save_job_result_by_name"].assert_called()
@@ -153,7 +159,7 @@ class TestRunner:
         self.services["get_category_members"].return_value = []
         self.services["list"].return_value = templates
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should not fetch wikitext for templates that have all three fields
         self.services["MwClientPage"].return_value.get_text.assert_not_called()
@@ -176,7 +182,7 @@ class TestRunner:
         magic = MagicMock()
         self.services["get_user_site"].return_value = magic
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should fetch wikitext
         self.services["MwClientPage"].return_value.get_text.assert_called_once()
@@ -209,7 +215,7 @@ class TestRunner:
         self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.return_value = None
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should not try to find main title
         self.services["find_main_title"].assert_not_called()
@@ -231,7 +237,7 @@ class TestRunner:
         self.services["MwClientPage"].return_value.get_text.return_value = "some wikitext without SVGLanguages"
         self.services["find_main_title"].return_value = None
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should not update template
         self.services["update_template_data"].assert_not_called()
@@ -253,7 +259,7 @@ class TestRunner:
         self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.side_effect = Exception("Network error")
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should save result with failed template
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
@@ -294,7 +300,7 @@ class TestRunner:
         self.services["MwClientPage"].side_effect = _mwclientpage_side_effect
         self.services["find_main_title"].side_effect = find_main_title_side_effect
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should update two templates
         assert self.services["update_template_data"].call_count == 2
@@ -323,7 +329,7 @@ class TestRunner:
         self.services["get_category_members"].return_value = category_templates
         self.services["list"].return_value = existing_templates
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should add 2 new templates
         assert self.services["add_template_data"].call_count == 2
@@ -351,7 +357,7 @@ class TestRunner:
         self.services["list"].return_value = existing_templates
         self.services["add_template_data"].side_effect = ValueError("Template 'Template:New1' already exists")
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should continue processing without error
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
@@ -385,7 +391,7 @@ class TestRunner:
         magic = MagicMock()
         self.services["get_user_site"].return_value = magic
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should add new template
         self.services["add_template_data"].assert_called_once_with({"title": "Template:NewFromCategory"})
@@ -435,7 +441,7 @@ class TestRunner:
             mock_find_last_world,
         )
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should update template with both main_file and last_world_file
         self.services["update_template_data"].assert_called_once_with(
@@ -464,7 +470,7 @@ class TestRunner:
         self.services["get_category_members"].return_value = category_templates
         self.services["list"].return_value = []
 
-        self.collect_runner(job_id=1, user=None, cancel_event=cancel_event)
+        self.collect_runner(job_id=1, user={}, cancel_event=cancel_event)
 
         # Should stop early and not add all templates
         # The exact behavior depends on when the cancellation is checked
@@ -502,7 +508,7 @@ class TestRunner:
         self.services["MwClientPage"].side_effect = _mwclientpage_side_effect
         self.services["find_main_title"].return_value = "test.svg"
 
-        self.collect_runner(job_id=1, user=None, cancel_event=cancel_event)
+        self.collect_runner(job_id=1, user={}, cancel_event=cancel_event)
 
         # Should have processed at least one template before cancellation
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
@@ -530,7 +536,7 @@ class TestRunner:
 
         self.services["save_job_result_by_name"].side_effect = track_save
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Progress should be saved at: 1, 10, 20, and final
         # Expecting at least 3 saves (n=1, n=10, n=20, plus final)
@@ -561,7 +567,7 @@ class TestRunner:
             mock_find_last_world,
         )
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should update template with only last_world_file
         self.services["update_template_data"].assert_called_once_with(
@@ -587,7 +593,7 @@ class TestRunner:
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|test.svg}}"
         self.services["find_main_title"].return_value = "test.svg"
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should process template because last_world_file is missing
         self.services["MwClientPage"].return_value.get_text.assert_called_once()
@@ -604,7 +610,7 @@ class TestRunner:
         self.services["list"].return_value = existing_templates
         self.services["add_template_data"].side_effect = RuntimeError("Database connection failed")
 
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # Should track in pages_failed but not increment summary["failed"] (that's for processing phase)
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
@@ -628,7 +634,7 @@ class TestRunner:
         self.services["find_main_title"].return_value = "newfile.svg"
 
         # With update_all=True, both templates should be processed even though they have data
-        self.collect_runner(job_id=1, user=None, args={"update_all": "true"})
+        self.collect_runner(job_id=1, user={}, args={"update_all": "true"})
 
         # Both templates should have had their wikitext fetched
         assert self.services["MwClientPage"].return_value.get_text.call_count == 2
@@ -644,7 +650,7 @@ class TestRunner:
         self.services["list"].return_value = templates
 
         # Without args (update_all=False by default), complete templates are skipped
-        self.collect_runner(job_id=1, user=None)
+        self.collect_runner(job_id=1, user={})
 
         # No wikitext should be fetched for a complete template
         self.services["MwClientPage"].return_value.get_text.assert_not_called()
@@ -661,7 +667,7 @@ class TestRunner:
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
         self.services["find_main_title"].return_value = "newfile.svg"
 
-        self.collect_runner(job_id=1, user=None, args={"update_all": "true"})
+        self.collect_runner(job_id=1, user={}, args={"update_all": "true"})
 
         # Should process the template even though it already has data
         self.services["MwClientPage"].return_value.get_text.assert_called_once()
@@ -676,7 +682,7 @@ class TestRunner:
         self.services["get_category_members"].return_value = []
         self.services["list"].return_value = templates
 
-        self.collect_runner(job_id=1, user=None, args={"update_all": "false"})
+        self.collect_runner(job_id=1, user={}, args={"update_all": "false"})
 
         # Template is complete, should not be fetched
         self.services["MwClientPage"].return_value.get_text.assert_not_called()
@@ -691,7 +697,7 @@ class TestRunner:
         self.services["get_category_members"].return_value = []
         self.services["list"].return_value = templates
 
-        self.collect_runner(job_id=1, user=None, args=None)
+        self.collect_runner(job_id=1, user={}, args=None)
 
         # Template is complete, should not be fetched
         self.services["MwClientPage"].return_value.get_text.assert_not_called()
@@ -708,7 +714,7 @@ class TestRunner:
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
         self.services["find_main_title"].return_value = "newfile.svg"
 
-        self.collect_runner(job_id=1, user=None, args={"update_all": "TRUE"})
+        self.collect_runner(job_id=1, user={}, args={"update_all": "TRUE"})
 
         # Should process even with uppercase "TRUE"
         self.services["MwClientPage"].return_value.get_text.assert_called_once()
@@ -721,7 +727,7 @@ class TestRunner:
         self.services["list"].return_value = []
 
         # Should not raise a TypeError - cancel_event must be passed as keyword arg
-        self.collect_runner(job_id=1, user=None, cancel_event=cancel_event)
+        self.collect_runner(job_id=1, user={}, cancel_event=cancel_event)
 
         # last call
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
@@ -740,7 +746,7 @@ class TestRunner:
         self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|newfile.svg}}"
         self.services["find_main_title"].return_value = "newfile.svg"
 
-        self.collect_runner(job_id=1, user=None, args={"update_all": "true"})
+        self.collect_runner(job_id=1, user={}, args={"update_all": "true"})
 
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
         # Total is 2, 1 already had all data

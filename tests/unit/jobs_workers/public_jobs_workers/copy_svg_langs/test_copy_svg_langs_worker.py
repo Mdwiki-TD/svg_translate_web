@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (  # OneFileProcessor,
     CopySvgLangsWorker,
@@ -137,7 +138,13 @@ def mock_clients(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
 def mock_worker():
     user = {"username": "testuser", "id": 123}
     args = {"title": "File:Test.svg", "upload": True}
-    _worker = CopySvgLangsWorker(job_id=1, user=user, args=args)
+    _worker = CopySvgLangsWorker(
+        JobsRunner(
+            job_id=1,
+            user=user,
+            args=args,
+        )
+    )
     _worker._save_progress = MagicMock()
     return _worker
 
@@ -145,17 +152,21 @@ def mock_worker():
 class TestCopySvgLangsWorker:
     def test_get_job_type(self) -> None:
         worker = CopySvgLangsWorker(
-            job_id=1,
-            user=None,
-            args={"title": "Test.svg"},
+            JobsRunner(
+                job_id=1,
+                user={},
+                args={"title": "Test.svg"},
+            )
         )
         assert worker.get_job_type() == "copy_svg_langs"
 
     def test_initial_result_structure(self) -> None:
         worker = CopySvgLangsWorker(
-            job_id=1,
-            user=None,
-            args={"title": "Test.svg"},
+            JobsRunner(
+                job_id=1,
+                user={},
+                args={"title": "Test.svg"},
+            )
         )
         result = worker.result
 
@@ -171,43 +182,53 @@ class TestCopySvgLangsWorker:
     def test_worker_init_with_user(self) -> None:
         user = {"username": "testuser", "id": 123}
         worker = CopySvgLangsWorker(
-            job_id=1,
-            args={"title": "Test.svg"},
-            user=user,
+            JobsRunner(
+                job_id=1,
+                args={"title": "Test.svg"},
+                user=user,
+            )
         )
         assert worker.user == user
 
     def test_worker_init_with_cancel_event(self) -> None:
         cancel_event = threading.Event()
         worker = CopySvgLangsWorker(
-            job_id=1,
-            user=None,
-            args={"title": "Test.svg"},
-            cancel_event=cancel_event,
+            JobsRunner(
+                job_id=1,
+                user={},
+                args={"title": "Test.svg"},
+                cancel_event=cancel_event,
+            )
         )
         assert worker.cancel_event is cancel_event
 
     def test_worker_reads_upload_limit_from_args(self) -> None:
         worker = CopySvgLangsWorker(
-            job_id=1,
-            user=None,
-            args={"title": "Test.svg", "upload_limit": 5},
+            JobsRunner(
+                job_id=1,
+                user={},
+                args={"title": "Test.svg", "upload_limit": 5},
+            )
         )
         assert worker.files_processor.config.upload_limit == 5
 
     def test_worker_defaults_upload_limit_when_args_none(self) -> None:
         worker = CopySvgLangsWorker(
-            job_id=1,
-            user=None,
-            args=None,
+            JobsRunner(
+                job_id=1,
+                user={},
+                args=None,
+            )
         )
         assert worker.files_processor.config.upload_limit == 0
 
     def test_worker_upload_limit_none_when_key_missing(self) -> None:
         worker = CopySvgLangsWorker(
-            job_id=1,
-            user=None,
-            args={"title": "Test.svg"},
+            JobsRunner(
+                job_id=1,
+                user={},
+                args={"title": "Test.svg"},
+            )
         )
         assert worker.files_processor.config.upload_limit == 0
 
@@ -355,7 +376,7 @@ class TestCopySvgLangsWorkerInjectStepFile:
 
         assert step_result.result is True
         assert step_result.msg == "2 languages injected"
-        assert title_info.steps.translations.details == {"new": 2, "updated": 1, "new_list": ["ar", "de"]}
+        assert title_info.steps.translations.details == {"new": 2, "updated": 1, "new_list": ["ar", "de"], "inserted": 0}
         assert new_path == tmp_path / "translated" / file_name
 
 

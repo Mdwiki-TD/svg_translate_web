@@ -15,6 +15,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner imp
     create_main_files_zip,
     download_main_files_for_templates,
 )
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @dataclass
@@ -84,7 +85,12 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_before_run) -> MockServi
 def test_download_main_files_with_no_templates(mock_path, mock_base_worker, mock_services: MockServices, tmp_path):
     """Test processing when no templates have main files."""
     mock_services.list.return_value = []
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     assert mock_base_worker["save_job_result_by_name"].called
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
@@ -102,7 +108,12 @@ def test_download_main_files_skips_templates_without_main_file(
     mock_services.list.return_value = templates
     mock_services.download_file_from_commons.return_value = {"success": True, "path": "file2.svg"}
 
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["total"] == 1
@@ -121,7 +132,12 @@ def test_download_main_files_downloads_template_with_main_file(
         "size_bytes": 100,
     }
 
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["success"] == 1
@@ -137,7 +153,12 @@ def test_download_main_files_handles_download_failure(
     mock_services.list.return_value = templates
     mock_services.download_file_from_commons.return_value = {"success": False, "error": "NotFound"}
 
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["failed"] == 1
@@ -151,7 +172,12 @@ def test_download_main_files_handles_exception(mock_path, mock_base_worker, mock
     mock_services.list.return_value = templates
     mock_services.download_file_from_commons.side_effect = Exception("Fatal error")
 
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["failed"] == 1
@@ -175,7 +201,12 @@ def test_download_main_files_processes_multiple_templates(
 
     mock_services.download_file_from_commons.side_effect = download_side_effect
 
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["success"] == 1
@@ -199,7 +230,13 @@ def test_download_main_files_respects_cancellation(mock_path, mock_base_worker, 
 
     mock_services.download_file_from_commons.side_effect = download_with_cancel
 
-    runner.download_main_files_for_templates(job_id=1, user=None, cancel_event=cancel_event)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+            cancel_event=cancel_event,
+        )
+    )
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["processed"] == 1
@@ -212,7 +249,12 @@ def test_download_main_files_handles_file_with_file_prefix(mock_path, mock_servi
     mock_services.list.return_value = templates
     mock_services.download_file_from_commons.return_value = {"success": True, "path": "Example.svg"}
 
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     _call = mock_services.download_file_from_commons.call_args[1]
     passed_filename = _call["filename"]
@@ -225,7 +267,12 @@ def test_download_main_files_checks_if_file_exists(mock_path, mock_services: Moc
     mock_services.list.return_value = templates
     mock_services.download_file_from_commons.return_value = {"success": True, "path": "exists.svg"}
 
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
     assert mock_services.download_file_from_commons.called
 
 
@@ -233,7 +280,12 @@ def test_download_main_files_fatal_error_handling(mock_path, mock_base_worker, m
     """Test workflow when an error occurs but partial results are saved."""
     mock_services.list.side_effect = Exception("DB Fail")
 
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     mock_base_worker["update_job_status_with_retry"].assert_called_with(
         1, "failed", "download_main_files_job_1.json", job_type="download_main_files"
@@ -248,7 +300,12 @@ def test_download_main_files_saves_progress_periodically(
     mock_services.list.return_value = templates
     mock_services.download_file_from_commons.return_value = {"success": True}
 
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     assert mock_base_worker["save_job_result_by_name"].call_count >= 2
 
@@ -256,7 +313,12 @@ def test_download_main_files_saves_progress_periodically(
 def test_download_main_files_creates_output_directory(mock_path, mock_services: MockServices, tmp_path):
     """Test that the output directory is created if missing."""
     mock_services.list.return_value = []
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     mock_path.return_value.mkdir.assert_called()
 
@@ -264,7 +326,12 @@ def test_download_main_files_creates_output_directory(mock_path, mock_services: 
 def test_download_main_files_generates_zip_on_completion(mock_path, mock_services: MockServices, tmp_path):
     """Test that zip generation is triggered."""
     mock_services.list.return_value = []
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     mock_services.generate_main_files_zip.assert_called_once()
 
@@ -273,7 +340,12 @@ def test_download_main_files_no_zip_on_failure(mock_path, mock_services: MockSer
     """Test that zip generation is skipped if job is failed/cancelled."""
     mock_services.list.side_effect = Exception("Fail")
 
-    runner.download_main_files_for_templates(job_id=1, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
 
     mock_services.generate_main_files_zip.assert_not_called()
 
@@ -281,13 +353,24 @@ def test_download_main_files_no_zip_on_failure(mock_path, mock_services: MockSer
 def test_download_main_files_for_templates_accepts_args_keyword_param(mock_path, mock_services: MockServices):
     """Test entry point unified signature."""
     mock_services.list.return_value = []
-    runner.download_main_files_for_templates(job_id=1, user=None, args={"some": "val"})
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=1,
+            user={},
+            args={"some": "val"},
+        )
+    )
 
 
 def test_download_main_files_for_templates_args_defaults_to_none(mock_path, mock_services: MockServices):
     """Test entry point works with default args."""
     mock_services.list.return_value = []
-    runner.download_main_files_for_templates(job_id=99, user=None)
+    runner.download_main_files_for_templates(
+        JobsRunner(
+            job_id=99,
+            user={},
+        )
+    )
 
 
 def test_entry_point_maps_limit_items(mock_services: MockServices):
@@ -299,12 +382,16 @@ def test_entry_point_maps_limit_items(mock_services: MockServices):
         mock_instance = MagicMock()
         MockWorker.return_value = mock_instance
 
-        runner.download_main_files_for_templates(job_id=1, user=None, args={"limit_items": 123})
+        data = JobsRunner(
+            job_id=1,
+            user={},
+            args={"limit_items": 123},
+        )
+        runner.download_main_files_for_templates(data)
 
-        call_args = MockWorker.call_args
-        passed_args = call_args[0][3] if len(call_args[0]) > 3 else call_args.kwargs.get("args")
-        assert isinstance(passed_args, dict)
-        assert passed_args.get("limit_items") == 123
+        call_args = MockWorker.call_args[0]
+        assert call_args == (data,)
+        assert call_args[0].args["limit_items"] == 123
 
 
 class TestCreateMainFilesZip:
@@ -372,14 +459,15 @@ class TestDownloadMainFilesForTemplates:
         mock_worker_cls.return_value = mock_worker
 
         cancel_event = MagicMock()
-        download_main_files_for_templates(
+        data = JobsRunner(
             job_id=42,
             user={"name": "test"},
             cancel_event=cancel_event,
             args={"key": "value"},
         )
+        download_main_files_for_templates(data)
 
-        mock_worker_cls.assert_called_once_with(42, {"name": "test"}, cancel_event, {"key": "value"})
+        mock_worker_cls.assert_called_once_with(data)
         mock_worker.run.assert_called_once()
 
     @patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.DownloadMainFilesWorker")
@@ -387,7 +475,11 @@ class TestDownloadMainFilesForTemplates:
         mock_worker = MagicMock()
         mock_worker_cls.return_value = mock_worker
 
-        download_main_files_for_templates(job_id=1, user={})
+        data = JobsRunner(
+            job_id=1,
+            user={},
+        )
+        download_main_files_for_templates(data)
 
-        mock_worker_cls.assert_called_once_with(1, {}, None, None)
+        mock_worker_cls.assert_called_once_with(data)
         mock_worker.run.assert_called_once()

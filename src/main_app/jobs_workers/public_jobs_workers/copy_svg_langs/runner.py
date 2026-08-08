@@ -5,9 +5,9 @@ Worker module for copy_svg_langs.
 from __future__ import annotations
 
 import logging
-import threading
 from typing import Any
 
+from ...objects import JobsRunner
 from .forms import CopySvgLangsForm
 from .worker import CopySvgLangsWorker
 
@@ -24,23 +24,10 @@ def setup_svg_langs_form(all_settings: dict[str, Any] | None = None) -> CopySvgL
     return form
 
 
-# --- main pipeline --------------------------------------------
-def copy_svg_langs_worker_entry(
-    *,
-    job_id: int,
-    user: dict[str, Any],
-    cancel_event: threading.Event | None = None,
-    args: dict[str, Any] | None = None,
-    form_data: dict[str, Any] | None = None,
-) -> None:
+def copy_svg_langs_worker_entry(data: JobsRunner) -> None:
     """Entry point for the background job."""
 
-    worker = CopySvgLangsWorker(
-        job_id=job_id,
-        user=user,
-        cancel_event=cancel_event,
-        args=args,
-    )
+    worker = CopySvgLangsWorker(data)
     worker.run()
 
 

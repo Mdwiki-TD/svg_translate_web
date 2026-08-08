@@ -5,7 +5,6 @@ Worker module for add_svglanguages_template.
 from __future__ import annotations
 
 import logging
-import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -16,6 +15,7 @@ from ....api_services import MwClientPage
 from ....db.models import TemplateRecord
 from ....db.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from .objects import AddSvgLanguagesWorkerObject
 from .utils import RE_SVG_LANG, add_template_to_text, extract_svg_file_name
 
@@ -68,19 +68,13 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         5. save page with new wikitext
     """
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
+    def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
 
-        super().__init__(job_id, user, cancel_event)
+        super().__init__(data)
         self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject()
 
-        self.args = args or {}
+        self.args = data.args or {}
         self.result.args = self.args
         self.limit_items = self.args.get("limit_items") or 0
 

@@ -6,10 +6,8 @@ from __future__ import annotations
 
 import logging
 import tempfile
-import threading
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
 
 from mwclient.client import Site
 
@@ -22,6 +20,7 @@ from ....shared.fix_nested.worker import (  # MatchFixNestedTags,
     verify_fix,
 )
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
 
 logger = logging.getLogger(__name__)
@@ -32,17 +31,11 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
     Orchestrates the pipeline for fixing nested tags in SVG files.
     """
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
-        super().__init__(job_id, user, cancel_event)
+    def __init__(self, data: JobsRunner) -> None:
+        super().__init__(data)
         self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject()
         self.result.job_id = self.job_id
-        self.args = args or {}
+        self.args = data.args or {}
         self.result.args = self.args
 
         self.upload_limit = self.args.get("upload_limit") or 0

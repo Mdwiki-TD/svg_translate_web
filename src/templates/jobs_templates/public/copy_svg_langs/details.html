@@ -87,7 +87,7 @@
 {% endif %}
 {% endblock %}
 
-{% macro pages_table(data, table_title, show_download=False) %}
+{% macro pages_table(data, table_title, show_download=False, show_nested=True) %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
@@ -103,7 +103,9 @@
                         {% if show_download %}
                         <th>Download</th>
                         {% endif %}
+                        {% if show_nested %}
                         <th>Nested tags</th>
+                        {% endif %}
                         <th>New Languages</th>
                         <th>Translations Updated</th>
                         <th>Inject</th>
@@ -123,9 +125,11 @@
                         {% if show_download %}
                         <td> {{ render_step(item.steps.download) }} </td>
                         {% endif %}
+                        {% if show_nested %}
                         <td>
                             {{ render_step(item.steps.nested) }}
                         </td>
+                        {% endif %}
                         {% set inject_step = item.steps.get('inject') if item.steps else {} %}
                         {% set translations_step_details = item.steps.get('translations', {}).get('details', {}) %}
                         <td>

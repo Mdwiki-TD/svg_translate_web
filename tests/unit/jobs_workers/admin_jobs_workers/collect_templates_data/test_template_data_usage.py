@@ -13,6 +13,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker 
     CollectMainFilesWorker,
     TemplateData,
 )
+from src.main_app.jobs_workers.objects import JobsRunner
 
 # The db.models.TemplateRecord.__init__ also uses hasattr(self, key) but
 # works because SQLAlchemy declarative base sets up descriptors on the class.
@@ -125,7 +126,13 @@ class TestLoadTempInfoFromTemplateData:
     def worker(self, mock_base_worker):
         import threading
 
-        w = CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+        w = CollectMainFilesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=threading.Event(),
+            )
+        )
         w.site = MagicMock()
         return w
 
@@ -160,7 +167,13 @@ class TestProcessOneItemWithTemplateData:
     def worker(self, mock_base_worker, monkeypatch):
         import threading
 
-        w = CollectMainFilesWorker(job_id=1, user=None, cancel_event=threading.Event())
+        w = CollectMainFilesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=threading.Event(),
+            )
+        )
         w.site = MagicMock()
         w.template_service = MagicMock()
         monkeypatch.setattr(

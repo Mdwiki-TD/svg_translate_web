@@ -7,7 +7,6 @@ from __future__ import annotations
 import json
 import logging
 import re
-import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -29,6 +28,7 @@ from ....shared.fix_nested import (
     VerificationResult,
 )
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from .objects import CopySvgLangsWorkerObject, FilesProcessedItem, FileSteps, StepResult
 from .steps import (
     extract_text_step,
@@ -103,8 +103,7 @@ class OneFileProcessor:
         if inject_result.result is True:
             # inject success
             translation_details = title_info.steps.translations.details or {}
-            new_languages_count = translation_details.get("new", 0)
-            summary = self._create_language_summary(main_title, new_languages_count)
+            summary = self._create_language_summary(main_title, translation_details)
             return self._upload_step(title_info, summary, new_path)
 
         # ----------------------------------------------
@@ -198,6 +197,7 @@ class OneFileProcessor:
                 "new_list": inject_result.languages_after,
                 "new": inject_result.new_languages_count or 0,
                 "updated": inject_result.updated_translations or 0,
+                "inserted": inject_result.inserted_translations or 0,
             },
         )
         title_info.steps.inject._update(
@@ -295,15 +295,25 @@ class OneFileProcessor:
         title_info.status = "failed"
         return False
 
-    def _create_language_summary(self, main_title: str, new_languages_count: int) -> str:
+    def _create_language_summary(self, main_title: str, translation_details: dict[str, int]) -> str:
+        # {"new": 0, "updated": 0, "inserted": 0, "new_list": []}
+        new_count = translation_details.get("new", 0)
+        updated = translation_details.get("updated", 0)
+        inserted = translation_details.get("inserted", 0)
+
         file_name = main_title.removeprefix("File:")
         main_title_link = f"[[File:{file_name}]]"
 
-        summary = (
-            f"Adding {new_languages_count} languages translations from {main_title_link}"
-            if new_languages_count > 0
-            else f"Adding translations from {main_title_link}"
-        )
+        if new_count > 0:
+            summary = f"Adding {new_count} languages translations"
+        elif updated > 0:
+            summary = f"Updating {updated} translations"
+        elif inserted > 0:
+            summary = f"Inserting {inserted} translations"
+        else:
+            summary = "Adding translations"
+
+        summary += f" from {main_title_link}"
 
         return summary
 
@@ -356,20 +366,14 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     Worker for copying SVG translations from a main file to its versions.
     """
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
-        self.user: dict[str, Any] = user
+    def __init__(self, data: JobsRunner) -> None:
+        self.user: dict[str, Any] = data.user
 
-        super().__init__(job_id, user, cancel_event)
+        super().__init__(data)
         self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject()
         self.result.job_id = self.job_id
 
-        args = args or {}
+        args = data.args or {}
         self.manual_main_title = args.get("manual_main_title")
         self.result.args = args
         self.title = args.get("title")
@@ -651,7 +655,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 steps=FileSteps(
                     download=StepResult(msg=""),
                     nested=StepResult(msg=""),
-                    translations=StepResult(msg="", details={"new": 0, "updated": 0, "new_list": []}),
+                    translations=StepResult(msg="", details={"new": 0, "updated": 0, "inserted": 0, "new_list": []}),
                     inject=StepResult(msg=""),
                     upload=StepResult(msg=""),
                 ),

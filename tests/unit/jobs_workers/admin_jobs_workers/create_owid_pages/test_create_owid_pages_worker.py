@@ -12,6 +12,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker impor
     CreateOwidPagesWorker,
     TemplateProcessingInfo,
 )
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 class TestTemplateProcessingInfo:
@@ -58,7 +59,13 @@ class TestCreateOwidPagesWorkerInitialization:
 
     def test_worker_initialization(self, mock_services):
         """Test worker initializes correctly."""
-        worker = CreateOwidPagesWorker(job_id=1, user={"username": "test"}, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={"username": "test"},
+                cancel_event=None,
+            )
+        )
 
         assert worker.job_id == 1
         assert worker.user == {"username": "test"}
@@ -68,39 +75,62 @@ class TestCreateOwidPagesWorkerInitialization:
     def test_worker_initialization_reads_limit_items_from_args(self, mock_services):
         """Test worker reads limit_items from args."""
         worker = CreateOwidPagesWorker(
-            job_id=1,
-            user=None,
-            cancel_event=None,
-            args={"limit_items": 5},
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+                args={"limit_items": 5},
+            )
         )
 
         assert worker.limit_items == 5
 
     def test_worker_initialization_defaults_limit_items_when_args_none(self, mock_services):
         """Test worker defaults limit_items to 0 when args is None."""
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None, args=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+                args=None,
+            )
+        )
 
         assert worker.limit_items == 0
 
     def test_worker_initialization_limit_items_none_when_key_missing(self, mock_services):
         """Test worker sets limit_items to 0 when args has no limit_items key."""
         worker = CreateOwidPagesWorker(
-            job_id=1,
-            user=None,
-            cancel_event=None,
-            args={"other_key": "value"},
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+                args={"other_key": "value"},
+            )
         )
 
         assert worker.limit_items == 0
 
     def test_get_job_type(self, mock_services):
         """Test get_job_type returns correct value."""
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         assert worker.get_job_type() == "create_owid_pages"
 
     def test_get_initial_result(self, mock_services):
         """Test initial result matching expected structure."""
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.result
 
         assert result.status == "pending"
@@ -128,7 +158,13 @@ class TestCreateOwidPagesWorkerLoadTemplates:
         ]
         mock_services["list"].return_value = templates
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker._load_templates()
 
         assert len(result) == 2
@@ -141,7 +177,13 @@ class TestCreateOwidPagesWorkerLoadTemplates:
         ]
         mock_services["list"].return_value = templates
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker._load_templates()
 
         assert result == []
@@ -154,7 +196,14 @@ class TestCreateOwidPagesWorkerLoadTemplates:
             TemplateRecord(id=3, title="Template:OWID/Test3", main_file="test3.svg", last_world_file=None),
         ]
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None, args={"limit_items": 2})
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+                args={"limit_items": 2},
+            )
+        )
         result = worker._apply_limits(templates)
 
         assert len(result) == 2
@@ -166,7 +215,13 @@ class TestCreateOwidPagesWorkerLoadTemplates:
             TemplateRecord(id=2, title="Template:OWID/Test2", main_file="test2.svg", last_world_file=None),
         ]
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker._apply_limits(templates)
 
         assert len(result) == 2
@@ -177,7 +232,13 @@ class TestCreateOwidPagesWorkerLoadTemplates:
             TemplateRecord(id=1, title="Template:OWID/Test1", main_file="test1.svg", last_world_file=None),
         ]
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker._apply_limits(templates)
 
         assert len(result) == 1
@@ -190,7 +251,13 @@ class TestCreateOwidPagesWorkerSteps:
         """Test _step_load_template_text with successful text retrieval."""
         mock_services["MwClientPage"].return_value.get_text.return_value = "Template wikitext content"
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         worker.site = MagicMock()
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
 
@@ -204,7 +271,13 @@ class TestCreateOwidPagesWorkerSteps:
         """Test _step_load_template_text when text retrieval fails."""
         mock_services["MwClientPage"].return_value.get_text.return_value = ""
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         worker.site = MagicMock()
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
 
@@ -221,7 +294,13 @@ class TestCreateNewTextStep:
         """Test _step_create_new_text with successful text generation."""
         mock_services["create_new_text"].return_value = "New OWID page content"
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._template_text = "Template content"
 
@@ -236,7 +315,13 @@ class TestCreateNewTextStep:
         """Test _step_create_new_text when exception occurs."""
         mock_services["create_new_text"].side_effect = ValueError("Invalid template format")
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._template_text = "Template content"
 
@@ -253,7 +338,13 @@ class TestUpdateStep:
         """Test _step_update when page has identical content."""
         mock_services["MwClientPage"].return_value.get_text.return_value = "New content"
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New content"
 
@@ -268,7 +359,13 @@ class TestUpdateStep:
         mock_services["MwClientPage"].return_value.get_text.return_value = "Old content"
         mock_services["page_instance"].edit.return_value = {"success": True}
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New content"
 
@@ -284,7 +381,13 @@ class TestUpdateStep:
         mock_services["MwClientPage"].return_value.get_text.return_value = "Old content"
         mock_services["page_instance"].edit.return_value = {"success": False, "error": "Edit conflict"}
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New content"
 
@@ -299,7 +402,13 @@ class TestCreateNewPageStep:
         """Test _step_create_new_page with successful creation."""
         mock_services["page_instance"].create.return_value = {"success": True}
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         worker.site = mock_site
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New OWID page content"
@@ -319,7 +428,13 @@ class TestCreateNewPageStep:
         """Test _step_create_new_page when creation fails."""
         mock_services["page_instance"].create.return_value = {"success": False, "error": "Permission denied"}
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         worker.site = MagicMock()
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
         info._new_text = "New OWID page content"
@@ -337,7 +452,13 @@ class TestCreateOwidPagesWorkerHelpers:
 
     def test_create_new_page_title_with_owid_prefix(self, mock_services):
         """Test create_new_page_title with Template:OWID/ prefix."""
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
 
         result = worker.create_new_page_title(info)
@@ -346,7 +467,13 @@ class TestCreateOwidPagesWorkerHelpers:
 
     def test_create_new_page_title_with_other_prefix(self, mock_services):
         """Test create_new_page_title with other Template: prefix."""
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         info = TemplateProcessingInfo(template_id=1, template_title="Template:Other/Test")
 
         result = worker.create_new_page_title(info)
@@ -355,7 +482,13 @@ class TestCreateOwidPagesWorkerHelpers:
 
     def test_fail_updates_status_and_result(self, mock_services):
         """Test _fail updates info status and result summary."""
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
 
         worker._fail(info, "load_template_text", "Failed to load")
@@ -368,7 +501,13 @@ class TestCreateOwidPagesWorkerHelpers:
 
     def test_skip_step_updates_step_status(self, mock_services):
         """Test _skip_step updates step status."""
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
 
         worker._skip_step(info, "create_new_page", "Already exists")
@@ -384,7 +523,13 @@ class TestCreateOwidPagesWorkerProcess:
         """Test process when site authentication fails."""
         mock_services["get_user_site"].return_value = None
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.process()
 
         assert result.status == "failed"
@@ -395,7 +540,13 @@ class TestCreateOwidPagesWorkerProcess:
         mock_services["get_user_site"].return_value = MagicMock()
         mock_services["list"].return_value = []
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.process()
 
         assert result.status == "skipped"
@@ -413,7 +564,13 @@ class TestCreateOwidPagesWorkerProcess:
         mock_services["page_instance"].exists.return_value = False
         mock_services["page_instance"].create.return_value = {"success": True}
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.process()
 
         assert result.status == "completed"
@@ -433,7 +590,13 @@ class TestCreateOwidPagesWorkerProcess:
         mock_services["page_instance"].exists.return_value = True
         mock_services["MwClientPage"].return_value.get_text.return_value = "New OWID content"
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.process()
 
         assert result.status == "completed"
@@ -462,7 +625,13 @@ class TestCreateOwidPagesWorkerProcess:
         mock_services["MwClientPage"].side_effect = _mwclientpage_side_effect
         mock_services["create_new_text"].return_value = "New OWID content"
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=None)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.process()
 
         assert result.summary.total == 3
@@ -485,7 +654,13 @@ class TestCreateOwidPagesWorkerProcess:
         mock_services["page_instance"].create.return_value = {"success": True}
         mock_services["is_job_cancelled"].return_value = True
 
-        worker = CreateOwidPagesWorker(job_id=1, user=None, cancel_event=cancel_event)
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=cancel_event,
+            )
+        )
 
         # Set cancelled after first template
         call_count = [0]

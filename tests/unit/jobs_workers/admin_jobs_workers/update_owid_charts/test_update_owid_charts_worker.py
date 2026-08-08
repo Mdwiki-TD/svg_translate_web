@@ -11,6 +11,7 @@ from src.main_app.db.models import OwidChartRecord
 from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker import (
     UpdateOwidChartsWorker,
 )
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @dataclass
@@ -54,7 +55,13 @@ class TestUpdateOwidChartsWorkerInitialization:
 
     def test_worker_initialization(self):
         """Test worker initializes correctly with default args."""
-        worker = UpdateOwidChartsWorker(job_id=1, user={"username": "test"}, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={"username": "test"},
+                cancel_event=None,
+            )
+        )
 
         assert worker.job_id == 1
         assert worker.user == {"username": "test"}
@@ -64,39 +71,62 @@ class TestUpdateOwidChartsWorkerInitialization:
     def test_worker_initialization_with_limit_items(self):
         """Test worker reads limit_items from args."""
         worker = UpdateOwidChartsWorker(
-            job_id=1,
-            user=None,
-            cancel_event=None,
-            args={"limit_items": 5},
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+                args={"limit_items": 5},
+            )
         )
 
         assert worker.limit_items == 5
 
     def test_worker_initialization_with_none_args(self):
         """Test worker defaults limit_items to 0 when args is None."""
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None, args=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+                args=None,
+            )
+        )
 
         assert worker.limit_items == 0
 
     def test_worker_initialization_limit_items_none_when_key_missing(self):
         """Test worker sets limit_items to None when args has no limit_items key."""
         worker = UpdateOwidChartsWorker(
-            job_id=1,
-            user=None,
-            cancel_event=None,
-            args={"other_key": "value"},
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+                args={"other_key": "value"},
+            )
         )
 
         assert worker.limit_items == 0
 
     def test_get_job_type(self):
         """Test get_job_type returns correct value."""
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         assert worker.get_job_type() == "update_owid_charts"
 
     def test_initial_result_structure(self):
         """Test initial result matches expected structure."""
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.result
 
         assert result.status == "pending"
@@ -123,10 +153,12 @@ class TestUpdateOwidChartsWorkerApplyLimits:
         ]
 
         worker = UpdateOwidChartsWorker(
-            job_id=1,
-            user=None,
-            cancel_event=None,
-            args={"limit_items": 2},
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+                args={"limit_items": 2},
+            )
         )
         result = worker._apply_limits(charts)
 
@@ -139,7 +171,13 @@ class TestUpdateOwidChartsWorkerApplyLimits:
             MagicMock(chart_id=2, slug="chart-2"),
         ]
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker._apply_limits(charts)
 
         assert len(result) == 2
@@ -150,7 +188,13 @@ class TestUpdateOwidChartsWorkerApplyLimits:
             MagicMock(chart_id=1, slug="chart-1"),
         ]
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker._apply_limits(charts)
 
         assert len(result) == 1
@@ -163,10 +207,12 @@ class TestUpdateOwidChartsWorkerApplyLimits:
         ]
 
         worker = UpdateOwidChartsWorker(
-            job_id=1,
-            user=None,
-            cancel_event=None,
-            args={"limit_items": "not_an_int"},
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+                args={"limit_items": "not_an_int"},
+            )
         )
         result = worker._apply_limits(charts)
 
@@ -180,7 +226,13 @@ class TestProcessChart:
         """When fetch_grapher_metadata returns 404 -> status 'skipped' with 'not found' reason."""
         mock_services.fetch_grapher_metadata.return_value = (None, 404)
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
@@ -201,7 +253,13 @@ class TestProcessChart:
 
     def test_process_chart_metadata_none(self, mock_services: MockServices):
         """When fetch_grapher_metadata returns None -> status 'failed'."""
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
@@ -223,7 +281,13 @@ class TestProcessChart:
         metadata = {"columns": {"col1": {"some_key": "some_value"}}}
         mock_services.fetch_grapher_metadata.return_value = (metadata, 200)
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
@@ -245,7 +309,13 @@ class TestProcessChart:
         metadata = {"columns": {"col1": {"owidVariableId": 123}}}
         mock_services.fetch_grapher_metadata.return_value = (metadata, 200)
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
@@ -268,7 +338,13 @@ class TestProcessChart:
         metadata = {"columns": {"col1": {"timespan": "invalid"}}}
         mock_services.fetch_grapher_metadata.return_value = (metadata, 200)
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
@@ -289,7 +365,13 @@ class TestProcessChart:
         metadata = {"columns": {"col1": {"timespan": "2000-2020", "owidVariableId": 123}}}
         mock_services.fetch_grapher_metadata.return_value = (metadata, 200)
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
@@ -312,7 +394,13 @@ class TestProcessChart:
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
         mock_services.fetch_grapher_metadata.return_value = (metadata, 200)
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
@@ -334,7 +422,13 @@ class TestProcessChart:
         mock_services.fetch_grapher_metadata.return_value = (metadata, 200)
         mock_services.owid_charts_service.update_chart_data_with_retry.side_effect = Exception("DB error")
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
@@ -356,7 +450,13 @@ class TestProcessChart:
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
         mock_services.fetch_grapher_metadata.return_value = (metadata, 200)
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
@@ -379,7 +479,13 @@ class TestProcessChart:
         metadata = {"columns": {"col1": {"timespan": "2000-2020", "owidVariableId": 42}}}
         mock_services.fetch_grapher_metadata.return_value = (metadata, 200)
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         chart = OwidChartRecord(
             chart_id=1,
             slug="test-chart",
@@ -404,7 +510,13 @@ class TestProcess:
         """When no charts loaded -> completed with total=0."""
         mock_services.owid_charts_service.list_charts.return_value = []
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.process()
 
         assert result.status == "failed"
@@ -428,7 +540,13 @@ class TestProcess:
             mock_process_chart,
         )
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.process_all()
 
         mock_process_chart.assert_called_once_with(chart)
@@ -448,7 +566,13 @@ class TestProcess:
             mock_is_cancelled,
         )
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.process_all()
 
         assert result.summary.total == 2
@@ -471,7 +595,13 @@ class TestProcess:
             mock_cancel_periodic,
         )
 
-        worker = UpdateOwidChartsWorker(job_id=1, user=None, cancel_event=None)
+        worker = UpdateOwidChartsWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
         result = worker.process_all()
 
         mock_process_chart.assert_called_once()

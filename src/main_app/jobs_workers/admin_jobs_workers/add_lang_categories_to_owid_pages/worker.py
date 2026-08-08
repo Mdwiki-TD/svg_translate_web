@@ -11,7 +11,6 @@ Authentication uses the current user's OAuth-bound Site (no env credentials).
 from __future__ import annotations
 
 import logging
-import threading
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -23,6 +22,7 @@ from ....api_services import MwClientPage
 from ....utils.file_langs import get_file_languages
 from ....utils.wikitext.categories_utils import get_missing_categories_list
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from .objects import AddLangCategoriesWorkerObject
 from .utils import (
     build_category_names,
@@ -85,19 +85,13 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         6. Save page with new categories appended
     """
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
+    def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
 
-        super().__init__(job_id, user, cancel_event)
+        super().__init__(data)
         self.result: AddLangCategoriesWorkerObject = AddLangCategoriesWorkerObject()
 
-        self.args = args or {}
+        self.args = data.args or {}
         self.result.args = self.args
         self.limit_items = self.args.get("limit_items") or 0
 

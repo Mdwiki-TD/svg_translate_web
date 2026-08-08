@@ -5,11 +5,9 @@ Worker module for downloading main files from remote source to local filesystem.
 from __future__ import annotations
 
 import logging
-import threading
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 import requests
 
@@ -18,6 +16,7 @@ from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
 from .download_helper import download_file_from_commons
 from .objects import DownloadMainFilesWorkerObject, FileInfo
 
@@ -65,21 +64,15 @@ def generate_main_files_zip(main_files_zip_name) -> Path:
 class DownloadMainFilesWorker(BaseObjectsJobWorker):
     """Worker for downloading main files from Commons to local filesystem."""
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-        args: dict[str, Any] | None = None,
-    ) -> None:
+    def __init__(self, data: JobsRunner) -> None:
         self.output_dir = Path(settings.paths.main_files_path)
 
-        super().__init__(job_id, user, cancel_event)
+        super().__init__(data)
         self.result: DownloadMainFilesWorkerObject = DownloadMainFilesWorkerObject()
         self.result.output_path = str(self.output_dir)
         self.session: requests.Session | None = None
 
-        self.args = args or {}
+        self.args = data.args or {}
         self.main_files_zip_name = self.args.get("main_files_zip_name", "main_files.zip")
         self.result.args = self.args
         self.limit_items = self.args.get("limit_items") or 0

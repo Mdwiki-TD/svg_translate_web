@@ -10,16 +10,16 @@ from src.main_app.db.models.jobs import JobRecord
 from src.main_app.db.services.jobs_service import JobsService
 from src.main_app.extensions import db
 from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker, WorkerObject
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 class MockWorker(BaseObjectsJobWorker):
     def __init__(self, job_id: int, job_type_name: str = "mock_job") -> None:
-        self.job_id = job_id
         self.args = {}
         self.site = None
         self._job_type_name = job_type_name
 
-        super().__init__(job_id, None, None)
+        super().__init__(JobsRunner(job_id=job_id, user={}))
 
         self.result: WorkerObject = WorkerObject()
 

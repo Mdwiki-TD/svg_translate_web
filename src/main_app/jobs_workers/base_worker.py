@@ -15,6 +15,7 @@ from ..api_services import get_user_site
 from ..config import settings
 from ..db.services import JobsService
 from ..su_services import is_job_cancelled_file_exist, save_job_result_by_name
+from .objects import JobsRunner
 from .shared_objects import WorkerObject
 from .utils import generate_result_file_name
 
@@ -40,19 +41,20 @@ class BaseObjectsJobWorker(ABC):
     - after_run(): Called after processing completes
     """
 
-    def __init__(
-        self,
-        job_id: int,
-        user: dict[str, Any],
-        cancel_event: threading.Event | None = None,
-    ) -> None:
-        self.job_id: Final[int] = job_id
-        self.user: Final[dict[str, Any]] = user
-        self.cancel_event: Final[threading.Event | None] = cancel_event
+    # def __init__(
+    #     self,
+    #     job_id: int,
+    #     user: dict[str, Any],
+    #     cancel_event: threading.Event | None = None,
+    # ) -> None:
+    def __init__(self, data: JobsRunner) -> None:
+        self.job_id: Final[int] = data.job_id
+        self.user: Final[dict[str, Any]] = data.user
+        self.cancel_event: Final[threading.Event | None] = data.cancel_event
         self.job_type: str = self.get_job_type()
         self._status: str = "pending"
 
-        self.result_file: str = generate_result_file_name(job_id, self.job_type)
+        self.result_file: str = generate_result_file_name(data.job_id, self.job_type)
         self.result_file_cancelled: str = f"{self.result_file}.cancelled"
 
         self._edit_count: int = 0

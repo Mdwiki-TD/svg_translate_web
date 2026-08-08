@@ -11,11 +11,17 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pa
     AddLangCategoriesWorker,
     PageInfo,
 )
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
 def mock_lang_worker(mock_base_worker, mock_before_run) -> AddLangCategoriesWorker:
-    worker = AddLangCategoriesWorker(job_id=1, user=None)
+    worker = AddLangCategoriesWorker(
+        JobsRunner(
+            job_id=1,
+            user={},
+        )
+    )
     worker.site = mock_base_worker["get_user_site"]
     return worker
 
@@ -78,7 +84,13 @@ class TestWorkerInit:
         user = {"username": "test_user"}
         cancel_event = threading.Event()
 
-        worker = AddLangCategoriesWorker(job_id=1, user=user, cancel_event=cancel_event)
+        worker = AddLangCategoriesWorker(
+            JobsRunner(
+                job_id=1,
+                user=user,
+                cancel_event=cancel_event,
+            )
+        )
 
         assert worker.job_id == 1
         assert worker.user == user
@@ -86,23 +98,51 @@ class TestWorkerInit:
         assert worker.site is None
 
     def test_get_job_type(self):
-        worker = AddLangCategoriesWorker(job_id=1, user=None)
+        worker = AddLangCategoriesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+            )
+        )
         assert worker.get_job_type() == "add_lang_categories_to_owid_pages"
 
     def test_reads_limit_items_from_args(self):
-        worker = AddLangCategoriesWorker(job_id=1, user=None, args={"limit_items": 5})
+        worker = AddLangCategoriesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                args={"limit_items": 5},
+            )
+        )
         assert worker.limit_items == 5
 
     def test_defaults_limit_items_to_zero(self):
-        worker = AddLangCategoriesWorker(job_id=1, user=None, args=None)
+        worker = AddLangCategoriesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                args=None,
+            )
+        )
         assert worker.limit_items == 0
 
     def test_limit_items_zero_when_key_missing(self):
-        worker = AddLangCategoriesWorker(job_id=1, user=None, args={"other_key": "value"})
+        worker = AddLangCategoriesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                args={"other_key": "value"},
+            )
+        )
         assert worker.limit_items == 0
 
     def test_initial_result_structure(self):
-        worker = AddLangCategoriesWorker(job_id=1, user=None)
+        worker = AddLangCategoriesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+            )
+        )
         result = worker.result
 
         assert result.status == "pending"
@@ -471,7 +511,12 @@ class TestProcess:
         mock_page.name = "OWID/test_page"
         mock_site.allpages.return_value = [mock_page]
 
-        worker = AddLangCategoriesWorker(job_id=1, user={"username": "test"})
+        worker = AddLangCategoriesWorker(
+            JobsRunner(
+                job_id=1,
+                user={"username": "test"},
+            )
+        )
         worker._process_one_item = MagicMock(return_value=True)
 
         result = worker.run()
@@ -482,7 +527,12 @@ class TestProcess:
     def test_process_fails_without_site(self, mock_lang_categories_services, monkeypatch: pytest.MonkeyPatch):
         mock_lang_categories_services["get_user_site"].return_value = None
 
-        worker = AddLangCategoriesWorker(job_id=1, user=None)
+        worker = AddLangCategoriesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+            )
+        )
         result = worker.run()
 
         assert result["status"] == "failed"
@@ -496,7 +546,13 @@ class TestProcess:
             p.name = f"OWID/page{i}"
         mock_site.allpages.return_value = mock_pages
 
-        worker = AddLangCategoriesWorker(job_id=1, user={"username": "test"}, args={"limit_items": 3})
+        worker = AddLangCategoriesWorker(
+            JobsRunner(
+                job_id=1,
+                user={"username": "test"},
+                args={"limit_items": 3},
+            )
+        )
         worker._process_one_item = MagicMock(return_value=True)
 
         result = worker.run()
@@ -515,7 +571,13 @@ class TestProcess:
         mock_site.allpages.return_value = mock_pages
 
         cancel_event = threading.Event()
-        worker = AddLangCategoriesWorker(job_id=1, user={"username": "test"}, cancel_event=cancel_event)
+        worker = AddLangCategoriesWorker(
+            JobsRunner(
+                job_id=1,
+                user={"username": "test"},
+                cancel_event=cancel_event,
+            )
+        )
 
         call_count = [0]
 

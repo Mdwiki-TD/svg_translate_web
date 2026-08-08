@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.runner import (
     update_owid_charts_worker_entry,
 )
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 class TestUpdateOwidChartsWorkerEntry:
@@ -21,13 +22,18 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, user={"username": "test"})
+            update_owid_charts_worker_entry(
+                JobsRunner(
+                    job_id=1,
+                    user={"username": "test"},
+                )
+            )
 
             MockWorker.assert_called_once_with(
-                job_id=1,
-                user={"username": "test"},
-                cancel_event=None,
-                args=None,
+                JobsRunner(
+                    job_id=1,
+                    user={"username": "test"},
+                )
             )
             mock_instance.run.assert_called_once()
 
@@ -40,10 +46,16 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, user=None, cancel_event=cancel_event)
+            data = JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=cancel_event,
+            )
+            update_owid_charts_worker_entry(data)
 
-            call_kwargs = MockWorker.call_args.kwargs
-            assert call_kwargs["cancel_event"] is cancel_event
+            call_args = MockWorker.call_args[0]
+            assert call_args == (data,)
+            assert call_args[0].cancel_event is cancel_event
 
     def test_entry_point_accepts_args_keyword_param(self):
         """Test that the entry point accepts args= keyword-only param."""
@@ -53,7 +65,13 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, user=None, args={"some_key": "value"})
+            update_owid_charts_worker_entry(
+                JobsRunner(
+                    job_id=1,
+                    user={},
+                    args={"some_key": "value"},
+                )
+            )
 
             mock_instance.run.assert_called_once()
 
@@ -65,10 +83,15 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=99, user=None)
+            data = JobsRunner(
+                job_id=99,
+                user={},
+            )
+            update_owid_charts_worker_entry(data)
 
-            call_kwargs = MockWorker.call_args.kwargs
-            assert call_kwargs["args"] is None
+            call_args = MockWorker.call_args[0]
+            assert call_args == (data,)
+            assert call_args[0].args is None
 
     def test_entry_point_maps_owid_charts_limit_items_to_limit_items(self):
         """Test that limit_items is mapped to limit_items in args."""
@@ -78,14 +101,16 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(
+            data = JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"limit_items": 10},
             )
+            update_owid_charts_worker_entry(data)
 
-            call_kwargs = MockWorker.call_args.kwargs
-            assert call_kwargs["args"]["limit_items"] == 10
+            call_args = MockWorker.call_args[0]
+            assert call_args == (data,)
+            assert call_args[0].args["limit_items"] == 10
 
     def test_entry_point_does_not_map_when_key_absent(self):
         """Test that args are passed unchanged when limit_items is absent."""
@@ -95,14 +120,16 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(
+            data = JobsRunner(
                 job_id=1,
-                user=None,
+                user={},
                 args={"other_key": "value"},
             )
+            update_owid_charts_worker_entry(data)
 
-            call_kwargs = MockWorker.call_args.kwargs
-            assert "limit_items" not in call_kwargs["args"]
+            call_args = MockWorker.call_args[0]
+            assert call_args == (data,)
+            assert "limit_items" not in call_args[0].args
 
     def test_entry_point_does_not_modify_args_when_args_is_none(self):
         """Test that entry point works correctly when args is None."""
@@ -112,7 +139,13 @@ class TestUpdateOwidChartsWorkerEntry:
             mock_instance = MagicMock()
             MockWorker.return_value = mock_instance
 
-            update_owid_charts_worker_entry(job_id=1, user=None, args=None)
+            data = JobsRunner(
+                job_id=1,
+                user={},
+                args=None,
+            )
+            update_owid_charts_worker_entry(data)
 
-            call_kwargs = MockWorker.call_args.kwargs
-            assert call_kwargs["args"] is None
+            call_args = MockWorker.call_args[0]
+            assert call_args == (data,)
+            assert call_args[0].args is None
