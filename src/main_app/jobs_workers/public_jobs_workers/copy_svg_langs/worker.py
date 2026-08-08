@@ -49,7 +49,7 @@ class OneFileProcessor:
         upload_limit = self.args.get("upload_limit") or 0
         self.upload_limit = upload_limit if isinstance(upload_limit, int) else 0
 
-        self.overwrite_translations = bool(self.args.get("overwrite"))
+        self.overwrite_translations = bool(self.args.get("overwrite_translations"))
 
         self.session: requests.Session = create_commons_session(settings.other.user_agent)
         self.translations: dict[str, str] = {}
