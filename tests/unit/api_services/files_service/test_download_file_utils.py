@@ -86,7 +86,7 @@ class TestDownloadOneFile:
         file_path.write_text("existing content")
         result = download_one_file(title, temp_output_dir, 1, overwrite_download=False)
         assert result["result"] == "existing"
-        assert result["msg"] == "Skip existing file, no overwrite_download"
+        assert result["msg"] == "Skip existing file, no overwrite"
         assert result["path"] == str(file_path)
 
     def test_existing_file_overwrites(self, temp_output_dir, mock_download_core):
