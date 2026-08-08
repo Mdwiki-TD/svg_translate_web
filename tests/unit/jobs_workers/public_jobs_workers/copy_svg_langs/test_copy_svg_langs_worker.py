@@ -376,7 +376,12 @@ class TestCopySvgLangsWorkerInjectStepFile:
 
         assert step_result.result is True
         assert step_result.msg == "2 languages injected"
-        assert title_info.steps.translations.details == {"new": 2, "updated": 1, "new_list": ["ar", "de"], "inserted": 0}
+        assert title_info.steps.translations.details == {
+            "new": 2,
+            "updated": 1,
+            "new_list": ["ar", "de"],
+            "inserted": 0,
+        }
         assert new_path == tmp_path / "translated" / file_name
 
 

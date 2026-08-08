@@ -46,11 +46,11 @@ class TestFixNestedJobsProcessorEntry:
             MockWorker.return_value = mock_instance
             user = {"username": "testuser"}
 
-            data =JobsRunner(
+            data = JobsRunner(
                 job_id=1,
-                    args={"filename": "Test.svg"},
-                    user=user,
-                )
+                args={"filename": "Test.svg"},
+                user=user,
+            )
 
             fix_nested_jobs_worker_entry(data)
 
@@ -112,9 +112,9 @@ class TestFixNestedJobsProcessorEntry:
 
             # Call without args - should default to None
             data = JobsRunner(
-                    job_id=42,
-                    user={"username": "tester"},
-                )
+                job_id=42,
+                user={"username": "tester"},
+            )
             fix_nested_jobs_worker_entry(data)
 
             call_kwargs = MockWorker.call_args[0]

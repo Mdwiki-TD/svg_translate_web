@@ -66,18 +66,16 @@ def test_runner(flask_app):
     target = MagicMock()
     cancel_event = threading.Event()
     _register_cancel_event(1, cancel_event)
-
-    _runner(1, {"user": "test"}, cancel_event, target, flask_app, {"a": 1}, {"form_key": "form_val"})
-
-    target.assert_called_once_with(
-        JobsRunner(
-            job_id=1,
-            user={"user": "test"},
-            cancel_event=cancel_event,
-            args={"a": 1},
-            form_data={"form_key": "form_val"},
-        )
+    data = JobsRunner(
+        job_id=1,
+        user={"user": "test"},
+        cancel_event=cancel_event,
+        args={"a": 1},
+        form_data={"form_key": "form_val"},
     )
+    _runner(data, target, flask_app)
+
+    target.assert_called_once_with(data)
     assert _pop_cancel_event(1) is None  # should be popped
 
 
@@ -85,18 +83,16 @@ def test_runner_no_form_data(flask_app):
     target = MagicMock()
     cancel_event = threading.Event()
     _register_cancel_event(1, cancel_event)
-
-    _runner(1, {"user": "test"}, cancel_event, target, flask_app, {"a": 1})
-
-    target.assert_called_once_with(
-        JobsRunner(
-            job_id=1,
-            user={"user": "test"},
-            cancel_event=cancel_event,
-            args={"a": 1},
-            form_data=None,
-        )
+    data = JobsRunner(
+        job_id=1,
+        user={"user": "test"},
+        cancel_event=cancel_event,
+        args={"a": 1},
+        form_data=None,
     )
+    _runner(data, target, flask_app)
+
+    target.assert_called_once_with(data)
     assert _pop_cancel_event(1) is None  # should be popped
 
 

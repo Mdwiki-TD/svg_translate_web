@@ -63,30 +63,18 @@ def _load_job_args(job_args: list[dict[str, str]]) -> dict:
 
 
 def _runner(
-    job_id: int,
-    user: dict[str, Any],
-    cancel_event: threading.Event,
+    runner_data: JobsRunner,
     target_func: Any,
     flask_app: Flask,
-    args: dict[str, Any] | None = None,
-    form_data: dict[str, Any] | None = None,
 ) -> None:
     """
     args=(job.id, user, cancel_event, target_func, flask_app, args, form_data),
     """
     with flask_app.app_context():
         try:
-            runner_data = JobsRunner(
-                job_id=job_id,
-                user=user,
-                cancel_event=cancel_event,
-                args=args,
-                form_data=form_data,
-            )
             target_func(runner_data)
         finally:
-            _pop_cancel_event(job_id)
-
+            _pop_cancel_event(runner_data.job_id)
 
 def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord | None = None) -> bool:
     """
@@ -161,10 +149,18 @@ def _start_job_impl(
     if "csrf_token" in resolved_args:
         del resolved_args["csrf_token"]
 
+    runner_data = JobsRunner(
+        job_id=job.id,
+        user=auth_payload,
+        cancel_event=cancel_event,
+        args=resolved_args,
+        form_data=form_data,
+    )
+
     # Start background thread
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, auth_payload, cancel_event, target_func, resolved_flask_app, resolved_args, form_data),
+        args=(runner_data, target_func, resolved_flask_app),
         daemon=daemon,
     )
     thread.start()

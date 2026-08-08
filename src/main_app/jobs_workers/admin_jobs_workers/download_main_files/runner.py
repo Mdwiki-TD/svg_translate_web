@@ -45,7 +45,12 @@ def create_main_files_zip() -> tuple[Any, int]:
         return "Zip file is empty or corrupted. Please re-run the 'Download Main Files' job.", 500
 
     return (
-        send_file(zip_file_path, mimetype="application/zip", as_attachment=True, download_name=MAIN_FILES_ZIP_NAME),
+        send_file(
+            zip_file_path,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name=MAIN_FILES_ZIP_NAME,
+        ),
         200,
     )
 
