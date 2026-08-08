@@ -56,7 +56,7 @@ class TestAddSvgSVGLanguagesTemplateToTemplates:
         add_svglanguages_template_to_templates(runner_data)
 
         call_kwargs = mock_worker_class.call_args.kwargs
-        assert call_kwargs["args"]["limit_items"] == 10
+        assert call_kwargs["data"]["args"]["limit_items"] == 10
 
     def test_function_does_not_map_when_key_absent(self, mock_add_svglanguages_services):
         """Test that args are passed unchanged when limit_items is absent."""
