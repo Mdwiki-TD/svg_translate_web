@@ -51,9 +51,10 @@ class OneFileProcessor:
 
         self.overwrite_translations = bool(self.args.get("overwrite_translations"))
 
-        default_overwrite_download = True
+        self.overwrite_download = True
+
         if self.args.get("overwrite_download") is not None:
-            self.overwrite_download = bool(self.args.get("overwrite_download"))
+            overwrite_download = bool(self.args.get("overwrite_download"))
 
         self.session: requests.Session = create_commons_session(settings.other.user_agent)
         self.translations: dict[str, str] = {}
@@ -313,7 +314,7 @@ class OneFileProcessor:
             file_data = download_one_file(
                 title=title,
                 out_dir=self.output_dir_files,
-                overwrite_download=True,
+                overwrite_download=self.overwrite_download,
                 session=self.session,
             )
         except Exception as e:
@@ -477,7 +478,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         main_file_download = download_one_file(
             title=self.main_title,
             out_dir=output_dir_main,
-            overwrite_download=True,
+            overwrite_download=self.overwrite_download,
         )
 
         if not main_file_download.get("path"):
