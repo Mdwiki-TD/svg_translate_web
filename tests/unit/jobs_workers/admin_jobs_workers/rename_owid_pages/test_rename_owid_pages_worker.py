@@ -14,6 +14,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker impor
     RenameOwidPagesWorker,
     needs_rename,
 )
+from src.main_app.jobs_workers.objects import JobsRunner
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────────
 
@@ -49,7 +50,7 @@ def _make_worker(**kwargs) -> RenameOwidPagesWorker:
     """Create a RenameOwidPagesWorker with test-friendly defaults."""
     defaults = {"job_id": 1, "user": {"username": "tester"}, "cancel_event": None}
     defaults.update(kwargs)
-    return RenameOwidPagesWorker(**defaults)
+    return RenameOwidPagesWorker(JobsRunner(**defaults))
 
 
 # ── tests: needs_rename ───────────────────────────────────────────────────────────

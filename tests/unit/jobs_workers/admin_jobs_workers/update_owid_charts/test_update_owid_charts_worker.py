@@ -12,7 +12,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker impo
     UpdateOwidChartsWorker,
 )
 
-from ......src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @dataclass

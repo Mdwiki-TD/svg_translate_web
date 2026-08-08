@@ -12,7 +12,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.work
     TemplateInfo,
 )
 
-from ......src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture

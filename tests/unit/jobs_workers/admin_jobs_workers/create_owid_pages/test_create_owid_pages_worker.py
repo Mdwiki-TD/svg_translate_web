@@ -13,7 +13,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker impor
     TemplateProcessingInfo,
 )
 
-from ......src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 class TestTemplateProcessingInfo:

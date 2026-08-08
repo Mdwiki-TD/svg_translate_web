@@ -12,7 +12,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pa
     PageInfo,
 )
 
-from ......src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture

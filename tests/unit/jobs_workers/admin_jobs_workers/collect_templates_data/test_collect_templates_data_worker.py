@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker
 
-from ......src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 def test_worker_class_get_job_type():

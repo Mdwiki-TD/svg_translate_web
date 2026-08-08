@@ -15,7 +15,7 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import 
 )
 from src.main_app.shared.copysvg_wrapper import ExtractResult, InjectResult
 
-from ......src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @dataclass

@@ -14,7 +14,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker 
     TemplateData,
 )
 
-from ......src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 # The db.models.TemplateRecord.__init__ also uses hasattr(self, key) but
 # works because SQLAlchemy declarative base sets up descriptors on the class.

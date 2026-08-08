@@ -10,7 +10,7 @@ import pytest
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker
 
-from ......src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture(autouse=True)

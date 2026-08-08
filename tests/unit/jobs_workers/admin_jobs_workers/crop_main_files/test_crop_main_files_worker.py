@@ -15,7 +15,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import 
     CropMainFilesWorker,
 )
 
-from ......src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture

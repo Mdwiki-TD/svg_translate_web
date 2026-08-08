@@ -16,7 +16,7 @@ from src.main_app.shared.fix_nested.worker import (
     VerificationResult,
 )
 
-from ......src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.objects import JobsRunner
 
 # ---------------------------------------------------------------------------
 # steps
