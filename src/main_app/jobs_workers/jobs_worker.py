@@ -121,6 +121,7 @@ def _start_job_impl(
     auth_payload: dict[str, Any] | None,
     job_type: str,
     args: dict[str, Any] | None = None,
+    form_data: dict[str, Any] | None = None,
     *,
     daemon: bool = False,
     flask_app: Flask | None = None,
@@ -160,7 +161,7 @@ def _start_job_impl(
     # Start background thread
     thread = threading.Thread(
         target=_runner,
-        args=(job.id, auth_payload, cancel_event, target_func, resolved_flask_app, resolved_args),
+        args=(job.id, auth_payload, cancel_event, target_func, resolved_flask_app, resolved_args, form_data),
         daemon=daemon,
     )
     thread.start()
@@ -168,6 +169,23 @@ def _start_job_impl(
     logger.info("Started background job %s for %s", job.id, job_type)
 
     return job.id
+
+
+def start_job_form(
+    auth_payload: dict[str, Any] | None,
+    job_type: str,
+    args: dict[str, Any] | None = None,
+    form_data: dict[str, Any] | None = None,
+) -> int:
+    """Start a background job as a daemon thread. Returns the job ID."""
+    return _start_job_impl(
+        auth_payload,
+        job_type,
+        args,
+        form_data,
+        daemon=True,
+        flask_app=current_app._get_current_object(),  # type: ignore[attr-defined]
+    )
 
 
 def start_job(

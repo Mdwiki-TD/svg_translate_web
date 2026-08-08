@@ -12,9 +12,8 @@ from flask import Blueprint, Flask
 from src.main_app.db.exceptions import DuplicateRecordError
 from src.main_app.db.models import JobRecord
 from src.main_app.db.services import JobsService
-
-from src.main_app.public.shared_jobs_routes import SharedJobRoutes
 from src.main_app.public.public_jobs import PublicJobsRoutes
+from src.main_app.public.shared_jobs_routes import SharedJobRoutes
 
 MOCK_URL = "/redirected"
 
@@ -54,7 +53,7 @@ def mock_deps(
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.SharedJobRoutes.can_manage_job", deps.can_manage_job)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.cancel_job_worker", deps.cancel_job_worker)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_auth_payload", deps.load_auth_payload)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.start_job", deps.start_job)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.start_job_form", deps.start_job)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_job_result", deps.load_job_result)
 
     deps.redirect.return_value = "redirected"
@@ -100,9 +99,11 @@ def mock_admin() -> MagicMock:
 def mock_jobs_data() -> dict[str, MagicMock]:
     return {
         "test_job": MagicMock(
+            job_type="test_job",
             job_list_template="test_list.html",
             job_details_template="test_detail.html",
             job_name="Test Job",
+
             start_confirm_message="Start?",
         ),
     }
@@ -111,6 +112,7 @@ def mock_jobs_data() -> dict[str, MagicMock]:
 @pytest.fixture
 def mock_template_data() -> MagicMock:
     td = MagicMock()
+    td.job_type = "test_job"
     td.job_list_template = "test_list.html"
     td.job_details_template = "test_detail.html"
     td.job_name = "Test Job"
@@ -124,7 +126,7 @@ def mock_template_data() -> MagicMock:
 def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
     templates_dir = tmp_path / "templates"
     templates_dir.mkdir()
-    (templates_dir / "test_list.html").write_text("list_{{ job_type }}_{{ list_title }}")
+    (templates_dir / "test_list.html").write_text("list_{{ template_data.job_type }}_{{ template_data.job_name }}")
     (templates_dir / "test_detail.html").write_text("detail_{{ job_id }}_{{ job_type }}_{{ expand_all }}")
 
     app = Flask(__name__, template_folder=str(templates_dir))
@@ -267,29 +269,28 @@ class TestJobsList(TestSetup):
     def test_normal_listing(
         self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord
     ) -> None:
-        result = self.service.jobs_list_handler("test_job", mock_template_data)
+        result = self.service.jobs_list_handler(mock_template_data)
 
         assert result == "rendered"
         mock_deps.flash.assert_not_called()
         mock_deps.render_template.assert_called_once_with(
             "test_list.html",
             jobs=[seeded_job],
-            job_type="test_job",
-            list_title="Test Job",
-            list_headline="Test Job",
-            start_confirm_message="Start?",
+            template_data=mock_template_data,
             form=None,
         )
 
     def test_listing_with_0_jobs(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
-        result = self.service.jobs_list_handler("test_job", mock_template_data)
+
+        result = self.service.jobs_list_handler(mock_template_data)
         assert result == "rendered"
         mock_deps.render_template.assert_called_once()
         _args, kwargs = mock_deps.render_template.call_args
         assert kwargs["jobs"] == []
 
     def test_exception_falls_back_to_empty(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
-        result = self.service.jobs_list_handler("test_job", mock_template_data)
+
+        result = self.service.jobs_list_handler(mock_template_data)
         assert result == "rendered"
         mock_deps.flash.assert_not_called()
         mock_deps.render_template.assert_called_once()
@@ -308,16 +309,15 @@ class TestJobDetail(TestSetup):
     ) -> None:
         mock_deps.load_job_result.return_value = None
 
-        result = self.service.job_detail_handler(seeded_job.id, "test_job", mock_template_data, "public_jobs")
+        result = self.service.job_detail_handler(seeded_job.id, mock_template_data, "public_jobs")
 
         assert result == "rendered"
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job,
-            job_type="test_job",
+
             result_data=None,
-            detail_title="Test Job",
-            detail_headline="Test Job",
+            template_data=mock_template_data,
             expand_all=False,
         )
 
@@ -329,16 +329,15 @@ class TestJobDetail(TestSetup):
     ) -> None:
         mock_deps.load_job_result.return_value = {"key": "value"}
 
-        result = self.service.job_detail_handler(seeded_job_with_result.id, "test_job", mock_template_data, "public_jobs")
+        result = self.service.job_detail_handler(seeded_job_with_result.id, mock_template_data, "public_jobs")
 
         assert result == "rendered"
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job_with_result,
-            job_type="test_job",
+
             result_data={"key": "value"},
-            detail_title="Test Job",
-            detail_headline="Test Job",
+            template_data=mock_template_data,
             expand_all=False,
         )
 
@@ -347,21 +346,19 @@ class TestJobDetail(TestSetup):
     ) -> None:
         mock_deps.load_job_result.return_value = None
 
-        result = self.service.job_detail_handler(seeded_job.id, "test_job", mock_template_data, "public_jobs", expand_all=True)
+        result = self.service.job_detail_handler(seeded_job.id, mock_template_data, "public_jobs", expand_all=True)
 
         assert result == "rendered"
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job,
-            job_type="test_job",
             result_data=None,
-            detail_title="Test Job",
-            detail_headline="Test Job",
+            template_data=mock_template_data,
             expand_all=True,
         )
 
     def test_job_not_found(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
-        result = self.service.job_detail_handler(999, "test_job", mock_template_data, "public_jobs")
+        result = self.service.job_detail_handler(999, mock_template_data, "public_jobs")
         assert result == "redirected"
         mock_deps.flash.assert_called_once_with("Job id 999 was not found", "warning")
         mock_deps.redirect.assert_called_once()

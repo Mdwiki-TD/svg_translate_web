@@ -12,16 +12,18 @@ from flask import (
     jsonify,
     redirect,
     render_template,
+    request,
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from flask_wtf import FlaskForm
 from werkzeug.wrappers.response import Response
 
 from ..db.exceptions import DuplicateRecordError
 from ..db.services import JobsService, SettingsService
 from ..jobs_workers.jobs_worker import (
     cancel_job_worker,
-    start_job,
+    start_job_form,
 )
 from ..jobs_workers.objects import JobData
 from ..su_services import load_job_result
@@ -51,7 +53,6 @@ class SharedJobRoutes:
             return True
         return False
 
-
     def cancel_job_handler(self, job_id: int, job_type: str) -> str:
         """Cancel a running job."""
         user = load_user()
@@ -79,7 +80,6 @@ class SharedJobRoutes:
             flash(f"Failed to cancel job {job_id}", "danger")
 
         return "job_detail"
-
 
     def delete_job_handler(self, job_id: int, job_type: str) -> str:
         """Delete a job by ID and job type."""
@@ -112,12 +112,12 @@ class SharedJobRoutes:
 
         return "jobs_list"
 
-
     def start_job_handler(
         self,
         job_type: str,
         args: dict[str, Any],
         check_can_run_bg_jobs: bool = False,
+        form_data: dict[str, Any] | None = None,
     ) -> int | None:
         """Start a job."""
         user = load_user()
@@ -138,7 +138,7 @@ class SharedJobRoutes:
             return None
 
         try:
-            job_id = start_job(auth_payload, job_type, args)
+            job_id = start_job_form(auth_payload, job_type, args, form_data)
             flash(f"Job {job_id} started to {job_type}.", "success")
             return job_id
         except DuplicateRecordError:
@@ -152,52 +152,35 @@ class SharedJobRoutes:
 
         return None
 
-
     # ================================
     # Jobs handlers
     # ================================
 
-
-    def jobs_list_handler(self, job_type: str, template_data: JobData) -> str:
+    def jobs_list_handler(self, template_data: JobData, form: Any | None = None) -> str:
         """Render the jobs list dashboard for any job type."""
         try:
-            jobs = self.job_service.list_jobs(limit=100, job_type=job_type)
+            jobs = self.job_service.list_jobs(limit=100, job_type=template_data.job_type)
         except Exception:  # pragma: no cover - defensive guard
             logger.exception("Unable to load jobs list.")
             flash("Unable to load jobs list.", "danger")
             jobs: list[Any] = []
 
-        template_name = template_data.job_list_template
-        form = None
-
-        if template_data.form_class is not None:
-            all_settings = {}
-
-            if template_data.load_settings:
-                all_settings = self.settings_service.get_all_settings_ready()
-
-            form = template_data.form_class(all_settings=all_settings)
-
         return render_template(
-            template_name,
+            template_data.job_list_template,
+            template_data=template_data,
             form=form,
             jobs=jobs,
-            job_type=job_type,
-            list_title=template_data.job_name,
-            list_headline=template_data.job_name,
-            start_confirm_message=template_data.start_confirm_message,
         )
-
 
     def job_detail_handler(
         self,
         job_id: int,
-        job_type: str,
         template_data: JobData,
         bp_name: str,
         expand_all: bool = False,
     ) -> Response | str:
         """Render the job detail page for any job type."""
+        job_type = template_data.job_type
 
         try:
             job = self.job_service.get_job(job_id, job_type)
@@ -212,15 +195,11 @@ class SharedJobRoutes:
         if job.result_file:
             result_data = load_job_result(job.result_file)
 
-        template_name = str(template_data.job_details_template)
-
         return render_template(
-            template_name,
+            template_data.job_details_template,
+            template_data=template_data,
             job=job,
-            job_type=job_type,
             result_data=result_data,
-            detail_title=template_data.job_name,
-            detail_headline=template_data.job_name,
             expand_all=expand_all,
         )
 
@@ -236,9 +215,32 @@ class JobsBp(ABC):
         self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self.bp_name = bp_name
         self.shared_service = SharedJobRoutes()
+        self.settings_service = self.shared_service.settings_service
         self._setup_routes()
 
-    def cancel_running_job(self, job_type: str, job_id: int) -> Response:
+    @abstractmethod
+    def _setup_routes(self) -> None:
+        raise NotImplementedError("This method must be implemented in the subclass")
+
+    def _redirect_to_job_list(self, job_type):
+        return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
+
+    def _redirect_to_job_detail(self, job_type, job_id):
+        return redirect(url_for(f"{self.bp_name}.job_detail", job_type=job_type, job_id=job_id))
+
+    def load_form(self, template_data: JobData) -> FlaskForm:
+        all_settings = {}
+
+        if template_data.load_settings:
+            all_settings = self.settings_service.get_all_settings_ready()
+
+        form = template_data.form_class(all_settings=all_settings)
+        return form
+
+    # -----------------------
+    # Routes entry points
+    # -----------------------
+    def cancel_job(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             flash("Job type not found.", "warning")
             abort(404)
@@ -246,62 +248,84 @@ class JobsBp(ABC):
         result = self.shared_service.cancel_job_handler(job_id, job_type)
 
         if result == "job_detail":
-            return redirect(url_for(f"{self.bp_name}.job_detail", job_type=job_type, job_id=job_id))
+            return self._redirect_to_job_detail(job_type, job_id)
 
-        return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
+        return self._redirect_to_job_list(job_type)
 
-    def jobs_lists(self, job_type: str) -> str:
-        template_data: JobData | None = self.jobs_data_infos.get(job_type)
-        if not template_data:
-            abort(404)
-
-        return self.shared_service.jobs_list_handler(job_type, template_data)
-
-    def job_details(self, job_type: str, job_id: int, expand_all: bool = False) -> Response | str:
+    def job_detail(self, job_type: str, job_id: int) -> Response | str:
         # Load template data
         template_data: JobData | None = self.jobs_data_infos.get(job_type)
 
         if not template_data:
             abort(404)
 
-        return self.shared_service.job_detail_handler(job_id, job_type, template_data, bp_name=self.bp_name, expand_all=expand_all)
+        # return self.job_details(template_data, job_id)
+        return self.shared_service.job_detail_handler(job_id, template_data, bp_name=self.bp_name)
 
-    def start_new_job(
-        self,
-        job_type: str,
-        args: dict[str, Any],
-        check_can_run_bg_jobs: bool = False,
-    ) -> ResponseReturnValue:
-        if job_type not in self.jobs_data_infos:
+    def job_detail_expand(self, job_type: str, job_id: int) -> Response | str:
+        # Load template data
+        template_data: JobData | None = self.jobs_data_infos.get(job_type)
+
+        if not template_data:
             abort(404)
 
-        job_id = self.shared_service.start_job_handler(job_type, args, check_can_run_bg_jobs)
-        if not job_id:
-            return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
+        # return self.job_details(template_data, job_id, expand_all=True)
+        return self.shared_service.job_detail_handler(job_id, template_data, bp_name=self.bp_name, expand_all=True)
 
-        return redirect(url_for(f"{self.bp_name}.job_detail", job_type=job_type, job_id=job_id))
-
-    def delete_job_record(self, job_type: str, job_id: int) -> Response:
+    def delete_job(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             abort(404)
 
         result = self.shared_service.delete_job_handler(job_id, job_type)
 
         if result == "job_detail":
-            return redirect(url_for(f"{self.bp_name}.job_detail", job_type=job_type, job_id=job_id))
+            return self._redirect_to_job_detail(job_type, job_id)
 
-        return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
+        return self._redirect_to_job_list(job_type)
 
-    def read_job_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
-        """ """
+    def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
         if job_type not in self.jobs_data_infos:
             abort(404)
+
         result_data = load_job_result(result_file)
         return jsonify(result_data)
 
-    @abstractmethod
-    def _setup_routes(self) -> None:
-        raise NotImplementedError("This method must be implemented in the subclass")
+    def start_job(self, job_type: str) -> ResponseReturnValue:
+        template_data: JobData | None = self.jobs_data_infos.get(job_type)
+        if not template_data:
+            abort(404)
+
+        form_data = {}
+
+        if template_data.form_class is not None:
+            form = self.load_form(template_data)
+            if not form.validate_on_submit():
+                # return jsonify(form.errors)
+                # target = request.referrer or url_for(f"{self.bp_name}.jobs_list", job_type=job_type)
+                # return redirect(target)
+                return self.shared_service.jobs_list_handler(template_data, form)
+            else:
+                form_data = form.data
+
+        args = request.form.to_dict()
+
+        job_id = self.shared_service.start_job_handler(job_type, args, form_data=form_data)
+
+        if not job_id:
+            return self._redirect_to_job_list(job_type)
+
+        return self._redirect_to_job_detail(job_type, job_id)
+
+    def jobs_list(self, job_type: str) -> str:
+        template_data: JobData | None = self.jobs_data_infos.get(job_type)
+        if not template_data:
+            abort(404)
+
+        form = None
+        if template_data.form_class is not None:
+            form = self.load_form(template_data)
+
+        return self.shared_service.jobs_list_handler(template_data, form)
 
 
 __all__ = [

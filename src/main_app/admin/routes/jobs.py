@@ -6,10 +6,7 @@ import logging
 
 from flask import (
     Blueprint,
-    request,
 )
-from flask.typing import ResponseReturnValue
-from werkzeug.wrappers.response import Response
 
 from ...jobs_workers.objects import JobData
 from ...public.shared_jobs_routes import JobsBp
@@ -44,29 +41,6 @@ class AdminJobsRoutes(JobsBp):
         ]
         for rule, method, target in routes:
             self.bp.route(rule, methods=[method])(admin_required(target))
-
-    def cancel_job(self, job_type: str, job_id: int) -> Response:
-        return self.cancel_running_job(job_type, job_id)
-
-    def job_detail(self, job_type: str, job_id: int) -> Response | str:
-        return self.job_details(job_type, job_id)
-
-    def job_detail_expand(self, job_type: str, job_id: int) -> Response | str:
-        return self.job_details(job_type, job_id, expand_all=True)
-
-    def delete_job(self, job_type: str, job_id: int) -> Response:
-        return self.delete_job_record(job_type, job_id)
-
-    def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
-        return self.read_job_file(result_file, job_type)
-
-
-    def start_job(self, job_type: str) -> ResponseReturnValue:
-        args = request.form.to_dict()
-        return self.start_new_job(job_type, args)
-
-    def jobs_list(self, job_type: str) -> str:
-        return self.jobs_lists(job_type)
 
 
 __all__ = [

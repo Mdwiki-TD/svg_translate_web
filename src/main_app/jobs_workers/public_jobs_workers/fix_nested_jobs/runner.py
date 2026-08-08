@@ -20,6 +20,7 @@ def fix_nested_jobs_worker_entry(
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: dict[str, Any] | None = None,
+    form_data: dict[str, Any] | None = None,
 ) -> None:
     """Entry point for the background job."""
 

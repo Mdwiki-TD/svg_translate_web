@@ -19,6 +19,7 @@ def fix_nested_main_files_for_templates(
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: dict[str, Any] | None = None,
+    form_data: dict[str, Any] | None = None,
 ) -> None:
     """
     Background worker to run fix_nested task on all main files from templates.

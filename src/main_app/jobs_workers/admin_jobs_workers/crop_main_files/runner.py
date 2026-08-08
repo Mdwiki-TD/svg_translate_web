@@ -19,6 +19,7 @@ def crop_main_files_worker_entry(
     user: dict[str, Any],
     cancel_event: threading.Event | None = None,
     args: dict[str, Any] | None = None,
+    form_data: dict[str, Any] | None = None,
 ) -> None:
     """
     Entry point for crop newest world files background job.
