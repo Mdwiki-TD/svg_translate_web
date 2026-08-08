@@ -38,11 +38,9 @@ class AdminJobsRoutes(JobsBp):
             ("/<string:job_type>/<int:job_id>", "GET", self.job_detail),
             ("/<string:job_type>/<int:job_id>/expand", "GET", self.job_detail_expand),
             ("/job-file/<string:result_file>/<string:job_type>", "GET", self.read_job_result_file),
-
             ("/<string:job_type>/<int:job_id>/cancel", "POST", self.cancel_job),
             ("/<string:job_type>/start", "POST", self.start_job),
             ("/<string:job_type>/<int:job_id>/delete", "POST", self.delete_job),
-
         ]
         for rule, method, target in routes:
             self.bp.route(rule, methods=[method])(admin_required(target))

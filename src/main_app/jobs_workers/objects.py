@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+
 @dataclass
 class JobData:
     job_type: str

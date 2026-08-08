@@ -14,9 +14,7 @@ from flask import (
 )
 from werkzeug.wrappers.response import Response
 
-from .forms import CopySvgLangsForm
-
-from ...db.services import SettingsService
+from ...jobs_workers.public_jobs_workers.workers_list_public import setup_svg_langs_form
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +29,7 @@ class MainRoutes:
         self.bp.get("/favicon.ico")(self.favicon)
 
     def index(self) -> str:
-        all_settings = SettingsService().get_all_settings_ready()
-        form = CopySvgLangsForm()
-        # set upload default dynamically only on GET (first load)
-        upload_disabled_by_default = bool(
-            all_settings and all_settings.get("copy_svg_langs_upload_disabled_by_default", False)
-        )
-        form.upload.data = not upload_disabled_by_default
+        form = setup_svg_langs_form()
 
         return render_template(
             "index.html",

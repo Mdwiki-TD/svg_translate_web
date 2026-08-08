@@ -170,7 +170,7 @@ def jobs_list_handler(job_type: str, template_data: JobData) -> str:
     form = None
 
     if template_data.form_class:
-        form = template_data.form_class()
+        form = template_data.form_class(all_settings=all_settings)
 
     return render_template(
         template_name,

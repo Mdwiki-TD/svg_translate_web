@@ -8,6 +8,7 @@ import json
 import logging
 import re
 import threading
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -37,25 +38,23 @@ from .steps import (
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class SvgLangsConfig:
+    upload: bool | None
+    upload_files: bool | None
+    upload_limit: int = 0
+    limit_items: int = 0
+    overwrite_translations: bool = True
+    overwrite_download: bool = True
+    output_dir: Path | None = None
+    output_dir_files: Path | None = None
+
+
 class OneFileProcessor:
 
-    def __init__(self, site: Site | None, output_dir: Path, args: dict[str, Any]):
+    def __init__(self, site: Site | None, config: SvgLangsConfig):
         self.site = site
-        self.output_dir = output_dir
-        self.output_dir_files = (self.output_dir / "files") if self.output_dir else None
-
-        self.args = args
-
-        upload_limit = self.args.get("upload_limit") or 0
-        self.upload_limit = upload_limit if isinstance(upload_limit, int) else 0
-
-        self.overwrite_translations = bool(self.args.get("overwrite_translations"))
-
-        self.overwrite_download = True
-
-        if self.args.get("overwrite_download") is not None:
-            overwrite_download = bool(self.args.get("overwrite_download"))
-
+        self.config = config
         self.session: requests.Session = create_commons_session(settings.other.user_agent)
         self.translations: dict[str, str] = {}
         self.upload_done = 0
@@ -167,13 +166,13 @@ class OneFileProcessor:
             return None
 
         file_path = Path(file_path)
-        output_file = self.output_dir / "translated" / file_path.name
+        output_file = self.config.output_dir / "translated" / file_path.name
 
         inject_result: InjectResult = inject_step_one_file(
             file_path,
             self.translations,
             output_file,
-            overwrite_translations=self.overwrite_translations,
+            overwrite_translations=self.config.overwrite_translations,
         )
 
         if inject_result.result is None:
@@ -220,7 +219,7 @@ class OneFileProcessor:
         new_path: Path | None,
     ) -> bool:
         # Check if settings upload_files option is disabled
-        if self.args.get("upload_files") is False:
+        if self.config.upload_files is False:
             title_info.steps.upload._update(
                 result=None,
                 msg="skipped",
@@ -230,7 +229,7 @@ class OneFileProcessor:
             return False
 
         # Check if form upload input is enabled
-        if not bool(self.args.get("upload")):
+        if not bool(self.config.upload):
             title_info.steps.upload._update(
                 result=None,
                 msg="skipped",
@@ -239,7 +238,7 @@ class OneFileProcessor:
             title_info.status = "skipped"
             return False
 
-        if self.upload_limit > 0 and self.upload_done >= self.upload_limit:
+        if self.config.upload_limit > 0 and self.upload_done >= self.config.upload_limit:
             title_info.steps.upload._update(
                 result=None,
                 msg="skipped",
@@ -313,8 +312,8 @@ class OneFileProcessor:
         try:
             file_data = download_one_file(
                 title=title,
-                out_dir=self.output_dir_files,
-                overwrite_download=self.overwrite_download,
+                out_dir=self.config.output_dir_files,
+                overwrite_download=self.config.overwrite_download,
                 session=self.session,
             )
         except Exception as e:
@@ -369,14 +368,13 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         super().__init__(job_id, user, cancel_event)
         self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject()
         self.result.job_id = self.job_id
-        self.args = args or {}
-        self.result.args = self.args
 
-        self.title = self.args.get("title")
-        self.limit_items = self.args.get("limit_items") or 0
+        args = args or {}
+        self.manual_main_title = args.get("manual_main_title")
+        self.result.args = args
+        self.title = args.get("title")
 
-        self.output_dir = self._compute_output_dir(self.title)
-        self.output_dir_files = (self.output_dir / "files") if self.output_dir else None
+        self.config = self.load_config(args)
 
         self.files_dict: list[str] = []
         self.site: Site | None = None
@@ -385,14 +383,44 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.main_title: str = ""
         self.titles: list[str] = []
         self.translations: dict[str, str] = {}
-        self.files_processor = OneFileProcessor(self.site, self.output_dir, self.args)
+
+        self.files_processor = OneFileProcessor(self.site, self.config)
+
+    def load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
+        output_dir = self._compute_output_dir(args.get("title"))
+        output_dir_files = (output_dir / "files") if output_dir else None
+
+        try:
+            limit_items = int(args.get("limit_items")) or 0
+        except Exception:
+            limit_items = 0
+
+        upload_limit = args.get("upload_limit") or 0
+        upload_limit = upload_limit if isinstance(upload_limit, int) else 0
+
+        overwrite_translations = bool(args.get("overwrite_translations"))
+
+        overwrite_download = True
+
+        # if args.get("overwrite_download") is not None: overwrite_download = bool(args.get("overwrite_download"))
+
+        return SvgLangsConfig(
+            upload=args.get("upload"),
+            upload_files=args.get("upload_files"),
+            upload_limit=upload_limit,
+            limit_items=limit_items,
+            overwrite_translations=overwrite_translations,
+            overwrite_download=overwrite_download,
+            output_dir=output_dir,
+            output_dir_files=output_dir_files,
+        )
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "copy_svg_langs"
 
     def _apply_limits(self, titles: list[str]) -> list[str]:
-        _limit = self.limit_items if isinstance(self.limit_items, int) else 0
+        _limit = self.config.limit_items
         if _limit > 0 and len(titles) > _limit:
             logger.info("Job %s: limiting from %d to %d page", self.job_id, len(titles), _limit)
             return titles[:_limit]
@@ -418,7 +446,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         return out
 
     def _save_files_stats(self, stats_data) -> None:
-        files_stats_path = self.output_dir / "files_stats.json"
+        files_stats_path = self.config.output_dir / "files_stats.json"
         try:
             with open(files_stats_path, "w", encoding="utf-8") as f:
                 json.dump(stats_data, f, indent=4, ensure_ascii=False)
@@ -441,7 +469,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         try:
             step_result = extract_titles_step(
                 self.text,
-                manual_main_title=self.args.get("manual_main_title"),
+                manual_main_title=self.manual_main_title,
             )
 
         except Exception as e:
@@ -473,12 +501,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     def _extract_translations_step(self) -> bool | None:
         stage = self.result.stages.translations
         stage.status = "running"
-        output_dir_main = self.output_dir_files
+        output_dir_main = self.config.output_dir_files
 
         main_file_download = download_one_file(
             title=self.main_title,
             out_dir=output_dir_main,
-            overwrite_download=self.overwrite_download,
+            overwrite_download=self.config.overwrite_download,
         )
 
         if not main_file_download.get("path"):
