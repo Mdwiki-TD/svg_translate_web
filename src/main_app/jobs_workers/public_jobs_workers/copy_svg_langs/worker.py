@@ -23,8 +23,6 @@ from .files_worker import OneFileProcessor
 from .objects import (
     CopySvgLangsWorkerObject,
     FilesProcessedItem,
-    FileSteps,
-    StepResult,
     SvgLangsConfig,
 )
 from .steps import (
@@ -193,7 +191,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         new_translations = mapping.new if mapping else {}
 
-        languages = sorted({lang for entry in new_translations.values() if isinstance(entry, dict) for lang in entry})
+        languages = sorted(
+            {lang for entry in new_translations.values() if isinstance(entry, dict) for lang in entry}
+        )
         self.result.translations = self._render_new_translations(new_translations, languages)
         self.result.languages = languages
 
@@ -324,19 +324,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
                 processfiles_stage.status = "cancelled"
                 break
 
-            title_info = FilesProcessedItem(
-                title=title,
-                file_path=None,
-                status="pending",
-                error=None,
-                steps=FileSteps(
-                    download=StepResult(msg=""),
-                    nested=StepResult(msg=""),
-                    translations=StepResult(msg="", details={"new": 0, "updated": 0, "inserted": 0, "new_list": []}),
-                    inject=StepResult(msg=""),
-                    upload=StepResult(msg=""),
-                ),
-            )
+            title_info = FilesProcessedItem(title=title)
+
             self.result.summary.processed += 1
             ok = self._process_one_item(title, title_info, self.main_title)
 
