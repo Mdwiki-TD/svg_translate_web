@@ -1,6 +1,7 @@
 """Unit tests for jobs_service module."""
 
 from __future__ import annotations
+from datetime import datetime
 
 import pytest
 from sqlalchemy.exc import OperationalError
@@ -292,8 +293,10 @@ class TestCancelJobDb(TestSetup):
 
     def test_cancels_running_job(self) -> None:
         job = self.service.create_job("test_job", username="test_user")
+
         self.service.update_job_status(job.id, "running", job_type="test_job")
         result = self.service.cancel_job_db(job.id)
+
         assert result is True
         cancelled = self.service.get_job(job.id, "test_job")
         assert cancelled.status == "cancelled"
@@ -312,6 +315,22 @@ class TestCancelJobDb(TestSetup):
         cancelled = self.service.get_job(job1.id, "type_a")
         assert cancelled.status == "cancelled"
 
+    def test_cancels_running_job_without_updating_completed_at(self) -> None:
+        job = self.service.create_job("test_job", username="test_user")
+
+        date = datetime.fromisoformat("2023-01-01 00:00:00")
+
+        self.service.update_job_status(job.id, "running", job_type="test_job")
+        record = self.service.update(job, started_at=date, completed_at=date)
+        assert record is not None
+
+        result = self.service.cancel_job_db(job.id)
+
+        assert result is True
+        cancelled = self.service.get_job(job.id, "test_job")
+
+        assert cancelled.status == "cancelled"
+        assert str(cancelled.completed_at) == str(date)
 
 class TestUpdateJobStatus(TestSetup):
     """Tests for update_job_status."""

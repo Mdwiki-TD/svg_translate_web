@@ -233,7 +233,10 @@ class JobsService(CRUDService[JobRecord]):
                 return False
 
             job.status = "cancelled"
-            job.completed_at = datetime.now(UTC)
+
+            if job.completed_at is None:
+                job.completed_at = datetime.now(UTC)
+
             job.is_running = None
 
             self.session.commit()
@@ -327,6 +330,12 @@ class JobsService(CRUDService[JobRecord]):
 
         return data
 
+    def mark_as_completed(self, job: JobRecord) -> None:
+        job.is_running = None
+        if job.completed_at is None:
+            job.completed_at = datetime.now(UTC)
+
+        self.update(job, status="completed")
 
 __all__ = [
     "JobsService",

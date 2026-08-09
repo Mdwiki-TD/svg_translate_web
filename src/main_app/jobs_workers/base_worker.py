@@ -107,11 +107,11 @@ class BaseObjectsJobWorker(ABC):
 
         self.result.status = final_status
 
+        # Update final status
+        self.result.final_status_updated = self.update_final_status(final_status)
+
         # Save final results
         self._save_progress()
-
-        # Update final status
-        self.update_final_status(final_status)
 
         logger.info("Job %s: Finished with status %s", self.job_id, final_status)
 
@@ -123,11 +123,14 @@ class BaseObjectsJobWorker(ABC):
                 self.result_file,
                 job_type=self.job_type,
             )
+            return True
         except (StaleDataError, LookupError) as exc:
             logger.error("Job %s: Could not update final status, job record might have been deleted.", self.job_id)
             logger.error("Error: %s", str(exc))
+            return False
         except Exception:
             logger.exception("Job %s: Failed to update final status", self.job_id)
+            return False
 
     def _save_progress(self, insert_last_update: bool = True) -> None:
         if insert_last_update:

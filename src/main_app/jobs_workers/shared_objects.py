@@ -50,6 +50,7 @@ class WorkerObject:
     cancelled_at: str | None = None
     last_update: str | None = ""
     failed_at: str | None = None
+    final_status_updated: bool | None = None
 
     errors: list[dict[str, Any]] = field(default_factory=list)
     args: dict[str, Any] = field(default_factory=dict)

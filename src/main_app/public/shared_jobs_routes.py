@@ -81,37 +81,6 @@ class SharedJobRoutes:
 
         return "job_detail"
 
-    def delete_job_handler(self, job_id: int, job_type: str) -> str:
-        """Delete a job by ID and job type."""
-        user = load_user()
-        if not user:
-            flash("You must be logged in to delete jobs.", "danger")
-            return "job_detail"
-
-        try:
-            job = self.job_service.get_job(job_id, job_type)
-        except LookupError:
-            flash("Job not found.", "warning")
-            return "jobs_list"
-
-        if not self.can_manage_job(job, user):
-            flash("You don't have permission to delete this job.", "danger")
-            return "job_detail"
-
-        try:
-            if cancel_job_worker(job_id, job_type, job):
-                logger.info("Cancelled running job %s before deletion", job_id)
-
-            if self.job_service.delete_job_by_id_and_type(job_id, job_type):
-                flash(f"Job {job_id} deleted successfully.", "success")
-            else:
-                flash(f"Failed to delete job {job_id}", "danger")
-        except Exception:
-            logger.exception("Failed to delete job")
-            flash(f"Failed to delete job {job_id}", "danger")
-
-        return "jobs_list"
-
     def start_job_handler(
         self,
         job_type: str,
@@ -151,6 +120,62 @@ class SharedJobRoutes:
             flash("Failed to start job. Please try again.", "danger")
 
         return None
+
+    def delete_job_handler(self, job_id: int, job_type: str) -> str:
+        """Delete a job by ID and job type."""
+        user = load_user()
+        if not user:
+            flash("You must be logged in to delete jobs.", "danger")
+            return "job_detail"
+
+        try:
+            job = self.job_service.get_job(job_id, job_type)
+        except LookupError:
+            flash("Job not found.", "warning")
+            return "jobs_list"
+
+        if not self.can_manage_job(job, user):
+            flash("You don't have permission to delete this job.", "danger")
+            return "job_detail"
+
+        try:
+            if cancel_job_worker(job_id, job_type, job):
+                logger.info("Cancelled running job %s before deletion", job_id)
+
+            if self.job_service.delete_job_by_id_and_type(job_id, job_type):
+                flash(f"Job {job_id} deleted successfully.", "success")
+            else:
+                flash(f"Failed to delete job {job_id}", "danger")
+        except Exception:
+            logger.exception("Failed to delete job")
+            flash(f"Failed to delete job {job_id}", "danger")
+
+        return "jobs_list"
+
+    def mark_as_completed_handler(self, job_id: int, job_type: str):
+        """Mark job as completed."""
+        user = load_user()
+        if not user:
+            flash("You must be logged in to change job stats.", "danger")
+            return
+
+        try:
+            job = self.job_service.get_job(job_id, job_type)
+        except LookupError:
+            flash("Job not found.", "warning")
+            return
+
+        if not self.can_manage_job(job, user):
+            flash("You don't have permission to change job stats.", "danger")
+            return
+
+        try:
+            self.job_service.mark_as_completed(job)
+        except Exception:
+            flash(f"Can't mark job {job_id} as completed.", "danger")
+            return
+
+        return
 
     # ================================
     # Jobs handlers
@@ -326,6 +351,14 @@ class JobsBp(ABC):
             form = self.load_form(template_data)
 
         return self.shared_service.jobs_list_handler(template_data, form)
+
+    def mark_as_completed(self, job_type: str, job_id: int) -> Response:
+        if job_type not in self.jobs_data_infos:
+            abort(404)
+
+        self.shared_service.mark_as_completed_handler(job_id, job_type)
+
+        return self._redirect_to_job_detail(job_type, job_id)
 
 
 __all__ = [

@@ -1,6 +1,6 @@
 {% extends "admins/base1.html" %}
 {% from "_macros.html" import card_header, status_icon, csrf, job_errors_div, auto_refresh_status %}
-{% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job %}
+{% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job, form_mark_job_as_completed %}
 
 {% block title %}
 {{ template_data.job_name }} Job #{{ job.id }} · {{ tool_title }}
@@ -12,19 +12,30 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h3 class="headline mb-0">{{ template_data.job_name }} Job #{{ job.id }}</h3>
             <div class="d-flex gap-2">
-                {% if is_admin and (job.status | is_job_running) %}
+                {% if (job.status | is_job_running) and is_admin %}
+                {% if (result_data.get("final_status_updated") == False) %}
+                {{
+                    form_mark_job_as_completed(
+                    url_for('adminpanel.jobs.mark_as_completed', job_type=template_data.job_type, job_id=job.id),
+                    )
+                }}
+                {% else %}
                 {{
                     form_cancel_job(
-                        url_for('adminpanel.jobs.cancel_job', job_type=template_data.job_type, job_id=job.id)
+                        url_for('adminpanel.jobs.cancel_job', job_type=template_data.job_type, job_id=job.id),
+                        btn_class="btn btn-outline-warning text-muted"
                     )
                 }}
                 {% endif %}
+                {% endif %}
+                {% if is_admin %}
                 {{
                     form_delete_job(
                     url_for('adminpanel.jobs.delete_job', job_type=template_data.job_type, job_id=job.id),
                     btn_class="btn btn-outline-danger"
                     )
                 }}
+                {% endif %}
                 <a href="{{ url_for('adminpanel.jobs.jobs_list', job_type=template_data.job_type) }}"
                     class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Back to List
@@ -80,7 +91,7 @@
                                 <tr>
                                     <th style="width: 40%">Completed:</th>
                                     <td>
-                                        {{ job.completed_at | format_short_date("-") }}
+                                        {{ (job.completed_at or result_data.completed_at) | format_short_date("-") }}
                                     </td>
                                 </tr>
                                 {% if job.failed_at or (result_data and result_data.failed_at) %}
