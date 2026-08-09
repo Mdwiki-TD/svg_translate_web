@@ -9,6 +9,7 @@ from typing import Any
 from CopySVGTranslation import SVGTranslationInjector, TranslationConfig, TranslationMapping  # type: ignore
 
 from .mapping import (
+    ExtractorData,
     InjectorData,
     InjectorStats,
     InjectResult,
@@ -51,7 +52,7 @@ def start_svg_injection(
 
 def start_injects(
     file: Path,
-    translations: dict[str, Any],
+    translations: dict[str, Any] | ExtractorData,
     output_file: Path,
     overwrite_translations: bool = False,
 ) -> InjectResult:
@@ -61,6 +62,10 @@ def start_injects(
         "new_languages_count": 0,
         "updated_translations": 0,
     }
+
+    if isinstance(translations, ExtractorData):
+        translations = translations.to_json()
+
     data = start_svg_injection(
         inject_file=file,
         mapping=translations,
@@ -124,16 +129,16 @@ def start_injects(
 
 def inject_step_one_file(
     file_path: Path,
-    translations: dict[str, Any],
+    translations: dict[str, Any] | ExtractorData,
     output_file: Path,
     overwrite_translations: bool = False,
 ) -> InjectResult:
     """ """
     try:
         injects_result: InjectResult = start_injects(
-            file_path,
-            translations,
-            output_file,
+            file=file_path,
+            translations=translations,
+            output_file=output_file,
             overwrite_translations=overwrite_translations,
         )
     except Exception:

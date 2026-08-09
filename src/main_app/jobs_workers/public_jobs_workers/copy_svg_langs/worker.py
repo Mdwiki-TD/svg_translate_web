@@ -11,6 +11,8 @@ from typing import Any
 
 from mwclient.client import Site
 
+from ....shared.copysvg_wrapper.mapping import ExtractorData
+
 from ....api_services.files_service import FilesService
 from ....config import settings
 from ....shared.copysvg_wrapper import (
@@ -46,9 +48,15 @@ class OneFileProcessor:
     def __init__(self, config: SvgLangsConfig, files_service: FilesService) -> None:
         self.config = config
         self.files_service = files_service
-        self.translations: dict[str, str] = {}
+        self.mapping: ExtractorData
         self.upload_done = 0
         self.nested_processer: MatchFixNestedTags
+
+    def _set_translations(self, mapping: ExtractorData) -> None:
+        self.mapping = mapping
+
+    def _update_translations(self, mapping: ExtractorData) -> None:
+        self.mapping = mapping
 
     def _process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
         # ----------------------------------------------
@@ -155,9 +163,9 @@ class OneFileProcessor:
         output_file = self.config.output_dir / "translated" / file_path.name
 
         inject_result: InjectResult = inject_step_one_file(
-            file_path,
-            self.translations,
-            output_file,
+            file_path=file_path,
+            translations=self.mapping,
+            output_file=output_file,
             overwrite_translations=self.config.overwrite_translations,
         )
 
@@ -368,14 +376,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.text: str = ""
         self.main_title: str = ""
         self.titles: list[str] = []
-        self.translations: dict[str, str] = {}
         self.files_service = FilesService(self.site)
 
         self.files_processor = OneFileProcessor(self.config, self.files_service)
-
-    def _update_translations(self, translations: dict[str, str]) -> None:
-        self.translations.update(translations)
-        self.files_processor.translations.update(translations)
 
     def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
         output_dir = self._compute_output_dir(args.get("title"))
@@ -505,21 +508,17 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.result.status = "failed"
             return False
 
-        file_translations = step_result.translations or {}
+        mapping = step_result.mapping
+        new_translations = mapping.new if mapping else {}
 
-        new_translations = file_translations.get("new", {})
-
-        languages = sorted(
-            {lang for entry in file_translations.get("new", {}).values() if isinstance(entry, dict) for lang in entry}
-        )
+        languages = sorted({lang for entry in new_translations.values() if isinstance(entry, dict) for lang in entry})
         self.result.translations = self._render_new_translations(new_translations, languages)
         self.result.languages = languages
 
-        if step_result.success and file_translations:
+        if step_result.success and mapping:
             stage.status = "completed"
-            # stage.message = f"Loaded {len(file_translations)} translations from (File:{self.main_title})"
             stage.message = step_result.message or f"Loaded translations from (File:{self.main_title})"
-            self._update_translations(file_translations)
+            self.files_processor._set_translations(mapping)
             return True
 
         stage.status = "failed"

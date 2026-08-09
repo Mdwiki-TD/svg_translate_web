@@ -68,21 +68,27 @@ def extract_from_path(main_title_path: Path) -> ExtractResult:
     """
 
     try:
-        translations = _extract_file_translations(main_title_path)
+        mapping = _extract_file_translations(main_title_path)
     except Exception:
         logger.exception("Failed to extract translations from main SVG")
         return ExtractResult(success=False, message="", error="Failed to parse main SVG", translations={})
 
-    new_translations = translations.new
+    new_translations = mapping.new
     new_translations_count = len(new_translations)
 
     if new_translations_count == 0:
         error = "No translations found in main file"
         logger.debug(error)
-        return ExtractResult(success=False, message="", error="No translations found in main file", translations={})
+        return ExtractResult(
+            success=False,
+            message="",
+            error="No translations found in main file",
+            translations={},
+            mapping=mapping,
+        )
 
     # Sort new data: alphabetical keys first, numeric keys last
-    translations.new = dict(
+    mapping.new = dict(
         sorted(
             new_translations.items(),
             key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
@@ -94,7 +100,8 @@ def extract_from_path(main_title_path: Path) -> ExtractResult:
         success=True,
         message=message,
         error=None,
-        translations=translations.to_json(),
+        translations=mapping.to_json(),
+        mapping=mapping,
     )
 
 

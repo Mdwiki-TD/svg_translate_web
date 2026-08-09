@@ -4,7 +4,6 @@ import json
 import logging
 import shutil
 import tempfile
-from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +13,6 @@ from flask import (
     redirect,
     render_template,
     request,
-    session,
     url_for,
 )
 
@@ -25,29 +23,9 @@ from ...shared.copysvg_wrapper import (
     extract_from_path,
     inject_step_one_file,
 )
+from .mapping import DiffResult
 
 logger = logging.getLogger(__name__)
-
-# Session key for preserving filenames across OAuth redirect for inject
-INJECT_SOURCE_KEY = "inject_source_filename"
-INJECT_TARGET_KEY = "inject_target_filename"
-
-
-@dataclass
-class DiffResult:
-    added: dict[str, dict[str, str]] = field(default_factory=dict)
-    removed: dict[str, dict[str, str]] = field(default_factory=dict)
-    changed: dict[str, dict[str, Any]] = field(default_factory=dict)
-    target_changed: bool = False
-
-    @property
-    def has_changes(self) -> bool:
-        return bool(self.added or self.removed or self.changed)
-
-    def to_json(self) -> dict[str, Any]:
-        data = asdict(self)
-        data["has_changes"] = self.has_changes
-        return data
 
 
 def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
@@ -98,38 +76,6 @@ def _download_and_extract(filename: str, temp_dir: Path) -> dict[str, Any] | Non
     return _extract_from_path(file_path)
 
 
-def compute_diff(before: dict[str, Any], after: dict[str, Any]) -> DiffResult:
-    """Compare two translations dicts and return added/removed/changed entries.
-
-    Compares the ``"new"`` section of each translations dict.
-
-    Args:
-        before: Translations dict extracted before injection.
-        after: Translations dict extracted after injection.
-
-    Returns:
-        DiffResult with added, removed, and changed entries.
-    """
-    before_new: dict[str, dict[str, str]] = before.get("new", {})
-    after_new: dict[str, dict[str, str]] = after.get("new", {})
-
-    before_keys = set(before_new.keys())
-    after_keys = set(after_new.keys())
-
-    added = {k: after_new[k] for k in sorted(after_keys - before_keys)}
-    removed = {k: before_new[k] for k in sorted(before_keys - after_keys)}
-
-    changed: dict[str, dict[str, Any]] = {}
-    for key in sorted(before_keys & after_keys):
-        if before_new[key] != after_new[key]:
-            changed[key] = {
-                "before": before_new[key],
-                "after": after_new[key],
-            }
-
-    return DiffResult(added=added, removed=removed, changed=changed)
-
-
 class InjectRoutes:
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
@@ -143,12 +89,8 @@ class InjectRoutes:
 
     def dashboard(self) -> str:
         """Display the inject form."""
-        source_filename = session.pop(INJECT_SOURCE_KEY, "")
-        target_filename = session.pop(INJECT_TARGET_KEY, "")
         return render_template(
             "inject/form.html",
-            source_filename=source_filename,
-            target_filename=target_filename,
         )
 
     def inject_post(self) -> str:
@@ -169,24 +111,9 @@ class InjectRoutes:
 
     def inject_get(self, source: str, target: str) -> str:
         """Execute the inject workflow and render the result."""
-        source = source.strip()
-        target = target.strip()
 
-        # Strip "File:" prefix for processing, keep for display
-        source_display = source
-        target_display = target
-
-        if source.lower().startswith("file:"):
-            source = source[5:].lstrip()
-            source_display = f"File:{source}"
-        else:
-            source_display = f"File:{source}"
-
-        if target.lower().startswith("file:"):
-            target = target[5:].lstrip()
-            target_display = f"File:{target}"
-        else:
-            target_display = f"File:{target}"
+        source, source_display = self._format_source_path(source)
+        target, target_display = self._format_source_path(target)
 
         # Validate filenames
         if not source or not target:
@@ -239,7 +166,7 @@ class InjectRoutes:
                     target_filename=target_display,
                 )
 
-            data = self.load_data(target, temp_dir, source_translations, target_before)
+            data = self.load_data(source, target, temp_dir, source_translations, target_before)
 
             return render_template(
                 "inject/result.html",
@@ -252,7 +179,20 @@ class InjectRoutes:
             if temp_dir.exists():
                 shutil.rmtree(temp_dir)
 
-    def load_data(self, target, temp_dir, source_translations, target_before):
+    def _format_source_path(self, source: str) -> tuple[str, str]:
+        source = source.strip()
+        source_display = source
+
+        # Strip "File:" prefix for processing, keep for display
+        if source.lower().startswith("file:"):
+            source = source[5:].lstrip()
+            source_display = f"File:{source}"
+        else:
+            source_display = f"File:{source}"
+
+        return source, source_display
+
+    def load_data(self, source, target, temp_dir, source_translations, target_before):
         data = {}
         # Extract unique languages from source_translations['new']
         src_langs_sorted = self.extract_sorted_languages(source_translations.get("new") or {})
@@ -279,7 +219,7 @@ class InjectRoutes:
         if target_changed and output_file.exists():
             target_after = _extract_from_path(output_file)
             if target_after is not None and target_before is not None:
-                diff = compute_diff(target_before, target_after)
+                diff = DiffResult.compute_diff(target_before, target_after)
 
         diff.target_changed = target_changed
 
