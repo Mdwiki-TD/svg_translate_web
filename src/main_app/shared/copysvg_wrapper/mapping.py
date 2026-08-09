@@ -110,7 +110,7 @@ class ExtractorData:
     title_new: dict[str, dict[str, str]] = field(default_factory=dict)
     tspans_by_id: dict[str, str] = field(default_factory=dict)
     meta: dict[str, Any] = field(default_factory=dict)
-    error: str = ""
+    error: str | None = None
 
     # ------------------------------------------------------------------
     # Factory helpers
@@ -185,28 +185,27 @@ class ExtractorData:
             "error": ""
         }
         """
+        def _merge_dict(self_new, other_new) -> None:
+            for source, lang_dict in other_new.items():
+                self_new.setdefault(source, {})
+                for lang, text in lang_dict.items():
+                    if lang not in self_new[source]:
+                        self_new[source][lang] = text
+
         if merge_keys is None:
-            merge_keys = ["new", "tspans_by_id", "title_new", "meta"]
+            merge_keys = ["new", "title_new"]
 
         other = self.from_any(other)
 
         # Merge new mapping
         # new structure: {"new": { "text, 1990": { "abr": "text, afe 1990", "ar": "نص، 1990" } }, ...}
         if "new" in merge_keys:
-            for source, lang_dict in other.new.items():
-                self.new.setdefault(source, {})
-                for lang, text in lang_dict.items():
-                    if lang not in self.new[source]:
-                        self.new[source][lang] = text
+            _merge_dict(self.new, other.new)
 
         # Merge title_new mapping
         # title_new structure: {"title_new": { "text, {year}": { "abr": "text, afe {year}", "ar": "نص، {year}" } }, ...}
         if "title_new" in merge_keys:
-            for source, lang_dict in other.title_new.items():
-                self.title_new.setdefault(source, {})
-                for lang, text in lang_dict.items():
-                    if lang not in self.title_new[source]:
-                        self.title_new[source][lang] = text
+            _merge_dict(self.title_new, other.title_new)
 
         # Merge tspans_by_id mapping
         if "tspans_by_id" in merge_keys:
@@ -223,7 +222,6 @@ class ExtractorData:
             "meta": self.meta,
             "error": error,
         }
-
 
 
 __all__ = [
