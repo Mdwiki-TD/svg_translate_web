@@ -132,6 +132,7 @@ class BaseObjectsJobWorker(ABC):
     def _save_progress(self, insert_last_update: bool = True) -> None:
         if insert_last_update:
             self.result.last_update = datetime.now().isoformat()
+
         result = self.result.to_json()
         try:
             save_job_result_by_name(self.result_file, result)

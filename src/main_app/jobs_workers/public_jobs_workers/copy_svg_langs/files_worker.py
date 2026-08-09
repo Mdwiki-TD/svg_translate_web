@@ -4,6 +4,7 @@ Worker module for copy_svg_langs.
 
 from __future__ import annotations
 
+import json
 import logging
 from pathlib import Path
 
@@ -12,8 +13,10 @@ from ....shared.copysvg_wrapper import (
     InjectResult,
     MatchFixNestedTags,
     inject_step_one_file,
+    ExtractorData,
+    ExtractResult,
+    extract_from_path,
 )
-from ....shared.copysvg_wrapper.mapping import ExtractorData
 from ....shared.fix_nested import (
     DetectionResult,
     VerificationResult,
@@ -250,7 +253,7 @@ class OneFileProcessor:
 
         return summary
 
-    def get_download_path(self, title: str, title_info: FilesProcessedItem):
+    def get_file_path(self, title: str, title_info: FilesProcessedItem):
         down_step = title_info.steps.download
         try:
             file_data = self.files_service.download_one_file(
@@ -292,11 +295,30 @@ class OneFileProcessor:
         title_info.status = "failed"
         return None
 
+    def extract_file_translations(self, file_path: Path) -> None:
+        if not self.config.merge_mapping_all_files:
+            return
+
+        try:
+            result: ExtractResult = extract_from_path(file_path)
+        except Exception as e:
+            logger.error("Error in stage translations")
+            return
+
+        mapping = result.mapping
+
+        if result.success and mapping:
+            self.update_translations(mapping)
+            return
+
     # ------------------
     # Public API
     # ------------------
 
     def update_translations(self, mapping: ExtractorData) -> None:
+        if mapping.is_empty():
+            return
+
         if self.mapping is None:
             self.mapping = mapping
             return
@@ -307,13 +329,12 @@ class OneFileProcessor:
         # ----------------------------------------------
         # File step 1: download
 
-        file_path_str: str | None = self.get_download_path(title, title_info)
+        file_path_str: str | None = self.get_file_path(title, title_info)
 
         if not file_path_str:
             return False
 
         title_info.file_path = file_path_str
-
         file_path = Path(file_path_str)
 
         # ----------------------------------------------
@@ -336,6 +357,8 @@ class OneFileProcessor:
         # File step 3: log translations
         # File step 4: inject translations
 
+        self.extract_file_translations(file_path)
+
         new_path: Path | None = self.inject_step_file(title_info, file_path)
         inject_result = title_info.steps.inject
 
@@ -356,6 +379,21 @@ class OneFileProcessor:
         # No nested tags were fixed
         # inject_result.result is one of (None/False)
         return False
+
+    # ----
+    # ----
+    def _save_mapping(self, job_id: int) -> None:
+        mapping_path = self.config.output_dir
+        if mapping_path is None:
+            return
+
+        mapping_path = mapping_path.parent / f"{job_id}_all_files_mapping.json"
+
+        try:
+            with open(mapping_path, "w", encoding="utf-8") as f:
+                json.dump(self.mapping, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            logger.error(f"Error saving mapping: {e}")
 
 __all__ = [
     "OneFileProcessor",

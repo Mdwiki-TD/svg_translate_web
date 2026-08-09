@@ -22,6 +22,10 @@ class SvgLangsConfig:
     output_dir: Path | None = None
     output_dir_files: Path | None = None
 
+    # --- Mapping ---
+    merge_mapping_all_files: bool = False
+    """ merge mapping for all files not only the main_file """
+
 
 @dataclass
 class StageDetail:

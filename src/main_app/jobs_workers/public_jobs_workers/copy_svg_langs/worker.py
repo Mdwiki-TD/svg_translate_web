@@ -356,6 +356,13 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         return self.result
 
+    def after_run(self) -> None:
+
+        if self.config.merge_mapping_all_files:
+            # save mapping to file
+            self.files_processor._save_mapping(self.job_id)
+
+        super().after_run()
 
 __all__ = [
     "CopySvgLangsWorker",
