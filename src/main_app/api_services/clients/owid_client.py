@@ -30,7 +30,7 @@ def _build_session() -> requests.Session:
     return _thread_local.session
 
 
-def _fetch_grapher_metadata(slug: str) -> Any:
+def fetch_grapher_metadata_raw(slug: str) -> Any:
     """Fetch the OWID chart metadata JSON. Returns the parsed dict or None."""
     session = _build_session()
     url = METADATA_URL.format(slug=slug)
@@ -77,6 +77,6 @@ def fetch_indicators_metadata(owid_variable_id: int) -> dict | None:
 
 __all__ = [
     "fetch_grapher_metadata",
-    "_fetch_grapher_metadata",
+    "fetch_grapher_metadata_raw",
     "fetch_indicators_metadata",
 ]

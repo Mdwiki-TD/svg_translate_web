@@ -14,7 +14,7 @@ from sqlalchemy.orm.exc import StaleDataError
 from ..api_services import get_user_site
 from ..config import settings
 from ..db.services import JobsService
-from ..su_services import is_job_cancelled_file_exist, save_job_result_by_name
+from ..io import is_job_cancelled_file_exist, save_job_result_by_name
 from .objects import JobsRunner
 from .shared_objects import WorkerObject
 from .utils import generate_result_file_name
@@ -41,12 +41,6 @@ class BaseObjectsJobWorker(ABC):
     - after_run(): Called after processing completes
     """
 
-    # def __init__(
-    #     self,
-    #     job_id: int,
-    #     user: dict[str, Any],
-    #     cancel_event: threading.Event | None = None,
-    # ) -> None:
     def __init__(self, data: JobsRunner) -> None:
         self.job_id: Final[int] = data.job_id
         self.user: Final[dict[str, Any]] = data.user
@@ -138,6 +132,7 @@ class BaseObjectsJobWorker(ABC):
     def _save_progress(self, insert_last_update: bool = True) -> None:
         if insert_last_update:
             self.result.last_update = datetime.now().isoformat()
+
         result = self.result.to_json()
         try:
             save_job_result_by_name(self.result_file, result)

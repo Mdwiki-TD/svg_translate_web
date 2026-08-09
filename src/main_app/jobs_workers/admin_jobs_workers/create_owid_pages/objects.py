@@ -28,30 +28,6 @@ class CreateOwidPagesWorkerObject(StandardAdminWorkerObject):
     pages_updated: list[dict[str, Any]] = field(default_factory=list)
 
 
-_old_result = {
-    "note": "",
-    "status": "pending",
-    "errors": [],
-    "args": {},
-    "job_id": "self.job_id",
-    "started_at": "datetime.now().isoformat()",
-    "completed_at": None,
-    "cancelled_at": None,
-    "summary": {
-        "total": 0,
-        "processed": 0,
-        "created": 0,
-        "updated": 0,
-        "failed": 0,
-        "skipped": 0,
-    },
-    "pages_processed": [],
-    "pages_created": [],
-    "pages_updated": [],
-    "pages_skipped": [],
-    "pages_failed": [],
-}
-
 __all__ = [
     "CreateOwidPagesWorkerObject",
     "CreateOwidPagesSummary",

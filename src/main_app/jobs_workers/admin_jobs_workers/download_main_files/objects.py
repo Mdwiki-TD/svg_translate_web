@@ -26,9 +26,6 @@ class FileInfo:
     size_bytes: None | int = None
 
     def to_dict(self) -> dict[str, Any]:
-        """
-        convert to dict.
-        """
         return asdict(self)
 
 
@@ -38,27 +35,6 @@ class DownloadMainFilesWorkerObject(StandardAdminWorkerObject):
     files_downloaded: list[dict[str, Any]] = field(default_factory=list)
     files_failed: list[dict[str, Any]] = field(default_factory=list)
 
-
-_old_result = {
-    "note": "",
-    "status": "pending",
-    "errors": [],
-    "args": {},
-    "job_id": "self.job_id",
-    "started_at": "datetime.now().isoformat()",
-    "completed_at": None,
-    "cancelled_at": None,
-    "summary": {
-        "total": 0,
-        "processed": 0,
-        "success": 0,
-        "failed": 0,
-        "skipped": 0,
-    },
-    "output_path": "str(self.output_dir)",
-    "files_downloaded": [],
-    "files_failed": [],
-}
 
 __all__ = [
     "DownloadMainFilesWorkerObject",

@@ -24,7 +24,7 @@ from typing import Any
 
 from sqlalchemy.exc import OperationalError
 
-from ....api_services import _fetch_grapher_metadata
+from ....api_services import fetch_grapher_metadata_raw
 from ....db.models import OwidChartRecord
 from ....db.services import OwidChartsService
 from ...base_worker import BaseObjectsJobWorker
@@ -134,10 +134,13 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
     def __init__(self, data: JobsRunner) -> None:
         super().__init__(data)
-        self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject()
-
         self.args = data.args or {}
-        self.result.args = self.args
+
+        self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject(
+            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            args=self.args,
+        )
+
         self.limit_items = self.args.get("limit_items") or 0
         self.owid_charts_service = OwidChartsService()
 
@@ -190,7 +193,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
         # 1 A). Fetch metadata
         # metadata = fetch_grapher_metadata(chart.slug)
-        metadata, status_code = _fetch_grapher_metadata(chart.slug)
+        metadata, status_code = fetch_grapher_metadata_raw(chart.slug)
 
         if status_code == 404:
             _ = self._update(chart, {"status_404": 404}, info)

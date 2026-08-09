@@ -46,20 +46,19 @@ def test_runner():
     target_func = MagicMock()
     src = Flask(__name__)
     args = {"foo": "bar"}
+    data = JobsRunner(
+        job_id=job_id,
+        user=user,
+        cancel_event=cancel_event,
+        args=args,
+        form_data=None,
+    )
 
     _register_cancel_event(job_id, cancel_event)
 
-    _runner(job_id, user, cancel_event, target_func, src, args)
+    _runner(data, target_func, src)
 
-    target_func.assert_called_once_with(
-        JobsRunner(
-            job_id=job_id,
-            user=user,
-            cancel_event=cancel_event,
-            args=args,
-            form_data=None,
-        )
-    )
+    target_func.assert_called_once_with(data)
     assert _get_jobs_cancel_event(job_id) is None
 
 

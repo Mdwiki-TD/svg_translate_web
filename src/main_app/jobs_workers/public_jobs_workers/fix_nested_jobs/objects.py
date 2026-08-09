@@ -80,31 +80,6 @@ class FixNestedJobsWorkerObject(WorkerObject):
     stages: Stages = field(default_factory=Stages)
 
 
-_old_result = {
-    "note": "",
-    "status": "pending",
-    "errors": [],
-    "args": {},
-    "job_id": "self.job_id",
-    "started_at": "datetime.now().isoformat()",
-    "completed_at": None,
-    "cancelled_at": None,
-    "summary": {},
-    "filename": None,
-    "file_result": {
-        "status": "pending",
-        "path": None,
-        "error": None,
-    },
-    "stages": {
-        "download": {"status": "pending", "message": "Downloading files"},
-        "analyze": {"status": "pending", "message": "Analyzing nested tags"},
-        "fix": {"status": "pending", "message": "Fixing nested tags"},
-        "verify": {"status": "pending", "message": "Verifying fixes"},
-        "upload": {"status": "pending", "message": "Uploading fixed files"},
-    },
-}
-
 __all__ = [
     "FixNestedJobsWorkerObject",
     "StageDetail",

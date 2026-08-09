@@ -82,12 +82,15 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         self.site: Site | None = None
 
         super().__init__(data)
-        self.result: CollectTemplatesDataWorkerObject = CollectTemplatesDataWorkerObject()
 
         self.args = data.args or {}
+        self.result: CollectTemplatesDataWorkerObject = CollectTemplatesDataWorkerObject(
+            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            args=self.args,
+        )
+
         self.template_service = TemplateService()
         self.owid_charts_service = OwidChartsService()
-        self.result.args = self.args
         self.update_all = str(self.args.get("update_all", "")).lower() == "true"
 
     def get_job_type(self) -> str:

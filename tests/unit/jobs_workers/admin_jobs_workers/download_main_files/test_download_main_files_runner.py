@@ -68,7 +68,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_before_run) -> MockServi
 
     mock_download_commons_file_core: MagicMock = MagicMock(return_value=b"svg-content")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.download_helper.download_commons_file_core",
+        "src.main_app.api_services.files_service.download_file_utils.download_commons_file_core",
         mock_download_commons_file_core,
     )
 

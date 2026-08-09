@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.main_app.su_services.jobs_files_service import (
+from src.main_app.io.jobs_files_service import (
     create_job_cancelled_file,
     get_jobs_data_dir,
     is_job_cancelled_file_exist,
@@ -19,14 +19,14 @@ from src.main_app.su_services.jobs_files_service import (
 
 @pytest.fixture
 def mock_settings(tmp_path):
-    with patch("src.main_app.su_services.jobs_files_service.settings") as m_settings:
+    with patch("src.main_app.io.jobs_files_service.settings") as m_settings:
         m_settings.paths.jobs_path = str(tmp_path / "jobs")
         get_jobs_data_dir.cache_clear()
         yield m_settings
 
 
 def test_get_jobs_data_dir_no_path():
-    with patch("src.main_app.su_services.jobs_files_service.settings") as m_settings:
+    with patch("src.main_app.io.jobs_files_service.settings") as m_settings:
         m_settings.paths.jobs_path = None
         get_jobs_data_dir.cache_clear()
         with pytest.raises(RuntimeError, match="jobs_path configuration is required"):
@@ -82,6 +82,6 @@ def test_is_job_cancelled_file_exist(mock_settings):
 
 
 def test_is_job_cancelled_file_exist_error(mock_settings):
-    with patch("src.main_app.su_services.jobs_files_service.Path.exists") as m_exists:
+    with patch("src.main_app.io.jobs_files_service.Path.exists") as m_exists:
         m_exists.side_effect = OSError("Access denied")
         assert is_job_cancelled_file_exist("any.cancel") is False

@@ -20,7 +20,6 @@ from .objects import AddSvgLanguagesWorkerObject
 from .utils import RE_SVG_LANG, add_template_to_text, extract_svg_file_name
 
 logger = logging.getLogger(__name__)
-StepResult = dict[str, Any]
 
 
 @dataclass
@@ -32,7 +31,7 @@ class TemplateInfo:
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: str = "pending"
     error: str | None = None
-    steps: dict[str, StepResult] = field(
+    steps: dict[str, dict[str, Any]] = field(
         default_factory=lambda: {
             "load_template_text": {"result": None, "msg": ""},
             "generate_template_text": {"result": None, "msg": ""},
@@ -70,12 +69,14 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
 
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
-
         super().__init__(data)
-        self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject()
-
         self.args = data.args or {}
-        self.result.args = self.args
+
+        self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject(
+            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            args=self.args,
+        )
+
         self.limit_items = self.args.get("limit_items") or 0
 
     def get_job_type(self) -> str:

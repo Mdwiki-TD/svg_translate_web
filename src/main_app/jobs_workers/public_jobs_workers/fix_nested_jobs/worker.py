@@ -11,8 +11,8 @@ from pathlib import Path
 
 from mwclient.client import Site
 
-from ....api_services import download_svg_file, upload_fixed_svg
-from ....shared.fix_nested.worker import (  # MatchFixNestedTags,
+from ....api_services.files_service import download_svg_file, upload_fixed_svg
+from ....shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
     detect_nested_tags,
@@ -33,10 +33,12 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
     def __init__(self, data: JobsRunner) -> None:
         super().__init__(data)
-        self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject()
-        self.result.job_id = self.job_id
         self.args = data.args or {}
-        self.result.args = self.args
+
+        self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject(
+            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            args=self.args,
+        )
 
         self.upload_limit = self.args.get("upload_limit") or 0
 

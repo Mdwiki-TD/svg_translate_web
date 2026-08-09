@@ -11,7 +11,7 @@ from pathlib import Path
 
 from mwclient.client import Site
 
-from ....api_services import download_svg_file, upload_fixed_svg
+from ....api_services.files_service import download_svg_file, upload_fixed_svg
 from ....db.models import TemplateRecord
 from ....db.services import TemplateService
 from ....shared.fix_nested.worker import (
@@ -33,9 +33,12 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
     def __init__(self, data: JobsRunner) -> None:
         super().__init__(data)
-        self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject()
         self.args = data.args or {}
-        self.result.args = self.args
+
+        self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject(
+            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            args=self.args,
+        )
         self.site: Site | None = None
 
     def get_job_type(self) -> str:

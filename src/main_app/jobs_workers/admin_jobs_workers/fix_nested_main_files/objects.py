@@ -29,9 +29,6 @@ class TemplateInfo:
         self.message = message
 
     def to_dict(self) -> dict[str, Any]:
-        """
-        convert to dict.
-        """
         return asdict(self)
 
 
@@ -49,23 +46,6 @@ class FixNestedMainFilesWorkerObject(WorkerObject):
     pages_failed: list[TemplateInfo] = field(default_factory=list)
 
 
-_old_result = {
-    "note": "",
-    "status": "pending",
-    "errors": [],
-    "args": {},
-    "job_id": "self.job_id",
-    "started_at": "datetime.now().isoformat()",
-    "completed_at": None,
-    "cancelled_at": None,
-    "summary": {
-        "total": 0,
-        "processed": 0,
-    },
-    "pages_success": [],
-    "pages_skipped": [],
-    "pages_failed": [],
-}
 __all__ = [
     "FixNestedMainFilesWorkerObject",
     "TemplateInfo",

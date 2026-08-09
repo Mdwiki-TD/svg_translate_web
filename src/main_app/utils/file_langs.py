@@ -5,7 +5,7 @@ from typing import Any
 
 import requests
 
-from ..api_services import get_file_info
+from ..api_services.files_service import get_file_info
 
 logger = logging.getLogger(__name__)
 

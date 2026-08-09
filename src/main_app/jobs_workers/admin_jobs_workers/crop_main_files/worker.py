@@ -47,11 +47,14 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
-
         super().__init__(data)
-        self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject()
+
         self.args = data.args or {}
-        self.result.args = self.args
+        self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject(
+            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            args=self.args,
+        )
+
         self.upload_limit = self.args.get("upload_limit") or 0
 
         self.exists: dict[str, Any] = {}

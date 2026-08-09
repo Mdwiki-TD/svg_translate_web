@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from .fixer import MatchFixNestedTags
+from ..copysvg_wrapper import MatchFixNestedTags
 from .objects import DetectionResult, VerificationResult
 
 logger = logging.getLogger(__name__)

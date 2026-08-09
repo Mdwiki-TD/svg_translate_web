@@ -22,7 +22,6 @@ from .objects import CreateOwidPagesWorkerObject
 from .owid_template_converter import create_new_text
 
 logger = logging.getLogger(__name__)
-StepResult = dict[str, Any]
 
 
 @dataclass
@@ -35,7 +34,7 @@ class TemplateProcessingInfo:
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: str = "pending"
     error: str | None = None
-    steps: dict[str, StepResult] = field(
+    steps: dict[str, dict[str, Any]] = field(
         default_factory=lambda: {
             "load_template_text": {"result": None, "msg": ""},
             "create_new_text": {"result": None, "msg": ""},
@@ -74,12 +73,14 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         self.site: Site | None = None
 
         super().__init__(data)
-        self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject()
-
         self.args = data.args or {}
-        self.result.args = self.args
-        self.limit_items = self.args.get("limit_items") or 0
 
+        self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject(
+            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            args=self.args,
+        )
+
+        self.limit_items = self.args.get("limit_items") or 0
         self.update_all = str(self.args.get("update_all", "")).lower() == "true"
 
     def get_job_type(self) -> str:

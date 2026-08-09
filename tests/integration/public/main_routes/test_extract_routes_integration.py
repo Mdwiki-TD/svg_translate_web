@@ -131,7 +131,7 @@ class TestExtractRender:
         mock_download.return_value = {"result": "success", "path": str(tmp_path / "test_dir/test.svg")}
 
         mock_extract = mocker.patch(
-            "src.main_app.shared.copysvg_wrapper.extract_translations.extract_file_translations"
+            "src.main_app.shared.copysvg_wrapper.extract_translations._extract_file_translations"
         )
         mock_extract.return_value = ExtractorData(new={})
 
@@ -163,7 +163,7 @@ class TestExtractRender:
 
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
         monkeypatch.setattr(
-            "src.main_app.shared.copysvg_wrapper.extract_translations.extract_file_translations",
+            "src.main_app.shared.copysvg_wrapper.extract_translations._extract_file_translations",
             mock_extract,
         )
 
@@ -199,7 +199,7 @@ class TestExtractRender:
 
         monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
         monkeypatch.setattr(
-            "src.main_app.shared.copysvg_wrapper.extract_translations.extract_file_translations",
+            "src.main_app.shared.copysvg_wrapper.extract_translations._extract_file_translations",
             mock_extract,
         )
 
