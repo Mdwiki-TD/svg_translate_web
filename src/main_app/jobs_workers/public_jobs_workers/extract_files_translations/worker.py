@@ -47,9 +47,9 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             args=args,
         )
 
-        self.title = args.get("title")
+        self.title = args["title"].strip() if args.get("title") else None
 
-        self.output_dir = self._compute_output_dir(args.get("title"))
+        self.output_dir = self._compute_output_dir(self.title)
         self.output_dir_files = (self.output_dir / "files") if self.output_dir else None
 
         self.overwrite_download = True
