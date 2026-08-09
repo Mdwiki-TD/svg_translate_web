@@ -72,7 +72,7 @@
 {% endif %}
 {% endblock %}
 
-{% macro pages_table(data, table_title) %}
+{% macro pages_table(data, table_title, err_colmn=False) %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
@@ -88,6 +88,9 @@
                         <th>Downloaded</th>
                         <th>File Languages</th>
                         <th>File Translations</th>
+                        {% if err_colmn %}
+                        <th>Error</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -104,11 +107,26 @@
                             {{ render_step(item.steps.download) }}
                         </td>
                         <td>
-                            {{ render_step(item.steps.mapping) }}
+                            {# {{ render_step(item.steps.mapping) }} #}
+                            {% if item.steps.mapping and item.steps.mapping.details %}
+                            {{ (item.steps.mapping.details.new or 0) }}
+                            {% else %}
+                            -
+                            {% endif %}
                         </td>
                         <td>
-                            {{ render_step(item.steps.languages) }}
+                            {# {{ render_step(item.steps.languages) }} #}
+                            {% if item.steps.languages and item.steps.languages.details %}
+                            {{ item.steps.languages.details.languages }}
+                            {% else %}
+                            -
+                            {% endif %}
                         </td>
+                        {% if err_colmn %}
+                        <td>
+                            {{ item.error }}
+                        </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -129,7 +147,7 @@
 {% endif %}
 
 {% if result_data.files_failed %}
-{{ pages_table(result_data.files_failed, "Failed") }}
+{{ pages_table(result_data.files_failed, "Failed", err_colmn=True) }}
 {% endif %}
 
 {% if result_data.mapping %}
