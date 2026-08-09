@@ -259,6 +259,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         return data
 
+    # ------------------
+    # Public API
+    # ------------------
+
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "copy_svg_langs"
