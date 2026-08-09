@@ -191,7 +191,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         new_translations = mapping.new if mapping else {}
 
-        languages = sorted({lang for entry in new_translations.values() if isinstance(entry, dict) for lang in entry})
+        languages = sorted(mapping.all_languages()) if mapping else []
+
         self.result.translations = self._render_new_translations(new_translations, languages)
         self.result.languages = languages
 

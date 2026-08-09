@@ -45,8 +45,10 @@ class StepResult:
     msg: str = ""
     details: dict[str, Any] | None = None
 
-    def _update(self, result: bool | None = None, msg: str = "", details: dict[str, Any] | None = None) -> None:
-        self.result = result
+    def _update(self, result: bool | None | str = "z", msg: str = "", details: dict[str, Any] | None = None) -> None:
+
+        if result is None or isinstance(result, bool):
+            self.result = result
 
         if msg:
             self.msg = msg
@@ -58,8 +60,8 @@ class StepResult:
 @dataclass
 class FileSteps:
     download: StepResult = field(default_factory=lambda: StepResult())
-    nested: StepResult = field(default_factory=lambda: StepResult())
-    upload: StepResult = field(default_factory=lambda: StepResult())
+    mapping: StepResult = field(default_factory=lambda: StepResult())
+    languages: StepResult = field(default_factory=lambda: StepResult())
 
 
 @dataclass
@@ -87,7 +89,6 @@ class ExtractFilesTranslationsObject(WorkerObject):
 
     files_processed: list[FilesProcessedItem] = field(default_factory=list)
     files_success: list[FilesProcessedItem] = field(default_factory=list)
-    files_skipped: list[FilesProcessedItem] = field(default_factory=list)
     files_failed: list[FilesProcessedItem] = field(default_factory=list)
 
     mapping_mereged: int = 0
@@ -103,7 +104,6 @@ class ExtractFilesTranslationsObject(WorkerObject):
 
 __all__ = [
     "StepResult",
-    "FileSteps",
     "FilesProcessedItem",
     "ExtractFilesTranslationsObject",
 ]

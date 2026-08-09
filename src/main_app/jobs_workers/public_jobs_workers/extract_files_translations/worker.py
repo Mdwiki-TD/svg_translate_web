@@ -179,7 +179,9 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             title_info.file_path = file_path_str
 
             self.result.summary.processed += 1
+
             self.extract_file_translations(title_info)
+
             if title_info.is_mapping_merged:
                 self.result.mapping_mereged += 1
 
@@ -188,9 +190,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
             if title_info.status == "success":
                 self.result.files_success.append(title_info)
-
-            elif title_info.status == "skipped":
-                self.result.files_skipped.append(title_info)
 
             elif title_info.status == "failed":
                 self.result.files_failed.append(title_info)
@@ -209,19 +208,34 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             processfiles_stage.status = "completed"
 
     def extract_file_translations(self, title_info: FilesProcessedItem) -> None:
+        langs_step = title_info.steps.languages
+        mapping_step = title_info.steps.mapping
+
         file_path = Path(title_info.file_path)
         try:
             result: ExtractResult = extract_from_path(file_path)
         except Exception as e:
-            logger.error("Error in stage translations")
+            logger.error("Error in extract translations")
+            mapping_step.result=False
+            mapping_step._update(details={"error": str(e)}, msg="Error in extract translations")
+            langs_step.result=None # skipped
             return
 
         mapping = result.mapping
 
         if result.success and mapping and not mapping.is_empty():
+            title_info.status = "success"
+            mapping_step._update(msg="extract translations success")
+            mapping_step.result=True
+
+            langs_step.result=True
+            langs_step._update(details={"languages": sorted(mapping.all_languages())}, msg="extract languages success")
+
             self.update_translations(mapping)
             title_info.is_mapping_merged = True
             return
+
+        title_info.status = "failed"
 
     def get_file_path(self, title: str, title_info: FilesProcessedItem):
         down_step = title_info.steps.download
@@ -233,7 +247,10 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             )
         except Exception as e:
             logger.exception("Error downloading SVG file")
-            down_step._update(result=False, msg="Error downloading", details={"error": str(e)})
+
+            down_step.result=False
+            down_step._update(msg="Error downloading", details={"error": str(e)})
+
             title_info.status = "failed"
             return None
 
@@ -244,7 +261,10 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
                 "error": "download_failed",
                 "details": file_data,
             }
-            down_step._update(result=False, msg="Failed to download file", details=download_result)
+
+            down_step.result=False
+            down_step._update(msg="Failed to download file", details=download_result)
+
             title_info.status = "failed"
             return None
 
@@ -258,10 +278,13 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         }
 
         if file_path:
-            down_step._update(result=True, msg="Downloaded successfully", details=download_result)
+            down_step.result=True
+            down_step._update(msg="Downloaded successfully", details=download_result)
             return file_path
 
-        down_step._update(result=False, msg="Failed to get file path", details=download_result)
+        down_step.result=False
+        down_step._update(msg="Failed to get file path", details=download_result)
+
         title_info.status = "failed"
         return None
 
