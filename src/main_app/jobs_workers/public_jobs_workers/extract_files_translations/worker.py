@@ -1,5 +1,5 @@
 """
-Worker module for copy_svg_langs.
+Worker module for extract_files_translations.
 """
 
 from __future__ import annotations
@@ -49,7 +49,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             args=args,
         )
 
-        self.manual_main_title = args.get("manual_main_title")
         self.title = args.get("title")
 
         self.config = self._load_config(args)
@@ -125,10 +124,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self._save_progress()
 
         try:
-            step_result = extract_titles_step(
-                self.text,
-                manual_main_title=self.manual_main_title,
-            )
+            step_result = extract_titles_step( self.text )
 
         except Exception as e:
             logger.exception("Error in stage titles")
@@ -285,6 +281,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:
+                self.result.translations = [self.mapping.to_json()]
                 self._save_progress()
 
         if processfiles_stage.status in ["pending", "running"]:
@@ -314,7 +311,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
-        return "copy_svg_langs"
+        return "extract_files_translations"
 
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
