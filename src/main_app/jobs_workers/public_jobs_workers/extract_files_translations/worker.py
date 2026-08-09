@@ -50,6 +50,8 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self.title = args.get("title")
 
         self.output_dir = self._compute_output_dir(args.get("title"))
+        self.output_dir_files = (self.output_dir / "files") if self.output_dir else None
+
         self.overwrite_download = True
         self.site: Site | None = None
         self.text: str = ""
@@ -166,6 +168,16 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
             title_info = FilesProcessedItem(title=title)
 
+            # ----------------------------------------------
+            # File step 1: download
+
+            file_path_str: str | None = self.get_file_path(title, title_info)
+
+            if not file_path_str:
+                return False
+
+            title_info.file_path = file_path_str
+
             self.result.summary.processed += 1
             self.extract_file_translations(title_info)
 
@@ -194,6 +206,48 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             self.update_translations(mapping)
             title_info.is_mapping_merged = True
             return
+
+    def get_file_path(self, title: str, title_info: FilesProcessedItem):
+        down_step = title_info.steps.download
+        try:
+            file_data = self.files_service.download_one_file(
+                title=title,
+                out_dir=self.output_dir_files,
+                overwrite_download=self.overwrite_download,
+            )
+        except Exception as e:
+            logger.exception("Error downloading SVG file")
+            down_step._update(result=False, msg="Error downloading", details={"error": str(e)})
+            title_info.status = "failed"
+            return None
+
+        if file_data.get("result") != "success":
+            download_result = {
+                "ok": False,
+                "path": None,
+                "error": "download_failed",
+                "details": file_data,
+            }
+            down_step._update(result=False, msg="Failed to download file", details=download_result)
+            title_info.status = "failed"
+            return None
+
+        file_path: str | None = file_data.get("path")
+
+        download_result = {
+            "ok": True,
+            "path": file_path,
+            "error": None,
+            "details": {},
+        }
+
+        if file_path:
+            down_step._update(result=True, msg="Downloaded successfully", details=download_result)
+            return file_path
+
+        down_step._update(result=False, msg="Failed to get file path", details=download_result)
+        title_info.status = "failed"
+        return None
 
     # ------------------
     # Public API
