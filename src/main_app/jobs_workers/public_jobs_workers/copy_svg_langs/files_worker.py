@@ -220,13 +220,13 @@ class OneFileProcessor:
             title_info.status = "skipped"
             return False
 
-        title_info.error = upload_error
         title_info.steps.upload._update(
             result=False,
             msg="Upload failed.",
             details=error_and_details,
         )
         title_info.status = "failed"
+        title_info.error = upload_error
         return False
 
     def _create_language_summary(self, main_title: str, translation_details: dict[str, int]) -> str:
@@ -267,6 +267,7 @@ class OneFileProcessor:
             logger.exception("Error downloading SVG file")
             down_step._update(result=False, msg="Error downloading", details={"error": str(e)})
             title_info.status = "failed"
+            title_info.error = "Error downloading"
             return None
 
         if file_data.get("result") != "success":
@@ -278,6 +279,7 @@ class OneFileProcessor:
             }
             down_step._update(result=False, msg="Failed to download file", details=download_result)
             title_info.status = "failed"
+            title_info.error = "Failed to download file"
             return None
 
         file_path: str | None = file_data.get("path")
@@ -295,6 +297,7 @@ class OneFileProcessor:
 
         down_step._update(result=False, msg="Failed to get file path", details=download_result)
         title_info.status = "failed"
+        title_info.error = "Failed to get file path"
         return None
 
     def extract_file_translations(self, title_info: FilesProcessedItem) -> None:
@@ -350,6 +353,7 @@ class OneFileProcessor:
         if not no_nested_tags:
             # no nested tags fixed, break the file process
             title_info.status = "failed"
+            title_info.error = "nested tags"
 
             # We can't inject file that has nested tags
             title_info.steps.inject.msg = "skipped"

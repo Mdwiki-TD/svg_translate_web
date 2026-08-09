@@ -259,6 +259,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             logger.exception("Error downloading SVG file")
             down_step._update(result=False, msg="Error downloading", details={"error": str(e)})
             title_info.status = "failed"
+            title_info.error = "failed to download"
             return None
 
         if file_data.get("result") != "success":
@@ -270,6 +271,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             }
             down_step._update(result=False, msg="Failed to download file", details=download_result)
             title_info.status = "failed"
+            title_info.error = "failed to download"
             return None
 
         file_path: str | None = file_data.get("path")
@@ -287,6 +289,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
         down_step._update(result=False, msg="Failed to get file path", details=download_result)
         title_info.status = "failed"
+        title_info.error = "Failed to get file path"
         return None
 
     # ------------------
