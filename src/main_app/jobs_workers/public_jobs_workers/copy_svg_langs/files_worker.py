@@ -297,10 +297,11 @@ class OneFileProcessor:
         title_info.status = "failed"
         return None
 
-    def extract_file_translations(self, file_path: Path) -> None:
+    def extract_file_translations(self, title_info: FilesProcessedItem) -> None:
         if not self.config.merge_mapping_all_files:
             return
 
+        file_path = Path(title_info.file_path)
         try:
             result: ExtractResult = extract_from_path(file_path)
         except Exception as e:
@@ -309,8 +310,9 @@ class OneFileProcessor:
 
         mapping = result.mapping
 
-        if result.success and mapping:
+        if result.success and mapping and not mapping.is_empty():
             self.update_translations(mapping)
+            title_info.is_mapping_merged = True
             return
 
     # ------------------
@@ -359,7 +361,7 @@ class OneFileProcessor:
         # File step 3: log translations
         # File step 4: inject translations
 
-        self.extract_file_translations(file_path)
+        self.extract_file_translations(title_info)
 
         new_path: Path | None = self.inject_step_file(title_info, file_path)
         inject_result = title_info.steps.inject

@@ -97,6 +97,7 @@ class FilesProcessedItem:
     status: str = "pending"
     error: str | None = None
     steps: FileSteps = field(default_factory=lambda: FileSteps())
+    is_mapping_merged: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -118,6 +119,7 @@ class CopySvgLangsWorkerObject(WorkerObject):
     files_skipped: list[FilesProcessedItem] = field(default_factory=list)
     files_failed: list[FilesProcessedItem] = field(default_factory=list)
 
+    mapping_mereged: int = 0
     note: str = ""
 
     def to_json(self) -> dict[str, Any]:
