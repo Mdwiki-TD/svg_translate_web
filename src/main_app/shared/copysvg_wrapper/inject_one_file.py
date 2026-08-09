@@ -105,8 +105,8 @@ def _start_injects(
             msg=msg,
             languages_after=languages_after,
             new_languages_count=new_languages_count,
-            updated_translations=updated_translations,
             inserted_translations=inserted_translations,
+            updated_translations=updated_translations,
         )
     except (OSError, Exception):
         logger.error("Failed to write translated SVG: %s", output_file)
@@ -115,9 +115,10 @@ def _start_injects(
             msg="Failed to write file",
             languages_after=languages_after,
             new_languages_count=new_languages_count,
-            updated_translations=updated_translations,
             inserted_translations=inserted_translations,
+            updated_translations=updated_translations,
         )
+
 
 def write_msg(stats: InjectorStats) -> str:
 

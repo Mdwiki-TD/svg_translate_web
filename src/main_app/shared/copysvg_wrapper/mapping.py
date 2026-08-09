@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from typing import Any
-from collections.abc import Mapping
 
 from lxml import etree  # type: ignore
 
@@ -185,6 +185,7 @@ class ExtractorData:
             "error": ""
         }
         """
+
         def _merge_dict(self_new, other_new) -> None:
             for source, lang_dict in other_new.items():
                 self_new.setdefault(source, {})

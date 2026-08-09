@@ -11,8 +11,6 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....shared.copysvg_wrapper.mapping import ExtractorData
-
 from ....api_services.files_service import FilesService
 from ....config import settings
 from ....shared.copysvg_wrapper import (
@@ -22,6 +20,7 @@ from ....shared.copysvg_wrapper import (
     extract_from_path,
     inject_step_one_file,
 )
+from ....shared.copysvg_wrapper.mapping import ExtractorData
 from ....shared.fix_nested import (
     DetectionResult,
     VerificationResult,
@@ -48,7 +47,7 @@ class OneFileProcessor:
     def __init__(self, config: SvgLangsConfig, files_service: FilesService) -> None:
         self.config = config
         self.files_service = files_service
-        self.mapping: ExtractorData
+        self.mapping: ExtractorData | None = None
         self.upload_done = 0
         self.nested_processer: MatchFixNestedTags
 
@@ -56,6 +55,9 @@ class OneFileProcessor:
         self.mapping = mapping
 
     def _update_translations(self, mapping: ExtractorData) -> None:
+        if self.mapping is None:
+            return self._set_translations(mapping)
+
         self.mapping.merge(mapping, merge_keys=["new", "title_new"])
 
     def _process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
@@ -186,6 +188,14 @@ class OneFileProcessor:
             )
             return None
 
+        if inject_result.result is not True:
+            title_info.steps.inject._update(
+                result=False,
+                msg="Unknown error",
+            )
+            return None
+
+        # inject_result.result is True definitely
         title_info.steps.translations._update(
             result=True,
             details={
@@ -195,6 +205,7 @@ class OneFileProcessor:
                 "inserted": inject_result.inserted_translations or 0,
             },
         )
+
         title_info.steps.inject._update(
             result=True,
             msg=inject_result.msg,
@@ -290,24 +301,28 @@ class OneFileProcessor:
         return False
 
     def _create_language_summary(self, main_title: str, translation_details: dict[str, int]) -> str:
-        # {"new": 0, "updated": 0, "inserted": 0, "new_list": []}
         new_count = translation_details.get("new", 0)
         updated = translation_details.get("updated", 0)
         inserted = translation_details.get("inserted", 0)
 
         file_name = main_title.removeprefix("File:")
-        main_title_link = f"[[File:{file_name}]]"
 
+        summary_list = []
         if new_count > 0:
-            summary = f"Adding {new_count} languages translations"
-        elif updated > 0:
-            summary = f"Updating {updated} translations"
-        elif inserted > 0:
-            summary = f"Inserting {inserted} translations"
-        else:
-            summary = "Adding translations"
+            summary_list.append(f"{new_count} languages injected")
 
-        summary += f" from {main_title_link}"
+        if updated > 0:
+            summary_list.append(f"{updated} translations Updated")
+
+        if inserted > 0:
+            summary_list.append(f"{inserted} translations inserted")
+
+        if not summary_list:
+            summary_list.append("Adding translations")
+
+        summary = ", ".join(summary_list)
+
+        summary += f" from [[File:{file_name}]]"
 
         return summary
 
@@ -364,7 +379,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         args = data.args or {}
 
         self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject(
-            job_id=self.job_id,
+            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
             args=args,
         )
 

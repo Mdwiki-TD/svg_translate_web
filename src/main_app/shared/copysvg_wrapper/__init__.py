@@ -1,7 +1,7 @@
 from .extract_translations import extract_from_path
 from .inject_one_file import (
-    inject_step_one_file,
     _start_injects,
+    inject_step_one_file,
 )
 from .mapping import (
     ExtractorData,

@@ -137,7 +137,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         self.args = data.args or {}
 
         self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject(
-            job_id=self.job_id,
+            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
             args=self.args,
         )
 

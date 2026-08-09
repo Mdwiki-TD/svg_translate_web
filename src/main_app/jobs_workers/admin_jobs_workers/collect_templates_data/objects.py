@@ -59,9 +59,6 @@ class TemplateInfo:
     steps: FileSteps = field(default_factory=lambda: FileSteps())
 
     def to_dict(self) -> dict[str, Any]:
-        """
-        convert to dict.
-        """
         return asdict(self)
 
 
@@ -70,29 +67,6 @@ class CollectTemplatesDataWorkerObject(StandardAdminWorkerObject):
     pages_added: list[dict[str, Any]] = field(default_factory=list)
     pages_updated: list[dict[str, Any]] = field(default_factory=list)
 
-
-_old_result = {
-    "note": "",
-    "status": "pending",
-    "errors": [],
-    "args": {},
-    "job_id": "self.job_id",
-    "started_at": "datetime.now().isoformat()",
-    "completed_at": None,
-    "cancelled_at": None,
-    "summary": {
-        "total": 0,
-        "processed": 0,
-        "success": 0,
-        "failed": 0,
-        "skipped": 0,
-    },
-    "pages_processed": [],
-    "pages_added": [],
-    "pages_updated": [],
-    "pages_skipped": [],
-    "pages_failed": [],
-}
 
 __all__ = [
     "CollectTemplatesDataWorkerObject",

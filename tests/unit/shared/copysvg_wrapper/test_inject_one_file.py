@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.shared.copysvg_wrapper.inject_one_file import (
-    inject_step_one_file,
     _start_injects,
+    inject_step_one_file,
 )
 from src.main_app.shared.copysvg_wrapper.mapping import InjectorData
 

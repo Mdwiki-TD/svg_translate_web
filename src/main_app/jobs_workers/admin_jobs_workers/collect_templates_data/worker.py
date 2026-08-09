@@ -85,7 +85,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         self.args = data.args or {}
         self.result: CollectTemplatesDataWorkerObject = CollectTemplatesDataWorkerObject(
-            job_id=self.job_id,
+            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
             args=self.args,
         )
 
