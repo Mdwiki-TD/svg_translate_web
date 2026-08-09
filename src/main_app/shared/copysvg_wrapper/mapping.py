@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import copy
 import logging
 from dataclasses import asdict, dataclass, field
 from typing import Any
+from collections.abc import Mapping
 
 from lxml import etree  # type: ignore
 
@@ -78,17 +78,39 @@ class InjectResult:
 
 
 @dataclass
-class ExtractorData:
-    """Container for extracted SVG translation data."""
-
-    new: dict[str, dict[str, str]] = field(default_factory=dict)
-    tspans_by_id: dict[str, str] = field(default_factory=dict)
-    title_new: dict[str, Any] = field(default_factory=dict)
-    meta: dict[str, Any] = field(default_factory=dict)
-    error: str = ""
+class ExtractResult:
+    success: bool | None = None
+    message: str | None = None
+    error: str | None = None
+    translations: dict | None = None
+    mapping: ExtractorData | None = None
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@dataclass
+class ExtractorData:
+    """
+    Full mapping produced by extraction and consumed by injection.
+
+    Attributes
+    ----------
+    new:
+        Main map: normalized source text → {lang: translated text}
+    title_new:
+        Optional year-title variants advanced use
+    tspans_by_id:
+        Optional diagnostic map from extraction (id → default text)
+    ----------
+    same as TranslationMapping
+    """
+
+    new: dict[str, dict[str, str]] = field(default_factory=dict)
+    title_new: dict[str, dict[str, str]] = field(default_factory=dict)
+    tspans_by_id: dict[str, str] = field(default_factory=dict)
+    meta: dict[str, Any] = field(default_factory=dict)
+    error: str = ""
 
     # ------------------------------------------------------------------
     # Factory helpers
@@ -98,25 +120,110 @@ class ExtractorData:
         if isinstance(data, ExtractorData):
             return data
 
-        data = copy.deepcopy(data)
+        data_json = data
+
+        if not isinstance(data_json, dict) and not isinstance(data_json, Mapping):
+            raise TypeError(f"Expected Mapping/ExtractorData/dict, got {type(data_json)}")
+
+        # data_json = copy.deepcopy(data_json)
         return cls(
-            new=dict(data.get("new", {})),
-            tspans_by_id=dict(data.get("tspans_by_id", {})),
-            title_new=dict(data.get("title_new", {})),
-            meta=dict(data.get("meta", {})),
-            error=data.get("error", ""),
+            new=dict(data_json.get("new", {})),
+            title_new=dict(data_json.get("title_new", {})),
+            tspans_by_id=dict(data_json.get("tspans_by_id", {})),
+            meta=dict(data_json.get("meta", {})),
+            error=data_json.get("error", ""),
         )
 
+    @classmethod
+    def from_extractor_data(cls, data: Mapping[str, Any]) -> ExtractorData:
+        """Create from the dict currently returned by the legacy extractor."""
+        return cls.from_any(data)
 
-@dataclass
-class ExtractResult:
-    success: bool | None = None
-    message: str | None = None
-    error: str | None = None
-    translations: dict | None = None
+    # ------------------------------------------------------------------
+    # Query helpers
+    # ------------------------------------------------------------------
+    def is_empty(self) -> bool:
+        return not self.new and not self.title_new
+
+    def all_languages_count(self) -> set[str]:
+        langs: set[str] = set()
+        for section in (self.new, self.title_new):
+            for trans in section.values():
+                langs.update(trans.keys())
+
+        return langs
+
+    def lookup(self, source: str, *, case_insensitive: bool = True) -> dict[str, str]:
+        """Return {lang: text} for a source string, or empty dict."""
+        key = source.lower() if case_insensitive else source
+
+        if case_insensitive:
+            for k, v in self.new.items():
+                if k.lower() == key:
+                    return dict(v)
+            return {}
+
+        return dict(self.new.get(key, {}))
+
+    # ------------------------------------------------------------------
+    # Mutation helpers (used while building the mapping)
+    # ------------------------------------------------------------------
+    def add(self, source: str, lang: str, text: str, *, case_insensitive: bool = True) -> None:
+        key = source.lower() if case_insensitive else source
+        self.new.setdefault(key, {})[lang] = text
+
+    def merge(self, other: ExtractorData | Mapping[str, Any], merge_keys: list[str] | None = None) -> None:
+        """
+        Mapping structure to understand merge logic:
+        {
+            "new": { "text, 1990": { "abr": "text, afe 1990", "ar": "نص، 1990" } },
+            "tspans_by_id": { "trsvg1": "text, 1990" },
+            "title_new": { "text, {year}": { "abr": "text, afe {year}", "ar": "نص، {year}" } },
+            "meta": {
+                "header": { "text, 1990": { "abr": "text, afe 1990", "ar": "نص، 1990" } }
+            },
+            "error": ""
+        }
+        """
+        if merge_keys is None:
+            merge_keys = ["new", "tspans_by_id", "title_new", "meta"]
+
+        other = self.from_any(other)
+
+        # Merge new mapping
+        # new structure: {"new": { "text, 1990": { "abr": "text, afe 1990", "ar": "نص، 1990" } }, ...}
+        if "new" in merge_keys:
+            for source, lang_dict in other.new.items():
+                self.new.setdefault(source, {})
+                for lang, text in lang_dict.items():
+                    if lang not in self.new[source]:
+                        self.new[source][lang] = text
+
+        # Merge title_new mapping
+        # title_new structure: {"title_new": { "text, {year}": { "abr": "text, afe {year}", "ar": "نص، {year}" } }, ...}
+        if "title_new" in merge_keys:
+            for source, lang_dict in other.title_new.items():
+                self.title_new.setdefault(source, {})
+                for lang, text in lang_dict.items():
+                    if lang not in self.title_new[source]:
+                        self.title_new[source][lang] = text
+
+        # Merge tspans_by_id mapping
+        if "tspans_by_id" in merge_keys:
+            self.tspans_by_id.update(other.tspans_by_id)
+
+        # Should we Merge meta?
 
     def to_json(self) -> dict[str, Any]:
-        return asdict(self)
+        error = self.error or self.meta.get("error") or ""
+        return {
+            "new": self.new,
+            "title_new": self.title_new,
+            "tspans_by_id": self.tspans_by_id,
+            "meta": self.meta,
+            "error": error,
+        }
+
 
 
 __all__ = [
