@@ -11,7 +11,7 @@ import pytest
 
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (  # OneFileProcessor,
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
     CopySvgLangsWorker,
 )
 from src.main_app.shared.copysvg_wrapper import ExtractResult, InjectResult
