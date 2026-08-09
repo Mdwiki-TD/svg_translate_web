@@ -50,7 +50,7 @@ def start_svg_injection(
     return data
 
 
-def start_injects(
+def _start_injects(
     file: Path,
     translations: dict[str, Any] | ExtractorData,
     output_file: Path,
@@ -96,14 +96,7 @@ def start_injects(
     if not any((new_languages_count, updated_translations, inserted_translations)):
         return InjectResult(result=None, msg="No changes")
 
-    if new_languages_count > 0:
-        msg = f"{new_languages_count} languages injected"
-
-    elif updated_translations > 0:
-        msg = f"{updated_translations} translations Updated"
-
-    elif inserted_translations > 0:
-        msg = f"{inserted_translations} translations inserted"
+    msg = write_msg(stats_obj)
 
     try:
         tree.write(str(output_file), encoding="utf-8", xml_declaration=True, pretty_print=True)  # type: ignore
@@ -126,6 +119,19 @@ def start_injects(
             inserted_translations=inserted_translations,
         )
 
+def write_msg(stats: InjectorStats) -> str:
+
+    if stats.new_languages_count > 0:
+        msg = f"{stats.new_languages_count} languages injected"
+
+    elif stats.updated_translations > 0:
+        msg = f"{stats.updated_translations} translations Updated"
+
+    elif stats.inserted_translations > 0:
+        msg = f"{stats.inserted_translations} translations inserted"
+
+    return msg
+
 
 def inject_step_one_file(
     file_path: Path,
@@ -135,7 +141,7 @@ def inject_step_one_file(
 ) -> InjectResult:
     """ """
     try:
-        injects_result: InjectResult = start_injects(
+        injects_result: InjectResult = _start_injects(
             file=file_path,
             translations=translations,
             output_file=output_file,
@@ -154,6 +160,6 @@ def inject_step_one_file(
 
 __all__ = [
     "InjectResult",
-    "start_injects",
+    "_start_injects",
     "inject_step_one_file",
 ]

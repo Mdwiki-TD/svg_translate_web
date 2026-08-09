@@ -56,7 +56,7 @@ class OneFileProcessor:
         self.mapping = mapping
 
     def _update_translations(self, mapping: ExtractorData) -> None:
-        self.mapping = mapping
+        self.mapping.merge(mapping, merge_keys=["new", "title_new"])
 
     def _process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
         # ----------------------------------------------
