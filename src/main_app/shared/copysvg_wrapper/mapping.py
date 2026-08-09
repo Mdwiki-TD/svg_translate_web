@@ -88,6 +88,25 @@ class ExtractResult:
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
 
+    # ------------------------------------------------------------------
+    # Factory helpers
+    # ------------------------------------------------------------------
+    @classmethod
+    def from_any(cls, data: dict[str, Any] | ExtractResult) -> ExtractResult:
+        if isinstance(data, ExtractResult):
+            return data
+
+        translations = data.get("translations") or {}
+        mapping = data.get("mapping") or ExtractorData.from_any(translations)
+
+        return cls(
+            success=data.get("success"),
+            message=data.get("message"),
+            error=data.get("error"),
+            translations=translations,
+            mapping=mapping,
+        )
+
 
 @dataclass
 class ExtractorData:

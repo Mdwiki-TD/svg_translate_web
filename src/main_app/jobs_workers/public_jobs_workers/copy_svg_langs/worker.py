@@ -190,6 +190,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return False
 
         mapping = step_result.mapping
+
         new_translations = mapping.new if mapping else {}
 
         languages = sorted({lang for entry in new_translations.values() if isinstance(entry, dict) for lang in entry})

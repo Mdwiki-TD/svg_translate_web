@@ -71,7 +71,7 @@ def extract_from_path(main_title_path: Path) -> ExtractResult:
         mapping = _extract_file_translations(main_title_path)
     except Exception:
         logger.exception("Failed to extract translations from main SVG")
-        return ExtractResult(success=False, message="", error="Failed to parse main SVG", translations={})
+        return ExtractResult(success=False, message="", error="Failed to parse main SVG", translations={}, mapping=ExtractorData())
 
     new_translations = mapping.new
     new_translations_count = len(new_translations)
