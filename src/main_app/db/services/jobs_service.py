@@ -330,6 +330,12 @@ class JobsService(CRUDService[JobRecord]):
 
         return data
 
+    def mark_as_completed(self, job: JobRecord) -> None:
+        job.is_running = None
+        if job.completed_at is None:
+            job.completed_at = datetime.now(UTC)
+
+        self.update(job, status="completed")
 
 __all__ = [
     "JobsService",

@@ -25,11 +25,13 @@
                     btn_class="btn btn-outline-danger"
                     )
                 }}
+                {% if is_admin and (job.status | is_job_running) %}
                 {{
                     form_mark_job_as_completed(
                     url_for('public_jobs.mark_as_completed', job_type=template_data.job_type, job_id=job.id),
                     )
                 }}
+                {% endif %}
                 <a href="{{ url_for('adminpanel.jobs.jobs_list', job_type=template_data.job_type) }}"
                     class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Back to List
@@ -85,7 +87,7 @@
                                 <tr>
                                     <th style="width: 40%">Completed:</th>
                                     <td>
-                                        {{ job.completed_at | format_short_date("-") }}
+                                        {{ (job.completed_at or result_data.completed_at) | format_short_date("-") }}
                                     </td>
                                 </tr>
                                 {% if job.failed_at or (result_data and result_data.failed_at) %}

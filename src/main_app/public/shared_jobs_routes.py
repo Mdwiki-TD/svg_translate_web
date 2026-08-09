@@ -152,6 +152,31 @@ class SharedJobRoutes:
 
         return "jobs_list"
 
+    def mark_as_completed_handler(self, job_id: int, job_type: str):
+        """Mark job as completed."""
+        user = load_user()
+        if not user:
+            flash("You must be logged in to change job stats.", "danger")
+            return
+
+        try:
+            job = self.job_service.get_job(job_id, job_type)
+        except LookupError:
+            flash("Job not found.", "warning")
+            return
+
+        if not self.can_manage_job(job, user):
+            flash("You don't have permission to change job stats.", "danger")
+            return
+
+        try:
+            self.job_service.mark_as_completed(job)
+        except Exception:
+            flash(f"Can't mark job {job_id} as completed.", "danger")
+            return
+
+        return
+
     # ================================
     # Jobs handlers
     # ================================
