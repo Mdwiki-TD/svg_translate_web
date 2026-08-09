@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ...shared_objects import StandardAdminWorkerObject
+from ...shared_objects import StandardAdminSummary, WorkerObject
 
 
 @dataclass
@@ -103,9 +103,12 @@ class FilesProcessedItem:
 
 
 @dataclass
-class CopySvgLangsWorkerObject(StandardAdminWorkerObject):
+class CopySvgLangsWorkerObject(WorkerObject):
+
+    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
     title: str | None = None
     main_title: str | None = None
+
     stages: Stages = field(default_factory=Stages)
     translations: list[dict[str, str]] = field(default_factory=list)
     languages: list[str] = field(default_factory=list)
@@ -114,6 +117,8 @@ class CopySvgLangsWorkerObject(StandardAdminWorkerObject):
     files_success: list[FilesProcessedItem] = field(default_factory=list)
     files_skipped: list[FilesProcessedItem] = field(default_factory=list)
     files_failed: list[FilesProcessedItem] = field(default_factory=list)
+
+    note: str = ""
 
     def to_json(self) -> dict[str, Any]:
         """

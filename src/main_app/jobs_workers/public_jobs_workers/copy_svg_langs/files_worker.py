@@ -10,12 +10,12 @@ from pathlib import Path
 
 from ....api_services.files_service import FilesService
 from ....shared.copysvg_wrapper import (
-    InjectResult,
-    MatchFixNestedTags,
-    inject_step_one_file,
     ExtractorData,
     ExtractResult,
+    InjectResult,
+    MatchFixNestedTags,
     extract_from_path,
+    inject_step_one_file,
 )
 from ....shared.fix_nested import (
     DetectionResult,
@@ -394,6 +394,7 @@ class OneFileProcessor:
                 json.dump(self.mapping, f, ensure_ascii=False, indent=4)
         except Exception as e:
             logger.error(f"Error saving mapping: {e}")
+
 
 __all__ = [
     "OneFileProcessor",

@@ -191,9 +191,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         new_translations = mapping.new if mapping else {}
 
-        languages = sorted(
-            {lang for entry in new_translations.values() if isinstance(entry, dict) for lang in entry}
-        )
+        languages = sorted({lang for entry in new_translations.values() if isinstance(entry, dict) for lang in entry})
         self.result.translations = self._render_new_translations(new_translations, languages)
         self.result.languages = languages
 
@@ -261,6 +259,53 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         return data
 
     # ------------------
+
+    def process_titles(self, title_to_work: list[str]) -> None:
+        processfiles_stage = self.result.stages.processfiles
+        processfiles_stage.status = "running"
+
+        per_item = self.get_priority(len(title_to_work))
+
+        for n, title in enumerate(title_to_work, start=1):
+            processfiles_stage.message = f"Processing files {n}/{len(title_to_work)}"
+            logger.info("Job %s: Processing title %d/%d: %s", self.job_id, n, len(title_to_work), title)
+
+            if self.is_cancelled():
+                logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
+                processfiles_stage.status = "cancelled"
+                break
+
+            title_info = FilesProcessedItem(title=title)
+
+            self.result.summary.processed += 1
+            ok = self._process_one_item(title, title_info, self.main_title)
+
+            if title_info.status.lower() in ["pending", "running"]:
+                title_info.status = "completed"
+
+            if title_info.status == "success":
+                self.result.files_success.append(title_info)
+
+            elif title_info.status == "skipped":
+                self.result.files_skipped.append(title_info)
+
+            elif title_info.status == "failed":
+                self.result.files_failed.append(title_info)
+            else:
+                self.result.files_processed.append(title_info)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
+                break
+
+            # Save progress after check for cancellation
+            if n == 1 or n % per_item == 0:
+                self._save_progress()
+
+        if processfiles_stage.status in ["pending", "running"]:
+            processfiles_stage.status = "completed"
+
+    # ------------------
     # Public API
     # ------------------
 
@@ -307,52 +352,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if not self._extract_translations_step():
             return self.result
 
-        processfiles_stage = self.result.stages.processfiles
-
         self.result.summary.total = len(self.titles)
         title_to_work = self._apply_limits(self.titles)
 
-        per_item = self.get_priority(len(title_to_work))
-        processfiles_stage.status = "running"
-
-        for n, title in enumerate(title_to_work, start=1):
-            processfiles_stage.message = f"Processing files {n}/{len(title_to_work)}"
-            logger.info("Job %s: Processing title %d/%d: %s", self.job_id, n, len(title_to_work), title)
-
-            if self.is_cancelled():
-                logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
-                processfiles_stage.status = "cancelled"
-                break
-
-            title_info = FilesProcessedItem(title=title)
-
-            self.result.summary.processed += 1
-            ok = self._process_one_item(title, title_info, self.main_title)
-
-            if title_info.status.lower() in ["pending", "running"]:
-                title_info.status = "completed"
-
-            if title_info.status == "success":
-                self.result.files_success.append(title_info)
-
-            elif title_info.status == "skipped":
-                self.result.files_skipped.append(title_info)
-
-            elif title_info.status == "failed":
-                self.result.files_failed.append(title_info)
-            else:
-                self.result.files_processed.append(title_info)
-
-            if ok and self.check_cancel_db_periodic():
-                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
-                break
-
-            # Save progress after check for cancellation
-            if n == 1 or n % per_item == 0:
-                self._save_progress()
-
-        if processfiles_stage.status in ["pending", "running"]:
-            processfiles_stage.status = "completed"
+        self.process_titles(title_to_work)
 
         return self.result
 
@@ -363,6 +366,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.files_processor._save_mapping(self.job_id)
 
         super().after_run()
+
 
 __all__ = [
     "CopySvgLangsWorker",
