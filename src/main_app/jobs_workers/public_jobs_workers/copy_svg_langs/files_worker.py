@@ -36,69 +36,6 @@ class OneFileProcessor:
         self.upload_done = 0
         self.nested_processer: MatchFixNestedTags
 
-    def _set_translations(self, mapping: ExtractorData) -> None:
-        self.mapping = mapping
-
-    def _update_translations(self, mapping: ExtractorData) -> None:
-        if self.mapping is None:
-            return self._set_translations(mapping)
-
-        self.mapping.merge(mapping, merge_keys=["new", "title_new"])
-
-    def _process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
-        # ----------------------------------------------
-        # File step 1: download
-
-        file_path_str: str | None = self.get_download_path(title, title_info)
-
-        if not file_path_str:
-            return False
-
-        title_info.file_path = file_path_str
-
-        file_path = Path(file_path_str)
-
-        # ----------------------------------------------
-        # File step 2: fix nested tags
-        nested_step = title_info.steps.nested
-
-        verify_fixed, no_nested_tags = self.handle_nested_tag_repair_step(nested_step, file_path)
-
-        if not no_nested_tags:
-            # no nested tags fixed, break the file process
-            title_info.status = "failed"
-
-            # We can't inject file that has nested tags
-            title_info.steps.inject.msg = "skipped"
-            title_info.steps.upload.msg = "skipped"
-            return False
-
-        # ----------------------------------------------
-        # At this point, no nested tags remaining in the file
-        # File step 3: log translations
-        # File step 4: inject translations
-
-        new_path: Path | None = self.inject_step_file(title_info, file_path)
-        inject_result = title_info.steps.inject
-
-        # ----------------------------------------------
-        # File step 5: upload
-        if inject_result.result is True:
-            # inject success
-            translation_details = title_info.steps.translations.details or {}
-            summary = self._create_language_summary(main_title, translation_details)
-            return self._upload_step(title_info, summary, new_path)
-
-        # ----------------------------------------------
-        if verify_fixed > 0:
-            # Here we need to upload the orignal file because we fix nested tags.
-            summary = f"{verify_fixed} nested tags fixed"
-            return self._upload_step(title_info, summary, file_path)
-
-        # No nested tags were fixed
-        # inject_result.result is one of (None/False)
-        return False
-
     def handle_nested_tag_repair_step(self, nested_step: StepResult, file_path: Path) -> tuple[int, bool]:
         nested_processer = MatchFixNestedTags(
             source_file=file_path,
@@ -355,6 +292,70 @@ class OneFileProcessor:
         title_info.status = "failed"
         return None
 
+    # ------------------
+    # Public API
+    # ------------------
+
+    def update_translations(self, mapping: ExtractorData) -> None:
+        if self.mapping is None:
+            self.mapping = mapping
+            return
+
+        self.mapping.merge(mapping, merge_keys=["new", "title_new"])
+
+    def process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
+        # ----------------------------------------------
+        # File step 1: download
+
+        file_path_str: str | None = self.get_download_path(title, title_info)
+
+        if not file_path_str:
+            return False
+
+        title_info.file_path = file_path_str
+
+        file_path = Path(file_path_str)
+
+        # ----------------------------------------------
+        # File step 2: fix nested tags
+        nested_step = title_info.steps.nested
+
+        verify_fixed, no_nested_tags = self.handle_nested_tag_repair_step(nested_step, file_path)
+
+        if not no_nested_tags:
+            # no nested tags fixed, break the file process
+            title_info.status = "failed"
+
+            # We can't inject file that has nested tags
+            title_info.steps.inject.msg = "skipped"
+            title_info.steps.upload.msg = "skipped"
+            return False
+
+        # ----------------------------------------------
+        # At this point, no nested tags remaining in the file
+        # File step 3: log translations
+        # File step 4: inject translations
+
+        new_path: Path | None = self.inject_step_file(title_info, file_path)
+        inject_result = title_info.steps.inject
+
+        # ----------------------------------------------
+        # File step 5: upload
+        if inject_result.result is True:
+            # inject success
+            translation_details = title_info.steps.translations.details or {}
+            summary = self._create_language_summary(main_title, translation_details)
+            return self._upload_step(title_info, summary, new_path)
+
+        # ----------------------------------------------
+        if verify_fixed > 0:
+            # Here we need to upload the orignal file because we fix nested tags.
+            summary = f"{verify_fixed} nested tags fixed"
+            return self._upload_step(title_info, summary, file_path)
+
+        # No nested tags were fixed
+        # inject_result.result is one of (None/False)
+        return False
 
 __all__ = [
     "OneFileProcessor",

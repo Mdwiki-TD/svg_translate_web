@@ -199,7 +199,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if step_result.success and mapping:
             stage.status = "completed"
             stage.message = step_result.message or f"Loaded translations from (File:{self.main_title})"
-            self.files_processor._set_translations(mapping)
+            self.files_processor.update_translations(mapping)
             return True
 
         stage.status = "failed"
@@ -243,7 +243,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         return False
 
     def _process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
-        return self.files_processor._process_one_item(title, title_info, main_title)
+        return self.files_processor.process_one_item(title, title_info, main_title)
 
     def _render_new_translations(self, translations: dict[str, Any], languages: list[str]) -> list[dict[str, str]]:
         data = []
