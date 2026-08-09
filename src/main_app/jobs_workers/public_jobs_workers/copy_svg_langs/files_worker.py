@@ -156,7 +156,7 @@ class OneFileProcessor:
             title_info.steps.upload._update(
                 result=None,
                 msg="skipped",
-                details={"error": "Upload disabled from settings"},
+                details={"error": "Upload disabled from settings", "summary": summary},
             )
             title_info.status = "skipped"
             return False
@@ -166,7 +166,7 @@ class OneFileProcessor:
             title_info.steps.upload._update(
                 result=None,
                 msg="skipped",
-                details={"error": "Upload disabled"},
+                details={"error": "Upload disabled", "summary": summary},
             )
             title_info.status = "skipped"
             return False
@@ -175,7 +175,7 @@ class OneFileProcessor:
             title_info.steps.upload._update(
                 result=None,
                 msg="skipped",
-                details={"error": "Upload limit reached"},
+                details={"error": "Upload limit reached", "summary": summary},
             )
             title_info.status = "skipped"
             return False
@@ -196,6 +196,7 @@ class OneFileProcessor:
                 result=True,
                 msg="File Successfully uploaded.",
                 # details=upload.get("result", ""),
+                details={"summary": summary},
             )
 
             self.upload_done += 1
@@ -206,6 +207,7 @@ class OneFileProcessor:
         error_and_details = {
             "error": upload_error,
             "error_details": error_details,
+            "summary": summary,
         }
 
         is_no_changes = upload_error in {"skipped", "fileexists-no-change"}
