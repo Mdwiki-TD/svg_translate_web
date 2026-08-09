@@ -10,6 +10,15 @@
 </form>
 {%- endmacro -%}
 
+{% macro form_mark_job_as_completed(end_point, btn_class="btn btn-outline-warning text-muted") %}
+<form method="POST" action="{{ end_point }}" onsubmit="return confirm('Confirm?');" class="d-inline">
+    {{ csrf() }}
+    <button type="submit" class="{{ btn_class }}">
+        <i class="bi bi-x-circle"></i> Mark as Completed
+    </button>
+</form>
+{%- endmacro -%}
+
 {% macro form_delete_job(end_point, btn_class="btn btn-outline-danger btn-sm") %}
 <form method="POST" action="{{ end_point }}" onsubmit="return confirm('Are you sure? This action cannot be undone!');"
     class="d-inline">

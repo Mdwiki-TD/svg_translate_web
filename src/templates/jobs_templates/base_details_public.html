@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "_macros.html" import card_header, status_icon, csrf, job_errors_div, auto_refresh_status %}
-{% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job %}
+{% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job, form_mark_job_as_completed %}
 
 {% block title %}
 {{ template_data.job_name }} Job #{{ job.id }} · {{ tool_title }}
@@ -23,7 +23,13 @@
                 {% if is_admin %}
                 {{
                     form_delete_job(
-                    url_for('public_jobs.delete_job', job_type=template_data.job_type, job_id=job.id),btn_class="btn btn-outline-danger"
+                    url_for('public_jobs.delete_job', job_type=template_data.job_type, job_id=job.id),
+                    btn_class="btn btn-outline-danger"
+                    )
+                }}
+                {{
+                    form_mark_job_as_completed(
+                    url_for('public_jobs.mark_as_completed', job_type=template_data.job_type, job_id=job.id),
                     )
                 }}
                 {% endif %}
