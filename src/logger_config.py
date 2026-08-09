@@ -63,6 +63,7 @@ def setup_logging(
     log_file: str | None = None,
     error_log_file: str | None = None,
     use_colorlog: bool = False,
+    daily_rotation: bool = False,
 ) -> None:
     """
     Configure logging for the entire project namespace only.
@@ -111,7 +112,7 @@ def setup_logging(
     if error_log_file:
         error_log_file_path = prepare_log_file(error_log_file, project_logger)
         if error_log_file_path:
-            setup_file_handler(project_logger, error_log_file_path, logging.WARNING, daily_rotation=True)
+            setup_file_handler(project_logger, error_log_file_path, logging.WARNING, daily_rotation=daily_rotation)
 
 
 def _daily_log_namer(default_name: str) -> str:
@@ -146,6 +147,7 @@ def configure_logging(
     level: str | int,
     use_colorlog: bool = False,
     name: str = "main_app",
+    daily_rotation: bool = False,
 ) -> None:
     # Create log directory if needed
     try:
@@ -165,4 +167,5 @@ def configure_logging(
         log_file=all_log_path,
         error_log_file=error_log_path,
         use_colorlog=use_colorlog,
+        daily_rotation=daily_rotation,
     )

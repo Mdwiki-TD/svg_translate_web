@@ -8,7 +8,6 @@ import logging
 import json
 import re
 from pathlib import Path
-from typing import Any
 
 from mwclient.client import Site
 
@@ -22,10 +21,9 @@ from ....shared.copysvg_wrapper import (
 )
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from ..copy_svg_langs.objects import (
-    CopySvgLangsWorkerObject,
+from .objects import (
+    ExtractFilesTranslationsObject,
     FilesProcessedItem,
-    SvgLangsConfig,
 )
 from ..copy_svg_langs.steps import (
     extract_text_step,
@@ -44,56 +42,20 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         super().__init__(data)
         args = data.args or {}
 
-        self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject(
+        self.result: ExtractFilesTranslationsObject = ExtractFilesTranslationsObject(
             job_id=self.job_id,  # pyright: ignore[reportCallIssue]
             args=args,
         )
 
         self.title = args.get("title")
 
-        self.config = self._load_config(args)
+        self.output_dir = self._compute_output_dir(args.get("title"))
+        self.overwrite_download = True
         self.site: Site | None = None
         self.text: str = ""
-        self.main_title: str = ""
         self.titles: list[str] = []
         self.files_service = FilesService(self.site)
-
-    def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
-        output_dir = self._compute_output_dir(args.get("title"))
-        output_dir_files = (output_dir / "files") if output_dir else None
-
-        try:
-            limit_items = int(args.get("limit_items")) or 0
-        except Exception:
-            limit_items = 0
-
-        upload_limit = args.get("upload_limit") or 0
-        upload_limit = upload_limit if isinstance(upload_limit, int) else 0
-
-        overwrite_translations = bool(args.get("overwrite_translations"))
-
-        overwrite_download = True
-
-        # if args.get("overwrite_download") is not None: overwrite_download = bool(args.get("overwrite_download"))
-
-        return SvgLangsConfig(
-            upload=args.get("upload"),
-            upload_files=args.get("upload_files"),
-            upload_limit=upload_limit,
-            limit_items=limit_items,
-            overwrite_translations=overwrite_translations,
-            overwrite_download=overwrite_download,
-            output_dir=output_dir,
-            output_dir_files=output_dir_files,
-        )
-
-    def _apply_limits(self, titles: list[str]) -> list[str]:
-        _limit = self.config.limit_items
-        if _limit > 0 and len(titles) > _limit:
-            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(titles), _limit)
-            return titles[:_limit]
-
-        return titles
+        self.mapping: ExtractorData = ExtractorData()
 
     def _compute_output_dir(self, title: str) -> Path:
         if not title:
@@ -104,9 +66,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         slug = slug.replace(" ", "_").lower()
         out = Path(settings.paths.svg_data) / slug
         out.mkdir(parents=True, exist_ok=True)
-
-        out_translated = out / "translated"
-        out_translated.mkdir(parents=True, exist_ok=True)
 
         out_dir_main = out / "files"
         out_dir_main.mkdir(parents=True, exist_ok=True)
@@ -121,7 +80,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             return False
 
         stage.status = "running"
-        self._save_progress()
+        self.save_result()
 
         try:
             step_result = extract_titles_step( self.text )
@@ -140,9 +99,11 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         if step_result.get("success"):
             stage.status = "completed"
 
-            self.main_title = step_result["main_title"]
-            self.result.main_title = self.main_title
             self.titles = list(step_result["titles"])
+
+            if step_result["main_title"] not in self.titles:
+                self.titles.append(step_result["main_title"])
+
             self.titles.sort()
 
             return True
@@ -150,57 +111,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         stage.status = "failed"
         stage.message = step_result.get("error", "Unknown error")
         self.result.status = "failed"
-        return False
-
-    def _extract_translations_step(self) -> bool | None:
-        stage = self.result.stages.translations
-        stage.status = "running"
-        output_dir_main = self.config.output_dir_files
-
-        main_file_download = self.files_service.download_one_file(
-            title=self.main_title,
-            out_dir=output_dir_main,
-            overwrite_download=self.config.overwrite_download,
-        )
-
-        if not main_file_download.get("path"):
-            error = f"Error when downloading main file: {self.main_title}"
-            logger.error(error)
-            stage.status = "failed"
-            stage.message = error
-            self.result.status = "failed"
-
-            return False
-
-        main_title_path = main_file_download["path"]
-
-        try:
-            step_result: ExtractResult = extract_from_path(main_title_path)
-        except Exception as e:
-            logger.exception("Error in stage translations")
-            stage.status = "failed"
-            stage.message = str(e)
-            self.result.status = "failed"
-            return False
-
-        mapping = step_result.mapping
-
-        new_translations = mapping.new if mapping else {}
-
-        languages = sorted({lang for entry in new_translations.values() if isinstance(entry, dict) for lang in entry})
-        self.result.translations = self._render_new_translations(new_translations, languages)
-        self.result.languages = languages
-
-        if step_result.success and mapping:
-            stage.status = "completed"
-            stage.message = step_result.message or f"Loaded translations from (File:{self.main_title})"
-            self.update_translations(mapping)
-            return True
-
-        stage.status = "failed"
-        stage.message = step_result.error or "Unknown error"
-        self.result.status = "failed"
-
         return False
 
     def _extract_text_step(self) -> bool | None:
@@ -237,22 +147,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
         return False
 
-
-
-    def _render_new_translations(self, translations: dict[str, Any], languages: list[str]) -> list[dict[str, str]]:
-        data = []
-
-        for en, row in translations.items():
-            # empty data
-            if not row:
-                continue
-            item = {"en": en}
-            for lang in languages:
-                item[lang] = row.get(lang, "")
-            data.append(item)
-
-        return data
-
     # ------------------
 
     def process_titles(self, title_to_work: list[str]) -> None:
@@ -281,16 +175,12 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:
-                self.result.translations = [self.mapping.to_json()]
-                self._save_progress()
+                self.save_result()
 
         if processfiles_stage.status in ["pending", "running"]:
             processfiles_stage.status = "completed"
 
     def extract_file_translations(self, title_info: FilesProcessedItem) -> None:
-        if not self.config.merge_mapping_all_files:
-            return
-
         file_path = Path(title_info.file_path)
         try:
             result: ExtractResult = extract_from_path(file_path)
@@ -313,7 +203,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "extract_files_translations"
 
-    def process(self) -> CopySvgLangsWorkerObject:
+    def process(self) -> ExtractFilesTranslationsObject:
         """Execute the full pipeline."""
         if not self._check_site():
             return self.result
@@ -333,42 +223,29 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 1: Extract Text
 
-        self._save_progress()
+        self.save_result()
 
         if not self._extract_text_step():
             return self.result
 
         # ----------------------------------------------
         # Stage 2: Extract Titles
-        # extract titles runs before extract_translations because it returns self.main_title
         # which is used in extract_translations
 
         if not self._extract_titles_step():
             return self.result
 
-        # ----------------------------------------------
-        # Stage 3: Extract Translations
-
-        if not self._extract_translations_step():
-            return self.result
-
         self.result.summary.total = len(self.titles)
-        title_to_work = self._apply_limits(self.titles)
 
-        self.process_titles(title_to_work)
+        self.process_titles(self.titles)
+
+        # save mapping to file
+        self._save_mapping(self.job_id)
 
         return self.result
 
-    def after_run(self) -> None:
-
-        if self.config.merge_mapping_all_files:
-            # save mapping to file
-            self._save_mapping(self.job_id)
-
-        super().after_run()
-
     def _save_mapping(self, job_id: int) -> None:
-        mapping_path = self.config.output_dir
+        mapping_path = self.output_dir
         if mapping_path is None:
             return
 
@@ -390,6 +267,12 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
         self.mapping.merge(mapping, merge_keys=["new", "title_new"])
 
+    def save_result(self):
+        # save mapping to file
+        self._save_mapping(self.job_id)
+        self.result.mapping = self.mapping.to_json()
+
+        self._save_progress()
 
 __all__ = [
     "ExtractFilesTranslationsWorker",

@@ -13,7 +13,7 @@
             <h3 class="headline mb-0">{{ template_data.job_name }} Job #{{ job.id }}</h3>
             <div class="d-flex gap-2">
                 {% if (job.status | is_job_running) and (is_admin or current_username == job.username) %}
-                {% if (result_data.get("final_status_updated") == False) %}
+                {% if (result_data and result_data.get("final_status_updated") == False) %}
                 {{
                     form_mark_job_as_completed(
                     url_for('public_jobs.mark_as_completed', job_type=template_data.job_type, job_id=job.id),
