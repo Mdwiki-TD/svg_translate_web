@@ -91,6 +91,20 @@ class AuthRoutesFuncs:
     def __init__(self) -> None:
         pass
 
+    def test_login(self) -> WerkzeugResponse:
+        from flask import abort, current_app
+        if not current_app.config.get("TESTING"):
+            abort(404)
+        from ...shared.auth.auth_users_service import AuthUserService
+        user_record = AuthUserService.save_and_get_user("alice", "dummy_token", "dummy_secret")
+        if not user_record:
+            return make_response("Failed to seed user in testing database", 500)
+        session["uid"] = user_record.user_id
+        session["username"] = "alice"
+        response = make_response(redirect(url_for("translate.dashboard")))
+        _set_response_cookies(user_record.user_id, response)
+        return response
+
     def before_request(self) -> None:
         """Automatically load the user before any route is processed."""
         load_logged_in_user()
@@ -242,6 +256,7 @@ class AuthRoutes(AuthRoutesFuncs):
         self.bp.get("/login")(self.login)
         self.bp.get("/callback")(self.callback)
         self.bp.get("/logout")(self.logout)
+        self.bp.get("/test_login")(self.test_login)
 
 
 __all__ = [

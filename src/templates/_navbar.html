@@ -48,7 +48,7 @@
                     <li class="dropdown {{ nav_item_class }}">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDarkDropdownMenuLink" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-filetype-svg"></i> Extract/Inject
+                            <i class="bi bi-filetype-svg"></i> Translate/Extract/Inject
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDarkDropdownMenuLink">
                             {#
@@ -56,6 +56,9 @@
                                     {{ nav_link('explorer.', 'bi-folder2-open', 'Files', url_for('explorer.main')) }}
                                 </li>
                             #}
+                            <li class="{{ nav_item_class }}">
+                                {{ nav_link('translate.', 'bi-translate', 'Translate SVG', url_for('translate.dashboard')) }}
+                            </li>
                             <li class="{{ nav_item_class }}">
                                 {{ nav_link('extract.', 'bi-file-earmark-text', 'Extract', url_for('extract.dashboard')) }}
                             </li>
