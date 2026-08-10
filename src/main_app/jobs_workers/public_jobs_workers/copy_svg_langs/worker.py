@@ -176,7 +176,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
             return False
 
-        main_title_path = main_file_download["path"]
+        main_title_path = main_file_download.path
 
         try:
             step_result: ExtractResult = extract_from_path(main_title_path)
