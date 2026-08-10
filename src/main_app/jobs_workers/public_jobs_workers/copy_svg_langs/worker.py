@@ -242,8 +242,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         return False
 
-    def _process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
-        return self.files_processor.process_one_item(title, title_info, main_title)
+    def _process_one_item(self, title_info: FilesProcessedItem, main_title: str) -> bool:
+        return self.files_processor.process_one_item(title_info, main_title)
 
     def _render_new_translations(self, translations: dict[str, Any], languages: list[str]) -> list[dict[str, str]]:
         data = []
@@ -279,7 +279,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             title_info = FilesProcessedItem(title=title)
 
             self.result.summary.processed += 1
-            ok = self._process_one_item(title, title_info, self.main_title)
+            ok = self._process_one_item(title_info, self.main_title)
 
             if title_info.is_mapping_merged:
                 self.result.mapping_mereged += 1
