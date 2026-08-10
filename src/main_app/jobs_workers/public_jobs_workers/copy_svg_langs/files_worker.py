@@ -8,6 +8,8 @@ import json
 import logging
 from pathlib import Path
 
+from ....api_services.files_service.downloader import DownloadAndSaveData
+
 from ....api_services import UploadService
 from ....api_services.files_service import FilesService
 from ....shared.copysvg_wrapper import (
@@ -252,11 +254,11 @@ class OneFileProcessor:
 
         return summary
 
-    def get_file_path(self, title: str, title_info: FilesProcessedItem):
+    def get_file_path(self, title_info: FilesProcessedItem) -> None | str:
         down_step = title_info.steps.download
         try:
-            file_data = self.files_service.download_and_save(
-                title=title,
+            file_data: DownloadAndSaveData = self.files_service.download_and_save(
+                title=title_info.title,
                 out_dir=self.config.output_dir_files,
                 overwrite_download=self.config.overwrite_download,
             )
@@ -268,31 +270,22 @@ class OneFileProcessor:
             return None
 
         if file_data.result != "success":
-            download_result = {
-                "ok": False,
-                "path": None,
-                "error": "download_failed",
-                "details": file_data.to_dict(),
-            }
+            download_result = {"error": file_data.error or "download_failed"}
             down_step._update(result=False, msg="Failed to download file", details=download_result)
             title_info.status = "failed"
-            title_info.error = "Failed to download file"
+            title_info.error = "failed to download the file"
+
+            if file_data.error:
+                title_info.error += f", error: {file_data.error}"
+
             return None
 
         file_path: str | None = file_data.path
-
-        download_result = {
-            "ok": True,
-            "path": file_path,
-            "error": None,
-            "details": {},
-        }
-
         if file_path:
-            down_step._update(result=True, msg="Downloaded successfully", details=download_result)
+            down_step._update(result=True, msg="Downloaded successfully", details={"path": file_path})
             return file_path
 
-        down_step._update(result=False, msg="Failed to get file path", details=download_result)
+        down_step._update(result=False, msg="Failed to get file path", details={"path": file_path})
         title_info.status = "failed"
         title_info.error = "Failed to get file path"
         return None
@@ -329,11 +322,11 @@ class OneFileProcessor:
 
         self.mapping.merge(mapping, merge_keys=["new", "title_new"])
 
-    def process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
+    def process_one_item(self, title_info: FilesProcessedItem, main_title: str) -> bool:
         # ----------------------------------------------
         # File step 1: download
 
-        file_path_str: str | None = self.get_file_path(title, title_info)
+        file_path_str: str | None = self.get_file_path(title_info)
 
         if not file_path_str:
             return False

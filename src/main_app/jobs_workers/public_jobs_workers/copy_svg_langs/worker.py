@@ -168,7 +168,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         )
 
         if main_file_download.result != "success" or not main_file_download.path:
-            error = f"Error when downloading main file: {self.main_title}"
+            error = f"Error when downloading main file: {self.main_title}, error: {main_file_download.error}"
             logger.error(error)
             stage.status = "failed"
             stage.message = error
@@ -242,8 +242,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         return False
 
-    def _process_one_item(self, title: str, title_info: FilesProcessedItem, main_title: str) -> bool:
-        return self.files_processor.process_one_item(title, title_info, main_title)
+    def _process_one_item(self, title_info: FilesProcessedItem, main_title: str) -> bool:
+        return self.files_processor.process_one_item(title_info, main_title)
 
     def _render_new_translations(self, translations: dict[str, Any], languages: list[str]) -> list[dict[str, str]]:
         data = []
@@ -279,7 +279,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             title_info = FilesProcessedItem(title=title)
 
             self.result.summary.processed += 1
-            ok = self._process_one_item(title, title_info, self.main_title)
+            ok = self._process_one_item(title_info, self.main_title)
 
             if title_info.is_mapping_merged:
                 self.result.mapping_mereged += 1
