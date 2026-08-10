@@ -25,15 +25,16 @@ from ...api_services.files_service import UploadService
 from ...config import settings
 from ...shared.copysvg_wrapper import (
     ExtractResult,
-    cleanup_old_sessions,
     extract_from_path,
     inject_step_one_file,
+)
+from ...shared.copysvg_wrapper.row_builder import (
     mapping_from_rows,
     rows_for_language,
     summary_from_rows,
 )
-from ...shared.copysvg_wrapper.mapping import ExtractorData
-from ...shared.copysvg_wrapper.translate_session import TranslateSession
+from ...shared.copysvg_wrapper.translate_session import TranslateSession, cleanup_old_sessions
+
 from ..auth.utils import load_user, oauth_required
 
 logger = logging.getLogger(__name__)
