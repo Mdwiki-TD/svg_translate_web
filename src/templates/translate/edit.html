@@ -31,13 +31,12 @@
                     </div>
                     {% else %}
                     <p class="text-muted small">
-                        Below is a list of English text segments extracted from the SVG. Edit or add the translations in the right column. Leaving a translation blank will remove it for this language.
+                        Below is a list of English text segments extracted from the SVG. Edit or add the translations in the right column. Empty translation fields will be ignored.
                     </p>
 
                     <form method="POST" action="{{ url_for('translate.save_post') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                        <input type="hidden" name="filename" value="{{ filename }}" />
-                        <input type="hidden" name="lang" value="{{ lang }}" />
+                        <input type="hidden" name="session_id" value="{{ session_id }}" />
 
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped align-middle">
@@ -54,7 +53,7 @@
                                             <div class="p-2 bg-light border rounded font-monospace small text-wrap text-break" style="max-height: 120px; overflow-y: auto;">
                                                 {{ item.original }}
                                             </div>
-                                            <input type="hidden" name="originals" value="{{ item.original }}" />
+                                            <input type="hidden" name="originals" value="{{ item.original | e }}" />
                                         </td>
                                         <td>
                                             <textarea class="form-control" name="translations" rows="2" placeholder="Enter translation here...">{{ item.translation }}</textarea>
@@ -69,7 +68,10 @@
                             <a href="{{ url_for('translate.dashboard') }}" class="btn btn-outline-secondary">
                                 <i class="bi bi-x-circle"></i> Cancel
                             </a>
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" name="action" value="download" class="btn btn-outline-primary">
+                                <i class="bi bi-download"></i> Download SVG
+                            </button>
+                            <button type="submit" name="action" value="upload" class="btn btn-success">
                                 <i class="bi bi-cloud-arrow-up-fill"></i> Save & Upload to Commons
                             </button>
                         </div>
