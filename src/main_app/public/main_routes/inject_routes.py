@@ -16,7 +16,7 @@ from flask import (
     url_for,
 )
 
-from ...api_services.files_service import download_one_file, get_file_info
+from ...api_services.files_service import FilesService
 from ...shared.copysvg_wrapper import (
     ExtractResult,
     InjectResult,
@@ -55,30 +55,10 @@ def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
     return file_translations
 
 
-def _download_and_extract(filename: str, temp_dir: Path) -> dict[str, Any] | None:
-    """Download a file from Commons and extract translations.
-
-    Args:
-        filename: The file name (without "File:" prefix).
-        temp_dir: Directory to download into.
-
-    Returns:
-        Translations dict or None on failure (with flash message).
-    """
-    result = download_one_file(title=filename, out_dir=temp_dir, overwrite_download=True)
-
-    if result.get("result") != "success" or not result.get("path"):
-        flash(f"Failed to download file: {filename}", "danger")
-        return None
-
-    file_path = Path(result["path"])
-
-    return _extract_from_path(file_path)
-
-
 class InjectRoutes:
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
+        self.files_service = FilesService()
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -126,7 +106,7 @@ class InjectRoutes:
                 return render_template("inject/form.html")
 
         # Check files exist on Commons
-        source_info = get_file_info(f"File:{source}")
+        source_info = self.files_service.get_file_info(f"File:{source}")
         if not source_info.exists:
             flash(f"Source file File:{source} does not exist", "danger")
             logger.error("Source file info: %s", source_info.to_dict())
@@ -136,7 +116,7 @@ class InjectRoutes:
                 target_filename=target_display,
             )
 
-        target_info = get_file_info(f"File:{target}")
+        target_info = self.files_service.get_file_info(f"File:{target}")
         if not target_info.exists:
             flash(f"Target file File:{target} does not exist", "danger")
             logger.error("Target file info: %s", target_info.to_dict())
@@ -149,7 +129,7 @@ class InjectRoutes:
         temp_dir = Path(tempfile.mkdtemp())
         try:
             # Step 1: Download and extract from source
-            source_translations = _download_and_extract(source, temp_dir)
+            source_translations = self._download_and_extract(source, temp_dir)
             if source_translations is None:
                 return render_template(
                     "inject/form.html",
@@ -158,7 +138,7 @@ class InjectRoutes:
                 )
 
             # Step 2: Download and extract from target (before inject)
-            target_before = _download_and_extract(target, temp_dir)
+            target_before = self._download_and_extract(target, temp_dir)
             if target_before is None:
                 return render_template(
                     "inject/form.html",
@@ -263,6 +243,26 @@ class InjectRoutes:
             target_filename="File:Parkinsons-disease-prevalence-ihme,_1990_to_2021,_BMU.svg",
             data=file_data,
         )
+
+    def _download_and_extract(self, filename: str, temp_dir: Path) -> dict[str, Any] | None:
+        """Download a file from Commons and extract translations.
+
+        Args:
+            filename: The file name (without "File:" prefix).
+            temp_dir: Directory to download into.
+
+        Returns:
+            Translations dict or None on failure (with flash message).
+        """
+        result = self.files_service.download_and_save(title=filename, out_dir=temp_dir, overwrite_download=True)
+
+        if result.result != "success" or not result.path:
+            flash(f"Failed to download file: {filename}", "danger")
+            return None
+
+        file_path = Path(result.path)
+
+        return _extract_from_path(file_path)
 
 
 __all__ = [

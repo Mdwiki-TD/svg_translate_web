@@ -8,6 +8,7 @@ import json
 import logging
 from pathlib import Path
 
+from ....api_services import UploadService
 from ....api_services.files_service import FilesService
 from ....shared.copysvg_wrapper import (
     ExtractorData,
@@ -35,6 +36,7 @@ class OneFileProcessor:
     def __init__(self, config: SvgLangsConfig, files_service: FilesService) -> None:
         self.config = config
         self.files_service = files_service
+        self.upload_service = UploadService({})
         self.mapping: ExtractorData | None = None
         self.upload_done = 0
         self.nested_processer: MatchFixNestedTags
@@ -67,7 +69,7 @@ class OneFileProcessor:
             nested_step._update(
                 result=False,
                 msg="No nested tags were fixed",
-                details=verify.to_dict(),
+                details=verify.to_json(),
             )
             # no nested tags fixed, break the file process
             return 0, False
@@ -77,7 +79,7 @@ class OneFileProcessor:
         nested_step._update(
             result=True,
             msg=f"Fixed {verify.fixed} nested tag(s)",
-            details=verify.to_dict(),
+            details=verify.to_json(),
         )
 
         # no nested tags remaining in the file, process to inject translations step
@@ -181,17 +183,12 @@ class OneFileProcessor:
             return False
 
         # Start uploading
-        upload = self.files_service.upload_fixed_svg(
+        upload_result = self.upload_service.upload_svg(
             title_info.title,
             new_path,
             summary=summary,
         )
-        upload_success = upload.get("ok")
-        upload_error = upload.get("error") or ""
-        upload_msg = upload.get("msg") or ""
-        error_details = upload.get("error_details", "")
-
-        if upload_success is True:
+        if upload_result.ok is True:
             title_info.steps.upload._update(
                 result=True,
                 msg="File Successfully uploaded.",
@@ -205,16 +202,16 @@ class OneFileProcessor:
             return True
 
         error_and_details = {
-            "error": upload_error,
-            "error_details": error_details,
+            "error": upload_result.error or "",
+            "error_details": upload_result.error_details,
             "summary": summary,
         }
 
-        is_no_changes = upload_error in {"skipped", "fileexists-no-change"}
-        if upload_success is None and is_no_changes:
+        is_no_changes = upload_result.error in {"skipped", "fileexists-no-change"}
+        if upload_result.ok is None and is_no_changes:
             title_info.steps.upload._update(
                 result=None,
-                msg=upload_msg,
+                msg=upload_result.msg or "",
                 details=error_and_details,
             )
             title_info.status = "skipped"
@@ -226,7 +223,7 @@ class OneFileProcessor:
             details=error_and_details,
         )
         title_info.status = "failed"
-        title_info.error = upload_error
+        title_info.error = upload_result.error or ""
         return False
 
     def _create_language_summary(self, main_title: str, translation_details: dict[str, int]) -> str:
@@ -258,7 +255,7 @@ class OneFileProcessor:
     def get_file_path(self, title: str, title_info: FilesProcessedItem):
         down_step = title_info.steps.download
         try:
-            file_data = self.files_service.download_one_file(
+            file_data = self.files_service.download_and_save(
                 title=title,
                 out_dir=self.config.output_dir_files,
                 overwrite_download=self.config.overwrite_download,
@@ -270,19 +267,19 @@ class OneFileProcessor:
             title_info.error = "Error downloading"
             return None
 
-        if file_data.get("result") != "success":
+        if file_data.result != "success":
             download_result = {
                 "ok": False,
                 "path": None,
                 "error": "download_failed",
-                "details": file_data,
+                "details": file_data.to_dict(),
             }
             down_step._update(result=False, msg="Failed to download file", details=download_result)
             title_info.status = "failed"
             title_info.error = "Failed to download file"
             return None
 
-        file_path: str | None = file_data.get("path")
+        file_path: str | None = file_data.path
 
         download_result = {
             "ok": True,

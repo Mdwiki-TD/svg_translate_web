@@ -1,31 +1,24 @@
+import logging
 from pathlib import Path
-from typing import Any
 
 import requests
 from mwclient.client import Site
 
 from ..clients import create_commons_session
-from .download_file_utils import (
-    download_one_file,
-    download_svg_file,
-    run_download_file,
-)
-from .downloader import download
+from .downloader import download_and_save
 from .files_helpers import get_file_info
 from .objects import (
     DownloadAndSaveData,
-    DownloadResult,
     FileInfo,
+    UploadResult,
 )
-from .upload_bot import (
-    UploadFile,
-    upload_fixed_svg,
-)
+from .upload_bot import UploadFile
+
+logger = logging.getLogger(__name__)
 
 
 class FilesService:
-    def __init__(self, site: Site, session: requests.Session | None = None) -> None:
-        self.site: Site = site
+    def __init__(self, session: requests.Session | None = None) -> None:
         self.session: requests.Session = session or create_commons_session()
 
     def get_file_info(self, title: str) -> FileInfo:
@@ -33,93 +26,45 @@ class FilesService:
         return get_file_info(title)
 
     # ----------------------
-    #  upload methods
-    # ----------------------
-
-    def upload_fixed_svg(
-        self,
-        filename: str,
-        file_path: Path,
-        summary: str,
-    ) -> dict[str, Any]:
-        """Upload a fixed SVG to Commons."""
-        return upload_fixed_svg(
-            filename=filename,
-            file_path=file_path,
-            site=self.site,
-            summary=summary,
-        )
-
-    def upload_file(
-        self,
-        file_name: str,
-        file_path: Path,
-        summary: str | None = None,
-        description: str | None = None,
-        new_file: bool = False,
-    ) -> dict:
-        uploader = UploadFile(
-            file_name=file_name,
-            file_path=file_path,
-            site=self.site,
-            summary=summary,
-            description=description,
-            new_file=new_file,
-        )
-
-        return uploader.upload()
-
-    # ----------------------
     #  download methods
     # ----------------------
 
-    def download_one_file(
-        self,
-        title: str,
-        out_dir: Path,
-        overwrite_download: bool = True,
-    ) -> dict[str, str]:
-        """Download a file from Commons and save it to out_dir."""
-        return download_one_file(
-            title=title,
-            out_dir=out_dir,
-            session=self.session,
-            overwrite_download=overwrite_download,
-        )
-
-    def download_svg_file(
-        self,
-        filename: str,
-        temp_dir: Path,
-    ) -> dict[str, Any]:
-        return download_svg_file(
-            filename=filename,
-            temp_dir=temp_dir,
-            session=self.session,
-        )
-
-    def run_download_file(
-        self,
-        filename: str,
-        output_dir: Path,
-        session: requests.Session,
-    ) -> DownloadResult:
-        return run_download_file(
-            filename=filename,
-            output_dir=output_dir,
-            session=session,
-        )
-
-    def download(
+    def download_and_save(
         self,
         title: str,
         out_dir: Path,
         overwrite_download: bool = True,
     ) -> DownloadAndSaveData:
         """Download a file from Commons and save it to out_dir."""
-        return download(
+        return download_and_save(
             title=title,
             out_dir=out_dir,
             session=self.session,
             overwrite_download=overwrite_download,
         )
+
+
+class UploadService:
+    def __init__(self, site: Site) -> None:
+        self.site: Site = site
+
+    # ----------------------
+    #  upload methods
+    # ----------------------
+
+    def upload_svg(
+        self,
+        filename: str,
+        file_path: Path,
+        summary: str,
+    ) -> UploadResult:
+        """Upload SVG file to Commons."""
+        logger.info(f"Uploading file: {filename}")
+
+        bot = UploadFile(
+            file_name=filename,
+            file_path=file_path,
+            site=self.site,
+            summary=summary,
+        )
+        return bot.upload_obj()

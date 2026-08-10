@@ -11,7 +11,7 @@ from pathlib import Path
 
 from mwclient.client import Site
 
-from ....api_services.files_service import download_svg_file, upload_fixed_svg
+from ....api_services import FilesService, UploadService
 from ....db.models import TemplateRecord
 from ....db.services import TemplateService
 from ....shared.fix_nested.worker import (
@@ -23,7 +23,7 @@ from ....shared.fix_nested.worker import (
 )
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import FixNestedMainFilesWorkerObject, TemplateInfo
+from .objects import FixNestedMainFilesWorkerObject, TitleInfo
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,8 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
             args=self.args,
         )
         self.site: Site | None = None
+        self.files_service = FilesService()
+        self.upload_service = UploadService(self.site)
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -48,7 +50,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
     def _process_one_item(self, template: TemplateRecord) -> bool:
         self.result.summary.processed += 1
 
-        template_info = TemplateInfo(
+        template_info = TitleInfo(
             id=template.id,
             title=template.title,
             main_file=template.main_file,
@@ -101,6 +103,12 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         if not self._check_site():
             return self.result
 
+        # update site after calling _check_site
+        if self.site is None:
+            raise ValueError("Site is not set")
+
+        self.upload_service.site = self.site
+
         templates = TemplateService().list()
         self.result.summary.total = len(templates)
 
@@ -150,7 +158,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """
         # Use temp directory for processing
         try:
-            download = download_svg_file(filename, temp_dir)
+            download = self.files_service.download_and_save(filename, temp_dir)
         except Exception as e:
             logger.exception("Error downloading SVG file")
             return {
@@ -159,14 +167,14 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 "details": str(e),
             }
 
-        if not download.get("ok"):
+        if download.result != "success":
             return {
                 "success": False,
                 "message": f"Failed to download file: {filename}",
                 "details": download,
             }
 
-        file_path = download.get("path")
+        file_path = download.path
 
         detect_before: DetectionResult = detect_nested_tags(file_path)
 
@@ -191,31 +199,30 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
             return {
                 "success": False,
                 "message": f"No nested tags were fixed in {filename}",
-                "details": verify.to_dict(),
+                "details": verify.to_json(),
             }
 
         summary = f"Fixed {verify.fixed} nested tag(s)"
 
-        upload = upload_fixed_svg(
+        upload = self.upload_service.upload_svg(
             filename,
             file_path,
-            self.site,
             summary,
         )
 
-        if not upload.get("ok"):
+        if not upload.ok:
             return {
                 "success": False,
                 "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
-                "details": {**verify.to_dict(), **upload},
+                "details": {**verify.to_json(), **upload.to_json()},
             }
 
         return {
             "success": True,
             "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
             "details": {
-                **verify.to_dict(),
-                "upload_result": upload.get("result"),
+                **verify.to_json(),
+                "upload_result": upload.result,
             },
         }
 

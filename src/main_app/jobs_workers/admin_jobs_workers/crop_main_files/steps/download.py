@@ -10,7 +10,7 @@ from typing import Any
 
 import requests
 
-from .....api_services.files_service import download_one_file
+from .....api_services.files_service.downloader import download_and_save
 
 logger = logging.getLogger(__name__)
 
@@ -45,23 +45,23 @@ def download_file_for_cropping(
     clean_filename = filename.removeprefix("File:")
 
     try:
-        download_result = download_one_file(
+        d_result = download_and_save(
             title=clean_filename,
             out_dir=output_dir,
             session=session,
             overwrite_download=True,
         )
 
-        if download_result["result"] == "success":
+        if d_result.result == "success":
             result["success"] = True
-            result["path"] = Path(download_result["path"])
+            result["path"] = Path(d_result.path)
             logger.info("Downloaded for cropping: %s", clean_filename)
-        elif download_result["result"] == "existing":
+        elif d_result.result == "existing":
             result["success"] = True
-            result["path"] = Path(download_result["path"])
+            result["path"] = Path(d_result.path)
             logger.info("Using existing file for cropping: %s", clean_filename)
         else:
-            result["error"] = f"Download failed: {download_result.get('msg', 'unknown')}"
+            result["error"] = f"Download failed: {d_result.error or 'unknown'}"
             logger.warning("Failed to download %s", clean_filename)
 
     except Exception as e:

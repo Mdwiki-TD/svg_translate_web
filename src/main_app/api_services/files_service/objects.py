@@ -14,10 +14,10 @@ class FileInfo:
 
 @dataclass
 class DownloadAndSaveData:
-    result: str | None = None
-    msg: str | None = None
+    result: str
     error: str | None = None
     path: str | None = None
+    size_bytes: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -34,8 +34,21 @@ class DownloadResult:
         return asdict(self)
 
 
+@dataclass
+class UploadResult:
+    ok: bool | None
+    error: str | None = None
+    error_details: str = ""
+    msg: str | None = None
+    result: dict[str, Any] | None = None
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
+
+
 __all__ = [
     "FileInfo",
     "DownloadAndSaveData",
     "DownloadResult",
+    "UploadResult",
 ]

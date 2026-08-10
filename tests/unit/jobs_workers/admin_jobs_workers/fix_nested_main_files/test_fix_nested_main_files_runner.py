@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
+from src.main_app.api_services.files_service import DownloadAndSaveData
+from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.runner import (
     fix_nested_main_files_for_templates,
@@ -57,11 +59,13 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     mock_fix_nested_services["list"].return_value = templates
 
     # Mock repair utility to succeed
-    mock_fix_nested_services["download_svg_file"].return_value = {"ok": True, "path": Path("path")}
+    mock_fix_nested_services["download_and_save"].return_value = DownloadAndSaveData(
+        result="success", path=Path("path")
+    )
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=1)
     mock_fix_nested_services["fix_nested_tags"].return_value = True
     mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=1, after=0, fixed=1)
-    mock_fix_nested_services["upload_fixed_svg"].return_value = {"ok": True, "result": {}}
+    mock_fix_nested_services["upload_svg"].return_value = UploadResult(ok=True, result={})
 
     fix_nested_main_files_for_templates(
         JobsRunner(
@@ -80,7 +84,9 @@ def test_fix_nested_main_files_handles_failed_fix(mock_fix_nested_services):
     mock_fix_nested_services["list"].return_value = templates
 
     # Mock download success but no tags found (which counts as handled success=False in repair utility)
-    mock_fix_nested_services["download_svg_file"].return_value = {"ok": True, "path": Path("path")}
+    mock_fix_nested_services["download_and_save"].return_value = DownloadAndSaveData(
+        result="success", path=Path("path")
+    )
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=0)
 
     fix_nested_main_files_for_templates(
@@ -99,7 +105,7 @@ def test_fix_nested_main_files_handles_exception(mock_fix_nested_services):
     """Test handled exception during template processing."""
     templates = [TemplateRecord(id=1, title="T1", main_file="error.svg")]
     mock_fix_nested_services["list"].return_value = templates
-    mock_fix_nested_services["download_svg_file"].side_effect = Exception("Fatal repair error")
+    mock_fix_nested_services["download_and_save"].side_effect = Exception("Fatal repair error")
 
     fix_nested_main_files_for_templates(
         JobsRunner(

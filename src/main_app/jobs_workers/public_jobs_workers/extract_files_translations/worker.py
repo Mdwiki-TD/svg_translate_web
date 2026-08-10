@@ -55,7 +55,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self.site: Site | None = None
         self.text: str = ""
         self.titles: list[str] = []
-        self.files_service = FilesService(self.site)
+        self.files_service = FilesService()
         self.mapping: ExtractorData = ExtractorData()
 
     def _compute_output_dir(self, title: str) -> Path:
@@ -211,7 +211,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
     def extract_file_translations(self, title_info: FilesProcessedItem) -> None:
         langs_step = title_info.steps.languages
-        mapping_step = title_info.steps.mapping
+        mapping_step = title_info.steps.load_mapping
 
         file_path = Path(title_info.file_path)
         try:
@@ -254,7 +254,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         title = title_info.title
         down_step = title_info.steps.download
         try:
-            file_data: DownloadAndSaveData = self.files_service.download(
+            file_data: DownloadAndSaveData = self.files_service.download_and_save(
                 title=title,
                 out_dir=self.output_dir_files,
                 overwrite_download=self.overwrite_download,
@@ -267,12 +267,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             return None
 
         if file_data.result != "success":
-            download_result = {
-                "ok": False,
-                "path": None,
-                "error": file_data.error or "download_failed",
-                "details": file_data.to_dict(),
-            }
+            download_result = {"error": file_data.error or "download_failed"}
             down_step._update(result=False, msg="Failed to download file", details=download_result)
             title_info.status = "failed"
             title_info.error = "failed to download the file"
@@ -283,19 +278,11 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             return None
 
         file_path: str | None = file_data.path
-
-        download_result = {
-            "ok": True,
-            "path": file_path,
-            "error": None,
-            "details": {},
-        }
-
         if file_path:
-            down_step._update(result=True, msg="Downloaded successfully", details=download_result)
+            down_step._update(result=True, msg="Downloaded successfully", details={"path": file_path})
             return file_path
 
-        down_step._update(result=False, msg="Failed to get file path", details=download_result)
+        down_step._update(result=False, msg="Failed to get file path", details={"path": file_path})
         title_info.status = "failed"
         title_info.error = "Failed to get file path"
         return None
@@ -312,12 +299,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         """Execute the full pipeline."""
         if not self._check_site():
             return self.result
-
-        # update site after calling _check_site
-        if self.site is None:
-            raise ValueError("Site is not set")
-
-        self.files_service.site = self.site
 
         if not self.title:
             logger.error("No title found")
@@ -377,6 +358,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             return
 
         self.mapping.merge(mapping, merge_keys=["new", "title_new"])
+        self.result.languages = sorted(self.mapping.all_languages())
 
     def save_result(self):
         # save mapping to file

@@ -11,7 +11,8 @@ from pathlib import Path
 
 from mwclient.client import Site
 
-from ....api_services.files_service import download_svg_file, upload_fixed_svg
+from ....api_services import FilesService
+from ....api_services.files_service import UploadService
 from ....shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
@@ -45,6 +46,8 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.filename = self.args.get("filename")
         self.site: Site | None = None
         self.file_path: Path | None = None
+        self.files_service = FilesService()
+        self.upload_service = UploadService(self.site)
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -55,10 +58,13 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         temp_dir = Path(tempfile.gettempdir())
 
-        download_result = download_svg_file(self.filename, temp_dir)
+        download_result = self.files_service.download_and_save(
+            title=self.filename,
+            out_dir=temp_dir,
+        )
 
-        if download_result.get("ok"):
-            download_path = str(download_result.get("path"))
+        if download_result.result == "success":
+            download_path = str(download_result.path)
             self.result.stages.download._update("success", "Downloaded success")
             self.result.file_result = FileResult(
                 success=True,
@@ -76,7 +82,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             success=False,
             status="failed",
             path=None,
-            error=download_result.get("error") or "download_failed",
+            error=download_result.error or "download_failed",
         )
 
         return False
@@ -170,18 +176,17 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         summary = f"Fixed {tags_fixed} nested tag(s)"
 
-        upload_result = upload_fixed_svg(
+        upload_result = self.upload_service.upload_svg(
             self.filename,
             self.file_path,
-            self.site,
             summary,
         )
 
-        if upload_result.get("ok"):
+        if upload_result.ok:
             self.result.stages.upload._update("success", "Uploaded successfully")
             return True
 
-        message = upload_result.get("error") or "Upload failed"
+        message = upload_result.error or "Upload failed"
 
         self.result.stages.upload._update("failed", message)
 
@@ -223,8 +228,14 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
     def process(self) -> FixNestedJobsWorkerObject:
         """Execute the full pipeline."""
-        # no need to cancel job if self.site is False
-        self._check_site()
+        if not self._check_site():
+            return self.result
+
+        # update site after calling _check_site
+        if self.site is None:
+            raise ValueError("Site is not set")
+
+        self.upload_service.site = self.site
 
         if not self.filename:
             logger.error("No filename found")

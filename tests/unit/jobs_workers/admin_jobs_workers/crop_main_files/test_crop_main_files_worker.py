@@ -18,7 +18,7 @@ from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_worker):
+def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_worker):
     """Mock the services used by worker module."""
 
     mock_settings = MagicMock()
@@ -185,10 +185,10 @@ def test_crop_main_files_worker_defaults_upload_limit_when_key_missing(mock_base
 
 
 class TestFileProcessingInfo:
-    """Tests for TemplateInfo dataclass."""
+    """Tests for CropFileProcessingInfo dataclass."""
 
     def test_default_initialization(self):
-        """Test TemplateInfo initializes with correct defaults."""
+        """Test CropFileProcessingInfo initializes with correct defaults."""
         info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
@@ -250,7 +250,7 @@ class TestFileProcessingInfo:
 class TestCropMainFilesProcessorInitialization:
     """Tests for CropMainFilesWorker initialization."""
 
-    def test_processor_initialization(self, mock_services):
+    def test_processor_initialization(self, mock_crop_services):
         """Test processor initializes correctly."""
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -265,7 +265,7 @@ class TestCropMainFilesProcessorInitialization:
         assert processor.user == {"username": "test"}
         assert processor.site is None
 
-    def test_processor_default_upload_files(self, mock_services):
+    def test_processor_default_upload_files(self, mock_crop_services):
         """Test processor defaults upload_files to None."""
 
         processor = CropMainFilesWorker(
@@ -281,7 +281,7 @@ class TestCropMainFilesProcessorInitialization:
 class TestCropMainFilesProcessorBeforeRun:
     """Tests for before_run method."""
 
-    def test_before_run_success(self, mock_services):
+    def test_before_run_success(self, mock_crop_services):
         """Test before_run with successful initialization."""
 
         processor = CropMainFilesWorker(
@@ -291,17 +291,17 @@ class TestCropMainFilesProcessorBeforeRun:
             )
         )
 
-        mock_services["get_user_site"].return_value = MagicMock()
-        mock_services["create_commons_session"].return_value = MagicMock()
+        mock_crop_services["get_user_site"].return_value = MagicMock()
+        mock_crop_services["create_commons_session"].return_value = MagicMock()
 
         result = processor.before_run()
 
         assert result is True
-        mock_services["update_job_status"].assert_called_once_with(
+        mock_crop_services["update_job_status"].assert_called_once_with(
             1, "running", "crop_main_files_job_1.json", job_type="crop_main_files"
         )
 
-    def test_before_run_lookup_error(self, mock_services):
+    def test_before_run_lookup_error(self, mock_crop_services):
         """Test before_run when job record not found."""
 
         processor = CropMainFilesWorker(
@@ -311,7 +311,7 @@ class TestCropMainFilesProcessorBeforeRun:
             )
         )
 
-        mock_services["update_job_status"].side_effect = LookupError("Job not found")
+        mock_crop_services["update_job_status"].side_effect = LookupError("Job not found")
 
         result = processor.before_run()
 
@@ -321,14 +321,14 @@ class TestCropMainFilesProcessorBeforeRun:
 class TestCropMainFilesProcessorLoadTemplates:
     """Tests for _load_templates and _apply_limits."""
 
-    def test_load_templates_filters_by_last_world_file(self, mock_services):
+    def test_load_templates_filters_by_last_world_file(self, mock_crop_services):
         """Test that only templates with last_world_file are loaded."""
         templates = [
             TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg"),
             TemplateRecord(id=2, title="Template:Test2", main_file="test2.svg", last_world_file=None),
             TemplateRecord(id=3, title="Template:Test3", main_file="test3.svg", last_world_file="test3_2020.svg"),
         ]
-        mock_services["list"].return_value = templates
+        mock_crop_services["list"].return_value = templates
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -342,7 +342,7 @@ class TestCropMainFilesProcessorLoadTemplates:
         assert len(result) == 2
         assert all(t.last_world_file is not None for t in result)
 
-    def test_apply_limits_with_upload_limit(self, mock_services):
+    def test_apply_limits_with_upload_limit(self, mock_crop_services):
         """Test _apply_limits respects upload_limit setting."""
         templates = [
             TemplateRecord(id=1, title="Template:Test1", main_file="test1.svg", last_world_file="test1_2020.svg"),
@@ -366,9 +366,9 @@ class TestCropMainFilesProcessorLoadTemplates:
 class TestCropMainFilesProcessorSteps:
     """Tests for individual pipeline steps."""
 
-    def test_step_download_success(self, mock_services, tmp_path):
+    def test_step_download_success(self, mock_crop_services, tmp_path):
         """Test _step_download with successful download."""
-        mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
+        mock_crop_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -392,9 +392,9 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.steps["download"]["result"] is True
         assert processor.result.summary.processed == 0  # processed is now under _process_one_item
 
-    def test_step_download_failure(self, mock_services):
+    def test_step_download_failure(self, mock_crop_services):
         """Test _step_download when download fails."""
-        mock_services["download_file"].return_value = {"success": False, "error": "Network error"}
+        mock_crop_services["download_file"].return_value = {"success": False, "error": "Network error"}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -419,9 +419,9 @@ class TestCropMainFilesProcessorSteps:
         assert "Network error" in file_info.steps["download"]["msg"]
         assert processor.result.summary.failed == 1
 
-    def test_step_download_exception(self, mock_services):
+    def test_step_download_exception(self, mock_crop_services):
         """Test _step_download when exception occurs."""
-        mock_services["download_file"].side_effect = ConnectionError("Connection refused")
+        mock_crop_services["download_file"].side_effect = ConnectionError("Connection refused")
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -444,9 +444,9 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.status == "failed"
         assert "ConnectionError" in file_info.steps["download"]["msg"]
 
-    def test_step_crop_success(self, mock_services, tmp_path):
+    def test_step_crop_success(self, mock_crop_services, tmp_path):
         """Test _step_crop with successful crop."""
-        mock_services["crop_svg_file"].return_value = {"success": True}
+        mock_crop_services["crop_svg_file"].return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -472,9 +472,9 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.steps["crop"]["result"] is True
         assert processor.result.summary.cropped == 1
 
-    def test_step_crop_failure(self, mock_services, tmp_path):
+    def test_step_crop_failure(self, mock_crop_services, tmp_path):
         """Test _step_crop when crop fails."""
-        mock_services["crop_svg_file"].return_value = {"success": False, "error": "Invalid SVG"}
+        mock_crop_services["crop_svg_file"].return_value = {"success": False, "error": "Invalid SVG"}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -501,10 +501,10 @@ class TestCropMainFilesProcessorSteps:
         assert "Invalid SVG" in file_info.steps["crop"]["msg"]
         assert processor.result.summary.failed == 1
 
-    def test_step_upload_success(self, mock_services, tmp_path):
+    def test_step_upload_success(self, mock_crop_services, tmp_path):
         """Test _step_upload with successful upload."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
-        mock_services["upload_cropped_file"].return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
+        mock_crop_services["upload_cropped_file"].return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -529,10 +529,10 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.steps["upload_cropped"]["result"] is True
         assert processor.result.summary.uploaded == 1
 
-    def test_step_upload_file_exists(self, mock_services, tmp_path):
+    def test_step_upload_file_exists(self, mock_crop_services, tmp_path):
         """Test _step_upload when file already exists."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
-        mock_services["upload_cropped_file"].return_value = {"success": False, "file_exists": True}
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
+        mock_crop_services["upload_cropped_file"].return_value = {"success": False, "file_exists": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -556,10 +556,10 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.status == "skipped"
         assert processor.result.summary.skipped == 1
 
-    def test_step_upload_failure(self, mock_services, tmp_path):
+    def test_step_upload_failure(self, mock_crop_services, tmp_path):
         """Test _step_upload when upload fails."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
-        mock_services["upload_cropped_file"].return_value = {"success": False, "error": "Upload failed"}
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
+        mock_crop_services["upload_cropped_file"].return_value = {"success": False, "error": "Upload failed"}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -584,10 +584,10 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.error == "Upload failed"
         assert processor.result.summary.failed == 1
 
-    def test_step_update_original_no_change(self, mock_services):
+    def test_step_update_original_no_change(self, mock_crop_services):
         """Test _step_update_original when no update is needed."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
-        mock_services["update_original_file_text"].return_value = "Original file text"  # No change
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
+        mock_crop_services["update_original_file_text"].return_value = "Original file text"  # No change
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -608,13 +608,13 @@ class TestCropMainFilesProcessorSteps:
 
         assert file_info.steps["update_original"]["result"] is None
         assert file_info.steps["update_original"]["msg"] == "No update needed"
-        mock_services["MwClientPage"].return_value.edit.assert_not_called()
+        mock_crop_services["MwClientPage"].return_value.edit.assert_not_called()
 
-    def test_step_update_original_with_update(self, mock_services):
+    def test_step_update_original_with_update(self, mock_crop_services):
         """Test _step_update_original when update is performed."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
-        mock_services["update_original_file_text"].return_value = "Updated file text"
-        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
+        mock_crop_services["update_original_file_text"].return_value = "Updated file text"
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -634,13 +634,13 @@ class TestCropMainFilesProcessorSteps:
         processor._step_update_original(file_info)
 
         assert file_info.steps["update_original"]["result"] is True
-        mock_services["MwClientPage"].return_value.edit.assert_called_once()
+        mock_crop_services["MwClientPage"].return_value.edit.assert_called_once()
 
-    def test_step_update_original_update_fails(self, mock_services):
+    def test_step_update_original_update_fails(self, mock_crop_services):
         """Test _step_update_original when update fails."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
-        mock_services["update_original_file_text"].return_value = "Updated file text"
-        mock_services["MwClientPage"].return_value.edit.return_value = {"success": False, "error": "Edit conflict"}
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
+        mock_crop_services["update_original_file_text"].return_value = "Updated file text"
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": False, "error": "Edit conflict"}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -662,11 +662,11 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.steps["update_original"]["result"] is False
         assert "Edit conflict" in file_info.steps["update_original"]["msg"]
 
-    def test_step_update_page_reference_no_change(self, mock_services):
+    def test_step_update_page_reference_no_change(self, mock_crop_services):
         """Test _step_update_page_reference when no update is needed."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Some text"
-        mock_services["MwClientPage"].return_value.exists.return_value = True
-        mock_services["update_template_page_file_reference"].return_value = "Some text"  # No change
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Some text"
+        mock_crop_services["MwClientPage"].return_value.exists.return_value = True
+        mock_crop_services["update_template_page_file_reference"].return_value = "Some text"  # No change
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -687,14 +687,14 @@ class TestCropMainFilesProcessorSteps:
 
         assert file_info.steps["update_template"]["result"] is None
         assert file_info.steps["update_template"]["msg"] == "No update needed"
-        mock_services["MwClientPage"].return_value.edit.assert_not_called()
+        mock_crop_services["MwClientPage"].return_value.edit.assert_not_called()
 
-    def test_step_update_page_reference_with_update(self, mock_services):
+    def test_step_update_page_reference_with_update(self, mock_crop_services):
         """Test _step_update_page_reference when update is performed."""
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Some text"
-        mock_services["MwClientPage"].return_value.exists.return_value = True
-        mock_services["update_template_page_file_reference"].return_value = "Updated text"
-        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Some text"
+        mock_crop_services["MwClientPage"].return_value.exists.return_value = True
+        mock_crop_services["update_template_page_file_reference"].return_value = "Updated text"
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -714,13 +714,13 @@ class TestCropMainFilesProcessorSteps:
         processor._step_update_page_reference(file_info, "Template:Test", "update_template")
 
         assert file_info.steps["update_template"]["result"] is True
-        mock_services["MwClientPage"].return_value.edit.assert_called_once()
+        mock_crop_services["MwClientPage"].return_value.edit.assert_called_once()
 
 
 class TestCropMainFilesProcessorHelpers:
     """Tests for helper methods."""
 
-    def test_fail_updates_status_and_result(self, mock_services):
+    def test_fail_updates_status_and_result(self, mock_crop_services):
         """Test _fail updates info status and result summary."""
 
         processor = CropMainFilesWorker(
@@ -744,7 +744,7 @@ class TestCropMainFilesProcessorHelpers:
         assert file_info.steps["download"]["result"] is False
         assert processor.result.summary.failed == 1
 
-    def test_skip_step_updates_step_status(self, mock_services):
+    def test_skip_step_updates_step_status(self, mock_crop_services):
         """Test _skip_step updates step status."""
 
         processor = CropMainFilesWorker(
@@ -766,7 +766,7 @@ class TestCropMainFilesProcessorHelpers:
         assert file_info.steps["upload_cropped"]["result"] is None
         assert file_info.steps["upload_cropped"]["msg"] == "Already exists"
 
-    def test_skip_upload_steps(self, mock_services):
+    def test_skip_upload_steps(self, mock_crop_services):
         """Test _skip_upload_steps marks upload steps as skipped."""
 
         processor = CropMainFilesWorker(
@@ -793,7 +793,7 @@ class TestCropMainFilesProcessorHelpers:
         assert processor.result.summary.skipped == 1
         assert file_info.cropped_filename == ""
 
-    def test_is_cancelled_with_event(self, mock_services):
+    def test_is_cancelled_with_event(self, mock_crop_services):
         """Test is_cancelled with cancel event."""
         cancel_event = threading.Event()
 
@@ -811,9 +811,9 @@ class TestCropMainFilesProcessorHelpers:
         assert processor.is_cancelled(check_db=True) is True
         assert processor.result.status == "cancelled"
 
-    def test_is_cancelled_with_global_check(self, mock_services):
+    def test_is_cancelled_with_global_check(self, mock_crop_services):
         """Test is_cancelled with global job cancellation check."""
-        mock_services["is_job_cancelled"].return_value = True
+        mock_crop_services["is_job_cancelled"].return_value = True
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -825,7 +825,7 @@ class TestCropMainFilesProcessorHelpers:
         assert processor.is_cancelled(check_db=True) is True
         assert processor.result.status == "cancelled"
 
-    def test_get_priority(self, mock_services):
+    def test_get_priority(self, mock_crop_services):
         """Test get_priority calculates correct interval."""
 
         processor = CropMainFilesWorker(
@@ -845,16 +845,16 @@ class TestCropMainFilesProcessorHelpers:
 class TestCropMainFilesProcessorProcessTemplate:
     """Tests for _process_one_item method."""
 
-    def test_process_one_file_already_exists(self, mock_services, mock_site_pages):
+    def test_process_one_file_already_exists(self, mock_crop_services, mock_site_pages):
         """Test processing when cropped file already exists on Commons."""
         _site = mock_site_pages(True)
-        mock_services["get_user_site"].return_value = _site
-        mock_services["MwClientPage"].return_value.exists.return_value = True
-        mock_services["update_original_file_text"].return_value = "Updated original"
-        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Some text"
-        mock_services["update_template_page_file_reference"].return_value = "Updated text"
-        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["get_user_site"].return_value = _site
+        mock_crop_services["MwClientPage"].return_value.exists.return_value = True
+        mock_crop_services["update_original_file_text"].return_value = "Updated original"
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Some text"
+        mock_crop_services["update_template_page_file_reference"].return_value = "Updated text"
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -875,19 +875,19 @@ class TestCropMainFilesProcessorProcessTemplate:
         assert processor.result.pages_updated[0]["steps"]["download"]["result"] is None
         assert "Skipped" in processor.result.pages_updated[0]["steps"]["download"]["msg"]
 
-    def test_process_one_full_pipeline(self, mock_services, tmp_path, mock_site_pages):
+    def test_process_one_full_pipeline(self, mock_crop_services, tmp_path, mock_site_pages):
         """Test full pipeline for a new file."""
 
         _site = mock_site_pages(False)
-        mock_services["get_user_site"].return_value = _site
-        mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
-        mock_services["crop_svg_file"].return_value = {"success": True}
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
-        mock_services["upload_cropped_file"].return_value = {"success": True}
-        mock_services["update_original_file_text"].return_value = "Updated original"
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Template text"
-        mock_services["update_template_page_file_reference"].return_value = "Updated template"
-        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["get_user_site"].return_value = _site
+        mock_crop_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
+        mock_crop_services["crop_svg_file"].return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
+        mock_crop_services["upload_cropped_file"].return_value = {"success": True}
+        mock_crop_services["update_original_file_text"].return_value = "Updated original"
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Template text"
+        mock_crop_services["update_template_page_file_reference"].return_value = "Updated template"
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -909,11 +909,11 @@ class TestCropMainFilesProcessorProcessTemplate:
         assert file_result["steps"]["crop"]["result"] is True
         assert file_result["steps"]["upload_cropped"]["result"] is True
 
-    def test_process_one_upload_disabled(self, mock_services, tmp_path, mock_site_pages):
+    def test_process_one_upload_disabled(self, mock_crop_services, tmp_path, mock_site_pages):
         """Test processing when upload_files is False."""
 
-        mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
-        mock_services["crop_svg_file"].return_value = {"success": True}
+        mock_crop_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
+        mock_crop_services["crop_svg_file"].return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -942,23 +942,23 @@ class TestCropMainFilesProcessorProcessTemplate:
 class TestCropMainFilesProcessorRun:
     """Tests for run method."""
 
-    def test_run_full_workflow(self, mock_services, tmp_path, mock_site_pages):
+    def test_run_full_workflow(self, mock_crop_services, tmp_path, mock_site_pages):
         """Test complete run workflow."""
         _site = mock_site_pages(False)
 
-        mock_services["get_user_site"].return_value = _site
+        mock_crop_services["get_user_site"].return_value = _site
 
-        mock_services["create_commons_session"].return_value = MagicMock()
-        mock_services["list"].return_value = [
+        mock_crop_services["create_commons_session"].return_value = MagicMock()
+        mock_crop_services["list"].return_value = [
             TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg"),
         ]
-        mock_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
-        mock_services["crop_svg_file"].return_value = {"success": True}
-        mock_services["upload_cropped_file"].return_value = {"success": True}
-        mock_services["update_original_file_text"].return_value = "Updated original"
-        mock_services["MwClientPage"].return_value.get_text.return_value = "Template text"
-        mock_services["update_template_page_file_reference"].return_value = "Updated template"
-        mock_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["download_file"].return_value = {"success": True, "path": str(tmp_path / "test.svg")}
+        mock_crop_services["crop_svg_file"].return_value = {"success": True}
+        mock_crop_services["upload_cropped_file"].return_value = {"success": True}
+        mock_crop_services["update_original_file_text"].return_value = "Updated original"
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Template text"
+        mock_crop_services["update_template_page_file_reference"].return_value = "Updated template"
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(

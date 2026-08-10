@@ -3,12 +3,13 @@ from __future__ import annotations
 import logging
 import time
 from pathlib import Path
-from typing import Any
 
 import mwclient
 import mwclient.errors
 import requests
 from mwclient.client import Site
+
+from .objects import UploadResult
 
 logger = logging.getLogger(__name__)
 
@@ -186,19 +187,6 @@ class UploadFile:
 
         return response
 
-    def upload(self) -> dict:
-        check = self._check_kwargs()
-        if check["error"]:
-            return check
-
-        upload_result = self._upload_file()
-
-        if upload_result.get("error") != "ratelimited":
-            return upload_result
-
-        # handle retry
-        return self._upload_with_retry()
-
     def _upload_with_retry(self) -> dict:
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
             logger.warning(
@@ -210,72 +198,69 @@ class UploadFile:
             )
             time.sleep(delay)
 
-            upload_result = self._upload_file()
+            _result = self._upload_file()
 
-            if upload_result.get("error") != "ratelimited":
-                return upload_result
+            if _result.get("error") != "ratelimited":
+                return _result
 
         return self._err("ratelimited", "Exceeded rate limit after all retry attempts")
 
+    def upload(self) -> dict:
+        check = self._check_kwargs()
+        if check["error"]:
+            return check
 
-def upload_fixed_svg(
-    filename: str,
-    file_path: Path,
-    site: Site,
-    summary: str,
-) -> dict[str, Any]:
-    """Upload SVG file to Commons."""
+        _result = self._upload_file()
 
-    logger.info(f"Uploading file: {filename}")
+        if _result.get("error") != "ratelimited":
+            return _result
 
-    if not site:
-        return {
-            "ok": False,
-            "error": "No site provided",
-            "error_details": "",
-            "msg": None,
-            "result": None,
-        }
-    bot = UploadFile(
-        file_name=filename,
-        file_path=file_path,
-        site=site,
-        summary=summary,
-    )
-    result = bot.upload()
+        # handle retry
+        return self._upload_with_retry()
 
-    result_status = result.get("result") or ""
-    error_details = result.get("error_details", "")
-    result_error = result.get("error", "upload_failed")
+    def upload_obj(self) -> UploadResult:
+        if not self.site:
+            return UploadResult(
+                ok=False,
+                error="No site provided",
+                error_details="",
+                msg=None,
+                result=None,
+            )
 
-    if result_status.lower() == "success":
-        return {
-            "ok": True,
-            "error": None,
-            "error_details": error_details,
-            "msg": None,
-            "result": result,
-        }
+        upload_result = self.upload()
 
-    if result_error == "fileexists-no-change" or result_status == "fileexists-no-change":
-        return {
-            "ok": None,
-            "error": "skipped",
-            "error_details": error_details,
-            "msg": "File already exists with same content",
-            "result": None,
-        }
+        result_status = upload_result.get("result") or ""
+        error_details = upload_result.get("error_details", "")
+        result_error = upload_result.get("error", "upload_failed")
 
-    return {
-        "ok": False,
-        "error": result_error,
-        "error_details": error_details,
-        "msg": None,
-        "result": None,
-    }
+        if result_status.lower() == "success":
+            return UploadResult(
+                ok=True,
+                error=None,
+                error_details=error_details,
+                msg=None,
+                result=upload_result,
+            )
+
+        if result_error == "fileexists-no-change" or result_status == "fileexists-no-change":
+            return UploadResult(
+                ok=None,
+                error="skipped",
+                error_details=error_details,
+                msg="File already exists with same content",
+                result=None,
+            )
+
+        return UploadResult(
+            ok=False,
+            error=result_error,
+            error_details=error_details,
+            msg=None,
+            result=None,
+        )
 
 
 __all__ = [
     "UploadFile",
-    "upload_fixed_svg",
 ]

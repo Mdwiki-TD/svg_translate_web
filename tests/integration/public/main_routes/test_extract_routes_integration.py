@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
 
+from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.public.main_routes.extract_routes import EXTRACT_FILENAME_KEY
 from src.main_app.shared.copysvg_wrapper.extract_translations import ExtractorData
 
@@ -21,7 +22,7 @@ def setup_tests(mocker, monkeypatch, tmp_path):
 
     _mock = MagicMock()
     _mock.exists = True
-    mocker.patch("src.main_app.public.main_routes.extract_routes.get_file_info", return_value=_mock)
+    mocker.patch("src.main_app.public.main_routes.extract_routes.FilesService.get_file_info", return_value=_mock)
 
     monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
 
@@ -100,9 +101,11 @@ class TestExtractPost:
         """Test that download failure shows appropriate error."""
 
         def mock_download(*args, **kwargs):
-            return {"result": "failed", "path": ""}
+            return DownloadAndSaveData(result="failed", path="")
 
-        monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
+        monkeypatch.setattr(
+            "src.main_app.public.main_routes.extract_routes.FilesService.download_and_save", mock_download
+        )
 
         response = mock_client.post(
             "/extract/",
@@ -127,8 +130,8 @@ class TestExtractRender:
     ) -> None:
         """Test that 'File:' prefix is stripped from filename."""
 
-        mock_download = mocker.patch("src.main_app.public.main_routes.extract_routes.download_one_file")
-        mock_download.return_value = {"result": "success", "path": str(tmp_path / "test_dir/test.svg")}
+        mock_download = mocker.patch("src.main_app.public.main_routes.extract_routes.FilesService.download_and_save")
+        mock_download.return_value = DownloadAndSaveData(result="success", path=str(tmp_path / "test_dir/test.svg"))
 
         mock_extract = mocker.patch(
             "src.main_app.shared.copysvg_wrapper.extract_translations._extract_file_translations"
@@ -156,12 +159,14 @@ class TestExtractRender:
         """Test that extraction error shows appropriate error."""
 
         def mock_download(*args, **kwargs):
-            return {"result": "success", "path": str(tmp_path / "test.svg")}
+            return DownloadAndSaveData(result="success", path=str(tmp_path / "test.svg"))
 
         def mock_extract(*args, **kwargs):
             raise ValueError("Invalid SVG format")
 
-        monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
+        monkeypatch.setattr(
+            "src.main_app.public.main_routes.extract_routes.FilesService.download_and_save", mock_download
+        )
         monkeypatch.setattr(
             "src.main_app.shared.copysvg_wrapper.extract_translations._extract_file_translations",
             mock_extract,
@@ -187,7 +192,7 @@ class TestExtractRender:
         """Test successful extraction returns proper context."""
 
         def mock_download(*args, **kwargs):
-            return {"result": "success", "path": str(tmp_path / "test.svg")}
+            return DownloadAndSaveData(result="success", path=str(tmp_path / "test.svg"))
 
         sample_translations = {
             "new": {"hello": {"ar": "مرحبا", "fr": "Bonjour"}},
@@ -197,7 +202,9 @@ class TestExtractRender:
         def mock_extract(*args, **kwargs):
             return ExtractorData.from_any(sample_translations)
 
-        monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.download_one_file", mock_download)
+        monkeypatch.setattr(
+            "src.main_app.public.main_routes.extract_routes.FilesService.download_and_save", mock_download
+        )
         monkeypatch.setattr(
             "src.main_app.shared.copysvg_wrapper.extract_translations._extract_file_translations",
             mock_extract,

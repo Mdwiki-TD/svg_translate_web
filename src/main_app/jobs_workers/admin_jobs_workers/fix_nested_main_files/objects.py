@@ -13,13 +13,13 @@ from ...shared_objects import WorkerObject
 
 
 @dataclass
-class TemplateInfo:
+class TitleInfo:
     id: int
     title: str
     main_file: str
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: str = ""
-    reason: None | str = None
+    error: None | str = None
     message: None | str = None
     fix_result: None | dict = None
     error_type: None | str = None
@@ -41,12 +41,12 @@ class Summary:
 @dataclass
 class FixNestedMainFilesWorkerObject(WorkerObject):
     summary: Summary = field(default_factory=Summary)
-    pages_success: list[TemplateInfo] = field(default_factory=list)
-    pages_skipped: list[TemplateInfo] = field(default_factory=list)
-    pages_failed: list[TemplateInfo] = field(default_factory=list)
+    pages_success: list[TitleInfo] = field(default_factory=list)
+    pages_skipped: list[TitleInfo] = field(default_factory=list)
+    pages_failed: list[TitleInfo] = field(default_factory=list)
 
 
 __all__ = [
     "FixNestedMainFilesWorkerObject",
-    "TemplateInfo",
+    "TitleInfo",
 ]

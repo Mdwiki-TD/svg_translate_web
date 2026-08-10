@@ -107,9 +107,9 @@
                             {{ render_step(item.steps.download) }}
                         </td>
                         <td>
-                            {# {{ render_step(item.steps.mapping) }} #}
-                            {% if item.steps.mapping and item.steps.mapping.details %}
-                            {{ (item.steps.mapping.details.new or 0) }}
+                            {# {{ render_step(item.steps.load_mapping) }} #}
+                            {% if item.steps.load_mapping and item.steps.load_mapping.details %}
+                            {{ (item.steps.load_mapping.details.new or 0) }}
                             {% else %}
                             -
                             {% endif %}

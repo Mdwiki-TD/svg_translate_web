@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
 
 
-def download(
+def download_and_save(
+    *,
     title: str,
     out_dir: Path,
     session: requests.Session | None = None,
@@ -35,54 +36,52 @@ def download(
     """
 
     if not title:
-        return DownloadAndSaveData(result="failed", msg="Empty title provided")
+        return DownloadAndSaveData(result="failed", error="Empty title provided")
 
-    out_path = out_dir / title
+    clean_title = title.removeprefix("File:")
+    out_path = out_dir / clean_title
 
     if out_path.exists() and not overwrite_download:
         logger.debug(f"Skipped existing: {title}")
         return DownloadAndSaveData(
             result="existing",
-            msg="Skip existing file, no overwrite",
+            error="Skip existing file, no overwrite",
             path=str(out_path),
         )
 
-    # download part
-    def _download_it(title) -> GetWithRetryData:
+    # Use the core download function with shorter timeout
+    try:
         normalized_name = title.replace(" ", "_")
         url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
 
         downloader = CommonsSession(session, timeout=30)
-        result = downloader.get_with_retry_obj(url=url, max_attempts=5)
+        download_result: GetWithRetryData = downloader.get_with_retry_obj(url=url, max_attempts=5)
 
-        return result
-
-    # Use the core download function with shorter timeout
-    try:
-        download_result = _download_it(title)
     except Exception as e:
         logger.error(f"Failed: {title} -> {e}")
         return DownloadAndSaveData(result="failed")
 
     if download_result.status_code != 200:
         logger.error(f"Failed: {title} -> {download_result.status_code}")
-        return DownloadAndSaveData(result="failed", msg=download_result.msg, error=download_result.msg)
+        return DownloadAndSaveData(result="failed", error=download_result.msg)
 
     content = download_result.content
     if content is None:
         logger.error(f"Failed: {title} -> No content")
-        return DownloadAndSaveData(result="failed", msg=download_result.msg, error=download_result.msg)
+        return DownloadAndSaveData(result="failed", error=download_result.msg)
+
+    size_bytes = len(content)
 
     # save part
     saved = write_bytes_to_file(content=content, filename=title, output_dir=out_dir)
     if saved.success:
-        return DownloadAndSaveData(result="success", path=str(out_path))
+        return DownloadAndSaveData(result="success", path=str(saved.path), size_bytes=size_bytes)
     else:
         msg = f"Failed to save file: {saved.error}"
-        return DownloadAndSaveData(result="failed", msg=msg, error=msg)
+        return DownloadAndSaveData(result="failed", error=msg, size_bytes=size_bytes)
 
 
 __all__ = [
     "DownloadAndSaveData",
-    "download",
+    "download_and_save",
 ]

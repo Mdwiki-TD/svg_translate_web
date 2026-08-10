@@ -97,7 +97,7 @@
                             </a>
                         </td>
                         <td><code>{{ file.filename }}</code></td>
-                        <td>{{ file.reason }}</td>
+                        <td>{{ file.reason or file.error }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

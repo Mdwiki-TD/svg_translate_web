@@ -13,7 +13,7 @@ from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture(autouse=True)
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_collect_services(monkeypatch: pytest.MonkeyPatch):
     """Mock services common to both workers."""
 
     cancel_event = threading.Event()
@@ -61,13 +61,13 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     return mocks
 
 
-def test_collect_templates_data_worker_cancellation(monkeypatch, mock_services):
+def test_collect_templates_data_worker_cancellation(monkeypatch, mock_collect_services):
     """Test that collect_templates_data_worker stops when cancelled."""
     templates = [
         TemplateRecord(id=1, title="T1", main_file=None, last_world_file=None),
         TemplateRecord(id=2, title="T2", main_file=None, last_world_file=None),
     ]
-    mock_services["list"].return_value = templates
+    mock_collect_services["list"].return_value = templates
 
     mock_save_job_result_by_name = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result_by_name)
@@ -84,7 +84,7 @@ def test_collect_templates_data_worker_cancellation(monkeypatch, mock_services):
         JobsRunner(
             job_id=1,
             user={"username": "test"},
-            cancel_event=mock_services["cancel_event"],
+            cancel_event=mock_collect_services["cancel_event"],
         )
     )
     w.run()

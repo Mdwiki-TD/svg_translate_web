@@ -10,7 +10,7 @@ from .clients import (
     get_cronjob_site,
     get_user_site,
 )
-from .files_service import FilesService
+from .files_service import FilesService, UploadService
 from .mwclient_page import MwClientPage
 from .query_api import (
     get_page_links,
@@ -21,6 +21,7 @@ from .query_api import (
 )
 
 __all__ = [
+    "UploadService",
     "FilesService",
     "CommonsSession",
     "fetch_grapher_metadata_raw",
