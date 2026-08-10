@@ -431,12 +431,7 @@ class TestCopySvgLangsWorkerUploadStep:
 
         mock_worker.site = MagicMock()
 
-        mock_copylangs_services.upload_svg.return_value = {
-            "ok": None,
-            "error": "skipped",
-            "msg": "File exists",
-            "error_details": "",
-        }
+        mock_copylangs_services.upload_svg.return_value = UploadResult(ok=None, error="skipped", msg="File exists", error_details="")
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_worker.files_processor._upload_step(title_info, "Adding translations", Path("test.svg"))
@@ -451,12 +446,7 @@ class TestCopySvgLangsWorkerUploadStep:
 
         mock_worker.site = MagicMock()
 
-        mock_copylangs_services.upload_svg.return_value = {
-            "ok": False,
-            "error": "Upload failed",
-            "msg": "error",
-            "error_details": "details",
-        }
+        mock_copylangs_services.upload_svg.return_value = UploadResult(ok=False, error="Upload failed", msg="error", error_details="details")
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_worker.files_processor._upload_step(title_info, "Adding translations", Path("test.svg"))

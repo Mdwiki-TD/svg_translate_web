@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
+from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.runner import (
     fix_nested_main_files_for_templates,
@@ -61,7 +62,7 @@ def test_fix_nested_main_files_processes_template_with_main_file(mock_fix_nested
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=1)
     mock_fix_nested_services["fix_nested_tags"].return_value = True
     mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=1, after=0, fixed=1)
-    mock_fix_nested_services["upload_svg"].return_value = {"ok": True, "result": {}}
+    mock_fix_nested_services["upload_svg"].return_value = UploadResult(ok=True, result={})
 
     fix_nested_main_files_for_templates(
         JobsRunner(
