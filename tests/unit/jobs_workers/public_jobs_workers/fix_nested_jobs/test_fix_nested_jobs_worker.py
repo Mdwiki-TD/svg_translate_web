@@ -88,9 +88,7 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
         self.processor.site = MagicMock()
         self.processor.result.stages.verify.status = "success"
         self.processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
-        mock_fix_nested_services["upload_svg"].return_value = UploadResult(
-            ok=False, error="Upload failed message"
-        )
+        mock_fix_nested_services["upload_svg"].return_value = UploadResult(ok=False, error="Upload failed message")
 
         result = self.processor._upload_step()
 
@@ -456,9 +454,7 @@ class TestUploadStep(TestSetup):
         assert proc.result.stages.upload.status == "success"
 
     def test_returns_false_on_failure(self, mock_fix_nested_services, tmp_path):
-        mock_fix_nested_services["upload_svg"].return_value = UploadResult(
-            ok=False, error="permission_denied"
-        )
+        mock_fix_nested_services["upload_svg"].return_value = UploadResult(ok=False, error="permission_denied")
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is False
@@ -570,7 +566,7 @@ class TestRun(TestSetup):
             ),
             "upload": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.UploadService.upload_svg",
-                return_value={"ok": True, "result": {}},
+                return_value=UploadResult(ok=True, result={}),
             ),
         }
         return patches
