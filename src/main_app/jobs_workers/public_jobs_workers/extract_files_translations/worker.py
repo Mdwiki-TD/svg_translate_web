@@ -250,12 +250,11 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         title_info.is_mapping_merged = True
         return
 
-    def get_file_path(self, title_info: FilesProcessedItem):
-        title = title_info.title
+    def get_file_path(self, title_info: FilesProcessedItem) -> None | str:
         down_step = title_info.steps.download
         try:
             file_data: DownloadAndSaveData = self.files_service.download_and_save(
-                title=title,
+                title=title_info.title,
                 out_dir=self.output_dir_files,
                 overwrite_download=self.overwrite_download,
             )

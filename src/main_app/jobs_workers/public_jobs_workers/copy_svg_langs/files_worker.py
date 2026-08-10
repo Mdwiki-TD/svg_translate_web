@@ -254,7 +254,7 @@ class OneFileProcessor:
 
         return summary
 
-    def get_file_path(self, title_info: FilesProcessedItem):
+    def get_file_path(self, title_info: FilesProcessedItem) -> None | str:
         down_step = title_info.steps.download
         try:
             file_data: DownloadAndSaveData = self.files_service.download_and_save(
