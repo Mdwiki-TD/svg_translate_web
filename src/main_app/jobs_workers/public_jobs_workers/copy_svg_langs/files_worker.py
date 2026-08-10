@@ -255,7 +255,7 @@ class OneFileProcessor:
     def get_file_path(self, title: str, title_info: FilesProcessedItem):
         down_step = title_info.steps.download
         try:
-            file_data = self.files_service.download_one_file(
+            file_data = self.files_service.download_and_save(
                 title=title,
                 out_dir=self.config.output_dir_files,
                 overwrite_download=self.config.overwrite_download,
@@ -267,19 +267,19 @@ class OneFileProcessor:
             title_info.error = "Error downloading"
             return None
 
-        if file_data.get("result") != "success":
+        if file_data.result != "success":
             download_result = {
                 "ok": False,
                 "path": None,
                 "error": "download_failed",
-                "details": file_data,
+                "details": file_data.to_dict(),
             }
             down_step._update(result=False, msg="Failed to download file", details=download_result)
             title_info.status = "failed"
             title_info.error = "Failed to download file"
             return None
 
-        file_path: str | None = file_data.get("path")
+        file_path: str | None = file_data.path
 
         download_result = {
             "ok": True,

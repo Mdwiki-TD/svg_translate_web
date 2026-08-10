@@ -18,6 +18,8 @@ from src.main_app.shared.fix_nested.worker import (
     VerificationResult,
 )
 
+from ......src.main_app.api_services.files_service import DownloadAndSaveData
+
 # ---------------------------------------------------------------------------
 # steps
 # ---------------------------------------------------------------------------
@@ -281,7 +283,7 @@ class TestDownloadStep(TestSetup):
     def test_success_populates_file_result(self, mock_fix_nested_services, tmp_path):
         svg = tmp_path / "test.svg"
         svg.touch()
-        mock_fix_nested_services["download_svg_file"].return_value = {"ok": True, "path": svg}
+        mock_fix_nested_services["download_and_save"].return_value = DownloadAndSaveData(result="success", path=svg)
         proc = self.processor
         result = proc._download_step()
         assert result is True
@@ -289,7 +291,9 @@ class TestDownloadStep(TestSetup):
         assert proc.result.stages.download.status == "success"
 
     def test_failure_populates_file_result_with_error(self, mock_fix_nested_services):
-        mock_fix_nested_services["download_svg_file"].return_value = {"ok": False, "error": "network_error"}
+        mock_fix_nested_services["download_and_save"].return_value = DownloadAndSaveData(
+            result="failed", error="network_error"
+        )
         proc = self.processor
         result = proc._download_step()
         assert result is False
@@ -298,7 +302,7 @@ class TestDownloadStep(TestSetup):
         assert proc.result.stages.download.status == "failed"
 
     def test_failure_defaults_error_when_missing(self, mock_fix_nested_services):
-        mock_fix_nested_services["download_svg_file"].return_value = {"ok": False}
+        mock_fix_nested_services["download_and_save"].return_value = {"ok": False}
         proc = self.processor
         proc._download_step()
         assert proc.result.file_result.error == "download_failed"
@@ -549,8 +553,8 @@ class TestRun(TestSetup):
                 return_value=MagicMock(),
             ),
             "download": patch(
-                "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FilesService.download_svg_file",
-                return_value={"ok": True, "path": svg},
+                "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FilesService.download_and_save",
+                return_value=DownloadAndSaveData(result="success", path=svg),
             ),
             "detect": patch(
                 "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.detect_nested_tags",

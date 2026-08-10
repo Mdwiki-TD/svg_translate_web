@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker
 from src.main_app.jobs_workers.objects import JobsRunner
@@ -18,7 +19,9 @@ def test_repair_nested_svg_tags_success(mock_fix_nested_services, tmp_path):
     filename = "Test.svg"
     user = {"username": "tester"}
 
-    mock_fix_nested_services["download_svg_file"].return_value = {"ok": True, "path": Path("tmp/path.svg")}
+    mock_fix_nested_services["download_and_save"].return_value = DownloadAndSaveData(
+        result="success", path=Path("tmp/path.svg")
+    )
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=5)
     mock_fix_nested_services["fix_nested_tags"].return_value = True
     mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=5, after=0, fixed=5)
@@ -34,7 +37,9 @@ def test_repair_nested_svg_tags_success(mock_fix_nested_services, tmp_path):
 
 def test_repair_nested_svg_tags_no_tags(mock_fix_nested_services, tmp_path):
     """Test behavior when no nested tags are detected."""
-    mock_fix_nested_services["download_svg_file"].return_value = {"ok": True, "path": Path("tmp/path.svg")}
+    mock_fix_nested_services["download_and_save"].return_value = DownloadAndSaveData(
+        result="success", path=Path("tmp/path.svg")
+    )
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=0)
 
     data = JobsRunner(job_id=0, user={})

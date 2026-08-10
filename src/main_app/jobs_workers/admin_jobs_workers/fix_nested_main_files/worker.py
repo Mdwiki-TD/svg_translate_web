@@ -158,7 +158,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """
         # Use temp directory for processing
         try:
-            download = self.files_service.download_svg_file(filename, temp_dir)
+            download = self.files_service.download_and_save(filename, temp_dir)
         except Exception as e:
             logger.exception("Error downloading SVG file")
             return {
@@ -167,14 +167,14 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 "details": str(e),
             }
 
-        if not download.get("ok"):
+        if download.result != "success":
             return {
                 "success": False,
                 "message": f"Failed to download file: {filename}",
                 "details": download,
             }
 
-        file_path = download.get("path")
+        file_path = download.path
 
         detect_before: DetectionResult = detect_nested_tags(file_path)
 

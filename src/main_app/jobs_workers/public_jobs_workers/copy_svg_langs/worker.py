@@ -161,13 +161,13 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         stage.status = "running"
         output_dir_main = self.config.output_dir_files
 
-        main_file_download = self.files_service.download_one_file(
+        main_file_download = self.files_service.download_and_save(
             title=self.main_title,
             out_dir=output_dir_main,
             overwrite_download=self.config.overwrite_download,
         )
 
-        if not main_file_download.get("path"):
+        if main_file_download.result != "success" or not main_file_download.path:
             error = f"Error when downloading main file: {self.main_title}"
             logger.error(error)
             stage.status = "failed"

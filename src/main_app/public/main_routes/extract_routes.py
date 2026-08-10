@@ -7,8 +7,7 @@ from pathlib import Path
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
-from ...api_services.files_service import get_file_info
-from ...api_services.files_service.download_file_utils import download_one_file
+from ...api_services import FilesService
 from ...shared.copysvg_wrapper import (
     ExtractResult,
     extract_from_path,
@@ -20,40 +19,10 @@ logger = logging.getLogger(__name__)
 EXTRACT_FILENAME_KEY = "extract_filename"
 
 
-def work_file(filename: str) -> ExtractResult | None:
-
-    logger.info("Starting extract translations for file: %s", filename)
-
-    # Reject invalid filesystem filenames before calling download_one_file()
-    if not filename or filename != Path(filename).name or filename in {".", ".."}:
-        flash(f"Invalid file name: {filename}", "danger")
-        return None
-
-    # Create temporary directory for download
-    temp_dir = Path(tempfile.mkdtemp())
-    try:
-        # Download the file
-        result = download_one_file(title=filename, out_dir=temp_dir, overwrite_download=True)
-
-        if result.get("result") != "success" or not result.get("path"):
-            flash(f"Failed to download file: {filename}", "danger")
-            return None
-
-        file_path = Path(result["path"])
-
-        extract_result: ExtractResult = extract_from_path(file_path, fast_return_false=False)
-
-        return extract_result
-
-    finally:
-        # Clean up temporary directory
-        if temp_dir.exists():
-            shutil.rmtree(temp_dir)
-
-
 class ExtractRoutes:
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
+        self.files_service = FilesService()
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -93,14 +62,14 @@ class ExtractRoutes:
 
         prefixed_file_name = f"File:{filename}"
 
-        file_info = get_file_info(prefixed_file_name)
+        file_info = self.files_service.get_file_info(prefixed_file_name)
         if not file_info.exists:
             flash(f"File {prefixed_file_name} not exists", "danger")
             logger.error(file_info.to_dict())
             return render_template("extract/form.html", filename=prefixed_file_name)
 
         # ========================
-        result = work_file(filename)
+        result = self.work_file(filename)
         mapping = result.mapping if result else None
 
         if result is None or mapping is None:
@@ -127,6 +96,40 @@ class ExtractRoutes:
             languages=languages,
             translations=mapping.to_json(),
         )
+
+    def work_file(self, filename: str) -> ExtractResult | None:
+
+        logger.info("Starting extract translations for file: %s", filename)
+
+        # Reject invalid filesystem filenames before calling download_and_save()
+        if not filename or filename != Path(filename).name or filename in {".", ".."}:
+            flash(f"Invalid file name: {filename}", "danger")
+            return None
+
+        # Create temporary directory for download
+        temp_dir = Path(tempfile.mkdtemp())
+        try:
+            # Download the file
+            download_result = self.files_service.download_and_save(
+                title=filename,
+                out_dir=temp_dir,
+                overwrite_download=True,
+            )
+
+            if download_result.result != "success" or not download_result.path:
+                flash(f"Failed to download file: {filename}", "danger")
+                return None
+
+            file_path = Path(download_result.path)
+
+            extract_result: ExtractResult = extract_from_path(file_path, fast_return_false=False)
+
+            return extract_result
+
+        finally:
+            # Clean up temporary directory
+            if temp_dir.exists():
+                shutil.rmtree(temp_dir)
 
 
 __all__ = [

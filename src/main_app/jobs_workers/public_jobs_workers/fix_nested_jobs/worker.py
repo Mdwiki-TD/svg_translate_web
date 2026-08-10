@@ -58,13 +58,13 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         temp_dir = Path(tempfile.gettempdir())
 
-        download_result = self.files_service.download_svg_file(
-            filename=self.filename,
-            temp_dir=temp_dir,
+        download_result = self.files_service.download_and_save(
+            title=self.filename,
+            out_dir=temp_dir,
         )
 
-        if download_result.get("ok"):
-            download_path = str(download_result.get("path"))
+        if download_result.result == "success":
+            download_path = str(download_result.path)
             self.result.stages.download._update("success", "Downloaded success")
             self.result.file_result = FileResult(
                 success=True,
@@ -82,7 +82,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             success=False,
             status="failed",
             path=None,
-            error=download_result.get("error") or "download_failed",
+            error=download_result.error or "download_failed",
         )
 
         return False

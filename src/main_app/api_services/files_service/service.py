@@ -1,55 +1,20 @@
 import logging
 from pathlib import Path
-from typing import Any
 
 import requests
 from mwclient.client import Site
 
 from ..clients import create_commons_session
-from .download_file_utils import (
-    download_one_file,
-)
 from .downloader import download_and_save
 from .files_helpers import get_file_info
 from .objects import (
     DownloadAndSaveData,
-    DownloadResult2,
     FileInfo,
     UploadResult,
 )
 from .upload_bot import UploadFile
 
 logger = logging.getLogger(__name__)
-
-
-def _download_svg_file(
-    filename: str,
-    temp_dir: Path,
-    session: requests.Session | None = None,
-) -> DownloadResult2:
-    """Download SVG file and return file path or error info."""
-    logger.info(f"Downloading file: {filename}")
-
-    file_data = download_one_file(
-        title=filename,
-        out_dir=temp_dir,
-        overwrite_download=True,
-        session=session,
-    )
-
-    if file_data.get("result") != "success":
-        return DownloadResult2(
-            ok=False,
-            path=None,
-            error="download_failed",
-            details=file_data,
-        )
-    return DownloadResult2(
-        ok=True,
-        path=Path(file_data["path"]),
-        error=None,
-        details={},
-    )
 
 
 class FilesService:
@@ -63,32 +28,6 @@ class FilesService:
     # ----------------------
     #  download methods
     # ----------------------
-
-    def download_one_file(
-        self,
-        title: str,
-        out_dir: Path,
-        overwrite_download: bool = True,
-    ) -> dict[str, str]:
-        """Download a file from Commons and save it to out_dir."""
-        return download_one_file(
-            title=title,
-            out_dir=out_dir,
-            session=self.session,
-            overwrite_download=overwrite_download,
-        )
-
-    def download_svg_file(
-        self,
-        filename: str,
-        temp_dir: Path,
-    ) -> dict[str, Any]:
-        result = _download_svg_file(
-            filename=filename,
-            temp_dir=temp_dir,
-            session=self.session,
-        )
-        return result.to_json()
 
     def download_and_save(
         self,

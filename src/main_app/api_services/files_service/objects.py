@@ -1,5 +1,4 @@
-from dataclasses import asdict, dataclass, field
-from pathlib import Path
+from dataclasses import asdict, dataclass
 from typing import Any
 
 
@@ -36,17 +35,6 @@ class DownloadResult:
 
 
 @dataclass
-class DownloadResult2:
-    ok: bool
-    path: Path | None = None
-    error: str | None = None
-    details: dict[str, Any] = field(default_factory=dict)
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
-
-
-@dataclass
 class UploadResult:
     ok: bool | None
     error: str | None = None
@@ -62,6 +50,5 @@ __all__ = [
     "FileInfo",
     "DownloadAndSaveData",
     "DownloadResult",
-    "DownloadResult2",
     "UploadResult",
 ]

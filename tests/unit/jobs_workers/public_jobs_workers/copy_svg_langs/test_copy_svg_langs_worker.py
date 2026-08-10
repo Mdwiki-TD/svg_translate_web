@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
@@ -29,7 +30,7 @@ class MockSteps:
 class MockServices:
     check_cancel_db_periodic: MagicMock
     is_cancelled: MagicMock
-    download: MagicMock
+    download_and_save: MagicMock
     detect: MagicMock
     inject: MagicMock
     upload_svg: MagicMock
@@ -77,7 +78,7 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
     mock_download = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.FilesService.download_one_file",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.FilesService.download_and_save",
         mock_download,
     )
 
@@ -101,7 +102,7 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
     return MockServices(
         check_cancel_db_periodic=mock_check_cancel_db_periodic,
         is_cancelled=mock_is_cancelled,
-        download=mock_download,
+        download_and_save=mock_download,
         detect=mock_detect,
         inject=mock_inject,
         upload_svg=mock_upload,
@@ -256,7 +257,7 @@ class TestCopySvgLangsWorkerProcess:
         mock_steps.translations.return_value = ExtractResult.from_any(
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
-        mock_copylangs_services.download.return_value = {"result": "success", "path": "path.svg"}
+        mock_copylangs_services.download_and_save.return_value = DownloadAndSaveData(result="success", path="path.svg")
         mock_copylangs_services.detect.return_value = MagicMock(count=0)
         mock_copylangs_services.inject.return_value = InjectResult(
             result=True, msg="ok", new_languages_count=1, updated_translations=0
@@ -528,7 +529,9 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps.translations.return_value = ExtractResult.from_any(
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
-        mock_copylangs_services.download.return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
+        mock_copylangs_services.download_and_save.return_value = DownloadAndSaveData(
+            result="success", path=str(tmp_path / "test.svg")
+        )
 
         mock_copylangs_services.is_cancelled.side_effect = [False, False, True]
 
@@ -557,7 +560,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps.translations.return_value = ExtractResult.from_any(
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
-        mock_copylangs_services.download.return_value = {"result": "success", "path": "path.svg"}
+        mock_copylangs_services.download_and_save.return_value = DownloadAndSaveData(result="success", path="path.svg")
         mock_copylangs_services.detect.return_value = MagicMock(count=0)
 
         mock_copylangs_services.is_cancelled.return_value = False
@@ -594,7 +597,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps.translations.return_value = ExtractResult.from_any(
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
-        mock_copylangs_services.download.return_value = {"result": "success", "path": "path.svg"}
+        mock_copylangs_services.download_and_save.return_value = DownloadAndSaveData(result="success", path="path.svg")
         mock_copylangs_services.detect.return_value = MagicMock(count=0)
         mock_copylangs_services.is_cancelled.return_value = False
         mock_copylangs_services.inject.return_value = InjectResult(result=None, msg="No changes")
@@ -620,7 +623,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps.translations.return_value = ExtractResult.from_any(
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
-        mock_copylangs_services.download.return_value = {"result": "success", "path": "path.svg"}
+        mock_copylangs_services.download_and_save.return_value = DownloadAndSaveData(result="success", path="path.svg")
         mock_copylangs_services.detect.return_value = MagicMock(count=0)
         mock_copylangs_services.is_cancelled.return_value = False
         mock_copylangs_services.inject.return_value = InjectResult(result=None, msg="No changes")
