@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import shutil
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
