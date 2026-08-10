@@ -168,7 +168,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         )
 
         if main_file_download.result != "success" or not main_file_download.path:
-            error = f"Error when downloading main file: {self.main_title}"
+            error = f"Error when downloading main file: {self.main_title}, error: {main_file_download.error}"
             logger.error(error)
             stage.status = "failed"
             stage.message = error
