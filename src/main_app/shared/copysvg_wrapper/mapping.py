@@ -164,11 +164,14 @@ class ExtractorData:
     def is_empty(self) -> bool:
         return not self.new and not self.title_new
 
-    def all_languages_count(self) -> set[str]:
+    def all_languages(self) -> set[str]:
         langs: set[str] = set()
         for section in (self.new, self.title_new):
             for trans in section.values():
-                langs.update(trans.keys())
+                if isinstance(trans, dict):
+                    langs.update(trans.keys())
+                else:
+                    raise TypeError(f"Unexpected type: {type(trans)}: section: {str(section)}")
 
         return langs
 

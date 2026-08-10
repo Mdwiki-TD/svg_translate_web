@@ -252,7 +252,7 @@ class TestCopySvgLangsWorkerProcess:
         mock_steps.text.return_value = {"success": True, "text": "some text"}
         mock_steps.titles.return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
         mock_steps.translations.return_value = ExtractResult.from_any(
-            {"success": True, "translations": {"new": {"en": "Text"}}}
+            {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
         mock_services.download.return_value = {"result": "success", "path": "path.svg"}
         mock_services.detect.return_value = MagicMock(count=0)
@@ -529,7 +529,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps.text.return_value = {"success": True, "text": "some text"}
         mock_steps.titles.return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
         mock_steps.translations.return_value = ExtractResult.from_any(
-            {"success": True, "translations": {"new": {"en": "Text"}}}
+            {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
         mock_services.download.return_value = {"result": "success", "path": str(tmp_path / "test.svg")}
 
@@ -558,7 +558,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             "titles": ["File1.svg", "File2.svg"],
         }
         mock_steps.translations.return_value = ExtractResult.from_any(
-            {"success": True, "translations": {"new": {"en": "Text"}}}
+            {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
         mock_services.download.return_value = {"result": "success", "path": "path.svg"}
         mock_services.detect.return_value = MagicMock(count=0)
@@ -595,7 +595,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             "titles": ["F1.svg", "F2.svg", "F3.svg"],
         }
         mock_steps.translations.return_value = ExtractResult.from_any(
-            {"success": True, "translations": {"new": {"en": "Text"}}}
+            {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
         mock_services.download.return_value = {"result": "success", "path": "path.svg"}
         mock_services.detect.return_value = MagicMock(count=0)
@@ -621,7 +621,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps.text.return_value = {"success": True, "text": "some text"}
         mock_steps.titles.return_value = {"success": True, "main_title": "Main.svg", "titles": ["F1.svg"]}
         mock_steps.translations.return_value = ExtractResult.from_any(
-            {"success": True, "translations": {"new": {"en": "Text"}}}
+            {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
         mock_services.download.return_value = {"result": "success", "path": "path.svg"}
         mock_services.detect.return_value = MagicMock(count=0)

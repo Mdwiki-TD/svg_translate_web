@@ -8,6 +8,11 @@ from .download_file_utils import (
 from .files_helpers import (
     get_file_info,
 )
+from .objects import (
+    DownloadAndSaveData,
+    DownloadResult,
+    FileInfo,
+)
 from .service import FilesService
 from .upload_bot import (
     UploadFile,
@@ -15,6 +20,9 @@ from .upload_bot import (
 )
 
 __all__ = [
+    "FileInfo",
+    "DownloadAndSaveData",
+    "DownloadResult",
     "FilesService",
     "run_download_file",
     "get_file_info",

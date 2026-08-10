@@ -1,0 +1,18 @@
+{% extends "jobs_templates/base_list_public.html" %}
+
+{% set hide_start_button = '1' %}
+
+{% block list_info %}
+<form method="post" action="{{ url_for('public_jobs.start_job', job_type=template_data.job_type) }}"
+    class="row gy-2 gx-3 align-items-center mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="col-sm-12 col-md-8">
+        <label for="title" class="form-label">Template Title</label>
+        <input type="text" class="form-control wiki-autocomplete-templates" id="title" name="title"
+            value="{{ form.title if form and form.title else 'Template:OWID/Parkinsons disease prevalence ihme'}}" required>
+    </div>
+    <div class="col-sm-12 col-md-4 d-flex align-items-end">
+        <button type="submit" class="btn btn-outline-primary w-100">Start</button>
+    </div>
+</form>
+{% endblock %}

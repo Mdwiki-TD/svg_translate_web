@@ -6,12 +6,17 @@ from mwclient.client import Site
 
 from ..clients import create_commons_session
 from .download_file_utils import (
-    DownloadResult,
     download_one_file,
     download_svg_file,
     run_download_file,
 )
-from .files_helpers import FileInfo, get_file_info
+from .downloader import download
+from .files_helpers import get_file_info
+from .objects import (
+    DownloadAndSaveData,
+    DownloadResult,
+    FileInfo,
+)
 from .upload_bot import (
     UploadFile,
     upload_fixed_svg,
@@ -72,14 +77,12 @@ class FilesService:
         self,
         title: str,
         out_dir: Path,
-        i: int = 0,
         overwrite_download: bool = True,
     ) -> dict[str, str]:
-        """Download a file from Commons and upload it to Commons."""
+        """Download a file from Commons and save it to out_dir."""
         return download_one_file(
             title=title,
             out_dir=out_dir,
-            i=i,
             session=self.session,
             overwrite_download=overwrite_download,
         )
@@ -105,4 +108,18 @@ class FilesService:
             filename=filename,
             output_dir=output_dir,
             session=session,
+        )
+
+    def download(
+        self,
+        title: str,
+        out_dir: Path,
+        overwrite_download: bool = True,
+    ) -> DownloadAndSaveData:
+        """Download a file from Commons and save it to out_dir."""
+        return download(
+            title=title,
+            out_dir=out_dir,
+            session=self.session,
+            overwrite_download=overwrite_download,
         )

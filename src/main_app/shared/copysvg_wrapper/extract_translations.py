@@ -55,7 +55,7 @@ def _extract_file_translations(
     return result
 
 
-def extract_from_path(main_title_path: Path) -> ExtractResult:
+def extract_from_path(main_title_path: Path, fast_return_false: bool = True) -> ExtractResult:
     """
     Load SVG translations from a Wikimedia Commons main file.
 
@@ -72,22 +72,27 @@ def extract_from_path(main_title_path: Path) -> ExtractResult:
     except Exception:
         logger.exception("Failed to extract translations from main SVG")
         return ExtractResult(
-            success=False, message="", error="Failed to parse main SVG", translations={}, mapping=ExtractorData()
+            success=False,
+            message="",
+            error="Failed to parse main SVG",
+            translations={},
+            mapping=ExtractorData(),
         )
 
     new_translations = mapping.new
     new_translations_count = len(new_translations)
 
-    if new_translations_count == 0:
-        error = "No translations found in main file"
-        logger.debug(error)
-        return ExtractResult(
-            success=False,
-            message="",
-            error="No translations found in main file",
-            translations={},
-            mapping=mapping,
-        )
+    if fast_return_false:
+        if new_translations_count == 0:
+            error = "No translations found in main file"
+            logger.debug(error)
+            return ExtractResult(
+                success=False,
+                message="",
+                error="No translations found in main file",
+                translations={},
+                mapping=mapping,
+            )
 
     # Sort new data: alphabetical keys first, numeric keys last
     mapping.new = dict(

@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 EXTRACT_FILENAME_KEY = "extract_filename"
 
 
-def work_file(filename: str) -> dict[str, Any] | None:
+def work_file(filename: str) -> ExtractResult | None:
 
     logger.info("Starting extract translations for file: %s", filename)
 
@@ -41,22 +41,9 @@ def work_file(filename: str) -> dict[str, Any] | None:
 
         file_path = Path(result["path"])
 
-        extract_result: ExtractResult = extract_from_path(file_path)
+        extract_result: ExtractResult = extract_from_path(file_path, fast_return_false=False)
 
-        if not extract_result.success:
-            flash(extract_result.error or "Failed to extract translations", "danger")
-            return None
-
-        file_translations = extract_result.translations or {}
-        if not isinstance(file_translations, dict):
-            flash("Invalid or empty translation data", "danger")
-            return None
-
-        if file_translations and not any(file_translations.values()):
-            flash("Invalid or empty translation data", "danger")
-            return None
-
-        return file_translations
+        return extract_result
 
     finally:
         # Clean up temporary directory
@@ -113,21 +100,24 @@ class ExtractRoutes:
             return render_template("extract/form.html", filename=prefixed_file_name)
 
         # ========================
-        translations = work_file(filename)
+        result = work_file(filename)
+        mapping = result.mapping if result else None
 
-        if translations is None:
-            translations = {}
-            languages: list[str] = []
+        if result is None or mapping is None:
+            flash("Invalid or empty translation data", "danger")
+            return render_template(
+                "extract/result.html",
+                filename=prefixed_file_name,
+                languages=[],
+                translations={},
+            )
+
+        languages = mapping.all_languages()
+
+        if not mapping.is_empty():
+            flash("Translations extracted successfully", "success")
         else:
-            translations_new = translations.get("new", {})
-            languages = []
-            if translations_new:
-                languages = sorted(
-                    {lang for entry in translations["new"].values() if isinstance(entry, dict) for lang in entry}
-                )
-                flash("Translations extracted successfully", "success")
-            else:
-                flash("No translations found", "warning")
+            flash("No translations found", "warning")
 
         logger.info("Extracted languages: %s", len(languages))
 
@@ -135,7 +125,7 @@ class ExtractRoutes:
             "extract/result.html",
             filename=prefixed_file_name,
             languages=languages,
-            translations=translations,
+            translations=mapping.to_json(),
         )
 
 

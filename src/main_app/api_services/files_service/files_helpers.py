@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass
-from typing import Any
 
 import requests
 
 from ..clients.commons_client import create_commons_session
+from .objects import FileInfo
 
 logger = logging.getLogger(__name__)
 
@@ -33,16 +32,6 @@ ALL_II_PROPS = [
     "archivename",
     "badfile",
 ]
-
-
-@dataclass
-class FileInfo:
-    imageinfo: list[dict[str, Any]] | None = None
-    error: str | None = None
-    exists: bool | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
 
 
 def get_file_info(

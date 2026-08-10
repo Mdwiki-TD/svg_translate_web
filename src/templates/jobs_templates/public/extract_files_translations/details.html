@@ -1,6 +1,6 @@
 {% extends "jobs_templates/base_details_public.html" %}
 {% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link, render_step, commons_link %}
-{% from '_macros/svg_macros.html' import render_extract_details, render_json %}
+{% from '_macros/svg_macros.html' import render_json %}
 
 {% block job_info_extra %}
 {% if result_data and result_data.title %}
@@ -36,8 +36,7 @@
             </tr>
         </thead>
         <tbody>
-            {# set stage_order = ['text', 'titles', 'translations', 'processfiles'] #}
-            {% set stage_order = ['text', 'translations'] %}
+            {% set stage_order = ['text', 'titles', 'processfiles'] %}
             {% for stage_key in stage_order %}
             {% set stage = result_data.stages.get(stage_key) %}
             {% if stage %}
@@ -55,26 +54,12 @@
     </table>
 </div>
 
-{% set len_new_translations = result_data.translations|length if result_data and result_data.translations else 0 %}
-
-{% if result_data.main_title %}
-{{ render_extract_details(result_data.main_title, result_data.languages, len_new_translations) }}
-{% endif %}
-
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
-    </div>
-    <div class="col-md-9">
+    <div class="col-md-12">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Uploaded', result_data.files_success | length, "success", "") }}
+                {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
             </div>
-            {#
-            <div class="col">
-                {{ stats_card('Updated', updated_pages | length, "info", "") }}
-            </div>
-            #}
             <div class="col">
                 {{ stats_card('skipped', result_data.files_skipped | length, "secondary", "") }}
             </div>
@@ -87,7 +72,7 @@
 {% endif %}
 {% endblock %}
 
-{% macro pages_table(data, table_title, show_download=False, show_nested=True, err_colmn=False) %}
+{% macro pages_table(data, table_title, err_colmn=False) %}
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
@@ -100,17 +85,9 @@
                         <th>#</th>
                         <th>File</th>
                         <th>Status</th>
-                        {% if show_download %}
-                        <th>Download</th>
-                        {% endif %}
-                        {% if show_nested %}
-                        <th>Nested tags</th>
-                        {% endif %}
-                        {# <th>New Languages</th> #}
-                        <th>Translations Inserted</th>
-                        <th>Translations Updated</th>
-                        <th>Inject</th>
-                        <th>Upload</th>
+                        <th>Downloaded</th>
+                        <th>File Translations</th>
+                        <th>File Languages</th>
                         {% if err_colmn %}
                         <th>Error</th>
                         {% endif %}
@@ -126,34 +103,24 @@
                         <td>
                             {{ status_icon(item.status) }}
                         </td>
-                        {% if show_download %}
-                        <td> {{ render_step(item.steps.download) }} </td>
-                        {% endif %}
-                        {% if show_nested %}
                         <td>
-                            {{ render_step(item.steps.nested) }}
-                        </td>
-                        {% endif %}
-                        {% set inject_step = item.steps.get('inject') if item.steps else {} %}
-                        {% set translations_step_details = item.steps.get('translations', {}).get('details', {}) %}
-
-                        {#
-                        <td>
-                            {{ translations_step_details.new or inject_step.details.new_languages_count}}
-                        </td>
-                        #}
-
-                        <td>
-                            {{ translations_step_details.inserted or inject_step.details.inserted_translations }}
+                            {{ render_step(item.steps.download) }}
                         </td>
                         <td>
-                            {{ translations_step_details.updated or inject_step.details.updated_translations }}
+                            {# {{ render_step(item.steps.mapping) }} #}
+                            {% if item.steps.mapping and item.steps.mapping.details %}
+                            {{ (item.steps.mapping.details.new or 0) }}
+                            {% else %}
+                            -
+                            {% endif %}
                         </td>
                         <td>
-                            {{ render_step(item.steps.inject) }}
-                        </td>
-                        <td>
-                            {{ render_step(item.steps.upload) }}
+                            {# {{ render_step(item.steps.languages) }} #}
+                            {% if item.steps.languages and item.steps.languages.details %}
+                            {{ item.steps.languages.details.languages }}
+                            {% else %}
+                            -
+                            {% endif %}
                         </td>
                         {% if err_colmn %}
                         <td>
@@ -179,23 +146,12 @@
 {{ pages_table(result_data.files_processed, "Processed") }}
 {% endif %}
 
-{% if result_data.files_skipped %}
-{{ pages_table(result_data.files_skipped, "Skipped", show_download=True) }}
-{% endif %}
-
 {% if result_data.files_failed %}
-{{ pages_table(result_data.files_failed, "Failed", show_download=True, err_colmn=True) }}
+{{ pages_table(result_data.files_failed, "Failed", err_colmn=True) }}
 {% endif %}
 
-<!-- Translations -->
-{% if result_data.translations %}
-{{ render_json(result_data.translations, title='Extracted Translations', card_class='mb-4') }}
+{% if result_data.mapping %}
+{{ render_json(result_data.mapping, title='Extracted Translations', card_class='mb-4') }}
 {% endif %}
-
-{#
-    {% if result_data.translations %}
-    {{ render_translations_table(result_data.translations, result_data.languages, title='File Translations') }}
-    {% endif %}
-#}
 
 {% endblock %}

@@ -47,8 +47,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             args=args,
         )
 
-        self.manual_main_title = args.get("manual_main_title")
-        self.title = args.get("title")
+        self.title = args["title"].strip() if args.get("title") else None
+        self.manual_main_title = args["manual_main_title"].strip() if args.get("manual_main_title") else None
 
         self.config = self._load_config(args)
         self.site: Site | None = None
@@ -60,7 +60,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.files_processor = OneFileProcessor(self.config, self.files_service)
 
     def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
-        output_dir = self._compute_output_dir(args.get("title"))
+        output_dir = self._compute_output_dir(self.title)
         output_dir_files = (output_dir / "files") if output_dir else None
 
         try:
@@ -191,7 +191,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         new_translations = mapping.new if mapping else {}
 
-        languages = sorted({lang for entry in new_translations.values() if isinstance(entry, dict) for lang in entry})
+        languages = sorted(mapping.all_languages()) if mapping else []
+
         self.result.translations = self._render_new_translations(new_translations, languages)
         self.result.languages = languages
 
