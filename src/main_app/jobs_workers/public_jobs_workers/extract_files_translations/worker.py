@@ -268,8 +268,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
         if file_data.result != "success":
             download_result = {
-                "ok": False,
-                "path": None,
                 "error": file_data.error or "download_failed",
                 "details": file_data.to_dict(),
             }
@@ -284,12 +282,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
         file_path: str | None = file_data.path
 
-        download_result = {
-            "ok": True,
-            "path": file_path,
-            "error": None,
-            "details": {},
-        }
+        download_result = {"path": file_path}
 
         if file_path:
             down_step._update(result=True, msg="Downloaded successfully", details=download_result)

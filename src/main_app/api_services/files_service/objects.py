@@ -15,7 +15,6 @@ class FileInfo:
 @dataclass
 class DownloadAndSaveData:
     result: str
-    msg: str | None = None
     error: str | None = None
     path: str | None = None
     size_bytes: int | None = None

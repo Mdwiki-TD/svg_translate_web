@@ -36,7 +36,7 @@ def download_and_save(
     """
 
     if not title:
-        return DownloadAndSaveData(result="failed", msg="Empty title provided")
+        return DownloadAndSaveData(result="failed", error="Empty title provided")
 
     out_path = out_dir / title
 
@@ -44,7 +44,7 @@ def download_and_save(
         logger.debug(f"Skipped existing: {title}")
         return DownloadAndSaveData(
             result="existing",
-            msg="Skip existing file, no overwrite",
+            error="Skip existing file, no overwrite",
             path=str(out_path),
         )
 
@@ -62,12 +62,12 @@ def download_and_save(
 
     if download_result.status_code != 200:
         logger.error(f"Failed: {title} -> {download_result.status_code}")
-        return DownloadAndSaveData(result="failed", msg=download_result.msg, error=download_result.msg)
+        return DownloadAndSaveData(result="failed", error=download_result.msg)
 
     content = download_result.content
     if content is None:
         logger.error(f"Failed: {title} -> No content")
-        return DownloadAndSaveData(result="failed", msg=download_result.msg, error=download_result.msg)
+        return DownloadAndSaveData(result="failed", error=download_result.msg)
 
     size_bytes = len(content)
 
@@ -77,7 +77,7 @@ def download_and_save(
         return DownloadAndSaveData(result="success", path=str(out_path), size_bytes=size_bytes)
     else:
         msg = f"Failed to save file: {saved.error}"
-        return DownloadAndSaveData(result="failed", msg=msg, error=msg, size_bytes=size_bytes)
+        return DownloadAndSaveData(result="failed", error=msg, size_bytes=size_bytes)
 
 
 __all__ = [
