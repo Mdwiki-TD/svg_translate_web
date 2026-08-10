@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% from "_macros.html" import commons_file_link %}
+
+{% block title %}Translate: {{ display_title }} — {{ lang }}{% endblock %}
+
+{% block content_fluid %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h4 class="mb-0">
+                            <i class="bi bi-pencil-translate"></i>
+                            {% if display_title.startswith("File:") %}
+                                {{ commons_file_link(display_title) }}
+                            {% else %}
+                                {{ display_title }}
+                            {% endif %}
+                            <span class="badge bg-primary ms-2">{{ lang }}</span>
+                        </h4>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge bg-info">{{ summary.total }} strings</span>
+                        <span class="badge bg-success">{{ summary.existing }} existing</span>
+                        <span class="badge bg-warning text-dark">{{ summary.missing }} missing</span>
+
+                        {% if all_languages|length > 1 %}
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-globe"></i> Switch language
+                            </button>
+                            <ul class="dropdown-menu">
+                                {% for l in all_languages %}
+                                <li>
+                                    <a class="dropdown-item {% if l == lang %}active{% endif %}"
+                                        href="{{ url_for('translate.edit_form', session_id=session_id, lang=l) }}">
+                                        {{ l }}
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Filter toggle -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary active" id="showAllBtn"
+                                onclick="filterRows('all')">All</button>
+                            <button type="button" class="btn btn-outline-secondary" id="showMissingBtn"
+                                onclick="filterRows('missing')">Missing only</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('translate.commit_post', session_id=session_id) }}"
+                        id="translateForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="lang" value="{{ lang }}" />
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm" id="translateTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 40px;">#</th>
+                                        <th style="width: 45%;">Source (default)</th>
+                                        <th style="width: 45%;">
+                                            Translation
+                                            <span class="badge bg-primary">{{ lang }}</span>
+                                        </th>
+                                        <th style="width: 60px;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in rows %}
+                                    <tr class="translate-row {% if row.status == 'missing' %}table-warning{% endif %}"
+                                        data-status="{{ row.status }}">
+                                        <td class="text-muted">{{ row.row_index + 1 }}</td>
+                                        <td>
+                                            <input type="hidden" name="source_{{ row.row_index }}"
+                                                value="{{ row.source }}">
+                                            <span class="source-text" title="{{ row.source }}">
+                                                {{ row.source }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <input type="text"
+                                                class="form-control form-control-sm target-input"
+                                                name="target_{{ row.row_index }}"
+                                                value="{{ row.current }}"
+                                                placeholder="{% if row.status == 'missing' %}Enter translation...{% endif %}"
+                                                dir="auto">
+                                        </td>
+                                        <td>
+                                            {% if row.status == 'existing' %}
+                                            <span class="badge bg-success" title="Translation exists">
+                                                <i class="bi bi-check-lg"></i>
+                                            </span>
+                                            {% else %}
+                                            <span class="badge bg-warning text-dark" title="Missing">
+                                                <i class="bi bi-dash-lg"></i>
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if rows %}
+                        <hr>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{{ url_for('translate.select_form') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Start Over
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check2-circle"></i> Apply Translations
+                            </button>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning mt-3">
+                            No translatable strings found in this file.
+                            <a href="{{ url_for('translate.select_form') }}" class="alert-link">Go back</a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function filterRows(mode) {
+        const rows = document.querySelectorAll('.translate-row');
+        const showAllBtn = document.getElementById('showAllBtn');
+        const showMissingBtn = document.getElementById('showMissingBtn');
+
+        if (mode === 'missing') {
+            showAllBtn.classList.remove('active');
+            showMissingBtn.classList.add('active');
+            rows.forEach(row => {
+                if (row.dataset.status === 'existing') {
+                    const input = row.querySelector('.target-input');
+                    // Only hide rows where the target input hasn't been edited
+                    if (!input.value || input.value === input.defaultValue) {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        } else {
+            showAllBtn.classList.add('active');
+            showMissingBtn.classList.remove('active');
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+        }
+    }
+
+    // Highlight edited rows
+    document.querySelectorAll('.target-input').forEach(input => {
+        input.addEventListener('input', function () {
+            const row = this.closest('tr');
+            if (this.value !== this.defaultValue) {
+                row.classList.add('table-info');
+            } else {
+                row.classList.remove('table-info');
+            }
+        });
+    });
+</script>
+{% endblock %}

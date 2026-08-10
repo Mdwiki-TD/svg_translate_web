@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% from "_macros.html" import commons_file_link %}
+
+{% block title %}Translate Result: {{ display_title }}{% endblock %}
+
+{% block content_fluid %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-check-circle"></i> Translation Applied
+                    </h4>
+                </div>
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <h5>
+                            {% if display_title.startswith("File:") %}
+                                {{ commons_file_link(display_title) }}
+                            {% else %}
+                                {{ display_title }}
+                            {% endif %}
+                            {% if lang %}
+                            <span class="badge bg-primary ms-2">{{ lang }}</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+
+                    {% if stats %}
+                    <div class="row mb-4">
+                        {% if stats.new_languages_count %}
+                        <div class="col-sm-4">
+                            <div class="card text-center border-success">
+                                <div class="card-body py-3">
+                                    <h3 class="text-success mb-0">{{ stats.new_languages_count }}</h3>
+                                    <small class="text-muted">New languages</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if stats.inserted_translations %}
+                        <div class="col-sm-4">
+                            <div class="card text-center border-primary">
+                                <div class="card-body py-3">
+                                    <h3 class="text-primary mb-0">{{ stats.inserted_translations }}</h3>
+                                    <small class="text-muted">Inserted</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if stats.updated_translations %}
+                        <div class="col-sm-4">
+                            <div class="card text-center border-info">
+                                <div class="card-body py-3">
+                                    <h3 class="text-info mb-0">{{ stats.updated_translations }}</h3>
+                                    <small class="text-muted">Updated</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if stats.msg %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check2-circle"></i> {{ stats.msg }}
+                    </div>
+                    {% endif %}
+                    {% endif %}
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ url_for('translate.download_get', session_id=session_id) }}"
+                            class="btn btn-success">
+                            <i class="bi bi-download"></i> Download SVG
+                        </a>
+
+                        {% if is_commons %}
+                        <form method="POST"
+                            action="{{ url_for('translate.upload_commons_post', session_id=session_id) }}"
+                            class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="hidden" name="lang" value="{{ lang }}" />
+                            <button type="submit" class="btn btn-outline-primary"
+                                onclick="return confirm('This will replace the file on Commons. Continue?');">
+                                <i class="bi bi-cloud-upload"></i> Upload to Commons
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <a href="{{ url_for('translate.edit_form', session_id=session_id, lang=lang) }}"
+                            class="btn btn-outline-secondary">
+                            <i class="bi bi-pencil"></i> Edit Again
+                        </a>
+
+                        <a href="{{ url_for('translate.select_form') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> New Translation
+                        </a>
+                    </div>
+
+                    {% if is_commons %}
+                    <hr class="my-4">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Upload</strong> replaces the file on Commons with the same name,
+                        adding language switches. This is the standard workflow for multilingual SVGs.
+                        {% if not current_username %}
+                        <br><br>
+                        <a href="{{ url_for('auth.login') }}" class="alert-link">
+                            Log in
+                        </a> to enable Commons upload.
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
