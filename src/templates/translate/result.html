@@ -31,7 +31,7 @@
 
                     {% if stats %}
                     <div class="row mb-4">
-                        {% if stats.get('new_languages_count', 0) > 0 %}
+                        {% if (stats.get('new_languages_count') or 0) > 0 %}
                         <div class="col-sm-4">
                             <div class="card text-center border-success">
                                 <div class="card-body py-3">
@@ -41,7 +41,7 @@
                             </div>
                         </div>
                         {% endif %}
-                        {% if stats.get('inserted_translations', 0) > 0 %}
+                        {% if (stats.get('inserted_translations') or 0) > 0 %}
                         <div class="col-sm-4">
                             <div class="card text-center border-primary">
                                 <div class="card-body py-3">
@@ -51,7 +51,7 @@
                             </div>
                         </div>
                         {% endif %}
-                        {% if stats.get('updated_translations', 0) > 0 %}
+                        {% if (stats.get('updated_translations') or 0) > 0 %}
                         <div class="col-sm-4">
                             <div class="card text-center border-info">
                                 <div class="card-body py-3">
