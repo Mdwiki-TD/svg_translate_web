@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import shutil
+import time
 import uuid
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -145,8 +146,6 @@ def cleanup_old_sessions(base_dir: Path, max_age_hours: int = 24) -> int:
     Returns:
         Number of sessions removed.
     """
-    import time
-
     sessions_root = base_dir / _SESSIONS_DIR_NAME
     if not sessions_root.exists():
         return 0
@@ -168,8 +167,8 @@ def cleanup_old_sessions(base_dir: Path, max_age_hours: int = 24) -> int:
             if meta.stat().st_mtime < cutoff:
                 shutil.rmtree(session_dir, ignore_errors=True)
                 removed += 1
-        except OSError:
-            pass
+        except OSError as exc:
+            logger.debug("Failed to check/remove session %s: %s", session_dir.name, exc)
 
     if removed:
         logger.info("Cleaned up %d old translate sessions", removed)

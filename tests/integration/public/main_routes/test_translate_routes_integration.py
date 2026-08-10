@@ -169,7 +169,11 @@ class TestSelectPost:
             data={"filename": "File:Test.svg", "lang": "ar"},
         )
         assert response.status_code == 302
-        assert "/translate/" in response.headers["Location"]
+        location = response.headers["Location"]
+        assert "/translate/" in location
+        # Verify the 'File:' prefix was stripped - session should be created
+        # and the redirect should not contain 'File:'
+        assert "File:" not in location
 
     def test_successful_session_creation_redirects_to_edit(
         self,

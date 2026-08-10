@@ -17,7 +17,8 @@
 
                     <div class="mb-3">
                         <h5>
-                            {% if display_title.startswith("File:") %}
+                            {% set is_commons_file = display_title.startswith("File:") %}
+                            {% if is_commons_file %}
                                 {{ commons_file_link(display_title) }}
                             {% else %}
                                 {{ display_title }}
@@ -30,7 +31,7 @@
 
                     {% if stats %}
                     <div class="row mb-4">
-                        {% if stats.new_languages_count %}
+                        {% if stats.get('new_languages_count', 0) > 0 %}
                         <div class="col-sm-4">
                             <div class="card text-center border-success">
                                 <div class="card-body py-3">
@@ -40,7 +41,7 @@
                             </div>
                         </div>
                         {% endif %}
-                        {% if stats.inserted_translations %}
+                        {% if stats.get('inserted_translations', 0) > 0 %}
                         <div class="col-sm-4">
                             <div class="card text-center border-primary">
                                 <div class="card-body py-3">
@@ -50,7 +51,7 @@
                             </div>
                         </div>
                         {% endif %}
-                        {% if stats.updated_translations %}
+                        {% if stats.get('updated_translations', 0) > 0 %}
                         <div class="col-sm-4">
                             <div class="card text-center border-info">
                                 <div class="card-body py-3">

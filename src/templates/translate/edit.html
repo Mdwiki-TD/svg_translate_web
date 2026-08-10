@@ -17,7 +17,7 @@
                             {% else %}
                                 {{ display_title }}
                             {% endif %}
-                            <span class="badge bg-primary ms-2">{{ lang }}</span>
+                            <span class="badge bg-primary ms-2">{{ lang | e }}</span>
                         </h4>
                     </div>
                     <div class="d-flex gap-2 align-items-center">
@@ -60,6 +60,12 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         <input type="hidden" name="lang" value="{{ lang }}" />
 
+                        {% if rows|length > 200 %}
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            This file has {{ rows|length }} translatable strings. Consider translating in smaller sections.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endif %}
                         <div class="table-responsive">
                             <table class="table table-hover table-sm" id="translateTable">
                                 <thead class="table-light">
@@ -87,11 +93,12 @@
                                         </td>
                                         <td>
                                             <input type="text"
-                                                class="form-control form-control-sm target-input"
+                                                class="form-control form-control-sm target-input{% if row.status == 'missing' and not row.current %} is-missing{% endif %}"
                                                 name="target_{{ row.row_index }}"
                                                 value="{{ row.current }}"
                                                 placeholder="{% if row.status == 'missing' %}Enter translation...{% endif %}"
-                                                dir="auto">
+                                                dir="auto"
+                                                {% if row.status == 'missing' %}aria-label="Required translation"{% endif %}>
                                         </td>
                                         <td>
                                             {% if row.status == 'existing' %}
@@ -145,12 +152,11 @@
             showAllBtn.classList.remove('active');
             showMissingBtn.classList.add('active');
             rows.forEach(row => {
-                if (row.dataset.status === 'existing') {
-                    const input = row.querySelector('.target-input');
-                    // Only hide rows where the target input hasn't been edited
-                    if (!input.value || input.value === input.defaultValue) {
-                        row.style.display = 'none';
-                    }
+                if (row.dataset.status === 'missing' ||
+                    (row.dataset.status === 'existing' && (!row.querySelector('.target-input').value || row.querySelector('.target-input').value === row.querySelector('.target-input').defaultValue))) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
                 }
             });
         } else {
