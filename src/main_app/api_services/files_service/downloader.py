@@ -64,10 +64,11 @@ def download_and_save(
         return DownloadAndSaveData(result="failed", msg=download_result.msg, error=download_result.msg)
 
     content = download_result.content
-    size_bytes = len(content)
     if content is None:
         logger.error(f"Failed: {title} -> No content")
         return DownloadAndSaveData(result="failed", msg=download_result.msg, error=download_result.msg)
+
+    size_bytes = len(content)
 
     # save part
     saved = write_bytes_to_file(content=content, filename=title, output_dir=out_dir)
