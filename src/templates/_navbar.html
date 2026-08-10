@@ -51,11 +51,13 @@
                             <i class="bi bi-filetype-svg"></i> Extract/Inject
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDarkDropdownMenuLink">
-                            {#
-                                <li class="{{ nav_item_class }}">
+                            {#n                                <li class="{{ nav_item_class }}">
                                     {{ nav_link('explorer.', 'bi-folder2-open', 'Files', url_for('explorer.main')) }}
                                 </li>
                             #}
+                            <li class="{{ nav_item_class }}">
+                                {{ nav_link('translate.', 'bi-pencil-translate', 'Translate', url_for('translate.select_form')) }}
+                            </li>
                             <li class="{{ nav_item_class }}">
                                 {{ nav_link('extract.', 'bi-file-earmark-text', 'Extract', url_for('extract.dashboard')) }}
                             </li>
