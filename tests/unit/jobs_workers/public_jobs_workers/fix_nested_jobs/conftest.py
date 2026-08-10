@@ -12,7 +12,7 @@ import pytest
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
+def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     """Mock the services used by fix_nested_jobs worker."""
 
     mocks = {

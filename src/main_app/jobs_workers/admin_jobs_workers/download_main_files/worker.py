@@ -11,9 +11,8 @@ from pathlib import Path
 
 import requests
 
-from ....api_services.files_service import DownloadAndSaveData
-
 from ....api_services import FilesService, create_commons_session
+from ....api_services.files_service import DownloadAndSaveData
 from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import TemplateService

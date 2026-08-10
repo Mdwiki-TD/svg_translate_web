@@ -13,6 +13,7 @@ from .objects import DownloadAndSaveData
 
 logger = logging.getLogger(__name__)
 
+
 def download_one_file(
     title: str,
     out_dir: Path,
@@ -72,6 +73,7 @@ def download_svg_file(
         "error": None,
         "details": {},
     }
+
 
 __all__ = [
     "DownloadAndSaveData",

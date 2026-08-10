@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
 
+
 def download_and_save(
     *,
     title: str,

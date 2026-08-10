@@ -12,7 +12,6 @@ from pathlib import Path
 from mwclient.client import Site
 
 from ....api_services import FilesService
-
 from ....api_services.files_service import download_svg_file
 from ....shared.fix_nested.worker import (
     DetectionResult,

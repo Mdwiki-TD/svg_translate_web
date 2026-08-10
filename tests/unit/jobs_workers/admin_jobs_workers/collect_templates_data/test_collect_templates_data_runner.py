@@ -34,7 +34,7 @@ def mock_find_source(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
+def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     """Mock the services used by collect_templates_data_worker."""
 
     monkeypatch.setattr(
@@ -122,7 +122,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
 class TestRunner:
 
     @pytest.fixture(autouse=True)
-    def setup(self, mock_services):
+    def setup(self, mock_collect_services):
         from src.main_app.jobs_workers.objects import JobsRunner
 
         def run_wrapper(job_id, user, cancel_event=None, args=None, form_data=None):
@@ -130,7 +130,7 @@ class TestRunner:
             return runner.collect_templates_data_entry(data)
 
         self.collect_runner = run_wrapper
-        self.services = mock_services
+        self.services = mock_collect_services
 
     def test_collect_templates_data_with_no_templates(self):
         """Test collect_templates_data_entry when there are no templates."""

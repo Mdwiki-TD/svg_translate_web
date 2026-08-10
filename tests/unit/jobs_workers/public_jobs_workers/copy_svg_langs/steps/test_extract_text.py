@@ -6,7 +6,7 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_extract_text_services(monkeypatch: pytest.MonkeyPatch):
     mocks = {
         "MwClientPage": MagicMock(),
     }
@@ -17,8 +17,8 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     return mocks
 
 
-def test_text_task_success(mock_services):
-    mock_services["MwClientPage"].return_value.get_text.return_value = "content"
+def test_text_task_success(mock_extract_text_services):
+    mock_extract_text_services["MwClientPage"].return_value.get_text.return_value = "content"
 
     result = extract_text_step("Title")
 
@@ -26,8 +26,8 @@ def test_text_task_success(mock_services):
     assert result["text"] == "content"
 
 
-def test_text_task_fail(mock_services):
-    mock_services["MwClientPage"].return_value.get_text.return_value = None
+def test_text_task_fail(mock_extract_text_services):
+    mock_extract_text_services["MwClientPage"].return_value.get_text.return_value = None
 
     result = extract_text_step("Title")
 
@@ -35,19 +35,19 @@ def test_text_task_fail(mock_services):
     assert result["text"] == ""
 
 
-def test_extract_text_step_success(mock_services):
-    mock_services["MwClientPage"].return_value.get_text.return_value = "some wikitext"
+def test_extract_text_step_success(mock_extract_text_services):
+    mock_extract_text_services["MwClientPage"].return_value.get_text.return_value = "some wikitext"
 
     result = extract_text_step("File:Example.svg")
 
     assert result["success"] is True
     assert result["text"] == "some wikitext"
     assert result["error"] is None
-    mock_services["MwClientPage"].assert_called_once_with("File:Example.svg", None)
+    mock_extract_text_services["MwClientPage"].assert_called_once_with("File:Example.svg", None)
 
 
-def test_extract_text_step_fail(mock_services):
-    mock_services["MwClientPage"].return_value.get_text.return_value = ""
+def test_extract_text_step_fail(mock_extract_text_services):
+    mock_extract_text_services["MwClientPage"].return_value.get_text.return_value = ""
 
     result = extract_text_step("File:Example.svg")
 

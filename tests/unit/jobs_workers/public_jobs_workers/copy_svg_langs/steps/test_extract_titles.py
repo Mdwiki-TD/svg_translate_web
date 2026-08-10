@@ -6,7 +6,7 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_
 
 
 @pytest.fixture
-def mock_services(monkeypatch: pytest.MonkeyPatch):
+def mock_extract_titles_services(monkeypatch: pytest.MonkeyPatch):
     mocks = {
         "get_files_list_data": MagicMock(),
     }
@@ -17,8 +17,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch):
     return mocks
 
 
-def test_titles_task_success(mock_services):
-    mock_services["get_files_list_data"].return_value = {"main_title": "Main.svg", "titles": ["f1.svg", "f2.svg"]}
+def test_titles_task_success(mock_extract_titles_services):
+    mock_extract_titles_services["get_files_list_data"].return_value = {
+        "main_title": "Main.svg",
+        "titles": ["f1.svg", "f2.svg"],
+    }
 
     data = extract_titles_step("wikitext")
 
@@ -27,24 +30,27 @@ def test_titles_task_success(mock_services):
     assert len(data["titles"]) == 2
 
 
-def test_titles_task_manual_title(mock_services):
-    mock_services["get_files_list_data"].return_value = {"main_title": "Main.svg", "titles": ["f1.svg"]}
+def test_titles_task_manual_title(mock_extract_titles_services):
+    mock_extract_titles_services["get_files_list_data"].return_value = {"main_title": "Main.svg", "titles": ["f1.svg"]}
 
     data = extract_titles_step("wikitext", manual_main_title="Manual.svg")
 
     assert data["main_title"] == "Manual.svg"
 
 
-def test_titles_task_fail(mock_services):
-    mock_services["get_files_list_data"].return_value = {"main_title": None, "titles": []}
+def test_titles_task_fail(mock_extract_titles_services):
+    mock_extract_titles_services["get_files_list_data"].return_value = {"main_title": None, "titles": []}
 
     data = extract_titles_step("wikitext")
 
     assert data["success"] is False
 
 
-def test_extract_titles_step_success(mock_services):
-    mock_services["get_files_list_data"].return_value = {"main_title": "Main.svg", "titles": ["File1.svg", "File2.svg"]}
+def test_extract_titles_step_success(mock_extract_titles_services):
+    mock_extract_titles_services["get_files_list_data"].return_value = {
+        "main_title": "Main.svg",
+        "titles": ["File1.svg", "File2.svg"],
+    }
 
     result = extract_titles_step("some text")
 
@@ -54,8 +60,11 @@ def test_extract_titles_step_success(mock_services):
     assert result["error"] is None
 
 
-def test_extract_titles_step_manual_title(mock_services):
-    mock_services["get_files_list_data"].return_value = {"main_title": "Main.svg", "titles": ["File1.svg", "File2.svg"]}
+def test_extract_titles_step_manual_title(mock_extract_titles_services):
+    mock_extract_titles_services["get_files_list_data"].return_value = {
+        "main_title": "Main.svg",
+        "titles": ["File1.svg", "File2.svg"],
+    }
 
     result = extract_titles_step("some text", manual_main_title="Manual.svg")
 
