@@ -4,7 +4,6 @@ import logging
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
