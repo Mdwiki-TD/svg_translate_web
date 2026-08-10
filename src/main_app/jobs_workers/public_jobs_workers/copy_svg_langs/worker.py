@@ -11,6 +11,8 @@ from typing import Any
 
 from mwclient.client import Site
 
+from ....api_services import UploadService
+
 from ....api_services.files_service import FilesService
 from ....config import settings
 from ....shared.copysvg_wrapper import (
@@ -55,7 +57,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.text: str = ""
         self.main_title: str = ""
         self.titles: list[str] = []
-        self.files_service = FilesService(self.site)
+        self.files_service = FilesService()
 
         self.files_processor = OneFileProcessor(self.config, self.files_service)
 
@@ -326,8 +328,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if self.site is None:
             raise ValueError("Site is not set")
 
-        self.files_service.site = self.site
-        self.files_processor.files_service.site = self.site
+        self.files_processor.upload_service.site = self.site
 
         if not self.title:
             logger.error("No title found")

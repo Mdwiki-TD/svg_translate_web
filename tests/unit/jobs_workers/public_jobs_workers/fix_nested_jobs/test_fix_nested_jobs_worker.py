@@ -564,7 +564,7 @@ class TestRun(TestSetup):
                 return_value=VerificationResult(before=2, after=0, fixed=2),
             ),
             "upload": patch(
-                "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FilesService.upload_fixed_svg",
+                "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.UploadService.upload_fixed_svg",
                 return_value={"ok": True, "result": {}},
             ),
         }

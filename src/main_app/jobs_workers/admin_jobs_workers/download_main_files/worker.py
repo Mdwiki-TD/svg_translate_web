@@ -78,7 +78,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         self.session: requests.Session | None = None
         self.main_files_zip_name = self.args.get("main_files_zip_name", "main_files.zip")
         self.limit_items = self.args.get("limit_items") or 0
-        self.files_service = FilesService(self.site)
+        self.files_service = FilesService()
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -128,12 +128,6 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         """Execute the download processing logic."""
         if not self._check_site():
             return self.result
-
-        # update site after calling _check_site
-        if self.site is None:
-            raise ValueError("Site is not set")
-
-        self.files_service.site = self.site
 
         templates_with_files = self._load_templates()
 

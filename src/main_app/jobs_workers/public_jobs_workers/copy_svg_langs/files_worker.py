@@ -8,6 +8,8 @@ import json
 import logging
 from pathlib import Path
 
+from ....api_services import UploadService
+
 from ....api_services.files_service import FilesService
 from ....shared.copysvg_wrapper import (
     ExtractorData,
@@ -35,6 +37,7 @@ class OneFileProcessor:
     def __init__(self, config: SvgLangsConfig, files_service: FilesService) -> None:
         self.config = config
         self.files_service = files_service
+        self.upload_service = UploadService({})
         self.mapping: ExtractorData | None = None
         self.upload_done = 0
         self.nested_processer: MatchFixNestedTags
@@ -181,7 +184,7 @@ class OneFileProcessor:
             return False
 
         # Start uploading
-        upload = self.files_service.upload_fixed_svg(
+        upload = self.upload_service.upload_fixed_svg(
             title_info.title,
             new_path,
             summary=summary,

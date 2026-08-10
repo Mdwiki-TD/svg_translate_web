@@ -11,8 +11,7 @@ from pathlib import Path
 
 from mwclient.client import Site
 
-from ....api_services import FilesService
-from ....api_services.files_service import download_svg_file, upload_fixed_svg
+from ....api_services import FilesService, UploadService
 from ....db.models import TemplateRecord
 from ....db.services import TemplateService
 from ....shared.fix_nested.worker import (
@@ -41,7 +40,8 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
             args=self.args,
         )
         self.site: Site | None = None
-        self.files_service = FilesService(self.site)
+        self.files_service = FilesService()
+        self.upload_service = UploadService(self.site)
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -107,7 +107,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         if self.site is None:
             raise ValueError("Site is not set")
 
-        self.files_service.site = self.site
+        self.upload_service.site = self.site
 
         templates = TemplateService().list()
         self.result.summary.total = len(templates)
@@ -158,7 +158,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """
         # Use temp directory for processing
         try:
-            download = download_svg_file(filename, temp_dir)
+            download = self.files_service.download_svg_file(filename, temp_dir)
         except Exception as e:
             logger.exception("Error downloading SVG file")
             return {
@@ -204,10 +204,9 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
         summary = f"Fixed {verify.fixed} nested tag(s)"
 
-        upload = upload_fixed_svg(
+        upload = self.upload_service.upload_fixed_svg(
             filename,
             file_path,
-            self.site,
             summary,
         )
 

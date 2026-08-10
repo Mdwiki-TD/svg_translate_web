@@ -24,10 +24,6 @@ def mock_fix_nested_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, m
     }
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.TemplateService.list",
-        mocks["list"],
-    )
-    monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.JobsService.update_job_status", mocks["update_job_status"]
     )
     monkeypatch.setattr(
@@ -35,9 +31,18 @@ def mock_fix_nested_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, m
     )
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.download_svg_file",
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.TemplateService.list",
+        mocks["list"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.FilesService.download_svg_file",
         mocks["download_svg_file"],
     )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.UploadService.upload_fixed_svg",
+        mocks["upload_fixed_svg"],
+    )
+
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.detect_nested_tags",
         mocks["detect_nested_tags"],
@@ -49,10 +54,6 @@ def mock_fix_nested_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, m
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.verify_fix",
         mocks["verify_fix"],
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.upload_fixed_svg",
-        mocks["upload_fixed_svg"],
     )
 
     return mocks

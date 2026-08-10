@@ -46,7 +46,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         mocks["verify_fix"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FilesService.upload_fixed_svg",
+        "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.UploadService.upload_fixed_svg",
         mocks["upload_fixed_svg"],
     )
     monkeypatch.setattr(

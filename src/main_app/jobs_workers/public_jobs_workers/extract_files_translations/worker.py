@@ -55,7 +55,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self.site: Site | None = None
         self.text: str = ""
         self.titles: list[str] = []
-        self.files_service = FilesService(self.site)
+        self.files_service = FilesService()
         self.mapping: ExtractorData = ExtractorData()
 
     def _compute_output_dir(self, title: str) -> Path:
@@ -299,12 +299,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         """Execute the full pipeline."""
         if not self._check_site():
             return self.result
-
-        # update site after calling _check_site
-        if self.site is None:
-            raise ValueError("Site is not set")
-
-        self.files_service.site = self.site
 
         if not self.title:
             logger.error("No title found")

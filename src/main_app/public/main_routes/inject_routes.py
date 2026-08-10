@@ -16,7 +16,8 @@ from flask import (
     url_for,
 )
 
-from ...api_services.files_service import download_one_file, get_file_info
+from ...api_services.files_service import get_file_info
+from ...api_services.files_service.download_file_utils import download_one_file
 from ...shared.copysvg_wrapper import (
     ExtractResult,
     InjectResult,
