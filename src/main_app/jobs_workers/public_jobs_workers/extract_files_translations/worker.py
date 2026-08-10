@@ -278,7 +278,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             title_info.error = "failed to download the file"
 
             if file_data.error:
-                title_info.error += f", error: {title_info.error}"
+                title_info.error += f", error: {file_data.error}"
 
             return None
 

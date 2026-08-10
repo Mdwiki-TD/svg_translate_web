@@ -74,12 +74,12 @@ def download(
 
     if download_result.status_code != 200:
         logger.error(f"Failed: {title} -> {download_result.status_code}")
-        return DownloadData(result="failed", msg=download_result.msg)
+        return DownloadData(result="failed", msg=download_result.msg, error=download_result.msg)
 
     content = download_result.content
     if content is None:
         logger.error(f"Failed: {title} -> No content")
-        return DownloadData(result="failed")
+        return DownloadData(result="failed", msg=download_result.msg, error=download_result.msg)
 
     # save part
     saved, save_error = _save_file(content, out_path)
