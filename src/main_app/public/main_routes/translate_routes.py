@@ -61,6 +61,7 @@ class TranslateRoutes:
         self.bp.route("/<string:session_id>", methods=["POST"])(self.commit_post)
         self.bp.route("/<string:session_id>/download", methods=["GET"])(self.download_get)
         self.bp.route("/<string:session_id>/upload", methods=["POST"])(self.upload_commons_post)
+        self.bp.route("/<string:session_id>/result", methods=["GET"])(self.result_page)
 
     # ------------------------------------------------------------------
     # Select file + language
