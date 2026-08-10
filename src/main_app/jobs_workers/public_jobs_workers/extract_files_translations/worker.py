@@ -267,10 +267,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             return None
 
         if file_data.result != "success":
-            download_result = {
-                "error": file_data.error or "download_failed",
-                "details": file_data.to_dict(),
-            }
+            download_result = { "error": file_data.error or "download_failed" }
             down_step._update(result=False, msg="Failed to download file", details=download_result)
             title_info.status = "failed"
             title_info.error = "failed to download the file"
@@ -281,14 +278,11 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             return None
 
         file_path: str | None = file_data.path
-
-        download_result = {"path": file_path}
-
         if file_path:
-            down_step._update(result=True, msg="Downloaded successfully", details=download_result)
+            down_step._update(result=True, msg="Downloaded successfully", details={"path": file_path})
             return file_path
 
-        down_step._update(result=False, msg="Failed to get file path", details=download_result)
+        down_step._update(result=False, msg="Failed to get file path", details={"path": file_path})
         title_info.status = "failed"
         title_info.error = "Failed to get file path"
         return None

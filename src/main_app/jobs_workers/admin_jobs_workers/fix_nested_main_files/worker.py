@@ -11,6 +11,8 @@ from pathlib import Path
 
 from mwclient.client import Site
 
+from ....api_services import FilesService
+
 from ....api_services.files_service import download_svg_file, upload_fixed_svg
 from ....db.models import TemplateRecord
 from ....db.services import TemplateService
@@ -23,7 +25,7 @@ from ....shared.fix_nested.worker import (
 )
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import FixNestedMainFilesWorkerObject, TemplateInfo
+from .objects import FixNestedMainFilesWorkerObject, TitleInfo
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
             args=self.args,
         )
         self.site: Site | None = None
+        self.files_service = FilesService(self.site)
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -48,7 +51,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
     def _process_one_item(self, template: TemplateRecord) -> bool:
         self.result.summary.processed += 1
 
-        template_info = TemplateInfo(
+        template_info = TitleInfo(
             id=template.id,
             title=template.title,
             main_file=template.main_file,
@@ -100,6 +103,12 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
         if not self._check_site():
             return self.result
+
+        # update site after calling _check_site
+        if self.site is None:
+            raise ValueError("Site is not set")
+
+        self.files_service.site = self.site
 
         templates = TemplateService().list()
         self.result.summary.total = len(templates)

@@ -12,7 +12,6 @@ from pathlib import Path
 from mwclient.client import Site
 
 from ....api_services import FilesService
-from ....api_services.files_service import download_svg_file
 from ....shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
@@ -227,8 +226,14 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
     def process(self) -> FixNestedJobsWorkerObject:
         """Execute the full pipeline."""
-        # no need to cancel job if self.site is False
-        self._check_site()
+        if not self._check_site():
+            return self.result
+
+        # update site after calling _check_site
+        if self.site is None:
+            raise ValueError("Site is not set")
+
+        self.files_service.site = self.site
 
         if not self.filename:
             logger.error("No filename found")

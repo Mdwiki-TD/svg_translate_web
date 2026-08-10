@@ -327,6 +327,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             raise ValueError("Site is not set")
 
         self.files_service.site = self.site
+        self.files_processor.files_service.site = self.site
 
         if not self.title:
             logger.error("No title found")

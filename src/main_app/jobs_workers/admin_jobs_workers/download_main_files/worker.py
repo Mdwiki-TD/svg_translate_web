@@ -106,7 +106,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
             )
         except Exception as e:
             file_info.status = "failed"
-            file_info.reason = f"Exception: {str(e)}"
+            file_info.error = f"Exception: {str(e)}"
             file_info.error_type = type(e).__name__
             logger.exception("Job %s: Error processing %s", self.job_id, file_info.template_title)
             return False
@@ -119,7 +119,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
             return True
 
         file_info.status = "failed"
-        file_info.reason = file_data.error
+        file_info.error = file_data.error
         logger.warning("Job %s: Failed to download %s: %s", self.job_id, file_info.filename, file_data.error)
 
         return False

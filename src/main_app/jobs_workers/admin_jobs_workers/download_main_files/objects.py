@@ -20,7 +20,7 @@ class FileInfo:
     filename: str
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: str = ""
-    reason: None | str = None
+    error: None | str = None
     error_type: None | str = None
     path: None | str = None
     size_bytes: None | int = None

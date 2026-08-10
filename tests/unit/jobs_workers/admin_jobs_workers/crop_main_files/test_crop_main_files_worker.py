@@ -185,10 +185,10 @@ def test_crop_main_files_worker_defaults_upload_limit_when_key_missing(mock_base
 
 
 class TestFileProcessingInfo:
-    """Tests for TemplateInfo dataclass."""
+    """Tests for CropFileProcessingInfo dataclass."""
 
     def test_default_initialization(self):
-        """Test TemplateInfo initializes with correct defaults."""
+        """Test CropFileProcessingInfo initializes with correct defaults."""
         info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
