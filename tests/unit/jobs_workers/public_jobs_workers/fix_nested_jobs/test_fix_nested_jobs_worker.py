@@ -18,7 +18,7 @@ from src.main_app.shared.fix_nested.worker import (
     VerificationResult,
 )
 
-from ......src.main_app.api_services.files_service import DownloadAndSaveData
+from src.main_app.api_services.files_service import DownloadAndSaveData
 
 # ---------------------------------------------------------------------------
 # steps
@@ -302,7 +302,7 @@ class TestDownloadStep(TestSetup):
         assert proc.result.stages.download.status == "failed"
 
     def test_failure_defaults_error_when_missing(self, mock_fix_nested_services):
-        mock_fix_nested_services["download_and_save"].return_value = {"ok": False}
+        mock_fix_nested_services["download_and_save"].return_value = DownloadAndSaveData(result="failed")
         proc = self.processor
         proc._download_step()
         assert proc.result.file_result.error == "download_failed"
