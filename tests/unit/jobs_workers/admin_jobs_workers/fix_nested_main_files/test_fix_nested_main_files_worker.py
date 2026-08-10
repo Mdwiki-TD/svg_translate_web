@@ -22,7 +22,7 @@ def test_repair_nested_svg_tags_success(mock_fix_nested_services, tmp_path):
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=5)
     mock_fix_nested_services["fix_nested_tags"].return_value = True
     mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=5, after=0, fixed=5)
-    mock_fix_nested_services["upload_svg"].return_value = UploadResult(**{"ok": True, "result": {"newrevid": 123}})
+    mock_fix_nested_services["upload_svg"].return_value = UploadResult(ok=True, result={"newrevid": 123})
 
     data = JobsRunner(job_id=0, user=user)
     result = worker.FixNestedMainFilesWorker(data).repair_nested_svg_tags(filename, tmp_path)

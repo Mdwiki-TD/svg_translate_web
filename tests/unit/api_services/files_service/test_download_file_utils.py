@@ -4,7 +4,6 @@ Comprehensive unit tests for download_file_utils module.
 
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest

@@ -76,7 +76,7 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
         self.processor.site = MagicMock()
         self.processor.result.stages.verify.status = "success"
         self.processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
-        mock_fix_nested_services["upload_svg"].return_value = UploadResult(**{"ok": True, "result": {"some": "data"}})
+        mock_fix_nested_services["upload_svg"].return_value = UploadResult(ok=True, result={"some": "data"})
 
         result = self.processor._upload_step()
 
@@ -89,7 +89,7 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
         self.processor.result.stages.verify.status = "success"
         self.processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
         mock_fix_nested_services["upload_svg"].return_value = UploadResult(
-            **{"ok": False, "error": "Upload failed message"}
+            ok=False, error="Upload failed message"
         )
 
         result = self.processor._upload_step()
@@ -449,7 +449,7 @@ class TestUploadStep(TestSetup):
         mock_fix_nested_services["upload_svg"].assert_not_called()
 
     def test_returns_true_on_success(self, mock_fix_nested_services, tmp_path):
-        mock_fix_nested_services["upload_svg"].return_value = UploadResult(**{"ok": True, "result": {}})
+        mock_fix_nested_services["upload_svg"].return_value = UploadResult(ok=True, result={})
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is True
@@ -457,7 +457,7 @@ class TestUploadStep(TestSetup):
 
     def test_returns_false_on_failure(self, mock_fix_nested_services, tmp_path):
         mock_fix_nested_services["upload_svg"].return_value = UploadResult(
-            **{"ok": False, "error": "permission_denied"}
+            ok=False, error="permission_denied"
         )
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()

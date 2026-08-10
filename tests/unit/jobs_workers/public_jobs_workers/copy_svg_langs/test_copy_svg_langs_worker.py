@@ -260,7 +260,7 @@ class TestCopySvgLangsWorkerProcess:
         mock_copylangs_services.inject.return_value = InjectResult(
             result=True, msg="ok", new_languages_count=1, updated_translations=0
         )
-        mock_copylangs_services.upload_svg.return_value = UploadResult(**{"ok": True, "error": "", "msg": "uploaded"})
+        mock_copylangs_services.upload_svg.return_value = UploadResult(ok=True, error="", msg="uploaded")
 
         mock_copylangs_services.is_cancelled.return_value = False
 
@@ -414,7 +414,7 @@ class TestCopySvgLangsWorkerUploadStep:
         mock_worker.files_processor.upload_done = 0
         mock_worker.site = MagicMock()
 
-        mock_copylangs_services.upload_svg.return_value = UploadResult(**{"ok": True, "error": "", "msg": "uploaded"})
+        mock_copylangs_services.upload_svg.return_value = UploadResult(ok=True, error="", msg="uploaded")
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_worker.files_processor._upload_step(title_info, "Adding translations", Path("test.svg"))
@@ -571,7 +571,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             result=True, msg="ok", new_languages_count=0, updated_translations=0
         )
         mock_copylangs_services.check_cancel_db_periodic.return_value = True
-        mock_copylangs_services.upload_svg.return_value = UploadResult(**{"ok": True, "error": "", "msg": "uploaded"})
+        mock_copylangs_services.upload_svg.return_value = UploadResult(ok=True, error="", msg="uploaded")
 
         result = mock_worker.process()
 
