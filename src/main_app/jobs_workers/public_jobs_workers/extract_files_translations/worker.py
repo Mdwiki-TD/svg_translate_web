@@ -263,7 +263,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             logger.exception("Error downloading SVG file")
             down_step._update(result=False, msg="Error downloading", details={"error": str(e)})
             title_info.status = "failed"
-            title_info.error = "failed to download"
+            title_info.error = "Error downloading"
             return None
 
         if file_data.result != "success":
