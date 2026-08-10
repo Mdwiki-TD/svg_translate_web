@@ -358,6 +358,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             return
 
         self.mapping.merge(mapping, merge_keys=["new", "title_new"])
+        self.result.languages = sorted(self.mapping.all_languages())
 
     def save_result(self):
         # save mapping to file

@@ -38,7 +38,8 @@ def download_and_save(
     if not title:
         return DownloadAndSaveData(result="failed", error="Empty title provided")
 
-    out_path = out_dir / title
+    clean_title = title.removeprefix("File:")
+    out_path = out_dir / clean_title
 
     if out_path.exists() and not overwrite_download:
         logger.debug(f"Skipped existing: {title}")
@@ -74,7 +75,7 @@ def download_and_save(
     # save part
     saved = write_bytes_to_file(content=content, filename=title, output_dir=out_dir)
     if saved.success:
-        return DownloadAndSaveData(result="success", path=str(out_path), size_bytes=size_bytes)
+        return DownloadAndSaveData(result="success", path=str(saved.path), size_bytes=size_bytes)
     else:
         msg = f"Failed to save file: {saved.error}"
         return DownloadAndSaveData(result="failed", error=msg, size_bytes=size_bytes)

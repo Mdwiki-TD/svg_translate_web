@@ -15,13 +15,16 @@ class WriteData:
 
 
 def write_bytes_to_file(*, content: bytes, filename: str, output_dir: Path) -> WriteData:
-
     # Extract just the filename part (remove "File:" prefix if present)
-    clean_filename = filename.removeprefix("File:")
+    clean_filename = Path(filename.removeprefix("File:")).name
+
+    if not clean_filename or clean_filename in {".", ".."}:
+        return WriteData(success=False, path=output_dir, error="Invalid file name")
 
     # Determine output path - maintain original filename
     out_path = output_dir / clean_filename
     try:
+        output_dir.mkdir(parents=True, exist_ok=True)
         out_path.write_bytes(content)
         return WriteData(
             success=True,
