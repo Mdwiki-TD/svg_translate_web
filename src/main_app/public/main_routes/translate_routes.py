@@ -233,9 +233,8 @@ class TranslateRoutes:
     # Edit form
     # ------------------------------------------------------------------
 
-    def edit_form(self) -> str:
+    def edit_form(self, session_id: str) -> str:
         """Show the translation edit table for a session + language."""
-        session_id = request.view_args.get("session_id", "") if request.view_args else ""
         lang = request.args.get("lang", "").strip()
 
         base_dir = _sessions_base_dir()
@@ -271,9 +270,8 @@ class TranslateRoutes:
     # Commit (inject + result)
     # ------------------------------------------------------------------
 
-    def commit_post(self) -> str:
+    def commit_post(self, session_id: str) -> str:
         """Process form submission: build mapping, inject, show result."""
-        session_id = request.view_args.get("session_id", "") if request.view_args else ""
         lang = request.form.get("lang", "").strip()
 
         base_dir = _sessions_base_dir()
@@ -346,9 +344,8 @@ class TranslateRoutes:
     # Download result SVG
     # ------------------------------------------------------------------
 
-    def download_get(self) -> Any:
+    def download_get(self, session_id: str) -> Any:
         """Download the injected SVG file."""
-        session_id = request.view_args.get("session_id", "") if request.view_args else ""
 
         base_dir = _sessions_base_dir()
         session_obj = TranslateSession.load(session_id, base_dir)
@@ -382,9 +379,8 @@ class TranslateRoutes:
     # ------------------------------------------------------------------
 
     @oauth_required
-    def upload_commons_post(self) -> str:
+    def upload_commons_post(self, session_id: str) -> str:
         """Upload the injected SVG back to Commons (replaces existing file)."""
-        session_id = request.view_args.get("session_id", "") if request.view_args else ""
 
         base_dir = _sessions_base_dir()
         session_obj = TranslateSession.load(session_id, base_dir)
@@ -452,9 +448,8 @@ class TranslateRoutes:
     # Result page (shown after commit or upload)
     # ------------------------------------------------------------------
 
-    def result_page(self) -> str:
+    def result_page(self, session_id: str) -> str:
         """Show the result page after commit/upload."""
-        session_id = request.view_args.get("session_id", "") if request.view_args else ""
         lang = request.args.get("lang", "")
 
         base_dir = _sessions_base_dir()
