@@ -41,6 +41,7 @@ def mock_download_core(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     )
     return _mock
 
+
 class TestDownloadOneFile:
     def test_empty_title_returns_empty_result(self, temp_output_dir):
         result = download_one_file("", temp_output_dir)

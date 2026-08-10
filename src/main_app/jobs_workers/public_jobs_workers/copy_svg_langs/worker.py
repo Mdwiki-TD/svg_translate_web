@@ -12,7 +12,6 @@ from typing import Any
 from mwclient.client import Site
 
 from ....api_services import UploadService
-
 from ....api_services.files_service import FilesService
 from ....config import settings
 from ....shared.copysvg_wrapper import (

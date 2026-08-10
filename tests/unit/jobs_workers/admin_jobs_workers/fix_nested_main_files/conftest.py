@@ -19,7 +19,7 @@ def mock_fix_nested_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, m
         "detect_nested_tags": MagicMock(),
         "fix_nested_tags": MagicMock(),
         "verify_fix": MagicMock(),
-        "upload_fixed_svg": MagicMock(),
+        "upload_svg": MagicMock(),
         "get_user_site": mock_base_worker["get_user_site"],
     }
 
@@ -39,8 +39,8 @@ def mock_fix_nested_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, m
         mocks["download_svg_file"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.UploadService.upload_fixed_svg",
-        mocks["upload_fixed_svg"],
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.UploadService.upload_svg",
+        mocks["upload_svg"],
     )
 
     monkeypatch.setattr(

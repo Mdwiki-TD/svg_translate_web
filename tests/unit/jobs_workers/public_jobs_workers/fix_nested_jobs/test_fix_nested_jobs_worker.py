@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
@@ -75,7 +76,7 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
         self.processor.site = MagicMock()
         self.processor.result.stages.verify.status = "success"
         self.processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
-        mock_fix_nested_services["upload_fixed_svg"].return_value = {"ok": True, "result": {"some": "data"}}
+        mock_fix_nested_services["upload_svg"].return_value = UploadResult(**{"ok": True, "result": {"some": "data"}})
 
         result = self.processor._upload_step()
 
@@ -87,7 +88,9 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
         self.processor.site = MagicMock()
         self.processor.result.stages.verify.status = "success"
         self.processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
-        mock_fix_nested_services["upload_fixed_svg"].return_value = {"ok": False, "error": "Upload failed message"}
+        mock_fix_nested_services["upload_svg"].return_value = UploadResult(
+            **{"ok": False, "error": "Upload failed message"}
+        )
 
         result = self.processor._upload_step()
 
@@ -429,31 +432,33 @@ class TestUploadStep(TestSetup):
         proc.result.stages.verify.status = "success"
         result = proc._upload_step()
         assert result is None
-        mock_fix_nested_services["upload_fixed_svg"].assert_not_called()
+        mock_fix_nested_services["upload_svg"].assert_not_called()
 
     def test_skips_when_no_site(self, mock_fix_nested_services, tmp_path):
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         proc.site = None
         result = proc._upload_step()
         assert result is None
-        mock_fix_nested_services["upload_fixed_svg"].assert_not_called()
+        mock_fix_nested_services["upload_svg"].assert_not_called()
 
     def test_skips_when_verify_not_success(self, mock_fix_nested_services, tmp_path):
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         proc.result.stages.verify.status = "failed"
         result = proc._upload_step()
         assert result is None
-        mock_fix_nested_services["upload_fixed_svg"].assert_not_called()
+        mock_fix_nested_services["upload_svg"].assert_not_called()
 
     def test_returns_true_on_success(self, mock_fix_nested_services, tmp_path):
-        mock_fix_nested_services["upload_fixed_svg"].return_value = {"ok": True, "result": {}}
+        mock_fix_nested_services["upload_svg"].return_value = UploadResult(**{"ok": True, "result": {}})
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is True
         assert proc.result.stages.upload.status == "success"
 
     def test_returns_false_on_failure(self, mock_fix_nested_services, tmp_path):
-        mock_fix_nested_services["upload_fixed_svg"].return_value = {"ok": False, "error": "permission_denied"}
+        mock_fix_nested_services["upload_svg"].return_value = UploadResult(
+            **{"ok": False, "error": "permission_denied"}
+        )
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         result = proc._upload_step()
         assert result is False
@@ -564,7 +569,7 @@ class TestRun(TestSetup):
                 return_value=VerificationResult(before=2, after=0, fixed=2),
             ),
             "upload": patch(
-                "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.UploadService.upload_fixed_svg",
+                "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.UploadService.upload_svg",
                 return_value={"ok": True, "result": {}},
             ),
         }

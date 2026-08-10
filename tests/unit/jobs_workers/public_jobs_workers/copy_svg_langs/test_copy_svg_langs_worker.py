@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
@@ -31,7 +32,7 @@ class MockServices:
     download: MagicMock
     detect: MagicMock
     inject: MagicMock
-    upload: MagicMock
+    upload_svg: MagicMock
 
 
 @pytest.fixture
@@ -82,7 +83,7 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
     mock_upload = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.UploadService.upload_fixed_svg", mock_upload
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.UploadService.upload_svg", mock_upload
     )
 
     mock_detect = MagicMock()
@@ -102,7 +103,7 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
         download=mock_download,
         detect=mock_detect,
         inject=mock_inject,
-        upload=mock_upload,
+        upload_svg=mock_upload,
     )
 
 
@@ -259,7 +260,7 @@ class TestCopySvgLangsWorkerProcess:
         mock_copylangs_services.inject.return_value = InjectResult(
             result=True, msg="ok", new_languages_count=1, updated_translations=0
         )
-        mock_copylangs_services.upload.return_value = {"ok": True, "error": "", "msg": "uploaded"}
+        mock_copylangs_services.upload_svg.return_value = UploadResult(**{"ok": True, "error": "", "msg": "uploaded"})
 
         mock_copylangs_services.is_cancelled.return_value = False
 
@@ -413,8 +414,7 @@ class TestCopySvgLangsWorkerUploadStep:
         mock_worker.files_processor.upload_done = 0
         mock_worker.site = MagicMock()
 
-
-        mock_copylangs_services.upload.return_value = {"ok": True, "error": "", "msg": "uploaded"}
+        mock_copylangs_services.upload_svg.return_value = UploadResult(**{"ok": True, "error": "", "msg": "uploaded"})
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_worker.files_processor._upload_step(title_info, "Adding translations", Path("test.svg"))
@@ -431,8 +431,7 @@ class TestCopySvgLangsWorkerUploadStep:
 
         mock_worker.site = MagicMock()
 
-
-        mock_copylangs_services.upload.return_value = {
+        mock_copylangs_services.upload_svg.return_value = {
             "ok": None,
             "error": "skipped",
             "msg": "File exists",
@@ -452,8 +451,7 @@ class TestCopySvgLangsWorkerUploadStep:
 
         mock_worker.site = MagicMock()
 
-
-        mock_copylangs_services.upload.return_value = {
+        mock_copylangs_services.upload_svg.return_value = {
             "ok": False,
             "error": "Upload failed",
             "msg": "error",
@@ -573,7 +571,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             result=True, msg="ok", new_languages_count=0, updated_translations=0
         )
         mock_copylangs_services.check_cancel_db_periodic.return_value = True
-        mock_copylangs_services.upload.return_value = {"ok": True, "error": "", "msg": "uploaded"}
+        mock_copylangs_services.upload_svg.return_value = UploadResult(**{"ok": True, "error": "", "msg": "uploaded"})
 
         result = mock_worker.process()
 
@@ -709,7 +707,6 @@ class TestCopySvgLangsWorkerStageMethods:
     def test_extract_text_step_exception(self, mock_worker: CopySvgLangsWorker, mock_steps: MockSteps):
         mock_worker.title = "File:Test.svg"
         mock_worker.site = MagicMock()
-
 
         mock_steps.text.side_effect = ValueError("connection error")
 

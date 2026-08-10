@@ -11,9 +11,8 @@ from pathlib import Path
 
 from mwclient.client import Site
 
-from ....api_services.files_service import UploadService
-
 from ....api_services import FilesService
+from ....api_services.files_service import UploadService
 from ....shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
@@ -177,17 +176,17 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         summary = f"Fixed {tags_fixed} nested tag(s)"
 
-        upload_result = self.upload_service.upload_fixed_svg(
+        upload_result = self.upload_service.upload_svg(
             self.filename,
             self.file_path,
             summary,
         )
 
-        if upload_result.get("ok"):
+        if upload_result.ok:
             self.result.stages.upload._update("success", "Uploaded successfully")
             return True
 
-        message = upload_result.get("error") or "Upload failed"
+        message = upload_result.error or "Upload failed"
 
         self.result.stages.upload._update("failed", message)
 

@@ -13,7 +13,9 @@ from .downloader import download_and_save
 from .files_helpers import get_file_info
 from .objects import (
     DownloadAndSaveData,
+    DownloadResult2,
     FileInfo,
+    UploadResult,
 )
 from .upload_bot import UploadFile
 
@@ -24,7 +26,7 @@ def _download_svg_file(
     filename: str,
     temp_dir: Path,
     session: requests.Session | None = None,
-) -> dict[str, Any]:
+) -> DownloadResult2:
     """Download SVG file and return file path or error info."""
     logger.info(f"Downloading file: {filename}")
 
@@ -36,74 +38,18 @@ def _download_svg_file(
     )
 
     if file_data.get("result") != "success":
-        return {
-            "ok": False,
-            "path": None,
-            "error": "download_failed",
-            "details": file_data,
-        }
-    return {
-        "ok": True,
-        "path": Path(file_data["path"]),
-        "error": None,
-        "details": {},
-    }
-
-def _upload_fixed_svg(
-    filename: str,
-    file_path: Path,
-    site: Site,
-    summary: str,
-) -> dict[str, Any]:
-    """Upload SVG file to Commons."""
-
-    logger.info(f"Uploading file: {filename}")
-
-    if not site:
-        return {
-            "ok": False,
-            "error": "No site provided",
-            "error_details": "",
-            "msg": None,
-            "result": None,
-        }
-    bot = UploadFile(
-        file_name=filename,
-        file_path=file_path,
-        site=site,
-        summary=summary,
+        return DownloadResult2(
+            ok=False,
+            path=None,
+            error="download_failed",
+            details=file_data,
+        )
+    return DownloadResult2(
+        ok=True,
+        path=Path(file_data["path"]),
+        error=None,
+        details={},
     )
-    result = bot.upload()
-
-    result_status = result.get("result") or ""
-    error_details = result.get("error_details", "")
-    result_error = result.get("error", "upload_failed")
-
-    if result_status.lower() == "success":
-        return {
-            "ok": True,
-            "error": None,
-            "error_details": error_details,
-            "msg": None,
-            "result": result,
-        }
-
-    if result_error == "fileexists-no-change" or result_status == "fileexists-no-change":
-        return {
-            "ok": None,
-            "error": "skipped",
-            "error_details": error_details,
-            "msg": "File already exists with same content",
-            "result": None,
-        }
-
-    return {
-        "ok": False,
-        "error": result_error,
-        "error_details": error_details,
-        "msg": None,
-        "result": None,
-    }
 
 
 class FilesService:
@@ -137,11 +83,12 @@ class FilesService:
         filename: str,
         temp_dir: Path,
     ) -> dict[str, Any]:
-        return _download_svg_file(
+        result = _download_svg_file(
             filename=filename,
             temp_dir=temp_dir,
             session=self.session,
         )
+        return result.to_json()
 
     def download_and_save(
         self,
@@ -166,35 +113,19 @@ class UploadService:
     #  upload methods
     # ----------------------
 
-    def upload_fixed_svg(
+    def upload_svg(
         self,
         filename: str,
         file_path: Path,
         summary: str,
-    ) -> dict[str, Any]:
-        """Upload a fixed SVG to Commons."""
-        return _upload_fixed_svg(
-            filename=filename,
+    ) -> UploadResult:
+        """Upload SVG file to Commons."""
+        logger.info(f"Uploading file: {filename}")
+
+        bot = UploadFile(
+            file_name=filename,
             file_path=file_path,
             site=self.site,
             summary=summary,
         )
-
-    def upload_file(
-        self,
-        file_name: str,
-        file_path: Path,
-        summary: str | None = None,
-        description: str | None = None,
-        new_file: bool = False,
-    ) -> dict:
-        uploader = UploadFile(
-            file_name=file_name,
-            file_path=file_path,
-            site=self.site,
-            summary=summary,
-            description=description,
-            new_file=new_file,
-        )
-
-        return uploader.upload()
+        return bot.upload_obj()

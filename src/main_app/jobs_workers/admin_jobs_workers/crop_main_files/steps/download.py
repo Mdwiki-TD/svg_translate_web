@@ -14,6 +14,7 @@ from .....api_services.files_service.downloader import download_and_save
 
 logger = logging.getLogger(__name__)
 
+
 def download_file_for_cropping(
     filename: str,
     output_dir: Path,

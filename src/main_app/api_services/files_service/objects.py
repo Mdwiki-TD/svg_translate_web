@@ -42,7 +42,7 @@ class DownloadResult2:
     error: str | None = None
     details: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -54,8 +54,9 @@ class UploadResult:
     msg: str | None = None
     result: dict[str, Any] | None = None
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         return asdict(self)
+
 
 __all__ = [
     "FileInfo",

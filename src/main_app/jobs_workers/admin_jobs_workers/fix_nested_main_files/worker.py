@@ -199,30 +199,30 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
             return {
                 "success": False,
                 "message": f"No nested tags were fixed in {filename}",
-                "details": verify.to_dict(),
+                "details": verify.to_json(),
             }
 
         summary = f"Fixed {verify.fixed} nested tag(s)"
 
-        upload = self.upload_service.upload_fixed_svg(
+        upload = self.upload_service.upload_svg(
             filename,
             file_path,
             summary,
         )
 
-        if not upload.get("ok"):
+        if not upload.ok:
             return {
                 "success": False,
                 "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
-                "details": {**verify.to_dict(), **upload},
+                "details": {**verify.to_json(), **upload.to_json()},
             }
 
         return {
             "success": True,
             "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
             "details": {
-                **verify.to_dict(),
-                "upload_result": upload.get("result"),
+                **verify.to_json(),
+                "upload_result": upload.result,
             },
         }
 

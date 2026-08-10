@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.shared.fix_nested.worker import (
@@ -21,14 +22,14 @@ def test_repair_nested_svg_tags_success(mock_fix_nested_services, tmp_path):
     mock_fix_nested_services["detect_nested_tags"].return_value = DetectionResult(count=5)
     mock_fix_nested_services["fix_nested_tags"].return_value = True
     mock_fix_nested_services["verify_fix"].return_value = VerificationResult(before=5, after=0, fixed=5)
-    mock_fix_nested_services["upload_fixed_svg"].return_value = {"ok": True, "result": {"newrevid": 123}}
+    mock_fix_nested_services["upload_svg"].return_value = UploadResult(**{"ok": True, "result": {"newrevid": 123}})
 
     data = JobsRunner(job_id=0, user=user)
     result = worker.FixNestedMainFilesWorker(data).repair_nested_svg_tags(filename, tmp_path)
 
     assert result["success"] is True
     assert "Successfully fixed 5 nested tag(s)" in result["message"]
-    mock_fix_nested_services["upload_fixed_svg"].assert_called_once()
+    mock_fix_nested_services["upload_svg"].assert_called_once()
 
 
 def test_repair_nested_svg_tags_no_tags(mock_fix_nested_services, tmp_path):

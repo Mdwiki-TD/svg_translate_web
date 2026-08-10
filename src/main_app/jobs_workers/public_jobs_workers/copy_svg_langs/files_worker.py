@@ -9,7 +9,6 @@ import logging
 from pathlib import Path
 
 from ....api_services import UploadService
-
 from ....api_services.files_service import FilesService
 from ....shared.copysvg_wrapper import (
     ExtractorData,
@@ -70,7 +69,7 @@ class OneFileProcessor:
             nested_step._update(
                 result=False,
                 msg="No nested tags were fixed",
-                details=verify.to_dict(),
+                details=verify.to_json(),
             )
             # no nested tags fixed, break the file process
             return 0, False
@@ -80,7 +79,7 @@ class OneFileProcessor:
         nested_step._update(
             result=True,
             msg=f"Fixed {verify.fixed} nested tag(s)",
-            details=verify.to_dict(),
+            details=verify.to_json(),
         )
 
         # no nested tags remaining in the file, process to inject translations step
@@ -184,17 +183,12 @@ class OneFileProcessor:
             return False
 
         # Start uploading
-        upload = self.upload_service.upload_fixed_svg(
+        upload_result = self.upload_service.upload_svg(
             title_info.title,
             new_path,
             summary=summary,
         )
-        upload_success = upload.get("ok")
-        upload_error = upload.get("error") or ""
-        upload_msg = upload.get("msg") or ""
-        error_details = upload.get("error_details", "")
-
-        if upload_success is True:
+        if upload_result.ok is True:
             title_info.steps.upload._update(
                 result=True,
                 msg="File Successfully uploaded.",
@@ -208,16 +202,16 @@ class OneFileProcessor:
             return True
 
         error_and_details = {
-            "error": upload_error,
-            "error_details": error_details,
+            "error": upload_result.error or "",
+            "error_details": upload_result.error_details,
             "summary": summary,
         }
 
-        is_no_changes = upload_error in {"skipped", "fileexists-no-change"}
-        if upload_success is None and is_no_changes:
+        is_no_changes = upload_result.error in {"skipped", "fileexists-no-change"}
+        if upload_result.ok is None and is_no_changes:
             title_info.steps.upload._update(
                 result=None,
-                msg=upload_msg,
+                msg=upload_result.msg or "",
                 details=error_and_details,
             )
             title_info.status = "skipped"
@@ -229,7 +223,7 @@ class OneFileProcessor:
             details=error_and_details,
         )
         title_info.status = "failed"
-        title_info.error = upload_error
+        title_info.error = upload_result.error or ""
         return False
 
     def _create_language_summary(self, main_title: str, translation_details: dict[str, int]) -> str:

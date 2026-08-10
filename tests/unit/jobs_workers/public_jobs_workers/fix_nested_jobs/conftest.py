@@ -21,7 +21,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         "detect_nested_tags": MagicMock(),
         "fix_nested_tags": MagicMock(),
         "verify_fix": MagicMock(),
-        "upload_fixed_svg": MagicMock(),
+        "upload_svg": MagicMock(),
         "is_job_cancelled": MagicMock(),
     }
 
@@ -46,8 +46,8 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         mocks["verify_fix"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.UploadService.upload_fixed_svg",
-        mocks["upload_fixed_svg"],
+        "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.UploadService.upload_svg",
+        mocks["upload_svg"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled",
