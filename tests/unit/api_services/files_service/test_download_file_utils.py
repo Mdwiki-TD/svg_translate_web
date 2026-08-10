@@ -94,18 +94,14 @@ class TestDownloadOneFile:
         title = "test.svg"
         file_path = temp_output_dir / title
         file_path.write_text("old content")
-        mock_download_core.return_value = GetWithRetryData(
-            content=b"<svg>new</svg>", success=True, status_code=200
-        )
+        mock_download_core.return_value = GetWithRetryData(content=b"<svg>new</svg>", success=True, status_code=200)
         result = download_one_file(title, temp_output_dir, overwrite_download=True)
         assert result["result"] == "success"
         assert file_path.read_bytes() == b"<svg>new</svg>"
 
     def test_download_success(self, temp_output_dir, mock_download_core):
         title = "new_file.svg"
-        mock_download_core.return_value = GetWithRetryData(
-            content=b"<svg>content</svg>", success=True, status_code=200
-        )
+        mock_download_core.return_value = GetWithRetryData(content=b"<svg>content</svg>", success=True, status_code=200)
         result = download_one_file(title, temp_output_dir)
         assert result["result"] == "success"
         assert result["path"].endswith(title)
@@ -113,9 +109,7 @@ class TestDownloadOneFile:
 
     def test_download_fails_empty_content(self, temp_output_dir, mock_download_core):
         title = "empty.svg"
-        mock_download_core.return_value = GetWithRetryData(
-            content=None, success=True, status_code=200
-        )
+        mock_download_core.return_value = GetWithRetryData(content=None, success=True, status_code=200)
         result = download_one_file(title, temp_output_dir)
         assert result["result"] == "failed"
 
@@ -137,9 +131,7 @@ class TestDownloadOneFile:
 
     def test_save_fails(self, temp_output_dir, mock_download_core, monkeypatch):
         title = "fail_save.svg"
-        mock_download_core.return_value = GetWithRetryData(
-            content=b"<svg>content</svg>", success=True, status_code=200
-        )
+        mock_download_core.return_value = GetWithRetryData(content=b"<svg>content</svg>", success=True, status_code=200)
 
         def mock_write_bytes(self, content):
             raise OSError("Disk full")
@@ -151,9 +143,7 @@ class TestDownloadOneFile:
 
     def test_creates_session_when_none(self, temp_output_dir, mock_download_core, monkeypatch):
         title = "session_test.svg"
-        mock_download_core.return_value = GetWithRetryData(
-            content=b"<svg>content</svg>", success=True, status_code=200
-        )
+        mock_download_core.return_value = GetWithRetryData(content=b"<svg>content</svg>", success=True, status_code=200)
         mock_session = MagicMock()
         monkeypatch.setattr(
             "src.main_app.api_services.clients.commons_client.create_commons_session",
@@ -164,9 +154,7 @@ class TestDownloadOneFile:
 
     def test_uses_provided_session(self, temp_output_dir, mock_download_core, mock_requests_session):
         title = "session_test.svg"
-        mock_download_core.return_value = GetWithRetryData(
-            content=b"<svg>content</svg>", success=True, status_code=200
-        )
+        mock_download_core.return_value = GetWithRetryData(content=b"<svg>content</svg>", success=True, status_code=200)
         result = download_one_file(title, temp_output_dir, session=mock_requests_session)
         assert result["result"] == "success"
 

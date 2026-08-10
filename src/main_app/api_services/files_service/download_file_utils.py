@@ -12,6 +12,7 @@ import requests
 from ..clients import CommonsSession
 from .downloader import download
 from .objects import DownloadAndSaveData, DownloadResult
+from .save_file import write_bytes_to_file
 
 logger = logging.getLogger(__name__)
 
@@ -176,9 +177,6 @@ def run_download_file(
     # Extract just the filename part (remove "File:" prefix if present)
     clean_filename = filename.removeprefix("File:")
 
-    # Determine output path - maintain original filename
-    out_path = output_dir / clean_filename
-
     # Use the core download function
     try:
         content = download_commons_file_core(clean_filename, session, timeout=60)
@@ -187,21 +185,23 @@ def run_download_file(
         logger.exception("Failed to download %s", clean_filename)
         return DownloadResult(error=f"Download failed: {str(e)}")
 
+    file_size = len(content)
     try:
         # Save the file
-        out_path.write_bytes(content)
-        file_size = len(content)
+        saved = write_bytes_to_file(content=content, filename=filename, output_dir=output_dir)
+
+        if not saved.success:
+            raise Exception(f"Failed to save file: {saved.error}")
 
         result["success"] = True
-        result["path"] = str(out_path.name)
+        result["path"] = str(saved.path.name)
         result["size_bytes"] = file_size
         logger.info("Downloaded: %s (%d bytes)", clean_filename, file_size)
-        return DownloadResult(success=True, path=str(out_path.name), size_bytes=file_size)
+        return DownloadResult(success=True, path=str(saved.path.name), size_bytes=file_size)
 
     except Exception as e:
         result["error"] = f"Unexpected error: {str(e)}"
         logger.exception("Error saving %s", clean_filename)
-
         return DownloadResult(error=f"Unexpected error: {str(e)}")
 
 

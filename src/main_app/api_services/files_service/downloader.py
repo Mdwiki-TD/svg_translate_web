@@ -10,19 +10,11 @@ import requests
 
 from ..clients import CommonsSession, GetWithRetryData
 from .objects import DownloadAndSaveData
+from .save_file import write_bytes_to_file
 
 logger = logging.getLogger(__name__)
 
 BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
-
-
-def _save_file(content: bytes, out_path: Path):
-    try:
-        out_path.write_bytes(content)
-        return True, None
-    except Exception as e:
-        logger.error(f"Failed to save: {str(out_path)} -> {e}")
-        return False, e
 
 
 def download(
@@ -82,11 +74,11 @@ def download(
         return DownloadAndSaveData(result="failed", msg=download_result.msg, error=download_result.msg)
 
     # save part
-    saved, save_error = _save_file(content, out_path)
-    if saved:
+    saved = write_bytes_to_file(content=content, filename=title, output_dir=out_dir)
+    if saved.success:
         return DownloadAndSaveData(result="success", path=str(out_path))
     else:
-        msg = f"Failed to save file: {save_error}"
+        msg = f"Failed to save file: {saved.error}"
         return DownloadAndSaveData(result="failed", msg=msg, error=msg)
 
 
