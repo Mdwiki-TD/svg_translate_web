@@ -25,7 +25,6 @@ class MockServices:
     download_and_save: MagicMock
     generate_main_files_zip: MagicMock
     create_commons_session: MagicMock
-    download_commons_file_core: MagicMock
     before_run: MagicMock
 
 
@@ -67,18 +66,11 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_before_run) -> MockServi
         mock_create_commons_session,
     )
 
-    mock_download_commons_file_core: MagicMock = MagicMock(return_value=b"svg-content")
-    monkeypatch.setattr(
-        "src.main_app.api_services.files_service.download_file_utils.download_commons_file_core",
-        mock_download_commons_file_core,
-    )
-
     return MockServices(
         list=mock_list_templates,
         download_and_save=mock_download_and_save,
         generate_main_files_zip=mock_generate_main_files_zip,
         create_commons_session=mock_create_commons_session,
-        download_commons_file_core=mock_download_commons_file_core,
         before_run=mock_before_run,
     )
 
@@ -192,8 +184,8 @@ def test_download_main_files_processes_multiple_templates(
 
     def download_side_effect(filename, *args, **kwargs):
         if filename == "file1.svg":
-            return {"success": True, "path": "file1.svg"}
-        return {"success": False, "error": "Fail"}
+            return DownloadAndSaveData(result="success", path="file1.svg")
+        return DownloadAndSaveData(result="failed", error="Fail")
 
     mock_services.download_and_save.side_effect = download_side_effect
 
@@ -222,7 +214,7 @@ def test_download_main_files_respects_cancellation(mock_path, mock_base_worker, 
 
     def download_with_cancel(*args, **kwargs):
         cancel_event.set()
-        return {"success": True, "path": "file.svg"}
+        return DownloadAndSaveData(result="success", path="file.svg")
 
     mock_services.download_and_save.side_effect = download_with_cancel
 
