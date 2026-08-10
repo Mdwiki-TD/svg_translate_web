@@ -196,10 +196,10 @@ class TestJobsRoutes(TestSetup):
                 {"id": 1, "title": "Template:Test1", "main_file": "test1.svg", "fix_result": {"message": "success"}},
             ],
             "pages_failed": [
-                {"id": 2, "title": "Template:Test2", "main_file": "test2.svg", "reason": "Failed to fix"},
+                {"id": 2, "title": "Template:Test2", "main_file": "test2.svg", "error": "Failed to fix"},
             ],
             "pages_skipped": [
-                {"id": 3, "title": "Template:Test3", "reason": "No main_file set"},
+                {"id": 3, "title": "Template:Test3", "error": "No main_file set"},
             ],
         }
 

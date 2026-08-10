@@ -84,7 +84,7 @@ class TestDownloadOneFile:
         file_path.write_text("existing content")
         result = download_one_file(title, temp_output_dir, 1, overwrite_download=False)
         assert result["result"] == "existing"
-        assert result["msg"] == "Skip existing file, no overwrite"
+        assert result["error"] == "Skip existing file, no overwrite"
         assert result["path"] == str(file_path)
 
     def test_existing_file_overwrites(self, temp_output_dir, mock_download_core):
@@ -113,18 +113,21 @@ class TestDownloadOneFile:
     def test_download_fails_404(self, temp_output_dir, mock_download_core):
         title = "missing.svg"
         mock_download_core.return_value = GetWithRetryData(
-            content=None, success=False, status_code=404, msg="Not found"
+            content=None,
+            success=False,
+            status_code=404,
+            msg="Not found",
         )
         result = download_one_file(title, temp_output_dir)
         assert result["result"] == "failed"
-        assert result["msg"] == "Not found"
+        assert result["error"] == "Not found"
 
     def test_download_fails_generic(self, temp_output_dir, mock_download_core):
         title = "error.svg"
         mock_download_core.side_effect = Exception("Connection timeout")
         result = download_one_file(title, temp_output_dir)
         assert result["result"] == "failed"
-        assert result["msg"] is None
+        assert result["error"] is None
 
     def test_save_fails(self, temp_output_dir, mock_download_core, monkeypatch):
         title = "fail_save.svg"
@@ -136,7 +139,7 @@ class TestDownloadOneFile:
         monkeypatch.setattr("pathlib.Path.write_bytes", mock_write_bytes)
         result = download_one_file(title, temp_output_dir)
         assert result["result"] == "failed"
-        assert "Failed to save file" in result["msg"]
+        assert "Failed to save file" in result["error"]
 
     def test_creates_session_when_none(self, temp_output_dir, mock_download_core, monkeypatch):
         title = "session_test.svg"

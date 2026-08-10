@@ -125,7 +125,6 @@ def test_download_main_files_downloads_template_with_main_file(
         result="success",
         path="file1.svg",
         error=None,
-        msg=None,
         size_bytes=100,
     )
     runner.download_main_files_for_templates(
@@ -159,7 +158,7 @@ def test_download_main_files_handles_download_failure(
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["failed"] == 1
     assert len(result_dict["files_failed"]) == 1
-    assert result_dict["files_failed"][0]["reason"] == "NotFound"
+    assert result_dict["files_failed"][0]["error"] == "NotFound"
 
 
 def test_download_main_files_handles_exception(
@@ -179,7 +178,7 @@ def test_download_main_files_handles_exception(
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert result_dict["summary"]["failed"] == 1
-    assert "Fatal error" in result_dict["files_failed"][0]["reason"]
+    assert "Fatal error" in result_dict["files_failed"][0]["error"]
 
 
 def test_download_main_files_processes_multiple_templates(
@@ -309,7 +308,9 @@ def test_download_main_files_saves_progress_periodically(
     templates = [TemplateRecord(id=i, title=f"T{i}", main_file=f"f{i}.svg") for i in range(1, 5)]
     mock_download_main_services.list.return_value = templates
     mock_download_main_services.download_and_save.return_value = DownloadAndSaveData(
-        result="success", path=None, error=None, msg=None
+        result="success",
+        path=None,
+        error=None,
     )
 
     runner.download_main_files_for_templates(

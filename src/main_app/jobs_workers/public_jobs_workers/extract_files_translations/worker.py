@@ -267,7 +267,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             return None
 
         if file_data.result != "success":
-            download_result = { "error": file_data.error or "download_failed" }
+            download_result = {"error": file_data.error or "download_failed"}
             down_step._update(result=False, msg="Failed to download file", details=download_result)
             title_info.status = "failed"
             title_info.error = "failed to download the file"
