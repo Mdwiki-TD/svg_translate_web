@@ -34,6 +34,7 @@ class DownloadMainFilesWorkerObject(StandardAdminWorkerObject):
     output_path: str | None = None
     files_downloaded: list[dict[str, Any]] = field(default_factory=list)
     files_failed: list[dict[str, Any]] = field(default_factory=list)
+    files_processed: list[dict[str, Any]] = field(default_factory=list)
 
 
 __all__ = [

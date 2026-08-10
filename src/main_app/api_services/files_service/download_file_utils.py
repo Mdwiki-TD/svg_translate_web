@@ -5,90 +5,13 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
 
 import requests
 
-from ..clients import CommonsSession
-from .downloader import download
-from .objects import DownloadAndSaveData, DownloadResult
-from .save_file import write_bytes_to_file
+from .downloader import download_and_save
+from .objects import DownloadAndSaveData
 
 logger = logging.getLogger(__name__)
-
-BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
-
-
-def download_commons_file_core(
-    filename: str,
-    session: requests.Session,
-    timeout: int = 60,
-) -> bytes:
-    """
-    Download a file from Wikimedia Commons and return raw content.
-
-    This is the lowest-level download function that handles the actual HTTP
-    request to Commons. It performs no file I/O or application-level validation;
-    network and HTTP errors are raised as exceptions for callers to handle.
-
-    Args:
-        filename: Clean filename without "File:" prefix. Spaces will be
-            converted to underscores for the URL.
-        session: Pre-configured requests Session with appropriate headers
-            (User-Agent, etc.).
-        timeout: Request timeout in seconds. Defaults to 60s for compatibility
-            with larger SVG files.
-
-    Returns:
-        Raw bytes content of the downloaded file.
-
-    Raises:
-        requests.RequestException: On network errors, HTTP errors (4xx, 5xx),
-            or timeouts.
-
-    Example:
-        >>> session = create_commons_session("MyBot/1.0")
-        >>> try:
-        ...     content = download_commons_file_core("Example.svg", session)
-        ...     Path("Example.svg").write_bytes(content)
-        ... except requests.RequestException as e:
-        ...     logger.error(f"Download failed: {e}")
-    """
-    # Normalize filename: convert spaces to underscores for URL
-    normalized_name = filename.replace(" ", "_")
-    url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
-
-    bot = CommonsSession(session, timeout=timeout)
-    response = bot.request(
-        method="GET",
-        url=url,
-    )
-    response.raise_for_status()
-    return response.content
-
-
-def download_file_rate_limit(
-    filename: str,
-    session: requests.Session | None = None,
-    timeout: int = 60,
-    max_attempts: int = 5,
-) -> bytes | None:
-    """
-    Download a file from Wikimedia Commons and return raw content.
-    """
-    # Normalize filename: convert spaces to underscores for URL
-    normalized_name = filename.replace(" ", "_")
-    url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
-
-    downloader = CommonsSession(session, timeout=timeout)
-
-    try:
-        return downloader.get_with_retry(url=url, max_attempts=max_attempts)
-    except Exception as e:
-        logger.error(f"Error downloading file {filename}: {e}")
-
-    return None
-
 
 def download_one_file(
     title: str,
@@ -111,7 +34,7 @@ def download_one_file(
         dict: Outcome dictionary with keys ``result`` ("success", "existing", or
         "failed") and ``path`` (path string when available).
     """
-    result = download(
+    result = download_and_save(
         title=title,
         out_dir=out_dir,
         session=session,
@@ -150,64 +73,8 @@ def download_svg_file(
         "details": {},
     }
 
-
-def run_download_file(
-    filename: str,
-    output_dir: Path,
-    session: requests.Session,
-) -> DownloadResult:
-    """
-    Download a single file from Wikimedia Commons.
-
-    Args:
-        filename: The file name (e.g., "File:Example.svg")
-        output_dir: Directory where the file should be saved
-        session: requests session to use
-    """
-    result = {
-        "success": False,
-        "path": None,
-        "size_bytes": None,
-        "error": None,
-    }
-
-    if not filename:
-        return DownloadResult(error="Empty filename")
-
-    # Extract just the filename part (remove "File:" prefix if present)
-    clean_filename = filename.removeprefix("File:")
-
-    # Use the core download function
-    try:
-        content = download_commons_file_core(clean_filename, session, timeout=60)
-    except Exception as e:
-        result["error"] = f"Download failed: {str(e)}"
-        logger.exception("Failed to download %s", clean_filename)
-        return DownloadResult(error=f"Download failed: {str(e)}")
-
-    file_size = len(content)
-    try:
-        # Save the file
-        saved = write_bytes_to_file(content=content, filename=filename, output_dir=output_dir)
-
-        if not saved.success:
-            raise Exception(f"Failed to save file: {saved.error}")
-
-        result["success"] = True
-        result["path"] = str(saved.path.name)
-        result["size_bytes"] = file_size
-        logger.info("Downloaded: %s (%d bytes)", clean_filename, file_size)
-        return DownloadResult(success=True, path=str(saved.path.name), size_bytes=file_size)
-
-    except Exception as e:
-        result["error"] = f"Unexpected error: {str(e)}"
-        logger.exception("Error saving %s", clean_filename)
-        return DownloadResult(error=f"Unexpected error: {str(e)}")
-
-
 __all__ = [
     "DownloadAndSaveData",
     "download_one_file",
     "download_svg_file",
-    "run_download_file",
 ]

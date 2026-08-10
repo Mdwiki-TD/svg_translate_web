@@ -11,13 +11,14 @@ from pathlib import Path
 
 import requests
 
-from ....api_services import create_commons_session
+from ....api_services.files_service import DownloadAndSaveData
+
+from ....api_services import FilesService, create_commons_session
 from ....config import settings
 from ....db.models import TemplateRecord
 from ....db.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .download_helper import download_file_from_commons
 from .objects import DownloadMainFilesWorkerObject, FileInfo
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         self.session: requests.Session | None = None
         self.main_files_zip_name = self.args.get("main_files_zip_name", "main_files.zip")
         self.limit_items = self.args.get("limit_items") or 0
+        self.files_service = FilesService(self.site)
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -96,63 +98,44 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         templates_with_files = [t for t in templates if t.main_file]
         return self._apply_limits(templates_with_files)
 
-    def _process_one_item(self, template: TemplateRecord) -> None:
-        self.result.summary.processed += 1
-
-        file_info = FileInfo(
-            template_id=template.id,
-            template_title=template.title,
-            filename=template.main_file,
-            timestamp=datetime.now().isoformat(),
-        )
-
-        # Extract just the filename part (remove "File:" prefix if present)
-        clean_filename = template.main_file
-        if clean_filename:
-            clean_filename = clean_filename.removeprefix("File:")
-
-        # Check if file already exists
-        # out_path = self.output_dir / clean_filename
-        # if out_path.exists(): self.result.summary.exists += 1
-
+    def _process_one_item(self, file_info: FileInfo) -> bool:
         try:
-            # Download the file (will overwrite if exists)
-            download_result = download_file_from_commons(
-                filename=clean_filename,
-                output_dir=self.output_dir,
-                session=self.session,
+            file_data: DownloadAndSaveData = self.files_service.download_and_save(
+                title=file_info.filename,
+                out_dir=self.output_dir,
+                overwrite_download=True,
             )
-
         except Exception as e:
             file_info.status = "failed"
             file_info.reason = f"Exception: {str(e)}"
             file_info.error_type = type(e).__name__
-            self.result.files_failed.append(file_info.to_dict())
-            self.result.summary.failed += 1
-            logger.exception("Job %s: Error processing %s", self.job_id, template.title)
+            logger.exception("Job %s: Error processing %s", self.job_id, file_info.template_title)
             return False
 
-        # download_result = { "success": False, "path": None, "size_bytes": None, "error": None}
-        if download_result.get("success"):
+        # =================
+        if file_data.result == "success":
             file_info.status = "downloaded"
-            file_info.path = download_result.get("path")
-            file_info.size_bytes = download_result.get("size_bytes")
-            self.result.files_downloaded.append(file_info.to_dict())
-            self.result.summary.success += 1
+            file_info.path = file_data.path
+            file_info.size_bytes = file_data.size_bytes
             return True
 
-        error = download_result.get("error")
-
         file_info.status = "failed"
-        file_info.reason = error
-        self.result.files_failed.append(file_info.to_dict())
-        self.result.summary.failed += 1
-        logger.warning("Job %s: Failed to download %s: %s", self.job_id, clean_filename, error)
+        file_info.reason = file_data.error
+        logger.warning("Job %s: Failed to download %s: %s", self.job_id, file_info.filename, file_data.error)
 
         return False
 
     def process(self) -> DownloadMainFilesWorkerObject:
         """Execute the download processing logic."""
+        if not self._check_site():
+            return self.result
+
+        # update site after calling _check_site
+        if self.site is None:
+            raise ValueError("Site is not set")
+
+        self.files_service.site = self.site
+
         templates_with_files = self._load_templates()
 
         self.result.summary.total = len(templates_with_files)
@@ -176,7 +159,29 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
                 logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
                 break
 
-            ok = self._process_one_item(template)
+            self.result.summary.processed += 1
+
+            file_info = FileInfo(
+                template_id=template.id,
+                template_title=template.title,
+                filename=template.main_file,
+                timestamp=datetime.now().isoformat(),
+            )
+
+            ok = self._process_one_item(file_info)
+
+            if file_info.status.lower() in ["pending", "running"]:
+                file_info.status = "completed"
+
+            if file_info.status == "downloaded":
+                self.result.files_downloaded.append(file_info)
+                self.result.summary.success += 1
+
+            elif file_info.status == "failed":
+                self.result.files_failed.append(file_info)
+                self.result.summary.failed += 1
+            else:
+                self.result.files_processed.append(file_info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)

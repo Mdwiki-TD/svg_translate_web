@@ -14,10 +14,11 @@ class FileInfo:
 
 @dataclass
 class DownloadAndSaveData:
-    result: str | None = None
+    result: str
     msg: str | None = None
     error: str | None = None
     path: str | None = None
+    size_bytes: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

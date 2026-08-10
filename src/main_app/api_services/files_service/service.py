@@ -8,13 +8,11 @@ from ..clients import create_commons_session
 from .download_file_utils import (
     download_one_file,
     download_svg_file,
-    run_download_file,
 )
-from .downloader import download
+from .downloader import download_and_save
 from .files_helpers import get_file_info
 from .objects import (
     DownloadAndSaveData,
-    DownloadResult,
     FileInfo,
 )
 from .upload_bot import (
@@ -98,26 +96,14 @@ class FilesService:
             session=self.session,
         )
 
-    def run_download_file(
-        self,
-        filename: str,
-        output_dir: Path,
-        session: requests.Session,
-    ) -> DownloadResult:
-        return run_download_file(
-            filename=filename,
-            output_dir=output_dir,
-            session=session,
-        )
-
-    def download(
+    def download_and_save(
         self,
         title: str,
         out_dir: Path,
         overwrite_download: bool = True,
     ) -> DownloadAndSaveData:
         """Download a file from Commons and save it to out_dir."""
-        return download(
+        return download_and_save(
             title=title,
             out_dir=out_dir,
             session=self.session,
