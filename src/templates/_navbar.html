@@ -57,6 +57,9 @@
                                 </li>
                             #}
                             <li class="{{ nav_item_class }}">
+                                {{ nav_link('translate.', 'bi-pencil-translate', 'Translate', url_for('translate.select_form')) }}
+                            </li>
+                            <li class="{{ nav_item_class }}">
                                 {{ nav_link('extract.', 'bi-file-earmark-text', 'Extract', url_for('extract.dashboard')) }}
                             </li>
                             <li class="{{ nav_item_class }}">

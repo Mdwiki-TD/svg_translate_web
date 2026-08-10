@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive SVG Translate{% endblock %}
+
+{% block content_fluid %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="bi bi-pencil-translate"></i> Interactive SVG Translate
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Translate an SVG file interactively. Enter a Commons filename or upload an SVG,
+                        choose a target language, then edit translations in a table.
+                    </p>
+
+                    <!-- Tab navigation -->
+                    <ul class="nav nav-tabs mb-4" id="translateTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="commons-tab" data-bs-toggle="tab"
+                                data-bs-target="#commons-pane" type="button" role="tab">
+                                <i class="bi bi-cloud-download"></i> From Commons
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="upload-tab" data-bs-toggle="tab"
+                                data-bs-target="#upload-pane" type="button" role="tab">
+                                <i class="bi bi-upload"></i> Upload SVG
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="translateTabsContent">
+                        <!-- Commons tab -->
+                        <div class="tab-pane fade show active" id="commons-pane" role="tabpanel">
+                            <form method="POST" action="{{ url_for('translate.select_post') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                                <div class="mb-3">
+                                    <label for="filename" class="form-label">
+                                        Commons File Name <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control wiki-autocomplete-files"
+                                        id="filename" name="filename"
+                                        placeholder="Example.svg"
+                                        value="{{ filename|default('', true) }}" required>
+                                    <div class="form-text">
+                                        Enter the SVG filename on Wikimedia Commons (with or without "File:" prefix)
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="lang_commons" class="form-label">
+                                        Target Language <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="lang_commons" name="lang"
+                                        placeholder="ar" value="" required
+                                        pattern="[a-z]{2,3}(-[a-zA-Z0-9]+)*"
+                                        title="Language code, e.g. ar, fr, zh-hans">
+                                    <div class="form-text">
+                                        IETF language code (e.g. <code>ar</code>, <code>fr</code>, <code>zh-hans</code>)
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="bi bi-arrow-right"></i> Load &amp; Edit Translations
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Upload tab -->
+                        <div class="tab-pane fade" id="upload-pane" role="tabpanel">
+                            <form method="POST" action="{{ url_for('translate.upload_post') }}"
+                                enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                                <div class="mb-3">
+                                    <label for="svg_file" class="form-label">
+                                        SVG File <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="file" class="form-control" id="svg_file" name="svg_file"
+                                        accept=".svg,image/svg+xml" required>
+                                    <div class="form-text">
+                                        Upload a translation-ready SVG file (max 5 MB)
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="lang_upload" class="form-label">
+                                        Target Language <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="lang_upload" name="lang"
+                                        placeholder="ar" value="" required
+                                        pattern="[a-z]{2,3}(-[a-zA-Z0-9]+)*"
+                                        title="Language code, e.g. ar, fr, zh-hans">
+                                    <div class="form-text">
+                                        IETF language code (e.g. <code>ar</code>, <code>fr</code>, <code>zh-hans</code>)
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="bi bi-arrow-right"></i> Load &amp; Edit Translations
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-info-circle"></i> How it works
+                        </h5>
+                        <ol class="mb-0">
+                            <li>Load an SVG file from Commons or upload your own</li>
+                            <li>Choose a target language to translate into</li>
+                            <li>Edit translations in a table — existing values are pre-filled</li>
+                            <li>Download the translated SVG or upload it back to Commons</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
