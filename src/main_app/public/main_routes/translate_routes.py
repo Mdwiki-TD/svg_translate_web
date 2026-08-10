@@ -12,7 +12,6 @@ from typing import Any
 from flask import (
     Blueprint,
     flash,
-    g,
     redirect,
     render_template,
     request,
