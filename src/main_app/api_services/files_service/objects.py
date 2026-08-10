@@ -13,7 +13,7 @@ class FileInfo:
 
 
 @dataclass
-class DownloadData:
+class DownloadAndSaveData:
     result: str | None = None
     msg: str | None = None
     error: str | None = None
@@ -36,6 +36,6 @@ class DownloadResult:
 
 __all__ = [
     "FileInfo",
-    "DownloadData",
+    "DownloadAndSaveData",
     "DownloadResult",
 ]

@@ -9,7 +9,7 @@ from .files_helpers import (
     get_file_info,
 )
 from .objects import (
-    DownloadData,
+    DownloadAndSaveData,
     DownloadResult,
     FileInfo,
 )
@@ -21,7 +21,7 @@ from .upload_bot import (
 
 __all__ = [
     "FileInfo",
-    "DownloadData",
+    "DownloadAndSaveData",
     "DownloadResult",
     "FilesService",
     "run_download_file",

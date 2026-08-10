@@ -11,7 +11,7 @@ import requests
 
 from ..clients import CommonsSession
 from .downloader import download
-from .objects import DownloadData, DownloadResult
+from .objects import DownloadAndSaveData, DownloadResult
 
 logger = logging.getLogger(__name__)
 
@@ -206,7 +206,7 @@ def run_download_file(
 
 
 __all__ = [
-    "DownloadData",
+    "DownloadAndSaveData",
     "download_one_file",
     "download_svg_file",
     "run_download_file",

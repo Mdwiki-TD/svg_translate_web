@@ -13,7 +13,7 @@ from .download_file_utils import (
 from .downloader import download
 from .files_helpers import get_file_info
 from .objects import (
-    DownloadData,
+    DownloadAndSaveData,
     DownloadResult,
     FileInfo,
 )
@@ -115,7 +115,7 @@ class FilesService:
         title: str,
         out_dir: Path,
         overwrite_download: bool = True,
-    ) -> DownloadData:
+    ) -> DownloadAndSaveData:
         """Download a file from Commons and save it to out_dir."""
         return download(
             title=title,

@@ -9,7 +9,7 @@ from urllib.parse import quote
 import requests
 
 from ..clients import CommonsSession, GetWithRetryData
-from .objects import DownloadData
+from .objects import DownloadAndSaveData
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def download(
     out_dir: Path,
     session: requests.Session | None = None,
     overwrite_download: bool = True,
-) -> DownloadData:
+) -> DownloadAndSaveData:
     """
     Download a single Commons file, skipping already-downloaded copies.
 
@@ -43,13 +43,13 @@ def download(
     """
 
     if not title:
-        return DownloadData(result="failed", msg="Empty title provided")
+        return DownloadAndSaveData(result="failed", msg="Empty title provided")
 
     out_path = out_dir / title
 
     if out_path.exists() and not overwrite_download:
         logger.debug(f"Skipped existing: {title}")
-        return DownloadData(
+        return DownloadAndSaveData(
             result="existing",
             msg="Skip existing file, no overwrite",
             path=str(out_path),
@@ -70,27 +70,27 @@ def download(
         download_result = _download_it(title)
     except Exception as e:
         logger.error(f"Failed: {title} -> {e}")
-        return DownloadData(result="failed")
+        return DownloadAndSaveData(result="failed")
 
     if download_result.status_code != 200:
         logger.error(f"Failed: {title} -> {download_result.status_code}")
-        return DownloadData(result="failed", msg=download_result.msg, error=download_result.msg)
+        return DownloadAndSaveData(result="failed", msg=download_result.msg, error=download_result.msg)
 
     content = download_result.content
     if content is None:
         logger.error(f"Failed: {title} -> No content")
-        return DownloadData(result="failed", msg=download_result.msg, error=download_result.msg)
+        return DownloadAndSaveData(result="failed", msg=download_result.msg, error=download_result.msg)
 
     # save part
     saved, save_error = _save_file(content, out_path)
     if saved:
-        return DownloadData(result="success", path=str(out_path))
+        return DownloadAndSaveData(result="success", path=str(out_path))
     else:
         msg = f"Failed to save file: {save_error}"
-        return DownloadData(result="failed", msg=msg, error=msg)
+        return DownloadAndSaveData(result="failed", msg=msg, error=msg)
 
 
 __all__ = [
-    "DownloadData",
+    "DownloadAndSaveData",
     "download",
 ]

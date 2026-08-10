@@ -11,7 +11,7 @@ from pathlib import Path
 
 from mwclient.client import Site
 
-from ....api_services.files_service import DownloadData, FilesService
+from ....api_services.files_service import DownloadAndSaveData, FilesService
 from ....config import settings
 from ....shared.copysvg_wrapper import (
     ExtractResult,
@@ -254,7 +254,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         title = title_info.title
         down_step = title_info.steps.download
         try:
-            file_data: DownloadData = self.files_service.download(
+            file_data: DownloadAndSaveData = self.files_service.download(
                 title=title,
                 out_dir=self.output_dir_files,
                 overwrite_download=self.overwrite_download,
