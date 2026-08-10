@@ -211,7 +211,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
     def extract_file_translations(self, title_info: FilesProcessedItem) -> None:
         langs_step = title_info.steps.languages
-        mapping_step = title_info.steps.mapping
+        mapping_step = title_info.steps.load_mapping
 
         file_path = Path(title_info.file_path)
         try:

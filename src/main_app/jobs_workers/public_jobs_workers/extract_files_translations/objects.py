@@ -61,7 +61,7 @@ class StepResult:
 @dataclass
 class FileSteps:
     download: StepResult = field(default_factory=lambda: StepResult())
-    mapping: StepResult = field(default_factory=lambda: StepResult())
+    load_mapping: StepResult = field(default_factory=lambda: StepResult())
     languages: StepResult = field(default_factory=lambda: StepResult())
 
 
