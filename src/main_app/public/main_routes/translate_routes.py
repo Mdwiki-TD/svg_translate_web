@@ -240,7 +240,7 @@ class TranslateRoutes:
             return redirect(url_for("translate.dashboard"))
 
         upload_service = UploadService(site)
-        summary = f"Added/Updated '{lang}' translations using Copy SVG Translations tool"
+        summary = f"Added/Updated '{lang}' translations"
         upload_res = upload_service.upload_svg(
             filename=filename,
             file_path=output_file,
