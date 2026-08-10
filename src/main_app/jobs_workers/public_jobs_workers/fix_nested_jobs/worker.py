@@ -11,7 +11,9 @@ from pathlib import Path
 
 from mwclient.client import Site
 
-from ....api_services.files_service import download_svg_file, upload_fixed_svg
+from ....api_services import FilesService
+
+from ....api_services.files_service import download_svg_file
 from ....shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
@@ -45,6 +47,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.filename = self.args.get("filename")
         self.site: Site | None = None
         self.file_path: Path | None = None
+        self.files_service = FilesService(self.site)
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -55,7 +58,10 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         temp_dir = Path(tempfile.gettempdir())
 
-        download_result = download_svg_file(self.filename, temp_dir)
+        download_result = self.files_service.download_svg_file(
+            filename=self.filename,
+            temp_dir=temp_dir,
+        )
 
         if download_result.get("ok"):
             download_path = str(download_result.get("path"))
@@ -170,10 +176,9 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         summary = f"Fixed {tags_fixed} nested tag(s)"
 
-        upload_result = upload_fixed_svg(
+        upload_result = self.files_service.upload_fixed_svg(
             self.filename,
             self.file_path,
-            self.site,
             summary,
         )
 
