@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
 
 from .mapping import ExtractorData
 
@@ -24,7 +24,7 @@ class TranslateRow:
 
     source: str
     current: str
-    status: str  # "existing" | "missing"
+    status: Literal["existing", "missing"]
     row_index: int = 0
 
     def to_dict(self) -> dict[str, Any]:

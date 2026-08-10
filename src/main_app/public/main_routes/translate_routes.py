@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import shutil
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -99,8 +98,8 @@ class TranslateRoutes:
             return render_template("translate/select.html", filename=filename)
 
         # Download + extract
-        temp_dir = Path(tempfile.mkdtemp())
-        try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            temp_dir = Path(tmp_dir)
             download_result = self.files_service.download_and_save(
                 title=clean_name,
                 out_dir=temp_dir,
@@ -152,10 +151,6 @@ class TranslateRoutes:
 
             return redirect(url_for("translate.edit_form", session_id=session_obj.session_id, lang=lang))
 
-        finally:
-            if temp_dir.exists():
-                shutil.rmtree(temp_dir, ignore_errors=True)
-
     def upload_post(self) -> str:
         """Handle direct SVG file upload: extract, create session."""
         uploaded = request.files.get("svg_file")
@@ -181,9 +176,10 @@ class TranslateRoutes:
             return render_template("translate/select.html")
 
         # Save to temp, extract
-        temp_dir = Path(tempfile.mkdtemp())
-        try:
-            temp_file = temp_dir / uploaded.filename
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            temp_dir = Path(tmp_dir)
+            safe_filename = Path(uploaded.filename).name
+            temp_file = temp_dir / safe_filename
             temp_file.write_bytes(data)
 
             extract_result: ExtractResult = extract_from_path(temp_file, fast_return_false=False)
@@ -224,10 +220,6 @@ class TranslateRoutes:
             )
 
             return redirect(url_for("translate.edit_form", session_id=session_obj.session_id, lang=lang))
-
-        finally:
-            if temp_dir.exists():
-                shutil.rmtree(temp_dir, ignore_errors=True)
 
     # ------------------------------------------------------------------
     # Edit form
@@ -284,18 +276,16 @@ class TranslateRoutes:
             flash("No language specified", "danger")
             return redirect(url_for("translate.edit_form", session_id=session_id))
 
-        # Collect form rows
+        # Collect form rows by finding all source_N keys
         form_rows: list[dict[str, str]] = []
-        idx = 0
-        while True:
-            source_key = f"source_{idx}"
+        source_keys = [k for k in request.form.keys() if k.startswith("source_")]
+        for source_key in sorted(source_keys, key=lambda k: int(k.split("_")[1])):
+            idx = source_key.split("_")[1]
             target_key = f"target_{idx}"
             source_val = request.form.get(source_key)
             target_val = request.form.get(target_key)
-            if source_val is None:
-                break
-            form_rows.append({"source": source_val, "target": target_val or ""})
-            idx += 1
+            if source_val is not None:
+                form_rows.append({"source": source_val, "target": target_val or ""})
 
         user_mapping = mapping_from_rows(form_rows, lang)
 
@@ -360,7 +350,9 @@ class TranslateRoutes:
 
         # Build a download filename
         if session_obj.source_type == "commons":
-            download_name = session_obj.commons_title.removeprefix("File:")
+            download_name = (session_obj.commons_title or "").removeprefix("File:")
+            if not download_name:
+                download_name = "translated.svg"
         else:
             download_name = session_obj.upload_filename or "translated.svg"
 
@@ -413,6 +405,9 @@ class TranslateRoutes:
         filename = commons_title.removeprefix("File:")
 
         lang = request.form.get("lang", "unknown")
+        # Basic validation for language code
+        if not lang or len(lang) > 20 or not lang.replace('-', '').isalpha():
+            lang = "unknown"
         summary = f"/* SVG translation */ Added/updated {lang} translations via Copy SVG Translations tool"
 
         upload_service = UploadService(site)
