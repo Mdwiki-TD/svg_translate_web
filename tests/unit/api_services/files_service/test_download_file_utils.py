@@ -152,7 +152,7 @@ class TestDownloadOneFile:
     def test_uses_provided_session(self, temp_output_dir, mock_download_core, mock_requests_session):
         title = "session_test.svg"
         mock_download_core.return_value = b"<svg>content</svg>"
-        result = download_one_file(title, temp_output_dir, 1, session=mock_requests_session)
+        result = download_one_file(title, temp_output_dir, session=mock_requests_session)
         assert result["result"] == "success"
 
 

@@ -1,6 +1,7 @@
 """Unit tests for jobs_service module."""
 
 from __future__ import annotations
+
 from datetime import datetime
 
 import pytest
@@ -331,6 +332,7 @@ class TestCancelJobDb(TestSetup):
 
         assert cancelled.status == "cancelled"
         assert str(cancelled.completed_at) == str(date)
+
 
 class TestUpdateJobStatus(TestSetup):
     """Tests for update_job_status."""

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
@@ -11,21 +10,12 @@ from urllib.parse import quote
 import requests
 
 from ..clients import CommonsSession
+from .downloader import download
+from .objects import DownloadData, DownloadResult
 
 logger = logging.getLogger(__name__)
 
 BASE_COMMONS_URL = "https://commons.wikimedia.org/wiki/Special:FilePath/"
-
-
-@dataclass
-class DownloadResult:
-    success: bool = False
-    size_bytes: int | None = None
-    path: str | None = None
-    error: str | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
 
 
 def download_commons_file_core(
@@ -89,12 +79,10 @@ def download_file_rate_limit(
     normalized_name = filename.replace(" ", "_")
     url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
 
-    bot = CommonsSession(session, timeout=timeout)
+    downloader = CommonsSession(session, timeout=timeout)
 
     try:
-        response = bot.get_with_retry(url=url, max_attempts=max_attempts)
-        if response:
-            return response.content
+        return downloader.get_with_retry(url=url, max_attempts=max_attempts)
     except Exception as e:
         logger.error(f"Error downloading file {filename}: {e}")
 
@@ -104,16 +92,16 @@ def download_file_rate_limit(
 def download_one_file(
     title: str,
     out_dir: Path,
-    i: int = 0,
     session: requests.Session | None = None,
     overwrite_download: bool = True,
+    **kwargs,
 ) -> dict[str, str]:
-    """Download a single Commons file, skipping already-downloaded copies.
+    """
+    Download a single Commons file, skipping already-downloaded copies.
 
     Parameters:
         title (str): Title of the file page on Wikimedia Commons.
         out_dir (Path): Directory where the file should be stored.
-        i (int): 1-based index used only for logging context.
         session (requests.Session | None): Optional shared session. A new session
             with an appropriate User-Agent is created when omitted.
         overwrite_download (bool): Whether to overwrite existing files.
@@ -122,47 +110,14 @@ def download_one_file(
         dict: Outcome dictionary with keys ``result`` ("success", "existing", or
         "failed") and ``path`` (path string when available).
     """
-    data = {
-        "result": "",
-        "msg": "",
-        "path": "",
-    }
+    result = download(
+        title=title,
+        out_dir=out_dir,
+        session=session,
+        overwrite_download=overwrite_download,
+    )
 
-    if not title:
-        return data
-
-    out_path = out_dir / title
-
-    if out_path.exists() and not overwrite_download:
-        logger.debug(f"[{i}] Skipped existing: {title}")
-        data["result"] = "existing"
-        data["msg"] = "Skip existing file, no overwrite"
-        data["path"] = str(out_path)
-        return data
-
-    # Use the core download function with shorter timeout
-    try:
-        content = download_file_rate_limit(title, session, timeout=30, max_attempts=5)
-        if not content:
-            raise Exception("Empty content")
-    except Exception as e:
-        data["result"] = "failed"
-        logger.error(f"[{i}] Failed: {title} -> {e}")
-        if "404 Client Error: Not Found for url" in str(e):
-            data["msg"] = "File not found"
-        return data
-
-    try:
-        out_path.write_bytes(content)
-        logger.debug(f"[{i}] Downloaded: {title}")
-        data["result"] = "success"
-        data["path"] = str(out_path)
-    except Exception as e:
-        data["result"] = "failed"
-        data["msg"] = f"Failed to save file: {e}"
-        logger.error(f"[{i}] Failed to save: {title} -> {e}")
-
-    return data
+    return result.to_dict()
 
 
 def download_svg_file(
@@ -251,6 +206,7 @@ def run_download_file(
 
 
 __all__ = [
+    "DownloadData",
     "download_one_file",
     "download_svg_file",
     "run_download_file",

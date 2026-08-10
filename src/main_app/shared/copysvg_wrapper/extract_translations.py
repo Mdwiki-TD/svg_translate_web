@@ -55,7 +55,7 @@ def _extract_file_translations(
     return result
 
 
-def extract_from_path(main_title_path: Path, fast_return_false: bool=True) -> ExtractResult:
+def extract_from_path(main_title_path: Path, fast_return_false: bool = True) -> ExtractResult:
     """
     Load SVG translations from a Wikimedia Commons main file.
 
@@ -72,14 +72,18 @@ def extract_from_path(main_title_path: Path, fast_return_false: bool=True) -> Ex
     except Exception:
         logger.exception("Failed to extract translations from main SVG")
         return ExtractResult(
-            success=False, message="", error="Failed to parse main SVG", translations={}, mapping=ExtractorData(),
+            success=False,
+            message="",
+            error="Failed to parse main SVG",
+            translations={},
+            mapping=ExtractorData(),
         )
 
     new_translations = mapping.new
     new_translations_count = len(new_translations)
 
     if fast_return_false:
-        if new_translations_count == 0 :
+        if new_translations_count == 0:
             error = "No translations found in main file"
             logger.debug(error)
             return ExtractResult(

@@ -11,6 +11,7 @@ from .worker import ExtractFilesTranslationsWorker
 
 logger = logging.getLogger(__name__)
 
+
 def extract_files_translations_worker_entry(data: JobsRunner) -> None:
     """Entry point for the background job."""
 

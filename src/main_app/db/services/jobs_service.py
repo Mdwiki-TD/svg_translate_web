@@ -337,6 +337,7 @@ class JobsService(CRUDService[JobRecord]):
 
         self.update(job, status="completed")
 
+
 __all__ = [
     "JobsService",
 ]

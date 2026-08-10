@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import time
+from dataclasses import asdict, dataclass
 from typing import Any
 
 import requests
@@ -17,6 +18,19 @@ logger = logging.getLogger(__name__)
 
 # Define API endpoint and parameters
 COMMONS_API_ENDPOINT = "https://commons.wikimedia.org/w/api.php"
+
+
+@dataclass
+class GetWithRetryData:
+    content: str | None = None
+    success: bool | None = None
+    status_code: int | None = None
+    msg: int | None = None
+    attempts: int | None = None
+    wait_time: int | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 def create_commons_session(user_agent: str | None = None) -> requests.Session:
@@ -95,14 +109,15 @@ class CommonsSession:
         )
         return response
 
-    def get_with_retry(
+    def get_with_retry_obj(
         self,
         url: str,
         max_attempts: int = 5,
-    ) -> requests.Response | None:
+    ) -> GetWithRetryData:
         """
         Get a URL with retry logic for handling rate limiting and network errors.
         """
+        wait_time = 0
         attempts = 0
         while attempts < max_attempts:
             try:
@@ -110,11 +125,22 @@ class CommonsSession:
 
                 # If successful, return the text content immediately
                 if response.status_code == 200:
-                    return response
+                    return GetWithRetryData(
+                        content=response.content,
+                        success=True,
+                        status_code=200,
+                        attempts=attempts,
+                    )
 
                 # If 404, return None
                 elif response.status_code == 404:
-                    return None
+                    return GetWithRetryData(
+                        content=None,
+                        success=False,
+                        status_code=404,
+                        attempts=attempts,
+                        msg="Not found",
+                    )
 
                 # Handle Rate Limiting (Error 429)
                 elif response.status_code == 429:
@@ -123,9 +149,22 @@ class CommonsSession:
                         wait_time = int(retry_after) if retry_after else 5
                     except ValueError:
                         wait_time = 5
+
                     logger.error(
                         f"Hit 429 (Rate Limit). Attempt {attempts + 1}/{max_attempts}. Waiting {wait_time}s..."
                     )
+
+                    if wait_time > 10:
+                        logger.error(f"wait time {wait_time} > 10")
+                        return GetWithRetryData(
+                            content=None,
+                            success=False,
+                            status_code=429,
+                            wait_time=wait_time,
+                            attempts=attempts,
+                            msg=f"Hit 429 (Rate Limit). wait time: {wait_time}s",
+                        )
+
                     time.sleep(wait_time)
 
                 # Handle other HTTP errors (e.g., 500, 503)
@@ -134,13 +173,30 @@ class CommonsSession:
 
             except requests.RequestException as e:
                 # Handle network failures, timeouts, etc.
-                logger.error(f"🔌 Connection error on attempt {attempts + 1}/{max_attempts}: {e}. Retrying in 2s...")
+                logger.error(f"Connection error on attempt {attempts + 1}/{max_attempts}: {e}. Retrying in 2s...")
                 time.sleep(2)
 
             attempts += 1
 
         # raise if all 5 attempts failed
-        return None
+        return GetWithRetryData(
+            content=None,
+            success=False,
+            # status_code=429,
+            wait_time=wait_time,
+            attempts=attempts,
+        )
+
+    def get_with_retry(
+        self,
+        url: str,
+        max_attempts: int = 5,
+    ) -> requests.Response | None:
+        """
+        Get a URL with retry logic for handling rate limiting and network errors.
+        """
+        result = self.get_with_retry_obj(url, max_attempts)
+        return result.content if result.success else None
 
 
 __all__ = [

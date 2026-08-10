@@ -9,6 +9,7 @@ from typing import Any
 
 from ...shared_objects import StandardAdminSummary, WorkerObject
 
+
 @dataclass
 class StageDetail:
     name: str = ""

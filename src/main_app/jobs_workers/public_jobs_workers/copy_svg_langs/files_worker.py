@@ -397,9 +397,15 @@ class OneFileProcessor:
 
         mapping_path = mapping_path.parent / f"{job_id}_all_files_mapping.json"
 
+        if not self.mapping:
+            logger.warning(f"No mapping to save for job {job_id}")
+            return
+
+        data = self.mapping.to_json()
+
         try:
             with open(mapping_path, "w", encoding="utf-8") as f:
-                json.dump(self.mapping, f, ensure_ascii=False, indent=4)
+                json.dump(data, f, ensure_ascii=False, indent=4)
         except Exception as e:
             logger.error(f"Error saving mapping: {e}")
 

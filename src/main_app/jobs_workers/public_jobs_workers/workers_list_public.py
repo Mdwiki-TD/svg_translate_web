@@ -1,6 +1,6 @@
 from ..objects import JobData
-from .extract_files_translations import extract_files_translations_worker_entry
 from .copy_svg_langs.runner import copy_svg_langs_worker_entry, setup_svg_langs_form
+from .extract_files_translations import extract_files_translations_worker_entry
 from .fix_nested_jobs.runner import fix_nested_jobs_worker_entry
 
 jobs_data_public: dict[str, JobData] = {
@@ -10,8 +10,7 @@ jobs_data_public: dict[str, JobData] = {
         job_details_template="jobs_templates/public/extract_files_translations/details.html",
         job_list_template="jobs_templates/public/extract_files_translations/list.html",
         job_callable=extract_files_translations_worker_entry,
-        job_args=[
-        ],
+        job_args=[],
         start_confirm_message="",
     ),
     "copy_svg_langs": JobData(

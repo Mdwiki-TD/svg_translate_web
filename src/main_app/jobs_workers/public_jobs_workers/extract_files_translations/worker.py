@@ -4,30 +4,29 @@ Worker module for extract_files_translations.
 
 from __future__ import annotations
 
-import logging
 import json
+import logging
 import re
 from pathlib import Path
 
 from mwclient.client import Site
 
-from ....shared.copysvg_wrapper.mapping import ExtractorData
-
-from ....api_services.files_service import FilesService
+from ....api_services.files_service import DownloadData, FilesService
 from ....config import settings
 from ....shared.copysvg_wrapper import (
     ExtractResult,
     extract_from_path,
 )
+from ....shared.copysvg_wrapper.mapping import ExtractorData
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import (
-    ExtractFilesTranslationsObject,
-    FilesProcessedItem,
-)
 from ..copy_svg_langs.steps import (
     extract_text_step,
     extract_titles_step,
+)
+from .objects import (
+    ExtractFilesTranslationsObject,
+    FilesProcessedItem,
 )
 
 logger = logging.getLogger(__name__)
@@ -85,7 +84,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self.save_result()
 
         try:
-            step_result = extract_titles_step( self.text )
+            step_result = extract_titles_step(self.text)
 
         except Exception as e:
             logger.exception("Error in stage titles")
@@ -151,6 +150,20 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
     # ------------------
 
+    def one_file(self, title_info: FilesProcessedItem) -> None:
+        # ----------------------------------------------
+        # File step 1: download
+        file_path_str: str | None = self.get_file_path(title_info.title)
+
+        if not file_path_str:
+            return
+
+        title_info.file_path = file_path_str
+
+        self.extract_file_translations(title_info)
+
+    # ------------------
+
     def process_titles(self, title_to_work: list[str]) -> None:
         processfiles_stage = self.result.stages.processfiles
         processfiles_stage.status = "running"
@@ -168,20 +181,9 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
             title_info = FilesProcessedItem(title=title)
 
-            # ----------------------------------------------
-            # File step 1: download
-
-            file_path_str: str | None = self.get_file_path(title, title_info)
-
-            if not file_path_str:
-                return False
-
-            title_info.file_path = file_path_str
+            self.one_file(title_info)
 
             self.result.summary.processed += 1
-
-            self.extract_file_translations(title_info)
-
             if title_info.is_mapping_merged:
                 self.result.mapping_mereged += 1
 
@@ -217,7 +219,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         except Exception as e:
             logger.error("Error in extract translations")
             mapping_step._update(result=False, details={"error": str(e)}, msg="Error in extract translations")
-            langs_step._update(result=None) # skipped
+            langs_step._update(result=None)  # skipped
             return
 
         mapping = result.mapping
@@ -240,17 +242,19 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             return
 
         title_info.status = "success"
-        langs_step._update(result=True, details={"languages": sorted(mapping.all_languages())}, msg="extract languages success")
+        langs_step._update(
+            result=True, details={"languages": sorted(mapping.all_languages())}, msg="extract languages success"
+        )
 
         self.update_translations(mapping)
         title_info.is_mapping_merged = True
         return
 
-
-    def get_file_path(self, title: str, title_info: FilesProcessedItem):
+    def get_file_path(self, title_info: FilesProcessedItem):
+        title = title_info.title
         down_step = title_info.steps.download
         try:
-            file_data = self.files_service.download_one_file(
+            file_data: DownloadData = self.files_service.download(
                 title=title,
                 out_dir=self.output_dir_files,
                 overwrite_download=self.overwrite_download,
@@ -262,19 +266,23 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
             title_info.error = "failed to download"
             return None
 
-        if file_data.get("result") != "success":
+        if file_data.result != "success":
             download_result = {
                 "ok": False,
                 "path": None,
-                "error": "download_failed",
-                "details": file_data,
+                "error": file_data.error or "download_failed",
+                "details": file_data.to_dict(),
             }
             down_step._update(result=False, msg="Failed to download file", details=download_result)
             title_info.status = "failed"
             title_info.error = "failed to download"
+
+            if file_data.error:
+                title_info.error += f", error: {title_info.error}"
+
             return None
 
-        file_path: str | None = file_data.get("path")
+        file_path: str | None = file_data.path
 
         download_result = {
             "ok": True,
@@ -348,9 +356,15 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
         mapping_path = mapping_path.parent / f"{job_id}_all_files_mapping.json"
 
+        if not self.mapping:
+            logger.warning(f"No mapping to save for job {job_id}")
+            return
+
+        data = self.mapping.to_json()
+
         try:
             with open(mapping_path, "w", encoding="utf-8") as f:
-                json.dump(self.mapping, f, ensure_ascii=False, indent=4)
+                json.dump(data, f, ensure_ascii=False, indent=4)
         except Exception as e:
             logger.error(f"Error saving mapping: {e}")
 
@@ -370,6 +384,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self.result.mapping = self.mapping.to_json()
 
         self._save_progress()
+
 
 __all__ = [
     "ExtractFilesTranslationsWorker",
