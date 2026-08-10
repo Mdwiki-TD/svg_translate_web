@@ -14,6 +14,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker import (
     OneFileProcessor,
@@ -32,7 +33,7 @@ class MockServices:
     fix: MagicMock
     verify: MagicMock
     inject: MagicMock
-    upload: MagicMock
+    upload_svg: MagicMock
 
 
 @pytest.fixture
@@ -78,7 +79,7 @@ def mock_files_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
         fix=mock_fix,
         verify=mock_verify,
         inject=mock_inject,
-        upload=mock_upload,
+        upload_svg=mock_upload,
     )
 
 
@@ -182,7 +183,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_files_services.inject.return_value = InjectResult(
             result=True, msg="ok", new_languages_count=1, updated_translations=0
         )
-        mock_files_services.upload.return_value = {"ok": True, "error": "", "msg": "uploaded"}
+        mock_files_services.upload_svg.return_value = UploadResult(ok=True, error="", msg="uploaded")
         mock_worker.main_title = "Main.svg"
         title_info = FilesProcessedItem(title="File:Test.svg")
 
@@ -230,7 +231,7 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_files_services.fix.return_value = True
         mock_files_services.verify.return_value = MagicMock(fixed=2)
         mock_files_services.inject.return_value = InjectResult(result=False, msg="Failed")
-        mock_files_services.upload.return_value = {"ok": True, "msg": "uploaded", "error": ""}
+        mock_files_services.upload_svg.return_value = UploadResult(ok=True, msg="uploaded", error="")
 
         title_info = FilesProcessedItem(title="File:Test.svg")
 
