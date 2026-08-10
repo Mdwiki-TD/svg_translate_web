@@ -30,7 +30,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         mocks["save_job_result_by_name"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.download_svg_file",
+        "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FilesService.download_svg_file",
         mocks["download_svg_file"],
     )
     monkeypatch.setattr(
@@ -46,7 +46,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         mocks["verify_fix"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.upload_fixed_svg",
+        "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker.FilesService.upload_fixed_svg",
         mocks["upload_fixed_svg"],
     )
     monkeypatch.setattr(

@@ -182,8 +182,8 @@ def test_download_main_files_processes_multiple_templates(
     ]
     mock_services.list.return_value = templates
 
-    def download_side_effect(filename, *args, **kwargs):
-        if filename == "file1.svg":
+    def download_side_effect(title, *args, **kwargs):
+        if title == "file1.svg":
             return DownloadAndSaveData(result="success", path="file1.svg")
         return DownloadAndSaveData(result="failed", error="Fail")
 
@@ -231,7 +231,9 @@ def test_download_main_files_respects_cancellation(mock_path, mock_base_worker, 
     assert result_dict["status"] == "cancelled"
 
 
-def test_download_main_files_handles_file_with_file_prefix(mock_path, mock_services: MockServices, tmp_path):
+def test_download_main_files_handles_file_with_file_prefix(
+    mock_path, mock_base_worker, mock_services: MockServices, tmp_path
+):
     """Test that 'File:' prefix is handled correctly."""
     templates = [TemplateRecord(id=1, title="T1", main_file="File:Example.svg")]
     mock_services.list.return_value = templates
@@ -245,11 +247,13 @@ def test_download_main_files_handles_file_with_file_prefix(mock_path, mock_servi
     )
 
     _call = mock_services.download_and_save.call_args[1]
-    passed_filename = _call["filename"]
-    assert passed_filename == "Example.svg"
+    passed_filename = _call["title"]
+    assert passed_filename == "File:Example.svg"
 
 
-def test_download_main_files_checks_if_file_exists(mock_path, mock_services: MockServices, tmp_path):
+def test_download_main_files_checks_if_file_exists(
+    mock_path, mock_base_worker, mock_services: MockServices, tmp_path
+):
     """Test worker handles existing files (overwrites by design)."""
     templates = [TemplateRecord(id=1, title="T1", main_file="exists.svg")]
     mock_services.list.return_value = templates
@@ -298,7 +302,9 @@ def test_download_main_files_saves_progress_periodically(
     assert mock_base_worker["save_job_result_by_name"].call_count >= 2
 
 
-def test_download_main_files_creates_output_directory(mock_path, mock_services: MockServices, tmp_path):
+def test_download_main_files_creates_output_directory(
+    mock_path, mock_base_worker, mock_services: MockServices, tmp_path
+):
     """Test that the output directory is created if missing."""
     mock_services.list.return_value = []
     runner.download_main_files_for_templates(
@@ -311,7 +317,9 @@ def test_download_main_files_creates_output_directory(mock_path, mock_services: 
     mock_path.return_value.mkdir.assert_called()
 
 
-def test_download_main_files_generates_zip_on_completion(mock_path, mock_services: MockServices, tmp_path):
+def test_download_main_files_generates_zip_on_completion(
+    mock_path, mock_base_worker, mock_services: MockServices, tmp_path
+):
     """Test that zip generation is triggered."""
     mock_services.list.return_value = []
     runner.download_main_files_for_templates(
