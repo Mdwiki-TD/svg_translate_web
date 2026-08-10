@@ -153,7 +153,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
     def one_file(self, title_info: FilesProcessedItem) -> None:
         # ----------------------------------------------
         # File step 1: download
-        file_path_str: str | None = self.get_file_path(title_info.title)
+        file_path_str: str | None = self.get_file_path(title_info)
 
         if not file_path_str:
             return
