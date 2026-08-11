@@ -317,6 +317,7 @@ class TestJobDetail(TestSetup):
             result_data=None,
             template_data=mock_template_data,
             expand_all=False,
+            bp_name="public_jobs",
         )
 
     def test_job_found_with_result(
@@ -336,6 +337,7 @@ class TestJobDetail(TestSetup):
             result_data={"key": "value"},
             template_data=mock_template_data,
             expand_all=False,
+            bp_name="public_jobs",
         )
 
     def test_job_found_with_expand_all(
@@ -352,6 +354,7 @@ class TestJobDetail(TestSetup):
             result_data=None,
             template_data=mock_template_data,
             expand_all=True,
+            bp_name="public_jobs",
         )
 
     def test_job_not_found(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
@@ -489,3 +492,60 @@ class TestJobsPublicRoutesRoutes(TestSetup):
         )
         resp = mock_p_client.post("/jobs/test_job/1/delete")
         assert resp.status_code == 302
+
+    def test_pages_table_folded_and_expanded_in_copy_svg_langs_template(self, mock_app: Flask) -> None:
+        """Test that copy_svg_langs details template folds table when data > 100 pages and not expand_all."""
+        from flask import render_template
+        with mock_app.test_request_context("/jobs/copy_svg_langs/123"):
+            # Create a mock job result with 101 success files
+            fake_files = [
+                {
+                    "title": f"File_{i}.svg",
+                    "status": "success",
+                    "steps": {
+                        "inject": {"details": {"inserted_translations": 1, "updated_translations": 2}},
+                        "translations": {"details": {"inserted": 1, "updated": 2}},
+                    }
+                }
+                for i in range(101)
+            ]
+            result_data = {
+                "files_success": fake_files,
+                "stages": {},
+                "summary": {"processed": 101, "total": 101},
+            }
+
+            # Render template with expand_all=False
+            rendered_collapsed = render_template(
+                "jobs_templates/public/copy_svg_langs/details.html",
+                template_data=MagicMock(job_type="copy_svg_langs", job_name="Copy SVG Langs"),
+                job=MagicMock(id=123, status="completed", username="alice"),
+                result_data=result_data,
+                expand_all=False,
+                bp_name="public_jobs",
+                is_admin=False,
+                current_username="alice",
+                tool_title="SVG Langs",
+            )
+            # The collapsed card header should be rendered, but NOT the full table with 101 files
+            # (which contains specific links or file references)
+            assert "Success (101)" in rendered_collapsed
+            # Since it's collapsed/folded, the link to expand should be present
+            assert "/jobs/copy_svg_langs/123/expand" in rendered_collapsed or "fas fa-plus" in rendered_collapsed
+            # File_0.svg should not be rendered in table body since the table is folded
+            assert "File_0.svg" not in rendered_collapsed
+
+            # Render template with expand_all=True
+            rendered_expanded = render_template(
+                "jobs_templates/public/copy_svg_langs/details.html",
+                template_data=MagicMock(job_type="copy_svg_langs", job_name="Copy SVG Langs"),
+                job=MagicMock(id=123, status="completed", username="alice"),
+                result_data=result_data,
+                expand_all=True,
+                bp_name="public_jobs",
+                is_admin=False,
+                current_username="alice",
+                tool_title="SVG Langs",
+            )
+            # Now the expand link or plus icon should NOT be there for expanding, but full table structure should be present
+            assert "File_0.svg" in rendered_expanded
