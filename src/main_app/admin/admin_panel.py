@@ -33,6 +33,7 @@ class AdminPanel:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
+        self.bp.route("/", methods=["GET"])(admin_required(self.admin_dashboard))
 
         @self.bp.app_context_processor
         def inject_sidebar() -> dict[str, Any]:
@@ -42,32 +43,30 @@ class AdminPanel:
             sidebar_html = create_side(active_route=active_route, path=request.path)
             return {"sidebar": sidebar_html}
 
-        @self.bp.route("/", methods=["GET"])
-        @admin_required
-        def admin_dashboard() -> str:
-            jobs = JobsService().list_jobs(limit=100)
+    def admin_dashboard(self) -> str:
+        jobs = JobsService().list_jobs(limit=100)
 
-            # Enhance jobs with display names and detail URLs
-            enhanced_jobs: list[Any] = []
-            for job in jobs:
-                enhanced_jobs.append(
-                    {
-                        "id": job.id,
-                        "status": job.status,
-                        "job_type": job.job_type,
-                        "display_name": _get_display_name(job.job_type),
-                        "detail_url": get_job_detail_url(job.id, job.job_type),
-                        "username": job.username,
-                        "created_at": job.created_at,
-                        "started_at": job.started_at,
-                        "completed_at": job.completed_at,
-                    }
-                )
-
-            return render_template(
-                "admins/admin.html",
-                jobs=enhanced_jobs,
+        # Enhance jobs with display names and detail URLs
+        enhanced_jobs: list[Any] = []
+        for job in jobs:
+            enhanced_jobs.append(
+                {
+                    "id": job.id,
+                    "status": job.status,
+                    "job_type": job.job_type,
+                    "display_name": _get_display_name(job.job_type),
+                    "detail_url": get_job_detail_url(job.id, job.job_type),
+                    "username": job.username,
+                    "created_at": job.created_at,
+                    "started_at": job.started_at,
+                    "completed_at": job.completed_at,
+                }
             )
+
+        return render_template(
+            "admins/admin.html",
+            jobs=enhanced_jobs,
+        )
 
 
 __all__ = [

@@ -38,142 +38,143 @@ class ExplorerRoutes:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        @self.bp.get("/<title_dir>/downloads")
-        def by_title_downloaded(title_dir: str) -> str:
-            files, title_path = get_files(title_dir, "files")
+        self.bp.get("/<title_dir>/downloads")(self.by_title_downloaded)
+        self.bp.get("/<title_dir>/translated")(self.by_title_translated)
+        self.bp.get("/<title_dir>/not_translated")(self.by_title_not_translated)
+        self.bp.get("/<title>")(self.by_title)
+        self.bp.route("/", methods=["GET"])(self.main)
+        self.bp.route("/media/<title_dir>/<subdir>/<string:filename>")(self.serve_media)
+        self.bp.route("/media_thumb/<title_dir>/<subdir>/<string:filename>")(self.serve_thumb)
+        self.bp.route("/compare/<title_dir>/<string:filename>")(self.compare)
 
-            # title = get_temp_title(title_dir)
-            title = title_dir
+    def by_title_downloaded(self, title_dir: str) -> str:
+        files, title_path = get_files(title_dir, "files")
 
-            return render_template(
-                "explorer/explore_files.html",
-                head_title=f"{title} downloaded Files ({len(files):,})",
-                path=str(title_path),
-                title=title,
-                title_dir=title_dir,
-                subdir="files",
-                files=files,
-            )
+        # title = get_temp_title(title_dir)
+        title = title_dir
 
-        @self.bp.get("/<title_dir>/translated")
-        def by_title_translated(title_dir: str) -> str:
-            files, title_path = get_files(title_dir, "translated")
+        return render_template(
+            "explorer/explore_files.html",
+            head_title=f"{title} downloaded Files ({len(files):,})",
+            path=str(title_path),
+            title=title,
+            title_dir=title_dir,
+            subdir="files",
+            files=files,
+        )
 
-            # title = get_temp_title(title_dir)
-            title = title_dir
+    def by_title_translated(self, title_dir: str) -> str:
+        files, title_path = get_files(title_dir, "translated")
 
-            return render_template(
-                "explorer/explore_files.html",
-                head_title=f"({title}) Translated Files ({len(files):,})",
-                path=str(title_path),
-                title=title,
-                title_dir=title_dir,
-                subdir="translated",
-                files=files,
-                compare_link=True,
-            )
+        # title = get_temp_title(title_dir)
+        title = title_dir
 
-        @self.bp.get("/<title_dir>/not_translated")
-        def by_title_not_translated(title_dir: str) -> str:
-            downloaded, title_path = get_files(title_dir, "files")
-            translated, _ = get_files(title_dir, "translated")
+        return render_template(
+            "explorer/explore_files.html",
+            head_title=f"({title}) Translated Files ({len(files):,})",
+            path=str(title_path),
+            title=title,
+            title_dir=title_dir,
+            subdir="translated",
+            files=files,
+            compare_link=True,
+        )
 
-            # title = get_temp_title(title_dir)
-            title = title_dir
+    def by_title_not_translated(self, title_dir: str) -> str:
+        downloaded, title_path = get_files(title_dir, "files")
+        translated, _ = get_files(title_dir, "translated")
 
-            not_translated = [x for x in downloaded if x not in set(translated)]
+        # title = get_temp_title(title_dir)
+        title = title_dir
 
-            return render_template(
-                "explorer/explore_files.html",
-                head_title=f"({title}) Not Translated Files ({len(not_translated):,})",
-                path=str(title_path),
-                title=title,
-                title_dir=title_dir,
-                subdir="files",
-                files=not_translated,
-            )
+        not_translated = [x for x in downloaded if x not in set(translated)]
 
-        @self.bp.get("/<title>")
-        def by_title(title: str) -> str:
-            infos = get_informations(title)
+        return render_template(
+            "explorer/explore_files.html",
+            head_title=f"({title}) Not Translated Files ({len(not_translated):,})",
+            path=str(title_path),
+            title=title,
+            title_dir=title_dir,
+            subdir="files",
+            files=not_translated,
+        )
 
-            return render_template(
-                "explorer/folder.html",
-                result=infos,
-            )
+    def by_title(self, title: str) -> str:
+        infos = get_informations(title)
 
-        @self.bp.route("/", methods=["GET"])
-        def main() -> str:
-            svg_data_path = load_svg_data_path()
-            titles = [x.name for x in svg_data_path.iterdir() if x.is_dir()]
-            data: dict[str, Any] = {}
-            for title in titles:
-                downloaded, _ = get_files(title, "files")
-                translated, _ = get_files(title, "translated")
-                data[title] = {
-                    "downloaded": len(downloaded),
-                    "translated": len(translated),
-                    "not_translated": len(set(downloaded).difference(translated)),
-                }
-            return render_template("explorer/index.html", data=data)
+        return render_template(
+            "explorer/folder.html",
+            result=infos,
+        )
 
-        @self.bp.route("/media/<title_dir>/<subdir>/<string:filename>")
-        def serve_media(title_dir: str, subdir: str, filename: str) -> Response:
-            """
-            Serve SVG files
-            """
-            svg_data_path = load_svg_data_path().resolve()
-            dir_path = (svg_data_path / title_dir / subdir).resolve()
+    def main(self) -> str:
+        svg_data_path = load_svg_data_path()
+        titles = [x.name for x in svg_data_path.iterdir() if x.is_dir()]
+        data: dict[str, Any] = {}
+        for title in titles:
+            downloaded, _ = get_files(title, "files")
+            translated, _ = get_files(title, "translated")
+            data[title] = {
+                "downloaded": len(downloaded),
+                "translated": len(translated),
+                "not_translated": len(set(downloaded).difference(translated)),
+            }
+        return render_template("explorer/index.html", data=data)
 
-            if not dir_path.is_relative_to(svg_data_path):
-                return "Access Denied", 403
+    def serve_media(self, title_dir: str, subdir: str, filename: str) -> Response:
+        """
+        Serve SVG files
+        """
+        svg_data_path = load_svg_data_path().resolve()
+        dir_path = (svg_data_path / title_dir / subdir).resolve()
 
+        if not dir_path.is_relative_to(svg_data_path):
+            return "Access Denied", 403
+
+        response = send_from_directory(str(dir_path), filename)
+        response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
+
+    def serve_thumb(self, title_dir: str, subdir: str, filename: str) -> Response:
+
+        svg_data_path = load_svg_data_path().resolve()
+        thumb_base_path = load_thumb_path().resolve()
+        dir_path = (svg_data_path / title_dir / subdir).resolve()
+        thumb_path = (thumb_base_path / title_dir / subdir).resolve()
+        if not dir_path.is_relative_to(svg_data_path) or not thumb_path.is_relative_to(thumb_base_path):
+            return "Access Denied", 403
+        file_path = dir_path / filename
+        file_thumb_path = thumb_path / filename
+        if not file_thumb_path.exists():
+            save_thumb(file_path, file_thumb_path)
+        if file_thumb_path.exists():
+            response = send_from_directory(str(thumb_path), filename)
+        else:
             response = send_from_directory(str(dir_path), filename)
-            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
-            response.headers["X-Content-Type-Options"] = "nosniff"
-            return response
 
-        @self.bp.route("/media_thumb/<title_dir>/<subdir>/<string:filename>")
-        def serve_thumb(title_dir: str, subdir: str, filename: str) -> Response:
+        response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
 
-            svg_data_path = load_svg_data_path().resolve()
-            thumb_base_path = load_thumb_path().resolve()
-            dir_path = (svg_data_path / title_dir / subdir).resolve()
-            thumb_path = (thumb_base_path / title_dir / subdir).resolve()
-            if not dir_path.is_relative_to(svg_data_path) or not thumb_path.is_relative_to(thumb_base_path):
-                return "Access Denied", 403
-            file_path = dir_path / filename
-            file_thumb_path = thumb_path / filename
-            if not file_thumb_path.exists():
-                save_thumb(file_path, file_thumb_path)
-            if file_thumb_path.exists():
-                response = send_from_directory(str(thumb_path), filename)
-            else:
-                response = send_from_directory(str(dir_path), filename)
-
-            response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
-            response.headers["X-Content-Type-Options"] = "nosniff"
-            return response
-
-        @self.bp.route("/compare/<title_dir>/<string:filename>")
-        def compare(title_dir: str, filename: str) -> str:
-            """Compare SVG files"""
-            # ---
-            svg_data_path = load_svg_data_path()
-            # ---
-            file_path = svg_data_path / title_dir / "files" / filename
-            translated_path = svg_data_path / title_dir / "translated" / filename
-            # ---
-            file1_result = analyze_file(file_path)
-            file2_result = analyze_file(translated_path)
-            # ---
-            return render_template(
-                "explorer/compare.html",
-                file=filename,
-                title_dir=title_dir,
-                downloaded_result=file1_result,
-                translated_result=file2_result,
-            )
+    def compare(self, title_dir: str, filename: str) -> str:
+        """Compare SVG files"""
+        # ---
+        svg_data_path = load_svg_data_path()
+        # ---
+        file_path = svg_data_path / title_dir / "files" / filename
+        translated_path = svg_data_path / title_dir / "translated" / filename
+        # ---
+        file1_result = analyze_file(file_path)
+        file2_result = analyze_file(translated_path)
+        # ---
+        return render_template(
+            "explorer/compare.html",
+            file=filename,
+            title_dir=title_dir,
+            downloaded_result=file1_result,
+            translated_result=file2_result,
+        )
 
 
 __all__ = [
