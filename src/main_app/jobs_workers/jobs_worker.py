@@ -220,6 +220,7 @@ def start_job_cli(
 
 
 __all__ = [
+    "start_job_form",
     "start_job",
     "start_job_cli",
     "cancel_job_worker",
