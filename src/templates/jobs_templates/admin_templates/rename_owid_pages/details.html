@@ -37,17 +37,17 @@
 {% endblock %}
 
 {% block job_details %}
-{% macro pages_table(pages_list, title) %}
+{% macro pages_table(data, table_title) %}
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, job_type) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header bg-opacity-10">
-        {{ card_header(title ~ " (" ~ pages_list|length ~ ")") }}
+        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
     </div>
     <div class="card-body">
         {# Show alert only for redirected pages #}
-        {% if title == 'Redirected' %}
+        {% if table_title == 'Redirected' %}
         <div class="alert alert-info mb-3">
             <i class="bi bi-arrow-right-circle"></i>
             Both the old and new page titles existed as real pages. The old (lowercase) page
@@ -61,13 +61,13 @@
                     <tr>
                         <th style="width: 4%">#</th>
                         {# Custom headers based on section type #}
-                        <th>{% if title == 'Redirected' %}Old title (now redirect){% else %}Old title{% endif %}</th>
-                        <th>{% if title == 'Redirected' %}New title (target){% else %}New title{% endif %}</th>
+                        <th>{% if table_title == 'Redirected' %}Old title (now redirect){% else %}Old title{% endif %}</th>
+                        <th>{% if table_title == 'Redirected' %}New title (target){% else %}New title{% endif %}</th>
                         <th>Message</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in pages_list %}
+                    {% for item in data %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>

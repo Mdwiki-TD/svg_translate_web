@@ -2,14 +2,14 @@
 
 <!-- Skipped Templates -->
 
-{% macro table_header_to_expand(data, table_title, job_id, job_type) %}
+{% macro table_header_to_expand(data, table_title, job_id, job_type, bp_name='adminpanel.jobs') %}
 <div class="card mb-3">
     <div class="card-header">
         <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
             <h5 class="mb-0">{{ table_title }} ({{ data|length }})</h5>
             <div class="card-tools">
                 <button type="button" class="btn-tool">
-                    <a href="{{ url_for('adminpanel.jobs.job_detail_expand', job_type=job_type, job_id=job_id) }}">
+                    <a href="{{ url_for(bp_name ~ '.job_detail_expand', job_type=job_type, job_id=job_id) }}">
                         <i class="fas fa-plus"></i>
                     </a>
                 </button>
@@ -19,9 +19,9 @@
 </div>
 {%- endmacro -%}
 
-{% macro pages_skipped_table(domain, data, table_title, job_id, job_type, expand_all) %}
+{% macro pages_skipped_table(domain, data, table_title, job_id, job_type, expand_all, bp_name='adminpanel.jobs') %}
 {% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, table_title, job_id, job_type) }}
+{{ table_header_to_expand(data, table_title, job_id, job_type, bp_name) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">

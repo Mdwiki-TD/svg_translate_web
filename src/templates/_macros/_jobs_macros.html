@@ -21,9 +21,9 @@
 
 {# {%- from "_macros/_jobs_macros.html" import template_pages_changed -%} #}
 
-{% macro template_pages_changed(domain, title, data, job_id, job_type, expand_all=False, title_columns={"title": "Title"}) %}
+{% macro template_pages_changed(domain, title, data, job_id, job_type, expand_all=False, title_columns={"title": "Title"}, bp_name='adminpanel.jobs') %}
 {% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, title, job_id, job_type) }}
+{{ table_header_to_expand(data, title, job_id, job_type, bp_name) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">
@@ -63,9 +63,9 @@
 
 {# {%- from "_macros/_jobs_macros.html" import template_pages_processed -%} #}
 
-{% macro template_pages_processed(domain, title, data, job_id, job_type, expand_all=False, title_columns={"title": "Title"}) %}
+{% macro template_pages_processed(domain, title, data, job_id, job_type, expand_all=False, title_columns={"title": "Title"}, bp_name='adminpanel.jobs') %}
 {% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, title, job_id, job_type) }}
+{{ table_header_to_expand(data, title, job_id, job_type, bp_name) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">
@@ -109,9 +109,9 @@
 
 {# {%- from "_macros/_jobs_macros.html" import template_pages_errors -%} #}
 
-{% macro template_pages_errors(domain, title, data, job_id, job_type, expand_all=False, title_columns={"title": "Title"}) %}
+{% macro template_pages_errors(domain, title, data, job_id, job_type, expand_all=False, title_columns={"title": "Title"}, bp_name='adminpanel.jobs') %}
 {% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, title, job_id, job_type) }}
+{{ table_header_to_expand(data, title, job_id, job_type, bp_name) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">
@@ -155,9 +155,9 @@
 
 {# {%- from "_macros/_jobs_macros.html" import template_pages_only_title -%} #}
 
-{% macro template_pages_only_title(domain, title, data, job_id, job_type, expand_all=False) %}
+{% macro template_pages_only_title(domain, title, data, job_id, job_type, expand_all=False, bp_name='adminpanel.jobs') %}
 {% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, title, job_id, job_type) }}
+{{ table_header_to_expand(data, title, job_id, job_type, bp_name) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">

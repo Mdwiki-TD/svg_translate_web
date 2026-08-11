@@ -226,6 +226,7 @@ class SharedJobRoutes:
             job=job,
             result_data=result_data,
             expand_all=expand_all,
+            bp_name=bp_name,
         )
 
 
