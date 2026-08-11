@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from pathlib import Path
 from urllib.parse import quote
 
@@ -52,7 +53,9 @@ def download_and_save(
     # Use the core download function with shorter timeout
     try:
         normalized_name = title.replace(" ", "_")
-        url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
+        # Append a cache-buster query parameter to bypass Varnish/CDN caching
+        cache_buster = int(time.time())
+        url = f"{BASE_COMMONS_URL}{quote(normalized_name)}?cb={cache_buster}"
 
         downloader = CommonsSession(session, timeout=30)
         download_result: GetWithRetryData = downloader.get_with_retry_obj(url=url, max_attempts=5)
