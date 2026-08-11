@@ -8,10 +8,9 @@ import json
 import logging
 from pathlib import Path
 
-from ....api_services.files_service.downloader import DownloadAndSaveData
-
 from ....api_services import UploadService
 from ....api_services.files_service import FilesService
+from ....api_services.files_service.downloader import DownloadAndSaveData
 from ....shared.copysvg_wrapper import (
     ExtractorData,
     ExtractResult,

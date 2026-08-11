@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
@@ -17,8 +18,6 @@ from src.main_app.shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
 )
-
-from src.main_app.api_services.files_service import DownloadAndSaveData
 
 # ---------------------------------------------------------------------------
 # steps

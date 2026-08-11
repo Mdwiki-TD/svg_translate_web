@@ -496,6 +496,7 @@ class TestJobsPublicRoutesRoutes(TestSetup):
     def test_pages_table_folded_and_expanded_in_copy_svg_langs_template(self, mock_app: Flask) -> None:
         """Test that copy_svg_langs details template folds table when data > 100 pages and not expand_all."""
         from flask import render_template
+
         with mock_app.test_request_context("/jobs/copy_svg_langs/123"):
             # Create a mock job result with 101 success files
             fake_files = [
@@ -505,7 +506,7 @@ class TestJobsPublicRoutesRoutes(TestSetup):
                     "steps": {
                         "inject": {"details": {"inserted_translations": 1, "updated_translations": 2}},
                         "translations": {"details": {"inserted": 1, "updated": 2}},
-                    }
+                    },
                 }
                 for i in range(101)
             ]
