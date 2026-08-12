@@ -122,7 +122,9 @@ def get_informations(title: str) -> dict:
     languages = get_languages(title, data.get("translations"))
 
     # not_translated = set(downloaded).difference(translated)
-    not_translated = [x for x in downloaded if x not in set(translated)]
+    # Optimize O(N^2) set recreation bottleneck to O(N + M) by instantiating set once outside the loop
+    translated_set = set(translated)
+    not_translated = [x for x in downloaded if x not in translated_set]
     downloaded_set = {f.lower() for f in downloaded}
     not_downloaded = [
         (f"File:{x}" if not x.lower().startswith("file:") else x)

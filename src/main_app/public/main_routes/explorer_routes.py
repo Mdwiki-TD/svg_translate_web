@@ -87,7 +87,9 @@ class ExplorerRoutes:
         # title = get_temp_title(title_dir)
         title = title_dir
 
-        not_translated = [x for x in downloaded if x not in set(translated)]
+        # Optimize O(N^2) set recreation bottleneck to O(N + M) by instantiating set once outside the loop
+        translated_set = set(translated)
+        not_translated = [x for x in downloaded if x not in translated_set]
 
         return render_template(
             "explorer/explore_files.html",
