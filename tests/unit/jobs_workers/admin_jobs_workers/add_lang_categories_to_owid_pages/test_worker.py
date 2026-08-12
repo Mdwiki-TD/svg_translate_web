@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.api_services.files_service import FileLanguagesMap
 from src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pages.worker import (
     AddLangCategoriesWorker,
     PageInfo,
@@ -211,10 +212,10 @@ class TestStepExtractFileName:
 
 class TestStepGetLanguages:
     def test_success(self, mock_lang_worker, mock_lang_categories_services):
-        mock_lang_categories_services["get_file_languages"].return_value = {
-            "error": None,
-            "langs": ["en", "ja"],
-        }
+        mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
+            error=None,
+            langs=["en", "ja"],
+        )
 
         info = PageInfo(page_title="OWID/test")
         info.svg_file = "test.svg"
@@ -225,10 +226,10 @@ class TestStepGetLanguages:
         assert info.lang_codes == ["en", "ja"]
 
     def test_failure_on_api_error(self, mock_lang_worker, mock_lang_categories_services):
-        mock_lang_categories_services["get_file_languages"].return_value = {
-            "error": "API error: timeout",
-            "langs": None,
-        }
+        mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
+            error="API error: timeout",
+            langs=None,
+        )
 
         info = PageInfo(page_title="OWID/test")
         info.svg_file = "test.svg"
@@ -240,10 +241,10 @@ class TestStepGetLanguages:
         assert "API error" in info.error
 
     def test_failure_on_empty_langs(self, mock_lang_worker, mock_lang_categories_services):
-        mock_lang_categories_services["get_file_languages"].return_value = {
-            "error": None,
-            "langs": None,
-        }
+        mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
+            error=None,
+            langs=None,
+        )
 
         info = PageInfo(page_title="OWID/test")
         info.svg_file = "test.svg"
@@ -253,10 +254,10 @@ class TestStepGetLanguages:
         assert result is False
 
     def test_failure_on_english_only(self, mock_lang_worker, mock_lang_categories_services):
-        mock_lang_categories_services["get_file_languages"].return_value = {
-            "error": None,
-            "langs": ["en"],
-        }
+        mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
+            error=None,
+            langs=["en"],
+        )
 
         info = PageInfo(page_title="OWID/test")
         info.svg_file = "test.svg"
@@ -269,10 +270,10 @@ class TestStepGetLanguages:
 
     def test_success_on_english_plus_other(self, mock_lang_worker, mock_lang_categories_services):
         """English alongside other languages should still succeed."""
-        mock_lang_categories_services["get_file_languages"].return_value = {
-            "error": None,
-            "langs": ["en", "fr"],
-        }
+        mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
+            error=None,
+            langs=["en", "fr"],
+        )
 
         info = PageInfo(page_title="OWID/test")
         info.svg_file = "test.svg"

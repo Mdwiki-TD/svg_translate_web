@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import pytest
 from flask.testing import FlaskClient
 
+from src.main_app.api_services.files_service.file_langs import FileLanguagesMap
 from src.main_app.db.services import (
     OwidChartsService,
     TemplateService,
@@ -216,3 +219,56 @@ class TestOwidChartsList:
         # chart s3 has a matching template
         assert chart_by_slug["s3"]["template_id"] is not None
         assert chart_by_slug["s3"]["template_title"] == "T3"
+
+
+class TestFileLanguages:
+    """Tests for GET /api/languages/<file_name>."""
+
+    FILE_NAME = "File:Parkinsons_disease_prevalence_ihme,_Africa,_2021.svg"
+
+    @pytest.fixture(autouse=True)
+    def mock_get_file_languages(self, monkeypatch: pytest.MonkeyPatch):
+        mock = MagicMock(return_value=FileLanguagesMap(error=None, langs=["en"]))
+        monkeypatch.setattr("src.main_app.public.api_routes.get_file_languages", mock)
+        return mock
+
+    def test_returns_languages(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
+        """Returns language list when file has translations."""
+        mock_get_file_languages.return_value = FileLanguagesMap(error=None, langs=["en", "fr", "de"])
+
+        resp = mock_client.get(f"/api/languages/{self.FILE_NAME}")
+
+        assert resp.status_code == 200
+        body = resp.get_json()
+        assert body == ["en", "fr", "de"]
+        mock_get_file_languages.assert_called_once_with(self.FILE_NAME)
+
+    def test_returns_english_only(self, mock_client: FlaskClient) -> None:
+        """Returns ['en'] when file has no translations."""
+        resp = mock_client.get(f"/api/languages/{self.FILE_NAME}")
+
+        assert resp.status_code == 200
+        body = resp.get_json()
+        assert body == ["en"]
+
+    def test_returns_404_on_error(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
+        """Returns 404 when file metadata cannot be found."""
+        mock_get_file_languages.return_value = FileLanguagesMap(
+            error="Metadata not found for File:Missing.svg",
+            langs=None,
+        )
+
+        resp = mock_client.get("/api/languages/File:Missing.svg")
+
+        assert resp.status_code == 404
+        body = resp.get_json()
+        assert "error" in body
+
+    def test_returns_404_on_empty_filename(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
+        """Returns 404 when file_name is empty."""
+        mock_get_file_languages.return_value = FileLanguagesMap(error="Empty fileName", langs=None)
+        # {"error": "Empty fileName", "langs": None}
+
+        resp = mock_client.get("/api/languages/")
+
+        assert resp.status_code == 404

@@ -5,8 +5,50 @@ Objects for update_owid_charts worker.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any
 
 from ...shared_objects import StandardAdminWorkerObject
+
+
+@dataclass
+class ChartUpdateInfo:
+    chart_id: int
+    slug: str
+    status: str = "pending"  # updated | skipped | failed
+    skip_reason: str | None = None
+    status_404: int | None = None
+    error: str | None = None
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+
+    # old values (before update)
+    old_min_time: int | None = None
+    old_max_time: int | None = None
+    old_len_years: int | None = None
+
+    # new values (from API)
+    new_min_time: int | None = None
+    new_max_time: int | None = None
+    new_len_years: int | None = None
+
+    owid_variable_id: int | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "chart_id": self.chart_id,
+            "slug": self.slug,
+            "status": self.status,
+            "skip_reason": self.skip_reason,
+            "error": self.error,
+            "timestamp": self.timestamp,
+            "old_min_time": self.old_min_time,
+            "old_max_time": self.old_max_time,
+            "old_len_years": self.old_len_years,
+            "new_min_time": self.new_min_time,
+            "new_max_time": self.new_max_time,
+            "new_len_years": self.new_len_years,
+            "owid_variable_id": self.owid_variable_id,
+        }
 
 
 @dataclass

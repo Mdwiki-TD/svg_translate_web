@@ -18,9 +18,6 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any
 
 from mwclient.client import Site
 
@@ -28,7 +25,7 @@ from ....api_services import MwClientPage
 from ....db.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import RenameOwidPagesWorkerObject
+from .objects import RenameInfo, RenameOwidPagesWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -39,29 +36,6 @@ PREFIXES: tuple[tuple[int, str, str], ...] = (
 )
 
 MOVE_REASON = "Capitalize first letter of OWID subpage name"
-
-
-@dataclass
-class RenameInfo:
-    """Holds the outcome of attempting to rename a single page."""
-
-    namespace: int
-    old_title: str
-    new_title: str | None = None
-    newrevid: int | None = None
-    status: str = "pending"  # renamed | skipped_target_exists | failed
-    msg: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "namespace": self.namespace,
-            "old_title": self.old_title,
-            "new_title": self.new_title,
-            "status": self.status,
-            "msg": self.msg,
-            "timestamp": self.timestamp,
-        }
 
 
 def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:

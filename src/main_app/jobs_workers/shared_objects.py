@@ -9,6 +9,13 @@ from typing import Any, Literal
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class SharedMapToJson:
+    def to_json(self) -> dict[str, Any]:
+        """
+        Converts the dataclass instance back to its original dictionary format.
+        """
+        return asdict(self)
 
 @dataclass(frozen=True)
 class UpdaterOutcome:
@@ -17,13 +24,16 @@ class UpdaterOutcome:
     kind: Literal["missing", "changed", "error", "skipped"]
     newrevid: int = 0
     msg: str = ""
-
     def to_json(self) -> dict[str, Any]:
+        """
+        Converts the dataclass instance back to its original dictionary format.
+        """
         return asdict(self)
 
 
+
 @dataclass
-class StandardAdminSummary:
+class StandardAdminSummary(SharedMapToJson):
     total: int = 0
     processed: int = 0
     success: int = 0
@@ -32,7 +42,7 @@ class StandardAdminSummary:
 
 
 @dataclass
-class Summary:
+class Summary(SharedMapToJson):
     total: int = 0
     # changed: int = 0
     # errors: int = 0
@@ -40,7 +50,7 @@ class Summary:
 
 
 @dataclass
-class WorkerObject:
+class WorkerObject(SharedMapToJson):
     note: str | None = None
     status: str = "pending"
     job_id: int = 0
@@ -57,14 +67,6 @@ class WorkerObject:
 
     error: str | None = None
     error_type: str | None = None
-
-    def to_json(self) -> dict[str, Any]:
-        """
-        Converts the dataclass instance back to its original dictionary format.
-        """
-
-        return asdict(self)
-
 
 @dataclass
 class SharedworkerObject(WorkerObject):

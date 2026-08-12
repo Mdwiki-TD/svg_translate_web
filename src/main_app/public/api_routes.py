@@ -5,6 +5,7 @@ from typing import Any
 
 from flask import Blueprint, jsonify
 
+from ..api_services.files_service.file_langs import get_file_languages
 from ..db.models import TemplateRecord
 from ..db.services import (
     ChartAndTemplate,
@@ -34,6 +35,8 @@ class ApiRoutes:
 
         self.bp.get("/owidcharts/")(self.owid_charts_list)
         self.bp.get("/owidcharts/<string:template_filter>")(self.owid_charts_list)
+
+        self.bp.get("/languages/<path:file_name>")(self.file_languages)
 
     def templates_list(self):
         templates: list[TemplateRecord] = self.templates_service.list()
@@ -86,6 +89,14 @@ class ApiRoutes:
         data = [t.to_dict() for t in templates]
 
         return jsonify({"data": data})
+
+    def file_languages(self, file_name: str):
+        result = get_file_languages(file_name)
+        error = result.error
+        langs = result.langs or []
+        if error or not langs:
+            return jsonify({"error": error or "No languages found"}), 404
+        return jsonify(langs)
 
     def owid_charts_list(self, template_filter: str = ""):
         # Optimize: use single-query list_all() with fallback

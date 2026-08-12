@@ -6,34 +6,19 @@ from unittest.mock import MagicMock
 
 import requests
 
-from src.main_app.utils.file_langs import (
-    get_file_languages,
-    lang_code_category,
-)
-
-
-class TestLangCodeCategory:
-    def test_known_code(self):
-        assert lang_code_category("en") == "English-language SVG"
-        assert lang_code_category("fr") == "French-language SVG"
-        assert lang_code_category("ar") == "Arabic-language SVG"
-
-    def test_unknown_code(self):
-        assert lang_code_category("xyz") is None
-
-    def test_empty_string(self):
-        assert lang_code_category("") is None
+from src.main_app.api_services.files_service.file_langs import FileLanguagesMap  # noqa: F401
+from src.main_app.api_services.files_service.file_langs import get_file_languages
 
 
 class TestGetFileLanguages:
     def test_empty_filename(self):
         result = get_file_languages("")
-        assert result["error"] == "Empty fileName"
-        assert result["langs"] is None
+        assert result.error == "Empty fileName"
+        assert result.langs is None
 
     def test_none_filename(self):
         result = get_file_languages(None)
-        assert result["error"] == "Empty fileName"
+        assert result.error == "Empty fileName"
 
     def test_file_colon_prefix_stripped(self):
         mock_session = MagicMock()
@@ -69,8 +54,8 @@ class TestGetFileLanguages:
         mock_session.get.side_effect = requests.ConnectionError("Connection failed")
 
         result = get_file_languages("Test.svg", mock_session)
-        assert "API error" in result["error"]
-        assert result["langs"] is None
+        assert "API error" in result.error
+        assert result.langs is None
 
     def test_unexpected_api_response(self):
         mock_session = MagicMock()
@@ -82,7 +67,7 @@ class TestGetFileLanguages:
         mock_session.get.return_value = mock_response
 
         result = get_file_languages("Test.svg", mock_session)
-        assert result["error"] == "Metadata not found for File:Test.svg. Error: Unexpected API response"
+        assert result.error == "Metadata not found for File:Test.svg. Error: Unexpected API response"
 
     def test_file_missing(self):
         mock_session = MagicMock()
@@ -94,7 +79,7 @@ class TestGetFileLanguages:
         mock_session.get.return_value = mock_response
 
         result = get_file_languages("Missing.svg", mock_session)
-        assert "does not exist" in result["error"]
+        assert "does not exist" in result.error
 
     def test_no_imageinfo(self):
         mock_session = MagicMock()
@@ -106,7 +91,7 @@ class TestGetFileLanguages:
         mock_session.get.return_value = mock_response
 
         result = get_file_languages("Test.svg", mock_session)
-        assert "Metadata not found" in result["error"]
+        assert "Metadata not found" in result.error
 
     def test_no_metadata(self):
         mock_session = MagicMock()
@@ -127,7 +112,7 @@ class TestGetFileLanguages:
         mock_session.get.return_value = mock_response
 
         result = get_file_languages("Test.svg", mock_session)
-        assert "Metadata array empty" in result["error"]
+        assert "Metadata array empty" in result.error
 
     def test_with_translations(self):
         mock_session = MagicMock()
@@ -161,8 +146,8 @@ class TestGetFileLanguages:
         mock_session.get.return_value = mock_response
 
         result = get_file_languages("Test.svg", mock_session)
-        assert result["error"] is None
-        assert result["langs"] == ["fr", "de", "es"]
+        assert result.error is None
+        assert result.langs == ["fr", "de", "es"]
 
     def test_no_translations_defaults_to_en(self):
         mock_session = MagicMock()
@@ -189,8 +174,8 @@ class TestGetFileLanguages:
         mock_session.get.return_value = mock_response
 
         result = get_file_languages("Test.svg", mock_session)
-        assert result["error"] is None
-        assert result["langs"] == ["en"]
+        assert result.error is None
+        assert result.langs == ["en"]
 
     def test_empty_translations_defaults_to_en(self):
         mock_session = MagicMock()
@@ -217,8 +202,8 @@ class TestGetFileLanguages:
         mock_session.get.return_value = mock_response
 
         result = get_file_languages("Test.svg", mock_session)
-        assert result["error"] is None
-        assert result["langs"] == ["en"]
+        assert result.error is None
+        assert result.langs == ["en"]
 
     def test_translations_with_invalid_entries(self):
         mock_session = MagicMock()
@@ -251,8 +236,8 @@ class TestGetFileLanguages:
         mock_session.get.return_value = mock_response
 
         result = get_file_languages("Test.svg", mock_session)
-        assert result["error"] is None
-        assert result["langs"] == ["fr"]
+        assert result.error is None
+        assert result.langs == ["fr"]
 
     def test_custom_session_used(self):
         mock_session = MagicMock()
@@ -303,5 +288,5 @@ class TestGetFileLanguages:
         mock_session.get.return_value = mock_response
 
         result = get_file_languages("Test.svg", mock_session)
-        assert result["error"] is None
-        assert result["langs"] == ["it"]
+        assert result.error is None
+        assert result.langs == ["it"]
