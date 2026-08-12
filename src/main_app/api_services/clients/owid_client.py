@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import Any
 
 import requests
 
 from ...config import settings
+from .objects import RawGrapherMetadataResponse
 
 logger = logging.getLogger(__name__)
 
@@ -30,53 +30,36 @@ def _build_session() -> requests.Session:
     return _thread_local.session
 
 
-def fetch_grapher_metadata_raw(slug: str) -> Any:
-    """Fetch the OWID chart metadata JSON. Returns the parsed dict or None."""
+def fetch_grapher_metadata_raw(slug: str) -> RawGrapherMetadataResponse:
+    """Fetch the OWID chart metadata JSON. Returns a dataclass with raw dict and status code."""
     session = _build_session()
     url = METADATA_URL.format(slug=slug)
     try:
         response = session.get(url, timeout=REQUEST_TIMEOUT)
         if response.status_code == 200:
-            return response.json(), 200
-        return None, response.status_code
+            return RawGrapherMetadataResponse(data=response.json(), status_code=response.status_code)
+        return RawGrapherMetadataResponse(data=None, status_code=response.status_code)
     except Exception as exc:
         logger.warning(f"Failed to fetch metadata for '{slug}': {exc}")
-        return None, None
+        return RawGrapherMetadataResponse(data=None, status_code=None)
 
 
-def fetch_grapher_metadata(slug: str) -> dict | None:
-    """Fetch the OWID chart metadata JSON. Returns the parsed dict or None."""
-    session = _build_session()
-    url = METADATA_URL.format(slug=slug)
-    try:
-        response = session.get(url, timeout=REQUEST_TIMEOUT)
-        # If successful, return the text content immediately
-        if response.status_code == 200:
-            return response.json()
-
-        response.raise_for_status()
-        return response.json()
-
-    except Exception as exc:
-        logger.warning(f"Failed to fetch metadata for '{slug}': {exc}")
-        return None
-
-
-def fetch_indicators_metadata(owid_variable_id: int) -> dict | None:
+def fetch_indicators_metadata(owid_variable_id: int) -> RawGrapherMetadataResponse:
     """Fetch the OWID indicator metadata JSON. Returns the parsed dict or None."""
     session = _build_session()
     url = INDICATORS_METADATA_URL.format(variable_id=owid_variable_id)
     try:
-        resp = session.get(url, timeout=REQUEST_TIMEOUT)
-        resp.raise_for_status()
-        return resp.json()
+        response = session.get(url, timeout=REQUEST_TIMEOUT)
+        if response.status_code == 200:
+            return RawGrapherMetadataResponse(data=response.json(), status_code=response.status_code)
+
+        return RawGrapherMetadataResponse(data=None, status_code=response.status_code)
     except Exception as exc:
         logger.warning(f"Failed to fetch metadata for '{owid_variable_id}': {exc}")
-        return None
+        return RawGrapherMetadataResponse(data=None, status_code=None)
 
 
 __all__ = [
-    "fetch_grapher_metadata",
     "fetch_grapher_metadata_raw",
     "fetch_indicators_metadata",
 ]

@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from ....db.models import OwidChartRecord
 from ...shared_objects import StandardAdminWorkerObject
 
 
@@ -50,6 +51,17 @@ class ChartUpdateInfo:
             "owid_variable_id": self.owid_variable_id,
         }
 
+    @classmethod
+    def from_chart(cls, chart: OwidChartRecord) -> ChartUpdateInfo:
+        return cls(
+            chart_id=chart.chart_id,
+            slug=chart.slug,
+            old_min_time=chart.min_time,
+            old_max_time=chart.max_time,
+            old_len_years=chart.len_years,
+            owid_variable_id=chart.owid_variable_id,
+        )
+
 
 @dataclass
 class UpdateOwidChartsSummary:
@@ -66,6 +78,8 @@ class UpdateOwidChartsWorkerObject(StandardAdminWorkerObject):
     updated_charts: list[dict] = field(default_factory=list)
     skipped_charts: list[dict] = field(default_factory=list)
     failed_charts: list[dict] = field(default_factory=list)
+
+    metadata_keys: set[str] = field(default_factory=set)
 
 
 __all__ = [

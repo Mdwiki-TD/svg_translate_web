@@ -10,7 +10,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, fetch_grapher_metadata, get_category_members
+from ....api_services import MwClientPage, fetch_grapher_metadata_raw, get_category_members
 from ....db.exceptions import DuplicateRecordError
 from ....db.models import TemplateRecord
 from ....db.services import (
@@ -371,9 +371,9 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         if _slug_to_check:
             # Find slug redirect
-            metadata = fetch_grapher_metadata(_slug_to_check)
-            if metadata:
-                check_slugs(_slug_to_check, metadata)
+            metadata = fetch_grapher_metadata_raw(_slug_to_check)
+            if metadata and metadata.data:
+                check_slugs(_slug_to_check, metadata.data)
 
         if not _slug and "/grapher/" not in template_source:
             raise Exception("source url does not have /grapher/")

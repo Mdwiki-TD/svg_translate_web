@@ -4,7 +4,6 @@ from .category import get_category_members
 from .clients import (
     CommonsSession,
     create_commons_session,
-    fetch_grapher_metadata,
     fetch_grapher_metadata_raw,
     fetch_indicators_metadata,
     get_cronjob_site,
@@ -36,5 +35,4 @@ __all__ = [
     "create_commons_session",
     "get_cronjob_site",
     "fetch_indicators_metadata",
-    "fetch_grapher_metadata",
 ]

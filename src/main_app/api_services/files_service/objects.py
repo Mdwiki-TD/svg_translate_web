@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any
 
 
@@ -9,8 +10,16 @@ class SharedMapToJson:
 
 
 @dataclass
+class WriteData(SharedMapToJson):
+    path: Path
+    success: bool | None = None
+    error: str | None = None
+
+
+@dataclass
 class FileLanguagesMap(SharedMapToJson):
     """Result of extracting available SVG translation languages for a Commons file."""
+
     langs: list[str] | None = None
     error: str | None = None
 
@@ -50,6 +59,7 @@ class UploadResult(SharedMapToJson):
 __all__ = [
     "FileLanguagesMap",
     "FileInfo",
+    "WriteData",
     "DownloadAndSaveData",
     "DownloadResult",
     "UploadResult",

@@ -41,18 +41,18 @@ def save_job_result_by_name(filename: str, result_data: dict[str, Any]) -> Path:
     return filepath
 
 
-def load_job_result(result_file: str) -> dict[str, Any] | None:
+def load_job_result(filename: str) -> dict[str, Any] | None:
     """Load job result from a JSON file."""
     jobs_dir: Path = get_jobs_data_dir()
-    result_file = jobs_dir / result_file  # type: ignore
-    if not result_file or not os.path.exists(result_file):
+    filename = jobs_dir / filename  # type: ignore
+    if not filename or not os.path.exists(filename):
         return None
 
     try:
-        with open(result_file, "r", encoding="utf-8") as f:
+        with open(filename, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
-        logger.error(f"Error loading job result from {result_file}: {e}")
+        logger.error(f"Error loading job result from {filename}: {e}")
         return None
 
 

@@ -10,7 +10,7 @@ import requests
 from src.main_app.api_services.clients.owid_client import (
     _build_session,
     _thread_local,
-    fetch_grapher_metadata,
+    fetch_grapher_metadata_raw,
     fetch_indicators_metadata,
 )
 
@@ -57,7 +57,7 @@ class TestBuildSession:
 
 
 class TestFetchGrapherMetadata:
-    """Tests for fetch_grapher_metadata function."""
+    """Tests for fetch_grapher_metadata_raw function."""
 
     @staticmethod
     def _mock_session(monkeypatch) -> MagicMock:
@@ -73,12 +73,14 @@ class TestFetchGrapherMetadata:
         """Test that a successful response returns the parsed dict."""
         mock_response = MagicMock()
         mock_response.json.return_value = {"name": "chart", "data": [1, 2, 3]}
+        mock_response.status_code = 200
+
         mock_session = self._mock_session(monkeypatch)
         mock_session.get.return_value = mock_response
 
-        result = fetch_grapher_metadata("test-slug")
+        result = fetch_grapher_metadata_raw("test-slug")
 
-        assert result == {"name": "chart", "data": [1, 2, 3]}
+        assert result.data == {"name": "chart", "data": [1, 2, 3]}
         mock_session.get.assert_called_once_with(
             "https://ourworldindata.org/grapher/test-slug.metadata.json",
             timeout=15,
@@ -91,18 +93,18 @@ class TestFetchGrapherMetadata:
         mock_session = self._mock_session(monkeypatch)
         mock_session.get.return_value = mock_response
 
-        result = fetch_grapher_metadata("missing-slug")
+        result = fetch_grapher_metadata_raw("missing-slug")
 
-        assert result is None
+        assert result.data is None
 
     def test_network_error_returns_none(self, monkeypatch):
         """Test that a connection error returns None."""
         mock_session = self._mock_session(monkeypatch)
         mock_session.get.side_effect = requests.ConnectionError("Connection refused")
 
-        result = fetch_grapher_metadata("bad-host")
+        result = fetch_grapher_metadata_raw("bad-host")
 
-        assert result is None
+        assert result.data is None
 
     def test_invalid_json_response_returns_none(self, monkeypatch):
         """Test that a non-JSON response returns None."""
@@ -111,9 +113,9 @@ class TestFetchGrapherMetadata:
         mock_session = self._mock_session(monkeypatch)
         mock_session.get.return_value = mock_response
 
-        result = fetch_grapher_metadata("bad-json")
+        result = fetch_grapher_metadata_raw("bad-json")
 
-        assert result is None
+        assert result.data is None
 
 
 class TestFetchIndicatorsMetadata:
@@ -133,12 +135,13 @@ class TestFetchIndicatorsMetadata:
         """Test that a successful response returns the parsed dict."""
         mock_response = MagicMock()
         mock_response.json.return_value = {"id": 123, "name": "Population"}
+        mock_response.status_code = 200
         mock_session = self._mock_session(monkeypatch)
         mock_session.get.return_value = mock_response
 
         result = fetch_indicators_metadata(123)
 
-        assert result == {"id": 123, "name": "Population"}
+        assert result.data == {"id": 123, "name": "Population"}
         mock_session.get.assert_called_once_with(
             "https://api.ourworldindata.org/v1/indicators/123.metadata.json",
             timeout=15,
@@ -153,7 +156,7 @@ class TestFetchIndicatorsMetadata:
 
         result = fetch_indicators_metadata(999)
 
-        assert result is None
+        assert result.data is None
 
     def test_network_error_returns_none(self, monkeypatch):
         """Test that a connection error returns None."""
@@ -162,4 +165,4 @@ class TestFetchIndicatorsMetadata:
 
         result = fetch_indicators_metadata(456)
 
-        assert result is None
+        assert result.data is None

@@ -118,7 +118,13 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
 
             logger.info("Job %s: Renaming %d/%d: %s -> %s", self.job_id, n, total, old_title, new_title)
 
-            changed = self._rename_one(namespace, old_title, new_title)
+            info = RenameInfo(namespace=namespace, old_title=old_title, new_title=new_title)
+
+            self.result.summary.processed += 1
+
+            changed = self._rename_one(info)
+
+            self.update_rename_statistics(info)
 
             if changed and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -131,6 +137,23 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             self.result.status = "completed"
 
         return self.result
+
+    def update_rename_statistics(self, info: RenameInfo) -> None:
+        if info.status == "skipped_target_exists":
+            self.result.summary.skipped_target_exists += 1
+            self.result.pages_skipped.append(info.to_dict())
+
+        elif info.status == "redirected":
+            self.result.summary.redirected += 1
+            self.result.pages_redirected.append(info.to_dict())
+
+        elif info.status == "renamed":
+            self.result.summary.renamed += 1
+            self.result.pages_renamed.append(info.to_dict())
+
+        elif info.status == "failed":
+            self.result.summary.failed += 1
+            self.result.pages_failed.append(info.to_dict())
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -150,10 +173,9 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             )
         return []
 
-    def _rename_one(self, namespace: int, old_title: str, new_title: str) -> bool:
-        self.result.summary.processed += 1
-
-        info = RenameInfo(namespace=namespace, old_title=old_title, new_title=new_title)
+    def _rename_one(self, info: RenameInfo) -> bool:
+        old_title = info.old_title
+        new_title = info.new_title
 
         # Pre-flight: don't even try to move if the target already exists.
         new_title_page = MwClientPage(new_title, self.site)
@@ -172,9 +194,9 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
                 # update the DB title to match the capitalized version.
                 info.status = "skipped_target_exists"
                 info.msg = f"Old page redirects to target, updating DB only: {new_title}"
-                self.result.summary.skipped_target_exists += 1
+
                 self._update_template_title(old_title, new_title)
-                self.result.pages_processed.append(info.to_dict())
+
                 return False  # no changes made
             else:
                 # Neither page redirects to the other — both are real pages.
@@ -192,7 +214,6 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             info.status = "renamed"
             info.newrevid = res.get("newrevid", 0)
             info.msg = f"Moved {old_title} -> {new_title}"
-            self.result.summary.renamed += 1
             # Update the title in the database
             self._update_template_title(old_title, new_title)
         else:
@@ -200,9 +221,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             details = res.get("details")
             info.status = "failed"
             info.msg = f"{err}: {details}" if details else str(err)
-            self.result.summary.failed += 1
 
-        self.result.pages_processed.append(info.to_dict())
         return edit_success
 
     def _redirect_old_to_new(self, info: RenameInfo, old_title_page: MwClientPage, new_title: str) -> bool:
@@ -221,16 +240,13 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             info.status = "redirected"
             info.newrevid = res.get("newrevid", 0)
             info.msg = f"Redirected {old_title} -> {new_title}"
-            self.result.summary.redirected += 1
             self._update_template_title(old_title, new_title)
         else:
             err = res.get("error", "Unknown error")
             details = res.get("details")
             info.status = "failed"
             info.msg = f"Failed to redirect: {err}: {details}" if details else f"Failed to redirect: {err}"
-            self.result.summary.failed += 1
 
-        self.result.pages_processed.append(info.to_dict())
         return edit_success
 
     def _update_template_title(self, old_title: str, new_title: str) -> None:

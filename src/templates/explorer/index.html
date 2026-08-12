@@ -25,9 +25,7 @@
                     <tbody>
                         {% for title, tab in data.items() %}
                         <tr>
-                            <td>
-                                {{ loop.index }}
-                            </td>
+                            <td> {{ loop.index }} </td>
                             <td>
                                 <a href="{{ url_for('explorer.by_title', title=title) }}" class="">
                                     Template:OWID/{{ title.replace("_", " ") }}

@@ -2,12 +2,10 @@
 {% from "_macros.html" import card_header, stats_card %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
-{% set pages_processed = result_data.pages_processed if result_data and result_data.pages_processed else [] %}
-
-{% set renamed_pages = (pages_processed | selectattr("status", "equalto", "renamed") | list) or [] %}
-{% set skipped_pages = (pages_processed | selectattr("status", "equalto", "skipped_target_exists") | list) or [] %}
-{% set redirected_pages = (pages_processed | selectattr("status", "equalto", "redirected") | list) or [] %}
-{% set failed_pages = (pages_processed | selectattr("status", "equalto", "failed") | list) or [] %}
+{% set pages_renamed = result_data.pages_renamed %}
+{% set pages_skipped = result_data.pages_skipped %}
+{% set pages_redirected = result_data.pages_redirected %}
+{% set pages_failed = result_data.pages_failed %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -20,16 +18,16 @@
     <div class="col-md-8">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Renamed', ( renamed_pages | length ) or result_data.summary.renamed, "success", "") }}
+                {{ stats_card('Renamed', ( pages_renamed | length ) or result_data.summary.renamed, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Redirected', ( redirected_pages | length ) or result_data.summary.redirected, "success", "") }}
+                {{ stats_card('Redirected', ( pages_redirected | length ) or result_data.summary.redirected, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Skipped', ( skipped_pages | length ) or result_data.summary.skipped or result_data.summary.skipped_target_exists, "secondary", "") }}
+                {{ stats_card('Skipped', ( pages_skipped | length ) or result_data.summary.skipped or result_data.summary.skipped_target_exists, "secondary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Failed', ( failed_pages | length ) or result_data.summary.failed, "danger", "") }}
+                {{ stats_card('Failed', ( pages_failed | length ) or result_data.summary.failed, "danger", "") }}
             </div>
         </div>
     </div>
@@ -37,7 +35,7 @@
 {% endblock %}
 
 {% block job_details %}
-{% macro pages_table(data, table_title) %}
+{% macro pages_table(data, table_title, job_type) %}
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, job_type) }}
 {% else %}
@@ -61,7 +59,8 @@
                     <tr>
                         <th style="width: 4%">#</th>
                         {# Custom headers based on section type #}
-                        <th>{% if table_title == 'Redirected' %}Old title (now redirect){% else %}Old title{% endif %}</th>
+                        <th>{% if table_title == 'Redirected' %}Old title (now redirect){% else %}Old title{% endif %}
+                        </th>
                         <th>{% if table_title == 'Redirected' %}New title (target){% else %}New title{% endif %}</th>
                         <th>Message</th>
                     </tr>
@@ -96,23 +95,23 @@
 {% endmacro %}
 
 <!-- Renamed -->
-{% if renamed_pages %}
-{{ pages_table(renamed_pages, 'Renamed') }}
+{% if pages_renamed %}
+{{ pages_table(pages_renamed, 'Renamed', template_data.job_type) }}
 {% endif %}
 
 <!-- Skipped (target exists) -->
-{% if skipped_pages %}
-{{ pages_table(skipped_pages, 'Skipped (target exists)') }}
+{% if pages_skipped %}
+{{ pages_table(pages_skipped, 'Skipped (target exists)', template_data.job_type) }}
 {% endif %}
 
 <!-- Redirected -->
-{% if redirected_pages %}
-{{ pages_table(redirected_pages, 'Redirected') }}
+{% if pages_redirected %}
+{{ pages_table(pages_redirected, 'Redirected', template_data.job_type) }}
 {% endif %}
 
 <!-- Failed -->
-{% if failed_pages %}
-{{ pages_table(failed_pages, 'Failed') }}
+{% if pages_failed %}
+{{ pages_table(pages_failed, 'Failed', template_data.job_type) }}
 {% endif %}
 
 {% endblock %}

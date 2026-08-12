@@ -50,6 +50,9 @@ class RenameOwidPagesWorkerObject(StandardAdminWorkerObject):
     summary: RenameOwidPagesSummary = field(default_factory=RenameOwidPagesSummary)
     pages_processed: list[dict[str, Any]] = field(default_factory=list)
 
+    pages_renamed: list[dict[str, Any]] = field(default_factory=list)
+    pages_redirected: list[dict[str, Any]] = field(default_factory=list)
+
 
 __all__ = [
     "RenameOwidPagesWorkerObject",

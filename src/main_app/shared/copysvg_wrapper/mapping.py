@@ -9,6 +9,7 @@ from lxml import etree  # type: ignore
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class SharedMapToJson:
     def to_json(self) -> dict[str, Any]:

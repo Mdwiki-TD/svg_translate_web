@@ -24,7 +24,7 @@
 </div>
 {% endblock %}
 
-{% macro pages_processed_table(data, table_title) %}
+{% macro pages_processed_table(data, table_title, job_type) %}
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, job_type) }}
 {% else %}
@@ -76,12 +76,12 @@
 
 <!-- Templates Processed -->
 {% if result_data.pages_processed %}
-{{ pages_processed_table(result_data.pages_processed, 'Templates Processed') }}
+{{ pages_processed_table(result_data.pages_processed, 'Templates Processed', template_data.job_type) }}
 {% endif %}
 
 <!-- Templates Processed -->
 {% if result_data.pages_success %}
-{{ pages_processed_table(result_data.pages_success, 'Templates success') }}
+{{ pages_processed_table(result_data.pages_success, 'Templates success', template_data.job_type) }}
 {% endif %}
 
 
@@ -92,7 +92,7 @@
 
 <!-- Failed Templates -->
 {% if result_data.pages_failed %}
-{{ pages_processed_table(result_data.pages_failed, 'Failed') }}
+{{ pages_processed_table(result_data.pages_failed, 'Failed', template_data.job_type) }}
 {% endif %}
 
 

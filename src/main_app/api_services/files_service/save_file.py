@@ -1,17 +1,11 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from pathlib import Path
 
+from .objects import WriteData
+
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class WriteData:
-    path: Path
-    success: bool | None = None
-    error: str | None = None
 
 
 def write_bytes_to_file(*, content: bytes, filename: str, output_dir: Path) -> WriteData:

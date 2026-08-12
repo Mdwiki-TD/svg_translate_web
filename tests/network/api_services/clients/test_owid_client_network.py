@@ -14,10 +14,10 @@ pytestmark = pytest.mark.network
 
 
 class TestFetchGrapherMetadata:
-    """Tests for fetch_grapher_metadata function."""
+    """Tests for fetch_grapher_metadata_raw function."""
 
     def test_successful_fetch_returns_parsed_json(self):
         """Test that a successful response returns the parsed dict."""
-        result, status_code = fetch_grapher_metadata_raw("test-slug")
-        assert status_code == 404
-        assert result == {"error": "Not found", "status": 404}
+        result = fetch_grapher_metadata_raw("test-slug")
+        assert result.status_code == 404
+        assert result.data == {"error": "Not found", "status": 404}
