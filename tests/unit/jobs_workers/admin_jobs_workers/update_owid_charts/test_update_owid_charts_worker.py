@@ -226,7 +226,7 @@ class TestProcessChart:
 
     def test_process_chart_404(self, mock_update_owid_services: MockServices):
         """When fetch_grapher_metadata_raw returns 404 -> status 'skipped' with 'not found' reason."""
-        mock_update_owid_services.fetch_grapher_metadata_raw.return_value = (None, 404)
+        mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(None, 404)
 
         worker = UpdateOwidChartsWorker(
             JobsRunner(

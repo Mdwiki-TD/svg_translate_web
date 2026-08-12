@@ -73,6 +73,8 @@ class TestFetchGrapherMetadata:
         """Test that a successful response returns the parsed dict."""
         mock_response = MagicMock()
         mock_response.json.return_value = {"name": "chart", "data": [1, 2, 3]}
+        mock_response.status_code = 200
+
         mock_session = self._mock_session(monkeypatch)
         mock_session.get.return_value = mock_response
 
@@ -133,12 +135,13 @@ class TestFetchIndicatorsMetadata:
         """Test that a successful response returns the parsed dict."""
         mock_response = MagicMock()
         mock_response.json.return_value = {"id": 123, "name": "Population"}
+        mock_response.status_code = 200
         mock_session = self._mock_session(monkeypatch)
         mock_session.get.return_value = mock_response
 
         result = fetch_indicators_metadata(123)
 
-        assert result == {"id": 123, "name": "Population"}
+        assert result.data == {"id": 123, "name": "Population"}
         mock_session.get.assert_called_once_with(
             "https://api.ourworldindata.org/v1/indicators/123.metadata.json",
             timeout=15,
@@ -153,7 +156,7 @@ class TestFetchIndicatorsMetadata:
 
         result = fetch_indicators_metadata(999)
 
-        assert result is None
+        assert result.data is None
 
     def test_network_error_returns_none(self, monkeypatch):
         """Test that a connection error returns None."""
@@ -162,4 +165,4 @@ class TestFetchIndicatorsMetadata:
 
         result = fetch_indicators_metadata(456)
 
-        assert result is None
+        assert result.data is None
