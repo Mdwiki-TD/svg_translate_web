@@ -239,8 +239,7 @@ class TestFileLanguages:
 
         assert resp.status_code == 200
         body = resp.get_json()
-        assert body["error"] is None
-        assert body["langs"] == ["en", "fr", "de"]
+        assert body == ["en", "fr", "de"]
         mock_get_file_languages.assert_called_once_with(self.FILE_NAME)
 
     def test_returns_english_only(self, mock_client: FlaskClient) -> None:
@@ -249,7 +248,7 @@ class TestFileLanguages:
 
         assert resp.status_code == 200
         body = resp.get_json()
-        assert body["langs"] == ["en"]
+        assert body == ["en"]
 
     def test_returns_404_on_error(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns 404 when file metadata cannot be found."""
@@ -260,7 +259,7 @@ class TestFileLanguages:
         assert resp.status_code == 404
         body = resp.get_json()
         assert "error" in body
-        assert body["langs"] is None
+
 
     def test_returns_404_on_empty_filename(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns 404 when file_name is empty."""

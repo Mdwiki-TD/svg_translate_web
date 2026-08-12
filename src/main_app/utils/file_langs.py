@@ -145,6 +145,8 @@ def get_file_languages(file_name: str, session: requests.Session | None = None) 
 
     Returns:
         Dictionary containing an 'error' message (if any) and a 'langs' list.
+    To mirror:
+        https://svgtranslate.toolforge.org/api/languages/File:Parkinsons_disease_prevalence_ihme,_Africa,_2021.svg
     """
     if not file_name:
         return {"error": "Empty fileName", "langs": None}
@@ -155,6 +157,9 @@ def get_file_languages(file_name: str, session: requests.Session | None = None) 
     prefixed_file_name = f"File:{normalized_name}"
 
     file_info = get_file_info(prefixed_file_name, session=session)
+    # check if image exists
+    if file_info.exists is False:
+        return {"error": "File does not exist", "langs": None}
 
     # Extract metadata array
     imageinfo = file_info.imageinfo
