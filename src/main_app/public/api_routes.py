@@ -92,9 +92,9 @@ class ApiRoutes:
 
     def file_languages(self, file_name: str):
         result = get_file_languages(file_name)
-        if result.get("error"):
+        if result.get("error") or not result.get("langs"):
             return jsonify(result), 404
-        return jsonify(result)
+        return jsonify(result["langs"])
 
     def owid_charts_list(self, template_filter: str = ""):
         # Optimize: use single-query list_all() with fallback

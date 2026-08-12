@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 import pytest
 from flask.testing import FlaskClient
@@ -225,10 +225,15 @@ class TestFileLanguages:
 
     FILE_NAME = "File:Parkinsons_disease_prevalence_ihme,_Africa,_2021.svg"
 
-    @patch("src.main_app.public.api_routes.get_file_languages")
-    def test_returns_languages(self, mock_get_langs, mock_client: FlaskClient) -> None:
+    @pytest.fixture(autouse=True)
+    def mock_get_file_languages(self, monkeypatch: pytest.MonkeyPatch):
+        mock = MagicMock(return_value={"error": None, "langs": ["en"]})
+        monkeypatch.setattr("src.main_app.public.api_routes.get_file_languages", mock)
+        return mock
+
+    def test_returns_languages(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns language list when file has translations."""
-        mock_get_langs.return_value = {"error": None, "langs": ["en", "fr", "de"]}
+        mock_get_file_languages.return_value = {"error": None, "langs": ["en", "fr", "de"]}
 
         resp = mock_client.get(f"/api/languages/{self.FILE_NAME}")
 
@@ -236,23 +241,19 @@ class TestFileLanguages:
         body = resp.get_json()
         assert body["error"] is None
         assert body["langs"] == ["en", "fr", "de"]
-        mock_get_langs.assert_called_once_with(self.FILE_NAME)
+        mock_get_file_languages.assert_called_once_with(self.FILE_NAME)
 
-    @patch("src.main_app.public.api_routes.get_file_languages")
-    def test_returns_english_only(self, mock_get_langs, mock_client: FlaskClient) -> None:
+    def test_returns_english_only(self, mock_client: FlaskClient) -> None:
         """Returns ['en'] when file has no translations."""
-        mock_get_langs.return_value = {"error": None, "langs": ["en"]}
-
         resp = mock_client.get(f"/api/languages/{self.FILE_NAME}")
 
         assert resp.status_code == 200
         body = resp.get_json()
         assert body["langs"] == ["en"]
 
-    @patch("src.main_app.public.api_routes.get_file_languages")
-    def test_returns_404_on_error(self, mock_get_langs, mock_client: FlaskClient) -> None:
+    def test_returns_404_on_error(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns 404 when file metadata cannot be found."""
-        mock_get_langs.return_value = {"error": "Metadata not found for File:Missing.svg", "langs": None}
+        mock_get_file_languages.return_value = {"error": "Metadata not found for File:Missing.svg", "langs": None}
 
         resp = mock_client.get("/api/languages/File:Missing.svg")
 
@@ -261,10 +262,9 @@ class TestFileLanguages:
         assert "error" in body
         assert body["langs"] is None
 
-    @patch("src.main_app.public.api_routes.get_file_languages")
-    def test_returns_404_on_empty_filename(self, mock_get_langs, mock_client: FlaskClient) -> None:
+    def test_returns_404_on_empty_filename(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns 404 when file_name is empty."""
-        mock_get_langs.return_value = {"error": "Empty fileName", "langs": None}
+        mock_get_file_languages.return_value = {"error": "Empty fileName", "langs": None}
 
         resp = mock_client.get("/api/languages/")
 
