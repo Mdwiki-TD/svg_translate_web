@@ -18,12 +18,18 @@ class SharedMapToJson:
         return asdict(self)
 
 @dataclass(frozen=True)
-class UpdaterOutcome(SharedMapToJson):
+class UpdaterOutcome:
     """Result of running the updater on one page."""
 
     kind: Literal["missing", "changed", "error", "skipped"]
     newrevid: int = 0
     msg: str = ""
+    def to_json(self) -> dict[str, Any]:
+        """
+        Converts the dataclass instance back to its original dictionary format.
+        """
+        return asdict(self)
+
 
 
 @dataclass
