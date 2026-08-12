@@ -124,21 +124,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
 
             changed = self._rename_one(info)
 
-            if info.status == "skipped_target_exists":
-                self.result.summary.skipped_target_exists += 1
-                self.result.pages_skipped.append(info.to_dict())
-
-            elif info.status == "redirected":
-                self.result.summary.redirected += 1
-                self.result.pages_redirected.append(info.to_dict())
-
-            elif info.status == "renamed":
-                self.result.summary.renamed += 1
-                self.result.pages_renamed.append(info.to_dict())
-
-            elif info.status == "failed":
-                self.result.summary.failed += 1
-                self.result.pages_failed.append(info.to_dict())
+            self.update_rename_statistics(info)
 
             if changed and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -151,6 +137,23 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             self.result.status = "completed"
 
         return self.result
+
+    def update_rename_statistics(self, info: RenameInfo) -> None:
+        if info.status == "skipped_target_exists":
+            self.result.summary.skipped_target_exists += 1
+            self.result.pages_skipped.append(info.to_dict())
+
+        elif info.status == "redirected":
+            self.result.summary.redirected += 1
+            self.result.pages_redirected.append(info.to_dict())
+
+        elif info.status == "renamed":
+            self.result.summary.renamed += 1
+            self.result.pages_renamed.append(info.to_dict())
+
+        elif info.status == "failed":
+            self.result.summary.failed += 1
+            self.result.pages_failed.append(info.to_dict())
 
     # ------------------------------------------------------------------
     # Internal helpers

@@ -35,9 +35,9 @@
 
 {% block job_details %}
 
-{% macro pages_table(data, table_title) %}
+{% macro pages_table(data, table_title, job_type) %}
 {% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, table_title, job.id, template_data.job_type) }}
+{{ table_header_to_expand(data, table_title, job.id, job_type) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">
@@ -113,27 +113,27 @@
 
 <!-- Uploaded -->
 {% if pages_uploaded %}
-{{ pages_table(pages_uploaded, 'Uploaded') }}
+{{ pages_table(pages_uploaded, 'Uploaded', template_data.job_type) }}
 {% endif %}
 
 <!-- Updated -->
 {% if pages_updated %}
-{{ pages_table(pages_updated, 'Updated') }}
+{{ pages_table(pages_updated, 'Updated', template_data.job_type) }}
 {% endif %}
 
 <!-- Processed -->
 {% if files_processed %}
-{{ pages_table(files_processed, 'Processed') }}
+{{ pages_table(files_processed, 'Processed', template_data.job_type) }}
 {% endif %}
 
 <!-- Skipped -->
 {% if pages_skipped %}
-{{ pages_table(pages_skipped, 'Skipped') }}
+{{ pages_table(pages_skipped, 'Skipped', template_data.job_type) }}
 {% endif %}
 
 <!-- Failed -->
 {% if pages_failed %}
-{{ pages_table(pages_failed, 'Failed') }}
+{{ pages_table(pages_failed, 'Failed', template_data.job_type) }}
 {% endif %}
 
 {% endblock %}

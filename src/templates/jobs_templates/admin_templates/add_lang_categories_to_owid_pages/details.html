@@ -27,9 +27,9 @@
 </div>
 {% endblock %}
 
-{% macro pages_result_table(data, table_title) %}
+{% macro pages_result_table(data, table_title, job_type) %}
 {% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, table_title, job.id, template_data.job_type) }}
+{{ table_header_to_expand(data, table_title, job.id, job_type) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">
@@ -120,17 +120,17 @@
 
 <!-- Pages Updated -->
 {% if result_data.pages_success %}
-{{ pages_result_table(result_data.pages_success, 'Updated') }}
+{{ pages_result_table(result_data.pages_success, 'Updated', template_data.job_type) }}
 {% endif %}
 
 <!-- Skipped Pages -->
 {% if result_data.pages_skipped %}
-{{ pages_result_table(result_data.pages_skipped, "Skipped") }}
+{{ pages_result_table(result_data.pages_skipped, "Skipped", template_data.job_type) }}
 {% endif %}
 
 <!-- Failed Pages -->
 {% if result_data.pages_failed %}
-{{ pages_result_table(result_data.pages_failed, 'Failed') }}
+{{ pages_result_table(result_data.pages_failed, 'Failed', template_data.job_type) }}
 {% endif %}
 
 {% endblock %}
