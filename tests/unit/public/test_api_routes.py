@@ -11,7 +11,7 @@ from src.main_app.db.services import (
     OwidChartsService,
     TemplateService,
 )
-from src.main_app.utils.file_langs import FileLanguages
+from src.main_app.utils.file_langs import FileLanguagesMap
 
 
 @pytest.fixture
@@ -228,13 +228,13 @@ class TestFileLanguages:
 
     @pytest.fixture(autouse=True)
     def mock_get_file_languages(self, monkeypatch: pytest.MonkeyPatch):
-        mock = MagicMock(return_value=FileLanguages(error=None, langs=["en"]))
+        mock = MagicMock(return_value=FileLanguagesMap(error=None, langs=["en"]))
         monkeypatch.setattr("src.main_app.public.api_routes.get_file_languages", mock)
         return mock
 
     def test_returns_languages(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns language list when file has translations."""
-        mock_get_file_languages.return_value = FileLanguages(error=None, langs=["en", "fr", "de"])
+        mock_get_file_languages.return_value = FileLanguagesMap(error=None, langs=["en", "fr", "de"])
 
         resp = mock_client.get(f"/api/languages/{self.FILE_NAME}")
 
@@ -253,7 +253,7 @@ class TestFileLanguages:
 
     def test_returns_404_on_error(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns 404 when file metadata cannot be found."""
-        mock_get_file_languages.return_value = FileLanguages(
+        mock_get_file_languages.return_value = FileLanguagesMap(
             error="Metadata not found for File:Missing.svg",
             langs=None,
         )
@@ -264,10 +264,9 @@ class TestFileLanguages:
         body = resp.get_json()
         assert "error" in body
 
-
     def test_returns_404_on_empty_filename(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns 404 when file_name is empty."""
-        mock_get_file_languages.return_value = FileLanguages(error="Empty fileName", langs=None)
+        mock_get_file_languages.return_value = FileLanguagesMap(error="Empty fileName", langs=None)
         # {"error": "Empty fileName", "langs": None}
 
         resp = mock_client.get("/api/languages/")

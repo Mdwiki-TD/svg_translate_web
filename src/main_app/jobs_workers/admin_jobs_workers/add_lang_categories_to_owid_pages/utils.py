@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from ....utils.file_langs import lang_code_category
+from ....utils import lang_code_category
 
 # Matches the Translate/Translation link to extract the SVG file name.
 # e.g. *'''Translate''': https://svgtranslate.toolforge.org/File:example.svg

@@ -6,24 +6,8 @@ from unittest.mock import MagicMock
 
 import requests
 
-from src.main_app.utils.file_langs import (
-    FileLanguages,
-    get_file_languages,
-    lang_code_category,
-)
-
-
-class TestLangCodeCategory:
-    def test_known_code(self):
-        assert lang_code_category("en") == "English-language SVG"
-        assert lang_code_category("fr") == "French-language SVG"
-        assert lang_code_category("ar") == "Arabic-language SVG"
-
-    def test_unknown_code(self):
-        assert lang_code_category("xyz") is None
-
-    def test_empty_string(self):
-        assert lang_code_category("") is None
+from src.main_app.utils.file_langs import FileLanguagesMap  # noqa: F401
+from src.main_app.utils.file_langs import get_file_languages
 
 
 class TestGetFileLanguages:

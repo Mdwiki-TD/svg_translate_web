@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.utils.file_langs import FileLanguages
+from src.main_app.utils.file_langs import FileLanguagesMap
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def mock_lang_categories_services(monkeypatch: pytest.MonkeyPatch, mock_base_wor
 
     mocks = {
         "MwClientPage": MagicMock(),
-        "get_file_languages": MagicMock(return_value=FileLanguages(error=None, langs=["en", "ja", "ar"])),
+        "get_file_languages": MagicMock(return_value=FileLanguagesMap(error=None, langs=["en", "ja", "ar"])),
         "AddLangCategoriesWorker": _mock_class,
         "get_user_site": mock_base_worker["get_user_site"],
     }

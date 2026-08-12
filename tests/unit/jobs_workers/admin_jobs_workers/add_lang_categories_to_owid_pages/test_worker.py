@@ -11,8 +11,8 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pa
     AddLangCategoriesWorker,
     PageInfo,
 )
-from src.main_app.utils.file_langs import FileLanguages
 from src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.utils.file_langs import FileLanguagesMap
 
 
 @pytest.fixture
@@ -212,7 +212,7 @@ class TestStepExtractFileName:
 
 class TestStepGetLanguages:
     def test_success(self, mock_lang_worker, mock_lang_categories_services):
-        mock_lang_categories_services["get_file_languages"].return_value = FileLanguages(
+        mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
             error=None,
             langs=["en", "ja"],
         )
@@ -226,7 +226,7 @@ class TestStepGetLanguages:
         assert info.lang_codes == ["en", "ja"]
 
     def test_failure_on_api_error(self, mock_lang_worker, mock_lang_categories_services):
-        mock_lang_categories_services["get_file_languages"].return_value = FileLanguages(
+        mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
             error="API error: timeout",
             langs=None,
         )
@@ -241,7 +241,7 @@ class TestStepGetLanguages:
         assert "API error" in info.error
 
     def test_failure_on_empty_langs(self, mock_lang_worker, mock_lang_categories_services):
-        mock_lang_categories_services["get_file_languages"].return_value = FileLanguages(
+        mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
             error=None,
             langs=None,
         )
@@ -254,7 +254,7 @@ class TestStepGetLanguages:
         assert result is False
 
     def test_failure_on_english_only(self, mock_lang_worker, mock_lang_categories_services):
-        mock_lang_categories_services["get_file_languages"].return_value = FileLanguages(
+        mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
             error=None,
             langs=["en"],
         )
@@ -270,7 +270,7 @@ class TestStepGetLanguages:
 
     def test_success_on_english_plus_other(self, mock_lang_worker, mock_lang_categories_services):
         """English alongside other languages should still succeed."""
-        mock_lang_categories_services["get_file_languages"].return_value = FileLanguages(
+        mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
             error=None,
             langs=["en", "fr"],
         )
