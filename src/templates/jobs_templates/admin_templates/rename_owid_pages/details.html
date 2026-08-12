@@ -2,12 +2,10 @@
 {% from "_macros.html" import card_header, stats_card %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
-{% set pages_processed = result_data.pages_processed if result_data and result_data.pages_processed else [] %}
-
-{% set pages_renamed = result_data.pages_renamed or (pages_processed | selectattr("status", "equalto", "renamed") | list) or [] %}
-{% set pages_skipped = result_data.pages_skipped or (pages_processed | selectattr("status", "equalto", "skipped_target_exists") | list) or [] %}
-{% set pages_redirected = result_data.pages_redirected or (pages_processed | selectattr("status", "equalto", "redirected") | list) or [] %}
-{% set failed_pages = result_data.pages_failed or (pages_processed | selectattr("status", "equalto", "failed") | list) or [] %}
+{% set pages_renamed = result_data.pages_renamed %}
+{% set pages_skipped = result_data.pages_skipped %}
+{% set pages_redirected = result_data.pages_redirected %}
+{% set pages_failed = result_data.pages_failed %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -29,7 +27,7 @@
                 {{ stats_card('Skipped', ( pages_skipped | length ) or result_data.summary.skipped or result_data.summary.skipped_target_exists, "secondary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Failed', ( failed_pages | length ) or result_data.summary.failed, "danger", "") }}
+                {{ stats_card('Failed', ( pages_failed | length ) or result_data.summary.failed, "danger", "") }}
             </div>
         </div>
     </div>
@@ -112,8 +110,8 @@
 {% endif %}
 
 <!-- Failed -->
-{% if failed_pages %}
-{{ pages_table(failed_pages, 'Failed') }}
+{% if pages_failed %}
+{{ pages_table(pages_failed, 'Failed') }}
 {% endif %}
 
 {% endblock %}

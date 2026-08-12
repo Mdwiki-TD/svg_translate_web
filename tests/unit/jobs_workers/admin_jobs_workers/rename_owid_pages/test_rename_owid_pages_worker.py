@@ -7,10 +7,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.objects import RenameInfo
 from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker import (
     MOVE_REASON,
     PREFIXES,
-    RenameInfo,
     RenameOwidPagesWorker,
     needs_rename,
 )
@@ -204,7 +204,7 @@ class TestRenameOne:
 
         self._mock_old_page.move.return_value = {"success": True, "newrevid": 42}
 
-        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily"))
 
         assert result is True
         assert self.worker.result.summary.renamed == 1
@@ -216,7 +216,7 @@ class TestRenameOne:
 
         self._mock_old_page.move.return_value = {"success": False, "error": "permission denied"}
 
-        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily"))
 
         assert result is False
         assert self.worker.result.summary.failed == 1
@@ -231,7 +231,7 @@ class TestRenameOne:
             "details": "Title blacklist",
         }
 
-        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily"))
 
         assert result is False
         assert self.worker.result.summary.failed == 1
@@ -244,7 +244,7 @@ class TestRenameOne:
 
         self._mock_old_page.move.return_value = {"success": True, "newrevid": 99}
 
-        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily"))
 
         assert result is True
         assert self.worker.result.summary.renamed == 1
@@ -255,7 +255,7 @@ class TestRenameOne:
 
         self._mock_old_page.move.return_value = {"success": False, "error": "error"}
 
-        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily"))
 
         assert result is False
         assert self.worker.result.summary.failed == 1
@@ -266,7 +266,7 @@ class TestRenameOne:
 
         self._set_pages(new_exists=True, new_is_redirect=False, old_is_redirect=True)
 
-        result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+        result = self.worker._rename_one(RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily"))
 
         assert result is False
         assert self.worker.result.summary.skipped_target_exists == 1
@@ -284,7 +284,7 @@ class TestRenameOne:
             mock_redirect = MagicMock(return_value=True)
             m.setattr(self.worker, "_redirect_old_to_new", mock_redirect)
 
-            result = self.worker._rename_one(10, "Template:OWID/daily", "Template:OWID/Daily")
+            result = self.worker._rename_one(RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily"))
 
             mock_redirect.assert_called_once()
             call_args = mock_redirect.call_args

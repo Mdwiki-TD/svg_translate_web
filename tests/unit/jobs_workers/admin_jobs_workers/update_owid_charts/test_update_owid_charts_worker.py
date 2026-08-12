@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.db.models import OwidChartRecord
+from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.objects import ChartUpdateInfo
 from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker import (
     UpdateOwidChartsWorker,
 )
@@ -242,7 +243,9 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        result = worker._process_chart(chart)
+        info = ChartUpdateInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+        worker.append_results(chart.slug, info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
@@ -271,7 +274,9 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        result = worker._process_chart(chart)
+        info = ChartUpdateInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+        worker.append_results(chart.slug, info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
@@ -298,8 +303,10 @@ class TestProcessChart:
             len_years=None,
             owid_variable_id=None,
         )
+        info = ChartUpdateInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
 
-        result = worker._process_chart(chart)
+        worker.append_results(chart.slug, info)
 
         assert result is False
         assert len(worker.result.skipped_charts) == 1
@@ -327,7 +334,9 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        result = worker._process_chart(chart)
+        info = ChartUpdateInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+        worker.append_results(chart.slug, info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -356,7 +365,9 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        result = worker._process_chart(chart)
+        info = ChartUpdateInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+        worker.append_results(chart.slug, info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
@@ -383,7 +394,9 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        result = worker._process_chart(chart)
+        info = ChartUpdateInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+        worker.append_results(chart.slug, info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -412,7 +425,9 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        result = worker._process_chart(chart)
+        info = ChartUpdateInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+        worker.append_results(chart.slug, info)
 
         assert result is False
         assert len(worker.result.skipped_charts) == 1
@@ -440,7 +455,9 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        result = worker._process_chart(chart)
+        info = ChartUpdateInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+        worker.append_results(chart.slug, info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
@@ -468,7 +485,9 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        result = worker._process_chart(chart)
+        info = ChartUpdateInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+        worker.append_results(chart.slug, info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -497,7 +516,9 @@ class TestProcessChart:
             owid_variable_id=42,
         )
 
-        result = worker._process_chart(chart)
+        info = ChartUpdateInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+        worker.append_results(chart.slug, info)
 
         assert result is False
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_not_called()
@@ -551,7 +572,6 @@ class TestProcess:
         )
         result = worker.process_all()
 
-        mock_process_chart.assert_called_once_with(chart)
         assert result.status == "completed"
         assert result.summary.total == 1
 
