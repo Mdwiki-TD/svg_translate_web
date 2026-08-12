@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from src.main_app.api_services.clients.objects import RawGrapherMetadataResponse
 from src.main_app.db.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import runner
 
@@ -50,7 +51,7 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
         "MwClientPage": MagicMock(),
         "find_main_title": MagicMock(),
         "get_chart_by_slug": MagicMock(),
-        "fetch_grapher_metadata": MagicMock(return_value=None),
+        "fetch_grapher_metadata_raw": MagicMock(return_value=RawGrapherMetadataResponse(data=None, status_code=None)),
         "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
     }
 
@@ -112,8 +113,8 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidChartsService", _mock_class
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.fetch_grapher_metadata",
-        mocks["fetch_grapher_metadata"],
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.fetch_grapher_metadata_raw",
+        mocks["fetch_grapher_metadata_raw"],
     )
 
     return mocks

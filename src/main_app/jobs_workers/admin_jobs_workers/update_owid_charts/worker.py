@@ -27,7 +27,7 @@ from ....db.models import OwidChartRecord
 from ....db.services import OwidChartsService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from ..slugs_helpers import check_slugs
+from ..slugs_helpers import check_slugs_url
 from .objects import ChartUpdateInfo, UpdateOwidChartsWorkerObject
 
 logger = logging.getLogger(__name__)
@@ -136,33 +136,35 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         self.result.summary.processed += 1
 
         # 1 A). Fetch metadata
-        # metadata = fetch_grapher_metadata(chart.slug)
-        metadata, status_code = fetch_grapher_metadata_raw(chart.slug)
+        grapher_data = fetch_grapher_metadata_raw(chart.slug)
 
-        if status_code == 404:
+        if grapher_data.status_code == 404:
             self._update(chart, {"status_404": 404}, info)
             info.status = "failed"
             info.error = "Chart not found"
             return False
 
-        if metadata is None:
+        if grapher_data.data is None:
             info.status = "failed"
             info.error = "Could not fetch metadata JSON"
             return False
 
-        data: dict[str, Any] = {}
+        db_data: dict[str, Any] = {}
 
         # 1 B) Find slug redirect
-        check_slugs(chart.slug, metadata)
 
-        self.result.metadata_keys.update(list(metadata.keys()))
+        original_chart_url = grapher_data.data.get("chart", {}).get("originalChartUrl", "")
+
+        check_slugs_url(chart.slug, original_chart_url)
+
+        self.result.metadata_keys.update(list(grapher_data.data.keys()))
 
         # 2. Find a timespan
-        columns = metadata.get("columns", {})
+        columns = grapher_data.data.get("columns", {})
         timespan_raw = _first_value(columns, "timespan")
         owid_variable_id = _first_value(columns, "owidVariableId")
 
-        if not timespan_raw and not owid_variable_id and not data:
+        if not timespan_raw and not owid_variable_id and not db_data:
             info.status = "skipped"
             info.skip_reason = "nothing to update"
             return False
@@ -171,7 +173,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             owid_variable_id = ensure_int(owid_variable_id)
             if owid_variable_id != chart.owid_variable_id:
                 info.owid_variable_id = owid_variable_id
-                data.update(
+                db_data.update(
                     {
                         "owid_variable_id": owid_variable_id,
                     }
@@ -181,7 +183,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             # 3. Parse timespan
             parsed = _parse_timespan(timespan_raw)
             # here we set status to failed if no parsed and no owid_variable_id to update.
-            if parsed is None and not data:
+            if parsed is None and not db_data:
                 info.status = "failed"
                 info.error = f"Could not parse timespan: '{timespan_raw}'"
                 return False
@@ -197,7 +199,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
                 if min_t == chart.min_time and max_t == chart.max_time and len_y == chart.len_years:
                     logger.info("Chart '%s' has no changes in timespan", chart.slug)
                 else:
-                    data.update(
+                    db_data.update(
                         {
                             "min_time": min_t,
                             "max_time": max_t,
@@ -206,12 +208,12 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
                     )
 
         # 5. Update DB
-        if not data:
+        if not db_data:
             info.status = "skipped"
             info.skip_reason = "nothing to update"
             return False
 
-        updated = self._update(chart, data, info)
+        updated = self._update(chart, db_data, info)
         if updated:
             info.status = "updated"
             return True

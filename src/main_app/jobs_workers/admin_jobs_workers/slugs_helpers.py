@@ -11,11 +11,10 @@ from ...db.templates_utils import extract_slug
 logger = logging.getLogger(__name__)
 
 
-def check_slugs(slug_to_check: str, metadata: dict[str, Any]) -> bool:
+def check_slugs_url(slug_to_check: str, original_chart_url: str | None) -> bool:
     """
     Check if the slug has a redirect and add it to the database if needed.
     """
-    original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
     if not original_chart_url:
         return False
 
@@ -34,6 +33,18 @@ def check_slugs(slug_to_check: str, metadata: dict[str, Any]) -> bool:
         logger.error("Error adding slug redirect: %s", e)
 
     return False
+
+
+def check_slugs(slug_to_check: str, metadata: dict[str, Any]) -> bool:
+    """
+    Check if the slug has a redirect and add it to the database if needed.
+    """
+    original_chart_url = metadata.get("chart", {}).get("originalChartUrl", "")
+
+    return check_slugs_url(
+        slug_to_check=slug_to_check,
+        original_chart_url=original_chart_url,
+    )
 
 
 __all__ = [

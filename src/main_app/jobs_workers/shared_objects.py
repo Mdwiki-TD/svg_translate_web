@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class SharedMapToJson:
     def to_json(self) -> dict[str, Any]:
@@ -17,6 +18,7 @@ class SharedMapToJson:
         """
         return asdict(self)
 
+
 @dataclass(frozen=True)
 class UpdaterOutcome:
     """Result of running the updater on one page."""
@@ -24,12 +26,12 @@ class UpdaterOutcome:
     kind: Literal["missing", "changed", "error", "skipped"]
     newrevid: int = 0
     msg: str = ""
+
     def to_json(self) -> dict[str, Any]:
         """
         Converts the dataclass instance back to its original dictionary format.
         """
         return asdict(self)
-
 
 
 @dataclass
@@ -67,6 +69,7 @@ class WorkerObject(SharedMapToJson):
 
     error: str | None = None
     error_type: str | None = None
+
 
 @dataclass
 class SharedworkerObject(WorkerObject):

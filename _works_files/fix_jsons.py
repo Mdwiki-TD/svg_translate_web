@@ -28,23 +28,15 @@ def process_json_files(directory_path: Path):
         # Case 1: Filename starts with crop_main_files
         # -------------------------------------------------------------
         if filename.startswith("crop_main_files"):
-            _processed = (
-                result_data.get("files_processed")
-                or result_data.get("pages_processed")
-                or []
-            )
+            _processed = result_data.get("files_processed") or result_data.get("pages_processed") or []
 
-            result_data["pages_skipped"] = result_data.get(
-                "pages_skipped"
-            ) or [
+            result_data["pages_skipped"] = result_data.get("pages_skipped") or [
                 item for item in _processed if item.get("status") == "skipped"
             ]
             result_data["pages_failed"] = result_data.get("pages_failed") or [
                 item for item in _processed if item.get("status") == "failed"
             ]
-            result_data["pages_uploaded"] = result_data.get(
-                "pages_uploaded"
-            ) or [
+            result_data["pages_uploaded"] = result_data.get("pages_uploaded") or [
                 item for item in _processed if item.get("status") == "uploaded"
             ]
             result_data["pages_updated"] = result_data.get("pages_updated") or [
@@ -60,9 +52,7 @@ def process_json_files(directory_path: Path):
                 "updated",
             }
             result_data["files_processed"] = [
-                item
-                for item in _processed
-                if item.get("status") not in excluded_statuses
+                item for item in _processed if item.get("status") not in excluded_statuses
             ]
 
             modified = True
@@ -71,23 +61,15 @@ def process_json_files(directory_path: Path):
         # Case 2: Filename starts with create_owid_pages
         # -------------------------------------------------------------
         elif filename.startswith("create_owid_pages"):
-            _processed = (
-                result_data.get("files_processed")
-                or result_data.get("pages_processed")
-                or []
-            )
+            _processed = result_data.get("files_processed") or result_data.get("pages_processed") or []
 
-            result_data["pages_skipped"] = result_data.get(
-                "pages_skipped"
-            ) or [
+            result_data["pages_skipped"] = result_data.get("pages_skipped") or [
                 item for item in _processed if item.get("status") == "skipped"
             ]
             result_data["pages_failed"] = result_data.get("pages_failed") or [
                 item for item in _processed if item.get("status") == "failed"
             ]
-            result_data["pages_created"] = result_data.get(
-                "pages_created"
-            ) or [
+            result_data["pages_created"] = result_data.get("pages_created") or [
                 item for item in _processed if item.get("status") == "created"
             ]
             result_data["pages_updated"] = result_data.get("pages_updated") or [
@@ -103,9 +85,7 @@ def process_json_files(directory_path: Path):
                 "updated",
             }
             result_data["pages_processed"] = [
-                item
-                for item in _processed
-                if item.get("status") not in excluded_statuses
+                item for item in _processed if item.get("status") not in excluded_statuses
             ]
 
             modified = True
@@ -116,31 +96,17 @@ def process_json_files(directory_path: Path):
         elif filename.startswith("rename_owid_pages"):
             pages_processed = result_data.get("pages_processed") or []
 
-            result_data["pages_renamed"] = result_data.get(
-                "pages_renamed"
-            ) or [
-                item
-                for item in pages_processed
-                if item.get("status") == "renamed"
+            result_data["pages_renamed"] = result_data.get("pages_renamed") or [
+                item for item in pages_processed if item.get("status") == "renamed"
             ]
-            result_data["pages_skipped"] = result_data.get(
-                "pages_skipped"
-            ) or [
-                item
-                for item in pages_processed
-                if item.get("status") == "skipped_target_exists"
+            result_data["pages_skipped"] = result_data.get("pages_skipped") or [
+                item for item in pages_processed if item.get("status") == "skipped_target_exists"
             ]
-            result_data["pages_redirected"] = result_data.get(
-                "pages_redirected"
-            ) or [
-                item
-                for item in pages_processed
-                if item.get("status") == "redirected"
+            result_data["pages_redirected"] = result_data.get("pages_redirected") or [
+                item for item in pages_processed if item.get("status") == "redirected"
             ]
             result_data["pages_failed"] = result_data.get("pages_failed") or [
-                item
-                for item in pages_processed
-                if item.get("status") == "failed"
+                item for item in pages_processed if item.get("status") == "failed"
             ]
 
             modified = True
@@ -155,7 +121,5 @@ def process_json_files(directory_path: Path):
 
 
 # Target directory using pathlib
-directory_path = Path(
-    "I:/TOOLFORGE_TOOLS/copy-svg-langs.toolforge.org/data/svg_jobs"
-)
+directory_path = Path("I:/TOOLFORGE_TOOLS/copy-svg-langs.toolforge.org/data/svg_jobs")
 process_json_files(directory_path)

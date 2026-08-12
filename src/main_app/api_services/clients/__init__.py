@@ -5,7 +5,7 @@ from .commons_client import (
     GetWithRetryData,
     create_commons_session,
 )
-from .owid_client import fetch_grapher_metadata, fetch_grapher_metadata_raw, fetch_indicators_metadata
+from .owid_client import fetch_grapher_metadata_raw, fetch_indicators_metadata
 from .wiki_client import get_cronjob_site, get_user_site
 
 __all__ = [
@@ -14,7 +14,6 @@ __all__ = [
     "create_commons_session",
     "get_user_site",
     "get_cronjob_site",
-    "fetch_grapher_metadata",
     "fetch_indicators_metadata",
     "fetch_grapher_metadata_raw",
 ]

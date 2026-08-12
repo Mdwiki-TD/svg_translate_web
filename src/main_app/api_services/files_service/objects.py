@@ -8,6 +8,7 @@ class SharedMapToJson:
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
 
+
 @dataclass
 class WriteData(SharedMapToJson):
     path: Path
@@ -18,6 +19,7 @@ class WriteData(SharedMapToJson):
 @dataclass
 class FileLanguagesMap(SharedMapToJson):
     """Result of extracting available SVG translation languages for a Commons file."""
+
     langs: list[str] | None = None
     error: str | None = None
 

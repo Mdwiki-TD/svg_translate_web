@@ -7,6 +7,7 @@ from .objects import WriteData
 
 logger = logging.getLogger(__name__)
 
+
 def write_bytes_to_file(*, content: bytes, filename: str, output_dir: Path) -> WriteData:
     # Extract just the filename part (remove "File:" prefix if present)
     clean_filename = Path(filename.removeprefix("File:")).name
