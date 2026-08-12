@@ -51,10 +51,11 @@ def get_file_languages(
     if not metadata:
         return FileLanguagesMap(error=f"Metadata array empty for {prefixed_file_name}")
 
-    translations = []
-    for x in metadata:
-        if isinstance(x, dict) and x["name"] == "translations":
-            translations = x["value"]
+    translations: list[object] = []
+    for entry in metadata:
+        if isinstance(entry, dict) and entry.get("name") == "translations":
+            value = entry.get("value")
+            translations = value if isinstance(value, list) else []
             break
 
     # translations shema: [ { "name": "abr", "value": 2 }, { "name": "ar", "value": 2 }, ... ]
