@@ -179,3 +179,9 @@ def get_file_languages(file_name: str, session: requests.Session | None = None) 
         return {"error": None, "langs": langs_keys if langs_keys else ["en"]}
 
     return {"error": None, "langs": ["en"]}
+
+__all__ = [
+    "LANG_CODE_CATEGORY_MAP",
+    "get_file_languages",
+    "lang_code_category",
+]
