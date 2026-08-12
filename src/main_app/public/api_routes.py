@@ -5,6 +5,7 @@ from typing import Any
 
 from flask import Blueprint, jsonify
 
+from ..api_services.files_service.file_langs import get_file_languages
 from ..db.models import TemplateRecord
 from ..db.services import (
     ChartAndTemplate,
@@ -14,7 +15,6 @@ from ..db.services import (
     ViewsService,
 )
 from ..shared.owid_charts_utils import make_charts_summary
-from ..utils.file_langs import get_file_languages
 
 logger = logging.getLogger(__name__)
 

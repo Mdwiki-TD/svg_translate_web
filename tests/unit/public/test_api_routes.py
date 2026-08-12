@@ -7,11 +7,11 @@ from unittest.mock import MagicMock
 import pytest
 from flask.testing import FlaskClient
 
+from src.main_app.api_services.files_service.file_langs import FileLanguagesMap
 from src.main_app.db.services import (
     OwidChartsService,
     TemplateService,
 )
-from src.main_app.utils.file_langs import FileLanguagesMap
 
 
 @pytest.fixture

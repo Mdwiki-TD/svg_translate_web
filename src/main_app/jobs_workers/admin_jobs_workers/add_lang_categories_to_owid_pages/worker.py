@@ -19,7 +19,7 @@ from typing import Any
 from mwclient.client import Site
 
 from ....api_services import MwClientPage
-from ....utils.file_langs import get_file_languages
+from ....api_services.files_service.file_langs import get_file_languages
 from ....utils.wikitext.categories_utils import get_missing_categories_list
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner

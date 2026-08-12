@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.utils.file_langs import FileLanguagesMap
+from src.main_app.api_services.files_service.file_langs import FileLanguagesMap
 
 
 @pytest.fixture

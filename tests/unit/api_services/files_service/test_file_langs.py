@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import requests
 
-from src.main_app.utils.file_langs import FileLanguagesMap  # noqa: F401
-from src.main_app.utils.file_langs import get_file_languages
+from src.main_app.api_services.files_service.file_langs import FileLanguagesMap  # noqa: F401
+from src.main_app.api_services.files_service.file_langs import get_file_languages
 
 
 class TestGetFileLanguages:

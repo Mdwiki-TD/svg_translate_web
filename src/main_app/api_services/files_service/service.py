@@ -6,10 +6,12 @@ from mwclient.client import Site
 
 from ..clients import create_commons_session
 from .downloader import download_and_save
+from .file_langs import get_file_languages
 from .files_helpers import get_file_info
 from .objects import (
     DownloadAndSaveData,
     FileInfo,
+    FileLanguagesMap,
     UploadResult,
 )
 from .upload_bot import UploadFile
@@ -24,6 +26,10 @@ class FilesService:
     def get_file_info(self, title: str) -> FileInfo:
         """Get file info from Commons."""
         return get_file_info(title)
+
+    def get_file_languages(self, title: str) -> FileLanguagesMap:
+        """Get file languages from Commons."""
+        return get_file_languages(title, self.session)
 
     # ----------------------
     #  download methods

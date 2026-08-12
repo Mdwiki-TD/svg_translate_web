@@ -3,6 +3,14 @@ from typing import Any
 
 
 @dataclass
+class FileLanguagesMap:
+    """Result of extracting available SVG translation languages for a Commons file."""
+
+    error: str | None = None
+    langs: list[str] | None = None
+
+
+@dataclass
 class FileInfo:
     imageinfo: list[dict[str, Any]] | None = None
     error: str | None = None
@@ -47,6 +55,7 @@ class UploadResult:
 
 
 __all__ = [
+    "FileLanguagesMap",
     "FileInfo",
     "DownloadAndSaveData",
     "DownloadResult",
