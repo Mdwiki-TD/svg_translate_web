@@ -9,9 +9,17 @@ from lxml import etree  # type: ignore
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class SharedMapToJson:
+    def to_json(self) -> dict[str, Any]:
+        """
+        Converts the dataclass instance back to its original dictionary format.
+        """
+        return asdict(self)
+
 
 @dataclass
-class InjectorStats:
+class InjectorStats(SharedMapToJson):
     """
     {
         "all_languages_count": 0,
@@ -38,9 +46,6 @@ class InjectorStats:
     error: str = ""
     nested_tspan_error: bool = False
 
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
-
     def _update(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -63,7 +68,7 @@ class InjectorData:
 
 
 @dataclass
-class InjectResult:
+class InjectResult(SharedMapToJson):
     result: bool | None = None
     msg: str | None = None
     new_languages_count: int | None = None
@@ -73,20 +78,14 @@ class InjectResult:
     languages_before: list[str] = field(default_factory=list)
     languages_after: list[str] = field(default_factory=list)
 
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
-
 
 @dataclass
-class ExtractResult:
+class ExtractResult(SharedMapToJson):
     success: bool | None = None
     message: str | None = None
     error: str | None = None
     translations: dict | None = None
     mapping: ExtractorData | None = None
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
 
     # ------------------------------------------------------------------
     # Factory helpers
