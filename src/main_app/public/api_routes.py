@@ -92,8 +92,8 @@ class ApiRoutes:
 
     def file_languages(self, file_name: str):
         result = get_file_languages(file_name)
-        error = result.get("error")
-        langs = result.get("langs") or []
+        error = result.error
+        langs = result.langs or []
         if error or not langs:
             return jsonify({"error": error or "No languages found"}), 404
         return jsonify(langs)

@@ -243,8 +243,8 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
     def _step_get_languages(self, info: PageInfo) -> bool:
         """Call the Commons API to get available languages for the SVG file."""
         result = get_file_languages(info.svg_file or "")
-        error = result.get("error")
-        langs = result.get("langs")
+        error = result.error
+        langs = result.langs
 
         if error or not langs:
             self._fail(info, "get_languages", error or "No languages returned")
