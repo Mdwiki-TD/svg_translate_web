@@ -5,9 +5,6 @@ Worker module for create_owid_pages.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any
 
 from mwclient.client import Site
 
@@ -18,45 +15,10 @@ from ....db.services import TemplateService
 from ....utils.wikitext import merge_categories, sort_categories
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import CreateOwidPagesWorkerObject
+from .objects import CreateOwidPagesWorkerObject, TemplateProcessingInfo
 from .owid_template_converter import create_new_text
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class TemplateProcessingInfo:
-    """Holds all state for a single template being processed."""
-
-    template_id: int
-    template_title: str
-    new_page_title: str | None = None
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: str = "pending"
-    error: str | None = None
-    steps: dict[str, dict[str, Any]] = field(
-        default_factory=lambda: {
-            "load_template_text": {"result": None, "msg": ""},
-            "create_new_text": {"result": None, "msg": ""},
-            "update_text": {"result": None, "msg": ""},
-            "create_new_page": {"result": None, "msg": ""},
-        }
-    )
-
-    # Internal temporary state
-    _template_text: str | None = None
-    _new_text: str | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "template_id": self.template_id,
-            "template_title": self.template_title,
-            "new_page_title": self.new_page_title,
-            "timestamp": self.timestamp,
-            "status": self.status,
-            "error": self.error,
-            "steps": self.steps,
-        }
 
 
 class CreateOwidPagesWorker(BaseObjectsJobWorker):

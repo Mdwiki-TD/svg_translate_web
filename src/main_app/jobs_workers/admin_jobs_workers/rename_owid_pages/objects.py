@@ -5,9 +5,33 @@ Objects for rename_owid_pages worker.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from ...shared_objects import StandardAdminWorkerObject
+
+
+@dataclass
+class RenameInfo:
+    """Holds the outcome of attempting to rename a single page."""
+
+    namespace: int
+    old_title: str
+    new_title: str | None = None
+    newrevid: int | None = None
+    status: str = "pending"  # renamed | skipped_target_exists | failed
+    msg: str = ""
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "namespace": self.namespace,
+            "old_title": self.old_title,
+            "new_title": self.new_title,
+            "status": self.status,
+            "msg": self.msg,
+            "timestamp": self.timestamp,
+        }
 
 
 @dataclass

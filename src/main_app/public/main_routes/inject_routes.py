@@ -109,7 +109,7 @@ class InjectRoutes:
         source_info = self.files_service.get_file_info(f"File:{source}")
         if not source_info.exists:
             flash(f"Source file File:{source} does not exist", "danger")
-            logger.error("Source file info: %s", source_info.to_dict())
+            logger.error("Source file info: %s", source_info.to_json())
             return render_template(
                 "inject/form.html",
                 source_filename=source_display,
@@ -119,7 +119,7 @@ class InjectRoutes:
         target_info = self.files_service.get_file_info(f"File:{target}")
         if not target_info.exists:
             flash(f"Target file File:{target} does not exist", "danger")
-            logger.error("Target file info: %s", target_info.to_dict())
+            logger.error("Target file info: %s", target_info.to_json())
             return render_template(
                 "inject/form.html",
                 source_filename=source_display,

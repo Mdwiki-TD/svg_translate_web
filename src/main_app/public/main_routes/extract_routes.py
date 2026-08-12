@@ -65,7 +65,7 @@ class ExtractRoutes:
         file_info = self.files_service.get_file_info(prefixed_file_name)
         if not file_info.exists:
             flash(f"File {prefixed_file_name} not exists", "danger")
-            logger.error(file_info.to_dict())
+            logger.error(file_info.to_json())
             return render_template("extract/form.html", filename=prefixed_file_name)
 
         # ========================

@@ -6,7 +6,6 @@ Worker module for collecting main files for templates.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import Any
 
 from mwclient.client import Site
@@ -29,26 +28,9 @@ from ....utils.wikitext import (
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ..slugs_helpers import check_slugs
-from .objects import CollectTemplatesDataWorkerObject, TemplateInfo
+from .objects import CollectTemplatesDataWorkerObject, TemplateData, TemplateInfo
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class TemplateData:
-    id: int = 0
-    title: str = ""
-    main_file: str | None = None
-    last_world_file: str | None = None
-    last_world_year: int | None = None
-    slug: str = ""
-    source: str = ""
-
-    def __post_init__(self) -> None:
-        if self.main_file:
-            self.main_file = self.main_file.removeprefix("File:")
-        if self.last_world_file:
-            self.last_world_file = self.last_world_file.removeprefix("File:")
 
 
 def slugify_title(title: str) -> str:
