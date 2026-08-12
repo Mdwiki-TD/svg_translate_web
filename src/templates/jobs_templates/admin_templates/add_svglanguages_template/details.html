@@ -26,7 +26,7 @@
 
 {% macro pages_processed_table(data, table_title) %}
 {% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, table_title, job.id, job_type) }}
+{{ table_header_to_expand(data, table_title, job.id, template_data.job_type) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">

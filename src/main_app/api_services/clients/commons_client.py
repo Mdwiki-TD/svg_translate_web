@@ -9,29 +9,15 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import asdict, dataclass
 from typing import Any
 
 import requests
+from .objects import GetWithRetryData
 
 logger = logging.getLogger(__name__)
 
 # Define API endpoint and parameters
 COMMONS_API_ENDPOINT = "https://commons.wikimedia.org/w/api.php"
-
-
-@dataclass
-class GetWithRetryData:
-    content: str | None = None
-    success: bool | None = None
-    status_code: int | None = None
-    msg: int | None = None
-    attempts: int | None = None
-    wait_time: int | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
 
 def create_commons_session(user_agent: str | None = None) -> requests.Session:
     """Create a pre-configured requests Session for Commons API calls.

@@ -2,10 +2,6 @@
 {% from "_macros.html" import card_header, stats_card %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
-{% set updated_charts = result_data.updated_charts or (result_data.charts_processed | selectattr("status", "equalto", "updated") | list) %}
-{% set skipped_charts = result_data.skipped_charts or (result_data.charts_processed | selectattr("status", "equalto", "skipped") | list ) %}
-{% set failed_charts = result_data.failed_charts or (result_data.charts_processed | selectattr("status", "equalto", "failed") | list ) %}
-
 {% block job_summary %}
 <div class="row g-3 mb-4">
     <div class="col-md-3">
@@ -32,13 +28,13 @@
 {# ------------------------------------------------------------------ #}
 {# Updated charts — with old/new comparison                           #}
 {# ------------------------------------------------------------------ #}
-{% if updated_charts %}
-{% if updated_charts|length > 100 and not expand_all %}
-{{ table_header_to_expand(updated_charts, 'Updated Charts', job.id, job_type) }}
+{% if result_data.updated_charts %}
+{% if result_data.updated_charts|length > 100 and not expand_all %}
+{{ table_header_to_expand(result_data.updated_charts, 'Updated Charts', job.id, template_data.job_type) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Updated Charts (" ~ updated_charts | length ~ ")") }}
+        {{ card_header("Updated Charts (" ~ result_data.updated_charts | length ~ ")") }}
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -57,7 +53,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in updated_charts %}
+                    {% for item in result_data.updated_charts %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
@@ -104,13 +100,13 @@
 {# ------------------------------------------------------------------ #}
 {# Failed charts                                                      #}
 {# ------------------------------------------------------------------ #}
-{% if failed_charts %}
-{% if failed_charts|length > 100 and not expand_all %}
-{{ table_header_to_expand(failed_charts, 'Failed Charts', job.id, job_type) }}
+{% if result_data.failed_charts %}
+{% if result_data.failed_charts|length > 100 and not expand_all %}
+{{ table_header_to_expand(result_data.failed_charts, 'Failed Charts', job.id, template_data.job_type) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Failed Charts (" ~ failed_charts | length ~ ")") }}
+        {{ card_header("Failed Charts (" ~ result_data.failed_charts | length ~ ")") }}
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -123,7 +119,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in failed_charts %}
+                    {% for item in result_data.failed_charts %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
@@ -147,13 +143,13 @@
 {# Skipped charts                                                     #}
 {# ------------------------------------------------------------------ #}
 
-{% if skipped_charts %}
-{% if skipped_charts|length > 100 and not expand_all %}
-{{ table_header_to_expand(skipped_charts, 'Skipped Charts', job.id, job_type) }}
+{% if result_data.skipped_charts %}
+{% if result_data.skipped_charts|length > 100 and not expand_all %}
+{{ table_header_to_expand(result_data.skipped_charts, 'Skipped Charts', job.id, template_data.job_type) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header("Skipped Charts (" ~ skipped_charts | length ~ ")") }}
+        {{ card_header("Skipped Charts (" ~ result_data.skipped_charts | length ~ ")") }}
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -166,7 +162,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in skipped_charts %}
+                    {% for item in result_data.skipped_charts %}
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>

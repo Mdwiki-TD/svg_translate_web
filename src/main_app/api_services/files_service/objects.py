@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any
 
 
@@ -6,6 +7,12 @@ from typing import Any
 class SharedMapToJson:
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
+
+@dataclass
+class WriteData(SharedMapToJson):
+    path: Path
+    success: bool | None = None
+    error: str | None = None
 
 
 @dataclass
@@ -50,6 +57,7 @@ class UploadResult(SharedMapToJson):
 __all__ = [
     "FileLanguagesMap",
     "FileInfo",
+    "WriteData",
     "DownloadAndSaveData",
     "DownloadResult",
     "UploadResult",

@@ -67,6 +67,7 @@ class UpdateOwidChartsWorkerObject(StandardAdminWorkerObject):
     skipped_charts: list[dict] = field(default_factory=list)
     failed_charts: list[dict] = field(default_factory=list)
 
+    metadata_keys: set[str] = field(default_factory=set)
 
 __all__ = [
     "UpdateOwidChartsWorkerObject",

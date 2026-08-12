@@ -89,7 +89,7 @@
 
 {% macro pages_updated_table(data, table_title) %}
 {% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, table_title, job.id, job_type) }}
+{{ table_header_to_expand(data, table_title, job.id, template_data.job_type) }}
 {% else %}
 <div class="card mb-3">
     <div class="card-header">
@@ -114,7 +114,7 @@
                 <tbody>
                     {% for template in data %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td> {{ loop.index }} </td>
                         <td>
                             <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
                                 rel='noopener noreferrer'>
