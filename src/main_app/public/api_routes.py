@@ -14,6 +14,7 @@ from ..db.services import (
     ViewsService,
 )
 from ..shared.owid_charts_utils import make_charts_summary
+from ..utils.file_langs import get_file_languages
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,8 @@ class ApiRoutes:
 
         self.bp.get("/owidcharts/")(self.owid_charts_list)
         self.bp.get("/owidcharts/<string:template_filter>")(self.owid_charts_list)
+
+        self.bp.get("/languages/<path:file_name>")(self.file_languages)
 
     def templates_list(self):
         templates: list[TemplateRecord] = self.templates_service.list()
@@ -86,6 +89,12 @@ class ApiRoutes:
         data = [t.to_dict() for t in templates]
 
         return jsonify({"data": data})
+
+    def file_languages(self, file_name: str):
+        result = get_file_languages(file_name)
+        if result.get("error"):
+            return jsonify(result), 404
+        return jsonify(result)
 
     def owid_charts_list(self, template_filter: str = ""):
         # Optimize: use single-query list_all() with fallback
