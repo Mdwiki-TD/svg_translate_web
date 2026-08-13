@@ -13,7 +13,7 @@ from sqlalchemy.orm.exc import StaleDataError
 
 from ..api_services import get_user_site
 from ..config import settings
-from ..db.services import JobsService
+from ..database.services import JobsService
 from ..io import is_job_cancelled_file_exist, save_job_result_by_name
 from .objects import JobsRunner
 from .shared_objects import WorkerObject

@@ -7,10 +7,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.main_app import create_app
+from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
-from src.main_app.db.models import OwidChartRecord
-from src.main_app.db.services import OwidChartsService
+from src.main_app.database.models import OwidChartRecord
+from src.main_app.database.services import OwidChartsService
 from src.main_app.extensions import db as _db
 
 
@@ -44,7 +44,7 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.public.auth.utils.load_user", fake_current_user)
     monkeypatch.setattr("src.main_app.admin.decorators.load_user", fake_current_user)
 
-    flask_app = create_app(TestingConfig)
+    flask_app = AppFactory.create(TestingConfig)
     flask_app.config["TESTING"] = True
     flask_app.config["WTF_CSRF_ENABLED"] = False
 

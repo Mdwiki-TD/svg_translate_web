@@ -22,7 +22,7 @@ from collections.abc import Iterable
 from mwclient.client import Site
 
 from ....api_services import MwClientPage
-from ....db.services import TemplateService
+from ....database.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import RenameInfo, RenameOwidPagesWorkerObject

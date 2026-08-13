@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.main_app.db.services import OwidChartsService
+from src.main_app.database.services import OwidChartsService
 
 
 @pytest.fixture(autouse=True)

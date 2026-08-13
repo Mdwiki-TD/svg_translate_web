@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.main_app import create_app
+from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
 from src.main_app.extensions import db as _db
 
@@ -31,7 +31,7 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         lambda user: bool(getattr(user, "is_active_admin", False)),
     )
 
-    app = create_app(TestingConfig)
+    app = AppFactory.create(TestingConfig)
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
 

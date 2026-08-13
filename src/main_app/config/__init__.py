@@ -15,6 +15,7 @@ from .classes import (
 )
 from .flask_config import (
     Config,
+    ConfigLoader,
     DevelopmentConfig,
     ProductionConfig,
     TestingConfig,
@@ -23,6 +24,7 @@ from .flask_config import (
 from .main_settings import ensure_directories, settings
 
 __all__ = [
+    "ConfigLoader",
     "Config",
     "Settings",
     "DevelopmentConfig",

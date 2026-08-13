@@ -50,7 +50,7 @@ The migration will touch several key layers across the application:
 | **Dependencies** | `requirements.txt` | Add `Flask-Security-Too`, `email-validator`, and cryptography helpers. |
 | **Configuration** | `src/main_app/config/` | Add Flask-Security configuration variables (e.g., `SECURITY_PASSWORD_REQUIRED = False`). |
 | **Extensions** | `src/main_app/extensions/` | Instantiate the `Security` extension and register it with the app factory. |
-| **Database Models** | `src/main_app/db/models/users.py` | Update `UserRecord` to inherit from `UserMixin` and add `fs_uniquifier`. Convert `AdminUserRecord` or create a new `Role` table matching Flask-Security expectations. |
+| **Database Models** | `src/main_app/database/models/users.py` | Update `UserRecord` to inherit from `UserMixin` and add `fs_uniquifier`. Convert `AdminUserRecord` or create a new `Role` table matching Flask-Security expectations. |
 | **Authentication Routes** | `src/main_app/public/auth/routes.py` | Integrate `login_user()` and `logout_user()` from Flask-Login/Flask-Security into the OAuth callback and logout routes. |
 | **Middleware Hooks** | `src/main_app/public/auth/utils.py` | Refactor/retire `load_logged_in_user()` and transition global variable lookups to use Flask-Security's `current_user`. |
 | **Decorators** | `src/main_app/admin/decorators.py` | Deprecate `@admin_required` in favor of `@roles_required('admin')` or `@permissions_required('admin')`. |
@@ -149,7 +149,7 @@ Flask-Security-Too requires specific database schemas (e.g., an active status fi
 
 #### Files that need modification:
 - `requirements.txt`
-- `src/main_app/db/models/users.py`
+- `src/main_app/database/models/users.py`
 - `src/main_app/extensions/__init__.py`
 - `src/main_app/config/flask_config.py`
 - `src/main_app/__init__.py`
@@ -167,7 +167,7 @@ bcrypt>=4.0.0
 We update `UserRecord` to implement the `UserMixin` interface and add `fs_uniquifier`. We also introduce a modern `RoleRecord` and a many-to-many helper table `roles_users`.
 
 ```python
-# src/main_app/db/models/users.py
+# src/main_app/database/models/users.py
 from flask_security import UserMixin, RoleMixin
 import uuid
 
@@ -255,7 +255,7 @@ class Config:
 # src/main_app/__init__.py
 from flask_security import SQLAlchemyUserDatastore
 from .extensions import security
-from .db.models.users import UserRecord, RoleRecord
+from .database.models.users import UserRecord, RoleRecord
 def create_app(config_class: Type) -> Flask:
     # ... standard setup ...
     _db.init_app(app)

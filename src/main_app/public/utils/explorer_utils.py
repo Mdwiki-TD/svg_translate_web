@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from ...config import settings
-from ...db.services import TemplateService
+from ...database.services import TemplateService
 
 logger = logging.getLogger(__name__)
 

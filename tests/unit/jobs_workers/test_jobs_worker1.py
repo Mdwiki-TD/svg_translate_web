@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.models import JobRecord
+from src.main_app.database.models import JobRecord
 from src.main_app.jobs_workers import jobs_worker
 from src.main_app.jobs_workers.objects import JobsRunner
 
@@ -18,11 +18,11 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
     mock_is_cancelled = MagicMock(return_value=False)
     mock_cancel_job = MagicMock(return_value=False)
     monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.JobsService.is_job_cancelled",
+        "src.main_app.database.services.jobs_service.JobsService.is_job_cancelled",
         mock_is_cancelled,
     )
     monkeypatch.setattr(
-        "src.main_app.db.services.jobs_service.JobsService.cancel_job_db",
+        "src.main_app.database.services.jobs_service.JobsService.cancel_job_db",
         mock_cancel_job,
     )
     return {"is_job_cancelled": mock_is_cancelled, "cancel_job": mock_cancel_job}

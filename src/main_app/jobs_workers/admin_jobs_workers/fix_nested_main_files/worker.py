@@ -12,8 +12,8 @@ from pathlib import Path
 from mwclient.client import Site
 
 from ....api_services import FilesService, UploadService
-from ....db.models import TemplateRecord
-from ....db.services import TemplateService
+from ....database.models import TemplateRecord
+from ....database.services import TemplateService
 from ....shared.fix_nested.worker import (
     DetectionResult,
     VerificationResult,

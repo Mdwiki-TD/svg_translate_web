@@ -6,10 +6,10 @@ from flask import Flask
 
 
 class TestCreateApp:
-    """Tests for the create_app factory."""
+    """Tests for the AppFactory.create factory."""
 
     def test_create_app_returns_flask_instance(self, mock_app: Flask):
-        """create_app should return a configured Flask application."""
+        """AppFactory.create should return a configured Flask application."""
         assert isinstance(mock_app, Flask)
 
     def test_app_has_strict_slashes_disabled(self, mock_app: Flask):

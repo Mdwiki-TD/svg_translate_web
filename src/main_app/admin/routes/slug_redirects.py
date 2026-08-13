@@ -14,7 +14,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ...db.services import OwidSlugRedirectsService
+from ...database.services import OwidSlugRedirectsService
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)

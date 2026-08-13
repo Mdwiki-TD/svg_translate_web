@@ -7,8 +7,8 @@ from html import unescape
 
 import pytest
 
-from src.main_app.db.models import TemplateRecord
-from src.main_app.db.services import TemplateService
+from src.main_app.database.models import TemplateRecord
+from src.main_app.database.services import TemplateService
 
 
 @pytest.fixture

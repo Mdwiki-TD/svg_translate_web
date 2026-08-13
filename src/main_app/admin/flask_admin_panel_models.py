@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..db.models import (  # UserTokenRecord,; TemplateNeedUpdateView,
+from ..database.models import (  # UserTokenRecord,; TemplateNeedUpdateView,
     AdminUserRecord,
     JobRecord,
     OwidChartRecord,

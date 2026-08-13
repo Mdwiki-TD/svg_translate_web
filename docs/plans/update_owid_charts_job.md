@@ -286,8 +286,8 @@ A single card with a table showing all processed charts. Columns:
 ## 7. Dependencies
 
 -   `requests` — already in `requirements.txt` (line 12)
--   `src/main_app/db/services/owid_charts_service.py` — `list_charts()`, `update_chart_data()` already exist
--   `src/main_app/db/models/owid_charts.py` — `OwidChartRecord` model already exists
+-   `src/main_app/database/services/owid_charts_service.py` — `list_charts()`, `update_chart_data()` already exist
+-   `src/main_app/database/models/owid_charts.py` — `OwidChartRecord` model already exists
 -   `src/main_app/jobs_workers/base_worker.py` — `BaseJobWorker` base class already exists
 
 No new dependencies needed.

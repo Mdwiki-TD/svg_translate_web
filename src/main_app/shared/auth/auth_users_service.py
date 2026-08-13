@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import logging
 
-from ...db.models import UserRecord
-from ...db.services import (
+from ...database.models import UserRecord
+from ...database.services import (
     AdminService,
     UsersService,
     UserTokenService,

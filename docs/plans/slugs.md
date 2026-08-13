@@ -44,7 +44,7 @@ class OwidSlugRedirectRecord(db.Model):
 > **Note:** Add appropriate indexes where useful.
 >
 ### 2. Create Service Layer
-Create the file path: src/main_app/db/services/owid_slugs_redirects_service.py
+Create the file path: src/main_app/database/services/owid_slugs_redirects_service.py
 Implement the following function:
 ```python
 def add_new_slug_redirect(slug: str, redirect_to: str) -> None:

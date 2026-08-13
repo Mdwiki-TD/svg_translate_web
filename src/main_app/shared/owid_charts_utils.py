@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ..db.services import ChartAndTemplate
+from ..database.services import ChartAndTemplate
 
 logger = logging.getLogger(__name__)
 

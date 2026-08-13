@@ -7,7 +7,7 @@ from unittest.mock import Mock
 import pytest
 
 from src.main_app.admin.routes import templates
-from src.main_app.db.services import TemplateService
+from src.main_app.database.services import TemplateService
 
 
 @pytest.fixture

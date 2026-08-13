@@ -25,7 +25,7 @@ The project is reorganizing tests into three types:
 
 Every test file **must mirror** its `src/main_app/` counterpart path. Examples:
 
--   `src/main_app/db/db_Jobs.py` → `tests/unit/main_app/db/test_db_Jobs.py`
+-   `src/main_app/database/db_Jobs.py` → `tests/unit/main_app/database/test_db_Jobs.py`
 -   `src/main_app/public/auth/routes.py` → `tests/integration/main_app/public/auth/test_routes.py`
 -   `src/main_app/services/jobs_service.py` → `tests/unit/main_app/services/test_jobs_service.py`
 
@@ -95,7 +95,7 @@ Return a Markdown report saved to `plans/test_classification_report_main_app.md`
 
 | File                                | Type  | Action | Tests Count | Destination              |
 | ----------------------------------- | ----- | ------ | ----------- | ------------------------ |
-| `tests/main_app/db/test_db_Jobs.py` | mixed | SPLIT  | 6           | unit(4) + integration(2) |
+| `tests/main_app/database/test_db_Jobs.py` | mixed | SPLIT  | 6           | unit(4) + integration(2) |
 
 3. **Files Requiring Split** (detailed breakdown per file)
 

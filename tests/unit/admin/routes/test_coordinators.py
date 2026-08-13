@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.main_app.db.services import AdminService, UsersService
+from src.main_app.database.services import AdminService, UsersService
 
 
 @pytest.fixture(autouse=True)

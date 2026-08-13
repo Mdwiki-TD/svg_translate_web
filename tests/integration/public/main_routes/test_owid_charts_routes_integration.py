@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from src.main_app.config import TestingConfig
-from src.main_app.db.services import OwidChartsService
+from src.main_app.database.services import OwidChartsService
 from src.main_app.extensions import db as _db
 
 
@@ -14,9 +14,9 @@ def owid_charts_client(monkeypatch):
     """Create Flask test client with real owid_charts_service."""
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
 
-    from src.main_app import create_app
+    from src.main_app import AppFactory
 
-    flask_app = create_app(TestingConfig)
+    flask_app = AppFactory.create(TestingConfig)
     flask_app.config["TESTING"] = True
     flask_app.config["WTF_CSRF_ENABLED"] = False
 

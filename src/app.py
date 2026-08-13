@@ -6,21 +6,14 @@ WSGI production entry point for the app.
 from __future__ import annotations
 import sys
 from pathlib import Path
-import logging
 import pymysql
 
 sys.path.insert(0, str(Path(__file__).parent))
 pymysql.install_as_MySQLdb()
 
-# environment variables in production already in toolforge envvars no need to run load_dotenv()
+from main_app import AppFactory  # noqa: E402
 
-from main_app import create_app  # noqa: E402
-from main_app.config import ProductionConfig  # noqa: E402
-from logger_config import configure_logging  # noqa: E402
-
-configure_logging(logging.WARNING, use_colorlog=False, daily_rotation=True)
-
-app = create_app(ProductionConfig)
+app = AppFactory.create()
 
 if __name__ == "__main__":
     app.run(debug=False, port=5000)

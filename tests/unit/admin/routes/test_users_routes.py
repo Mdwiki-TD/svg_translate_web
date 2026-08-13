@@ -9,7 +9,7 @@ import pytest
 from flask import Blueprint, Flask
 
 from src.main_app.admin.routes.users import UsersRoutes
-from src.main_app.db.services import UsersService
+from src.main_app.database.services import UsersService
 
 
 @dataclass

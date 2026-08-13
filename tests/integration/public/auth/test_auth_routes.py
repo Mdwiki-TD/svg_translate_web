@@ -13,7 +13,7 @@ import pytest
 from flask import Flask
 from flask.testing import FlaskClient
 
-from src.main_app.db.services import UsersService, UserTokenService
+from src.main_app.database.services import UsersService, UserTokenService
 from src.main_app.public.auth.routes import _load_request_token
 from src.main_app.shared.core.cookies import sign_state_token
 

@@ -8,9 +8,9 @@ from typing import Any
 
 from flask import Flask, current_app
 
-from ..db.exceptions import DuplicateRecordError
-from ..db.models import JobRecord
-from ..db.services import (
+from ..database.exceptions import DuplicateRecordError
+from ..database.models import JobRecord
+from ..database.services import (
     JobsService,
     SettingsService,
 )

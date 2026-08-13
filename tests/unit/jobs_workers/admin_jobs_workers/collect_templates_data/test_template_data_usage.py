@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.models import TemplateRecord
+from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker import (
     CollectMainFilesWorker,
     TemplateData,

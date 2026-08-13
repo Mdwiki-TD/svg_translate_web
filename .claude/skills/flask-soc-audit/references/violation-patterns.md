@@ -25,8 +25,8 @@ request parsing or response building.
 
 ### V-R3 · Direct import of models in routes
 
-**Pattern**: `from main_app.db.models.user import User` inside `public/`.
-**Detection**: Any `from ...db.models` import in a route file.
+**Pattern**: `from main_app.database.models.user import User` inside `public/`.
+**Detection**: Any `from ...database.models` import in a route file.
 **Severity**: 🟠 High (routes should call services, not models directly)
 
 ### V-R4 · Raw SQL in routes

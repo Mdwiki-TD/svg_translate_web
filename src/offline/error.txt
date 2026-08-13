@@ -60,7 +60,7 @@ Traceback (most recent call last):
         ^^^^^^^^^^^^^^
     )
     ^
-  File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/db/services/template_service.py", line 81, in update_template_data
+  File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/database/services/template_service.py", line 81, in update_template_data
     template = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
   File "./venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2766, in first
     return self.limit(1)._iter().first()  # type: ignore
@@ -181,7 +181,7 @@ Traceback (most recent call last):
         ^^^^^^^^^^^^^^
     )
     ^
-  File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/db/services/template_service.py", line 81, in update_template_data
+  File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/database/services/template_service.py", line 81, in update_template_data
     template = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
   File "./venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2766, in first
     return self.limit(1)._iter().first()  # type: ignore
@@ -264,7 +264,7 @@ Traceback (most recent call last):
         ^^^^^^^^^^^^^^
     )
     ^
-  File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/db/services/template_service.py", line 81, in update_template_data
+  File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/database/services/template_service.py", line 81, in update_template_data
     template = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
   File "./venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2766, in first
     return self.limit(1)._iter().first()  # type: ignore
@@ -347,7 +347,7 @@ Traceback (most recent call last):
         ^^^^^^^^^^^^^^
     )
     ^
-  File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/db/services/template_service.py", line 81, in update_template_data
+  File "I:/TOOLFORGE_TOOLS/copy-svg-langs_flask_app/app_repo/src/main_app/database/services/template_service.py", line 81, in update_template_data
     template = db.session.query(TemplateRecord).filter(TemplateRecord.id == template_id).first()
   File "./venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2766, in first
     return self.limit(1)._iter().first()  # type: ignore

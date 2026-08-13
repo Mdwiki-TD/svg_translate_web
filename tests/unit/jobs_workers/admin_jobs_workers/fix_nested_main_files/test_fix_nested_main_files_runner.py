@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
-from src.main_app.db.models import TemplateRecord
+from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.runner import (
     fix_nested_main_files_for_templates,
 )

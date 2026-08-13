@@ -18,9 +18,9 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from werkzeug.datastructures import ImmutableMultiDict
 
-from ...db.exceptions import DuplicateRecordError
-from ...db.models import TemplateRecord
-from ...db.services import (
+from ...database.exceptions import DuplicateRecordError
+from ...database.models import TemplateRecord
+from ...database.services import (
     TemplateService,
 )
 from ..decorators import admin_required

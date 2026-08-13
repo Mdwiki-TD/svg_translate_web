@@ -16,9 +16,9 @@ Generated for `tests/` directory.
 | 1   | `tests/unit/admin/routes/test_coordinators.py`                                                            | 10    |                        |
 | 2   | `tests/unit/admin/routes/test_owid_charts.py`                                                             | 6     |                        |
 | 3   | `tests/unit/admin/routes/test_users_routes.py`                                                            | 10    | ✅ refactored (was 30) |
-| 4   | `tests/unit/db/services/test_settings_service.py`                                                         | 5     | ✅ refactored (was 29) |
+| 4   | `tests/unit/database/services/test_settings_service.py`                                                         | 5     | ✅ refactored (was 29) |
 | 5   | `tests/unit/admin/routes/test_slug_redirects.py`                                                          | 25    | 🔴 refactor candidate  |
-| 6   | `tests/unit/db/services/test_jobs_service.py`                                                             | 23    | 🔴 refactor candidate  |
+| 6   | `tests/unit/database/services/test_jobs_service.py`                                                             | 23    | 🔴 refactor candidate  |
 | 7   | `tests/unit/admin/routes/test_settings.py`                                                                | 23    | 🔴 refactor candidate  |
 | 8   | `tests/integration/admin/routes/test_admin_jobs_routes.py`                                                | 23    | 🔴 refactor candidate  |
 | 9   | `tests/unit/jobs_workers/public_jobs_workers/copy_svg_langs/test_copy_svg_langs_worker.py`                | 22    | 🟡                     |
@@ -26,12 +26,12 @@ Generated for `tests/` directory.
 | 11  | `tests/unit/public/test_jobs_utils_bp.py`                                                                 | 19    | 🟠 borderline          |
 | 12  | `tests/integration/public/auth/test_auth_routes.py`                                                       | 19    | 🟠 borderline          |
 | 13  | `tests/unit/jobs_workers/admin_jobs_workers/crop_main_files/test_crop_main_files_worker.py`               | 18    | 🟠 borderline          |
-| 14  | `tests/unit/db/services/test_user_token_service.py`                                                       | 16    | 🟠 borderline          |
+| 14  | `tests/unit/database/services/test_user_token_service.py`                                                       | 16    | 🟠 borderline          |
 | 15  | `tests/integration/public/main_routes/test_extract_routes_integration.py`                                 | 16    | 🟠 borderline          |
 | 16  | `tests/integration/public/main_routes/test_explorer_routes_integration.py`                                | 15    | 🟠 borderline          |
 | 17  | `tests/unit/jobs_workers/admin_jobs_workers/collect_templates_data/test_template_data_usage.py`           | 12    |                        |
 | 18  | `tests/unit/jobs_workers/admin_jobs_workers/collect_templates_data/conftest.py`                           | 11    |                        |
-| 19  | `tests/unit/db/services/test_owid_charts_service.py`                                                      | 11    |                        |
+| 19  | `tests/unit/database/services/test_owid_charts_service.py`                                                      | 11    |                        |
 | 20  | `tests/unit/shared/auth/test_mwoauth_handshake.py`                                                        | 10    |                        |
 | 21  | `tests/unit/public/test_profile.py`                                                                       | 10    |                        |
 | 22  | `tests/unit/admin/routes/test_templates.py`                                                               | 10    |                        |
@@ -80,10 +80,10 @@ Generated for `tests/` directory.
 | 65  | `tests/unit/jobs_workers/admin_jobs_workers/rename_owid_pages/test_rename_owid_pages_runner.py`           | 1     |                        |
 | 66  | `tests/unit/jobs_workers/admin_jobs_workers/download_main_files/test_download_helper.py`                  | 1     |                        |
 | 67  | `tests/unit/jobs_workers/admin_jobs_workers/crop_main_files/test_crop_main_files_runner.py`               | 1     |                        |
-| 68  | `tests/unit/db/services/utils/test_retry_on_disconnect.py`                                                | 1     |                        |
-| 69  | `tests/unit/db/services/utils/test_detachedinstanceerror.py`                                              | 1     |                        |
-| 70  | `tests/unit/db/services/test_template_service.py`                                                         | 1     |                        |
-| 71  | `tests/unit/db/services/test_owid_slug_redirects_service.py`                                              | 1     |                        |
+| 68  | `tests/unit/database/services/utils/test_retry_on_disconnect.py`                                                | 1     |                        |
+| 69  | `tests/unit/database/services/utils/test_detachedinstanceerror.py`                                              | 1     |                        |
+| 70  | `tests/unit/database/services/test_template_service.py`                                                         | 1     |                        |
+| 71  | `tests/unit/database/services/test_owid_slug_redirects_service.py`                                              | 1     |                        |
 | 72  | `tests/unit/api_services/mwclient_page/test_mwclient_wraper.py`                                           | 1     |                        |
 | 73  | `tests/unit/api_services/mwclient_page/test_mwclient_page.py`                                             | 1     |                        |
 | 74  | `tests/unit/api_services/files_service/test_upload_bot.py`                                                | 1     |                        |
