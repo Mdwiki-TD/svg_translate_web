@@ -409,7 +409,7 @@ class TestJobsPublicRoutesRoutes(TestSetup):
         mock_deps.cancel_job_worker.return_value = True
         mock_deps.load_job_result.return_value = {"result": "ok"}
 
-        monkeypatch.setattr("src.main_app.shared.auth.utils.get_current_user", mock_deps.get_current_user)
+        monkeypatch.setattr("src.main_app.public.auth.decorators.get_current_user", mock_deps.get_current_user)
 
         mock_deps.admin_load_user = MagicMock(return_value=MagicMock(username="admin", is_active_admin=True))
         monkeypatch.setattr("src.main_app.admin.decorators.get_current_user", mock_deps.admin_load_user)
