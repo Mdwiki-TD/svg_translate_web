@@ -10,7 +10,7 @@ from flask import (
 
 from ..admin.decorators import admin_required
 from ..jobs_workers.objects import JobData
-from .auth.utils import oauth_required
+from .auth.decorators import oauth_required
 from .shared_jobs_routes import JobsBp
 
 logger = logging.getLogger(__name__)

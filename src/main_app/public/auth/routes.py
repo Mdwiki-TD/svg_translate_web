@@ -32,6 +32,7 @@ from ...shared.auth.auth_service import (
     complete_oauth_callback,
     start_login,
 )
+from ...shared.auth.utils import set_logged_in_user
 from ...shared.core.cookies import (
     extract_user_id,
     sign_state_token,
@@ -39,7 +40,6 @@ from ...shared.core.cookies import (
     verify_state_token,
 )
 from .rate_limit import callback_rate_limiter, login_rate_limiter
-from .utils import set_logged_in_user
 
 logger = logging.getLogger(__name__)
 

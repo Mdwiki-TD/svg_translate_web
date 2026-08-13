@@ -9,7 +9,7 @@ from flask_admin.theme import Bootstrap4Theme
 from flask_babel import Babel
 from flask_sqlalchemy import SQLAlchemy
 
-from ..public.auth.utils import get_current_user
+from ..shared.auth.utils import get_current_user
 from .flask_admin_panel_models import ModelItem, categories
 
 

@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Flask, g, session
 
-from src.main_app.public.auth import utils as auth_utils
+from src.main_app.shared.auth import utils as auth_utils
 
 
 @pytest.fixture(autouse=True)
@@ -17,7 +17,7 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     fake_settings = SimpleNamespace(
         cookie=SimpleNamespace(name="auth_cookie"),
     )
-    monkeypatch.setattr("src.main_app.public.auth.utils.settings", fake_settings)
+    monkeypatch.setattr("src.main_app.shared.auth.utils.settings", fake_settings)
 
 
 class TestLoadUser:
@@ -56,7 +56,7 @@ class TestLoadLoggedInUser:
     def test_from_session_uid(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_user = MagicMock(username="alice")
         monkeypatch.setattr(
-            "src.main_app.public.auth.utils.AuthUserService.get_authenticated_user",
+            "src.main_app.shared.auth.utils.AuthUserService.get_authenticated_user",
             lambda _, uid: mock_user,
         )
         with mock_app.test_request_context():
@@ -66,7 +66,7 @@ class TestLoadLoggedInUser:
 
     def test_session_resolve_fails_pops_keys(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "src.main_app.public.auth.utils._resolve_user_id",
+            "src.main_app.shared.auth.utils._resolve_user_id",
             lambda uid: None,
         )
         with mock_app.test_request_context():
@@ -79,12 +79,12 @@ class TestLoadLoggedInUser:
 
     def test_fallback_to_cookie_sets_session(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "src.main_app.public.auth.utils.extract_user_id",
+            "src.main_app.shared.auth.utils.extract_user_id",
             lambda token: 99,
         )
         mock_user = MagicMock(username="bob")
         monkeypatch.setattr(
-            "src.main_app.public.auth.utils.AuthUserService.get_authenticated_user",
+            "src.main_app.shared.auth.utils.AuthUserService.get_authenticated_user",
             lambda _, uid: mock_user,
         )
         with mock_app.test_request_context(environ_overrides={"HTTP_COOKIE": "auth_cookie=signed-token"}):
@@ -94,7 +94,7 @@ class TestLoadLoggedInUser:
 
     def test_cookie_extraction_returns_none(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "src.main_app.public.auth.utils.extract_user_id",
+            "src.main_app.shared.auth.utils.extract_user_id",
             lambda token: None,
         )
         with mock_app.test_request_context(environ_overrides={"HTTP_COOKIE": "auth_cookie=bad-token"}):
@@ -110,7 +110,7 @@ class TestLoadLoggedInUser:
     def test_updates_session_username_when_different(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_user = MagicMock(username="new-name")
         monkeypatch.setattr(
-            "src.main_app.public.auth.utils.AuthUserService.get_authenticated_user",
+            "src.main_app.shared.auth.utils.AuthUserService.get_authenticated_user",
             lambda _, uid: mock_user,
         )
         with mock_app.test_request_context():
@@ -122,7 +122,7 @@ class TestLoadLoggedInUser:
     def test_does_not_update_session_username_when_same(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         mock_user = MagicMock(username="alice")
         monkeypatch.setattr(
-            "src.main_app.public.auth.utils.AuthUserService.get_authenticated_user",
+            "src.main_app.shared.auth.utils.AuthUserService.get_authenticated_user",
             lambda _, uid: mock_user,
         )
         with mock_app.test_request_context():
@@ -133,52 +133,10 @@ class TestLoadLoggedInUser:
 
     def test_user_service_returns_none_sets_g_none(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "src.main_app.public.auth.utils.AuthUserService.get_authenticated_user",
+            "src.main_app.shared.auth.utils.AuthUserService.get_authenticated_user",
             lambda _, uid: None,
         )
         with mock_app.test_request_context():
             session["uid"] = 1
             auth_utils.set_logged_in_user()
             assert g._current_user is None
-
-
-class TestOauthRequired:
-    def test_decorator_calls_function_when_user_exists(self, mock_app: Flask) -> None:
-        with mock_app.test_request_context():
-            g._current_user = "alice"
-
-            @auth_utils.oauth_required
-            def dummy():
-                return "ok"
-
-            assert dummy() == "ok"
-
-    def test_redirects_to_login_when_user_is_none(self, mock_app: Flask) -> None:
-        with mock_app.test_request_context():
-            with mock_app.test_client() as client:
-                with client.session_transaction() as sess:
-                    sess.clear()
-
-            @auth_utils.oauth_required
-            def dummy():
-                return "never reached"
-
-            resp = dummy()
-            assert resp.status_code == 302  # type: ignore
-            assert resp.location == "/login"  # type: ignore
-
-    def test_sets_post_login_redirect_in_session(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
-        with mock_app.test_request_context(
-            base_url="https://example.com/",
-            path="/some/protected/page",
-        ):
-            with mock_app.test_client() as client:
-                with client.session_transaction() as sess:
-                    sess.clear()
-
-            @auth_utils.oauth_required
-            def dummy():
-                return "never reached"
-
-            dummy()
-            assert session["post_login_redirect"] == "https://example.com/some/protected/page"

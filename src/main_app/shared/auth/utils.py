@@ -6,15 +6,14 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from functools import wraps
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar
 
-from flask import g, redirect, request, session, url_for
+from flask import g, request, session
 
 from ...config import settings
-from ...shared.auth.auth_users_service import AuthUserService
-from ...shared.auth.current_user import CurrentUser
-from ...shared.core.cookies import extract_user_id
+from ..core.cookies import extract_user_id
+from .auth_users_service import AuthUserService
+from .current_user import CurrentUser
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 
@@ -90,23 +89,6 @@ def set_logged_in_user() -> None:
     g._current_user = _build_current_user(user_id)
 
 
-def oauth_required(func: FuncType) -> FuncType:  # noqa: UP047
-    """Decorator that requires a full OAuth credential bundle."""
-
-    @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any):
-        # Check g._current_user which was populated by set_logged_in_user
-        user = get_current_user()
-        if not user:
-            session["post_login_redirect"] = request.url
-            return redirect(url_for("auth.login"))
-
-        return func(*args, **kwargs)
-
-    return cast(FuncType, wrapper)
-
-
 __all__ = [
     "set_logged_in_user",
-    "oauth_required",
 ]

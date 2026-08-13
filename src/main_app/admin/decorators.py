@@ -14,8 +14,8 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ..public.auth.utils import get_current_user
 from ..shared.auth.current_user import CurrentUser
+from ..shared.auth.utils import get_current_user
 
 logger = logging.getLogger(__name__)
 
