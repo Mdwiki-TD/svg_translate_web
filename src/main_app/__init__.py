@@ -154,7 +154,7 @@ def create_app(config_class: type) -> Flask:
     csrf_init_app(app)
 
     @app.context_processor
-    def _inject_data() -> dict[str, Any]:  # pragma: no cover - trivial wrapper
+    def inject_globals() -> dict[str, Any]:  # pragma: no cover - trivial wrapper
         return context_data(
             settings.other.wiki_domain,
             settings.other.static_server,
