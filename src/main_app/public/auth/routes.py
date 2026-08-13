@@ -20,6 +20,7 @@ from flask import (
     session,
     url_for,
 )
+from flask.views import MethodView
 from mwoauth import RequestToken
 from werkzeug.wrappers import Response as WerkzeugResponse
 
@@ -52,56 +53,31 @@ request_token_key = settings.sessions.request_token_key
 # Helpers
 # ---------------------------------------------------------
 
-
-def _set_response_cookies(user_id, response) -> None:
-    response.set_cookie(
-        settings.cookie.name,
-        sign_user_id(user_id),
-        httponly=settings.cookie.httponly,
-        secure=settings.cookie.secure,
-        samesite=settings.cookie.samesite,
-        max_age=settings.cookie.max_age,
-        path="/",
-    )
-
-
 def _client_key() -> str:
     forwarded_for = request.headers.get("X-Forwarded-For")
     if forwarded_for:
         return forwarded_for.split(",")[0].strip()
     return request.remote_addr or "anonymous"
 
-
-def _load_request_token(raw: Sequence[Any] | None) -> RequestToken:
-    if not raw:
-        raise ValueError("Missing OAuth request token")
-
-    if len(raw) < 2:
-        raise ValueError("Invalid OAuth request token")
-
-    return RequestToken(raw[0], raw[1])
-
-
 # ---------------------------------------------------------
 # Routes
 # ---------------------------------------------------------
 
 
-class AuthRoutesFuncs:
-    def __init__(self) -> None:
-        pass
+class LoginView(MethodView):
+    """Start the OAuth flow — redirect user to Meta-Wiki."""
 
-    def before_request(self) -> None:
-        """Automatically load the user before any route is processed."""
-        load_logged_in_user()
+    def get(self):
+        return self.login()
 
     def login(self) -> WerkzeugResponse:
-        logger.info("OAuth login initiated, client: %s", _client_key())
-        if not login_rate_limiter.allow(_client_key()):
-            time_left = login_rate_limiter.try_after(_client_key()).total_seconds()
+        _key = _client_key()
+        logger.info("OAuth login initiated, client: %s", _key)
+        if not login_rate_limiter.allow(_key):
+            time_left = login_rate_limiter.try_after(_key).total_seconds()
             time_left_str = str(time_left).split(".")[0]
             flash(f"Too many login attempts. Please try again after {time_left_str}s.", "warning")
-            logger.warning("OAuth login rate limited, client: %s, try_after: %ss", _client_key(), time_left_str)
+            logger.warning("OAuth login rate limited, client: %s, try_after: %ss", _key, time_left_str)
             return redirect(
                 url_for("main.index", error=f"Too many login attempts. Please try again after {time_left_str}s.")
             )
@@ -125,13 +101,21 @@ class AuthRoutesFuncs:
         logger.debug("OAuth request token stored in session")
         return redirect(redirect_url)
 
+
+class OAuthCallbackView(MethodView):
+    """Handle the OAuth callback from Meta-Wiki."""
+
+    def get(self):
+        return self.callback()
+
     def callback(self) -> WerkzeugResponse:
-        logger.info("OAuth callback initiated, client: %s", _client_key())
+        _key = _client_key()
+        logger.info("OAuth callback initiated, client: %s", _key)
         # ------------------
         # callback rate limiter
-        if not callback_rate_limiter.allow(_client_key()):
+        if not callback_rate_limiter.allow(_key):
             flash("Too many login attempts", "warning")
-            logger.warning("OAuth callback rate limit exceeded, client: %s", _client_key())
+            logger.warning("OAuth callback rate limit exceeded, client: %s", _key)
             return redirect(url_for("main.index", error="Too many login attempts"))
 
         # ------------------
@@ -161,7 +145,7 @@ class AuthRoutesFuncs:
         # ------------------
         # RequestToken
         try:
-            request_token = _load_request_token(raw_request_token)
+            request_token = self.load_request_token(raw_request_token)
         except ValueError:
             logger.exception("Invalid OAuth request token")
             flash("Invalid OAuth request token", "danger")
@@ -190,12 +174,44 @@ class AuthRoutesFuncs:
         # Set response and cookies
         response = make_response(redirect(session.pop("post_login_redirect", url_for("main.index"))))
 
-        _set_response_cookies(user_id, response)
+        self._set_response_cookies(user_id, response)
 
         # Cache in g for the remainder of THIS request only
         g._current_user = user_record
 
         return response
+
+    @staticmethod
+    def _set_response_cookies(user_id, response) -> None:
+        response.set_cookie(
+            settings.cookie.name,
+            sign_user_id(user_id),
+            httponly=settings.cookie.httponly,
+            secure=settings.cookie.secure,
+            samesite=settings.cookie.samesite,
+            max_age=settings.cookie.max_age,
+            path="/",
+        )
+
+
+    @staticmethod
+    def load_request_token(raw: Sequence[Any] | None) -> RequestToken:
+        if not raw:
+            raise ValueError("Missing OAuth request token")
+
+        if len(raw) < 2:
+            raise ValueError("Invalid OAuth request token")
+
+        return RequestToken(raw[0], raw[1])
+
+class LogoutView(MethodView):
+    """Log out and delete stored token."""
+
+    def post(self):
+        return self.logout()
+
+    def get(self):
+        return self.logout()
 
     def logout(self) -> WerkzeugResponse:
         user_id = session.pop("uid", None)
@@ -231,7 +247,7 @@ class AuthRoutesFuncs:
         return response
 
 
-class AuthRoutes(AuthRoutesFuncs):
+class AuthRoutes:
     def __init__(self, bp: Blueprint) -> None:
         self.bp = bp
         # super.__init__()
@@ -239,10 +255,13 @@ class AuthRoutes(AuthRoutesFuncs):
 
     def _setup_routes(self) -> None:
         self.bp.before_app_request(self.before_request)
-        self.bp.get("/login")(self.login)
-        self.bp.get("/callback")(self.callback)
-        self.bp.get("/logout")(self.logout)
+        self.bp.add_url_rule("/login", view_func=LoginView.as_view("login"))
+        self.bp.add_url_rule("/callback", view_func=OAuthCallbackView.as_view("callback"))
+        self.bp.add_url_rule("/logout", view_func=LogoutView.as_view("logout"))
 
+    def before_request(self) -> None:
+        """Automatically load the user before any route is processed."""
+        load_logged_in_user()
 
 __all__ = [
     "AuthRoutes",

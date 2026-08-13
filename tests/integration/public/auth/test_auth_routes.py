@@ -14,7 +14,7 @@ from flask import Flask
 from flask.testing import FlaskClient
 
 from src.main_app.database.services import UsersService, UserTokenService
-from src.main_app.public.auth.routes import _load_request_token
+from src.main_app.public.auth.routes import OAuthCallbackView
 from src.main_app.shared.core.cookies import sign_state_token
 
 # ---------------------------------------------------------------------------
@@ -181,29 +181,29 @@ class TestLogout:
 
 
 # ---------------------------------------------------------------------------
-# _load_request_token (pure utility — no DB involved)
+# load_request_token (pure utility — no DB involved)
 # ---------------------------------------------------------------------------
 
 
 class TestLoadRequestToken:
     def test_load_request_token_valid(self) -> None:
-        """Test _load_request_token parses valid token."""
+        """Test load_request_token parses valid token."""
         from mwoauth import RequestToken
 
-        result = _load_request_token(["key", "secret"])
+        result = OAuthCallbackView.load_request_token(["key", "secret"])
         assert isinstance(result, RequestToken)
         assert result.key == "key"
         assert result.secret == "secret"
 
     def test_load_request_token_invalid_empty(self) -> None:
-        """Test _load_request_token raises on empty token."""
+        """Test OAuthCallbackView.load_request_token raises on empty token."""
         with pytest.raises(ValueError, match="Missing OAuth request token"):
-            _load_request_token(None)
+            OAuthCallbackView.load_request_token(None)
 
         with pytest.raises(ValueError, match="Missing OAuth request token"):
-            _load_request_token([])
+            OAuthCallbackView.load_request_token([])
 
     def test_load_request_token_invalid_short(self) -> None:
-        """Test _load_request_token raises on short token."""
+        """Test OAuthCallbackView.load_request_token raises on short token."""
         with pytest.raises(ValueError, match="Invalid OAuth request token"):
-            _load_request_token(["key"])
+            OAuthCallbackView.load_request_token(["key"])
