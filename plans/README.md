@@ -6,14 +6,14 @@ honor its STOP conditions, and update your row when done.
 
 ## Execution order & status
 
-| Plan | Title | Priority | Effort | Depends on | Status |
-|------|-------|----------|--------|------------|--------|
-| 001  | Remove `TESTING = True` from DevelopmentConfig | P1 | S | — | TODO |
-| 002  | Protect API endpoints and unpublished chart data | P1 | M | — | TODO |
-| 003  | Fix Python version mismatch in pyproject.toml | P2 | S | — | TODO |
-| 004  | Add global response-hardening headers | P1 | S | — | TODO |
-| 005  | Deduplicate job stats query methods in JobsService | P2 | S | — | TODO |
-| 006  | Replace custom in-memory rate limiter with flask-limiter | P2 | M | — | TODO |
+| Plan | Title                                                    | Priority | Effort | Depends on | Status |
+| ---- | -------------------------------------------------------- | -------- | ------ | ---------- | ------ |
+| 001  | Remove `TESTING = True` from DevelopmentConfig           | P1       | S      | —          | TODO   |
+| 002  | Protect API endpoints and unpublished chart data         | P1       | M      | —          | TODO   |
+| 003  | Fix Python version mismatch in pyproject.toml            | P2       | S      | —          | TODO   |
+| 004  | Add global response-hardening headers                    | P1       | S      | —          | TODO   |
+| 005  | Deduplicate job stats query methods in JobsService       | P2       | S      | —          | TODO   |
+| 006  | Replace custom in-memory rate limiter with flask-limiter | P2       | M      | —          | TODO   |
 
 Plans 001, 003, 004 are independent quick wins (S effort, LOW risk) and can be
 executed in parallel. Plan 002 is independent but M effort. Plans 005 and 006
@@ -21,14 +21,14 @@ are independent of each other and of 001-004.
 
 ## Dependency notes
 
-- No hard dependencies between plans. All can be executed in any order.
-- Recommended order: 001 → 004 → 003 → 005 → 002 → 006 (quick wins first, then security hardening).
+-   No hard dependencies between plans. All can be executed in any order.
+-   Recommended order: 001 → 004 → 003 → 005 → 002 → 006 (quick wins first, then security hardening).
 
 ## Findings considered and rejected
 
-- **Stale `.pyc` cache file** (`translate_routes.cpython-312.pyc`): Not worth a plan — running `find . -name "*.pyc" -delete` once fixes it. Add `*.pyc` to `.gitignore` if not already there.
-- **`create_helper.py` f-string SQL** (`text(f"DROP VIEW IF EXISTS {table.name}")`): `table.name` comes from SQLAlchemy model metadata, not user input. Not exploitable. A future cleanup can switch to `text("DROP VIEW IF EXISTS :name").bindparams(name=table.name)` but it's LOW priority.
-- **`explorer_routes.py` `compare` route lacks path traversal validation**: Limited impact — `analyze_file` only parses XML, doesn't serve files. The `serve_media`/`serve_thumb` routes already have proper validation.
-- **Missing `from __future__ import annotations`** in 19 files: Low-risk consistency issue. A single `ruff --fix` pass or manual sweep can address it. Not worth a dedicated plan.
-- **Mixed SQLAlchemy 1.x/2.0 API in CRUDService**: Medium-term migration, not urgent since Flask-SQLAlchemy still supports both. Should be addressed before SQLAlchemy 3.0.
-- **`serve_thumb` on-demand thumbnail generation without throttling**: DoS risk but mitigated by the fact that thumbnails are cached after first generation. A future improvement could pre-generate thumbnails during job execution.
+-   **Stale `.pyc` cache file** (`translate_routes.cpython-312.pyc`): Not worth a plan — running `find . -name "*.pyc" -delete` once fixes it. Add `*.pyc` to `.gitignore` if not already there.
+-   **`create_helper.py` f-string SQL** (`text(f"DROP VIEW IF EXISTS {table.name}")`): `table.name` comes from SQLAlchemy model metadata, not user input. Not exploitable. A future cleanup can switch to `text("DROP VIEW IF EXISTS :name").bindparams(name=table.name)` but it's LOW priority.
+-   **`explorer_routes.py` `compare` route lacks path traversal validation**: Limited impact — `analyze_file` only parses XML, doesn't serve files. The `serve_media`/`serve_thumb` routes already have proper validation.
+-   **Missing `from __future__ import annotations`** in 19 files: Low-risk consistency issue. A single `ruff --fix` pass or manual sweep can address it. Not worth a dedicated plan.
+-   **Mixed SQLAlchemy 1.x/2.0 API in CRUDService**: Medium-term migration, not urgent since Flask-SQLAlchemy still supports both. Should be addressed before SQLAlchemy 3.0.
+-   **`serve_thumb` on-demand thumbnail generation without throttling**: DoS risk but mitigated by the fact that thumbnails are cached after first generation. A future improvement could pre-generate thumbnails during job execution.
