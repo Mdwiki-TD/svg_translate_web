@@ -39,7 +39,7 @@ from ...shared.core.cookies import (
     verify_state_token,
 )
 from .rate_limit import callback_rate_limiter, login_rate_limiter
-from .utils import load_logged_in_user
+from .utils import set_logged_in_user
 
 logger = logging.getLogger(__name__)
 
@@ -261,7 +261,7 @@ class AuthRoutes:
 
     def before_request(self) -> None:
         """Automatically load the user before any route is processed."""
-        load_logged_in_user()
+        set_logged_in_user()
 
 
 __all__ = [

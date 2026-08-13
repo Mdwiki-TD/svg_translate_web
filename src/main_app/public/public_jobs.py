@@ -10,7 +10,7 @@ from flask import (
 
 from ..admin.decorators import admin_required
 from ..jobs_workers.objects import JobData
-from .auth.utils import user_login_required
+from .auth.utils import oauth_required
 from .shared_jobs_routes import JobsBp
 
 logger = logging.getLogger(__name__)
@@ -35,9 +35,9 @@ class PublicJobsRoutes(JobsBp):
             ("/<string:job_type>", "GET", self.jobs_list),
             ("/<string:job_type>/<int:job_id>", "GET", self.job_detail),
             ("/<string:job_type>/<int:job_id>/expand", "GET", self.job_detail_expand),
-            ("/job-file/<string:result_file>/<string:job_type>", "GET", user_login_required(self.read_job_result_file)),
-            ("/<string:job_type>/<int:job_id>/cancel", "POST", user_login_required(self.cancel_job)),
-            ("/<string:job_type>/start", "POST", user_login_required(self.start_job)),
+            ("/job-file/<string:result_file>/<string:job_type>", "GET", oauth_required(self.read_job_result_file)),
+            ("/<string:job_type>/<int:job_id>/cancel", "POST", oauth_required(self.cancel_job)),
+            ("/<string:job_type>/start", "POST", oauth_required(self.start_job)),
             ("/<string:job_type>/<int:job_id>/delete", "POST", admin_required(self.delete_job)),
             ("/<string:job_type>/<int:job_id>/mark_as_completed", "POST", admin_required(self.mark_as_completed)),
         ]

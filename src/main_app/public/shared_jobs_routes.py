@@ -27,7 +27,7 @@ from ..jobs_workers.jobs_worker import (
     start_job_form,
 )
 from ..jobs_workers.objects import JobData
-from .auth.utils import load_user
+from .auth.utils import get_current_user
 from .utils.routes_utils import can_run_bg_jobs, load_auth_payload
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ class SharedJobRoutes:
 
     def cancel_job_handler(self, job_id: int, job_type: str) -> str:
         """Cancel a running job."""
-        user = load_user()
+        user = get_current_user()
         if not user:
             flash("You must be logged in to cancel jobs.", "danger")
             return "job_detail"
@@ -89,7 +89,7 @@ class SharedJobRoutes:
         form_data: dict[str, Any] | None = None,
     ) -> int | None:
         """Start a job."""
-        user = load_user()
+        user = get_current_user()
 
         if not user:
             flash("You must be logged in to start this job.", "danger")
@@ -123,7 +123,7 @@ class SharedJobRoutes:
 
     def delete_job_handler(self, job_id: int, job_type: str) -> str:
         """Delete a job by ID and job type."""
-        user = load_user()
+        user = get_current_user()
         if not user:
             flash("You must be logged in to delete jobs.", "danger")
             return "job_detail"
@@ -154,7 +154,7 @@ class SharedJobRoutes:
 
     def mark_as_completed_handler(self, job_id: int, job_type: str):
         """Mark job as completed."""
-        user = load_user()
+        user = get_current_user()
         if not user:
             flash("You must be logged in to change job stats.", "danger")
             return

@@ -14,7 +14,7 @@ from flask import (
 )
 from flask.typing import ResponseReturnValue
 
-from ..public.auth.utils import load_user
+from ..public.auth.utils import get_current_user
 from ..shared.auth.current_user import CurrentUser
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ def admin_required(view: FuncType) -> FuncType:  # noqa: UP047
 
     @wraps(view)
     def wrapped(*args, **kwargs):
-        user: CurrentUser | None = load_user()
+        user: CurrentUser | None = get_current_user()
         if not user:
             return redirect(url_for("auth.login"))
         if not user.is_active_admin:

@@ -27,7 +27,7 @@ class TestServeDownloadMainFile:
         mock_settings.paths.main_files_path = str(main_files)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.settings", mock_settings)
         admin_user = MagicMock(is_active_admin=True)
-        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
+        monkeypatch.setattr("src.main_app.admin.decorators.get_current_user", lambda: admin_user)
         from werkzeug.wrappers import Response as WerkzeugResponse
 
         def _fake_send(d, f):
@@ -70,7 +70,7 @@ class TestServeCropFiles:
 class TestDownloadAllMainFiles:
     def test_download_success(self, mock_client, monkeypatch):
         admin_user = MagicMock(is_active_admin=True)
-        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
+        monkeypatch.setattr("src.main_app.admin.decorators.get_current_user", lambda: admin_user)
         mock_zip = Mock()
         mock_zip.return_value = ("zip_content", 200)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
@@ -83,7 +83,7 @@ class TestDownloadAllMainFiles:
 
     def test_download_not_found(self, mock_client, monkeypatch):
         admin_user = MagicMock(is_active_admin=True)
-        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
+        monkeypatch.setattr("src.main_app.admin.decorators.get_current_user", lambda: admin_user)
         mock_zip = Mock()
         mock_zip.return_value = ("Not found", 404)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
@@ -97,7 +97,7 @@ class TestDownloadAllMainFiles:
 
     def test_download_error(self, mock_client, monkeypatch):
         admin_user = MagicMock(is_active_admin=True)
-        monkeypatch.setattr("src.main_app.admin.decorators.load_user", lambda: admin_user)
+        monkeypatch.setattr("src.main_app.admin.decorators.get_current_user", lambda: admin_user)
         mock_zip = Mock()
         mock_zip.return_value = ("Error", 500)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)

@@ -24,11 +24,11 @@ class TestLoadUser:
     def test_returns_current_user_when_set(self, mock_app: Flask) -> None:
         with mock_app.test_request_context():
             g._current_user = "alice"
-            assert auth_utils.load_user() == "alice"
+            assert auth_utils.get_current_user() == "alice"
 
     def test_returns_none_when_not_set(self, mock_app: Flask) -> None:
         with mock_app.test_request_context():
-            assert auth_utils.load_user() is None
+            assert auth_utils.get_current_user() is None
 
 
 class TestResolveUserId:
@@ -50,7 +50,7 @@ class TestLoadLoggedInUser:
     def test_short_circuits_when_g_user_exists(self, mock_app: Flask) -> None:
         with mock_app.test_request_context():
             g._current_user = "existing"
-            auth_utils.load_logged_in_user()
+            auth_utils.set_logged_in_user()
             assert g._current_user == "existing"
 
     def test_from_session_uid(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -61,7 +61,7 @@ class TestLoadLoggedInUser:
         )
         with mock_app.test_request_context():
             session["uid"] = 42
-            auth_utils.load_logged_in_user()
+            auth_utils.set_logged_in_user()
             assert g._current_user is mock_user
 
     def test_session_resolve_fails_pops_keys(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -72,7 +72,7 @@ class TestLoadLoggedInUser:
         with mock_app.test_request_context():
             session["uid"] = "bad"
             session["username"] = "tester"
-            auth_utils.load_logged_in_user()
+            auth_utils.set_logged_in_user()
             assert g._current_user is None
             assert "uid" not in session
             assert "username" not in session
@@ -88,7 +88,7 @@ class TestLoadLoggedInUser:
             lambda _, uid: mock_user,
         )
         with mock_app.test_request_context(environ_overrides={"HTTP_COOKIE": "auth_cookie=signed-token"}):
-            auth_utils.load_logged_in_user()
+            auth_utils.set_logged_in_user()
             assert g._current_user is mock_user
             assert session.get("uid") == 99
 
@@ -98,13 +98,13 @@ class TestLoadLoggedInUser:
             lambda token: None,
         )
         with mock_app.test_request_context(environ_overrides={"HTTP_COOKIE": "auth_cookie=bad-token"}):
-            auth_utils.load_logged_in_user()
+            auth_utils.set_logged_in_user()
             assert g._current_user is None
             assert session.get("uid") is None
 
     def test_no_user_id_anywhere(self, mock_app: Flask) -> None:
         with mock_app.test_request_context():
-            auth_utils.load_logged_in_user()
+            auth_utils.set_logged_in_user()
             assert g._current_user is None
 
     def test_updates_session_username_when_different(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -116,7 +116,7 @@ class TestLoadLoggedInUser:
         with mock_app.test_request_context():
             session["uid"] = 1
             session["username"] = "old-name"
-            auth_utils.load_logged_in_user()
+            auth_utils.set_logged_in_user()
             assert session["username"] == "new-name"
 
     def test_does_not_update_session_username_when_same(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -128,7 +128,7 @@ class TestLoadLoggedInUser:
         with mock_app.test_request_context():
             session["uid"] = 1
             session["username"] = "alice"
-            auth_utils.load_logged_in_user()
+            auth_utils.set_logged_in_user()
             assert session["username"] == "alice"
 
     def test_user_service_returns_none_sets_g_none(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -138,7 +138,7 @@ class TestLoadLoggedInUser:
         )
         with mock_app.test_request_context():
             session["uid"] = 1
-            auth_utils.load_logged_in_user()
+            auth_utils.set_logged_in_user()
             assert g._current_user is None
 
 
