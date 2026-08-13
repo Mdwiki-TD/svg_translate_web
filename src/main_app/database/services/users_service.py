@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class UsersService(CRUDService[UserRecord]):
+    """CRUD + domain-specific queries for user records."""
+
     def __init__(self) -> None:
         super().__init__(db.session, UserRecord)
 

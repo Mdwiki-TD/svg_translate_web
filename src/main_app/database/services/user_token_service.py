@@ -32,6 +32,8 @@ def _get_user_token_by_username(username: str, session: Session | Any) -> UserTo
 
 
 class UserTokenService(CRUDService[UserTokenRecord]):
+    """Stores and retrieves already-encrypted OAuth tokens."""
+
     def __init__(self) -> None:
         super().__init__(db.session, UserTokenRecord)
 

@@ -1,3 +1,5 @@
+"""Custom exceptions for the database layer."""
+
 from __future__ import annotations
 
 from sqlalchemy.exc import DatabaseError
@@ -14,6 +16,24 @@ class UniqueError(DatabaseError):
 
 class DatabaseInitError(Exception):
     """Raised when database initialization fails."""
+
+
+class RecordNotFoundError(LookupError):
+    """Raised when a requested record does not exist."""
+
+    def __init__(self, model_name: str, identifier=None):
+        self.model_name = model_name
+        self.identifier = identifier
+        super().__init__(f"{model_name} not found: {identifier}")
+
+
+class MultipleRecordsFoundError(Exception):
+    """Raised when get_by() finds more than one result but expected exactly one."""
+
+    def __init__(self, model_name: str, filters: dict):
+        self.model_name = model_name
+        self.filters = filters
+        super().__init__(f"Multiple {model_name} records found for filters: {filters}")
 
 
 class MaxUserConnectionsError(Exception):
@@ -38,13 +58,10 @@ class CRUDError(Exception):
     """Base error for CRUD service failures."""
 
 
-class RecordNotFoundError(LookupError):
-    """Raised when a record not found."""
-
-
 __all__ = [
     "CRUDError",
     "RecordNotFoundError",
+    "MultipleRecordsFoundError",
     "UniqueError",
     "DuplicateRecordError",
     "DatabaseInitError",

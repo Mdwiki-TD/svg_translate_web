@@ -3,6 +3,7 @@
 name = "copy-svg-files"
 version = "0.0.0"
 description = "Flask app for svg files tools."
+readme = "README.md"
 requires-python = ">=3.13"
 
 [project.optional-dependencies]
@@ -216,7 +217,7 @@ exclude = [
 
     # Python Caches & Environments
     "**/__pycache__/**",
-  "**/.venv/**",
+    "**/.venv/**",
     "**/venv/**",
     "**/.pyenv/**",
     "**/site-packages/**",
@@ -242,9 +243,9 @@ exclude = [
     "**/vendor/**",
 
     # Archive & Old Codes
-  "**/old/**",
-  "**/OLD_REPOS/**",
-  "**/OldCodes/**",
+    "**/old/**",
+    "**/OLD_REPOS/**",
+    "**/OldCodes/**",
     "**/core8/**",
     "**/i18n/**",
     "**/MagicMock/**",
