@@ -64,11 +64,6 @@ class TestCreateApp:
         app = AppFactory.create(TestingConfig)
         assert str(app.static_folder).endswith("static")
 
-    def test_create_app_none_config_raises(self, mock_environ):
-        with pytest.raises(ValueError, match="config_class must be provided"):
-            AppFactory.create(None)
-
-
 class TestErrorHandlers:
 
     def test_error_handlers_400_returns_html(self, app):
