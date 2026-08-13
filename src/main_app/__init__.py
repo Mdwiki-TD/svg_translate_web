@@ -12,8 +12,8 @@ from flask_wtf.csrf import CSRFError
 
 from .admin import add_admin_dashboard, register_bp_admin_blueprints
 from .config import ensure_directories, settings
-from .db import init_db
-from .db.exceptions import DatabaseInitError
+from .database import init_db
+from .database.exceptions import DatabaseInitError
 from .extensions import (
     csrf_init_app,
 )

@@ -10,7 +10,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.main_app.db.services import AdminService, UsersService, UserTokenService
+from src.main_app.database.services import AdminService, UsersService, UserTokenService
 
 
 class TestSetup:

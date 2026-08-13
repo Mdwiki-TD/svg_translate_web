@@ -4,8 +4,8 @@ Integration tests for user_token_service module.
 
 from __future__ import annotations
 
-from src.main_app.db.services.user_token_service import UserTokenService
-from src.main_app.db.services.users_service import UsersService
+from src.main_app.database.services.user_token_service import UserTokenService
+from src.main_app.database.services.users_service import UsersService
 
 
 class TestSetup:

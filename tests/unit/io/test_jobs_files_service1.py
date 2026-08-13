@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.main_app.db.models.jobs import JobRecord
+from src.main_app.database.models.jobs import JobRecord
 from src.main_app.io.jobs_files_service import (
     get_jobs_data_dir,
     load_job_result,

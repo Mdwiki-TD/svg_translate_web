@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.db.models import TemplateRecord
+from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import runner as fix_runner
 from src.main_app.jobs_workers.objects import JobsRunner
 

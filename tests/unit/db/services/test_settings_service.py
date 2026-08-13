@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.services.settings_service import SettingsService, _serialize_value
+from src.main_app.database.services.settings_service import SettingsService, _serialize_value
 
 
 class TestSetup:

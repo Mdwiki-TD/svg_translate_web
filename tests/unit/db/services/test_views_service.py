@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.models.owid_charts import OwidChartRecord
-from src.main_app.db.models.templates import TemplateRecord
-from src.main_app.db.services import OwidChartsService, TemplateService
-from src.main_app.db.services.views_service import ViewsService
+from src.main_app.database.models.owid_charts import OwidChartRecord
+from src.main_app.database.models.templates import TemplateRecord
+from src.main_app.database.services import OwidChartsService, TemplateService
+from src.main_app.database.services.views_service import ViewsService
 
 
 @pytest.fixture

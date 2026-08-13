@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from html import unescape
 
-from src.main_app.db.services import JobsService
+from src.main_app.database.services import JobsService
 
 
 def _create_job_with_result(result_data: dict, tmp_path, job_type: str = "add_lang_categories_to_owid_pages"):

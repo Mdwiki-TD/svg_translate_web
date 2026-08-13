@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.main_app.db.models.views import TemplateNeedUpdateView
+from src.main_app.database.models.views import TemplateNeedUpdateView
 
 
 def test_template_need_update_record_initialization():

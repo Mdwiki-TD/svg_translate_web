@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.exceptions import (
+from src.main_app.database.exceptions import (
     DatabaseInitError,
     DuplicateRecordError,
     InsufficientDatabaseConfigError,

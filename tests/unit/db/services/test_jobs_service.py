@@ -7,9 +7,9 @@ from datetime import datetime
 import pytest
 from sqlalchemy.exc import OperationalError
 
-from src.main_app.db.exceptions import DuplicateRecordError
-from src.main_app.db.models import JobRecord
-from src.main_app.db.services.jobs_service import JobsService, _normalize_limit
+from src.main_app.database.exceptions import DuplicateRecordError
+from src.main_app.database.models import JobRecord
+from src.main_app.database.services.jobs_service import JobsService, _normalize_limit
 
 
 class TestSetup:

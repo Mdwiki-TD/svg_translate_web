@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.main_app.api_services.files_service import DownloadAndSaveData
-from src.main_app.db.models import TemplateRecord
+from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files import runner
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner import (
     MAIN_FILES_ZIP_NAME,

@@ -6,7 +6,7 @@ Classes to test: UserRecord, AdminUserRecord, UserTokenRecord
 
 from __future__ import annotations
 
-from src.main_app.db.models.users import (
+from src.main_app.database.models.users import (
     AdminUserRecord,
     UserRecord,
     UserTokenRecord,

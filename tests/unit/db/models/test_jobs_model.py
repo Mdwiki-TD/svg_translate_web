@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import Index, UniqueConstraint
 
-from src.main_app.db.models.jobs import JobRecord
+from src.main_app.database.models.jobs import JobRecord
 
 
 def test_job_record_initialization() -> None:

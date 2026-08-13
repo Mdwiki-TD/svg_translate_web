@@ -7,6 +7,6 @@ Classes to test: TemplateNeedUpdateView
 TODO: write tests
 """
 
-from src.main_app.db.models.views import (
+from src.main_app.database.models.views import (
     TemplateNeedUpdateView,
 )

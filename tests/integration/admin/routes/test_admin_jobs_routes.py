@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.main_app.db.services import JobsService
+from src.main_app.database.services import JobsService
 
 
 class TestSetup:

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.exceptions import UserNotFoundError
-from src.main_app.db.services.users_service import UsersService
+from src.main_app.database.exceptions import UserNotFoundError
+from src.main_app.database.services.users_service import UsersService
 
 
 class TestSetup:

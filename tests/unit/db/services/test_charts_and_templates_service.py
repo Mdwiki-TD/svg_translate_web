@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.models import OwidChartRecord
-from src.main_app.db.services import (
+from src.main_app.database.models import OwidChartRecord
+from src.main_app.database.services import (
     ChartAndTemplate,
     ChartsAndTemplatesService,
     OwidChartsService,

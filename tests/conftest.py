@@ -71,7 +71,7 @@ if sys:
 # Import after environment setup
 from src.main_app import create_app
 from src.main_app.config import TestingConfig
-from src.main_app.db.create_helper import create_tables, create_views
+from src.main_app.database.create_helper import create_tables, create_views
 from src.main_app.extensions import db as _db
 
 

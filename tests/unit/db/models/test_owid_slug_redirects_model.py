@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import Index, UniqueConstraint
 
-from src.main_app.db.models.owid_slug_redirects import OwidSlugRedirectRecord
+from src.main_app.database.models.owid_slug_redirects import OwidSlugRedirectRecord
 
 
 def test_owid_slug_redirect_record_initialization() -> None:

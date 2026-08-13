@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.main_app.db.models.users import AdminUserRecord
+from src.main_app.database.models.users import AdminUserRecord
 
 
 def test_coordinator_record_initialization():

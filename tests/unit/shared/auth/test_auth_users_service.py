@@ -10,7 +10,7 @@ from __future__ import annotations
 import pytest
 from flask import Flask
 
-from src.main_app.db.services import AdminService, UsersService, UserTokenService
+from src.main_app.database.services import AdminService, UsersService, UserTokenService
 from src.main_app.shared.auth.auth_users_service import AuthUserService
 
 

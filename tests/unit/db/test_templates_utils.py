@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from src.main_app.db.models.templates import TemplateRecord
-from src.main_app.db.templates_utils import ensure_template_data_record
+from src.main_app.database.models.templates import TemplateRecord
+from src.main_app.database.templates_utils import ensure_template_data_record
 
 
 def test_template_record_slug_generation():

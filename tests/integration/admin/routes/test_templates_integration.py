@@ -3,7 +3,7 @@ from unittest.mock import patch
 from src.main_app.admin.routes.templates import (
     TemplatesRoutesFuncs,
 )
-from src.main_app.db.services import TemplateService
+from src.main_app.database.services import TemplateService
 
 
 @patch("src.main_app.admin.routes.templates.flash")

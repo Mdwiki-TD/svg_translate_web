@@ -11,7 +11,7 @@ from werkzeug.datastructures import MultiDict
 from src.main_app.admin.routes.slug_redirects import (  # SlugFuncs,
     SlugRedirectsRoutes,
 )
-from src.main_app.db.services import OwidSlugRedirectsService
+from src.main_app.database.services import OwidSlugRedirectsService
 from src.main_app.extensions import db as _db
 
 

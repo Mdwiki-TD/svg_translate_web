@@ -9,9 +9,9 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Blueprint, Flask
 
-from src.main_app.db.exceptions import DuplicateRecordError
-from src.main_app.db.models import JobRecord
-from src.main_app.db.services import JobsService
+from src.main_app.database.exceptions import DuplicateRecordError
+from src.main_app.database.models import JobRecord
+from src.main_app.database.services import JobsService
 from src.main_app.public.public_jobs import PublicJobsRoutes
 from src.main_app.public.shared_jobs_routes import SharedJobRoutes
 

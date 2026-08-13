@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.db.services import JobsService
+from src.main_app.database.services import JobsService
 from src.main_app.jobs_workers.base_worker import (
     BaseObjectsJobWorker,
     WorkerObject,

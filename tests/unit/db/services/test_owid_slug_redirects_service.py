@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.services.owid_slug_redirects_service import OwidSlugRedirectsService
+from src.main_app.database.services.owid_slug_redirects_service import OwidSlugRedirectsService
 
 
 class TestOwidSlugRedirectsService:

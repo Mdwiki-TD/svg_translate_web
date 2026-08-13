@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.db.services import OwidChartsService, TemplateService
+from src.main_app.database.services import OwidChartsService, TemplateService
 
 
 class TestSetup:

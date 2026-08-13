@@ -14,7 +14,7 @@ from src.main_app.admin.routes.settings import (
     SettingsRoutes,
     _parse_setting_value,
 )
-from src.main_app.db.services import SettingsService
+from src.main_app.database.services import SettingsService
 
 # ---------------------------------------------------------------------------
 # SettingsRoutes class structure (no DB needed)
