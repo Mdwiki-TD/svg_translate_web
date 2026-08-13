@@ -10,22 +10,23 @@ from ...database.services import (
     UsersService,
     UserTokenService,
 )
-from ..core.crypto import encrypt_value
+from ..core.crypto import CryptoService
 from .current_user import CurrentUser
 
 logger = logging.getLogger(__name__)
 
 
-class AuthUserService:
+class TokenManager:
     def __init__(self) -> None:
         self.users_service = UsersService()
         self.user_token_service = UserTokenService()
         self.admin_service = AdminService()
+        self._crypto = CryptoService()
 
-    def save_and_get_user(
+    def save_token(
         self,
         username: str,
-        access_key: str,
+        access_token: str,
         access_secret: str,
     ) -> CurrentUser | None:
         """Upsert OAuth credentials and return a CurrentUser composite."""
@@ -49,8 +50,8 @@ class AuthUserService:
             return None
 
         try:
-            encrypted_token = encrypt_value(access_key)
-            encrypted_secret = encrypt_value(access_secret)
+            encrypted_token = self._crypto.encrypt(access_token)
+            encrypted_secret = self._crypto.encrypt(access_secret)
 
             # 1. Update or insert into database via repository
             self.user_token_service.upsert_user_token(
@@ -96,5 +97,5 @@ class AuthUserService:
 
 
 __all__ = [
-    "AuthUserService",
+    "TokenManager",
 ]

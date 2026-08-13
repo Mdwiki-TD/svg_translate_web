@@ -35,7 +35,7 @@ def test_extract_token_credentials_fail():
 def test_complete_oauth_callback_success():
     with (
         patch("src.main_app.services.auth.auth_service.complete_login") as m_login,
-        patch("src.main_app.services.auth.auth_service.AuthUserService.save_and_get_user") as m_save,
+        patch("src.main_app.services.auth.auth_service.TokenManager.save_token") as m_save,
     ):
         m_login.return_value = (MagicMock(key="k", secret="s"), {"username": "user123"})
         m_save.return_value = MagicMock(username="user123")
@@ -54,7 +54,7 @@ def test_complete_oauth_callback_no_username():
 def test_complete_oauth_callback_save_fail():
     with (
         patch("src.main_app.services.auth.auth_service.complete_login") as m_login,
-        patch("src.main_app.services.auth.auth_service.AuthUserService.save_and_get_user") as m_save,
+        patch("src.main_app.services.auth.auth_service.TokenManager.save_token") as m_save,
     ):
         m_login.return_value = (MagicMock(key="k", secret="s"), {"username": "user123"})
         m_save.return_value = None

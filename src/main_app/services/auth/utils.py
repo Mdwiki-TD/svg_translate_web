@@ -12,8 +12,8 @@ from flask import g, request, session
 
 from ...config import settings
 from ..core.cookies import extract_user_id
-from .auth_users_service import AuthUserService
 from .current_user import CurrentUser
+from .token_manager import TokenManager
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 
@@ -67,7 +67,7 @@ def _build_current_user(user_id) -> None | CurrentUser:
     if user_id is None:
         return None
 
-    user = AuthUserService().get_authenticated_user(user_id)
+    user = TokenManager().get_authenticated_user(user_id)
 
     if user and session.get("username") != user.username:
         session["username"] = user.username
