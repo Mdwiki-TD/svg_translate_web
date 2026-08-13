@@ -63,7 +63,7 @@ def load_logged_in_user() -> None:
             g._current_user = None
             return
 
-        user = AuthUserService.get_authenticated_user(user_id)
+        user = AuthUserService().get_authenticated_user(user_id)
         g._current_user = user
         if user and session.get("username") != user.username:
             session["username"] = user.username

@@ -77,7 +77,7 @@ def complete_oauth_callback(request_token: Any, query_string: str) -> Any:
     if not username:
         raise OAuthCallbackError("Missing username")
 
-    user_record = AuthUserService.save_and_get_user(
+    user_record = AuthUserService().save_and_get_user(
         username=username,
         access_key=token_key,
         access_secret=token_secret,

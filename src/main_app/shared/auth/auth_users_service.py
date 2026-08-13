@@ -16,7 +16,7 @@ from .current_user import CurrentUser
 logger = logging.getLogger(__name__)
 
 
-class AuthUsersNewService:
+class AuthUserService:
     def __init__(self) -> None:
         self.users_service = UsersService()
         self.user_token_service = UserTokenService()
@@ -44,8 +44,6 @@ class AuthUsersNewService:
             if not user:
                 return None
 
-            user_id: int = user.user_id
-
         except Exception as e:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
             return None
@@ -56,7 +54,7 @@ class AuthUsersNewService:
 
             # 1. Update or insert into database via repository
             self.user_token_service.upsert_user_token(
-                user_id=user_id,
+                user_id=user.user_id,
                 encrypted_token=encrypted_token,
                 encrypted_secret=encrypted_secret,
             )
@@ -67,7 +65,7 @@ class AuthUsersNewService:
 
         try:
             # 2. Get the fresh record
-            token = self.user_token_service.get_user_token(user_id)
+            token = self.user_token_service.get_user_token(user.user_id)
             if not token:
                 return None
 
@@ -76,14 +74,9 @@ class AuthUsersNewService:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
             return None
 
-        return CurrentUser(
-            user_id=user_id,
-            username=username,
-            access_token=token.access_token,
-            access_secret=token.access_secret,
+        return CurrentUser.from_authenticated(
+            token=token,
             is_active_admin=is_active_admin,
-            can_run_jobs=user.can_run_jobs,
-            can_run_bg_jobs=user.can_run_bg_jobs,
         )
 
     def get_authenticated_user(self, user_id: int) -> CurrentUser | None:
@@ -92,36 +85,16 @@ class AuthUsersNewService:
             token = self.user_token_service.get_authenticated_user_token(user_id)
             if not token:
                 return None
-            username = token.user.username
-            return CurrentUser(
-                user_id=user_id,
-                username=username,
-                access_token=token.access_token,
-                access_secret=token.access_secret,
-                is_active_admin=self.admin_service.is_active_coordinator(username),
-                can_run_jobs=token.user.can_run_jobs,
-                can_run_bg_jobs=token.user.can_run_bg_jobs,
+
+            return CurrentUser.from_authenticated(
+                token=token,
+                is_active_admin=self.admin_service.is_active_coordinator(token.user.username),
             )
         except Exception as e:
             logger.error("Error loading user for ID %s: %s", user_id, e)
             return None
 
 
-class AuthUserService:
-    @staticmethod
-    def save_and_get_user(
-        username: str,
-        access_key: str,
-        access_secret: str,
-    ) -> CurrentUser | None:
-        return AuthUsersNewService().save_and_get_user(username, access_key, access_secret)
-
-    @staticmethod
-    def get_authenticated_user(user_id: int) -> CurrentUser | None:
-        return AuthUsersNewService().get_authenticated_user(user_id)
-
-
 __all__ = [
-    "AuthUsersNewService",
     "AuthUserService",
 ]
