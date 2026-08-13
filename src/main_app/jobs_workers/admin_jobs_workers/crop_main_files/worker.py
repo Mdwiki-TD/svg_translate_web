@@ -13,8 +13,8 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage, create_commons_session, is_pages_exists
 from ....config import settings
-from ....db.models import TemplateRecord
-from ....db.services import TemplateService
+from ....database.models import TemplateRecord
+from ....database.services import TemplateService
 from ....utils.wikitext import (
     create_cropped_file_text,
     ensure_file_prefix,

@@ -10,8 +10,8 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage, is_pages_exists
 from ....data import get_slug_categories
-from ....db.models import TemplateRecord
-from ....db.services import TemplateService
+from ....database.models import TemplateRecord
+from ....database.services import TemplateService
 from ....utils.wikitext import merge_categories, sort_categories
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner

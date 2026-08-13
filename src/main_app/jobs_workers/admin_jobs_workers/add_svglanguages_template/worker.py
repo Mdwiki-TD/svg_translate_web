@@ -9,8 +9,8 @@ import logging
 from mwclient.client import Site
 
 from ....api_services import MwClientPage
-from ....db.models import TemplateRecord
-from ....db.services import TemplateService
+from ....database.models import TemplateRecord
+from ....database.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import AddSvgLanguagesWorkerObject, TemplateInfo

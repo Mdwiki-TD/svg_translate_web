@@ -6,8 +6,8 @@ from typing import Any
 from flask import Blueprint, jsonify
 
 from ..api_services.files_service.file_langs import get_file_languages
-from ..db.models import TemplateRecord
-from ..db.services import (
+from ..database.models import TemplateRecord
+from ..database.services import (
     ChartAndTemplate,
     ChartsAndTemplatesService,
     OwidChartsService,

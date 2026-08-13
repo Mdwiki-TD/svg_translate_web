@@ -14,8 +14,8 @@ import requests
 from ....api_services import FilesService, create_commons_session
 from ....api_services.files_service import DownloadAndSaveData
 from ....config import settings
-from ....db.models import TemplateRecord
-from ....db.services import TemplateService
+from ....database.models import TemplateRecord
+from ....database.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import DownloadMainFilesWorkerObject, FileInfo

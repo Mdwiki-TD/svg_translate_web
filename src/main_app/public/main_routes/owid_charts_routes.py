@@ -9,8 +9,8 @@ from flask import (
     render_template,
 )
 
-from ...db.services import ChartsAndTemplatesService  # , OwidChartsService
-from ...db.services.charts_and_templates_service import ChartAndTemplate
+from ...database.services import ChartsAndTemplatesService  # , OwidChartsService
+from ...database.services.charts_and_templates_service import ChartAndTemplate
 
 logger = logging.getLogger(__name__)
 

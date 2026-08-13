@@ -19,8 +19,8 @@ from flask.typing import ResponseReturnValue
 from flask_wtf import FlaskForm
 from werkzeug.wrappers.response import Response
 
-from ..db.exceptions import DuplicateRecordError
-from ..db.services import JobsService, SettingsService
+from ..database.exceptions import DuplicateRecordError
+from ..database.services import JobsService, SettingsService
 from ..io import load_job_result
 from ..jobs_workers.jobs_worker import (
     cancel_job_worker,

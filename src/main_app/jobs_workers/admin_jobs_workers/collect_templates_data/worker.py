@@ -11,14 +11,14 @@ from typing import Any
 from mwclient.client import Site
 
 from ....api_services import MwClientPage, fetch_grapher_metadata_raw, get_category_members
-from ....db.exceptions import DuplicateRecordError
-from ....db.models import TemplateRecord
-from ....db.services import (
+from ....database.exceptions import DuplicateRecordError
+from ....database.models import TemplateRecord
+from ....database.services import (
     OwidChartsService,
     TemplateService,
     ViewsService,
 )
-from ....db.templates_utils import extract_slug
+from ....database.templates_utils import extract_slug
 from ....utils.wikitext import (
     find_main_title,
     find_newest_world_file,

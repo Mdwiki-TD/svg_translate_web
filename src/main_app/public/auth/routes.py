@@ -24,7 +24,7 @@ from mwoauth import RequestToken
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from ...config import settings
-from ...db.services import UserTokenService
+from ...database.services import UserTokenService
 from ...shared.auth.auth_service import (
     OAuthCallbackError,
     complete_oauth_callback,

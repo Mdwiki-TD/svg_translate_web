@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ....db.models import OwidChartRecord
+from ....database.models import OwidChartRecord
 from ...shared_objects import StandardAdminWorkerObject
 
 

@@ -8,7 +8,7 @@ from typing import Any
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from werkzeug.datastructures import ImmutableMultiDict
 
-from ...db.services import SettingsService
+from ...database.services import SettingsService
 from ..decorators import admin_required
 
 

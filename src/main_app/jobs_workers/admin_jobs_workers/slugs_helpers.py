@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...db.services import OwidSlugRedirectsService
-from ...db.templates_utils import extract_slug
+from ...database.services import OwidSlugRedirectsService
+from ...database.templates_utils import extract_slug
 
 logger = logging.getLogger(__name__)
 

@@ -23,8 +23,8 @@ from typing import Any
 from sqlalchemy.exc import OperationalError
 
 from ....api_services import fetch_grapher_metadata_raw
-from ....db.models import OwidChartRecord
-from ....db.services import OwidChartsService
+from ....database.models import OwidChartRecord
+from ....database.services import OwidChartsService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ..slugs_helpers import check_slugs_url
