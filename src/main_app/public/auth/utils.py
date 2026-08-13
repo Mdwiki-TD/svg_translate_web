@@ -25,7 +25,7 @@ def get_current_user() -> CurrentUser | None:
     """Return the :class:`CurrentUser` populated by ``set_logged_in_user``.
 
     Returns ``None`` when no user is authenticated. The before_request hook
-    always sets ``g.current_user`` (to ``None`` for anonymous visitors), so
+    always sets ``g._current_user`` (to ``None`` for anonymous visitors), so
     this is the single source of truth during a request.
     """
     return getattr(g, "current_user", None)
@@ -80,14 +80,14 @@ def set_logged_in_user() -> None:
     """Build a :class:`CurrentUser` from the session and store it in ``g``.
 
     Called once per request by ``before_app_request``. Anonymous sessions
-    (no ``username`` in the session) get ``g.current_user = None`` and incur
+    (no ``username`` in the session) get ``g._current_user = None`` and incur
     no database work. Authenticated sessions are hydrated from ``UserRecord``
     (id + admin flag) and the decrypted OAuth token pair.
     """
     if hasattr(g, "_current_user"):
         return
     user_id = _get_user_id()
-    g.current_user = _build_current_user(user_id)
+    g._current_user = _build_current_user(user_id)
 
 
 def oauth_required(func: FuncType) -> FuncType:  # noqa: UP047
