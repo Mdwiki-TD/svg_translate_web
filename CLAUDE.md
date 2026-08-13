@@ -71,7 +71,7 @@ Translation tasks run through a sequential pipeline defined in `src/main_app/job
 
 -   `TaskStorePyMysql` (composed via mixins: `CreateUpdateTask`, `StageStore`, `TasksListDB`) handles task persistence
 -   `UserTokenRecord` manages encrypted OAuth token storage
--   Connection wrapper in `src/main_app/db/db_class.py` provides retry logic
+-   Connection wrapper in `src/main_app/database/db_class.py` provides retry logic
 
 ### Key Route Blueprints
 

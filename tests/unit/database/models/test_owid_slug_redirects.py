@@ -1,6 +1,6 @@
 # ruff: noqa: F401
 """
-Unit tests for src/main_app/db/models/owid_slug_redirects.py module.
+Unit tests for src/main_app/database/models/owid_slug_redirects.py module.
 
 Classes to test: OwidSlugRedirectRecord
 

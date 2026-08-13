@@ -1,5 +1,5 @@
 """
-Unit tests for src/main_app/db/services/utils/retry_on_disconnect.py module.
+Unit tests for src/main_app/database/services/utils/retry_on_disconnect.py module.
 
 Functions to test: retry_on_db_disconnect
 """

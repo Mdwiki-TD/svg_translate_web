@@ -197,7 +197,7 @@ All tool configurations (black, ruff, mypy, pyright) target Python 3.13, potenti
 
 ### Finding 8: Duplicated job stats queries in `JobsService` [HIGH confidence]
 
-**Evidence**: `src/main_app/db/services/jobs_service.py`
+**Evidence**: `src/main_app/database/services/jobs_service.py`
 
 `get_user_jobs_stats` (lines 68-120) and `_get_all_user_jobs_stats` (lines 270-302) share ~80% identical code. The only difference is an optional `jobs_types` filter. `get_user_jobs_stats` already delegates to `_get_all_user_jobs_stats` when `jobs_types` is None.
 
@@ -209,7 +209,7 @@ All tool configurations (black, ruff, mypy, pyright) target Python 3.13, potenti
 
 ### Finding 9: Mixed SQLAlchemy 1.x and 2.0 APIs in `CRUDService` [HIGH confidence]
 
-**Evidence**: `src/main_app/db/services/crud_service.py`
+**Evidence**: `src/main_app/database/services/crud_service.py`
 
 `list_all()` uses legacy `session.query()` (SQLAlchemy 1.x):
 ```python
@@ -230,7 +230,7 @@ result = self.session.execute(stmt).scalars().all()
 
 ### Finding 10: f-string SQL in `create_helper.py` [MED confidence]
 
-**Evidence**: `src/main_app/db/create_helper.py:45`
+**Evidence**: `src/main_app/database/create_helper.py:45`
 
 ```python
 conn.execute(text(f"DROP VIEW IF EXISTS {table.name}"))

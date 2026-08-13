@@ -6,7 +6,7 @@
 > report — do not improvise. When done, update the status row for this plan
 > in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 8bf215bc..HEAD -- src/main_app/db/services/jobs_service.py`
+> **Drift check (run first)**: `git diff --stat 8bf215bc..HEAD -- src/main_app/database/services/jobs_service.py`
 
 ## Status
 
@@ -30,7 +30,7 @@ divergence (one uses `.in_()` filter, the other doesn't) is a maintenance hazard
 
 ## Current state
 
-- `src/main_app/db/services/jobs_service.py` — JobsService class
+- `src/main_app/database/services/jobs_service.py` — JobsService class
   - Lines 68-120: `get_user_jobs_stats` — takes optional `jobs_types` list, falls back to `_get_all_user_jobs_stats`
   - Lines 270-302: `_get_all_user_jobs_stats` — same logic without the `jobs_types` filter
   - Line 58: `get_all_user_jobs_stats` — public wrapper that calls `_get_all_user_jobs_stats`
@@ -47,13 +47,13 @@ follow `snake_case`. Private methods prefixed with `_`.
 
 | Purpose   | Command                                              | Expected on success |
 |-----------|------------------------------------------------------|---------------------|
-| Tests     | `python3 -m pytest tests/unit/db/ -x -q -m "not network"` | all pass       |
-| Grep      | `grep -n "_get_all_user_jobs_stats" src/main_app/db/services/jobs_service.py` | 0 matches (or only the delegate call) |
+| Tests     | `python3 -m pytest tests/unit/database/ -x -q -m "not network"` | all pass       |
+| Grep      | `grep -n "_get_all_user_jobs_stats" src/main_app/database/services/jobs_service.py` | 0 matches (or only the delegate call) |
 
 ## Scope
 
 **In scope**:
-- `src/main_app/db/services/jobs_service.py`
+- `src/main_app/database/services/jobs_service.py`
 
 **Out of scope**:
 - Any callers of `get_all_user_jobs_stats` or `get_user_jobs_stats` (the public API signature must not change)
@@ -63,7 +63,7 @@ follow `snake_case`. Private methods prefixed with `_`.
 
 ### Step 1: Consolidate `_get_all_user_jobs_stats` into `get_user_jobs_stats`
 
-In `src/main_app/db/services/jobs_service.py`:
+In `src/main_app/database/services/jobs_service.py`:
 
 1. Replace the body of `get_user_jobs_stats` (lines 68-120) so it no longer
    delegates to `_get_all_user_jobs_stats` when `jobs_types` is None. Instead,
@@ -123,11 +123,11 @@ def get_all_user_jobs_stats(
 
 3. Delete `_get_all_user_jobs_stats` entirely (lines 270-302).
 
-**Verify**: `grep -n "_get_all_user_jobs_stats" src/main_app/db/services/jobs_service.py` → no matches
+**Verify**: `grep -n "_get_all_user_jobs_stats" src/main_app/database/services/jobs_service.py` → no matches
 
 ### Step 2: Run the test suite
 
-**Verify**: `python3 -m pytest tests/unit/db/ -x -q -m "not network"` → all pass
+**Verify**: `python3 -m pytest tests/unit/database/ -x -q -m "not network"` → all pass
 
 ### Step 3: Run the full test suite
 
@@ -140,7 +140,7 @@ No new tests needed. The existing tests for `JobsService` exercise the public me
 
 ## Done criteria
 
-- [ ] `grep -n "_get_all_user_jobs_stats" src/main_app/db/services/jobs_service.py` returns no matches
+- [ ] `grep -n "_get_all_user_jobs_stats" src/main_app/database/services/jobs_service.py` returns no matches
 - [ ] `get_user_jobs_stats` handles both filtered and unfiltered cases
 - [ ] `get_all_user_jobs_stats` delegates to `get_user_jobs_stats`
 - [ ] `python3 -m pytest tests/ -x -q -m "not network"` exits 0

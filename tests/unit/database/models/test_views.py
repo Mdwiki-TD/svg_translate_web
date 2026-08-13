@@ -1,6 +1,6 @@
 # ruff: noqa: F401
 """
-Unit tests for src/main_app/db/models/views.py module.
+Unit tests for src/main_app/database/models/views.py module.
 
 Classes to test: TemplateNeedUpdateView
 

@@ -1,5 +1,5 @@
 """
-Unit tests for src/main_app/db/models/jobs.py module.
+Unit tests for src/main_app/database/models/jobs.py module.
 
 Classes to test: JobRecord
 
