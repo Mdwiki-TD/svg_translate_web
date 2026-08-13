@@ -25,14 +25,13 @@ from mwoauth import RequestToken
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from ...config import settings
-from ...database.services import UserTokenService
-from ...services.auth.auth_service import (
+from ...database.services import UsersService
+from ...services.auth.auth_exceptions import (
     OAuthCallbackError,
     OAuthIdentityError,
-    complete_oauth_callback,
-    start_login,
 )
-from ...services.auth.utils import set_logged_in_user
+from ...services.auth.auth_service import OAuthService
+from ...services.auth.utils import TokenManager, set_logged_in_user
 from ...services.core.cookies import (
     extract_user_id,
     sign_state_token,
@@ -43,9 +42,8 @@ from .rate_limit import callback_rate_limiter, login_rate_limiter
 
 logger = logging.getLogger(__name__)
 
-oauth_state_nonce = settings.sessions.state_key
 request_token_key = settings.sessions.request_token_key
-
+oauth_state_nonce = settings.sessions.state_key
 
 # ---------------------------------------------------------
 # Helpers
@@ -59,23 +57,40 @@ def _client_key() -> str:
     return request.remote_addr or "anonymous"
 
 
+class AuthHelper:
+    """Builds OAuth and TokenManager instances."""
+
+    def __init__(self) -> None:
+        self.rate_limiter_key = _client_key()
+        self.oauth_service: OAuthService = OAuthService()
+        self.token_manager: TokenManager = TokenManager()
+
+    def _resolve_user_id(self, username: str) -> int:
+        """Return the user_id for ``username``, creating a UserRecord if needed."""
+        user_svc = UsersService()
+        record = user_svc.ensure_exists(username)
+        return record.user_id
+
+
 # ---------------------------------------------------------
 # Routes
 # ---------------------------------------------------------
 
 
-class LoginView(MethodView):
+class LoginView(AuthHelper, MethodView):
     """Start the OAuth flow — redirect user to Meta-Wiki."""
 
     def get(self):
         return self.login()
 
     def login(self) -> WerkzeugResponse:
-        _key = _client_key()
+        # -----
+        # check rate limit
+        # -----
+        _key = self.rate_limiter_key
         logger.info("OAuth login initiated, client: %s", _key)
         if not login_rate_limiter.allow(_key):
-            time_left = login_rate_limiter.try_after(_key).total_seconds()
-            time_left_str = str(time_left).split(".")[0]
+            time_left_str = login_rate_limiter.get_login_rate_limit_seconds(_key)
             flash(f"Too many login attempts. Please try again after {time_left_str}s.", "warning")
             logger.warning("OAuth login rate limited, client: %s, try_after: %ss", _key, time_left_str)
             return redirect(
@@ -88,7 +103,8 @@ class LoginView(MethodView):
         # ------------------
         # start login
         try:
-            redirect_url, request_token = start_login(sign_state_token(state_nonce))
+            callback_url = url_for("auth.callback", _external=True, state=sign_state_token(state_nonce))
+            redirect_url, request_token = self.oauth_service.create_authorization_url(callback_url)
             logger.info("OAuth login started successfully, redirecting to MediaWiki")
         except (RuntimeError, Exception):
             logger.exception("Failed to start OAuth login")
@@ -102,14 +118,14 @@ class LoginView(MethodView):
         return redirect(redirect_url)
 
 
-class OAuthCallbackView(MethodView):
+class OAuthCallbackView(AuthHelper, MethodView):
     """Handle the OAuth callback from Meta-Wiki."""
 
     def get(self):
         return self.callback()
 
     def callback(self) -> WerkzeugResponse:
-        _key = _client_key()
+        _key = self.rate_limiter_key
         logger.info("OAuth callback initiated, client: %s", _key)
         # ------------------
         # callback rate limiter
@@ -151,11 +167,27 @@ class OAuthCallbackView(MethodView):
             flash("Invalid OAuth request token", "danger")
             return redirect(url_for("main.index", error="Invalid request token"))
 
+        query_string = urlencode(request.args)
         # ------------------
         # access_token, identity
         try:
-            query_string = urlencode(request.args)
-            user_record = complete_oauth_callback(request_token, query_string)
+            access_token, identity = self.oauth_service.complete_login(request_token, query_string)
+            token_key, token_secret = self.oauth_service.extract_token_credentials(access_token)
+
+            identity_dict: dict[str, Any] = identity if isinstance(identity, dict) else {}
+            username = identity_dict.get("username") or identity_dict.get("name")
+            if not username:
+                raise OAuthCallbackError("Missing username")
+
+            user_record = self.token_manager.save_token(
+                username=username,
+                access_token=token_key,
+                access_secret=token_secret,
+            )
+
+            if not user_record:
+                raise OAuthCallbackError("Failed to process user credentials")
+
         except OAuthIdentityError:
             logger.exception("OAuth identity verification failed")
             flash("Failed to verify OAuth identity", "danger")
@@ -204,7 +236,7 @@ class OAuthCallbackView(MethodView):
         return RequestToken(raw[0], raw[1])
 
 
-class LogoutView(MethodView):
+class LogoutView(AuthHelper, MethodView):
     """Log out and delete stored token."""
 
     def post(self):
@@ -231,7 +263,7 @@ class LogoutView(MethodView):
         # delete user token if possible
         if isinstance(user_id, int):
             try:
-                UserTokenService().delete(user_id)
+                self.token_manager.delete_token(user_id)
                 flash("You have been logged out successfully.", "info")
                 logger.info("User token deleted for user_id: %s", user_id)
             except Exception:

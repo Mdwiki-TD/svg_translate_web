@@ -1,4 +1,6 @@
-"""User authentication service — bridges OAuth callbacks to the DB layer."""
+"""
+User authentication service — bridges OAuth callbacks to the DB layer.
+"""
 
 from __future__ import annotations
 
@@ -94,6 +96,18 @@ class TokenManager:
         except Exception as e:
             logger.error("Error loading user for ID %s: %s", user_id, e)
             return None
+
+    def touch(self, user_id: int):
+        """Update last_used_at timestamp for ``user_id``."""
+        self.user_token_service.update_last_used(user_id)
+
+    def delete_token(self, user_id: int) -> bool:
+        """Delete the user's stored token (logout / revoke)."""
+        return self.user_token_service.delete(user_id)
+
+    def has_token(self, user_id: int) -> bool:
+        """Check whether a token exists for this user."""
+        return self.user_token_service.get_record_by_id(user_id) is not None
 
 
 __all__ = [

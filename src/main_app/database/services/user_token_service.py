@@ -5,6 +5,7 @@ SQLAlchemy-based service for managing user tokens.
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
@@ -126,6 +127,12 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         except Exception as exc:
             logger.error("Error getting token by username %s: %s", username, exc)
             return None
+
+    def update_last_used(self, user_id: int) -> UserTokenRecord | None:
+        token = self.get_record_by_id(user_id)
+        if token is None:
+            return None
+        return self.update(token, last_used_at=datetime.utcnow())
 
 
 __all__ = [

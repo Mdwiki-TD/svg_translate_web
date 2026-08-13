@@ -7,7 +7,6 @@ from collections.abc import Sequence
 from typing import Any
 
 import mwoauth
-from flask import url_for
 from mwoauth import AccessToken
 from mwoauth.handshaker import Handshaker
 
@@ -37,18 +36,26 @@ class OAuthService:
             raise RuntimeError("MediaWiki OAuth configuration is incomplete")
 
         consumer_token = mwoauth.ConsumerToken(settings.oauth.consumer_key, settings.oauth.consumer_secret)
-        return mwoauth.Handshaker(
+        handshaker = mwoauth.Handshaker(
             settings.oauth.mw_uri,
             consumer_token=consumer_token,
             user_agent=settings.other.user_agent,
         )
+        return handshaker
 
-    def start_login(self, state_token: str) -> tuple[str, Any]:
-        """Begin the OAuth login process and return the redirect URL and request token."""
+    def create_authorization_url(self, callback_url: str) -> tuple[str, Any]:
+        """
+        Step 1: Obtain a request token and build the redirect URL.
+
+        Returns:
+            (authorization_url, oauth_token, oauth_token_secret)
+        """
         logger.debug("Starting OAuth login with state_token")
-        callback_url = url_for("auth.callback", _external=True, state=state_token)
+
         handshaker = self.get_handshaker()
+
         redirect_url, request_token = handshaker.initiate(callback=callback_url)
+
         logger.info("OAuth login initiated, redirecting to: %s", redirect_url)
 
         return redirect_url, request_token
@@ -137,8 +144,8 @@ def get_handshaker() -> Handshaker:
     return OAuthService().get_handshaker()
 
 
-def start_login(state_token: str) -> tuple[str, Any]:
-    return OAuthService().start_login(state_token)
+def create_authorization_url(state_token: str) -> tuple[str, Any]:
+    return OAuthService().create_authorization_url(state_token)
 
 
 def complete_login(request_token: object, query_string: str) -> tuple[AccessToken | Any, dict[str, Any]]:
@@ -181,6 +188,6 @@ __all__ = [
     "complete_oauth_callback",
     "extract_token_credentials",
     "get_handshaker",
-    "start_login",
+    "create_authorization_url",
     "complete_login",
 ]

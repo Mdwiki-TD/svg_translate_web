@@ -39,6 +39,6 @@ def test_start_login_returns_redirect_and_request_token(monkeypatch):
     monkeypatch.setattr(oauth_helpers, "mwoauth", StubMWOAuth())
     app = AppFactory.create(TestingConfig)
     with app.test_request_context("/"):
-        redirect_url, request_token = oauth_helpers.start_login("signed-state")
+        redirect_url, request_token = oauth_helpers.create_authorization_url("https://host/callback?state=signed-state")
         assert redirect_url.startswith("https://example.org/redirect")
         assert isinstance(request_token, tuple) and len(request_token) == 2

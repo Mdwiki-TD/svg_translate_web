@@ -112,26 +112,20 @@ def test_get_handshaker_without_config(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_start_login(monkeypatch: pytest.MonkeyPatch) -> None:
     captured_state: list[str] = []
 
-    def fake_url_for(endpoint: str, **params: str) -> str:
-        assert endpoint == "auth.callback"
-        captured_state.append(params["state"])
-        return "https://host/callback"
-
     class DummyHandshaker:
         def initiate(self, *, callback: str):
-            assert callback == "https://host/callback"
+            assert callback == "https://host/callback?state=signed-state"
             return "https://auth", ("token", "secret")
 
-    monkeypatch.setattr("src.main_app.services.auth.auth_service.url_for", fake_url_for)
     monkeypatch.setattr(
         "src.main_app.services.auth.auth_service.OAuthService.get_handshaker", lambda self: DummyHandshaker()
     )
 
-    redirect_url, request_token = auth_service.start_login("signed-state")
+    redirect_url, request_token = auth_service.create_authorization_url("https://host/callback?state=signed-state")
 
     assert redirect_url == "https://auth"
     assert list(request_token) == ["token", "secret"]
-    assert captured_state == ["signed-state"]
+    assert captured_state == []
 
 
 def test_complete_login(monkeypatch: pytest.MonkeyPatch) -> None:

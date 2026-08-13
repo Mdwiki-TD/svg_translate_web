@@ -46,6 +46,11 @@ class RateLimiter:
                 return time_left
             return timedelta(0)
 
+    def get_login_rate_limit_seconds(self, _key) -> str:
+        time_left = self.try_after(_key).total_seconds()
+        time_left_str = str(time_left).split(".")[0]
+        return time_left_str
+
 
 login_rate_limiter = RateLimiter(limit=5, period=timedelta(minutes=1))
 callback_rate_limiter = RateLimiter(limit=10, period=timedelta(minutes=1))
