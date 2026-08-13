@@ -11,7 +11,7 @@ from pathlib import Path
 from ....api_services import UploadService
 from ....api_services.files_service import FilesService
 from ....api_services.files_service.downloader import DownloadAndSaveData
-from ....shared.copysvg_wrapper import (
+from ....services.copysvg_wrapper import (
     ExtractorData,
     ExtractResult,
     InjectResult,
@@ -19,7 +19,7 @@ from ....shared.copysvg_wrapper import (
     extract_from_path,
     inject_step_one_file,
 )
-from ....shared.fix_nested import (
+from ....services.fix_nested import (
     DetectionResult,
     VerificationResult,
 )

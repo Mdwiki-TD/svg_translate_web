@@ -15,7 +15,7 @@ from flask.testing import FlaskClient
 
 from src.main_app.database.services import UsersService, UserTokenService
 from src.main_app.public.auth.routes import OAuthCallbackView
-from src.main_app.shared.core.cookies import sign_state_token
+from src.main_app.services.core.cookies import sign_state_token
 
 # ---------------------------------------------------------------------------
 # Login
@@ -90,7 +90,7 @@ class TestCallback:
             identity = {"sub": "123", "username": "Tester"}
             return access, identity
 
-        monkeypatch.setattr("src.main_app.shared.auth.auth_service.complete_login", fake_complete)
+        monkeypatch.setattr("src.main_app.services.auth.auth_service.complete_login", fake_complete)
 
         # Sign a state nonce using the real signing utility
         state_nonce = "test-nonce"

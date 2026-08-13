@@ -11,7 +11,7 @@ import pytest
 from flask import Flask
 
 from src.main_app.database.services import AdminService, UsersService, UserTokenService
-from src.main_app.shared.auth.auth_users_service import AuthUserService
+from src.main_app.services.auth.auth_users_service import AuthUserService
 
 
 @pytest.mark.usefixtures("mock_app")
@@ -78,7 +78,7 @@ class TestUserService:
             raise Exception("DB Error")
 
         monkeypatch.setattr(
-            "src.main_app.shared.auth.auth_users_service.UsersService.get_user_by_username",
+            "src.main_app.services.auth.auth_users_service.UsersService.get_user_by_username",
             raise_error,
         )
         assert self.service.save_and_get_user("user", "k", "s") is None
@@ -91,7 +91,7 @@ class TestUserService:
             raise Exception("Token Error")
 
         monkeypatch.setattr(
-            "src.main_app.shared.auth.auth_users_service.UserTokenService.get_user_token",
+            "src.main_app.services.auth.auth_users_service.UserTokenService.get_user_token",
             raise_error,
         )
         assert self.service.save_and_get_user("user", "k", "s") is None
@@ -122,7 +122,7 @@ class TestUserService:
             raise Exception("Load error")
 
         monkeypatch.setattr(
-            "src.main_app.shared.auth.auth_users_service.UserTokenService.get_authenticated_user_token",
+            "src.main_app.services.auth.auth_users_service.UserTokenService.get_authenticated_user_token",
             raise_error,
         )
         assert self.service.get_authenticated_user(123) is None

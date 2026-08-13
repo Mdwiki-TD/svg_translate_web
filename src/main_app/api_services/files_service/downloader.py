@@ -30,7 +30,7 @@ def download_and_save(
     Parameters:
         title (str): Title of the file page on Wikimedia Commons.
         out_dir (Path): Directory where the file should be stored.
-        session (requests.Session | None): Optional shared session. A new session
+        session (requests.Session | None): Optional services session. A new session
             with an appropriate User-Agent is created when omitted.
         overwrite_download (bool): Whether to overwrite existing files.
     """

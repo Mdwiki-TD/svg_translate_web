@@ -10,7 +10,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
 from ...extensions import db
-from ...shared.core.crypto import encrypt_value
+from ...services.core.crypto import encrypt_value
 from ..models import UserRecord, UserTokenRecord
 from .crud_service import CRUDService
 

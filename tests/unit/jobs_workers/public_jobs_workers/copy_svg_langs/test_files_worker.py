@@ -24,7 +24,7 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
     CopySvgLangsWorker,
 )
-from src.main_app.shared.copysvg_wrapper import InjectResult
+from src.main_app.services.copysvg_wrapper import InjectResult
 
 
 @dataclass

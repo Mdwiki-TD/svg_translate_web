@@ -191,7 +191,7 @@ src/
 │   │   ├── jobs_utils_bp.py
 │   │   ├── profile.py
 │   │   └── public_jobs.py
-│   ├── shared/
+│   ├── services/
 │   │   ├── auth/
 │   │   │   ├── __init__.py
 │   │   │   ├── auth_service.py

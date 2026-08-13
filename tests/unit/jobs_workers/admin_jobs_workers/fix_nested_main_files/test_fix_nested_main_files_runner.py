@@ -12,7 +12,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.runner i
     fix_nested_main_files_for_templates,
 )
 from src.main_app.jobs_workers.objects import JobsRunner
-from src.main_app.shared.fix_nested.worker import (
+from src.main_app.services.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
 )

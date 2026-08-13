@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
-from src.main_app.shared.auth import auth_service as oauth_helpers
+from src.main_app.services.auth import auth_service as oauth_helpers
 
 
 class StubConsumerToken:

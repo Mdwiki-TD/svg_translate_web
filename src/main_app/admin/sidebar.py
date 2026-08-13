@@ -132,7 +132,7 @@ class Sidebar:
 
         active_group, active_id = self.get_the_active_group_and_sub()
 
-        # Template for the collapsible content (shared by desktop and mobile)
+        # Template for the collapsible content (services by desktop and mobile)
         collapse_tpl = """
             <div class="collapse {show}" id="{group_id}-collapse">
                 <div class="d-none d-md-inline">

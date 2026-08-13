@@ -1,4 +1,4 @@
-"""Unit tests for shared fix_nested files_service functions."""
+"""Unit tests for services fix_nested files_service functions."""
 
 from __future__ import annotations
 

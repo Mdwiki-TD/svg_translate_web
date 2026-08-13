@@ -13,7 +13,7 @@ from mwclient.client import Site
 
 from ....api_services import FilesService
 from ....api_services.files_service import UploadService
-from ....shared.fix_nested.worker import (
+from ....services.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
     detect_nested_tags,

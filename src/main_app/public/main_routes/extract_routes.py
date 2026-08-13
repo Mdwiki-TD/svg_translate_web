@@ -8,7 +8,7 @@ from pathlib import Path
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from ...api_services import FilesService
-from ...shared.copysvg_wrapper import (
+from ...services.copysvg_wrapper import (
     ExtractResult,
     extract_from_path,
 )

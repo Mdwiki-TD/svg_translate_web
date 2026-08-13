@@ -8,7 +8,7 @@ IMPORT RULE: Always import extensions from this module.
 Never instantiate extensions elsewhere.
 
 Usage:
-    from main_app.shared.core.extensions import db, migrate, csrf
+    from main_app.services.core.extensions import db, migrate, csrf
 """
 
 from __future__ import annotations

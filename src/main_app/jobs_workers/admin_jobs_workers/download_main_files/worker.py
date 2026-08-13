@@ -139,7 +139,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         # Create output directory if it doesn't exist
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create a shared session for all downloads
+        # Create a services session for all downloads
         self.session = create_commons_session(settings.other.user_agent)
 
         per_item = self.get_priority(len(templates_with_files))

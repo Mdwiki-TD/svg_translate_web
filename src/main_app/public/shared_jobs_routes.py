@@ -27,7 +27,7 @@ from ..jobs_workers.jobs_worker import (
     start_job_form,
 )
 from ..jobs_workers.objects import JobData
-from ..shared.auth.utils import get_current_user
+from ..services.auth.utils import get_current_user
 from .utils.routes_utils import can_run_bg_jobs, load_auth_payload
 
 logger = logging.getLogger(__name__)

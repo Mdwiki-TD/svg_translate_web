@@ -7,6 +7,6 @@ Classes to test: CurrentUser
 TODO: write tests
 """
 
-from src.main_app.shared.auth.current_user import (
+from src.main_app.services.auth.current_user import (
     CurrentUser,
 )

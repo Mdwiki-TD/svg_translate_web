@@ -17,7 +17,7 @@ from flask import (
 )
 
 from ...api_services.files_service import FilesService
-from ...shared.copysvg_wrapper import (
+from ...services.copysvg_wrapper import (
     ExtractResult,
     InjectResult,
     extract_from_path,

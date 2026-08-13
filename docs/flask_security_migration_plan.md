@@ -437,7 +437,7 @@ With all routes migrated, we remove the legacy session/cookie recovery mechanism
 #### Files that need modification:
 - `src/main_app/admin/decorators.py` (Delete/deprecate)
 - `src/main_app/public/auth/utils.py` (Delete legacy logic)
-- `src/main_app/shared/auth/current_user.py` (Remove `CurrentUser` dataclass)
+- `src/main_app/services/auth/current_user.py` (Remove `CurrentUser` dataclass)
 
 #### Cleaned-up code details:
 - Completely remove `load_logged_in_user` before-request handler.

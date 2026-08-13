@@ -26,14 +26,14 @@ from werkzeug.wrappers import Response as WerkzeugResponse
 
 from ...config import settings
 from ...database.services import UserTokenService
-from ...shared.auth.auth_service import (
+from ...services.auth.auth_service import (
     OAuthCallbackError,
     OAuthIdentityError,
     complete_oauth_callback,
     start_login,
 )
-from ...shared.auth.utils import set_logged_in_user
-from ...shared.core.cookies import (
+from ...services.auth.utils import set_logged_in_user
+from ...services.core.cookies import (
     extract_user_id,
     sign_state_token,
     sign_user_id,
