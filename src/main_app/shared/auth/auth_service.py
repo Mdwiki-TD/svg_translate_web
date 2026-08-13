@@ -12,7 +12,7 @@ from mwoauth import AccessToken
 from mwoauth.handshaker import Handshaker
 
 from ...config import settings
-from .auth_exceptions import OAuthCallbackError, OAuthIdentityError
+from .auth_exceptions import IDENTITY_ERROR_MESSAGE, OAuthCallbackError, OAuthIdentityError
 from .auth_users_service import AuthUserService
 
 logger = logging.getLogger(__name__)
