@@ -1,7 +1,10 @@
-"""Application configuration helpers."""
+"""
+Application configuration.
+"""
 
 from __future__ import annotations
 
+import os
 from typing import Any
 from urllib.parse import quote_plus
 
@@ -13,7 +16,7 @@ from .main_settings import settings
 
 def build_sqlalchemy_uri(db_config: DbConfig) -> str:
     """Build a SQLAlchemy database URI from a DbConfig dataclass.
-    Used by Flask-SQLAlchemy configuration in create_app().
+    Used by Flask-SQLAlchemy configuration in AppFactory.create().
     Compatible with the existing build_db_url() in engine.py.
     """
     password = quote_plus(db_config.db_password or "")
@@ -39,6 +42,7 @@ class Config:
     # Flask core settings
     DEBUG: bool = False
     TESTING: bool = False
+    IS_PRODUCTION: bool = False
     SECRET_KEY: str = settings.security.secret_key
     SECRET_KEY_FALLBACKS: list[str] = list(settings.security.secret_key_fallbacks or [])
 
@@ -136,6 +140,7 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SAMESITE: str = "Lax"
 
     CORS_DISABLED: bool = False
+    IS_PRODUCTION: bool = True
 
 
 class TestingConfig(Config):
@@ -159,9 +164,25 @@ class TestingConfig(Config):
     SQLALCHEMY_ENGINE_OPTIONS: dict[str, Any] = {}  # SQLite doesn't need MySQL options
 
 
+class ConfigLoader:
+    """Resolves the correct config class from FLASK_ENV."""
+
+    _CONFIG_MAP: dict[str, type[Config]] = {
+        "development": DevelopmentConfig,
+        "production": ProductionConfig,
+        "testing": TestingConfig,
+    }
+
+    @classmethod
+    def load(cls) -> type[Config]:
+        env = os.environ.get("FLASK_ENV", "production")
+        return cls._CONFIG_MAP.get(env, ProductionConfig)
+
+
 __all__ = [
     "Config",
     "DevelopmentConfig",
     "ProductionConfig",
     "TestingConfig",
+    "ConfigLoader",
 ]

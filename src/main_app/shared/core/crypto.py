@@ -2,58 +2,54 @@
 
 from __future__ import annotations
 
-import threading
-
 from cryptography.fernet import Fernet, InvalidToken
 
 from ...config import settings
 
-_fernet: Fernet | None = None
-_fernet_lock = threading.Lock()
 
+class CryptoService:
+    """Symmetric encryption using Fernet.
 
-def _require_fernet() -> Fernet:
-    global _fernet
+    The encryption key must be passed in at construction time
+    (sourced from the TOKEN_ENCRYPTION_KEY environment variable).
+    """
 
-    if _fernet is not None:
-        return _fernet
-
-    with _fernet_lock:
-        if _fernet is not None:
-            return _fernet
-
+    def __init__(self) -> None:
         if not settings.oauth or not settings.oauth.encryption_key:
             raise RuntimeError("OAUTH_ENCRYPTION_KEY must be configured before using the crypto helpers")
 
         enc_key = settings.oauth.encryption_key
         key_bytes = enc_key.encode() if isinstance(enc_key, str) else enc_key
+        self._fernet = Fernet(key_bytes)
+
+    def generate_key(self) -> str:
+        """Utility: generate a new Fernet key."""
+        return Fernet.generate_key().decode("utf-8")
+
+    def encrypt(self, plaintext: str) -> bytes:
+        """Encrypt a UTF-8 string and return the raw Fernet token bytes."""
+        return self._fernet.encrypt(plaintext.encode("utf-8"))
+
+    def decrypt(self, ciphertext: bytes) -> str:
+        """Decrypt a Fernet token and return the UTF-8 string contents."""
 
         try:
-            _fernet = Fernet(key_bytes)
-        except ValueError as exc:
-            # Key must be a 32‑byte urlsafe base64‑encoded string
-            raise RuntimeError("Invalid OAUTH_ENCRYPTION_KEY format") from exc
-
-        return _fernet
+            decrypted = self._fernet.decrypt(ciphertext)
+        except InvalidToken as exc:
+            raise ValueError("Unable to decrypt stored token") from exc
+        return decrypted.decode("utf-8")
 
 
-def encrypt_value(value: str) -> bytes:
-    """Encrypt a UTF-8 string and return the raw Fernet token bytes."""
-
-    return _require_fernet().encrypt(value.encode("utf-8"))
+def encrypt_value(plaintext: str) -> bytes:
+    return CryptoService().encrypt(plaintext)
 
 
 def decrypt_value(token: bytes) -> str:
-    """Decrypt a Fernet token and return the UTF-8 string contents."""
-
-    try:
-        decrypted = _require_fernet().decrypt(token)
-    except InvalidToken as exc:
-        raise ValueError("Unable to decrypt stored token") from exc
-    return decrypted.decode("utf-8")
+    return CryptoService().decrypt(token)
 
 
 __all__ = [
+    "CryptoService",
     "encrypt_value",
     "decrypt_value",
 ]

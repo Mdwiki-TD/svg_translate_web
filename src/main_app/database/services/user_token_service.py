@@ -35,8 +35,8 @@ class UserTokenService(CRUDService[UserTokenRecord]):
     def __init__(self) -> None:
         super().__init__(db.session, UserTokenRecord)
 
-    def encrypt_value(self, value: str) -> bytes:
-        return encrypt_value(value)
+    def encrypt_value(self, plaintext: str) -> bytes:
+        return encrypt_value(plaintext=plaintext)
 
     def get_authenticated_user_token(self, user_id: int) -> None | UserTokenRecord:
         """Fetch the CurrentUser composite for session restoration."""
