@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 # Define API endpoint and parameters
 COMMONS_API_ENDPOINT = "https://commons.wikimedia.org/w/api.php"
 
-
 def create_commons_session(user_agent: str | None = None) -> requests.Session:
     """Create a pre-configured requests Session for Commons API calls.
 
