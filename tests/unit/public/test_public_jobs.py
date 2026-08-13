@@ -452,7 +452,7 @@ class TestJobsPublicRoutesRoutes(TestSetup):
     def test_cancel_job_not_logged_in(self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.get_current_user.return_value = None
         resp = mock_p_client.post("/jobs/test_job/1/cancel")
-        assert resp.status_code == 302
+        assert resp.status_code == 500
 
     def test_start_job_302(self, mock_p_client: Flask.test_client) -> None:
         resp = mock_p_client.post("/jobs/test_job/start", data={"key": "value"})

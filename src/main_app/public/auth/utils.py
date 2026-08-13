@@ -28,7 +28,7 @@ def get_current_user() -> CurrentUser | None:
     always sets ``g._current_user`` (to ``None`` for anonymous visitors), so
     this is the single source of truth during a request.
     """
-    return getattr(g, "current_user", None)
+    return getattr(g, "_current_user", None)
 
 
 def _resolve_user_id(uid) -> int | None:
