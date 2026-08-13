@@ -133,7 +133,6 @@ class OAuthService:
         return user_record
 
 
-
 def get_handshaker() -> Handshaker:
     return OAuthService().get_handshaker()
 
@@ -175,6 +174,7 @@ def complete_oauth_callback(request_token: Any, query_string: str) -> Any:
     }
     """
     return OAuthService().complete_oauth_callback(request_token, query_string)
+
 
 __all__ = [
     "OAuthService",
