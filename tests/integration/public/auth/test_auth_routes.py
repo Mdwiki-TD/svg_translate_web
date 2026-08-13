@@ -6,7 +6,7 @@ Only external OAuth calls and non-deterministic utilities are mocked.
 
 from __future__ import annotations
 
-import types
+from types import SimpleNamespace
 from urllib.parse import quote
 
 import pytest
@@ -32,7 +32,7 @@ class TestLogin:
         # Mock only external OAuth handshake and non-deterministic nonce
         monkeypatch.setattr(
             "src.main_app.public.auth.routes.secrets",
-            types.SimpleNamespace(token_urlsafe=lambda _: "nonce"),
+            SimpleNamespace(token_urlsafe=lambda _: "nonce"),
         )
 
         class DummyStart:
@@ -86,7 +86,7 @@ class TestCallback:
         def fake_complete(request_token, query_string: str):
             assert request_token == ("k", "s")
             assert "oauth_verifier=code" in query_string
-            access = types.SimpleNamespace(key="ak", secret="as")
+            access = SimpleNamespace(key="ak", secret="as")
             identity = {"sub": "123", "username": "Tester"}
             return access, identity
 

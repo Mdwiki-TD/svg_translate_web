@@ -4,7 +4,7 @@ Tests for admin_required decorator.
 
 from __future__ import annotations
 
-import types
+from types import SimpleNamespace
 from unittest.mock import patch  # , MagicMock
 
 import pytest
@@ -34,7 +34,7 @@ def test_admin_required_redirects_when_not_logged_in(monkeypatch: pytest.MonkeyP
 def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "src.main_app.admin.decorators.load_user",
-        lambda: types.SimpleNamespace(username="user", is_active_admin=False),
+        lambda: SimpleNamespace(username="user", is_active_admin=False),
     )
 
     class AbortCalled(Exception):  # noqa: N818
@@ -58,7 +58,7 @@ def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> Non
 def test_admin_required_allows_admin(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "src.main_app.admin.decorators.load_user",
-        lambda: types.SimpleNamespace(username="boss", is_active_admin=True),
+        lambda: SimpleNamespace(username="boss", is_active_admin=True),
     )
 
     @admin_required

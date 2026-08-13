@@ -28,10 +28,8 @@ from ...config import settings
 from ...database.services import UserTokenService
 from ...shared.auth.auth_service import (
     OAuthCallbackError,
-    complete_oauth_callback,
-)
-from ...shared.auth.mwoauth_handshake import (
     OAuthIdentityError,
+    complete_oauth_callback,
     start_login,
 )
 from ...shared.core.cookies import (
