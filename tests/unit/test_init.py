@@ -8,7 +8,7 @@ import pytest
 from flask import Flask
 
 from src.main_app import register_error_pages  # noqa: F401
-from src.main_app import create_app, init_app_and_db
+from src.main_app import AppFactory, init_app_and_db
 from src.main_app.config import TestingConfig
 
 
@@ -20,7 +20,7 @@ def mock_environ(tmp_path):
 
 @pytest.fixture
 def app(mock_environ):
-    return create_app(TestingConfig)
+    return AppFactory.create(TestingConfig)
 
 
 def test_csrf_protection_enabled(app):
@@ -30,43 +30,43 @@ def test_csrf_protection_enabled(app):
 
 class TestCreateApp:
     def test_create_app_basic(self, mock_environ):
-        app = create_app(TestingConfig)
+        app = AppFactory.create(TestingConfig)
         assert isinstance(app, Flask)
         assert app.secret_key is not None
         assert len(app.secret_key) > 0
 
     def test_create_app_sets_session_cookie_config(self, mock_environ):
-        app = create_app(TestingConfig)
+        app = AppFactory.create(TestingConfig)
         assert "SESSION_COOKIE_HTTPONLY" in app.config
         assert "SESSION_COOKIE_SECURE" in app.config
         assert "SESSION_COOKIE_SAMESITE" in app.config
 
     def test_create_app_jinja_filter_registered(self, mock_environ):
-        app = create_app(TestingConfig)
+        app = AppFactory.create(TestingConfig)
         assert "get_status_class" in app.jinja_env.filters
 
     def test_create_app_error_handlers_registered(self, mock_environ):
-        app = create_app(TestingConfig)
+        app = AppFactory.create(TestingConfig)
         spec = app.error_handler_spec.get(None, {})
         assert 400 in spec
         assert 404 in spec
         assert 500 in spec
 
     def test_create_app_url_map_strict_slashes(self, mock_environ):
-        app = create_app(TestingConfig)
+        app = AppFactory.create(TestingConfig)
         assert app.url_map.strict_slashes is False
 
     def test_create_app_template_folder(self, mock_environ):
-        app = create_app(TestingConfig)
+        app = AppFactory.create(TestingConfig)
         assert str(app.template_folder).endswith("templates")
 
     def test_create_app_static_folder(self, mock_environ):
-        app = create_app(TestingConfig)
+        app = AppFactory.create(TestingConfig)
         assert str(app.static_folder).endswith("static")
 
     def test_create_app_none_config_raises(self, mock_environ):
         with pytest.raises(ValueError, match="config_class must be provided"):
-            create_app(None)
+            AppFactory.create(None)
 
 
 class TestErrorHandlers:
@@ -104,7 +104,7 @@ class TestInitAppAndDb:
     @patch("src.main_app.init_db")
     def test_init_app_and_db_success(self, mock_init_db, mock_environ):
         mock_db = MagicMock()
-        mock_app = create_app(TestingConfig)
+        mock_app = AppFactory.create(TestingConfig)
         mock_app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
         result = init_app_and_db(mock_app, mock_db)
         assert result is True
@@ -112,7 +112,7 @@ class TestInitAppAndDb:
     @patch("src.main_app.init_db", side_effect=Exception("DB error"))
     def test_init_app_and_db_exception(self, mock_init_db, mock_environ):
         mock_db = MagicMock()
-        mock_app = create_app(TestingConfig)
+        mock_app = AppFactory.create(TestingConfig)
         mock_app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
         result = init_app_and_db(mock_app, mock_db)
         assert result is False

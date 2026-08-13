@@ -69,7 +69,7 @@ if sys:
     sys.path.insert(0, str(python_src_path))
 
 # Import after environment setup
-from src.main_app import create_app
+from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
 from src.main_app.database.create_helper import create_tables, create_views
 from src.main_app.extensions import db as _db
@@ -95,7 +95,7 @@ def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
     """
     Create and configure a test Flask application.
     """
-    application = create_app(TestingConfig)
+    application = AppFactory.create(TestingConfig)
     application.config.update(TESTING=True)
 
     with application.app_context():

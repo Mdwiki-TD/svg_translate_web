@@ -33,7 +33,7 @@ except ImportError:
         sys.path.insert(0, str(Path(CopySVGTranslation_PATH).parent))
 
 # import app here
-from logger_config import configure_logging  # noqa: E402
+from main_app.logger_config import configure_logging  # noqa: E402
 
 configure_logging(logging.DEBUG, use_colorlog=True, name="CopySVGTranslation")
 
