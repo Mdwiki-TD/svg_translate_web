@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ForeignKey, String, func, text
+from sqlalchemy import DateTime, ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from ...extensions import db
@@ -16,18 +16,7 @@ logger = logging.getLogger(__name__)
 class UserRecord(db.Model):
     """
     Stable user identity — source of truth for user_id and username.
-
-    CREATE TABLE IF NOT EXISTS users (
-        user_id int NOT NULL AUTO_INCREMENT,
-        username varchar(255) NOT NULL,
-        created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        can_run_jobs tinyint(1) NOT NULL DEFAULT '0',
-        can_run_bg_jobs tinyint(1) NOT NULL DEFAULT '0',
-        PRIMARY KEY (user_id),
-        UNIQUE KEY uq_users_username (username)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """
-
     __tablename__ = "users"
 
     user_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -36,7 +25,7 @@ class UserRecord(db.Model):
     can_run_jobs: Mapped[int] = mapped_column(nullable=False, server_default=text("0"), default=0)
     can_run_bg_jobs: Mapped[int] = mapped_column(nullable=False, server_default=text("0"), default=0)
 
-    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
 
     # One-to-One relationship with UserTokenRecord using the modern SQLAlchemy 2.0 style
     token: Mapped[UserTokenRecord | None] = relationship(back_populates="user", uselist=False)
@@ -68,20 +57,7 @@ class UserRecord(db.Model):
 class AdminUserRecord(db.Model):
     """
     Coordinator/admin role — username references users.username.
-
-    CREATE TABLE `admin_users` (
-      id int NOT NULL AUTO_INCREMENT,
-      username varchar(255) NOT NULL,
-      is_active tinyint(1) NOT NULL DEFAULT '0',
-      created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (id),
-      UNIQUE KEY username (username),
-      CONSTRAINT admin_users_ibfk_1 FOREIGN KEY (username)
-        REFERENCES users (username) ON DELETE CASCADE ON UPDATE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """
-
     __tablename__ = "admin_users"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -94,7 +70,7 @@ class AdminUserRecord(db.Model):
     # Python application default and database-level server default configuration
     is_active: Mapped[bool] = mapped_column(nullable=False, default=True, server_default=text("1"))
 
-    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
         server_default=func.current_timestamp(),
@@ -132,21 +108,7 @@ class AdminUserRecord(db.Model):
 class UserTokenRecord(db.Model):
     """
     OAuth credentials — child of users table.
-
-    CREATE TABLE IF NOT EXISTS user_tokens (
-        user_id int NOT NULL,
-        access_token varbinary(1024) NOT NULL,
-        access_secret varbinary(1024) NOT NULL,
-        created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        last_used_at datetime DEFAULT NULL,
-        rotated_at datetime DEFAULT NULL,
-        PRIMARY KEY (user_id),
-        CONSTRAINT `user_tokens_ibfk_1` FOREIGN KEY (`user_id`)
-        REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-    )
     """
-
     __tablename__ = "user_tokens"
 
     # Modern consolidated syntax for a field acting as both a Primary Key and a Foreign Key
@@ -158,7 +120,7 @@ class UserTokenRecord(db.Model):
     access_token: Mapped[bytes] = mapped_column(db.LargeBinary(1024), nullable=False)
     access_secret: Mapped[bytes] = mapped_column(db.LargeBinary(1024), nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
         server_default=func.current_timestamp(),

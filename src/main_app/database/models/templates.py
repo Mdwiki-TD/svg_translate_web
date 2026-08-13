@@ -43,7 +43,7 @@ class TemplateRecord(db.Model):
     last_world_year: Mapped[int | None] = mapped_column(nullable=True)
     slug: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
     source: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
-    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
         server_default=func.current_timestamp(),

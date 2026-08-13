@@ -40,7 +40,7 @@ class OwidSlugRedirectRecord(db.Model):
     slug: Mapped[str] = mapped_column(String(255), nullable=False)
     redirect_to: Mapped[str] = mapped_column(String(255), nullable=False)
     should_be_replaced: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=text("0"))
-    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
 
     def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():

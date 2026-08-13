@@ -25,7 +25,7 @@ class MockModel(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
 
     def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
