@@ -7,6 +7,8 @@ from typing import Any
 from sqlalchemy import DateTime, ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from .base import TimestampMixin
+
 from ...extensions import db
 from ...shared.decode_bytes import coerce_bytes
 
@@ -54,7 +56,7 @@ class UserRecord(db.Model):
         return data
 
 
-class AdminUserRecord(db.Model):
+class AdminUserRecord(TimestampMixin, db.Model):
     """
     Coordinator/admin role — username references users.username.
     """
@@ -69,14 +71,6 @@ class AdminUserRecord(db.Model):
 
     # Python application default and database-level server default configuration
     is_active: Mapped[bool] = mapped_column(nullable=False, default=True, server_default=text("1"))
-
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        nullable=False,
-        server_default=func.current_timestamp(),
-        server_onupdate=func.current_timestamp(),
-        onupdate=func.current_timestamp(),
-    )
 
     def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
@@ -105,7 +99,7 @@ class AdminUserRecord(db.Model):
         return f"<Coordinator id={self.id} username={self.username!r} is_active={self.is_active}>"
 
 
-class UserTokenRecord(db.Model):
+class UserTokenRecord(TimestampMixin, db.Model):
     """
     OAuth credentials — child of users table.
     """
@@ -119,14 +113,6 @@ class UserTokenRecord(db.Model):
     # LargeBinary maps strictly to Python bytes
     access_token: Mapped[bytes] = mapped_column(db.LargeBinary(1024), nullable=False)
     access_secret: Mapped[bytes] = mapped_column(db.LargeBinary(1024), nullable=False)
-
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        nullable=False,
-        server_default=func.current_timestamp(),
-        server_onupdate=func.current_timestamp(),
-        onupdate=func.current_timestamp(),
-    )
 
     last_used_at: Mapped[datetime | None] = mapped_column(nullable=True, server_default=func.current_timestamp())
     rotated_at: Mapped[datetime | None] = mapped_column(nullable=True)

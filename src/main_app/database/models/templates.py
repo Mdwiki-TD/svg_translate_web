@@ -4,15 +4,17 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import String, func, text
+from sqlalchemy import DateTime, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
+
+from .base import TimestampMixin
 
 from ...extensions import db
 
 logger = logging.getLogger(__name__)
 
 
-class TemplateRecord(db.Model):
+class TemplateRecord(TimestampMixin, db.Model):
     """
     CREATE TABLE templates (
         id int (11) NOT NULL AUTO_INCREMENT,
@@ -43,13 +45,7 @@ class TemplateRecord(db.Model):
     last_world_year: Mapped[int | None] = mapped_column(nullable=True)
     slug: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
     source: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        nullable=False,
-        server_default=func.current_timestamp(),
-        server_onupdate=func.current_timestamp(),
-        onupdate=func.current_timestamp(),
-    )
+
 
     def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():

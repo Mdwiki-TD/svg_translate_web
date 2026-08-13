@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Index, String, UniqueConstraint, func, text
+from sqlalchemy import DateTime, Index, String, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import db
