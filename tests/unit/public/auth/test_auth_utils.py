@@ -57,7 +57,7 @@ class TestLoadLoggedInUser:
         mock_user = MagicMock(username="alice")
         monkeypatch.setattr(
             "src.main_app.public.auth.utils.AuthUserService.get_authenticated_user",
-            lambda uid: mock_user,
+            lambda _, uid: mock_user,
         )
         with mock_app.test_request_context():
             session["uid"] = 42
@@ -85,7 +85,7 @@ class TestLoadLoggedInUser:
         mock_user = MagicMock(username="bob")
         monkeypatch.setattr(
             "src.main_app.public.auth.utils.AuthUserService.get_authenticated_user",
-            lambda uid: mock_user,
+            lambda _, uid: mock_user,
         )
         with mock_app.test_request_context(environ_overrides={"HTTP_COOKIE": "auth_cookie=signed-token"}):
             auth_utils.load_logged_in_user()
@@ -111,7 +111,7 @@ class TestLoadLoggedInUser:
         mock_user = MagicMock(username="new-name")
         monkeypatch.setattr(
             "src.main_app.public.auth.utils.AuthUserService.get_authenticated_user",
-            lambda uid: mock_user,
+            lambda _, uid: mock_user,
         )
         with mock_app.test_request_context():
             session["uid"] = 1
@@ -123,7 +123,7 @@ class TestLoadLoggedInUser:
         mock_user = MagicMock(username="alice")
         monkeypatch.setattr(
             "src.main_app.public.auth.utils.AuthUserService.get_authenticated_user",
-            lambda uid: mock_user,
+            lambda _, uid: mock_user,
         )
         with mock_app.test_request_context():
             session["uid"] = 1
@@ -134,7 +134,7 @@ class TestLoadLoggedInUser:
     def test_user_service_returns_none_sets_g_none(self, mock_app: Flask, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
             "src.main_app.public.auth.utils.AuthUserService.get_authenticated_user",
-            lambda uid: None,
+            lambda _, uid: None,
         )
         with mock_app.test_request_context():
             session["uid"] = 1
