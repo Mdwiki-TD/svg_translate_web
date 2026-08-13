@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, Integer, String, func
+from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import db
-
 from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)

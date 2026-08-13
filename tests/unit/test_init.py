@@ -64,6 +64,7 @@ class TestCreateApp:
         app = AppFactory.create(TestingConfig)
         assert str(app.static_folder).endswith("static")
 
+
 class TestErrorHandlers:
 
     def test_error_handlers_400_returns_html(self, app):

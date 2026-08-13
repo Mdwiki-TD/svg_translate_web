@@ -7,9 +7,8 @@ from typing import Any
 from sqlalchemy import Index, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import TimestampMixin
-
 from ...extensions import db
+from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)
 

@@ -7,10 +7,9 @@ from typing import Any
 from sqlalchemy import DateTime, ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from .base import TimestampMixin
-
 from ...extensions import db
 from ...shared.decode_bytes import coerce_bytes
+from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +18,7 @@ class UserRecord(db.Model):
     """
     Stable user identity — source of truth for user_id and username.
     """
+
     __tablename__ = "users"
 
     user_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -60,6 +60,7 @@ class AdminUserRecord(TimestampMixin, db.Model):
     """
     Coordinator/admin role — username references users.username.
     """
+
     __tablename__ = "admin_users"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -103,6 +104,7 @@ class UserTokenRecord(TimestampMixin, db.Model):
     """
     OAuth credentials — child of users table.
     """
+
     __tablename__ = "user_tokens"
 
     # Modern consolidated syntax for a field acting as both a Primary Key and a Foreign Key

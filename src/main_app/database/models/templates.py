@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, String, func, text
+from sqlalchemy import String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import TimestampMixin
-
 from ...extensions import db
+from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +43,6 @@ class TemplateRecord(TimestampMixin, db.Model):
     last_world_year: Mapped[int | None] = mapped_column(nullable=True)
     slug: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
     source: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
-
 
     def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():

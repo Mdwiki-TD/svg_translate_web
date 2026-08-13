@@ -24,9 +24,6 @@ class TimestampMixin:
     )
 
 
-
-
-
 __all__ = [
     "TimestampMixin",
 ]

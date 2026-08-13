@@ -53,11 +53,13 @@ request_token_key = settings.sessions.request_token_key
 # Helpers
 # ---------------------------------------------------------
 
+
 def _client_key() -> str:
     forwarded_for = request.headers.get("X-Forwarded-For")
     if forwarded_for:
         return forwarded_for.split(",")[0].strip()
     return request.remote_addr or "anonymous"
+
 
 # ---------------------------------------------------------
 # Routes
@@ -193,7 +195,6 @@ class OAuthCallbackView(MethodView):
             path="/",
         )
 
-
     @staticmethod
     def load_request_token(raw: Sequence[Any] | None) -> RequestToken:
         if not raw:
@@ -203,6 +204,7 @@ class OAuthCallbackView(MethodView):
             raise ValueError("Invalid OAuth request token")
 
         return RequestToken(raw[0], raw[1])
+
 
 class LogoutView(MethodView):
     """Log out and delete stored token."""
@@ -262,6 +264,7 @@ class AuthRoutes:
     def before_request(self) -> None:
         """Automatically load the user before any route is processed."""
         load_logged_in_user()
+
 
 __all__ = [
     "AuthRoutes",
