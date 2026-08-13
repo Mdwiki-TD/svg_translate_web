@@ -47,7 +47,7 @@ class OAuthService:
         """Begin the OAuth login process and return the redirect URL and request token."""
         logger.debug("Starting OAuth login with state_token")
         callback_url = url_for("auth.callback", _external=True, state=state_token)
-        handshaker = get_handshaker()
+        handshaker = self.get_handshaker()
         redirect_url, request_token = handshaker.initiate(callback=callback_url)
         logger.info("OAuth login initiated, redirecting to: %s", redirect_url)
 
@@ -56,7 +56,7 @@ class OAuthService:
     def complete_login(self, request_token: object, query_string: str) -> tuple[AccessToken | Any, dict[str, Any]]:
         """Complete the OAuth login flow and return the access token and user identity."""
         logger.debug("Completing OAuth login with query_string")
-        handshaker = get_handshaker()
+        handshaker = self.get_handshaker()
         access_token: AccessToken = handshaker.complete(request_token, query_string)
         logger.info("OAuth access token obtained")
         try:
@@ -113,8 +113,8 @@ class OAuthService:
             "nonce": ""
         }
         """
-        access_token, identity = complete_login(request_token, query_string)
-        token_key, token_secret = extract_token_credentials(access_token)
+        access_token, identity = self.complete_login(request_token, query_string)
+        token_key, token_secret = self.extract_token_credentials(access_token)
 
         identity_dict: dict[str, Any] = identity if isinstance(identity, dict) else {}
         username = identity_dict.get("username") or identity_dict.get("name")
@@ -131,6 +131,7 @@ class OAuthService:
             raise OAuthCallbackError("Failed to process user credentials")
 
         return user_record
+
 
 
 def get_handshaker() -> Handshaker:
@@ -174,7 +175,6 @@ def complete_oauth_callback(request_token: Any, query_string: str) -> Any:
     }
     """
     return OAuthService().complete_oauth_callback(request_token, query_string)
-
 
 __all__ = [
     "OAuthService",

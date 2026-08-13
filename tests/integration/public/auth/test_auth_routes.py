@@ -83,14 +83,14 @@ class TestCallback:
         """Callback should complete OAuth, persist user to DB, set session and cookie."""
 
         # Mock only the external OAuth completion — returns access token + identity
-        def fake_complete(request_token, query_string: str):
+        def fake_complete(self, request_token, query_string: str):
             assert request_token == ("k", "s")
             assert "oauth_verifier=code" in query_string
             access = SimpleNamespace(key="ak", secret="as")
             identity = {"sub": "123", "username": "Tester"}
             return access, identity
 
-        monkeypatch.setattr("src.main_app.services.auth.auth_service.complete_login", fake_complete)
+        monkeypatch.setattr("src.main_app.services.auth.auth_service.OAuthService.complete_login", fake_complete)
 
         # Sign a state nonce using the real signing utility
         state_nonce = "test-nonce"

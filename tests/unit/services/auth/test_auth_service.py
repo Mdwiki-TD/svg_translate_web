@@ -34,7 +34,7 @@ def test_extract_token_credentials_fail():
 
 def test_complete_oauth_callback_success():
     with (
-        patch("src.main_app.services.auth.auth_service.complete_login") as m_login,
+        patch("src.main_app.services.auth.auth_service.OAuthService.complete_login") as m_login,
         patch("src.main_app.services.auth.auth_service.TokenManager.save_token") as m_save,
     ):
         m_login.return_value = (MagicMock(key="k", secret="s"), {"username": "user123"})
@@ -45,7 +45,7 @@ def test_complete_oauth_callback_success():
 
 
 def test_complete_oauth_callback_no_username():
-    with patch("src.main_app.services.auth.auth_service.complete_login") as m_login:
+    with patch("src.main_app.services.auth.auth_service.OAuthService.complete_login") as m_login:
         m_login.return_value = (MagicMock(key="k", secret="s"), {})
         with pytest.raises(OAuthCallbackError, match="Missing username"):
             complete_oauth_callback("req_token", "query")
@@ -53,7 +53,7 @@ def test_complete_oauth_callback_no_username():
 
 def test_complete_oauth_callback_save_fail():
     with (
-        patch("src.main_app.services.auth.auth_service.complete_login") as m_login,
+        patch("src.main_app.services.auth.auth_service.OAuthService.complete_login") as m_login,
         patch("src.main_app.services.auth.auth_service.TokenManager.save_token") as m_save,
     ):
         m_login.return_value = (MagicMock(key="k", secret="s"), {"username": "user123"})
@@ -123,7 +123,7 @@ def test_start_login(monkeypatch: pytest.MonkeyPatch) -> None:
             return "https://auth", ("token", "secret")
 
     monkeypatch.setattr("src.main_app.services.auth.auth_service.url_for", fake_url_for)
-    monkeypatch.setattr("src.main_app.services.auth.auth_service.get_handshaker", lambda: DummyHandshaker())
+    monkeypatch.setattr("src.main_app.services.auth.auth_service.OAuthService.get_handshaker", lambda: DummyHandshaker())
 
     redirect_url, request_token = auth_service.start_login("signed-state")
 
@@ -143,7 +143,7 @@ def test_complete_login(monkeypatch: pytest.MonkeyPatch) -> None:
             assert token.key == "k"
             return {"sub": "123", "username": "Tester"}
 
-    monkeypatch.setattr("src.main_app.services.auth.auth_service.get_handshaker", lambda: DummyHandshaker())
+    monkeypatch.setattr("src.main_app.services.auth.auth_service.OAuthService.get_handshaker", lambda: DummyHandshaker())
 
     access_token, identity = auth_service.complete_login("request-token", "oauth=1")
 
@@ -159,7 +159,7 @@ def test_complete_login_identity_error(monkeypatch: pytest.MonkeyPatch) -> None:
         def identify(self, token) -> dict:
             raise ValueError("bad")
 
-    monkeypatch.setattr("src.main_app.services.auth.auth_service.get_handshaker", lambda: DummyHandshaker())
+    monkeypatch.setattr("src.main_app.services.auth.auth_service.OAuthService.get_handshaker", lambda: DummyHandshaker())
 
     with pytest.raises(auth_service.OAuthIdentityError) as excinfo:
         auth_service.complete_login("request-token", "query")
