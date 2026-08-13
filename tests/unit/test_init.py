@@ -8,7 +8,7 @@ import pytest
 from flask import Flask
 
 from src.main_app import register_error_pages  # noqa: F401
-from src.main_app import AppFactory, init_app_and_db
+from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
 
 
@@ -106,7 +106,7 @@ class TestInitAppAndDb:
         mock_db = MagicMock()
         mock_app = AppFactory.create(TestingConfig)
         mock_app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-        result = init_app_and_db(mock_app, mock_db)
+        result = AppFactory.init_app_and_db(mock_app, mock_db)
         assert result is True
 
     @patch("src.main_app.init_db", side_effect=Exception("DB error"))
@@ -114,5 +114,5 @@ class TestInitAppAndDb:
         mock_db = MagicMock()
         mock_app = AppFactory.create(TestingConfig)
         mock_app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-        result = init_app_and_db(mock_app, mock_db)
+        result = AppFactory.init_app_and_db(mock_app, mock_db)
         assert result is False

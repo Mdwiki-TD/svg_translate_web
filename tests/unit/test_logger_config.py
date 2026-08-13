@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.logger_config import configure_logging, prepare_log_file, setup_file_handler, setup_logging
+from src.main_app.logger_config import configure_logging, prepare_log_file, setup_file_handler, setup_logging
 
 
 class TestPrepareLogFile:
