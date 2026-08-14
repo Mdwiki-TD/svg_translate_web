@@ -1,18 +1,17 @@
-"""OAuth callback business logic extracted from auth/routes.py."""
+"""
+OAuthService — handles the mwoauth handshake with Meta-Wiki.
+"""
 
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
 from typing import Any
 
-import mwoauth
-from mwoauth import AccessToken
+from mwoauth import AccessToken, RequestToken, ConsumerToken
 from mwoauth.handshaker import Handshaker
 
 from ...config import settings
 from .auth_exceptions import IDENTITY_ERROR_MESSAGE, OAuthCallbackError, OAuthIdentityError
-from .token_manager import TokenManager
 
 logger = logging.getLogger(__name__)
 
@@ -35,15 +34,18 @@ class OAuthService:
         if not settings.oauth:
             raise RuntimeError("MediaWiki OAuth configuration is incomplete")
 
-        consumer_token = mwoauth.ConsumerToken(settings.oauth.consumer_key, settings.oauth.consumer_secret)
-        handshaker = mwoauth.Handshaker(
-            settings.oauth.mw_uri,
+        consumer_token = ConsumerToken(
+            settings.oauth.consumer_key,
+            settings.oauth.consumer_secret,
+        )
+        handshaker = Handshaker(
+            mw_uri=settings.oauth.mw_uri,
             consumer_token=consumer_token,
             user_agent=settings.other.user_agent,
         )
         return handshaker
 
-    def create_authorization_url(self, callback_url: str) -> tuple[str, Any]:
+    def create_authorization_url(self, callback_url: str) -> tuple[str, str, str]:
         """
         Step 1: Obtain a request token and build the redirect URL.
 
@@ -54,57 +56,45 @@ class OAuthService:
 
         handshaker = self.get_handshaker()
 
-        redirect_url, request_token = handshaker.initiate(callback=callback_url)
+        authorization_url, request_token = handshaker.initiate(callback=callback_url)
 
-        logger.info("OAuth login initiated, redirecting to: %s", redirect_url)
+        logger.info("OAuth login initiated, redirecting to: %s", authorization_url)
 
-        return redirect_url, request_token
+        return (
+            authorization_url,
+            request_token.key,
+            request_token.secret,
+        )
 
-    def complete_login(self, request_token: object, query_string: str) -> tuple[AccessToken | Any, dict[str, Any]]:
-        """Complete the OAuth login flow and return the access token and user identity."""
-        logger.debug("Completing OAuth login with query_string")
-        handshaker = self.get_handshaker()
-        access_token: AccessToken = handshaker.complete(request_token, query_string)
-        logger.info("OAuth access token obtained")
-        try:
-            identity: dict[str, Any] = handshaker.identify(access_token)
-            logger.info("OAuth identity verified: %s", identity.get("username") or identity.get("name"))
-        except Exception as exc:
-            logger.exception("OAuth identity verification failed")
-            raise OAuthIdentityError(IDENTITY_ERROR_MESSAGE, original_exception=exc) from exc
-        return access_token, identity
+    def fetch_access_token(
+        self,
+        query_string: str,
+        oauth_token: str,
+        oauth_token_secret: str,
+    ) -> AccessToken:
+        """
+        Step 2: Exchange the callback for a permanent access token.
 
-    def extract_token_credentials(self, access_token: AccessToken | Any) -> tuple[str, str]:
-        """Extract key/secret from an OAuth access token object."""
-        if not access_token:
-            raise OAuthCallbackError("Missing OAuth credentials")
-
-        token_key = getattr(access_token, "key", None)
-        token_secret = getattr(access_token, "secret", None)
-
-        if (
-            not (token_key and token_secret)
-            and isinstance(access_token, Sequence)
-            and not isinstance(access_token, str | bytes | bytearray)
-        ):
-            if len(access_token) >= 2:
-                token_key = access_token[0]
-                token_secret = access_token[1]
-
-        if not (token_key and token_secret):
-            raise OAuthCallbackError("Missing OAuth credentials")
-
-        return str(token_key), str(token_secret)
-
-    def complete_oauth_callback(self, request_token: Any, query_string: str) -> Any:
-        """Complete the OAuth handshake and persist credentials.
+        Args:
+            query_string:
+            oauth_token: The request token from step 1.
+            oauth_token_secret: The request token secret from step 1.
 
         Returns:
-            (user_id, username, user_record)
+            AccessToken object.
+        """
+        logger.debug("Completing OAuth login with query_string")
+        handshaker = self.get_handshaker()
 
-        Raises:
-            OAuthIdentityError: If identity verification fails.
-            OAuthCallbackError: If token extraction or user persistence fails.
+        request_token = RequestToken(oauth_token, oauth_token_secret)
+
+        access_token: AccessToken = handshaker.complete(request_token, query_string)
+
+        return access_token
+
+    def identify(self, access_token: AccessToken) -> dict[str, Any]:
+        """
+        Fetch the authenticated user's identity from Meta-Wiki.
 
         identity example: for references: {
             "iss": "https://meta.wikimedia.org",
@@ -119,75 +109,27 @@ class OAuthService:
             "grants": [ "basic", "editpage", "createeditmovepage", "uploadfile", "uploadeditmovefile", "editmywatchlist" ],
             "nonce": ""
         }
+
+        Returns:
+            dict with at least ``username`` key.
         """
-        access_token, identity = self.complete_login(request_token, query_string)
-        token_key, token_secret = self.extract_token_credentials(access_token)
+        handshaker = self.get_handshaker()
+        try:
+            identity: dict[str, Any] = handshaker.identify(access_token)
+            logger.info("OAuth identity verified: %s", identity.get("username") or identity.get("name"))
+        except Exception as exc:
+            logger.exception("OAuth identity verification failed")
+            raise OAuthIdentityError(IDENTITY_ERROR_MESSAGE, original_exception=exc) from exc
 
         identity_dict: dict[str, Any] = identity if isinstance(identity, dict) else {}
+
         username = identity_dict.get("username") or identity_dict.get("name")
         if not username:
             raise OAuthCallbackError("Missing username")
 
-        user_record = TokenManager().save_token(
-            username=username,
-            access_token=token_key,
-            access_secret=token_secret,
-        )
-
-        if not user_record:
-            raise OAuthCallbackError("Failed to process user credentials")
-
-        return user_record
-
-
-def get_handshaker() -> Handshaker:
-    return OAuthService().get_handshaker()
-
-
-def create_authorization_url(state_token: str) -> tuple[str, Any]:
-    return OAuthService().create_authorization_url(state_token)
-
-
-def complete_login(request_token: object, query_string: str) -> tuple[AccessToken | Any, dict[str, Any]]:
-    return OAuthService().complete_login(request_token, query_string)
-
-
-def extract_token_credentials(access_token: AccessToken | Any) -> tuple[str, str]:
-    return OAuthService().extract_token_credentials(access_token)
-
-
-def complete_oauth_callback(request_token: Any, query_string: str) -> Any:
-    """Complete the OAuth handshake and persist credentials.
-
-    Returns:
-        (user_id, username, user_record)
-
-    Raises:
-        OAuthIdentityError: If identity verification fails.
-        OAuthCallbackError: If token extraction or user persistence fails.
-
-    identity example: for references: {
-        "iss": "https://meta.wikimedia.org",
-        "sub": "4327653",
-        "username": "username",
-        "editcount": 1182,
-        "email_verified": true, "confirmed_email": true,
-        "blocked": false,
-        "registered": "20110101133631",
-        "groups": [ "autopatrolled", "*", "user", "autoconfirmed" ],
-        "rights": [ "read", "edit" ],
-        "grants": [ "basic", "editpage", "createeditmovepage", "uploadfile", "uploadeditmovefile", "editmywatchlist" ],
-        "nonce": ""
-    }
-    """
-    return OAuthService().complete_oauth_callback(request_token, query_string)
+        return identity_dict
 
 
 __all__ = [
     "OAuthService",
-    "complete_oauth_callback",
-    "extract_token_credentials",
-    "get_handshaker",
-    "create_authorization_url",
-    "complete_login",
 ]

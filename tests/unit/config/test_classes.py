@@ -108,6 +108,7 @@ def test_settings():
     sessions = SessionConfig(
         state_key="state",
         request_token_key="request",
+        request_secret_key="request_secret",
     )
 
     other_config = OtherConfig(

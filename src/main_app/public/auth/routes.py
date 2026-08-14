@@ -1,13 +1,11 @@
 """
-Authentication helpers and OAuth routes for the web app.
+Auth routes — OAuth login, callback, logout.
 """
 
 from __future__ import annotations
 
 import logging
 import secrets
-from collections.abc import Sequence
-from typing import Any, cast
 from urllib.parse import urlencode
 
 from flask import (
@@ -21,7 +19,7 @@ from flask import (
     url_for,
 )
 from flask.views import MethodView
-from mwoauth import RequestToken
+from mwoauth import AccessToken
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from ...config import settings
@@ -31,7 +29,8 @@ from ...services.auth.auth_exceptions import (
     OAuthIdentityError,
 )
 from ...services.auth.auth_service import OAuthService
-from ...services.auth.utils import TokenManager, set_logged_in_user
+from ...services.auth.token_manager import TokenManager
+from ...services.auth.utils import set_logged_in_user
 from ...services.core.cookies import (
     extract_user_id,
     sign_state_token,
@@ -42,6 +41,7 @@ from .rate_limit import callback_rate_limiter, login_rate_limiter
 
 logger = logging.getLogger(__name__)
 
+request_secret_key = settings.sessions.request_secret_key
 request_token_key = settings.sessions.request_token_key
 oauth_state_nonce = settings.sessions.state_key
 
@@ -61,9 +61,10 @@ class AuthHelper:
     """Builds OAuth and TokenManager instances."""
 
     def __init__(self) -> None:
-        self.rate_limiter_key = _client_key()
         self.oauth_service: OAuthService = OAuthService()
         self.token_manager: TokenManager = TokenManager()
+
+        self.rate_limiter_key = _client_key()
 
     def _resolve_user_id(self, username: str) -> int:
         """Return the user_id for ``username``, creating a UserRecord if needed."""
@@ -97,14 +98,18 @@ class LoginView(AuthHelper, MethodView):
                 url_for("main.index", error=f"Too many login attempts. Please try again after {time_left_str}s.")
             )
 
+        # ------------------
+        # start login
         state_nonce = secrets.token_urlsafe(32)
         session[oauth_state_nonce] = state_nonce
 
-        # ------------------
-        # start login
+        callback_url = url_for(
+            "auth.callback",
+            _external=True,
+            state=sign_state_token(state_nonce),
+        )
         try:
-            callback_url = url_for("auth.callback", _external=True, state=sign_state_token(state_nonce))
-            redirect_url, request_token = self.oauth_service.create_authorization_url(callback_url)
+            auth_url, request_token, request_secret = self.oauth_service.create_authorization_url(callback_url)
             logger.info("OAuth login started successfully, redirecting to MediaWiki")
         except (RuntimeError, Exception):
             logger.exception("Failed to start OAuth login")
@@ -112,10 +117,12 @@ class LoginView(AuthHelper, MethodView):
             return redirect(url_for("main.index", error="Failed to initiate OAuth login"))
 
         # ------------------
-        # add request_token to session
-        session[request_token_key] = cast(list[str], list(request_token))
+        # Store request token in session for the callback step
+        session[request_token_key] = request_token
+        session[request_secret_key] = request_secret
+
         logger.debug("OAuth request token stored in session")
-        return redirect(redirect_url)
+        return redirect(auth_url)
 
 
 class OAuthCallbackView(AuthHelper, MethodView):
@@ -151,57 +158,69 @@ class OAuthCallbackView(AuthHelper, MethodView):
 
         # ------------------
         # token data
-        raw_request_token = session.pop(request_token_key, None)
         oauth_verifier = request.args.get("oauth_verifier")
-        if not raw_request_token or not oauth_verifier:
+
+        request_token = session.pop(request_token_key, None)
+        request_secret = session.pop(request_secret_key, None)
+
+        if not request_token or not request_secret or not oauth_verifier:
             flash("Invalid OAuth verifier", "danger")
             logger.warning("OAuth callback failed: missing request token or verifier")
-            return redirect(url_for("main.index", error="Invalid OAuth verifier"))
+            return redirect(url_for("main.index"))
 
         # ------------------
         # RequestToken
-        try:
-            request_token = self.load_request_token(raw_request_token)
-        except ValueError:
-            logger.exception("Invalid OAuth request token")
-            flash("Invalid OAuth request token", "danger")
-            return redirect(url_for("main.index", error="Invalid request token"))
-
         query_string = urlencode(request.args)
+
+        try:
+            token_data: AccessToken = self.oauth_service.fetch_access_token(
+                query_string=query_string,
+                oauth_token=request_token,
+                oauth_token_secret=request_secret,
+            )
+        except OAuthCallbackError as exc:
+            logger.exception("OAuth callback failed: %s", exc)
+            flash(str(exc), exc.flash_category)
+            return redirect(url_for("main.index"))
+        except Exception as exc:
+            logger.exception("OAuth callback failed: %s", exc)
+            return redirect(url_for("main.index"))
+
         # ------------------
         # access_token, identity
+        # Identify the user
+
         try:
-            access_token, identity = self.oauth_service.complete_login(request_token, query_string)
-            token_key, token_secret = self.oauth_service.extract_token_credentials(access_token)
-
-            identity_dict: dict[str, Any] = identity if isinstance(identity, dict) else {}
-            username = identity_dict.get("username") or identity_dict.get("name")
-            if not username:
-                raise OAuthCallbackError("Missing username")
-
-            user_record = self.token_manager.save_token(
-                username=username,
-                access_token=token_key,
-                access_secret=token_secret,
-            )
-
-            if not user_record:
-                raise OAuthCallbackError("Failed to process user credentials")
-
+            identity = self.oauth_service.identify(token_data)
         except OAuthIdentityError:
             logger.exception("OAuth identity verification failed")
             flash("Failed to verify OAuth identity", "danger")
             return redirect(url_for("main.index"))
+
         except OAuthCallbackError as exc:
             logger.exception("OAuth callback failed: %s", exc)
             flash(str(exc), exc.flash_category)
             return redirect(url_for("main.index"))
 
-        user_id = user_record.user_id
+        username = identity.get("username") or identity.get("name")
+
+        # Persist the user record (and obtain its stable user_id) before
+        # saving the encrypted token, which is keyed by user_id.
+        user_id = self._resolve_user_id(username)
+
+        # Save encrypted token
+        user_record = self.token_manager.save_token(
+            username=username,
+            access_token=token_data.key,
+            access_secret=token_data.secret,
+        )
+
+        if not user_record:
+            raise OAuthCallbackError("Failed to process user credentials")
 
         # Set sessions
         session["uid"] = user_id
-        session["username"] = user_record.username
+        session["username"] = username
 
         # Set response and cookies
         response = make_response(redirect(session.pop("post_login_redirect", url_for("main.index"))))
@@ -224,16 +243,6 @@ class OAuthCallbackView(AuthHelper, MethodView):
             max_age=settings.cookie.max_age,
             path="/",
         )
-
-    @staticmethod
-    def load_request_token(raw: Sequence[Any] | None) -> RequestToken:
-        if not raw:
-            raise ValueError("Missing OAuth request token")
-
-        if len(raw) < 2:
-            raise ValueError("Invalid OAuth request token")
-
-        return RequestToken(raw[0], raw[1])
 
 
 class LogoutView(AuthHelper, MethodView):

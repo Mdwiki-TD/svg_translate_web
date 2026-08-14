@@ -49,24 +49,6 @@ class TestClientKey:
         assert _client_key() == "anonymous"
 
 
-class TestLoadRequestToken:
-    def test_valid_token(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.public.auth.routes.RequestToken", lambda k, s: f"token:{k}:{s}")
-
-        result = OAuthCallbackView.load_request_token(["key", "secret"])
-        assert result is not None
-
-    def test_none_raises(self, monkeypatch):
-
-        with pytest.raises(ValueError, match="Missing OAuth request token"):
-            OAuthCallbackView.load_request_token(None)
-
-    def test_short_raises(self, monkeypatch):
-
-        with pytest.raises(ValueError, match="Invalid OAuth request token"):
-            OAuthCallbackView.load_request_token(["only"])
-
-
 class TestSetResponseCookies:
     def test_sets_cookie(self, monkeypatch):
         from src.main_app.public.auth.routes import OAuthCallbackView
