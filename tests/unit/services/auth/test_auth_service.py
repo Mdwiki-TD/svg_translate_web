@@ -66,18 +66,17 @@ def test_start_login(monkeypatch: pytest.MonkeyPatch) -> None:
 
         def initiate(self, *, callback: str):
             assert callback == "https://host/callback?state=signed-state"
-            return "https://auth", ("token", "secret")
+            return "https://auth", RequestToken("token", "secret")
 
-    monkeypatch.setattr(
-        "src.main_app.services.auth.auth_service.Handshaker", lambda *args, **kwargs: DummyHandshaker()
-    )
+    monkeypatch.setattr("src.main_app.services.auth.auth_service.Handshaker", lambda *args, **kwargs: DummyHandshaker())
 
     redirect_url, request_token, request_secret = OAuthService().create_authorization_url(
         "https://host/callback?state=signed-state"
     )
 
     assert redirect_url == "https://auth"
-    assert list(request_token) == ["token", "secret"]
+    assert request_token == "token"
+    assert request_secret == "secret"
     assert captured_state == []
 
 
@@ -95,9 +94,7 @@ def test_complete_login(monkeypatch: pytest.MonkeyPatch) -> None:
             assert token.key == "k"
             return {"sub": "123", "username": "Tester"}
 
-    monkeypatch.setattr(
-        "src.main_app.services.auth.auth_service.Handshaker", lambda *args, **kwargs: DummyHandshaker()
-    )
+    monkeypatch.setattr("src.main_app.services.auth.auth_service.Handshaker", lambda *args, **kwargs: DummyHandshaker())
 
     access_token = OAuthService().fetch_access_token("oauth=1", "request-token", "request-secret")
     identity = OAuthService().identify(access_token)
@@ -117,12 +114,10 @@ def test_complete_login_identity_error(monkeypatch: pytest.MonkeyPatch) -> None:
         def identify(self, token) -> dict:
             raise ValueError("bad")
 
-    monkeypatch.setattr(
-        "src.main_app.services.auth.auth_service.Handshaker", lambda *args, **kwargs: DummyHandshaker()
-    )
+    monkeypatch.setattr("src.main_app.services.auth.auth_service.Handshaker", lambda *args, **kwargs: DummyHandshaker())
 
     with pytest.raises(auth_service.OAuthIdentityError) as excinfo:
-        OAuthService().fetch_access_token("query", "request-token", "request-token")
+        OAuthService().identify("token")
 
     assert "MediaWiki" in str(excinfo.value)
     assert isinstance(excinfo.value.original_exception, ValueError)
@@ -178,5 +173,6 @@ def test_complete_login_raises_identity_error(monkeypatch):
             raise RuntimeError("boom")
 
     monkeypatch.setattr(auth_service, "Handshaker", FailingHandshaker)
+    access_token = OAuthService().fetch_access_token("x=1", "rk", "rs")
     with pytest.raises(auth_service.OAuthIdentityError):
-        OAuthService().fetch_access_token("x=1", "rk", "rs")
+        OAuthService().identify(access_token)
