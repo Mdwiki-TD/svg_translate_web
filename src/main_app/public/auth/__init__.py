@@ -1,4 +1,4 @@
-""" """
+"""Public auth package — routes and decorators."""
 
 from .decorators import oauth_required
 from .routes import AuthRoutes

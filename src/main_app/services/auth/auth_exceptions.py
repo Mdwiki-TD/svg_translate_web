@@ -18,7 +18,12 @@ class OAuthCallbackError(Exception):
 class OAuthIdentityError(Exception):
     """Raised when MediaWiki OAuth identity verification fails."""
 
-    def __init__(self, message: str, *, original_exception: Exception | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        original_exception: Exception | None = None,
+    ) -> None:
         super().__init__(message)
         self.original_exception = original_exception
 

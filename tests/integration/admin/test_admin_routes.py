@@ -11,6 +11,7 @@ from unittest.mock import Mock
 import pytest
 
 from src.main_app.database.services import AdminService, UsersService, UserTokenService
+from src.main_app.services.core.crypto import CryptoService
 
 
 class TestSetup:
@@ -19,11 +20,14 @@ class TestSetup:
         self.service = AdminService()
         self.users_service = UsersService()
         self.users_token_service = UserTokenService()
+        self._crypto = CryptoService()
 
     def _upsert_u_token(self, username: str, access_key: str, access_secret: str) -> int:
         user = self.users_service.create_user(username)
-        encrypted_token = self.users_token_service.encrypt_value(access_key)
-        encrypted_secret = self.users_token_service.encrypt_value(access_secret)
+        encrypted_token = self._crypto.encrypt(access_key)
+        encrypted_secret = self._crypto.encrypt(access_secret)
+
+        assert user is not None
 
         UserTokenService().upsert_user_token(
             user_id=user.user_id,

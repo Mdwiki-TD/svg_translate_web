@@ -21,7 +21,7 @@ def parse_bool(value: str | int) -> bool:
 
 @dataclass(frozen=True)
 class CurrentUser:
-    """Bundles user identity and OAuth credentials
+    """Bundles user identity and OAuth credentials.
     Stored in ``g._current_user`` during the request lifecycle.
     """
 
@@ -50,7 +50,11 @@ class CurrentUser:
         }
 
     @classmethod
-    def from_authenticated(cls, token: UserTokenRecord, is_active_admin: bool) -> CurrentUser:
+    def from_authenticated(
+        cls,
+        token: UserTokenRecord,
+        is_active_admin: bool,
+    ) -> CurrentUser:
         return cls(
             user_id=token.user_id,
             username=token.user.username,

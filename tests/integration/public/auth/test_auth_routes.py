@@ -32,7 +32,7 @@ class TestLogin:
 
         # Mock only external OAuth handshake and non-deterministic nonce
         monkeypatch.setattr(
-            "src.main_app.public.auth.routes.secrets",
+            "src.main_app.services.auth.flow.secrets",
             SimpleNamespace(token_urlsafe=lambda _: "nonce"),
         )
 
@@ -42,7 +42,7 @@ class TestLogin:
                 assert token
                 return ("https://auth.example", "a", "b")
 
-        monkeypatch.setattr("src.main_app.public.auth.routes.OAuthService.create_authorization_url", DummyStart())
+        monkeypatch.setattr("src.main_app.services.auth.flow.OAuthService.create_authorization_url", DummyStart())
 
         response = mock_client.get("/login")
 
@@ -51,9 +51,9 @@ class TestLogin:
 
         with mock_client.session_transaction() as sess:
             # Real session key from settings (oauth_state_nonce)
-            assert sess["oauth_state_nonce"] == "nonce"
+            assert sess[settings.sessions.state_key] == "nonce"
             # Real session key from settings (state = request_token_key)
-            assert sess["state"] == "a"
+            assert sess[settings.sessions.request_token_key] == "a"
 
     def test_login_rate_limited(
         self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
@@ -127,7 +127,7 @@ class TestCallback:
         with mock_app.app_context():
             user = UsersService().get_user_by_username("Tester")
             assert user is not None
-            token = UserTokenService().get_user_token(user.user_id)
+            token = UserTokenService().get_record_by_id(user.user_id)
             assert token is not None
 
         with mock_client.session_transaction() as sess:
@@ -191,7 +191,7 @@ class TestLogout:
 
         # Verify token was deleted from the real DB
         with mock_app.app_context():
-            token = UserTokenService().get_user_token(user_id)
+            token = UserTokenService().get_record_by_id(user_id)
             assert token is None
 
         with mock_client.session_transaction() as sess:

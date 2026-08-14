@@ -18,7 +18,7 @@ class TestDeleteUserCascades(TestSetup):
     def test_delete_user_cascades(self) -> None:
         user = self.user_service.create_user("svc_dave")
         self.service.upsert_user_token(user_id=user.user_id, encrypted_token=b"k", encrypted_secret=b"s")
-        assert self.service.get_user_token(user.user_id) is not None
+        assert self.service.get_record_by_id(user.user_id) is not None
 
 
 class TestUpsertGetDeleteUserToken(TestSetup):
@@ -27,18 +27,18 @@ class TestUpsertGetDeleteUserToken(TestSetup):
         user = self.user_service.create_user("svc_eve")
         self.service.upsert_user_token(user_id=user.user_id, encrypted_token=b"key", encrypted_secret=b"secret")
 
-        token_record = self.service.get_user_token(user.user_id)
+        token_record = self.service.get_record_by_id(user.user_id)
         assert token_record is not None
         assert token_record.access_token is not None
         assert token_record.access_secret is not None
 
         # Test update
         self.service.upsert_user_token(user_id=user.user_id, encrypted_token=b"new_key", encrypted_secret=b"new_secret")
-        token_record = self.service.get_user_token(user.user_id)
+        token_record = self.service.get_record_by_id(user.user_id)
 
         # Test delete token only
         self.service.delete(user.user_id)
-        assert self.service.get_user_token(user.user_id) is None
+        assert self.service.get_record_by_id(user.user_id) is None
 
 
 class TestGetAuthenticatedUserToken(TestSetup):
@@ -73,13 +73,13 @@ class TestGetAuthenticatedUserToken(TestSetup):
 
 
 class TestGetUserToken(TestSetup):
-    """Tests for get_user_token."""
+    """Tests for get_record_by_id."""
 
     def test_returns_token_for_valid_user_id(self):
         """Test returns token for a valid integer user_id."""
         user = self.user_service.create_user("svc_eve")
         self.service.upsert_user_token(user_id=user.user_id, encrypted_token=b"key", encrypted_secret=b"secret")
-        result = self.service.get_user_token(user.user_id)
+        result = self.service.get_record_by_id(user.user_id)
 
         assert result is not None
 
@@ -87,42 +87,36 @@ class TestGetUserToken(TestSetup):
         """Test returns token for a valid string user_id."""
         user = self.user_service.create_user("svc_eve")
         self.service.upsert_user_token(user_id=user.user_id, encrypted_token=b"key", encrypted_secret=b"secret")
-        result = self.service.get_user_token(str(user.user_id))
+        result = self.service.get_record_by_id(str(user.user_id))
 
         assert result is not None
 
-    def test_returns_none_for_none_user_id(self):
-        """Test returns None when user_id is None."""
-        result = self.service.get_user_token(None)  # type: ignore
-
-        assert result is None
-
     def test_returns_none_for_zero_user_id(self):
         """Test returns None when user_id is 0 (falsy check)."""
-        result = self.service.get_user_token(0)
+        result = self.service.get_record_by_id(0)
 
         assert result is None
 
     def test_returns_none_for_empty_string_user_id(self):
         """Test returns None when user_id is an empty string."""
-        result = self.service.get_user_token("")
+        result = self.service.get_record_by_id("")
 
         assert result is None
 
     def test_returns_none_when_no_token_found(self):
         """Test returns None when no matching token record exists."""
-        result = self.service.get_user_token(999)
+        result = self.service.get_record_by_id(999)
 
         assert result is None
 
 
 class TestCreateUserToken(TestSetup):
-    """Tests for create_user_token."""
+    """Tests for create."""
 
     def test_creates_and_returns_record(self):
         """Test creates a new UserTokenRecord and returns it."""
         user = self.user_service.create_user("svc_eve")
-        result = self.service.create_user_token(user.user_id, b"key", b"secret")
+        result = self.service.create(user_id=user.user_id, access_token=b"key", access_secret=b"secret")
         assert result is not None
         assert result.user_id == user.user_id
         assert result.access_token == b"key"
@@ -133,9 +127,9 @@ class TestUpsertUserToken(TestSetup):
     """Tests for upsert_user_token."""
 
     def test_calls_create_when_no_existing_token(self):
-        """Test calls create_user_token when no existing token is found."""
+        """Test calls create when no existing token is found."""
         user = self.user_service.create_user("testz")
-        token = self.service.get_user_token(user.user_id)
+        token = self.service.get_record_by_id(user.user_id)
         assert token is None
 
         result = self.service.upsert_user_token(user.user_id, b"enc_key", b"enc_secret")

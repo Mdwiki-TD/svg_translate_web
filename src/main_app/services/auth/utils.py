@@ -1,5 +1,5 @@
 """
-Authentication utilities and decorators for routes.
+Authentication utilities — session/cookie resolution and request hooks.
 """
 
 from __future__ import annotations
@@ -62,28 +62,27 @@ def _get_user_id() -> None | int:
     return user_id
 
 
-def _build_current_user(user_id) -> None | CurrentUser:
+def _build_current_user(user_id: int | None) -> None | CurrentUser:
     """
-    Fetch user from Service Layer and hydrate session/g context.
+    Assemble a :class:`CurrentUser` for the given user_id from the DB.
     """
     if user_id is None:
         return None
 
-    user = TokenManager().get_authenticated_user(user_id)
+    tm = TokenManager()
+    record: CurrentUser | None = tm.get_authenticated_user(user_id)
 
-    if user and session.get("username") != user.username:
-        session["username"] = user.username
+    if record and session.get("username") != record.username:
+        session["username"] = record.username
 
-    return user
+    return record
 
 
 def set_logged_in_user() -> None:
     """Build a :class:`CurrentUser` from the session and store it in ``g``.
 
     Called once per request by ``before_app_request``. Anonymous sessions
-    (no ``username`` in the session) get ``g._current_user = None`` and incur
-    no database work. Authenticated sessions are hydrated from ``UserRecord``
-    (id + admin flag) and the decrypted OAuth token pair.
+    get ``g._current_user = None`` and incur no database work.
     """
     if hasattr(g, "_current_user"):
         return
@@ -92,5 +91,6 @@ def set_logged_in_user() -> None:
 
 
 __all__ = [
+    "get_current_user",
     "set_logged_in_user",
 ]

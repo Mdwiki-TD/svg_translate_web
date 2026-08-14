@@ -10,7 +10,6 @@ from typing import Any
 from mwoauth import AccessToken, ConsumerToken, RequestToken
 from mwoauth.handshaker import Handshaker
 
-from ...config import settings
 from .auth_exceptions import IDENTITY_ERROR_MESSAGE, OAuthCallbackError, OAuthIdentityError
 
 logger = logging.getLogger(__name__)
@@ -22,6 +21,7 @@ class OAuthService:
     Responsibilities:
     - Build the authorization URL to redirect the user to.
     - Exchange the callback verifier for an access token.
+    - Identify the authenticated user.
     """
 
     def __init__(
@@ -29,26 +29,27 @@ class OAuthService:
         consumer_key: str,
         consumer_secret: str,
         oauth_mwuri: str,
+        user_agent: str | None = None,
     ) -> None:
         """Initialize the OAuth service."""
         self._mw_uri = oauth_mwuri
         self._consumer_key = consumer_key
         self._consumer_secret = consumer_secret
+        self.user_agent = user_agent
 
     def get_handshaker(self) -> Handshaker:
-        if not settings.oauth:
+        if not self._consumer_key:
             raise RuntimeError("MediaWiki OAuth configuration is incomplete")
 
         consumer_token = ConsumerToken(
-            settings.oauth.consumer_key,
-            settings.oauth.consumer_secret,
+            self._consumer_key,
+            self._consumer_secret,
         )
-        handshaker = Handshaker(
-            mw_uri=settings.oauth.mw_uri,
+        return Handshaker(
+            mw_uri=self._mw_uri,
             consumer_token=consumer_token,
-            user_agent=settings.other.user_agent,
+            user_agent=self.user_agent,
         )
-        return handshaker
 
     def create_authorization_url(self, callback_url: str) -> tuple[str, str, str]:
         """
@@ -60,7 +61,6 @@ class OAuthService:
         logger.debug("Starting OAuth login with state_token")
 
         handshaker = self.get_handshaker()
-
         authorization_url, request_token = handshaker.initiate(callback=callback_url)
 
         logger.info("OAuth login initiated, redirecting to: %s", authorization_url)
