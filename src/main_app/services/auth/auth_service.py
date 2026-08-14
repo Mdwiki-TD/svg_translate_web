@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from mwoauth import AccessToken, RequestToken, ConsumerToken
+from mwoauth import AccessToken, ConsumerToken, RequestToken
 from mwoauth.handshaker import Handshaker
 
 from ...config import settings

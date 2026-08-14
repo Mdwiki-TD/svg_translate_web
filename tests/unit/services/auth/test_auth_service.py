@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from mwoauth import RequestToken
 
 import pytest
+from mwoauth import RequestToken
 
 from src.main_app.services.auth import auth_service
 from src.main_app.services.auth.auth_service import OAuthService
@@ -63,15 +63,18 @@ def test_start_login(monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyHandshaker:
         def __init__(self, *args, **kwargs) -> None:
             pass
+
         def initiate(self, *, callback: str):
             assert callback == "https://host/callback?state=signed-state"
             return "https://auth", ("token", "secret")
 
     monkeypatch.setattr(
-        "src.main_app.services.auth.auth_service.Handshaker", lambda self, *args, **kwargs: DummyHandshaker()
+        "src.main_app.services.auth.auth_service.Handshaker", lambda *args, **kwargs: DummyHandshaker()
     )
 
-    redirect_url, request_token, request_secret = OAuthService().create_authorization_url("https://host/callback?state=signed-state")
+    redirect_url, request_token, request_secret = OAuthService().create_authorization_url(
+        "https://host/callback?state=signed-state"
+    )
 
     assert redirect_url == "https://auth"
     assert list(request_token) == ["token", "secret"]
@@ -84,7 +87,7 @@ def test_complete_login(monkeypatch: pytest.MonkeyPatch) -> None:
             pass
 
         def complete(self, token, query_string: str):
-            assert token == RequestToken(key='request-token', secret='request-secret')
+            assert token == RequestToken(key="request-token", secret="request-secret")
             assert query_string == "oauth=1"
             return SimpleNamespace(key="k", secret="s")
 
@@ -93,7 +96,7 @@ def test_complete_login(monkeypatch: pytest.MonkeyPatch) -> None:
             return {"sub": "123", "username": "Tester"}
 
     monkeypatch.setattr(
-        "src.main_app.services.auth.auth_service.Handshaker", lambda self, *args, **kwargs: DummyHandshaker()
+        "src.main_app.services.auth.auth_service.Handshaker", lambda *args, **kwargs: DummyHandshaker()
     )
 
     access_token = OAuthService().fetch_access_token("oauth=1", "request-token", "request-secret")
@@ -107,6 +110,7 @@ def test_complete_login_identity_error(monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyHandshaker:
         def __init__(self, *args, **kwargs) -> None:
             pass
+
         def complete(self, token, query_string: str):
             return "token"
 
@@ -114,7 +118,7 @@ def test_complete_login_identity_error(monkeypatch: pytest.MonkeyPatch) -> None:
             raise ValueError("bad")
 
     monkeypatch.setattr(
-        "src.main_app.services.auth.auth_service.Handshaker", lambda self, *args, **kwargs: DummyHandshaker()
+        "src.main_app.services.auth.auth_service.Handshaker", lambda *args, **kwargs: DummyHandshaker()
     )
 
     with pytest.raises(auth_service.OAuthIdentityError) as excinfo:
