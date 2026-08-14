@@ -51,9 +51,9 @@ class TestLogin:
 
         with mock_client.session_transaction() as sess:
             # Real session key from settings (oauth_state_nonce)
-            assert sess["oauth_state_nonce"] == "nonce"
+            assert sess[settings.sessions.state_key] == "nonce"
             # Real session key from settings (state = request_token_key)
-            assert sess["state"] == "a"
+            assert sess[settings.sessions.request_token_key] == "a"
 
     def test_login_rate_limited(
         self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
