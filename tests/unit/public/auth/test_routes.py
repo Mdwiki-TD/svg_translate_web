@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
-from src.main_app.public.auth.routes import OAuthCallbackView
 
 
 @pytest.mark.usefixtures("mock_app")
@@ -47,6 +46,7 @@ class TestClientKey:
         from src.main_app.public.auth.routes import _client_key
 
         assert _client_key() == "anonymous"
+
 
 class TestLogout:
     def test_logout_clears_session(self, mock_client, monkeypatch):
