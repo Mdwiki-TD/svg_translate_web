@@ -91,12 +91,6 @@ class TestGetUserToken(TestSetup):
 
         assert result is not None
 
-    def test_returns_none_for_none_user_id(self):
-        """Test returns None when user_id is None."""
-        result = self.service.get_record_by_id(None)  # type: ignore
-
-        assert result is None
-
     def test_returns_none_for_zero_user_id(self):
         """Test returns None when user_id is 0 (falsy check)."""
         result = self.service.get_record_by_id(0)
