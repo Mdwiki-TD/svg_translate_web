@@ -65,15 +65,16 @@ class AuthHelper:
             consumer_key=settings.oauth.consumer_key,
             consumer_secret=settings.oauth.consumer_secret,
             oauth_mwuri=settings.oauth.mw_uri,
+            user_agent=settings.other.user_agent,
         )
         self.token_manager: TokenManager = TokenManager()
 
         self.rate_limiter_key = _client_key()
+        self.user_svc = UsersService()
 
     def _resolve_user_id(self, username: str) -> int:
         """Return the user_id for ``username``, creating a UserRecord if needed."""
-        user_svc = UsersService()
-        record = user_svc.ensure_exists(username)
+        record = self.user_svc.ensure_exists(username)
         return record.user_id
 
 
@@ -215,11 +216,16 @@ class OAuthCallbackView(AuthHelper, MethodView):
 
         # Persist the user record (and obtain its stable user_id) before
         # saving the encrypted token, which is keyed by user_id.
-        user_id = self._resolve_user_id(username)
+        try:
+            user_id = self._resolve_user_id(username)
+        except Exception as exc:
+            logger.exception("Failed to resolve user ID: %s", exc)
+            flash("Failed to resolve user ID", "danger")
+            return redirect(url_for("main.index"))
 
         # Save encrypted token
         user_record = self.token_manager.save_token(
-            username=username,
+            user_id=user_id,
             access_token=token_data.key,
             access_secret=token_data.secret,
         )

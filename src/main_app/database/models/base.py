@@ -15,12 +15,20 @@ class TimestampMixin:
     """Adds created_at / updated_at to any model."""
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        default=func.current_timestamp(),
+    )
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
         server_default=func.current_timestamp(),
+        default=func.current_timestamp(),
         server_onupdate=func.current_timestamp(),
+        onupdate=func.current_timestamp(),
     )
 
 

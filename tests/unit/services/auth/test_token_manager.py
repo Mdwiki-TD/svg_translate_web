@@ -83,15 +83,15 @@ class TestUserService:
         )
         assert self.service.save_token("user", "k", "s") is None
 
-    def test_save_and_get_user_token_fail(self, monkeypatch: pytest.MonkeyPatch):
-        """When upsert succeeds but get_user_token raises, should return None."""
+    def test_save_and_get_record_by_id_fail(self, monkeypatch: pytest.MonkeyPatch):
+        """When upsert succeeds but get_record_by_id raises, should return None."""
         self._seed_user("user")
 
         def raise_error(*args, **kwargs):
             raise Exception("Token Error")
 
         monkeypatch.setattr(
-            "src.main_app.services.auth.token_manager.UserTokenService.get_user_token",
+            "src.main_app.services.auth.token_manager.UserTokenService.get_record_by_id",
             raise_error,
         )
         assert self.service.save_token("user", "k", "s") is None

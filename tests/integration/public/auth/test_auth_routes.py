@@ -127,7 +127,7 @@ class TestCallback:
         with mock_app.app_context():
             user = UsersService().get_user_by_username("Tester")
             assert user is not None
-            token = UserTokenService().get_user_token(user.user_id)
+            token = UserTokenService().get_record_by_id(user.user_id)
             assert token is not None
 
         with mock_client.session_transaction() as sess:
@@ -191,7 +191,7 @@ class TestLogout:
 
         # Verify token was deleted from the real DB
         with mock_app.app_context():
-            token = UserTokenService().get_user_token(user_id)
+            token = UserTokenService().get_record_by_id(user_id)
             assert token is None
 
         with mock_client.session_transaction() as sess:

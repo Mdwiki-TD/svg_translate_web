@@ -10,7 +10,6 @@ from typing import Any
 from mwoauth import AccessToken, ConsumerToken, RequestToken
 from mwoauth.handshaker import Handshaker
 
-from ...config import settings
 from .auth_exceptions import IDENTITY_ERROR_MESSAGE, OAuthCallbackError, OAuthIdentityError
 
 logger = logging.getLogger(__name__)
@@ -29,24 +28,26 @@ class OAuthService:
         consumer_key: str,
         consumer_secret: str,
         oauth_mwuri: str,
+        user_agent: str | None = None,
     ) -> None:
         """Initialize the OAuth service."""
         self._mw_uri = oauth_mwuri
         self._consumer_key = consumer_key
         self._consumer_secret = consumer_secret
+        self.user_agent = user_agent
 
     def get_handshaker(self) -> Handshaker:
-        if not settings.oauth:
+        if not self._consumer_key:
             raise RuntimeError("MediaWiki OAuth configuration is incomplete")
 
         consumer_token = ConsumerToken(
-            settings.oauth.consumer_key,
-            settings.oauth.consumer_secret,
+            self._consumer_key,
+            self._consumer_secret,
         )
         handshaker = Handshaker(
-            mw_uri=settings.oauth.mw_uri,
+            mw_uri=self._mw_uri,
             consumer_token=consumer_token,
-            user_agent=settings.other.user_agent,
+            user_agent=self.user_agent,
         )
         return handshaker
 

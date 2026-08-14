@@ -27,7 +27,12 @@ class UserRecord(db.Model):
     can_run_jobs: Mapped[int] = mapped_column(nullable=False, server_default=text("0"), default=0)
     can_run_bg_jobs: Mapped[int] = mapped_column(nullable=False, server_default=text("0"), default=0)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        default=func.current_timestamp(),
+    )
 
     # One-to-One relationship with UserTokenRecord using the modern SQLAlchemy 2.0 style
     token: Mapped[UserTokenRecord | None] = relationship(back_populates="user", uselist=False)
