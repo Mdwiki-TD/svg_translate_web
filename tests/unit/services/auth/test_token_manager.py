@@ -27,6 +27,9 @@ class TestUserService:
         """Create a user + OAuth token record. Returns user_id."""
         with self.app.app_context():
             user = UsersService().create_user(username)
+
+            assert user is not None
+
             UserTokenService().upsert_user_token(
                 user_id=user.user_id,
                 encrypted_token=b"access_key",
