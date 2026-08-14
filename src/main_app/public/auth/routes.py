@@ -202,7 +202,10 @@ class OAuthCallbackView(AuthHelper, MethodView):
             flash(str(exc), exc.flash_category)
             return redirect(url_for("main.index"))
 
-        username = identity.get("username") or identity.get("name")
+        username = identity.get("username") or identity.get("name") or ""
+
+        if not username:
+            raise OAuthCallbackError("Missing username")
 
         # Persist the user record (and obtain its stable user_id) before
         # saving the encrypted token, which is keyed by user_id.

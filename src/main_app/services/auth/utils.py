@@ -63,7 +63,9 @@ def _get_user_id() -> None | int:
 
 
 def _build_current_user(user_id) -> None | CurrentUser:
-    """Fetch user from Service Layer and hydrate session/g context."""
+    """
+    Fetch user from Service Layer and hydrate session/g context.
+    """
     if user_id is None:
         return None
 
