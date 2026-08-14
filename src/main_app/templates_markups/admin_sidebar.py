@@ -381,8 +381,10 @@ def load_groups_menu() -> list[SidebarGroup]:
     return new_menu
 
 
-def create_side(active_route: str, path: str | None = None) -> str:
+def create_side(path: str) -> str:
     """Generate sidebar HTML structure based on menu definitions."""
+    path_parts = path.strip("/").split("/")
+    active_route = path_parts[1] if len(path_parts) > 1 else ""
     main_menu = load_groups_menu()
 
     model = Sidebar(main_menu, active_route, path)

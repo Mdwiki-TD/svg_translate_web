@@ -1,8 +1,8 @@
-"""Unit tests for src/main_app/public/adminpanel/sidebar.py."""
+"""Unit tests for src/main_app/public/adminpanel/admin_sidebar.py."""
 
 from __future__ import annotations
 
-from src.main_app.admin.sidebar import (
+from src.main_app.templates_markups.admin_sidebar import (
     SidebarItem,
     create_side,
     generate_list_item,
