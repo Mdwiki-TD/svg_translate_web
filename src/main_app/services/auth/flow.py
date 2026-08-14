@@ -292,6 +292,7 @@ class AuthFlowService:
 
         session.pop("uid", None)
         session.pop(request_token_key, None)
+        session.pop(request_secret_key, None)
         session.pop(oauth_state_nonce, None)
         session.pop("username", None)
 
