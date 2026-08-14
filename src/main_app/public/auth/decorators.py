@@ -22,7 +22,7 @@ def oauth_required(func: FuncType) -> FuncType:  # noqa: UP047
     """Decorator that requires a full OAuth credential bundle."""
 
     @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Check g._current_user which was populated by set_logged_in_user
         user = get_current_user()
         if not user:
