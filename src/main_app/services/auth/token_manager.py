@@ -97,6 +97,20 @@ class TokenManager:
             logger.error("Error loading user for ID %s: %s", user_id, e)
             return None
 
+    def get_decrypted_token(self, user_id: int) -> dict | None:
+        """Load encrypted tokens for ``user_id`` and return decrypted values.
+
+        Returns:
+            {"access_token": ..., "access_secret": ...} or None if not found.
+        """
+        record = self.user_token_service.get_record_by_id(user_id)
+        if record is None:
+            return None
+        return {
+            "access_token": self._crypto.decrypt(record.access_token),
+            "access_secret": self._crypto.decrypt(record.access_secret),
+        }
+
     def touch(self, user_id: int):
         """Update last_used_at timestamp for ``user_id``."""
         self.user_token_service.update_last_used(user_id)
