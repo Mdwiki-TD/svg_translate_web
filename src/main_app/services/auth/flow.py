@@ -138,7 +138,7 @@ class AuthFlowService:
         persist credentials, set session + cookie.
         """
         # 1. State verification
-        state_error = self._verify_oauth_state(request_args.get("state"))
+        state_error = self._verify_oauth_state(request_args.get(settings.sessions.request_token_key))
         if state_error:
             return state_error
 
