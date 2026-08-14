@@ -172,7 +172,11 @@ class AuthFlowService:
             )
         except Exception as exc:
             logger.exception("OAuth callback failed: %s", exc)
-            return CallbackResult(success=False, error_message=None)
+            return CallbackResult(
+                success=False,
+                error_message="OAuth login failed. Please try again.",
+                flash_category="danger",
+            )
 
         # 4. Identify user
         try:
@@ -213,11 +217,18 @@ class AuthFlowService:
             )
 
         # 6. Persist encrypted token
-        self.token_manager.save_token(
+        saved_token = self.token_manager.save_token(
             user_id=user_id,
             access_token=token_data.key,
             access_secret=token_data.secret,
         )
+        if saved_token is None:
+            logger.error("OAuth callback failed while saving user credentials")
+            return CallbackResult(
+                success=False,
+                error_message="Failed to process user credentials",
+                flash_category="danger",
+            )
 
         user_record = self.token_manager.get_authenticated_user(user_id)
         if not user_record:

@@ -126,8 +126,13 @@ class LogoutView(MethodView):
         cookie_value = request.cookies.get(settings.cookie.name)
         session_uid = session.get("uid")
 
+        try:
+            uid = int(session_uid) if session_uid is not None else None
+        except (TypeError, ValueError):
+            uid = None
+
         result = flow.logout(
-            session_uid=session_uid if isinstance(session_uid, int) else None,
+            session_uid=uid,
             cookie_value=cookie_value,
             index_url=url_for("main.index"),
         )
