@@ -35,8 +35,13 @@ def test_start_login_returns_redirect_and_request_token(monkeypatch):
     monkeypatch.setattr(oauth_helpers, "ConsumerToken", StubConsumerToken)
     monkeypatch.setattr(oauth_helpers, "Handshaker", StubHandshaker)
     app = AppFactory.create(TestingConfig)
+    oauth_service = OAuthService(
+        consumer_key="consumer_key",
+        consumer_secret="consumer_secret",
+        oauth_mwuri="https://commons.wikimedia.org/w/index.php",
+    )
     with app.test_request_context("/"):
-        redirect_url, request_token, request_srcret = OAuthService().create_authorization_url(
+        redirect_url, request_token, request_srcret = oauth_service.create_authorization_url(
             "https://host/callback?state=signed-state"
         )
         assert redirect_url.startswith("https://example.org/redirect")

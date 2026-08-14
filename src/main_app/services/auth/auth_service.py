@@ -24,11 +24,16 @@ class OAuthService:
     - Exchange the callback verifier for an access token.
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        consumer_key: str,
+        consumer_secret: str,
+        oauth_mwuri: str,
+    ) -> None:
         """Initialize the OAuth service."""
-        # self._mw_uri = settings.oauth.mw_uri
-        # self._consumer_key = settings.oauth.consumer_key
-        # self._consumer_secret = settings.oauth.consumer_secret
+        self._mw_uri = oauth_mwuri
+        self._consumer_key = consumer_key
+        self._consumer_secret = consumer_secret
 
     def get_handshaker(self) -> Handshaker:
         if not settings.oauth:

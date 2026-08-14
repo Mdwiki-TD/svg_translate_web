@@ -15,7 +15,7 @@ from flask.testing import FlaskClient
 
 from src.main_app.config import settings
 from src.main_app.database.services import UsersService, UserTokenService
-from src.main_app.public.auth.routes import OAuthCallbackView
+from src.main_app.public.auth.routes import OAuthCallbackView  # noqa: F401
 from src.main_app.services.core.cookies import sign_state_token
 
 # ---------------------------------------------------------------------------
@@ -172,6 +172,7 @@ class TestLogout:
         # Seed a real user + token in the DB
         with mock_app.app_context():
             user = UsersService().create_user("LogoutUser")
+            assert user is not None
             UserTokenService().upsert_user_token(
                 user_id=user.user_id,
                 encrypted_token=b"ak",

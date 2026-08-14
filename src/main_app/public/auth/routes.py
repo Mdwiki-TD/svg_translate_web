@@ -61,7 +61,11 @@ class AuthHelper:
     """Builds OAuth and TokenManager instances."""
 
     def __init__(self) -> None:
-        self.oauth_service: OAuthService = OAuthService()
+        self.oauth_service: OAuthService = OAuthService(
+            consumer_key=settings.oauth.consumer_key,
+            consumer_secret=settings.oauth.consumer_secret,
+            oauth_mwuri=settings.oauth.mw_uri,
+        )
         self.token_manager: TokenManager = TokenManager()
 
         self.rate_limiter_key = _client_key()
