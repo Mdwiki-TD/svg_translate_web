@@ -363,7 +363,7 @@ if settings.database_data.db_host:
 | Aspect           | Current (Plain SQLAlchemy)  | Flask-SQLAlchemy                      |
 | ---------------- | --------------------------- | ------------------------------------- |
 | Session creation | Manual via `get_session()`  | Automatic via `db.session`            |
-| Session scope    | Per-function (no sharing)   | Per-request (shared across functions) |
+| Session scope    | Per-function (no sharing)   | Per-request (services across functions) |
 | Cleanup          | Manual `session.close()`    | Automatic at request teardown         |
 | Transaction      | Explicit `session.commit()` | Explicit `db.session.commit()`        |
 | Rollback         | Manual in except blocks     | Automatic on unhandled exceptions     |
@@ -577,7 +577,7 @@ class LONGTEXT(TypeDecorator):
 ┌──────────────────────────────────────────────────────────────────────┐
 │                    TARGET: Flask-SQLAlchemy                           │
 ├──────────────────────────────────────────────────────────────────────┤
-│  Request → db.session (shared) → service1 → service2 → commit       │
+│  Request → db.session (services) → service1 → service2 → commit       │
 │  Teardown → session.remove() (automatic)                             │
 │  (All functions in a request share one session/transaction)          │
 └──────────────────────────────────────────────────────────────────────┘

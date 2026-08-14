@@ -7,6 +7,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from ...database.models import UserTokenRecord
+
 
 def parse_bool(value: str | int) -> bool:
     """Parse boolean value from CSV string."""
@@ -46,6 +48,18 @@ class CurrentUser:
             "access_token": self.access_token,
             "access_secret": self.access_secret,
         }
+
+    @classmethod
+    def from_authenticated(cls, token: UserTokenRecord, is_active_admin: bool) -> CurrentUser:
+        return cls(
+            user_id=token.user_id,
+            username=token.user.username,
+            access_token=token.access_token,
+            access_secret=token.access_secret,
+            is_active_admin=is_active_admin,
+            can_run_jobs=token.user.can_run_jobs,
+            can_run_bg_jobs=token.user.can_run_bg_jobs,
+        )
 
 
 __all__ = [

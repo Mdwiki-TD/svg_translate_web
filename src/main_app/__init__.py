@@ -21,7 +21,7 @@ from .jobs_workers.cli_jobs import register_cli_jobs
 from .logger_config import configure_logging
 from .public import RouteRegistrar
 from .public.utils import context_data
-from .shared.core import CookieHeaderClient, filters
+from .services.core import CookieHeaderClient, filters
 
 logger = logging.getLogger(__name__)
 

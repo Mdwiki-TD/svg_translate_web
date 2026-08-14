@@ -58,7 +58,7 @@ async function getFileTranslations(fileName) {
         return { error: `File ${page.title} does not exist.`, langs: null };
     }
 
-    // If the file exists on Commons (shared repository)
+    // If the file exists on Commons (services repository)
     console.log(`ℹ️ File ${page.title} exists on Wikimedia Commons.`);
 
     const metadata = page.imageinfo && page.imageinfo[0] && page.imageinfo[0].metadata;

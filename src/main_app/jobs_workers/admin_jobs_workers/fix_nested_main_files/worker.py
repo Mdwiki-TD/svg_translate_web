@@ -14,7 +14,7 @@ from mwclient.client import Site
 from ....api_services import FilesService, UploadService
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
-from ....shared.fix_nested.worker import (
+from ....services.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
     detect_nested_tags,

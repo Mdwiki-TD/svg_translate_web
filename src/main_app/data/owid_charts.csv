@@ -723,7 +723,7 @@ chart_id,slug,title,url,has_map_tab,max_time,min_time,default_tab,is_published,s
 3832,income-small-scale-food-producers,Average income of small-scale food producers,https://ourworldindata.org/grapher/income-small-scale-food-producers?tab=map,Yes,2022,2001,map,TRUE,No,20,Yes
 3834,large-household-expenditures-health,Share of population with very large health spending,https://ourworldindata.org/grapher/large-household-expenditures-health?tab=map,Yes,2021,1985,map,TRUE,No,36,Yes
 3843,wastewater-safely-treated,Share of domestic wastewater that is safely treated,https://ourworldindata.org/grapher/wastewater-safely-treated?tab=map,Yes,2024,2020,map,TRUE,No,3,Yes
-3845,water-basins-cooperation-plan,Percentage of shared water basins managed by international cooperation,https://ourworldindata.org/grapher/water-basins-cooperation-plan?tab=map,Yes,2023,2017,,TRUE,No,5,Yes
+3845,water-basins-cooperation-plan,Percentage of services water basins managed by international cooperation,https://ourworldindata.org/grapher/water-basins-cooperation-plan?tab=map,Yes,2023,2017,,TRUE,No,5,Yes
 3848,international-finance-clean-energy,International finance received for clean energy,https://ourworldindata.org/grapher/international-finance-clean-energy?tab=map,Yes,2023,2000,map,TRUE,No,24,Yes
 3849,small-scale-industries-share,Share of small-scale manufacturing in total manufacturing,https://ourworldindata.org/grapher/small-scale-industries-share?tab=map,Yes,2023,2004,map,TRUE,No,20,Yes
 3850,smalsmall-scale-industries-loan,Share of small-scale industries with a loan or line of credit,https://ourworldindata.org/grapher/smalsmall-scale-industries-loan?tab=map,Yes,2025,2006,map,TRUE,No,20,Yes

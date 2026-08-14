@@ -1,11 +1,11 @@
 """
 Tests for cookie helpers.
-src/main_app/shared/core/cookies/cookie.py
+src/main_app/services/core/cookies/cookie.py
 """
 
 from __future__ import annotations
 
-from src.main_app.shared.core.cookies.cookie import (
+from src.main_app.services.core.cookies.cookie import (
     _serializer,
     _state_serializer,
     extract_user_id,

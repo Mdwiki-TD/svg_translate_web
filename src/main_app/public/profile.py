@@ -6,7 +6,7 @@ from flask import Blueprint, flash, render_template
 
 from ..database.services import JobsService
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
-from .auth.utils import load_user
+from ..services.auth.utils import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class ProfileRoutes:
         @self.bp.route("/", methods=["GET"])
         @self.bp.route("/<string:user_name>", methods=["GET"])
         def dashboard(user_name: str = "") -> str:
-            user = load_user()
+            user = get_current_user()
 
             if not user_name:
                 if not user:

@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 from flask.app import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, func
+from sqlalchemy import DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.main_app.extensions import BaseModel, db, migrate
@@ -25,7 +25,7 @@ class MockModel(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.current_timestamp())
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
 
     def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():

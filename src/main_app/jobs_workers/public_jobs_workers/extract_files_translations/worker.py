@@ -13,11 +13,11 @@ from mwclient.client import Site
 
 from ....api_services.files_service import DownloadAndSaveData, FilesService
 from ....config import settings
-from ....shared.copysvg_wrapper import (
+from ....services.copysvg_wrapper import (
     ExtractResult,
     extract_from_path,
 )
-from ....shared.copysvg_wrapper.mapping import ExtractorData
+from ....services.copysvg_wrapper.mapping import ExtractorData
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ..copy_svg_langs.steps import (

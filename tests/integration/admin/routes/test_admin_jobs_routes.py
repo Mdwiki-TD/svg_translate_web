@@ -658,7 +658,7 @@ class TestJobsRoutes(TestSetup):
         monkeypatch.setattr("src.main_app.public.shared_jobs_routes.flash", mock_flash)
 
         # Mock current_user to return None
-        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_user", lambda: None)
+        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.get_current_user", lambda: None)
 
         response = admin_jobs_client.post("/adminpanel/jobs/collect_templates_data/start", follow_redirects=True)
         assert response.status_code == 200

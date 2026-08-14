@@ -20,7 +20,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import ImmutableMultiDict
 
 from ...database.services import ChartAndTemplate, ChartsAndTemplatesService, OwidChartsService
-from ...shared.owid_charts_utils import make_charts_summary
+from ...services.owid_charts_utils import make_charts_summary
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)

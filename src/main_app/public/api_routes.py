@@ -14,7 +14,7 @@ from ..database.services import (
     TemplateService,
     ViewsService,
 )
-from ..shared.owid_charts_utils import make_charts_summary
+from ..services.owid_charts_utils import make_charts_summary
 
 logger = logging.getLogger(__name__)
 

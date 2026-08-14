@@ -1,12 +1,12 @@
 """
-SQLAlchemy-based service for managing users and user tokens.
-
-Users table is the stable identity layer. Tokens are a child of users.
+SQLAlchemy-based service for managing users.
 """
 
 from __future__ import annotations
 
 import logging
+
+from sqlalchemy.exc import IntegrityError
 
 from ...extensions import db
 from ..exceptions import UserNotFoundError
@@ -39,7 +39,7 @@ class UsersService(CRUDService[UserRecord]):
             return None
         return self.get_by(username=username)
 
-    def create_user(self, username: str) -> UserRecord:
+    def create_user(self, username: str) -> None | UserRecord:
         """Create a user identity row. Idempotent — returns existing if present."""
         existing = self.get_by(username=username)
         if existing:
@@ -53,7 +53,7 @@ class UsersService(CRUDService[UserRecord]):
             logger.error("Failed to create new record: %s", exc)
             return None
 
-    def toggle_can_run_jobs(self, user_id: int, value: bool) -> UserRecord:
+    def toggle_can_run_jobs(self, user_id: int, value: bool) -> UserRecord | None:
         """Toggle can_run_jobs."""
         record = self.get_user(user_id)
 
@@ -67,7 +67,7 @@ class UsersService(CRUDService[UserRecord]):
             logger.error("Failed to update record: %s", exc)
             return None
 
-    def toggle_can_run_bg_jobs(self, user_id: int, value: bool) -> UserRecord:
+    def toggle_can_run_bg_jobs(self, user_id: int, value: bool) -> UserRecord | None:
         """Toggle can_run_bg_jobs."""
         record = self.get_user(user_id)
 
@@ -81,6 +81,25 @@ class UsersService(CRUDService[UserRecord]):
         except Exception as exc:
             logger.error("Failed to update record: %s", exc)
             return None
+
+    def ensure_exists(self, username: str) -> UserRecord:
+        """Create a UserRecord if one doesn't exist. Returns the record.
+
+        Handles concurrent-create races (IntegrityError) by retrying
+        as a fetch, following the pattern from mdwiki.org_scripts.
+        """
+        record = self.get_user_by_username(username)
+        if record is not None:
+            return record
+        try:
+            return self.create(username=username)
+        except IntegrityError:
+            # Race condition: another request created the same record
+            self.session.rollback()
+            record = self.get_user_by_username(username)
+            if record is not None:
+                return record
+            raise
 
 
 __all__ = [

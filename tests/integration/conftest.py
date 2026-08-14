@@ -23,9 +23,9 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
     def fake_current_user() -> SimpleNamespace:
         return admin_user
 
-    monkeypatch.setattr("src.main_app.public.auth.utils.load_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.admin.decorators.load_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.public.auth.decorators.get_current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.get_current_user", fake_current_user)
+    monkeypatch.setattr("src.main_app.admin.decorators.get_current_user", fake_current_user)
     monkeypatch.setattr(
         "src.main_app.public.utils.routes_utils._is_admin",
         lambda user: bool(getattr(user, "is_active_admin", False)),

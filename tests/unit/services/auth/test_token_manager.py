@@ -1,5 +1,5 @@
 """
-Unit tests for AuthUserService.
+Unit tests for TokenManager.
 
 Uses real DB services with the TestingConfig SQLite database.
 Only monkeypatches specific methods to simulate error paths.
@@ -11,7 +11,7 @@ import pytest
 from flask import Flask
 
 from src.main_app.database.services import AdminService, UsersService, UserTokenService
-from src.main_app.shared.auth.auth_users_service import AuthUserService
+from src.main_app.services.auth.token_manager import TokenManager
 
 
 @pytest.mark.usefixtures("mock_app")
@@ -19,7 +19,7 @@ class TestUserService:
     @pytest.fixture(autouse=True)
     def setup(self, mock_app: Flask):
         self.app = mock_app
-        self.service = AuthUserService()
+        self.service = TokenManager()
 
     # ── helpers ──
 
@@ -39,10 +39,10 @@ class TestUserService:
         with self.app.app_context():
             AdminService().add_coordinator(username)
 
-    # ── save_and_get_user ──
+    # ── save_token ──
 
     def test_save_and_get_user_empty_username(self):
-        assert self.service.save_and_get_user("", "key", "secret") is None
+        assert self.service.save_token("", "key", "secret") is None
 
     def test_save_and_get_user_existing_user(self):
         """Existing user should be found, token upserted, and admin status checked."""
@@ -50,7 +50,7 @@ class TestUserService:
         self._seed_admin("testuser")
 
         with self.app.app_context():
-            res = self.service.save_and_get_user("testuser", "new_key", "new_secret")
+            res = self.service.save_token("testuser", "new_key", "new_secret")
 
         assert res is not None
         assert res.user_id == user_id
@@ -60,7 +60,7 @@ class TestUserService:
     def test_save_and_get_user_new_user(self):
         """New user should be created, token upserted, and non-admin status returned."""
         with self.app.app_context():
-            res = self.service.save_and_get_user("brand_new_user", "k2", "s2")
+            res = self.service.save_token("brand_new_user", "k2", "s2")
 
         assert res is not None
         assert res.username == "brand_new_user"
@@ -72,16 +72,16 @@ class TestUserService:
             assert user is not None
 
     def test_save_and_get_user_upsert_fail(self, monkeypatch: pytest.MonkeyPatch):
-        """When user lookup raises, save_and_get_user should return None."""
+        """When user lookup raises, save_token should return None."""
 
         def raise_error(*args, **kwargs):
             raise Exception("DB Error")
 
         monkeypatch.setattr(
-            "src.main_app.shared.auth.auth_users_service.UsersService.get_user_by_username",
+            "src.main_app.services.auth.token_manager.UsersService.get_user_by_username",
             raise_error,
         )
-        assert self.service.save_and_get_user("user", "k", "s") is None
+        assert self.service.save_token("user", "k", "s") is None
 
     def test_save_and_get_user_token_fail(self, monkeypatch: pytest.MonkeyPatch):
         """When upsert succeeds but get_user_token raises, should return None."""
@@ -91,10 +91,10 @@ class TestUserService:
             raise Exception("Token Error")
 
         monkeypatch.setattr(
-            "src.main_app.shared.auth.auth_users_service.UserTokenService.get_user_token",
+            "src.main_app.services.auth.token_manager.UserTokenService.get_user_token",
             raise_error,
         )
-        assert self.service.save_and_get_user("user", "k", "s") is None
+        assert self.service.save_token("user", "k", "s") is None
 
     # ── get_authenticated_user ──
 
@@ -122,7 +122,7 @@ class TestUserService:
             raise Exception("Load error")
 
         monkeypatch.setattr(
-            "src.main_app.shared.auth.auth_users_service.UserTokenService.get_authenticated_user_token",
+            "src.main_app.services.auth.token_manager.UserTokenService.get_authenticated_user_token",
             raise_error,
         )
         assert self.service.get_authenticated_user(123) is None

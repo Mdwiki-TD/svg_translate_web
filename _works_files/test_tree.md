@@ -224,7 +224,7 @@ tests/
 │   │   ├── test_jobs_utils_bp.py
 │   │   ├── test_profile.py
 │   │   └── test_public_jobs.py
-│   ├── shared/
+│   ├── services/
 │   │   ├── auth/
 │   │   │   ├── test_auth_service.py
 │   │   │   ├── test_auth_users_service.py

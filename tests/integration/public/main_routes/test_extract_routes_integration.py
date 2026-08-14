@@ -10,7 +10,7 @@ from pytest_mock import MockerFixture
 
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.public.main_routes.extract_routes import EXTRACT_FILENAME_KEY
-from src.main_app.shared.copysvg_wrapper.extract_translations import ExtractorData
+from src.main_app.services.copysvg_wrapper.extract_translations import ExtractorData
 
 
 @pytest.fixture(autouse=True)
@@ -134,7 +134,7 @@ class TestExtractRender:
         mock_download.return_value = DownloadAndSaveData(result="success", path=str(tmp_path / "test_dir/test.svg"))
 
         mock_extract = mocker.patch(
-            "src.main_app.shared.copysvg_wrapper.extract_translations._extract_file_translations"
+            "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations"
         )
         mock_extract.return_value = ExtractorData(new={})
 
@@ -168,7 +168,7 @@ class TestExtractRender:
             "src.main_app.public.main_routes.extract_routes.FilesService.download_and_save", mock_download
         )
         monkeypatch.setattr(
-            "src.main_app.shared.copysvg_wrapper.extract_translations._extract_file_translations",
+            "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",
             mock_extract,
         )
 
@@ -206,7 +206,7 @@ class TestExtractRender:
             "src.main_app.public.main_routes.extract_routes.FilesService.download_and_save", mock_download
         )
         monkeypatch.setattr(
-            "src.main_app.shared.copysvg_wrapper.extract_translations._extract_file_translations",
+            "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",
             mock_extract,
         )
 

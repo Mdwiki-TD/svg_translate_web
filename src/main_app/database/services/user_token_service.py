@@ -5,30 +5,17 @@ SQLAlchemy-based service for managing user tokens.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from datetime import datetime
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import joinedload
 
 from ...extensions import db
-from ...shared.core.crypto import encrypt_value
+from ...services.core.crypto import encrypt_value
 from ..models import UserRecord, UserTokenRecord
 from .crud_service import CRUDService
 
 logger = logging.getLogger(__name__)
-
-
-def _get_user_token_by_username(username: str, session: Session | Any) -> UserTokenRecord | None:
-    try:
-        return (
-            session.query(UserTokenRecord)
-            .join(UserRecord, UserTokenRecord.user_id == UserRecord.user_id)
-            .filter(UserRecord.username == username)
-            .first()
-        )
-    except Exception as exc:
-        logger.error("Error getting token by username %s: %s", username, exc)
-        return None
 
 
 class UserTokenService(CRUDService[UserTokenRecord]):
@@ -130,7 +117,22 @@ class UserTokenService(CRUDService[UserTokenRecord]):
             return self.create_user_token(user_id, encrypted_token, encrypted_secret)
 
     def get_user_token_by_username(self, username: str) -> UserTokenRecord | None:
-        return _get_user_token_by_username(username, self.session)
+        try:
+            return (
+                self.session.query(UserTokenRecord)
+                .join(UserRecord, UserTokenRecord.user_id == UserRecord.user_id)
+                .filter(UserRecord.username == username)
+                .first()
+            )
+        except Exception as exc:
+            logger.error("Error getting token by username %s: %s", username, exc)
+            return None
+
+    def update_last_used(self, user_id: int) -> UserTokenRecord | None:
+        token = self.get_record_by_id(user_id)
+        if token is None:
+            return None
+        return self.update(token, last_used_at=datetime.utcnow())
 
 
 __all__ = [

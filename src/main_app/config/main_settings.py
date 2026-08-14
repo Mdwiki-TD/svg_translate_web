@@ -241,6 +241,7 @@ def get_settings() -> Settings:
     sessions = SessionConfig(
         state_key=os.getenv("STATE_SESSION_KEY", "oauth_state_nonce"),
         request_token_key=os.getenv("REQUEST_TOKEN_SESSION_KEY", "state"),
+        request_secret_key=os.getenv("REQUEST_SECRET_SESSION_KEY", "oauth_request_secret"),
     )
     security_config = _load_security_config()
 

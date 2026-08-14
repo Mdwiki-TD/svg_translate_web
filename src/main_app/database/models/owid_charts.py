@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, Integer, String, func
+from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import db
+from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)
 
 
-class OwidChartRecord(db.Model):  # type: ignore
+class OwidChartRecord(TimestampMixin, db.Model):  # type: ignore
     """
     Represents the main pure owid_charts table, completely decoupled from template logic.
     CREATE TABLE `owid_charts` (
@@ -55,15 +55,6 @@ class OwidChartRecord(db.Model):  # type: ignore
     len_years: Mapped[int | None] = mapped_column(Integer, nullable=True)
     has_timeline: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
     status_404: Mapped[int | None] = mapped_column(Integer, nullable=True)
-
-    # Timestamps
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.current_timestamp())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        nullable=False,
-        server_default=func.current_timestamp(),
-        server_onupdate=func.current_timestamp(),
-    )
 
     # Table-level indexes as requested by the original CREATE TABLE DDL
     # __table_args__ = ( Index("idx_slug", "slug"), Index("idx_published", "is_published"), )

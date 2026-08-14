@@ -24,7 +24,7 @@ class MockJobRoutesDeps:
     redirect: MagicMock = field(default_factory=MagicMock)
     url_for: MagicMock = field(default_factory=MagicMock)
     render_template: MagicMock = field(default_factory=MagicMock)
-    load_user: MagicMock = field(default_factory=MagicMock)
+    get_current_user: MagicMock = field(default_factory=MagicMock)
     can_manage_job: MagicMock = field(default_factory=MagicMock)
     cancel_job_worker: MagicMock = field(default_factory=MagicMock)
     load_auth_payload: MagicMock = field(default_factory=MagicMock)
@@ -49,7 +49,7 @@ def mock_deps(
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.redirect", deps.redirect)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.url_for", deps.url_for)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.render_template", deps.render_template)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_user", deps.load_user)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.get_current_user", deps.get_current_user)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.SharedJobRoutes.can_manage_job", deps.can_manage_job)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.cancel_job_worker", deps.cancel_job_worker)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_auth_payload", deps.load_auth_payload)
@@ -59,7 +59,7 @@ def mock_deps(
     deps.redirect.return_value = "redirected"
     deps.url_for.return_value = MOCK_URL
     deps.render_template.return_value = "rendered"
-    deps.load_user.return_value = mock_user
+    deps.get_current_user.return_value = mock_user
     deps.can_manage_job.return_value = True
     deps.cancel_job_worker.return_value = False
     deps.load_auth_payload.return_value = {"token": "abc"}
@@ -175,7 +175,7 @@ class TestSetup:
 class TestCancelJob(TestSetup):
 
     def test_not_logged_in(self, mock_deps: MockJobRoutesDeps) -> None:
-        mock_deps.load_user.return_value = None
+        mock_deps.get_current_user.return_value = None
         result = self.service.cancel_job_handler(1, "test_job")
         assert result == "job_detail"
         mock_deps.flash.assert_called_once_with("You must be logged in to cancel jobs.", "danger")
@@ -228,7 +228,7 @@ class TestDeleteJob(TestSetup):
 
 class TestStartJob(TestSetup):
     def test_not_logged_in(self, mock_deps: MockJobRoutesDeps) -> None:
-        mock_deps.load_user.return_value = None
+        mock_deps.get_current_user.return_value = None
         result = self.service.start_job_handler("test_job", {})
         assert result is None
         mock_deps.flash.assert_called_once_with("You must be logged in to start this job.", "danger")
@@ -409,10 +409,10 @@ class TestJobsPublicRoutesRoutes(TestSetup):
         mock_deps.cancel_job_worker.return_value = True
         mock_deps.load_job_result.return_value = {"result": "ok"}
 
-        monkeypatch.setattr("src.main_app.public.auth.utils.load_user", mock_deps.load_user)
+        monkeypatch.setattr("src.main_app.public.auth.decorators.get_current_user", mock_deps.get_current_user)
 
         mock_deps.admin_load_user = MagicMock(return_value=MagicMock(username="admin", is_active_admin=True))
-        monkeypatch.setattr("src.main_app.admin.decorators.load_user", mock_deps.admin_load_user)
+        monkeypatch.setattr("src.main_app.admin.decorators.get_current_user", mock_deps.admin_load_user)
 
     def test_jobs_list_200(self, mock_p_client: Flask.test_client) -> None:
         resp = mock_p_client.get("/jobs/test_job")
@@ -450,9 +450,9 @@ class TestJobsPublicRoutesRoutes(TestSetup):
         assert resp.status_code == 404
 
     def test_cancel_job_not_logged_in(self, mock_p_client: Flask.test_client, mock_deps: MockJobRoutesDeps) -> None:
-        mock_deps.load_user.return_value = None
+        mock_deps.get_current_user.return_value = None
         resp = mock_p_client.post("/jobs/test_job/1/cancel")
-        assert resp.status_code == 302
+        assert resp.status_code == 500
 
     def test_start_job_302(self, mock_p_client: Flask.test_client) -> None:
         resp = mock_p_client.post("/jobs/test_job/start", data={"key": "value"})

@@ -13,7 +13,7 @@ from mwclient.client import Site
 
 from ....api_services.files_service import FilesService
 from ....config import settings
-from ....shared.copysvg_wrapper import (
+from ....services.copysvg_wrapper import (
     ExtractResult,
     extract_from_path,
 )

@@ -30,7 +30,7 @@ track request timestamps per client key. This has two production issues:
    can trigger a restart (or wait for a deploy) to reset their budget.
 
 `flask-limiter` is already in `requirements.txt` but unused. It supports
-shared backends (Redis, Memcached) and falls back to in-memory for development.
+services backends (Redis, Memcached) and falls back to in-memory for development.
 Migrating to it fixes both issues and removes ~60 lines of custom code.
 
 ## Current state

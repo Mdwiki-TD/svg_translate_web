@@ -1,4 +1,6 @@
-"""User authentication service — bridges OAuth callbacks to the DB layer."""
+"""
+User authentication service — bridges OAuth callbacks to the DB layer.
+"""
 
 from __future__ import annotations
 
@@ -10,22 +12,23 @@ from ...database.services import (
     UsersService,
     UserTokenService,
 )
-from ..core.crypto import encrypt_value
+from ..core.crypto import CryptoService
 from .current_user import CurrentUser
 
 logger = logging.getLogger(__name__)
 
 
-class AuthUsersNewService:
+class TokenManager:
     def __init__(self) -> None:
         self.users_service = UsersService()
         self.user_token_service = UserTokenService()
         self.admin_service = AdminService()
+        self._crypto = CryptoService()
 
-    def save_and_get_user(
+    def save_token(
         self,
         username: str,
-        access_key: str,
+        access_token: str,
         access_secret: str,
     ) -> CurrentUser | None:
         """Upsert OAuth credentials and return a CurrentUser composite."""
@@ -44,19 +47,17 @@ class AuthUsersNewService:
             if not user:
                 return None
 
-            user_id: int = user.user_id
-
         except Exception as e:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
             return None
 
         try:
-            encrypted_token = encrypt_value(access_key)
-            encrypted_secret = encrypt_value(access_secret)
+            encrypted_token = self._crypto.encrypt(access_token)
+            encrypted_secret = self._crypto.encrypt(access_secret)
 
             # 1. Update or insert into database via repository
             self.user_token_service.upsert_user_token(
-                user_id=user_id,
+                user_id=user.user_id,
                 encrypted_token=encrypted_token,
                 encrypted_secret=encrypted_secret,
             )
@@ -67,7 +68,7 @@ class AuthUsersNewService:
 
         try:
             # 2. Get the fresh record
-            token = self.user_token_service.get_user_token(user_id)
+            token = self.user_token_service.get_user_token(user.user_id)
             if not token:
                 return None
 
@@ -76,14 +77,9 @@ class AuthUsersNewService:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
             return None
 
-        return CurrentUser(
-            user_id=user_id,
-            username=username,
-            access_token=token.access_token,
-            access_secret=token.access_secret,
+        return CurrentUser.from_authenticated(
+            token=token,
             is_active_admin=is_active_admin,
-            can_run_jobs=user.can_run_jobs,
-            can_run_bg_jobs=user.can_run_bg_jobs,
         )
 
     def get_authenticated_user(self, user_id: int) -> CurrentUser | None:
@@ -92,36 +88,42 @@ class AuthUsersNewService:
             token = self.user_token_service.get_authenticated_user_token(user_id)
             if not token:
                 return None
-            username = token.user.username
-            return CurrentUser(
-                user_id=user_id,
-                username=username,
-                access_token=token.access_token,
-                access_secret=token.access_secret,
-                is_active_admin=self.admin_service.is_active_coordinator(username),
-                can_run_jobs=token.user.can_run_jobs,
-                can_run_bg_jobs=token.user.can_run_bg_jobs,
+
+            return CurrentUser.from_authenticated(
+                token=token,
+                is_active_admin=self.admin_service.is_active_coordinator(token.user.username),
             )
         except Exception as e:
             logger.error("Error loading user for ID %s: %s", user_id, e)
             return None
 
+    def get_decrypted_token(self, user_id: int) -> dict | None:
+        """Load encrypted tokens for ``user_id`` and return decrypted values.
 
-class AuthUserService:
-    @staticmethod
-    def save_and_get_user(
-        username: str,
-        access_key: str,
-        access_secret: str,
-    ) -> CurrentUser | None:
-        return AuthUsersNewService().save_and_get_user(username, access_key, access_secret)
+        Returns:
+            {"access_token": ..., "access_secret": ...} or None if not found.
+        """
+        record = self.user_token_service.get_record_by_id(user_id)
+        if record is None:
+            return None
+        return {
+            "access_token": self._crypto.decrypt(record.access_token),
+            "access_secret": self._crypto.decrypt(record.access_secret),
+        }
 
-    @staticmethod
-    def get_authenticated_user(user_id: int) -> CurrentUser | None:
-        return AuthUsersNewService().get_authenticated_user(user_id)
+    def touch(self, user_id: int):
+        """Update last_used_at timestamp for ``user_id``."""
+        self.user_token_service.update_last_used(user_id)
+
+    def delete_token(self, user_id: int) -> bool:
+        """Delete the user's stored token (logout / revoke)."""
+        return self.user_token_service.delete(user_id)
+
+    def has_token(self, user_id: int) -> bool:
+        """Check whether a token exists for this user."""
+        return self.user_token_service.get_record_by_id(user_id) is not None
 
 
 __all__ = [
-    "AuthUsersNewService",
-    "AuthUserService",
+    "TokenManager",
 ]
