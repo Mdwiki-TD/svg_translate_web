@@ -39,30 +39,15 @@ class StubMWOAuth(SimpleNamespace):
         super().__init__(ConsumerToken=StubConsumerToken, Handshaker=StubHandshaker)
 
 
-@pytest.fixture(autouse=True)
-def fake_settings(monkeypatch: pytest.MonkeyPatch) -> None:
-    oauth_config = SimpleNamespace(
-        consumer_key="consumer",
-        consumer_secret="secret",
-        mw_uri="https://example.com",
-    )
-    settings = SimpleNamespace(
-        oauth=oauth_config,
-        other=SimpleNamespace(
-            user_agent="agent",
-        ),
-    )
-    monkeypatch.setattr("src.main_app.services.auth.auth_service.settings", settings)
-
-
 class TestAuthService:
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup(self) -> None:
         self.service = OAuthService(
-            consumer_key="consumer_key",
-            consumer_secret="consumer_secret",
-            oauth_mwuri="https://commons.wikimedia.org/w/index.php",
+            consumer_key="consumer",
+            consumer_secret="secret",
+            oauth_mwuri="https://example.com",
+            user_agent="agent",
         )
 
     def test_get_handshaker(self, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -86,12 +71,6 @@ class TestAuthService:
         assert created_tokens == [("consumer", "secret")]
         assert created_handshakers[0][0] == "https://example.com"
         assert created_handshakers[0][2] == "agent"
-
-    def test_get_handshaker_without_config(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr("src.main_app.services.auth.auth_service.settings", SimpleNamespace(oauth=None))
-
-        with pytest.raises(RuntimeError):
-            self.service.get_handshaker()
 
     def test_start_login(self, monkeypatch: pytest.MonkeyPatch) -> None:
         captured_state: list[str] = []
