@@ -32,7 +32,7 @@ class TestLogin:
 
         # Mock only external OAuth handshake and non-deterministic nonce
         monkeypatch.setattr(
-            "src.main_app.public.auth.routes.secrets",
+            "src.main_app.services.auth.flow.secrets",
             SimpleNamespace(token_urlsafe=lambda _: "nonce"),
         )
 
@@ -42,7 +42,7 @@ class TestLogin:
                 assert token
                 return ("https://auth.example", "a", "b")
 
-        monkeypatch.setattr("src.main_app.public.auth.routes.OAuthService.create_authorization_url", DummyStart())
+        monkeypatch.setattr("src.main_app.services.auth.flow.OAuthService.create_authorization_url", DummyStart())
 
         response = mock_client.get("/login")
 

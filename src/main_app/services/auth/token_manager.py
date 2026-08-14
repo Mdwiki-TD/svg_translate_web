@@ -12,7 +12,7 @@ from ...database.services import (
     UserTokenService,
 )
 from ..core.crypto import CryptoService
-from .current_user import CurrentUser
+from .current_user import CurrentUser, UserTokenRecord
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class TokenManager:
         user_id: int,
         access_token: str,
         access_secret: str,
-    ) -> CurrentUser | None:
+    ) -> UserTokenRecord | None:
         """
         Encrypt plaintext tokens and persist them for ``user_id``.
         """
@@ -38,7 +38,7 @@ class TokenManager:
             encrypted_secret = self._crypto.encrypt(access_secret)
 
             # 1. Update or insert into database via repository
-            self.user_token_service.upsert_user_token(
+            return self.user_token_service.upsert_user_token(
                 user_id=user_id,
                 encrypted_token=encrypted_token,
                 encrypted_secret=encrypted_secret,
@@ -47,22 +47,6 @@ class TokenManager:
         except Exception as e:
             logger.exception("Failed to upsert or fetch user credentials: %s", e)
             return None
-
-        try:
-            # 2. Get the fresh record
-            token = self.user_token_service.get_record_by_id(user_id)
-            if not token:
-                return None
-
-            is_active_admin = self.admin_service.is_active_coordinator(token.user.username)
-        except Exception as e:
-            logger.exception("Failed to upsert or fetch user credentials: %s", e)
-            return None
-
-        return CurrentUser.from_authenticated(
-            token=token,
-            is_active_admin=is_active_admin,
-        )
 
     def get_authenticated_user(self, user_id: int) -> CurrentUser | None:
         """Fetch the CurrentUser composite for session restoration."""
@@ -80,10 +64,8 @@ class TokenManager:
             return None
 
     def get_decrypted_token(self, user_id: int) -> dict | None:
-        """Load encrypted tokens for ``user_id`` and return decrypted values.
-
-        Returns:
-            {"access_token": ..., "access_secret": ...} or None if not found.
+        """
+        Load encrypted tokens for ``user_id`` and return decrypted values.
         """
         record = self.user_token_service.get_record_by_id(user_id)
         if record is None:
@@ -93,7 +75,7 @@ class TokenManager:
             "access_secret": self._crypto.decrypt(record.access_secret),
         }
 
-    def touch(self, user_id: int):
+    def touch(self, user_id: int) -> None:
         """Update last_used_at timestamp for ``user_id``."""
         self.user_token_service.update_last_used(user_id)
 

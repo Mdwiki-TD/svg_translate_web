@@ -21,6 +21,7 @@ class OAuthService:
     Responsibilities:
     - Build the authorization URL to redirect the user to.
     - Exchange the callback verifier for an access token.
+    - Identify the authenticated user.
     """
 
     def __init__(
@@ -44,12 +45,11 @@ class OAuthService:
             self._consumer_key,
             self._consumer_secret,
         )
-        handshaker = Handshaker(
+        return Handshaker(
             mw_uri=self._mw_uri,
             consumer_token=consumer_token,
             user_agent=self.user_agent,
         )
-        return handshaker
 
     def create_authorization_url(self, callback_url: str) -> tuple[str, str, str]:
         """
@@ -61,7 +61,6 @@ class OAuthService:
         logger.debug("Starting OAuth login with state_token")
 
         handshaker = self.get_handshaker()
-
         authorization_url, request_token = handshaker.initiate(callback=callback_url)
 
         logger.info("OAuth login initiated, redirecting to: %s", authorization_url)

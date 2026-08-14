@@ -48,33 +48,6 @@ class TestClientKey:
 
         assert _client_key() == "anonymous"
 
-
-class TestSetResponseCookies:
-    def test_sets_cookie(self, monkeypatch):
-        from src.main_app.public.auth.routes import OAuthCallbackView
-
-        mock_response = Mock()
-        mock_settings = MagicMock()
-        mock_settings.cookie.name = "auth_cookie"
-        mock_settings.cookie.httponly = True
-        mock_settings.cookie.secure = False
-        mock_settings.cookie.samesite = "Lax"
-        mock_settings.cookie.max_age = 3600
-        monkeypatch.setattr("src.main_app.public.auth.routes.settings", mock_settings)
-        mock_sign = Mock(return_value="signed_user_id")
-        monkeypatch.setattr("src.main_app.public.auth.routes.sign_user_id", mock_sign)
-        OAuthCallbackView._set_response_cookies(123, mock_response)
-        mock_response.set_cookie.assert_called_once_with(
-            "auth_cookie",
-            "signed_user_id",
-            httponly=True,
-            secure=False,
-            samesite="Lax",
-            max_age=3600,
-            path="/",
-        )
-
-
 class TestLogout:
     def test_logout_clears_session(self, mock_client, monkeypatch):
         with mock_client.session_transaction() as session:
