@@ -1,7 +1,1 @@
-""" """
-
-from .current_user import CurrentUser
-
-__all__ = [
-    "CurrentUser",
-]
+"""Auth sub-package — OAuth and token management."""

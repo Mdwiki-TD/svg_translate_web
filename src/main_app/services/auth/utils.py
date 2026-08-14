@@ -62,19 +62,20 @@ def _get_user_id() -> None | int:
     return user_id
 
 
-def _build_current_user(user_id) -> None | CurrentUser:
+def _build_current_user(user_id: int | None) -> None | CurrentUser:
     """
-    Fetch user from Service Layer and hydrate session/g context.
+    Assemble a :class:`CurrentUser` for ``username`` from the DB.
     """
     if user_id is None:
         return None
 
-    user = TokenManager().get_authenticated_user(user_id)
+    tm = TokenManager()
+    record: CurrentUser | None = tm.get_authenticated_user(user_id)
 
-    if user and session.get("username") != user.username:
-        session["username"] = user.username
+    if record and session.get("username") != record.username:
+        session["username"] = record.username
 
-    return user
+    return record
 
 
 def set_logged_in_user() -> None:
@@ -92,5 +93,6 @@ def set_logged_in_user() -> None:
 
 
 __all__ = [
+    "get_current_user",
     "set_logged_in_user",
 ]

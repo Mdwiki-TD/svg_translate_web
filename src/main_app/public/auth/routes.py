@@ -224,11 +224,13 @@ class OAuthCallbackView(AuthHelper, MethodView):
             return redirect(url_for("main.index"))
 
         # Save encrypted token
-        user_record = self.token_manager.save_token(
+        self.token_manager.save_token(
             user_id=user_id,
             access_token=token_data.key,
             access_secret=token_data.secret,
         )
+
+        user_record = self.token_manager.get_authenticated_user(user_id)
         if not user_record:
             logger.error("OAuth callback failed while saving user credentials")
             flash("Failed to process user credentials", "danger")
@@ -311,14 +313,12 @@ class AuthRoutes:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.before_app_request(self.before_request)
+        # Automatically load the user before any route is processed.
+        self.bp.before_app_request(set_logged_in_user)
+
         self.bp.add_url_rule("/login", view_func=LoginView.as_view("login"))
         self.bp.add_url_rule("/callback", view_func=OAuthCallbackView.as_view("callback"))
         self.bp.add_url_rule("/logout", view_func=LogoutView.as_view("logout"))
-
-    def before_request(self) -> None:
-        """Automatically load the user before any route is processed."""
-        set_logged_in_user()
 
 
 __all__ = [
