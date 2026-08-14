@@ -1,10 +1,11 @@
 """Integration tests for OAuth helper functions."""
 
+from mwoauth import RequestToken
+
 from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
-from src.main_app.services.auth.auth_service import OAuthService
 from src.main_app.services.auth import auth_service as oauth_helpers
-from mwoauth import RequestToken
+from src.main_app.services.auth.auth_service import OAuthService
 
 
 class StubConsumerToken:
@@ -35,7 +36,9 @@ def test_start_login_returns_redirect_and_request_token(monkeypatch):
     monkeypatch.setattr(oauth_helpers, "Handshaker", StubHandshaker)
     app = AppFactory.create(TestingConfig)
     with app.test_request_context("/"):
-        redirect_url, request_token, request_srcret = OAuthService().create_authorization_url("https://host/callback?state=signed-state")
+        redirect_url, request_token, request_srcret = OAuthService().create_authorization_url(
+            "https://host/callback?state=signed-state"
+        )
         assert redirect_url.startswith("https://example.org/redirect")
         assert request_token == "req-key"
         assert request_srcret == "req-secret"

@@ -13,6 +13,7 @@ import pytest
 from flask import Flask
 from flask.testing import FlaskClient
 
+from src.main_app.config import settings
 from src.main_app.database.services import UsersService, UserTokenService
 from src.main_app.public.auth.routes import OAuthCallbackView
 from src.main_app.services.core.cookies import sign_state_token
@@ -85,15 +86,24 @@ class TestCallback:
     def test_callback_success(self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
         """Callback should complete OAuth, persist user to DB, set session and cookie."""
 
-        # Mock only the external OAuth completion — returns access token + identity
-        def fake_complete(self, request_token, query_string: str):
-            assert request_token == ("k", "s")
+        # Mock only the external OAuth completion — returns an access token
+        def fake_complete(
+            self,
+            query_string: str,
+            oauth_token: str,
+            oauth_token_secret: str,
+        ) -> SimpleNamespace:
+            assert oauth_token == "k"
+            assert oauth_token_secret == "s"
             assert "oauth_verifier=code" in query_string
-            access = SimpleNamespace(key="ak", secret="as")
-            identity = {"sub": "123", "username": "Tester"}
-            return access, identity
+            return SimpleNamespace(key="ak", secret="as")
+
+        # The route calls identify() separately to resolve the identity
+        def fake_identify(self, access_token):
+            return {"sub": "123", "username": "Tester"}
 
         monkeypatch.setattr("src.main_app.services.auth.auth_service.OAuthService.fetch_access_token", fake_complete)
+        monkeypatch.setattr("src.main_app.services.auth.auth_service.OAuthService.identify", fake_identify)
 
         # Sign a state nonce using the real signing utility
         state_nonce = "test-nonce"
@@ -101,8 +111,9 @@ class TestCallback:
 
         # Seed session with state nonce + request token (real session keys)
         with mock_client.session_transaction() as sess:
-            sess["oauth_state_nonce"] = state_nonce
-            sess["state"] = ["k", "s"]
+            sess[settings.sessions.state_key] = state_nonce
+            sess[settings.sessions.request_token_key] = "k"
+            sess[settings.sessions.request_secret_key] = "s"
 
         # The state query param must be the signed token (MediaWiki echoes it back)
         response = mock_client.get(f"/callback?state={quote(signed_state)}&oauth_verifier=code")
