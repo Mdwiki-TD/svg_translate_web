@@ -121,7 +121,7 @@ class TestCreateSide:
             assert "Users" in html
 
     def test_create_side_marks_active_item(self) -> None:
-        html = create_side("admins")
+        html = create_side("/adminpanel/templates/")
 
         assert "Coordinators" in html
         assert "active" in html
@@ -161,12 +161,12 @@ class TestCreateSide:
 
     def test_sidebar_marks_collect_templates_data_as_active(self) -> None:
         """Test that Collect Templates data is marked as active when selected."""
-        result = create_side("collect_templates_data")
+        result = create_side("/adminpanel/jobs/collect_templates_data")
         # The link should have an active class
         assert "id='collect_templates_data' class='active'" in result
 
     def test_sidebar_marks_fix_nested_main_files_as_active(self) -> None:
         """Test that Fix Nested Main Files is marked as active when selected."""
-        result = create_side("fix_nested_main_files")
+        result = create_side("/adminpanel/jobs/fix_nested_main_files")
         # The link should have an active class
         assert "id='fix_nested_main_files' class='active'" in result
