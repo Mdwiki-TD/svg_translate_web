@@ -127,7 +127,7 @@ class Navbar:
         # (regular, admin-only, or grouped); order in this list is render order.
         self.links = []
         for link in links or []:
-            if isinstance(link, (NavLink, NavDropdown)):
+            if isinstance(link, NavLink | NavDropdown):
                 self.links.append(link)
             else:
                 self.links.append(NavLink(**link))
