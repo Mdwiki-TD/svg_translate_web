@@ -17,7 +17,7 @@ class TestSidebarItem:
         assert item.href == "/test"
         assert item.title == "Test"
         assert item.icon is None
-        assert item.target is None
+        assert item.link_target is None
         assert item.disabled is False
 
     def test_with_icon(self):
@@ -27,32 +27,32 @@ class TestSidebarItem:
 
 class TestGenerateListItem:
     def test_basic_link(self):
-        item = SidebarItem(id="test", admin=0, href="/test", title="Test Page", icon=None, target=None, disabled=False)
+        item = SidebarItem(id="test", admin=0, href="/test", title="Test Page", icon=None, link_target=None, disabled=False)
         html = generate_list_item(item)
         assert "/test" in html
         assert "Test Page" in html
         assert "<a" in html
 
     def test_with_icon(self):
-        item = SidebarItem(id="test", admin=0, href="/test", title="Test", icon="bi-gear", target=None, disabled=False)
+        item = SidebarItem(id="test", admin=0, href="/test", title="Test", icon="bi-gear", link_target=None, disabled=False)
         html = generate_list_item(item)
         assert "bi-gear" in html
 
     def test_with_target_blank(self):
         item = SidebarItem(
-            id="test", admin=0, href="/test", title="Test", icon="bi-gear", target="_blank", disabled=False
+            id="test", admin=0, href="/test", title="Test", icon="bi-gear", link_target="_blank", disabled=False
         )
         html = generate_list_item(item)
         assert "target='_blank'" in html
 
     def test_no_target_by_default(self):
-        item = SidebarItem(id="test", admin=0, href="/test", title="Test", icon=None, target=None, disabled=False)
+        item = SidebarItem(id="test", admin=0, href="/test", title="Test", icon=None, link_target=None, disabled=False)
         html = generate_list_item(item)
         assert "target=" not in html
 
     def test_generate_list_item(self) -> None:
         item = SidebarItem(
-            id="home", admin=0, href="/home", title="Home", icon="bi-house", target="_blank", disabled=False
+            id="home", admin=0, href="/home", title="Home", icon="bi-house", link_target="_blank", disabled=False
         )
         html = generate_list_item(item)
         assert "/home" in html
@@ -62,7 +62,7 @@ class TestGenerateListItem:
 
     def test_generate_list_item_basic(self) -> None:
         item = SidebarItem(
-            id="home", admin=0, href="/adminpanel/home", title="Home", icon=None, target=None, disabled=False
+            id="home", admin=0, href="/adminpanel/home", title="Home", icon=None, link_target=None, disabled=False
         )
         result = generate_list_item(item)
         assert "/adminpanel/home" in result
@@ -73,7 +73,7 @@ class TestGenerateListItem:
 
     def test_generate_list_item_with_icon(self) -> None:
         item = SidebarItem(
-            id="home", admin=0, href="/adminpanel/home", title="Home", icon="bi-house", target=None, disabled=False
+            id="home", admin=0, href="/adminpanel/home", title="Home", icon="bi-house", link_target=None, disabled=False
         )
         result = generate_list_item(item)
         assert "/adminpanel/home" in result
@@ -83,7 +83,7 @@ class TestGenerateListItem:
         assert "<span class='hide-on-collapse-inline'>Home</span>" in result
 
     def test_generate_list_item_with_target(self) -> None:
-        item = SidebarItem(id="home", admin=0, href="/home", title="Home", icon=None, target="_blank", disabled=False)
+        item = SidebarItem(id="home", admin=0, href="/home", title="Home", icon=None, link_target="_blank", disabled=False)
         result = generate_list_item(item)
         assert "/home" in result
         assert "title='Home'" in result
@@ -93,7 +93,7 @@ class TestGenerateListItem:
 
     def test_generate_list_item_with_icon_and_target(self) -> None:
         item = SidebarItem(
-            id="home", admin=0, href="/home", title="Home", icon="bi-house", target="_blank", disabled=False
+            id="home", admin=0, href="/home", title="Home", icon="bi-house", link_target="_blank", disabled=False
         )
         result = generate_list_item(item)
         assert "/home" in result

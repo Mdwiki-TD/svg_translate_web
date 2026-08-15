@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from flask import has_request_context, url_for
+from markupsafe import Markup, escape
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class SidebarItem:
     href: str
     title: str
     icon: str | None = None
-    target: str | None = None
+    link_target: str | None = None  # e.g. "_blank" for external links
     disabled: bool = False
 
 
@@ -49,22 +50,34 @@ def job_list_url(job_type: str) -> str:
     return _safe_url_for("adminpanel.jobs.jobs_list", f"/adminpanel/jobs/{job_type}", job_type=job_type)
 
 
-def generate_list_item(item: SidebarItem) -> str:
-    """Generate HTML for a single navigation link."""
-    href_full = item.href if item.target else f"/adminpanel/{item.href}"
-    if item.href.startswith("/adminpanel/"):
-        href_full = item.href
+def generate_list_item(item: SidebarItem) -> Markup:
+    """Generate HTML for a single sidebar navigation link."""
+    # Internal links are relative to /adminpanel/; external links and links
+    # that already include the full /adminpanel/ prefix are used as-is.
+    is_external = bool(item.link_target)
+    href = item.href if is_external or item.href.startswith("/adminpanel/") else f"/adminpanel/{item.href}"
 
-    icon_tag = f"<i class='bi {item.icon} me-1'></i>" if item.icon else ""
-    target_attr = "target='_blank'" if item.target else ""
-    link = f"""
-        <a {target_attr} class='link_nav rounded' href='{href_full}' title='{item.title}'
-           data-bs-toggle='tooltip' data-bs-placement='right'>
-            {icon_tag}
-            <span class='hide-on-collapse-inline'>{item.title}</span>
-        </a>
-    """
-    return link.strip()
+    icon_tag = (
+        Markup("<i class='bi {icon} me-1'></i>").format(icon=escape(item.icon)) if item.icon else Markup("")
+    )
+    target_attr = (
+        Markup(" target='{target}' rel='noopener noreferrer'").format(target=escape(item.link_target))
+        if is_external
+        else Markup("")
+    )
+
+    return Markup(
+        "<a{target} class='link_nav rounded' href='{href}' title='{title}'"
+        " data-bs-toggle='tooltip' data-bs-placement='right'>"
+        "{icon}"
+        "<span class='hide-on-collapse-inline'>{title}</span>"
+        "</a>"
+    ).format(
+        target=target_attr,
+        href=escape(href),
+        title=escape(item.title),
+        icon=icon_tag,
+    )
 
 
 class Sidebar:
@@ -100,7 +113,7 @@ class Sidebar:
         active_group = self.menu[0].title if self.menu else ""
         return active_group, ""
 
-    def create_side(self, path: str) -> str:
+    def create(self, path: str) -> str:
         """Generate sidebar HTML structure based on menu definitions.
 
         This method constructs a responsive sidebar with collapsible groups and
@@ -112,7 +125,7 @@ class Sidebar:
             str: A string containing the formatted HTML structure of the sidebar.
         """
 
-        # Helper lambda to generate sub-items HTML string using a comprehension
+        # Helper function to generate sub-items HTML string
         def build_sub_items(items, active_id) -> str:
             sub_items: list[Any] = []
 
@@ -160,11 +173,10 @@ class Sidebar:
             if not sub_items_str:
                 continue
 
-            match group_obj.title == active_group:
-                case True:
-                    show, expanded = "show", "true"
-                case False:
-                    show, expanded = "", "false"
+            if group_obj.title == active_group:
+                show, expanded = "show", "true"
+            else:
+                show, expanded = "", "false"
 
             icon_tag = f"<i class='bi {group_obj.icon} me-1'></i>" if group_obj.icon else ""
 
@@ -388,7 +400,7 @@ def create_side(path: str) -> str:
     main_menu = load_groups_menu()
 
     model = Sidebar(main_menu)
-    sidebar = model.create_side(path)
+    sidebar = model.create(path)
 
     return sidebar
 
