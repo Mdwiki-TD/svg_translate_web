@@ -1,3 +1,11 @@
+"""
+<div class="div_menu navbar-collapse">
+    {% if create_side %}
+    {{ create_side(request.path) | safe }}
+    {% endif %}
+</div>
+"""
+
 from __future__ import annotations
 
 import functools
@@ -13,7 +21,6 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SidebarGroup:
     """Sidebar group item definition."""
-
     id: str
     title: str
     items: list[SidebarItem]
@@ -23,7 +30,6 @@ class SidebarGroup:
 @dataclass
 class SidebarItem:
     """Sidebar menu item definition."""
-
     id: str
     admin: int
     href: str
@@ -62,17 +68,10 @@ def generate_list_item(item: SidebarItem) -> str:
 
 
 class Sidebar:
-    def __init__(
-        self,
-        menu: list[SidebarGroup],
-        active_route: str,
-        path: str | None = None,
-    ) -> None:
+    def __init__(self, menu: list[SidebarGroup]) -> None:
         self.menu = menu
-        self.active_route = active_route
-        self.path = path
 
-    def get_the_active_group_and_sub(self) -> tuple[str, str]:
+    def get_the_active_group_and_sub(self, active_route: str, path: str) -> tuple[str, str]:
         """
         Determines the active menu group and the active menu item ID based on the current path or active route.
 
@@ -88,20 +87,20 @@ class Sidebar:
         # First pass: look for an exact match across all groups
         for group in self.menu:
             for item in group.items:
-                if self.path == item.href:
+                if path == item.href:
                     return group.title, item.id
 
         # Second pass: fallback match (startswith or active_route)
         for group in self.menu:
             for item in group.items:
-                if (self.path and item.href and self.path.startswith(item.href)) or self.active_route == item.id:
+                if (path and item.href and path.startswith(item.href)) or active_route == item.id:
                     return group.title, item.id
 
         # Default to the first group if no match is found
         active_group = self.menu[0].title if self.menu else ""
         return active_group, ""
 
-    def create_side(self) -> str:
+    def create_side(self, path: str) -> str:
         """Generate sidebar HTML structure based on menu definitions.
 
         This method constructs a responsive sidebar with collapsible groups and
@@ -130,7 +129,10 @@ class Sidebar:
             sub_items_str = "".join(sub_items)
             return sub_items_str
 
-        active_group, active_id = self.get_the_active_group_and_sub()
+        path_parts = path.strip("/").split("/")
+        active_route = path_parts[1] if len(path_parts) > 1 else ""
+
+        active_group, active_id = self.get_the_active_group_and_sub(active_route, path)
 
         # Template for the collapsible content (services by desktop and mobile)
         collapse_tpl = """
@@ -383,18 +385,14 @@ def load_groups_menu() -> list[SidebarGroup]:
 
 def create_side(path: str) -> str:
     """Generate sidebar HTML structure based on menu definitions."""
-    path_parts = path.strip("/").split("/")
-    active_route = path_parts[1] if len(path_parts) > 1 else ""
     main_menu = load_groups_menu()
 
-    model = Sidebar(main_menu, active_route, path)
-    sidebar = model.create_side()
+    model = Sidebar(main_menu)
+    sidebar = model.create_side(path)
 
     return sidebar
 
 
 __all__ = [
-    "SidebarItem",
-    "generate_list_item",
     "create_side",
 ]
