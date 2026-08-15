@@ -1,0 +1,14 @@
+<li class="dropdown {{ nav_item_class }}">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown"
+        aria-expanded="false">
+        <i class="bi bi-filetype-svg"></i> Extract/Inject
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="navbarDarkDropdownMenuLink">
+        <li class="{{ nav_item_class }}">
+            {{ nav_link('extract.', 'bi-file-earmark-text', 'Extract', url_for('extract.dashboard')) }}
+        </li>
+        <li class="{{ nav_item_class }}">
+            {{ nav_link('inject.', 'bi-arrow-left-right', 'Inject', url_for('inject.dashboard')) }}
+        </li>
+    </ul>
+</li>

@@ -14,10 +14,13 @@ Both methods return a safe Markup object (no need for the |safe filter,
 though adding it doesn't hurt).
 """
 
+import random
 from dataclasses import dataclass, field
 
 from flask import request, url_for
 from markupsafe import Markup, escape
+
+NAV_ITEM_CLASS = "nav-item col-lg-auto col-md-4 col-sm-6 col-6"
 
 
 @dataclass
@@ -74,19 +77,64 @@ class NavLink:
         )
 
 
-class Navbar:
-    NAV_ITEM_CLASS = "nav-item col-lg-auto col-md-4 col-sm-6 col-6"
+@dataclass
+class NavDropdown:
+    """
+    Represents a dropdown navigation item containing several NavLink items,
+    e.g. an "Extract/Inject" menu grouping a few related sub-links.
+    """
 
-    def __init__(self, links=None):
-        # A single ordered list of NavLink instances (or dicts) holds both
-        # regular and admin-only links; order in this list is render order.
-        self.links = []
-        for link in links or []:
-            self.links.append(link if isinstance(link, NavLink) else NavLink(**link))
+    text: str
+    icon: str
+    items: list[NavLink] = field(default_factory=list)
+    dropdown_id: str = field(default_factory=lambda: f"navbarDarkDropdownMenuLink-{random.randint(1000, 9999)}")
+    for_admin: bool = False
+
+    def is_active(self) -> bool:
+        return any(item.is_active() for item in self.items)
 
     # ---------- rendering helpers ----------
     def _wrap_li(self, inner_html) -> Markup:
-        return Markup('<li class="{cls}">{inner}</li>').format(cls=self.NAV_ITEM_CLASS, inner=inner_html)
+        return Markup('<li class="{cls}">{inner}</li>').format(cls=NAV_ITEM_CLASS, inner=inner_html)
+
+    def render(self) -> Markup:
+        active_class = " active fw-bold" if self.is_active() else ""
+
+        items_html = Markup("").join(self._wrap_li(item.render()) for item in self.items)
+
+        return Markup(
+            '<li class="dropdown {cls}">'
+            '<a class="nav-link dropdown-toggle{active_class}" href="#" id="{dropdown_id}" role="button"'
+            ' data-bs-toggle="dropdown" aria-expanded="false">'
+            '<i class="bi {icon}"></i> {text}'
+            "</a>"
+            '<ul class="dropdown-menu" aria-labelledby="{dropdown_id}">{items}</ul>'
+            "</li>"
+        ).format(
+            cls=NAV_ITEM_CLASS,
+            active_class=active_class,
+            dropdown_id=escape(self.dropdown_id),
+            icon=escape(self.icon),
+            text=escape(self.text),
+            items=items_html,
+        )
+
+
+class Navbar:
+
+    def __init__(self, links=None):
+        # A single ordered list holds NavLink and NavDropdown entries
+        # (regular, admin-only, or grouped); order in this list is render order.
+        self.links = []
+        for link in links or []:
+            if isinstance(link, (NavLink, NavDropdown)):
+                self.links.append(link)
+            else:
+                self.links.append(NavLink(**link))
+
+    # ---------- rendering helpers ----------
+    def _wrap_li(self, inner_html) -> Markup:
+        return Markup('<li class="{cls}">{inner}</li>').format(cls=NAV_ITEM_CLASS, inner=inner_html)
 
     # ---------- main links (replaces nav_link / nav_link_with_args) ----------
     def render_main_links(self, is_admin=False) -> Markup:
@@ -95,7 +143,10 @@ class Navbar:
         for link in self.links:
             if link.for_admin and not is_admin:
                 continue
-            parts.append(self._wrap_li(link.render()))
+            if isinstance(link, NavDropdown):
+                parts.append(link.render())
+            else:
+                parts.append(self._wrap_li(link.render()))
 
         return Markup("").join(parts)
 
@@ -147,6 +198,32 @@ nav_list = [
         path="/jobs/fix_nested_jobs",
     ),
     NavLink(
+        text="OWID Charts",
+        icon="bi-graph-up",
+        url_endpoint="owid_charts.all_charts",
+        title="OWID Charts",
+        path="/owidcharts",
+    ),
+    NavDropdown(
+        text="Extract/Inject",
+        icon="bi-filetype-svg",
+        dropdown_id="navbarDarkDropdownMenuLink",
+        items=[
+            NavLink(
+                text="Extract",
+                icon="bi-file-earmark-text",
+                url_endpoint="extract.dashboard",
+                path="/extract",
+            ),
+            NavLink(
+                text="Inject",
+                icon="bi-arrow-left-right",
+                url_endpoint="inject.dashboard",
+                path="/inject",
+            ),
+        ],
+    ),
+    NavLink(
         text="Admins",
         icon="bi-people-fill",
         url_endpoint="adminpanel.admin_dashboard",
@@ -156,7 +233,7 @@ nav_list = [
     NavLink(
         text="GitHub",
         icon="bi-github",
-        static_url="https://github.com/MrIbrahem/himo_repo",
+        static_url="https://github.com/Mdwiki-TD/svg_translate_web",
         link_target="_blank",
         path="",
     ),
