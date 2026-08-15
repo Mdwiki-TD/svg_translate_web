@@ -27,14 +27,18 @@ class TestSidebarItem:
 
 class TestGenerateListItem:
     def test_basic_link(self):
-        item = SidebarItem(id="test", admin=0, href="/test", title="Test Page", icon=None, link_target=None, disabled=False)
+        item = SidebarItem(
+            id="test", admin=0, href="/test", title="Test Page", icon=None, link_target=None, disabled=False
+        )
         html = generate_list_item(item)
         assert "/test" in html
         assert "Test Page" in html
         assert "<a" in html
 
     def test_with_icon(self):
-        item = SidebarItem(id="test", admin=0, href="/test", title="Test", icon="bi-gear", link_target=None, disabled=False)
+        item = SidebarItem(
+            id="test", admin=0, href="/test", title="Test", icon="bi-gear", link_target=None, disabled=False
+        )
         html = generate_list_item(item)
         assert "bi-gear" in html
 
@@ -83,7 +87,9 @@ class TestGenerateListItem:
         assert "<span class='hide-on-collapse-inline'>Home</span>" in result
 
     def test_generate_list_item_with_target(self) -> None:
-        item = SidebarItem(id="home", admin=0, href="/home", title="Home", icon=None, link_target="_blank", disabled=False)
+        item = SidebarItem(
+            id="home", admin=0, href="/home", title="Home", icon=None, link_target="_blank", disabled=False
+        )
         result = generate_list_item(item)
         assert "/home" in result
         assert "title='Home'" in result

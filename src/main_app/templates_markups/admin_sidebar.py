@@ -10,56 +10,64 @@ from __future__ import annotations
 
 import functools
 import logging
-from dataclasses import dataclass
-from typing import Any
+from dataclasses import dataclass, field
 
 from flask import has_request_context, url_for
 from markupsafe import Markup, escape
+from werkzeug.routing import BuildError
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class SidebarGroup:
-    """Sidebar group item definition."""
+class SidebarItem:
+    """Sidebar menu item definition.
+
+    The URL is resolved lazily via `resolve_href()`, at render time, rather
+    than when the menu is built. This keeps `load_groups_menu()` free of any
+    Flask request/app-context dependency, which in turn makes it safe to
+    cache with `functools.lru_cache`.
+    """
+
     id: str
     title: str
-    items: list[SidebarItem]
-    icon: str
+    icon: str | None = None
+    endpoint: str | None = None
+    endpoint_kwargs: dict = field(default_factory=dict)
+    fallback_href: str = "#"
+    link_target: str | None = None
+    disabled: bool = False
+    requires_admin: bool = True
+
+    def resolve_href(self) -> str:
+        """Resolve this item's URL. Falls back to a static path when there's
+        no active request context, or when `url_for` fails to build the URL
+        (e.g. the endpoint doesn't exist / its blueprint isn't registered).
+        """
+        if self.endpoint and has_request_context():
+            try:
+                return url_for(self.endpoint, **self.endpoint_kwargs)
+            except BuildError:
+                logger.warning("Could not build URL for endpoint '%s', using fallback href", self.endpoint)
+        return self.fallback_href
 
 
 @dataclass
-class SidebarItem:
-    """Sidebar menu item definition."""
+class SidebarGroup:
+    """Sidebar group item definition."""
+
     id: str
-    admin: int
-    href: str
     title: str
-    icon: str | None = None
-    link_target: str | None = None  # e.g. "_blank" for external links
-    disabled: bool = False
-
-
-def _safe_url_for(endpoint: str, fallback: str, **values) -> str:
-    if has_request_context():
-        return url_for(endpoint, **values)
-    return fallback
-
-
-def job_list_url(job_type: str) -> str:
-    return _safe_url_for("adminpanel.jobs.jobs_list", f"/adminpanel/jobs/{job_type}", job_type=job_type)
+    icon: str
+    items: list[SidebarItem]
 
 
 def generate_list_item(item: SidebarItem) -> Markup:
     """Generate HTML for a single sidebar navigation link."""
-    # Internal links are relative to /adminpanel/; external links and links
-    # that already include the full /adminpanel/ prefix are used as-is.
     is_external = bool(item.link_target)
-    href = item.href if is_external or item.href.startswith("/adminpanel/") else f"/adminpanel/{item.href}"
+    href = item.resolve_href()
 
-    icon_tag = (
-        Markup("<i class='bi {icon} me-1'></i>").format(icon=escape(item.icon)) if item.icon else Markup("")
-    )
+    icon_tag = Markup("<i class='bi {icon} me-1'></i>").format(icon=escape(item.icon)) if item.icon else Markup("")
     target_attr = (
         Markup(" target='{target}' rel='noopener noreferrer'").format(target=escape(item.link_target))
         if is_external
@@ -95,25 +103,26 @@ class Sidebar:
         If no active group is determined after checking all items, it defaults to the first group in the menu.
 
         Returns:
-            tuple[str, str]: The active group key and the active item ID.
+            tuple[str, str]: The active group ID and the active item ID.
         """
         # First pass: look for an exact match across all groups
         for group in self.menu:
             for item in group.items:
-                if path == item.href:
-                    return group.title, item.id
+                if path == item.resolve_href():
+                    return group.id, item.id
 
         # Second pass: fallback match (startswith or active_route)
         for group in self.menu:
             for item in group.items:
-                if (path and item.href and path.startswith(item.href)) or active_route == item.id:
-                    return group.title, item.id
+                href = item.resolve_href()
+                if (path and href and path.startswith(href)) or active_route == item.id:
+                    return group.id, item.id
 
         # Default to the first group if no match is found
-        active_group = self.menu[0].title if self.menu else ""
+        active_group = self.menu[0].id if self.menu else ""
         return active_group, ""
 
-    def create(self, path: str) -> str:
+    def render(self, path: str, is_admin: bool = True) -> str:
         """Generate sidebar HTML structure based on menu definitions.
 
         This method constructs a responsive sidebar with collapsible groups and
@@ -121,26 +130,31 @@ class Sidebar:
         its parent group. The generated HTML includes separate structures for
         desktop and mobile views using Bootstrap utility classes.
 
+        Args:
+            path: The current request path, used to highlight the active item.
+            is_admin: Whether the current user may see admin-only items
+                (items with `requires_admin=True`).
+
         Returns:
             str: A string containing the formatted HTML structure of the sidebar.
         """
 
-        # Helper function to generate sub-items HTML string
-        def build_sub_items(items, active_id) -> str:
-            sub_items: list[Any] = []
+        def build_sub_items(items: list[SidebarItem], active_id: str) -> str:
+            """Build the <li> HTML for every visible item in a group."""
+            sub_items: list[str] = []
 
             for item in items:
                 if item.disabled:
                     continue
+                if item.requires_admin and not is_admin:
+                    continue
 
                 css_class = "active" if item.id == active_id else ""
-
                 link = generate_list_item(item)
 
-                sub_items.append(f"<li id='{item.id}' class='{css_class}'>{link}</li>")
+                sub_items.append(f"<li id='{escape(item.id)}' class='{css_class}'>{link}</li>")
 
-            sub_items_str = "".join(sub_items)
-            return sub_items_str
+            return "".join(sub_items)
 
         path_parts = path.strip("/").split("/")
         active_route = path_parts[1] if len(path_parts) > 1 else ""
@@ -173,28 +187,28 @@ class Sidebar:
             if not sub_items_str:
                 continue
 
-            if group_obj.title == active_group:
+            if group_obj.id == active_group:
                 show, expanded = "show", "true"
             else:
                 show, expanded = "", "false"
 
-            icon_tag = f"<i class='bi {group_obj.icon} me-1'></i>" if group_obj.icon else ""
+            icon_tag = f"<i class='bi {escape(group_obj.icon)} me-1'></i>" if group_obj.icon else ""
 
             # Formatting the button and the collapse container
             button_html = f"""
                 <button class="btn btn-toggle align-items-center rounded"
                         data-bs-toggle="collapse"
-                        data-bs-target="#{group_obj.id}-collapse"
+                        data-bs-target="#{escape(group_obj.id)}-collapse"
                         aria-expanded="{expanded}">
                     {icon_tag}
-                    <span class='hide-on-collapse-inline'>{group_obj.title}</span>
+                    <span class='hide-on-collapse-inline'>{escape(group_obj.title)}</span>
                 </button>
             """
 
             group_container = f"""
                 <li class="mb-1">
                     {button_html}
-                    {collapse_tpl.format(show=show, group_id=group_obj.id, sub_items=sub_items_str)}
+                    {collapse_tpl.format(show=show, group_id=escape(group_obj.id), sub_items=sub_items_str)}
                 </li>
                 <li class="border-top my-1"></li>"""
 
@@ -204,64 +218,90 @@ class Sidebar:
         return "\n".join(sidebar_parts)
 
 
+# ---------------------------------------------------------------------------
+# Menu item builders — small factories to avoid repeating the same
+# endpoint/fallback wiring for every dashboard or job-list link.
+# ---------------------------------------------------------------------------
+def dashboard_item(id_: str, title: str, icon: str, endpoint: str, fallback_href: str) -> SidebarItem:
+    """Build a SidebarItem pointing at a regular admin-panel dashboard endpoint."""
+    return SidebarItem(id=id_, title=title, icon=icon, endpoint=endpoint, fallback_href=fallback_href)
+
+
+def job_item(job_type: str, title: str, icon: str, *, disabled: bool = False) -> SidebarItem:
+    """Build a SidebarItem pointing at the job-list page for the given job type."""
+    return SidebarItem(
+        id=job_type,
+        title=title,
+        icon=icon,
+        endpoint="adminpanel.jobs.jobs_list",
+        endpoint_kwargs={"job_type": job_type},
+        fallback_href=f"/adminpanel/jobs/{job_type}",
+        disabled=disabled,
+    )
+
+
 @functools.lru_cache(maxsize=1)
 def load_groups_menu() -> list[SidebarGroup]:
+    """Build the static sidebar menu structure.
+
+    No Flask request/app context is touched here — URLs are resolved lazily
+    by `SidebarItem.resolve_href()` at render time — so this result is safe
+    to cache for the lifetime of the process.
+    """
     main_group = SidebarGroup(
         id="main",
         title="Main",
         icon="bi-file-text",
         items=[
-            SidebarItem(
-                id="templates",
-                admin=1,
-                href=_safe_url_for("adminpanel.templates.dashboard", "/adminpanel/templates/"),
-                title="Templates",
-                icon="bi-list-columns",
+            dashboard_item(
+                "templates",
+                "Templates",
+                "bi-list-columns",
+                "adminpanel.templates.dashboard",
+                "/adminpanel/templates/",
             ),
-            SidebarItem(
-                id="templates_need_update",
-                admin=1,
-                href=_safe_url_for(
-                    "adminpanel.templates.templates_need_update", "/adminpanel/templates/templates-need-update"
-                ),
-                title="Templates Need Update",
-                icon="bi-arrow-repeat",
+            dashboard_item(
+                "templates_need_update",
+                "Templates Need Update",
+                "bi-arrow-repeat",
+                "adminpanel.templates.templates_need_update",
+                "/adminpanel/templates/templates-need-update",
             ),
-            SidebarItem(
-                id="owid_charts",
-                admin=1,
-                href=_safe_url_for("adminpanel.owidcharts.dashboard", "/adminpanel/owidcharts/"),
-                title="OWID Charts",
-                icon="bi-graph-up",
+            dashboard_item(
+                "owid_charts",
+                "OWID Charts",
+                "bi-graph-up",
+                "adminpanel.owidcharts.dashboard",
+                "/adminpanel/owidcharts/",
             ),
-            SidebarItem(
-                id="slug_redirects",
-                admin=1,
-                href=_safe_url_for("adminpanel.slugredirects.dashboard", "/adminpanel/slugredirects/"),
-                title="Slug Redirects",
-                icon="bi-arrow-right-circle",
+            dashboard_item(
+                "slug_redirects",
+                "Slug Redirects",
+                "bi-arrow-right-circle",
+                "adminpanel.slugredirects.dashboard",
+                "/adminpanel/slugredirects/",
             ),
         ],
     )
 
     users_group = SidebarGroup(
         id="users",
-        icon="bi-person",
         title="Users",
+        icon="bi-person",
         items=[
-            SidebarItem(
-                id="admins",
-                admin=1,
-                href=_safe_url_for("adminpanel.coordinators.dashboard", "/adminpanel/coordinators/"),
-                title="Coordinators",
-                icon="bi-person-gear",
+            dashboard_item(
+                "admins",
+                "Coordinators",
+                "bi-person-gear",
+                "adminpanel.coordinators.dashboard",
+                "/adminpanel/coordinators/",
             ),
-            SidebarItem(
-                id="users",
-                admin=1,
-                href=_safe_url_for("adminpanel.users.dashboard", "/adminpanel/users/"),
-                title="Users",
-                icon="bi-person",
+            dashboard_item(
+                "users",
+                "Users",
+                "bi-person",
+                "adminpanel.users.dashboard",
+                "/adminpanel/users/",
             ),
         ],
     )
@@ -271,19 +311,15 @@ def load_groups_menu() -> list[SidebarGroup]:
         title="DB Jobs",
         icon="bi-database-fill",
         items=[
-            SidebarItem(
-                id="collect_templates_data",
-                admin=1,
-                href=job_list_url("collect_templates_data"),
-                title="Collect Templates data",
-                icon="bi-kanban",
+            job_item(
+                "collect_templates_data",
+                "Collect Templates data",
+                "bi-kanban",
             ),
-            SidebarItem(
-                id="update_owid_charts",
-                admin=1,
-                href=job_list_url("update_owid_charts"),
-                title="Update OWID Charts",
-                icon="bi-arrow-repeat",
+            job_item(
+                "update_owid_charts",
+                "Update OWID Charts",
+                "bi-arrow-repeat",
             ),
         ],
     )
@@ -293,28 +329,9 @@ def load_groups_menu() -> list[SidebarGroup]:
         title="Files Jobs",
         icon="bi-files",
         items=[
-            SidebarItem(
-                id="crop_main_files",
-                admin=1,
-                href=job_list_url("crop_main_files"),
-                title="Crop Newest World Files",
-                icon="bi-crop",
-            ),
-            SidebarItem(
-                id="fix_nested_main_files",
-                admin=1,
-                href=job_list_url("fix_nested_main_files"),
-                title="Fix Nested Main Files",
-                icon="bi-tools",
-            ),
-            SidebarItem(
-                id="download_main_files",
-                admin=1,
-                href=job_list_url("download_main_files"),
-                title="Download Main Files",
-                icon="bi-download",
-                disabled=True,
-            ),
+            job_item("crop_main_files", "Crop Newest World Files", "bi-crop"),
+            job_item("fix_nested_main_files", "Fix Nested Main Files", "bi-tools"),
+            job_item("download_main_files", "Download Main Files", "bi-download", disabled=True),
         ],
     )
 
@@ -323,34 +340,10 @@ def load_groups_menu() -> list[SidebarGroup]:
         title="OWID Templates/Pages",
         icon="bi-file-earmark-richtext",
         items=[
-            SidebarItem(
-                id="create_owid_pages",
-                admin=1,
-                href=job_list_url("create_owid_pages"),
-                title="Create OWID Pages",
-                icon="bi-file-earmark-text",
-            ),
-            SidebarItem(
-                id="rename_owid_pages",
-                admin=1,
-                href=job_list_url("rename_owid_pages"),
-                title="Rename OWID Pages",
-                icon="bi-fonts",
-            ),
-            SidebarItem(
-                id="add_svglanguages_template",
-                admin=1,
-                href=job_list_url("add_svglanguages_template"),
-                title="Add {{SVGLanguages}}",
-                icon="bi-file-earmark-text",
-            ),
-            SidebarItem(
-                id="add_lang_categories_to_owid_pages",
-                admin=1,
-                href=job_list_url("add_lang_categories_to_owid_pages"),
-                title="Add Lang Categories",
-                icon="bi-tags",
-            ),
+            job_item("create_owid_pages", "Create OWID Pages", "bi-file-earmark-text"),
+            job_item("rename_owid_pages", "Rename OWID Pages", "bi-fonts"),
+            job_item("add_svglanguages_template", "Add {{SVGLanguages}}", "bi-file-earmark-text"),
+            job_item("add_lang_categories_to_owid_pages", "Add Lang Categories", "bi-tags"),
         ],
     )
 
@@ -359,31 +352,31 @@ def load_groups_menu() -> list[SidebarGroup]:
         title="Settings",
         icon="bi-sliders",
         items=[
-            SidebarItem(
-                id="settings",
-                admin=1,
-                href=_safe_url_for("adminpanel.settings.dashboard", "/adminpanel/settings/"),
-                title="Settings",
-                icon="bi-gear",
+            dashboard_item(
+                "settings",
+                "Settings",
+                "bi-gear",
+                "adminpanel.settings.dashboard",
+                "/adminpanel/settings/",
             ),
-            SidebarItem(
-                id="errors",
-                admin=1,
-                href=_safe_url_for("adminpanel.errors.dashboard", "/adminpanel/errors/"),
-                title="App Errors",
-                icon="bi-exclamation-triangle",
+            dashboard_item(
+                "errors",
+                "App Errors",
+                "bi-exclamation-triangle",
+                "adminpanel.errors.dashboard",
+                "/adminpanel/errors/",
             ),
             SidebarItem(
                 id="db_admin",
-                admin=1,
-                href="/adminpanel/db_admin",
+                requires_admin=1,
+                fallback_href="/adminpanel/db_admin",
                 title="DB admin",
                 icon="bi-database",
             ),
         ],
     )
 
-    new_menu = [
+    return [
         main_group,
         users_group,
         db_jobs,
@@ -392,17 +385,16 @@ def load_groups_menu() -> list[SidebarGroup]:
         settings_group,
     ]
 
-    return new_menu
 
+def create_side(path: str, is_admin: bool = False) -> str:
+    """
+    Generate sidebar HTML structure based on menu definitions.
 
-def create_side(path: str) -> str:
-    """Generate sidebar HTML structure based on menu definitions."""
+    This is the public entry point used by the Jinja template.
+    """
     main_menu = load_groups_menu()
-
-    model = Sidebar(main_menu)
-    sidebar = model.create(path)
-
-    return sidebar
+    sidebar = Sidebar(main_menu)
+    return sidebar.render(path, is_admin=is_admin)
 
 
 __all__ = [
