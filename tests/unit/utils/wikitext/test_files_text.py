@@ -128,7 +128,7 @@ class TestCreateCroppedFileText:
         """Test that function adds {{Extracted from}} template."""
         text = "{{Information|description=Test}}"
         result = create_cropped_file_text("File:Original.svg", text)
-        assert "{{Extracted from|1=Original.svg}}" in result
+        assert result.count("{{Extracted from|1=Original.svg}}") == 1
 
     def test_empty_text(self) -> None:
         """Test with empty text returns just the template."""
@@ -148,7 +148,7 @@ class TestCreateCroppedFileText:
         result = create_cropped_file_text("File:Original.svg", text)
         # The other versions parameter is added to the Information template
         assert "|other versions=" in result
-        assert "{{Extracted from|1=Original.svg}}" in result
+        assert result.count("{{Extracted from|1=Original.svg}}") == 1
 
     def test_fallback_to_insert_before_methods(self) -> None:
         """Test fallback to insert_before_methods when add_other_versions fails (line 90)."""
@@ -156,5 +156,5 @@ class TestCreateCroppedFileText:
         text = "[[Category:Test]]"
         result = create_cropped_file_text("File:Original.svg", text)
         # The function should add the Extracted from template before the category
-        assert "{{Extracted from|1=Original.svg}}" in result
+        assert result.count("{{Extracted from|1=Original.svg}}") == 1
         assert result.index("{{Extracted from") < result.index("[[Category:")
