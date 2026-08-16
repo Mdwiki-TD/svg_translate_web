@@ -95,9 +95,7 @@ class TestGenerateListItem:
         assert "rel='noopener noreferrer'" in html
 
     def test_no_target_by_default(self):
-        item = SidebarItem(
-            id="test", fallback_href="/test", title="Test", icon=None, link_target=None, disabled=False
-        )
+        item = SidebarItem(id="test", fallback_href="/test", title="Test", icon=None, link_target=None, disabled=False)
         html = generate_list_item(item)
         assert "target=" not in html
 
