@@ -33,7 +33,7 @@ class TestSidebarItem:
         assert item.resolve_href() == "/x"
 
     def test_resolve_href_uses_endpoint_within_request_context(self, mock_app):
-        mock_app.add_url_rule("/adminpanel/settings/", endpoint="adminpanel.settings.dashboard")
+        # mock_app.add_url_rule("/adminpanel/settings/", endpoint="adminpanel.settings.dashboard")
         item = SidebarItem(
             id="settings",
             title="Settings",
