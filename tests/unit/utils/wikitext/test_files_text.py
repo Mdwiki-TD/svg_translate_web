@@ -150,6 +150,51 @@ class TestCreateCroppedFileText:
         assert "|other versions=" in result
         assert "{{Extracted from|1=Original.svg}}" in result
 
+    def test_replaces_author_with_owid_source_citation(self) -> None:
+        """Test that the full OWID citation replaces the generic author value."""
+        text = """{{Information
+|description={{en|1=Wheat yields, World}}
+|author = Our World In Data
+|date= 2023
+|source = https://ourworldindata.org/grapher/wheat-yields?tab=map
+}}"""
+        citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+
+        result = create_cropped_file_text("wheat yields, World, 2023.svg", text, author_citation=citation)
+
+        assert citation in result
+        assert "|author = Our World In Data" not in result
+        assert "{{Extracted from|1=wheat yields, World, 2023.svg}}" in result
+
+    def test_adds_author_when_information_template_has_none(self) -> None:
+        """Test that a citation is added when the Information template lacks an author."""
+        text = "{{Information|description=Wheat yields}}"
+        citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+
+        result = create_cropped_file_text("Original.svg", text, author_citation=citation)
+
+        assert citation in result
+        assert "{{Extracted from|1=Original.svg}}" in result
+
+    def test_preserves_author_without_metadata_citation(self) -> None:
+        """Test that unavailable metadata leaves the original author untouched."""
+        text = "{{Information|author=Our World In Data}}"
+
+        result = create_cropped_file_text("Original.svg", text)
+
+        assert "author=Our World In Data" in result
+        assert "{{Extracted from|1=Original.svg}}" in result
+
+    def test_preserves_existing_extracted_from_entry(self) -> None:
+        """Test that author enrichment does not duplicate an existing source-file link."""
+        text = "{{Information|author=Our World In Data|other versions={{Extracted from|1=Original.svg}}}}"
+        citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+
+        result = create_cropped_file_text("Original.svg", text, author_citation=citation)
+
+        assert result.count("{{Extracted from|1=Original.svg}}") == 1
+        assert citation in result
+
     def test_fallback_to_insert_before_methods(self) -> None:
         """Test fallback to insert_before_methods when add_other_versions fails (line 90)."""
         # Text with category but no {{Information}} template - should fallback to insert_before_methods
