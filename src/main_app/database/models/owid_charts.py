@@ -19,6 +19,7 @@ class OwidChartRecord(TimestampMixin, db.Model):  # type: ignore
         `chart_id` int(11) NOT NULL AUTO_INCREMENT,
         `slug` varchar(255) NOT NULL,
         `title` varchar(500) NOT NULL,
+        `source` varchar(2048) NOT NULL DEFAULT '',
         `has_map_tab` tinyint(1) DEFAULT 0,
         `max_time` int(11) DEFAULT NULL,
         `min_time` int(11) DEFAULT NULL,
@@ -44,6 +45,7 @@ class OwidChartRecord(TimestampMixin, db.Model):  # type: ignore
     chart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     slug: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
+    source: Mapped[str] = mapped_column(String(2048), nullable=False, default="", server_default="")
 
     has_map_tab: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
     max_time: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -70,6 +72,7 @@ class OwidChartRecord(TimestampMixin, db.Model):  # type: ignore
             "chart_id": self.chart_id,
             "slug": self.slug,
             "title": self.title,
+            "source": self.source,
             "has_map_tab": self.has_map_tab,
             "max_time": self.max_time,
             "min_time": self.min_time,
