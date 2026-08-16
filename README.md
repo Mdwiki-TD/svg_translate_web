@@ -192,31 +192,6 @@ mypy --install-types
 autotyping --none-return src
 ```
 
-### Project Structure
-
-```
-svg_translate_web/
-├── src/
-│   ├── app/                    # Flask application
-│   │   ├── public/         # Route blueprints
-│   │   │   ├── admin/          # Admin routes
-│   │   │   ├── auth/           # Authentication routes
-│   │   │   ├── tasks/          # Task management routes
-│   │   │   ├── explorer/       # File explorer routes
-│   │   │   └── ...
-│   │   ├── db/                 # Database models and stores
-│   │   ├── users/              # User management
-│   │   └── threads/            # Background task threads
-│   ├── templates/              # Jinja2 templates
-│   ├── static/                 # Static assets (CSS, JS)
-│   └── app.py                  # WSGI entry point
-├── requirements.txt            # Python dependencies
-├── requirements-dev.txt        # Development dependencies
-├── tests/                      # Test suite
-├── docs/                       # Documentation
-└── toolforge_tool/shs/                     # Deployment scripts
-```
-
 ## Deployment
 
 ### Toolforge Deployment
@@ -232,10 +207,12 @@ type: python3.13
 ```
 
 #### Filesystem Layout on Toolforge
-- The deployed application expects the following directory structure on the Toolforge account:
+
+-   The deployed application expects the following directory structure on the Toolforge account:
+
 ```
 $HOME/
-├── www/python/                  
+├── www/python/
 │   ├── venv/                    # Virtualenv (created by venv.sh)
 │   │   └── bin/python3         # Python interpreter
 │   └── src/                     # Application source (TARGET_DIR)
