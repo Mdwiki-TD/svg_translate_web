@@ -29,7 +29,7 @@ from ....database.services import OwidChartsService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ..slugs_helpers import check_slugs_url
-from .objects import ChartUpdateInfo, UpdateOwidChartsWorkerObject
+from .objects import ChartNewInfo, UpdateOwidChartsWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +109,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         self,
         chart: OwidChartRecord,
         data: dict[str, Any],
-        info: ChartUpdateInfo,
+        info: ChartNewInfo,
     ) -> bool:
         try:
             self.owid_charts_service.update_chart_data_with_retry(
@@ -133,7 +133,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             info.error = str(exc)
         return False
 
-    def _process_chart(self, chart: OwidChartRecord, info: ChartUpdateInfo) -> bool:
+    def _process_chart(self, chart: OwidChartRecord, info: ChartNewInfo) -> bool:
         self.result.summary.processed += 1
 
         # 1 A). Fetch metadata
@@ -168,6 +168,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         source = citation_short.strip() if isinstance(citation_short, str) else None
 
         if source and source != chart.source:
+            info.source.after = source
             db_data["source"] = source
 
         if not timespan_raw and not owid_variable_id and not db_data:
@@ -178,12 +179,8 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         if owid_variable_id:
             owid_variable_id = ensure_int(owid_variable_id)
             if owid_variable_id != chart.owid_variable_id:
-                info.owid_variable_id = owid_variable_id
-                db_data.update(
-                    {
-                        "owid_variable_id": owid_variable_id,
-                    }
-                )
+                info.variable_id.after = owid_variable_id
+                db_data.update( { "owid_variable_id": owid_variable_id } )
 
         if timespan_raw:
             # 3. Parse timespan
@@ -197,9 +194,9 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             if parsed:
                 min_t, max_t, len_y = parsed
 
-                info.new_min_time = min_t if min_t != info.old_min_time else None
-                info.new_max_time = max_t if max_t != info.old_max_time else None
-                info.new_len_years = len_y if len_y != info.old_len_years else None
+                info.min_time.after = min_t if min_t != info.min_time.before else None
+                info.max_time.after = max_t if max_t != info.max_time else None
+                info.len_years.after = len_y if len_y != info.len_years else None
 
                 # 4. Compare — skip if nothing changed
                 if min_t == chart.min_time and max_t == chart.max_time and len_y == chart.len_years:
@@ -263,14 +260,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         self.result.summary.total = 1
         logger.info("Job %d: Processing %s", self.job_id, chart.slug)
 
-        info = ChartUpdateInfo(
-            chart_id=chart.chart_id,
-            slug=chart.slug,
-            old_min_time=chart.min_time,
-            old_max_time=chart.max_time,
-            old_len_years=chart.len_years,
-            owid_variable_id=chart.owid_variable_id,
-        )
+        info = ChartNewInfo.from_chart(chart)
 
         _changed = self._process_chart(chart, info)
         self.append_results(chart.slug, info)
@@ -296,14 +286,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
                 break
 
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, total, chart.slug)
-            info = ChartUpdateInfo(
-                chart_id=chart.chart_id,
-                slug=chart.slug,
-                old_min_time=chart.min_time,
-                old_max_time=chart.max_time,
-                old_len_years=chart.len_years,
-                owid_variable_id=chart.owid_variable_id,
-            )
+            info = ChartNewInfo.from_chart(chart)
 
             changed = self._process_chart(chart, info)
             self.append_results(chart.slug, info)
@@ -320,7 +303,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
         return self.result
 
-    def append_results(self, slug: str, info: ChartUpdateInfo) -> None:
+    def append_results(self, slug: str, info: ChartNewInfo) -> None:
         if info.status == "failed":
             if info.error:
                 self.result.failed_charts.append(

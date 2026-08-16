@@ -26,7 +26,7 @@
 {% block job_details %}
 
 {# ------------------------------------------------------------------ #}
-{# Updated charts — with old/new comparison                           #}
+{# Updated charts - with old/new comparison                           #}
 {# ------------------------------------------------------------------ #}
 {% if result_data.updated_charts %}
 {% if result_data.updated_charts|length > 100 and not expand_all %}
@@ -42,7 +42,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Slug</th>
+                        <th style="width: 30rem;">Slug</th>
                         <!-- <th class="text-center">Old min_time</th> -->
                         <th class="text-center">min_time</th>
                         <!-- <th class="text-center">Old max_time</th> -->
@@ -50,6 +50,7 @@
                         <!-- <th class="text-center">Old len_years</th> -->
                         <th class="text-center">len_years</th>
                         <th class="text-center">Owid Variable id</th>
+                        <th class="text-center">Source</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -63,29 +64,38 @@
                             </a>
                         </td>
                         {# min_time #}
-                        <!-- <td class="text-center"> {{ item.old_min_time or '—' }} </td> -->
+                        {% set new_min_time = item.min_time.after if item.min_time else item.new_min_time %}
+                        <!-- <td class="text-center"> {{ item.old_min_time or '-' }} </td> -->
                         <td class="text-center">
-                            <strong>{{ item.new_min_time or '—' }}</strong>
+                            <strong>{{ new_min_time or '-' }}</strong>
                         </td>
                         {# max_time #}
-                        <!-- <td class="text-center"> {{ item.old_max_time or '—' }} </td> -->
+                        {% set new_max_time = item.max_time.after if item.max_time else item.new_max_time %}
+                        <!-- <td class="text-center"> {{ item.old_max_time or '-' }} </td> -->
                         <td class="text-center">
-                            <strong>{{ item.new_max_time or '—' }}</strong>
+                            <strong>{{ new_max_time or '-' }}</strong>
                         </td>
                         {# len_years #}
-                        <!-- <td class="text-center"> {{ item.old_len_years or '—' }} </td> -->
+                        {% set new_len_years = item.len_years.after if item.len_years else item.new_len_years %}
+                        <!-- <td class="text-center"> {{ item.old_len_years or '-' }} </td> -->
                         <td class="text-center">
-                            <strong>{{ item.new_len_years or '—' }}</strong>
+                            <strong>{{ new_len_years or '-' }}</strong>
                         </td>
+                        {# owid_variable_id #}
+                        {% set owid_variable_id = item.variable_id.after if item.variable_id else item.owid_variable_id %}
                         <td class="text-center">
-                            {% if item.owid_variable_id %}
+                            {% if owid_variable_id %}
                             <a href="https://api.ourworldindata.org/v1/indicators/{{ item.owid_variable_id }}.metadata.json"
                                 target="_blank" rel="noopener noreferrer">
-                                {{ item.owid_variable_id }}
+                                {{ owid_variable_id }}
                             </a>
                             {% else %}
                             -
                             {% endif %}
+                        </td>
+                        {# Source #}
+                        <td class="text-center">
+                            <small>{{ item.source.after if item.source else '-' }}</small>
                         </td>
                     </tr>
                     {% endfor %}
@@ -128,7 +138,7 @@
                                 {{ item.slug }}
                             </a>
                         </td>
-                        <td><span class="text-danger">{{ item.error or '—' }}</span></td>
+                        <td><span class="text-danger">{{ item.error or '-' }}</span></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -172,7 +182,7 @@
                             </a>
                         </td>
                         <td>
-                            {{ item.skip_reason or '—' }}
+                            {{ item.skip_reason or '-' }}
                         </td>
                     </tr>
                     {% endfor %}
