@@ -22,23 +22,24 @@ class StepInfo:
         if after and self.before != after:
             self.after = after
 
+
 @dataclass
 class ChartNewInfo:
     chart_id: int
     slug: str
     status: str = "pending"  # updated | skipped | failed
     skip_reason: str | None = None
-    status_404: int | None = None
     error: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
     # —————————————————————————
     # New steps values
+    source: StepInfo = field(default_factory=StepInfo)
+
     min_time: StepInfo = field(default_factory=StepInfo)
     max_time: StepInfo = field(default_factory=StepInfo)
     len_years: StepInfo = field(default_factory=StepInfo)
     variable_id: StepInfo = field(default_factory=StepInfo)
-    source: StepInfo = field(default_factory=StepInfo)
 
     # —————————————————————————
 
@@ -47,16 +48,15 @@ class ChartNewInfo:
 
     @classmethod
     def from_chart(cls, chart: OwidChartRecord) -> ChartNewInfo:
-        data = cls(
+        return cls(
             chart_id=chart.chart_id,
             slug=chart.slug,
-            source=chart.source,
+            source=StepInfo(before=chart.source),
+            min_time=StepInfo(before=chart.min_time),
+            max_time=StepInfo(before=chart.max_time),
+            len_years=StepInfo(before=chart.len_years),
+            variable_id=StepInfo(before=chart.owid_variable_id),
         )
-        data.min_time.before = chart.min_time
-        data.max_time.before = chart.max_time
-        data.len_years.before = chart.len_years
-        data.variable_id.before = chart.owid_variable_id
-        return data
 
 
 @dataclass
@@ -84,9 +84,7 @@ class ChartUpdateInfo:
     slug: str
     status: str = "pending"  # updated | skipped | failed
     skip_reason: str | None = None
-    status_404: int | None = None
     error: str | None = None
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
     # —————————————————————————
     # Legacy to be removed
@@ -101,20 +99,6 @@ class ChartUpdateInfo:
     new_len_years: int | None = None
 
     owid_variable_id: int | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-    @classmethod
-    def from_chart(cls, chart: OwidChartRecord) -> ChartUpdateInfo:
-        return cls(
-            chart_id=chart.chart_id,
-            slug=chart.slug,
-            old_min_time=chart.min_time,
-            old_max_time=chart.max_time,
-            old_len_years=chart.len_years,
-            owid_variable_id=chart.owid_variable_id,
-        )
 
 
 __all__ = [

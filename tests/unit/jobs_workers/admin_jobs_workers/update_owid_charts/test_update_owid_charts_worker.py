@@ -9,7 +9,7 @@ import pytest
 
 from src.main_app.api_services.clients.objects import RawGrapherMetadataResponse
 from src.main_app.database.models import OwidChartRecord
-from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.objects import ChartUpdateInfo
+from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.objects import ChartNewInfo
 from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker import (
     UpdateOwidChartsWorker,
 )
@@ -244,7 +244,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -275,7 +275,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -304,7 +304,7 @@ class TestProcessChart:
             len_years=None,
             owid_variable_id=None,
         )
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
 
         worker.append_results(chart.slug, info)
@@ -331,7 +331,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
 
         assert result is True
@@ -356,7 +356,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
 
         assert result is False
@@ -384,7 +384,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -415,7 +415,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -444,7 +444,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -475,7 +475,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -505,7 +505,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -535,7 +535,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -566,7 +566,7 @@ class TestProcessChart:
             owid_variable_id=42,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
