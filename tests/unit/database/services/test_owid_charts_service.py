@@ -103,6 +103,16 @@ class TestGetChartBySlug(TestSetup):
         """Return None when no chart matches the given slug."""
         assert self.service.get_chart_by_slug("nonexistent") is None
 
+    def test_returns_persisted_source_citation(self) -> None:
+        """Return the complete source citation saved for the chart."""
+        source = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+        self.service.create(slug="wheat-production", title="Wheat production", source=source)
+
+        result = self.service.get_chart_by_slug("wheat-production")
+
+        assert result is not None
+        assert result.source == source
+
 
 class TestAddChart(TestSetup):
     """Tests for add_chart function."""
@@ -148,6 +158,19 @@ class TestUpdateChartData(TestSetup):
         """Return None when chart ID does not exist."""
         result = self.service.update_chart_data(999, {"title": "Updated"})
         assert result is None
+
+    def test_updates_persisted_source_citation(self) -> None:
+        """Persist the refreshed OWID citation for later crop-job lookup."""
+        chart_record = self.service.create(slug="wheat-production", title="Wheat production", source="")
+        source = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+
+        result = self.service.update_chart_data(chart_record.chart_id, {"source": source})
+        persisted = self.service.get_chart_by_slug("wheat-production")
+
+        assert result is not None
+        assert result.source == source
+        assert persisted is not None
+        assert persisted.source == source
 
     def test_ignores_none_values(self) -> None:
         """Ignore None values in update data."""

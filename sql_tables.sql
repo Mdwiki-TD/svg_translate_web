@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS owid_charts (
     chart_id INT NOT NULL AUTO_INCREMENT,
     slug VARCHAR(255) NOT NULL,
     title VARCHAR(500) NOT NULL,
+    source VARCHAR(2048) NOT NULL DEFAULT '',
     has_map_tab TINYINT(1) DEFAULT 0,
     max_time INT DEFAULT NULL,
     min_time INT DEFAULT NULL,

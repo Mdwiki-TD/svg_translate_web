@@ -9,7 +9,7 @@ import pytest
 
 from src.main_app.api_services.clients.objects import RawGrapherMetadataResponse
 from src.main_app.database.models import OwidChartRecord
-from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.objects import ChartUpdateInfo
+from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.objects import ChartNewInfo
 from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker import (
     UpdateOwidChartsWorker,
 )
@@ -244,7 +244,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -275,7 +275,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -304,7 +304,7 @@ class TestProcessChart:
             len_years=None,
             owid_variable_id=None,
         )
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
 
         worker.append_results(chart.slug, info)
@@ -313,6 +313,55 @@ class TestProcessChart:
         assert len(worker.result.skipped_charts) == 1
         assert worker.result.skipped_charts[0]["status"] == "skipped"
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
+
+    def test_process_chart_updates_source_from_citation_short(self, mock_update_owid_services: MockServices):
+        """A citation-only metadata update is persisted to the chart source field."""
+        citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+        metadata = {"columns": {"col1": {"citationShort": citation}}}
+        mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(metadata, 200)
+
+        worker = UpdateOwidChartsWorker(JobsRunner(job_id=1, user={}, cancel_event=None))
+        chart = OwidChartRecord(
+            chart_id=1,
+            slug="wheat-production",
+            source="",
+            min_time=None,
+            max_time=None,
+            len_years=None,
+            owid_variable_id=None,
+        )
+
+        info = ChartNewInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+
+        assert result is True
+        mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
+            1, {"source": citation}
+        )
+
+    def test_process_chart_skips_unchanged_source(self, mock_update_owid_services: MockServices):
+        """Matching citation metadata should not trigger a redundant database update."""
+        citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+        metadata = {"columns": {"col1": {"citationShort": citation}}}
+        mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(metadata, 200)
+
+        worker = UpdateOwidChartsWorker(JobsRunner(job_id=1, user={}, cancel_event=None))
+        chart = OwidChartRecord(
+            chart_id=1,
+            slug="wheat-production",
+            source=citation,
+            min_time=None,
+            max_time=None,
+            len_years=None,
+            owid_variable_id=None,
+        )
+
+        info = ChartNewInfo.from_chart(chart)
+        result = worker._process_chart(chart, info)
+
+        assert result is False
+        assert info.skip_reason == "nothing to update"
+        mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_not_called()
 
     def test_process_chart_owid_variable_id_update_only(self, mock_update_owid_services: MockServices):
         """When only owid_variable_id changes -> calls update_chart_data_with_retry."""
@@ -335,7 +384,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -366,7 +415,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -395,7 +444,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -426,7 +475,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -456,7 +505,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -486,7 +535,7 @@ class TestProcessChart:
             owid_variable_id=None,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 
@@ -517,7 +566,7 @@ class TestProcessChart:
             owid_variable_id=42,
         )
 
-        info = ChartUpdateInfo.from_chart(chart)
+        info = ChartNewInfo.from_chart(chart)
         result = worker._process_chart(chart, info)
         worker.append_results(chart.slug, info)
 

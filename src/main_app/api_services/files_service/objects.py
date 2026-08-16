@@ -41,7 +41,7 @@ class DownloadAndSaveData(SharedMapToJson):
 
 @dataclass
 class DownloadResult(SharedMapToJson):
-    success: bool = False
+    success: bool | None = None
     size_bytes: int | None = None
     path: str | None = None
     error: str | None = None
