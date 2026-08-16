@@ -87,23 +87,6 @@
 </div>
 {% endmacro %}
 
-{% macro nav_link(endpoint, icon, text, url, title="") %}
-{% set is_active = request and request.endpoint and request.endpoint.startswith(endpoint) %}
-<a class="nav-link {{ 'active fw-bold' if is_active }}" href="{{ url }}" {% if is_active %}aria-current="page"
-    {% endif %} title="{{ title }}">
-    <i class="bi {{ icon }}"></i> {{ text }}
-</a>
-{% endmacro %}
-
-{% macro nav_link_with_args(endpoint, icon, text, url, path) %}
-{# check endpoint and job_type in URL #}
-{% set is_active = request and request.path and request.path.startswith(path) %}
-<a class="nav-link {{ 'active fw-bold' if is_active }}" href="{{ url }}" {% if is_active %}aria-current="page"
-    {% endif %} title="{{ text }}">
-    <i class="bi {{ icon }}"></i> {{ text }}
-</a>
-{% endmacro %}
-
 {%- macro edit_form(domain, title, newtext) -%}
 <div class="card mt-3">
     <div class="card-header aligncenter" style="font-weight:bold;">

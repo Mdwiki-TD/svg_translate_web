@@ -236,18 +236,6 @@ class OwidChartsRoutes(OwidCharts):
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        """
-        self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
-        self.bp.route("/<string:template_filter>", methods=["GET"])(admin_required(self.dashboard_with_filter))
-
-        self.bp.route("/add", methods=["GET"])(admin_required(self.add_chart_popup))
-        self.bp.route("/<int:chart_id>/edit", methods=["GET"])(admin_required(self.edit_chart))
-        self.bp.route("/download-json", methods=["GET"])(admin_required(self.download_owid_charts_json))
-
-        self.bp.route("/add", methods=["POST"])(admin_required(self.add_chart))
-        self.bp.route("/update", methods=["POST"])(admin_required(self.update_chart))
-        self.bp.route("/<int:chart_id>/delete", methods=["POST"])(admin_required(self.delete_chart))
-        """
         routes = [
             ("/", "GET", self.dashboard),
             ("/<string:template_filter>", "GET", self.dashboard_with_filter),
@@ -274,6 +262,7 @@ class OwidChartsRoutes(OwidCharts):
             selected_template=template_filter,
             summary=summary,
             rows=rows,
+            show_map_and_timeline=False,
         )
 
     def dashboard_with_filter(self, template_filter: str = "") -> str:

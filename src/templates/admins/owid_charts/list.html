@@ -8,9 +8,9 @@
 <div class="card h-100 shadow-sm">
     <div class="card-body">
         <h2 class="h6 text-uppercase text-muted">{{ title }}</h2>
-        <p class="h5 mb-1 text-success" id="{{ prefix }}With">{{ data.with }}</p>
+        <p class="h5 mb-1 text-success" id="{{ prefix }}With">{{ data.with if data else "-" }}</p>
         <p class="h5 mb-0 text-secondary">
-            <span id="{{ prefix }}Without">{{ data.without }}</span>
+            <span id="{{ prefix }}Without">{{ data.without if data else "0" }}</span>
             <small class="text-muted">{{ without_label }}</small>
         </p>
     </div>
@@ -36,24 +36,23 @@
     </div>
     <div class="card-body">
         <div class="row g-3 mb-4" id="summaryCards">
-            <div class="col-md-3">
+            <div class="col-md-2 col-sm-6">
                 {{ summary_card_2('Total Charts', summary.total, id='totalCount') }}
             </div>
-            <div class="col-md-9">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        {{ summary_card("Published", "published", summary.published, without_label="not published") }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ summary_card("Template", "template", summary.template) }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ summary_card("Map Tab", "mapTab", summary.map_tab) }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ summary_card("Timeline", "timeline", summary.timeline) }}
-                    </div>
-                </div>
+            <div class="col-md-2 col-sm-6">
+                {{ summary_card("Published", "published", summary.published, without_label="not published") }}
+            </div>
+            <div class="col-md-2 col-sm-6">
+                {{ summary_card("Template", "template", summary.template) }}
+            </div>
+            <div class="col-md-2 col-sm-6">
+                {{ summary_card("Map Tab", "mapTab", summary.map_tab) }}
+            </div>
+            <div class="col-md-2 col-sm-6">
+                {{ summary_card("Source", "source", summary.source) }}
+            </div>
+            <div class="col-md-2 col-sm-6">
+                {{ summary_card("Timeline", "timeline", summary.timeline) }}
             </div>
         </div>
         <div class="card mb-2 shadow-sm">
@@ -92,9 +91,12 @@
                                 <th scope="col">#</th>
                                 <th scope="col">Grapher</th>
                                 <th scope="col">Title</th>
+                                {% if show_map_and_timeline %}
                                 <th scope="col" class="text-center">map</th>
                                 <th scope="col" class="text-center">timeline</th>
+                                {% endif %}
                                 <th scope="col" class="text-center">Years</th>
+                                <th scope="col" class="text-center">Source</th>
                                 <th scope="col">Status</th>
                                 <th scope="col">Template</th>
                                 <th scope="col">Edit</th>
@@ -105,9 +107,14 @@
                             {% for row in rows %}
                             <tr>
                                 <td> {{ loop.index }} </td>
-                                <td><a href="https://ourworldindata.org/grapher/{{ row.slug }}" target="_blank"
-                                        rel="noopener noreferrer"><code>{{ row.slug }}</code></a></td>
-                                <td>{{ row.title }}</td>
+                                <td>
+                                    <a href="https://ourworldindata.org/grapher/{{ row.slug }}" target="_blank"
+                                        rel="noopener noreferrer"><code>{{ row.slug }}</code></a>
+                                </td>
+                                <td>
+                                    {{ row.title }}
+                                </td>
+                                {% if show_map_and_timeline %}
                                 <td class="text-center">
                                     {% if row.has_map_tab %}
                                     <i class="bi bi-check-circle-fill text-success"></i>
@@ -122,6 +129,7 @@
                                     <i class="bi bi-x-circle-fill text-muted"></i>
                                     {% endif %}
                                 </td>
+                                {% endif %}
                                 <td class="text-center">
                                     {% if row.has_timeline %}
                                     {{ row.min_time }} - {{ row.max_time }}
@@ -133,6 +141,9 @@
                                     {% else %}
                                     {{ row.min_time or '' }}
                                     {% endif %}
+                                </td>
+                                <td>
+                                    {{ row.source }}
                                 </td>
                                 <td>
                                     {% if row.status_404 == 404 %}

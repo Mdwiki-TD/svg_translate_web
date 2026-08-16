@@ -6,6 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
+
 @pytest.mark.usefixtures("mock_app")
 class TestAuthRoutes:
     def test_login_redirects(self, mock_client):
@@ -44,6 +45,7 @@ class TestClientKey:
         from src.main_app.public.auth.routes import _client_key
 
         assert _client_key() == "anonymous"
+
 
 class TestLogout:
     def test_logout_clears_session(self, mock_client, monkeypatch):
