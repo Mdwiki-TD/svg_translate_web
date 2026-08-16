@@ -192,31 +192,6 @@ mypy --install-types
 autotyping --none-return src
 ```
 
-### Project Structure
-
-```
-svg_translate_web/
-├── src/
-│   ├── app/                    # Flask application
-│   │   ├── public/         # Route blueprints
-│   │   │   ├── admin/          # Admin routes
-│   │   │   ├── auth/           # Authentication routes
-│   │   │   ├── tasks/          # Task management routes
-│   │   │   ├── explorer/       # File explorer routes
-│   │   │   └── ...
-│   │   ├── db/                 # Database models and stores
-│   │   ├── users/              # User management
-│   │   └── threads/            # Background task threads
-│   ├── templates/              # Jinja2 templates
-│   ├── static/                 # Static assets (CSS, JS)
-│   └── app.py                  # WSGI entry point
-├── requirements.txt            # Python dependencies
-├── requirements-dev.txt        # Development dependencies
-├── tests/                      # Test suite
-├── docs/                       # Documentation
-└── toolforge_tool/shs/                     # Deployment scripts
-```
-
 ## Deployment
 
 ### Toolforge Deployment
@@ -229,6 +204,42 @@ cpu: 3
 mem: 6Gi
 replicas: 2
 type: python3.13
+```
+
+#### Filesystem Layout on Toolforge
+
+-   The deployed application expects the following directory structure on the Toolforge account:
+
+```
+$HOME/
+├── www/python/
+│   ├── venv/                    # Virtualenv (created by venv.sh)
+│   │   └── bin/python3         # Python interpreter
+│   └── src/                     # Application source (TARGET_DIR)
+│       ├── app.py               # WSGI entry point
+│       ├── uwsgi.ini            # uWSGI configuration
+│       ├── main_app/            # Application package
+│       ├── templates/           # Jinja2 templates
+│       ├── static/              # CSS, JS, favicon
+│       └── requirements.txt     # Copied from repo root (COPY_TO_TARGET)
+├── data/                        # Runtime data (MAIN_DIR default)
+│   ├── svg_data/                # Downloaded SVG files
+│   ├── svg_data_thumb/          # SVG thumbnails
+│   ├── logs/                    # Application logs (daily rotation in prod)
+│   ├── svg_jobs/                # Job working directories
+│   ├── main_files/              # Main file storage
+│   ├── fix_nested_data/         # Nested SVG fix data
+│   └── crop_main_files/         # Cropped file cache
+│       ├── original/
+│       └── cropped/
+├── shs/                         # Shell scripts (symlinked or copied)
+│   ├── deploy_repo.sh
+│   ├── update.sh
+│   ├── pip.sh
+│   ├── venv.sh
+│   └── run_job.sh
+├── old_repos/                   # Archived deployments (rollback target)
+└── service.template             # Webservice config (symlinked or copied)
 ```
 
 Deployment is automated via GitHub Actions when pushing to the `main` branch.
