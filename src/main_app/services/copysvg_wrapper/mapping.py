@@ -16,7 +16,7 @@ class SharedMapToJson:
         """
         Converts the dataclass instance back to its original dictionary format.
         """
-        return asdict(self)
+        return asdict(self)  # pyright: ignore[reportCallIssue]
 
 
 @dataclass

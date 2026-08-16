@@ -26,7 +26,7 @@ class FileInfo:
     size_bytes: None | int = None
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return asdict(self)  # pyright: ignore[reportCallIssue]
 
 
 @dataclass

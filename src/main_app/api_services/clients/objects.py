@@ -11,7 +11,7 @@ class RawGrapherMetadataResponse:
 @dataclass
 class SharedMapToJson:
     def to_json(self) -> dict[str, Any]:
-        return asdict(self)
+        return asdict(self)  # pyright: ignore[reportCallIssue]
 
 
 @dataclass
