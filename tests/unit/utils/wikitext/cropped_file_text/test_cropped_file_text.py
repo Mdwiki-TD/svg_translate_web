@@ -1,10 +1,10 @@
 """
-Tests for src/main_app/utils/wikitext/files_text.py
+Tests for src/main_app/utils/wikitext/cropped_file_text/utils.py
 """
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.files_text import (
+from src.main_app.utils.wikitext.cropped_file_text.utils import (
     create_cropped_file_text,
 )
 
@@ -62,17 +62,6 @@ class TestCreateCroppedFileTextEdgeTests:
         )
         assert result.count("{{Extracted from|1=Original.svg}}") == 1
 
-    def test_template_added_to_existing_other_versions_extended(self) -> None:
-        """Test that template is added to existing content."""
-        text = "{{Information|description=A cropped image|other_versions={{Extracted from| Original.svg }}}}"
-        result = create_cropped_file_text("File:Original.svg", text)
-        # The other versions parameter is added to the Information template
-        assert "|other versions=" not in result
-        assert (
-            result == "{{Information|description=A cropped image|other_versions={{Extracted from|1=Original.svg}}\n}}"
-        )
-        assert result.count("{{Extracted from|1=Original.svg}}") == 1
-
     def test_count_extracted_from(self) -> None:
         text = """{{Information
 |description={{en|1=Wheat yields, World}}
@@ -103,10 +92,22 @@ class TestCreateCroppedFileTextEdgeTests:
         assert "author=Our World In Data" in result
         assert result.count("{{Extracted from|1=Original.svg}}") == 1
 
-    def test_preserves_existing_extracted_from_entry(self) -> None:
-        """Test that author enrichment does not duplicate an existing source-file link."""
-        text = "{{Information|author=Our World In Data|other versions={{Extracted from|1=Original.svg}}}}"
+    def test_not_adding_duplicate_value(self) -> None:
+        """test not adding duplicate value."""
+        text = "{{Information|author=Our World In Data|other versions={{extracted from|1=Original.svg}}}}"
 
         result = create_cropped_file_text("Original.svg", text)
 
+        assert result.count("{{extracted from|") == 1
+        assert result.count("{{extracted from|1=Original.svg}}") == 1
+
+    def test_template_added_to_existing_other_versions_extended(self) -> None:
+        """Test that template is added to existing content."""
+        text = "{{Information|description=A cropped image|other_versions={{Extracted from| Original.svg }}}}"
+        result = create_cropped_file_text("File:Original.svg", text)
+        # The other versions parameter is added to the Information template
+        assert "|other versions=" not in result
+        assert (
+            result == "{{Information|description=A cropped image|other_versions={{Extracted from|1=Original.svg}}\n}}"
+        )
         assert result.count("{{Extracted from|1=Original.svg}}") == 1

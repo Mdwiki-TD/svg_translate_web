@@ -1,8 +1,8 @@
-"""Tests for the wikitext.other_versions module."""
+"""Tests for the wikitext.cropped_file_text.other_versions module."""
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.other_versions import add_other_versions
+from src.main_app.utils.wikitext.cropped_file_text.other_versions import add_other_versions
 
 
 class TestAddOtherVersions:
