@@ -22,6 +22,8 @@ def add_other_versions(
 
     Returns:
         The modified wikitext with the other versions parameter added
+
+    TODO: if text include `{{Extracted from| Original.svg }}` and we need to add `{{Extracted from|1=Original.svg}}`
     """
     parsed = wtp.parse(text)
     args_names = ["other versions", "other_versions"]
@@ -31,6 +33,11 @@ def add_other_versions(
             arg_found = False
             for arg in template.arguments:
                 if arg.name.strip().lower() in args_names:
+
+                    # nothing to do here
+                    if param_text.strip() in arg.value.strip():
+                        return text
+
                     new_value = arg.value.strip() + "\n" + param_text
                     arg.value = f"{new_value.strip()}\n"
                     arg_found = True

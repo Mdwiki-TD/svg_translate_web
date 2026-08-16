@@ -8,7 +8,7 @@ import logging
 import re
 
 from .before_methods import insert_before_methods
-from .other_versions import add_other_versions
+from .cropped_file_text import add_other_versions
 
 logger = logging.getLogger(__name__)
 
@@ -43,51 +43,26 @@ def append_image_extracted_template(
 
 
 def update_original_file_text(
-    cropped_file_name: str,
+    file_name: str,
     text: str,
 ) -> str:
     """
     Update the original file's wikitext to include the cropped file information.
     """
-    cropped_file_name = cropped_file_name.removeprefix("File:").replace("_", " ").strip()
-    if cropped_file_name.lower() in text.replace("_", " ").lower():
+    temp_name = "Image extracted"
+    file_name = file_name.removeprefix("File:").replace("_", " ").strip()
+    if file_name.lower() in text.replace("_", " ").lower():
         return text
 
-    other_versions_text = f"{{{{Image extracted|1={cropped_file_name}}}}}"
-    modified_text = append_image_extracted_template(cropped_file_name, text)
+    text_to_add = f"{{{{{temp_name}|1={file_name}}}}}"
+
+    modified_text = append_image_extracted_template(file_name, text)
 
     if modified_text == text:
-        modified_text = add_other_versions(other_versions_text, text)
+        modified_text = add_other_versions(text_to_add, text)
 
     if modified_text == text:
-        modified_text = insert_before_methods(text, other_versions_text)
-
-    return modified_text
-
-
-def create_cropped_file_text(
-    file_name: str,
-    text: str,
-) -> str:
-    """
-    Create wikitext for the cropped file based on the original file's wikitext.
-    Args:
-        file_name: The name of the original file
-        text: The wikitext content of the original file
-    Returns:
-        The wikitext content for the cropped file
-    """
-    # add new argment like |other versions = {{Extracted from|1=Daily meat consumption per person, World, 2022.svg}} to template {{Information}} in the wikitext
-    file_name = file_name.removeprefix("File:")
-    other_versions_text = f"{{{{Extracted from|1={file_name}}}}}"
-
-    if not text:
-        return other_versions_text
-
-    modified_text = add_other_versions(other_versions_text, text)
-
-    if modified_text == text:
-        modified_text = insert_before_methods(text, other_versions_text)
+        modified_text = insert_before_methods(text, text_to_add)
 
     return modified_text
 
@@ -95,5 +70,4 @@ def create_cropped_file_text(
 __all__ = [
     "append_image_extracted_template",
     "update_original_file_text",
-    "create_cropped_file_text",
 ]

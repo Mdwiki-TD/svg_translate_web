@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from src.main_app.utils.wikitext.files_text import (
     append_image_extracted_template,
-    create_cropped_file_text,
     update_original_file_text,
 )
 
@@ -119,42 +118,3 @@ class TestUpdateOriginalFileText:
         result = update_original_file_text("File:Test.svg", "")
         # Empty text with no templates returns empty string
         assert result == ""
-
-
-class TestCreateCroppedFileText:
-    """Tests for the create_cropped_file_text function."""
-
-    def test_add_extracted_from_template(self) -> None:
-        """Test that function adds {{Extracted from}} template."""
-        text = "{{Information|description=Test}}"
-        result = create_cropped_file_text("File:Original.svg", text)
-        assert result.count("{{Extracted from|1=Original.svg}}") == 1
-
-    def test_empty_text(self) -> None:
-        """Test with empty text returns just the template."""
-        result = create_cropped_file_text("File:Original.svg", "")
-        assert result == "{{Extracted from|1=Original.svg}}"
-
-    def test_file_prefix_removed(self) -> None:
-        """Test that 'File:' prefix is removed from file name."""
-        text = "{{Information}}"
-        result = create_cropped_file_text("File:Original.svg", text)
-        assert "Original.svg" in result
-        assert "File:Original.svg" not in result.split("|1=")[1] if "|1=" in result else True
-
-    def test_template_added_to_existing_content(self) -> None:
-        """Test that template is added to existing content."""
-        text = "{{Information|description=A cropped image}}"
-        result = create_cropped_file_text("File:Original.svg", text)
-        # The other versions parameter is added to the Information template
-        assert "|other versions=" in result
-        assert result.count("{{Extracted from|1=Original.svg}}") == 1
-
-    def test_fallback_to_insert_before_methods(self) -> None:
-        """Test fallback to insert_before_methods when add_other_versions fails (line 90)."""
-        # Text with category but no {{Information}} template - should fallback to insert_before_methods
-        text = "[[Category:Test]]"
-        result = create_cropped_file_text("File:Original.svg", text)
-        # The function should add the Extracted from template before the category
-        assert result.count("{{Extracted from|1=Original.svg}}") == 1
-        assert result.index("{{Extracted from") < result.index("[[Category:")
