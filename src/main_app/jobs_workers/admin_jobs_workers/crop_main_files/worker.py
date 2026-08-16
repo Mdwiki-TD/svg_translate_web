@@ -11,10 +11,10 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, create_commons_session, fetch_grapher_metadata_raw, is_pages_exists
+from ....api_services import MwClientPage, create_commons_session, is_pages_exists
 from ....config import settings
 from ....database.models import TemplateRecord
-from ....database.services import TemplateService
+from ....database.services import OwidChartsService, TemplateService
 from ....database.templates_utils import extract_slug
 from ....utils.wikitext import (
     create_cropped_file_text,
@@ -31,29 +31,6 @@ from .steps.download import download_file_for_cropping
 from .steps.upload import upload_cropped_file
 
 logger = logging.getLogger(__name__)
-
-
-def _extract_author_citation(metadata: dict[str, Any] | None) -> str | None:
-    """Return the first complete OWID source citation from chart metadata.
-
-    ``citationShort`` mirrors the source line displayed by OWID and includes both
-    the original data producer and its processing attribution to OWID.
-    """
-    if not isinstance(metadata, dict):
-        return None
-
-    columns = metadata.get("columns")
-    if not isinstance(columns, dict):
-        return None
-
-    for column in columns.values():
-        if not isinstance(column, dict):
-            continue
-        citation = column.get("citationShort")
-        if isinstance(citation, str) and citation.strip():
-            return citation.strip()
-
-    return None
 
 
 class CropMainFilesWorker(BaseObjectsJobWorker):
@@ -80,6 +57,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         )
 
         self.upload_limit = self.args.get("upload_limit") or 0
+        self.owid_charts_service = OwidChartsService()
 
         self.exists: dict[str, Any] = {}
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
@@ -318,7 +296,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         return True
 
     def _get_author_citation(self, template: TemplateRecord | None) -> str | None:
-        """Fetch the OWID source citation for a template, without blocking uploads on failure."""
+        """Read the OWID source citation persisted for the template's chart."""
         if template is None:
             return None
 
@@ -326,12 +304,12 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         if not slug:
             return None
 
-        metadata_response = fetch_grapher_metadata_raw(slug)
-        citation = _extract_author_citation(metadata_response.data)
-        if citation:
-            return citation
+        chart = self.owid_charts_service.get_chart_by_slug(slug)
+        source = chart.source if chart else None
+        if isinstance(source, str) and source.strip():
+            return source.strip()
 
-        logger.info("Job %s: No OWID author citation found for chart %s", self.job_id, slug)
+        logger.info("Job %s: No stored OWID author citation found for chart %s", self.job_id, slug)
         return None
 
     def _step_upload(self, file_info: CropFileProcessingInfo, template: TemplateRecord | None = None) -> bool | None:

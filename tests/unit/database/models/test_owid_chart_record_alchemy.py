@@ -89,6 +89,22 @@ def test_owid_chart_record_boolean_fields():
     assert rec.len_years is None
 
 
+def test_owid_chart_record_stores_source_citation():
+    """Test that a complete OWID citation can be stored on the chart record."""
+    source = (
+        "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+    )
+    rec = OwidChartRecord(
+        chart_id=1,
+        slug="wheat-production",
+        title="Wheat production",
+        source=source,
+    )
+
+    assert rec.source == source
+    assert rec.to_dict()["source"] == source
+
+
 def test_owid_chart_record_to_dict():
     """Test conversion to dictionary."""
     rec = OwidChartRecord(
@@ -113,6 +129,7 @@ def test_owid_chart_record_to_dict():
         "chart_id": 1,
         "slug": "health-expenditure",
         "title": "Health Expenditure",
+        "source": None,
         "has_map_tab": True,
         "max_time": 2023,
         "min_time": 2000,
@@ -154,6 +171,7 @@ def test_owid_chart_record_to_dict_with_none_values():
         "chart_id": 1,
         "slug": "health-expenditure",
         "title": "Health Expenditure",
+        "source": None,
         "has_map_tab": False,
         "max_time": None,
         "min_time": None,

@@ -6,7 +6,8 @@ For every chart in the ``owid_charts`` table:
   2. Find the first column entry that has a ``timespan`` field
      (format ``"YYYY-YYYY"`` or ``"YYYY"``)
   3. Parse ``min_time``, ``max_time``, and ``len_years`` from the timespan
-  4. If any of those three values differ from the DB record → update
+  4. Save the first column ``citationShort`` as the chart source citation
+  5. Update any values that differ from the DB record
 
 Skipped reasons:
   - ``no_timespan``  – no column with a ``timespan`` key was found in the JSON
@@ -159,10 +160,15 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
         self.result.metadata_keys.update(list(grapher_data.data.keys()))
 
-        # 2. Find a timespan
+        # 2. Read values from the first applicable metadata column.
         columns = grapher_data.data.get("columns", {})
         timespan_raw = _first_value(columns, "timespan")
         owid_variable_id = _first_value(columns, "owidVariableId")
+        citation_short = _first_value(columns, "citationShort")
+        source = citation_short.strip() if isinstance(citation_short, str) else None
+
+        if source and source != chart.source:
+            db_data["source"] = source
 
         if not timespan_raw and not owid_variable_id and not db_data:
             info.status = "skipped"

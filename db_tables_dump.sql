@@ -47,6 +47,7 @@ CREATE TABLE
     `chart_id` int (11) NOT NULL AUTO_INCREMENT,
     `slug` varchar(255) NOT NULL,
     `title` varchar(500) NOT NULL,
+    `source` varchar(2048) NOT NULL DEFAULT '',
     `has_map_tab` tinyint (1) DEFAULT 0,
     `max_time` int (11) DEFAULT NULL,
     `min_time` int (11) DEFAULT NULL,

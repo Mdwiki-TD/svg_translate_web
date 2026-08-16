@@ -13,7 +13,6 @@ from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import (
     CropFileProcessingInfo,
     CropMainFilesWorker,
-    _extract_author_citation,
 )
 from src.main_app.jobs_workers.objects import JobsRunner
 
@@ -32,7 +31,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "is_job_cancelled": MagicMock(return_value=False),
         "list": MagicMock(),
         "create_commons_session": MagicMock(),
-        "fetch_grapher_metadata_raw": MagicMock(),
+        "owid_charts_service": MagicMock(),
         "MwClientPage": MagicMock(),
         "download_file": MagicMock(),
         "crop_svg_file": MagicMock(),
@@ -45,6 +44,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "get_user_site": mock_base_worker["get_user_site"],
     }
 
+    mocks["OwidChartsService"] = MagicMock(return_value=mocks["owid_charts_service"])
     mocks["MwClientPage"].return_value.exists.return_value = False
 
     monkeypatch.setattr(
@@ -72,8 +72,8 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         mocks["MwClientPage"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.fetch_grapher_metadata_raw",
-        mocks["fetch_grapher_metadata_raw"],
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.OwidChartsService",
+        mocks["OwidChartsService"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.is_pages_exists",
@@ -113,42 +113,6 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
     )
 
     return mocks
-
-
-class TestExtractAuthorCitation:
-    """Tests for OWID metadata citation extraction."""
-
-    def test_returns_complete_column_citation(self) -> None:
-        """Test that citationShort is selected for the Commons Author field."""
-        metadata = {
-            "chart": {"citation": "Food and Agriculture Organization of the United Nations (2025)"},
-            "columns": {
-                "Wheat production": {
-                    "citationShort": "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
-                }
-            },
-        }
-
-        assert _extract_author_citation(metadata) == (
-            "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
-        )
-
-    def test_skips_blank_citations_and_uses_next_column(self) -> None:
-        """Test that unusable columns do not prevent valid attribution extraction."""
-        metadata = {
-            "columns": {
-                "First": {"citationShort": "   "},
-                "Second": {"citationShort": "United Nations (2025) – with major processing by Our World in Data"},
-            }
-        }
-
-        assert (
-            _extract_author_citation(metadata) == "United Nations (2025) – with major processing by Our World in Data"
-        )
-
-    def test_returns_none_for_missing_column_citations(self) -> None:
-        """Test that incomplete metadata results in no Author-field replacement."""
-        assert _extract_author_citation({"chart": {"citation": "Producer (2025)"}, "columns": {}}) is None
 
 
 def test_crop_main_files_worker_entry_started_at_timestamp(mock_base_worker):
@@ -571,13 +535,11 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.steps["upload_cropped"]["result"] is True
         assert processor.result.summary.uploaded == 1
 
-    def test_step_upload_passes_metadata_citation_to_wikitext_builder(self, mock_crop_services, tmp_path):
-        """Test that uploads use the complete OWID source citation as the Author value."""
+    def test_step_upload_passes_stored_source_to_wikitext_builder(self, mock_crop_services, tmp_path):
+        """Test that uploads use the citation stored for the OWID chart as the Author value."""
         citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
-        mock_crop_services["fetch_grapher_metadata_raw"].return_value = MagicMock(
-            data={"columns": {"Wheat production": {"citationShort": citation}}}
-        )
+        mock_crop_services["owid_charts_service"].get_chart_by_slug.return_value = MagicMock(source=citation)
         mock_crop_services["upload_cropped_file"].return_value = {"success": True}
 
         processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
@@ -599,7 +561,7 @@ class TestCropMainFilesProcessorSteps:
         result = processor._step_upload(file_info, template)
 
         assert result is True
-        mock_crop_services["fetch_grapher_metadata_raw"].assert_called_once_with("wheat-production")
+        mock_crop_services["owid_charts_service"].get_chart_by_slug.assert_called_once_with("wheat-production")
         mock_crop_services["create_cropped_file_text"].assert_called_once_with(
             "File:test.svg",
             "Original file text",
