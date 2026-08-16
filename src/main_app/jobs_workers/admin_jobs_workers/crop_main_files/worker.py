@@ -320,8 +320,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         author_citation = self._get_author_citation(template)
 
         cropped_file_wikitext = create_cropped_file_text(
-            file_info.original_file,
-            wikitext,
+            file_name=file_info.original_file,
+            text=wikitext,
             author_citation=author_citation,
         )
 

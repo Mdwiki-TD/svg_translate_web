@@ -563,8 +563,8 @@ class TestCropMainFilesProcessorSteps:
         assert result is True
         mock_crop_services["owid_charts_service"].get_chart_by_slug.assert_called_once_with("wheat-production")
         mock_crop_services["create_cropped_file_text"].assert_called_once_with(
-            "File:test.svg",
-            "Original file text",
+            file_name="File:test.svg",
+            text="Original file text",
             author_citation=citation,
         )
 
