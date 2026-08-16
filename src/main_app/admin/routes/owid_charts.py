@@ -262,6 +262,7 @@ class OwidChartsRoutes(OwidCharts):
             selected_template=template_filter,
             summary=summary,
             rows=rows,
+            show_map_and_timeline=False,
         )
 
     def dashboard_with_filter(self, template_filter: str = "") -> str:
