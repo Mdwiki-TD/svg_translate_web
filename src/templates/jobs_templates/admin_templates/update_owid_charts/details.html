@@ -43,13 +43,10 @@
                     <tr>
                         <th>#</th>
                         <th style="width: 30rem;">Slug</th>
-                        <!-- <th class="text-center">Old min_time</th> -->
-                        <th class="text-center">min_time</th>
-                        <!-- <th class="text-center">Old max_time</th> -->
-                        <th class="text-center">max_time</th>
-                        <!-- <th class="text-center">Old len_years</th> -->
-                        <th class="text-center">len_years</th>
-                        <th class="text-center">Owid Variable id</th>
+                        <th class="text-center">Min time</th>
+                        <th class="text-center">Max time</th>
+                        <th class="text-center">Years</th>
+                        <th class="text-center">Variable id</th>
                         <th class="text-center">Source</th>
                     </tr>
                 </thead>
@@ -65,23 +62,21 @@
                         </td>
                         {# min_time #}
                         {% set new_min_time = item.min_time.after if item.min_time else item.new_min_time %}
-                        <!-- <td class="text-center"> {{ item.old_min_time or '-' }} </td> -->
                         <td class="text-center">
                             <strong>{{ new_min_time or '-' }}</strong>
                         </td>
                         {# max_time #}
                         {% set new_max_time = item.max_time.after if item.max_time else item.new_max_time %}
-                        <!-- <td class="text-center"> {{ item.old_max_time or '-' }} </td> -->
                         <td class="text-center">
                             <strong>{{ new_max_time or '-' }}</strong>
                         </td>
                         {# len_years #}
                         {% set new_len_years = item.len_years.after if item.len_years else item.new_len_years %}
-                        <!-- <td class="text-center"> {{ item.old_len_years or '-' }} </td> -->
                         <td class="text-center">
                             <strong>{{ new_len_years or '-' }}</strong>
                         </td>
                         {# owid_variable_id #}
+                        {# We use set to match ChartUpdateInfo data vs new data from ChartNewInfo #}
                         {% set owid_variable_id = item.variable_id.after if item.variable_id else item.owid_variable_id %}
                         <td class="text-center">
                             {% if owid_variable_id %}
@@ -93,7 +88,7 @@
                             -
                             {% endif %}
                         </td>
-                        {# Source #}
+                        {# Source, source introduced in ChartNewInfo #}
                         <td class="text-center">
                             <small>{{ item.source.after if item.source else '-' }}</small>
                         </td>

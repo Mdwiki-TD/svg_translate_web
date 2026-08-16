@@ -180,7 +180,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             owid_variable_id = ensure_int(owid_variable_id)
             if owid_variable_id != chart.owid_variable_id:
                 info.variable_id.after = owid_variable_id
-                db_data.update( { "owid_variable_id": owid_variable_id } )
+                db_data.update({"owid_variable_id": owid_variable_id})
 
         if timespan_raw:
             # 3. Parse timespan
