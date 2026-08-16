@@ -9,6 +9,7 @@ import wikitextparser as wtp
 
 logger = logging.getLogger(__name__)
 
+
 def get_args(template: wtp.Template, params: list[str]) -> wtp.Argument | None:
     for arg in params:
         if template.has_arg(arg) or template.has_arg(arg.lower()):
@@ -16,6 +17,7 @@ def get_args(template: wtp.Template, params: list[str]) -> wtp.Argument | None:
             if arg_in:
                 return arg_in
     return None
+
 
 def add_other_versions_new(
     text: str,

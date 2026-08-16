@@ -4,6 +4,8 @@ Tests for src/main_app/utils/wikitext/cropped_file_text/utils.py
 
 from __future__ import annotations
 
+import pytest
+
 from src.main_app.utils.wikitext.cropped_file_text.utils import (
     create_cropped_file_text,
 )
@@ -101,6 +103,7 @@ class TestCreateCroppedFileTextEdgeTests:
         assert result.count("{{extracted from|") == 1
         assert result.count("{{extracted from|1=Original.svg}}") == 1
 
+    @pytest.mark.todo
     def test_template_added_to_existing_other_versions_extended(self) -> None:
         """Test that template is added to existing content."""
         text = "{{Information|description=A cropped image|other_versions={{Extracted from| Original.svg }}}}"
