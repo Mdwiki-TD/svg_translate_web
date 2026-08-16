@@ -103,7 +103,8 @@ def create_cropped_file_text(
     text: str,
     author_citation: str | None = None,
 ) -> str:
-    """Create cropped-file wikitext and optionally enrich its Author attribution.
+    """
+    Create cropped-file wikitext and optionally enrich its Author attribution.
 
     Args:
         file_name: The name of the original file.
@@ -120,15 +121,13 @@ def create_cropped_file_text(
     if not text:
         return other_versions_text
 
-    modified_text = update_information_author(text, author_citation)
-    if other_versions_text in modified_text:
-        return modified_text
+    modified_text = add_other_versions(other_versions_text, text)
 
-    text_with_other_versions = add_other_versions(other_versions_text, modified_text)
-    if text_with_other_versions == modified_text:
-        text_with_other_versions = insert_before_methods(modified_text, other_versions_text)
+    if modified_text == text:
+        modified_text = insert_before_methods(text, other_versions_text)
 
-    return text_with_other_versions
+    # if author_citation: modified_text = update_information_author(modified_text, author_citation)
+    return modified_text
 
 
 __all__ = [
