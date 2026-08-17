@@ -68,11 +68,26 @@ def _runner(
     flask_app: Flask,
 ) -> None:
     """
-    args=(runner_data, target_func, resolved_flask_app),
+    args=(runner_data, target_func, flask_app),
     """
     with flask_app.app_context():
         try:
             target_func(runner_data)
+        finally:
+            _pop_cancel_event(runner_data.job_id)
+
+def _runner_class(
+    runner_data: JobsRunner,
+    target_class: Any,
+    flask_app: Flask,
+) -> None:
+    """
+    args=(runner_data, target_class, flask_app),
+    """
+    with flask_app.app_context():
+        try:
+            worker = target_class(runner_data)
+            worker.run()
         finally:
             _pop_cancel_event(runner_data.job_id)
 
@@ -158,12 +173,21 @@ def _start_job_impl(
         form_data=form_data,
     )
 
-    # Start background thread
-    thread = threading.Thread(
-        target=_runner,
-        args=(runner_data, target_func, resolved_flask_app),
-        daemon=daemon,
-    )
+    if job_data.job_class:
+        # Start background thread
+        thread = threading.Thread(
+            target=_runner_class,
+            args=(runner_data, job_data.job_class, resolved_flask_app),
+            daemon=daemon,
+        )
+    else:
+        # Start background thread
+        thread = threading.Thread(
+            target=_runner,
+            args=(runner_data, target_func, resolved_flask_app),
+            daemon=daemon,
+        )
+
     thread.start()
 
     logger.info("Started background job %s for %s", job.id, job_type)
