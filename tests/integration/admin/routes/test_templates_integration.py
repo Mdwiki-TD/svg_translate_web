@@ -45,6 +45,7 @@ def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_app):
 
     svc = TemplateService()
     created = svc.add_template_data({"title": "UpdT", "main_file": "f.svg"})
+    assert created is not None
 
     resp = TemplatesRoutesFuncs()._update_template({"id": created.id, "title": "UpdT", "main_file": "f2.svg"})
     assert resp == "redirected"
@@ -52,6 +53,7 @@ def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_app):
     mock_flash.assert_called_with("Template 'UpdT' main file: f2.svg updated.", "success")
 
     updated = svc.get_template(created.id)
+    assert updated is not None
     assert updated.main_file == "f2.svg"
 
 
@@ -76,6 +78,7 @@ def test_delete_template_success(mock_url, mock_redirect, mock_flash, mock_app):
 
     svc = TemplateService()
     created = svc.add_template_data({"title": "DelT", "main_file": "f.svg"})
+    assert created is not None
 
     resp = TemplatesRoutesFuncs()._delete_template(created.id, False)
     assert resp == "redirected"
@@ -127,6 +130,7 @@ def test_edit_template_found(mock_app):
             "main_file": "Example.svg",
         }
     )
+    assert created is not None
 
     with mock_app.test_request_context():
         with patch("src.main_app.admin.routes.templates.render_template") as mock_render:
