@@ -40,7 +40,7 @@ class TestCreateCroppedFileText:
         assert result.count("{{Extracted from|1=Original.svg}}") == 1
 
     def test_fallback_to_insert_before_methods(self) -> None:
-        """Test fallback to insert_before_methods when add_other_versions fails (line 90)."""
+        """Test fallback to insert_before_methods when add_other_versions_new fails (line 90)."""
         # Text with category but no {{Information}} template - should fallback to insert_before_methods
         text = "[[Category:Test]]"
         result = create_cropped_file_text("File:Original.svg", text)

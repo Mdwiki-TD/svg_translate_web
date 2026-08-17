@@ -9,7 +9,7 @@ import wikitextparser as wtp
 logger = logging.getLogger(__name__)
 
 
-def normalize_text(text: str, case_insensitive: bool = False) -> str:
+def _normalize_text(text: str, case_insensitive: bool = False) -> str:
     result = text.replace("_", " ").strip()
     return result.lower() if case_insensitive else result
 
@@ -24,11 +24,11 @@ def _get_args(template: wtp.Template, params: list[str]) -> wtp.Argument | None:
     return None
 
 
-def get_temp_first_param(args_in_value: str, temp_name: str) -> str | None:
-    templates = wtp.WikiText(args_in_value).templates
+def get_temp_param(text: str, temp_name: str, params: list[str]) -> str | None:
+    templates = wtp.WikiText(text).templates
     temp = [x for x in templates if str(x.normal_name()).strip() == temp_name.strip()]
     if temp:
-        arg = _get_args(temp[0], ["1"])
+        arg = _get_args(temp[0], params)
         if arg:
             return str(arg.value).strip()
     return None
@@ -49,14 +49,14 @@ def _add_it(args_in_value: str, temp_name: str, first_param_valve: str) -> str:
     #   And we need to add `{{<Temp_name>|1=<first_param_valve>}}`
     new_temp = f"{args_in_value.strip()}\n{text_to_add}"
 
-    args_in_first_param = get_temp_first_param(args_in_value, temp_name)
+    args_in_first_param = get_temp_param(text=args_in_value, temp_name=temp_name, params=["1"],)
 
     # first check if <args_in_value> has template with name == <temp_name>
     if not args_in_first_param:
         return new_temp
 
     # search for <first_param_valve> in <args_in_first_param>
-    if normalize_text(args_in_first_param, True) == normalize_text(first_param_valve, True):
+    if _normalize_text(args_in_first_param, True) == _normalize_text(first_param_valve, True):
         return args_in_value
 
     return new_temp
@@ -109,52 +109,6 @@ def add_other_versions_new(
 
     return parsed.string
 
-
-def add_other_versions(
-    param_text: str,
-    text: str,
-) -> str:
-    """
-    Add |other versions = <param_text> parameter to the {{Information}} template in wikitext.
-
-    Args:
-        param_text: The text to add to the other versions parameter
-        text: The wikitext content to modify
-
-    Returns:
-        The modified wikitext with the other versions parameter added
-
-    TODO: if text include `{{Extracted from| Original.svg }}` and we need to add `{{Extracted from|1=Original.svg}}`
-    """
-    parsed = wtp.parse(text)
-    args_names = ["other versions", "other_versions"]
-    add_done = False
-    for template in parsed.templates:
-        if template.name.strip().lower() == "information":
-            args_in = _get_args(template, args_names)
-
-            # NOTE: nothing to do here, to solve test_not_adding_duplicate_value
-            if args_in and param_text.strip() in args_in.value:
-                return text
-
-            formatted_new_value = f"{param_text.strip()}\n"
-            if args_in and args_in.value.strip():
-                formatted_new_value = f"{args_in.value.strip()}\n{param_text}"
-
-            if args_in:
-                args_in.value = formatted_new_value
-                add_done = True
-            else:
-                template.set_arg("other versions", formatted_new_value)
-                add_done = True
-            break
-
-    if not add_done:
-        return text
-
-    return parsed.string
-
-
 __all__ = [
-    "add_other_versions",
+    "add_other_versions_new",
 ]
