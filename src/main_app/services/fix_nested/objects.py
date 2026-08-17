@@ -13,7 +13,7 @@ class DetectionResult:
     tags: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return asdict(self)  # pyright: ignore[reportCallIssue]
 
 
 @dataclass
@@ -23,7 +23,7 @@ class VerificationResult:
     fixed: int
 
     def to_json(self) -> dict[str, Any]:
-        return asdict(self)
+        return asdict(self)  # pyright: ignore[reportCallIssue]
 
 
 __all__ = [

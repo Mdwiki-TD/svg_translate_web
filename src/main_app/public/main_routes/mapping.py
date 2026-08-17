@@ -19,7 +19,7 @@ class DiffResult:
         return bool(self.added or self.removed or self.changed)
 
     def to_json(self) -> dict[str, Any]:
-        data = asdict(self)
+        data = asdict(self)  # pyright: ignore[reportCallIssue]
         data["has_changes"] = self.has_changes
         return data
 

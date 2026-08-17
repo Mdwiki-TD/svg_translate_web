@@ -43,7 +43,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         args = data.args or {}
 
         self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject(
-            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            job_id=self.job_id,
             args=args,
         )
 

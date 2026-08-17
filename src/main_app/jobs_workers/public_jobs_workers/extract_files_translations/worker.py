@@ -42,7 +42,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         args = data.args or {}
 
         self.result: ExtractFilesTranslationsObject = ExtractFilesTranslationsObject(
-            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            job_id=self.job_id,
             args=args,
         )
 

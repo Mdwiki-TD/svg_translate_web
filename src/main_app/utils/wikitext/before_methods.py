@@ -11,14 +11,14 @@ logger = logging.getLogger(__name__)
 
 
 def add_before(text: str, new_text: str, search_text: str) -> str:
-    res = re.search(search_text, text, flags=re.IGNORECASE | re.MULTILINE)
+    res = re.search(search_text, text, flags=re.I | re.M)
     if res:
         start = res.start()
         text = text[:start].rstrip() + "\n" + new_text + "\n\n" + text[start:].lstrip()
     return text
 
 
-def insert_before_methods(text: str, other_versions_text):
+def insert_before_methods(text: str, other_versions_text: str) -> str:
     # Try to add before the license header
     modified_text = add_before(text, other_versions_text, r"==\s*\{\{\s*int:license-header\s*\}\}\s*==")
 

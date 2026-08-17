@@ -68,7 +68,7 @@ def _runner(
     flask_app: Flask,
 ) -> None:
     """
-    args=(job.id, user, cancel_event, target_func, flask_app, args, form_data),
+    args=(runner_data, target_func, resolved_flask_app),
     """
     with flask_app.app_context():
         try:

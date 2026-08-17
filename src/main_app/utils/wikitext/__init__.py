@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from .before_methods import insert_before_methods
 from .categories_utils import merge_categories, sort_categories
-from .files_text import append_image_extracted_template, create_cropped_file_text, update_original_file_text
-from .other_versions import add_other_versions
+from .cropped_file_text import create_cropped_file_text
+from .files_text import append_image_extracted_template, update_original_file_text
 from .owid_sliders_rcs import (
     find_main_title,
     find_newest_world_file,
@@ -33,7 +33,6 @@ __all__ = [
     "sort_categories",
     "find_template_source",
     "insert_before_methods",
-    "add_other_versions",
     "update_original_file_text",
     "create_cropped_file_text",
     "update_template_page_file_reference",

@@ -44,7 +44,7 @@ class ChartNewInfo:
     # —————————————————————————
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return asdict(self)  # pyright: ignore[reportCallIssue]
 
     @classmethod
     def from_chart(cls, chart: OwidChartRecord) -> ChartNewInfo:

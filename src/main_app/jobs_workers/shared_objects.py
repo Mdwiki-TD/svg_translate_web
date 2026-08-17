@@ -16,7 +16,7 @@ class SharedMapToJson:
         """
         Converts the dataclass instance back to its original dictionary format.
         """
-        return asdict(self)
+        return asdict(self)  # pyright: ignore[reportCallIssue]
 
 
 @dataclass(frozen=True)
@@ -31,7 +31,7 @@ class UpdaterOutcome:
         """
         Converts the dataclass instance back to its original dictionary format.
         """
-        return asdict(self)
+        return asdict(self)  # pyright: ignore[reportCallIssue]
 
 
 @dataclass
@@ -69,6 +69,16 @@ class WorkerObject(SharedMapToJson):
 
     error: str | None = None
     error_type: str | None = None
+
+    # ------------------------------------------------------------------
+    # Factory helpers
+    # ------------------------------------------------------------------
+    @classmethod
+    def from_start(cls, job_id: int, args: dict[str, Any]) -> Any:
+        return cls(
+            job_id=job_id,
+            args=args,
+        )
 
 
 @dataclass

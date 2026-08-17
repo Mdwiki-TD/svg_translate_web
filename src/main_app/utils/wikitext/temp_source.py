@@ -28,7 +28,7 @@ def _find_template_source_2(wikitext: str) -> str:
 
     pattern2 = re.compile(
         r"^\s*\*\s*(?P<url>https?://(?:www\.)?ourworldindata\.org(?:/[^\s]*)?)",
-        flags=re.MULTILINE | re.IGNORECASE,
+        flags=re.M | re.I,
     )
 
     match = pattern2.search(wikitext)
@@ -59,7 +59,7 @@ def _find_template_source(wikitext: str) -> str:
 
     pattern = re.compile(
         r"^\s*\*'''Source''':\s+(?P<url>https?://(?:www\.)?ourworldindata\.org(?:/[^\s]*)?)",
-        flags=re.MULTILINE | re.IGNORECASE,
+        flags=re.M | re.I,
     )
 
     match = pattern.search(wikitext)

@@ -38,7 +38,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         self.args = data.args or {}
 
         self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject(
-            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            job_id=self.job_id,
             args=self.args,
         )
 

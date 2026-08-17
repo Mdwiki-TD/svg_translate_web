@@ -75,7 +75,7 @@ class FilesProcessedItem:
     is_mapping_merged: bool = False
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return asdict(self)  # pyright: ignore[reportCallIssue]
 
 
 @dataclass
@@ -100,7 +100,7 @@ class ExtractFilesTranslationsObject(WorkerObject):
         Converts the dataclass instance back to its original dictionary format.
         """
 
-        return asdict(self)
+        return asdict(self)  # pyright: ignore[reportCallIssue]
 
 
 __all__ = [

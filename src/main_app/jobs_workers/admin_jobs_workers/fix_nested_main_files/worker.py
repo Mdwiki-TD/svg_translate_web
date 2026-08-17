@@ -36,7 +36,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         self.args = data.args or {}
 
         self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject(
-            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            job_id=self.job_id,
             args=self.args,
         )
         self.site: Site | None = None

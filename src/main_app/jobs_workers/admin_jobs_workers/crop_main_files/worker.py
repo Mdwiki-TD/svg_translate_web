@@ -51,7 +51,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         self.args = data.args or {}
         self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject(
-            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            job_id=self.job_id,
             args=self.args,
         )
 
