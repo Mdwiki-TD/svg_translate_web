@@ -14,6 +14,24 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class FileStep:
+    result: Any = None
+    msg: str = ""
+    newrevid: int | None = None
+
+
+@dataclass
+class CropFileSteps:
+    download: FileStep = field(default_factory=FileStep)
+    crop: FileStep = field(default_factory=FileStep)
+    upload_cropped: FileStep = field(default_factory=FileStep)
+    update_original: FileStep = field(default_factory=FileStep)
+    update_template: FileStep = field(default_factory=FileStep)
+    update_page: FileStep = field(default_factory=FileStep)
+    update_cropped: FileStep = field(default_factory=FileStep)
+
+
+@dataclass
 class CropFileProcessingInfo:
     """Holds all state for a single file being processed."""
 
@@ -26,17 +44,7 @@ class CropFileProcessingInfo:
     error: str | None = None
     downloaded_path: Path | None = None
     cropped_path: Path | None = None
-    steps: dict[str, dict[str, Any]] = field(
-        default_factory=lambda: {
-            "download": {"result": None, "msg": ""},
-            "crop": {"result": None, "msg": ""},
-            "upload_cropped": {"result": None, "msg": ""},
-            "update_original": {"result": None, "msg": ""},
-            "update_template": {"result": None, "msg": ""},
-            "update_page": {"result": None, "msg": ""},
-            "update_cropped": {"result": None, "msg": ""},
-        }
-    )
+    steps: CropFileSteps = field(default_factory=CropFileSteps)
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
@@ -74,6 +82,8 @@ class CropMainFilesWorkerObject(StandardAdminWorkerObject):
 
 
 __all__ = [
+    "FileStep",
+    "CropFileSteps",
     "CropFileProcessingInfo",
     "CropMainFilesSummary",
     "CropMainFilesWorkerObject",

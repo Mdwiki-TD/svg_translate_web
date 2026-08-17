@@ -25,7 +25,7 @@ from ....utils.wikitext import (
 from ....utils.wikitext.cropped_file_text.utils import update_information_author
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject
+from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject, FileStep
 from .steps.crop_file import crop_svg_file
 from .steps.crop_utils import generate_cropped_filename
 from .steps.download import download_file_for_cropping
@@ -162,7 +162,16 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
                 return True
             else:
                 # if all file_info.steps "result" is None do:
-                if all(step["result"] is None for step in file_info.steps.values()):
+                all_steps = (
+                    file_info.steps.download,
+                    file_info.steps.crop,
+                    file_info.steps.upload_cropped,
+                    file_info.steps.update_original,
+                    file_info.steps.update_template,
+                    file_info.steps.update_page,
+                    file_info.steps.update_cropped,
+                )
+                if all(step.result is None for step in all_steps):
                     file_info.status = "skipped"
                     self.result.summary.skipped += 1
 
@@ -230,7 +239,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         updated2 = self._step_update_page_reference(
             file_info,
             file_info.template_title,
-            "update_template",
+            file_info.steps.update_template,
         )
 
         # Step 6 - Update corresponding content page
@@ -239,10 +248,10 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             updated3 = self._step_update_page_reference(
                 file_info,
                 template_title[9:],
-                "update_page",
+                file_info.steps.update_page,
             )
         else:
-            self._skip_step(file_info, "update_page", "Skipped - title does not start with Template:")
+            self._skip_step(file_info.steps.update_page, "Skipped - title does not start with Template:")
             updated3 = False
 
         # Step 7 - Update the existing cropped file description with its stored OWID source citation.
@@ -266,18 +275,19 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         except Exception as exc:
             error_msg = f"{type(exc).__name__}: {exc}"
             logger.exception("Job %s: Exception downloading %s", self.job_id, template.last_world_file)
-            self._fail(file_info, "download", error_msg)
+            self._fail(file_info, file_info.steps.download, error_msg)
             return False
 
         if download_result["success"]:
             downloaded_path = download_result["path"]
-            file_info.steps["download"] = {"result": True, "msg": f"Downloaded to {downloaded_path}"}
+            file_info.steps.download.result = True
+            file_info.steps.download.msg = f"Downloaded to {downloaded_path}"
             file_info.downloaded_path = downloaded_path
             return True
 
         error_msg = download_result.get("error", "Unknown download error")
         logger.warning("Job %s: Failed to download %s", self.job_id, template.last_world_file)
-        self._fail(file_info, "download", error_msg)
+        self._fail(file_info, file_info.steps.download, error_msg)
         return False
 
     def _step_crop(
@@ -292,10 +302,11 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         if not crop_result["success"]:
             error_msg = crop_result.get("error", "Unknown crop error")
             logger.warning("Job %s: Failed to crop %s", self.job_id, template.last_world_file)
-            self._fail(file_info, "crop", error_msg)
+            self._fail(file_info, file_info.steps.crop, error_msg)
             return False
 
-        file_info.steps["crop"] = {"result": True, "msg": f"Cropped to {cropped_path}"}
+        file_info.steps.crop.result = True
+        file_info.steps.crop.msg = f"Cropped to {cropped_path}"
         file_info.cropped_path = cropped_path
         self.result.summary.cropped += 1
         return True
@@ -343,7 +354,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
                 self.job_id,
                 file_info.cropped_filename,
             )
-            self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
+            self._skip_step(file_info.steps.upload_cropped, "Skipped - file already exists on Commons")
             file_info.status = "skipped"
             self.result.summary.skipped += 1
             # Still continue to wikitext updates even if file existed
@@ -351,7 +362,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         if upload_result["success"]:
             logger.info("Job %s: Successfully uploaded %s", self.job_id, file_info.cropped_filename)
-            file_info.steps["upload_cropped"] = {"result": True, "msg": f"Uploaded as {file_info.cropped_filename}"}
+            file_info.steps.upload_cropped.result = True
+            file_info.steps.upload_cropped.msg = f"Uploaded as {file_info.cropped_filename}"
             file_info.status = "uploaded"
             self.result.summary.uploaded += 1
             return True
@@ -359,12 +371,12 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         error = upload_result.get("error", "Unknown upload error")
         logger.warning("Job %s: Failed to upload %s", self.job_id, file_info.cropped_filename)
 
-        self._skip_step(file_info, "update_original", "Skipped - upload failed")
-        self._skip_step(file_info, "update_template", "Skipped - upload was not successful")
-        self._skip_step(file_info, "update_page", "Skipped - upload was not successful")
-        self._skip_step(file_info, "update_cropped", "Skipped - upload was not successful")
+        self._skip_step(file_info.steps.update_original, "Skipped - upload failed")
+        self._skip_step(file_info.steps.update_template, "Skipped - upload was not successful")
+        self._skip_step(file_info.steps.update_page, "Skipped - upload was not successful")
+        self._skip_step(file_info.steps.update_cropped, "Skipped - upload was not successful")
 
-        self._fail(file_info, "upload_cropped", error)
+        self._fail(file_info, file_info.steps.upload_cropped, error)
         file_info.cropped_filename = ""
         return False
 
@@ -378,7 +390,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         if wikitext == updated_text:
             logger.info("Job %s: No update needed for original file text of %s", self.job_id, file_info.original_file)
-            file_info.steps["update_original"] = {"result": None, "msg": "No update needed"}
+            file_info.steps.update_original.result = None
+            file_info.steps.update_original.msg = "No update needed"
             return False
 
         update_result = original_page.edit(
@@ -387,11 +400,9 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         )
 
         if update_result["success"]:
-            file_info.steps["update_original"] = {
-                "result": True,
-                "msg": "Updated original file wikitext",
-                "newrevid": update_result.get("newrevid", 0),
-            }
+            file_info.steps.update_original.result = True
+            file_info.steps.update_original.msg = "Updated original file wikitext"
+            file_info.steps.update_original.newrevid = update_result.get("newrevid", 0)
             return True
 
         error = update_result.get("error", "Unknown error")
@@ -401,8 +412,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             file_info.original_file,
             error,
         )
-        # self._fail(file_info, "update_original", error)
-        file_info.steps["update_original"] = {"result": False, "msg": error}
+        file_info.steps.update_original.result = False
+        file_info.steps.update_original.msg = error
         return False
 
     def _step_update_cropped(self, file_info: CropFileProcessingInfo, template: TemplateRecord | None) -> bool:
@@ -412,10 +423,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         cropped_file_wikitext = cropped_page.get_text()
 
         if not cropped_file_wikitext:
-            file_info.steps["update_cropped"] = {
-                "result": False,
-                "msg": f"Empty cropped file text: {cropped_file_name}",
-            }
+            file_info.steps.update_cropped.result = False
+            file_info.steps.update_cropped.msg = f"Empty cropped file text: {cropped_file_name}"
             return False
 
         author_citation = self._get_author_citation(template)
@@ -425,7 +434,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         )
         if new_wikitext == cropped_file_wikitext:
             logger.info("Job %s: No cropped file update needed for %s", self.job_id, cropped_file_name)
-            file_info.steps["update_cropped"] = {"result": None, "msg": "No update needed"}
+            file_info.steps.update_cropped.result = None
+            file_info.steps.update_cropped.msg = "No update needed"
             return False
 
         update_result = cropped_page.edit(
@@ -433,11 +443,9 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             summary="Update cropped file author attribution from OWID source",
         )
         if update_result.get("success"):
-            file_info.steps["update_cropped"] = {
-                "result": True,
-                "msg": "Updated cropped file wikitext",
-                "newrevid": update_result.get("newrevid", 0),
-            }
+            file_info.steps.update_cropped.result = True
+            file_info.steps.update_cropped.msg = "Updated cropped file wikitext"
+            file_info.steps.update_cropped.newrevid = update_result.get("newrevid", 0)
             return True
 
         error = update_result.get("error", "Unknown error")
@@ -447,14 +455,15 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             cropped_file_name,
             error,
         )
-        file_info.steps["update_cropped"] = {"result": False, "msg": error}
+        file_info.steps.update_cropped.result = False
+        file_info.steps.update_cropped.msg = error
         return False
 
     def _step_update_page_reference(
         self,
         file_info: CropFileProcessingInfo,
         page_title: str,
-        step_name: str,
+        step_obj: FileStep,
     ) -> bool:
         """Update a page to reference the cropped file."""
 
@@ -462,20 +471,16 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         if not page.exists():
             logger.warning("Job %s: Page does not exist: %s", self.job_id, page_title)
-            file_info.steps[step_name] = {
-                "result": None,
-                "msg": f"Page does not exist: {page_title}",
-            }
+            step_obj.result = None
+            step_obj.msg = f"Page does not exist: {page_title}"
             return False
 
         page_text = page.get_text()
 
         if not page_text:
             logger.warning("Job %s: Empty page text for %s", self.job_id, page_title)
-            file_info.steps[step_name] = {
-                "result": False,
-                "msg": f"Empty page text: {page_title}",
-            }
+            step_obj.result = False
+            step_obj.msg = f"Empty page text: {page_title}"
             return False
 
         updated_text = update_template_page_file_reference(
@@ -486,10 +491,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         if page_text == updated_text:
             logger.info("Job %s: No update needed for page %s", self.job_id, page_title)
-            file_info.steps[step_name] = {
-                "result": None,
-                "msg": "No update needed",
-            }
+            step_obj.result = None
+            step_obj.msg = "No update needed"
             return False
 
         summary = f"Update file reference to [[File:{file_info.cropped_filename.removeprefix('File:')}]]"
@@ -497,21 +500,17 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         update_result = page.edit(updated_text, summary)
 
         if update_result.get("success"):
-            file_info.steps[step_name] = {
-                "result": True,
-                "msg": f"Updated page {page_title}",
-                "newrevid": update_result.get("newrevid", 0),
-            }
+            step_obj.result = True
+            step_obj.msg = f"Updated page {page_title}"
+            step_obj.newrevid = update_result.get("newrevid", 0)
             return True
 
         error = update_result.get("error", "Unknown error")
 
         logger.warning("Job %s: Failed to update page %s (reason: %s)", self.job_id, page_title, error)
 
-        file_info.steps[step_name] = {
-            "result": False,
-            "msg": f"Failed to update page {page_title}: {error}",
-        }
+        step_obj.result = False
+        step_obj.msg = f"Failed to update page {page_title}: {error}"
 
         return False
 
@@ -520,24 +519,29 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
 
     def _skip_process(self, file_info: CropFileProcessingInfo) -> None:
-        self._skip_step(file_info, "download", "Skipped - file already exists on Commons")
-        self._skip_step(file_info, "crop", "Skipped - file already exists on Commons")
-        self._skip_step(file_info, "upload_cropped", "Skipped - file already exists on Commons")
+        self._skip_step(file_info.steps.download, "Skipped - file already exists on Commons")
+        self._skip_step(file_info.steps.crop, "Skipped - file already exists on Commons")
+        self._skip_step(file_info.steps.upload_cropped, "Skipped - file already exists on Commons")
 
-    def _fail(self, file_info: CropFileProcessingInfo, step: str, error: str) -> None:
+    def _fail(self, file_info: CropFileProcessingInfo, step_obj: FileStep, error: str) -> None:
         """Mark a step and the file as failed, and increment the summary counter."""
-        file_info.steps[step] = {"result": False, "msg": error}
+        step_obj.result = False
+        step_obj.msg = error
         file_info.status = "failed"
         file_info.error = error
         self.result.summary.failed += 1
 
-    def _skip_step(self, file_info: CropFileProcessingInfo, step: str, reason: str) -> None:
+    def _skip_step(self, step_obj: FileStep, reason: str) -> None:
         """Mark a step as skipped (result=None)."""
-        file_info.steps[step] = {"result": None, "msg": reason}
+        step_obj.result = None
+        step_obj.msg = reason
 
     def _skip_upload_steps(self, file_info: CropFileProcessingInfo) -> None:
-        for step in ("upload_cropped", "update_original", "update_template", "update_page", "update_cropped"):
-            self._skip_step(file_info, step, "Skipped - upload disabled")
+        self._skip_step(file_info.steps.upload_cropped, "Skipped - upload disabled")
+        self._skip_step(file_info.steps.update_original, "Skipped - upload disabled")
+        self._skip_step(file_info.steps.update_template, "Skipped - upload disabled")
+        self._skip_step(file_info.steps.update_page, "Skipped - upload disabled")
+        self._skip_step(file_info.steps.update_cropped, "Skipped - upload disabled")
         file_info.status = "skipped"
         self.result.summary.skipped += 1
         logger.info("Job %s: Skipped upload for %s (upload disabled)", self.job_id, file_info.cropped_filename)

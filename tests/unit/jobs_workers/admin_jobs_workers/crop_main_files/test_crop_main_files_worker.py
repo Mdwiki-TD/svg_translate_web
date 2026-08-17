@@ -215,11 +215,11 @@ class TestFileProcessingInfo:
         assert info.error is None
         assert info.downloaded_path is None
         assert info.cropped_path is None
-        assert "download" in info.steps
-        assert "crop" in info.steps
-        assert "upload_cropped" in info.steps
-        assert "update_page" in info.steps
-        assert "update_cropped" in info.steps
+        assert hasattr(info.steps, "download")
+        assert hasattr(info.steps, "crop")
+        assert hasattr(info.steps, "upload_cropped")
+        assert hasattr(info.steps, "update_page")
+        assert hasattr(info.steps, "update_cropped")
 
     def test_to_dict(self, tmp_path):
         """Test to_dict serialization."""
@@ -233,7 +233,8 @@ class TestFileProcessingInfo:
             downloaded_path=Path(tmp_path / "test.svg"),
             cropped_path=Path(tmp_path / "test_cropped.svg"),
         )
-        info.steps["download"] = {"result": True, "msg": "Downloaded"}
+        info.steps.download.result = True
+        info.steps.download.msg = "Downloaded"
 
         result = info.to_dict()
 
@@ -401,7 +402,7 @@ class TestCropMainFilesProcessorSteps:
 
         assert result is True
         assert str(file_info.downloaded_path) == str(tmp_path / "test.svg")
-        assert file_info.steps["download"]["result"] is True
+        assert file_info.steps.download.result is True
         assert processor.result.summary.processed == 0  # processed is now under _process_one_item
 
     def test_step_download_failure(self, mock_crop_services):
@@ -427,8 +428,8 @@ class TestCropMainFilesProcessorSteps:
 
         assert result is False
         assert file_info.status == "failed"
-        assert file_info.steps["download"]["result"] is False
-        assert "Network error" in file_info.steps["download"]["msg"]
+        assert file_info.steps.download.result is False
+        assert "Network error" in file_info.steps.download.msg
         assert processor.result.summary.failed == 1
 
     def test_step_download_exception(self, mock_crop_services):
@@ -454,7 +455,7 @@ class TestCropMainFilesProcessorSteps:
 
         assert result is False
         assert file_info.status == "failed"
-        assert "ConnectionError" in file_info.steps["download"]["msg"]
+        assert "ConnectionError" in file_info.steps.download.msg
 
     def test_step_crop_success(self, mock_crop_services, tmp_path):
         """Test _step_crop with successful crop."""
@@ -481,7 +482,7 @@ class TestCropMainFilesProcessorSteps:
 
         assert result is True
         assert file_info.cropped_path == cropped_output_path
-        assert file_info.steps["crop"]["result"] is True
+        assert file_info.steps.crop.result is True
         assert processor.result.summary.cropped == 1
 
     def test_step_crop_failure(self, mock_crop_services, tmp_path):
@@ -509,8 +510,8 @@ class TestCropMainFilesProcessorSteps:
 
         assert result is False
         assert file_info.status == "failed"
-        assert file_info.steps["crop"]["result"] is False
-        assert "Invalid SVG" in file_info.steps["crop"]["msg"]
+        assert file_info.steps.crop.result is False
+        assert "Invalid SVG" in file_info.steps.crop.msg
         assert processor.result.summary.failed == 1
 
     def test_step_upload_success(self, mock_crop_services, tmp_path):
@@ -538,7 +539,7 @@ class TestCropMainFilesProcessorSteps:
 
         assert result is True
         assert file_info.status == "uploaded"
-        assert file_info.steps["upload_cropped"]["result"] is True
+        assert file_info.steps.upload_cropped.result is True
         assert processor.result.summary.uploaded == 1
 
     def test_step_upload_passes_stored_source_to_wikitext_builder(self, mock_crop_services, tmp_path):
@@ -651,8 +652,8 @@ class TestCropMainFilesProcessorSteps:
 
         processor._step_update_original(file_info)
 
-        assert file_info.steps["update_original"]["result"] is None
-        assert file_info.steps["update_original"]["msg"] == "No update needed"
+        assert file_info.steps.update_original.result is None
+        assert file_info.steps.update_original.msg == "No update needed"
         mock_crop_services["MwClientPage"].return_value.edit.assert_not_called()
 
     def test_step_update_original_with_update(self, mock_crop_services):
@@ -678,7 +679,7 @@ class TestCropMainFilesProcessorSteps:
 
         processor._step_update_original(file_info)
 
-        assert file_info.steps["update_original"]["result"] is True
+        assert file_info.steps.update_original.result is True
         mock_crop_services["MwClientPage"].return_value.edit.assert_called_once()
 
     def test_step_update_original_update_fails(self, mock_crop_services):
@@ -704,8 +705,8 @@ class TestCropMainFilesProcessorSteps:
 
         processor._step_update_original(file_info)
 
-        assert file_info.steps["update_original"]["result"] is False
-        assert "Edit conflict" in file_info.steps["update_original"]["msg"]
+        assert file_info.steps.update_original.result is False
+        assert "Edit conflict" in file_info.steps.update_original.msg
 
     def test_step_update_cropped_no_change(self, mock_crop_services):
         """Test that unchanged cropped-file text is reported without an edit."""
@@ -731,7 +732,8 @@ class TestCropMainFilesProcessorSteps:
         result = processor._step_update_cropped(file_info, template)
 
         assert result is False
-        assert file_info.steps["update_cropped"] == {"result": None, "msg": "No update needed"}
+        assert file_info.steps.update_cropped.result is None
+        assert file_info.steps.update_cropped.msg == "No update needed"
         mock_crop_services["update_information_author"].assert_called_once_with(
             text="Cropped file text",
             author_citation=citation,
@@ -765,8 +767,8 @@ class TestCropMainFilesProcessorSteps:
         result = processor._step_update_cropped(file_info, template)
 
         assert result is True
-        assert file_info.steps["update_cropped"]["result"] is True
-        assert file_info.steps["update_cropped"]["newrevid"] == 42
+        assert file_info.steps.update_cropped.result is True
+        assert file_info.steps.update_cropped.newrevid == 42
         mock_crop_services["MwClientPage"].return_value.edit.assert_called_once_with(
             "Updated cropped file text",
             summary="Update cropped file author attribution from OWID source",
@@ -798,7 +800,8 @@ class TestCropMainFilesProcessorSteps:
         result = processor._step_update_cropped(file_info, template)
 
         assert result is False
-        assert file_info.steps["update_cropped"] == {"result": False, "msg": "Edit conflict"}
+        assert file_info.steps.update_cropped.result is False
+        assert file_info.steps.update_cropped.msg == "Edit conflict"
 
     def test_step_update_page_reference_no_change(self, mock_crop_services):
         """Test _step_update_page_reference when no update is needed."""
@@ -821,10 +824,10 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_page_reference(file_info, "Template:Test", "update_template")
+        processor._step_update_page_reference(file_info, "Template:Test", file_info.steps.update_template)
 
-        assert file_info.steps["update_template"]["result"] is None
-        assert file_info.steps["update_template"]["msg"] == "No update needed"
+        assert file_info.steps.update_template.result is None
+        assert file_info.steps.update_template.msg == "No update needed"
         mock_crop_services["MwClientPage"].return_value.edit.assert_not_called()
 
     def test_step_update_page_reference_with_update(self, mock_crop_services):
@@ -849,9 +852,9 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_page_reference(file_info, "Template:Test", "update_template")
+        processor._step_update_page_reference(file_info, "Template:Test", file_info.steps.update_template)
 
-        assert file_info.steps["update_template"]["result"] is True
+        assert file_info.steps.update_template.result is True
         mock_crop_services["MwClientPage"].return_value.edit.assert_called_once()
 
 
@@ -875,11 +878,11 @@ class TestCropMainFilesProcessorHelpers:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._fail(file_info, "download", "Download failed")
+        processor._fail(file_info, file_info.steps.download, "Download failed")
 
         assert file_info.status == "failed"
         assert file_info.error == "Download failed"
-        assert file_info.steps["download"]["result"] is False
+        assert file_info.steps.download.result is False
         assert processor.result.summary.failed == 1
 
     def test_skip_step_updates_step_status(self, mock_crop_services):
@@ -899,10 +902,10 @@ class TestCropMainFilesProcessorHelpers:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._skip_step(file_info, "upload_cropped", "Already exists")
+        processor._skip_step(file_info.steps.upload_cropped, "Already exists")
 
-        assert file_info.steps["upload_cropped"]["result"] is None
-        assert file_info.steps["upload_cropped"]["msg"] == "Already exists"
+        assert file_info.steps.upload_cropped.result is None
+        assert file_info.steps.upload_cropped.msg == "Already exists"
 
     def test_skip_upload_steps(self, mock_crop_services):
         """Test _skip_upload_steps marks upload steps as skipped."""
@@ -924,11 +927,11 @@ class TestCropMainFilesProcessorHelpers:
         processor._skip_upload_steps(file_info)
 
         assert file_info.status == "skipped"
-        assert file_info.steps["upload_cropped"]["result"] is None
-        assert file_info.steps["update_original"]["result"] is None
-        assert file_info.steps["update_template"]["result"] is None
-        assert file_info.steps["update_page"]["result"] is None
-        assert file_info.steps["update_cropped"]["result"] is None
+        assert file_info.steps.upload_cropped.result is None
+        assert file_info.steps.update_original.result is None
+        assert file_info.steps.update_template.result is None
+        assert file_info.steps.update_page.result is None
+        assert file_info.steps.update_cropped.result is None
         assert processor.result.summary.skipped == 1
         assert file_info.cropped_filename == ""
 
