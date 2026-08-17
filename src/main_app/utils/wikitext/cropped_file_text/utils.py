@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 
 from ..before_methods import insert_before_methods
-from .other_versions import add_other_versions
+from .other_versions import add_other_versions_new
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,13 @@ def create_cropped_file_text(
     if not text or not text.strip():
         return text_to_add
 
-    modified_text = add_other_versions(text_to_add, text)
+    modified_text = add_other_versions_new(
+        text=text,
+        temp_name=temp_name,
+        first_param_valve=file_name,
+        main_template_name="Information",
+        main_template_args=["other versions", "other_versions"],
+    )
 
     if modified_text == text:
         modified_text = insert_before_methods(text, text_to_add)

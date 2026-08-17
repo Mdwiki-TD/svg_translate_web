@@ -44,8 +44,7 @@ class TestExtractSvgFileName:
         wikitext = """
 {{owidslider
 |start = 2021
-|file = [[File:test.svg|link=|thumb|upright=1.6|test]]
-}}
+|file = [[File:test.svg|link=|thumb|upright=1.6|test]]\n}}
 *'''Source''': https://ourworldindata.org/grapher/test
 *'''Translate''': https://svgtranslate.toolforge.org/File:my_chart.svg
 {{-}}

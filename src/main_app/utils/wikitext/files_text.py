@@ -8,7 +8,7 @@ import logging
 import re
 
 from .before_methods import insert_before_methods
-from .cropped_file_text import add_other_versions
+from .cropped_file_text import add_other_versions_new
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,13 @@ def update_original_file_text(
     modified_text = append_image_extracted_template(file_name, text)
 
     if modified_text == text:
-        modified_text = add_other_versions(text_to_add, text)
+        modified_text = add_other_versions_new(
+            text=text,
+            temp_name=temp_name,
+            first_param_valve=file_name,
+            main_template_name="Information",
+            main_template_args=["other versions", "other_versions"],
+        )
 
     if modified_text == text:
         modified_text = insert_before_methods(text, text_to_add)

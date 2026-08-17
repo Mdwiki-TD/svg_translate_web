@@ -10,18 +10,7 @@ class TestInsertBeforeMethods:
 
     def test_insert_before_license_header(self):
         """Test inserting before the license header."""
-        text_input = """== {{int:license-header}} ==
-{{Information
-|description={{en|1=Some description}}
-|author = Test Author
-}}"""
-        text_output = """
-== New Section ==
-
-== {{int:license-header}} ==
-{{Information
-|description={{en|1=Some description}}
-|author = Test Author
-}}"""
+        text_input = """== {{int:license-header}} ==\n{{Information\n|description={{en|1=Some description}}\n|author = Test Author\n}}"""
+        text_output = """\n== New Section ==\n\n== {{int:license-header}} ==\n{{Information\n|description={{en|1=Some description}}\n|author = Test Author\n}}"""
         result = insert_before_methods(text_input, "== New Section ==")
         assert result == text_output

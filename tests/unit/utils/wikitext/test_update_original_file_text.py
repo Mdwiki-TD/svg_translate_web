@@ -9,7 +9,7 @@ class TestUpdateOriginalFileText:
     """Tests for the update_original_file_text function."""
 
     def testupdate_original_file_text_versions2(self):
-        oldText = """
+        old_text = """
 == {{int:filedesc}} ==
 
 {{Information
@@ -35,7 +35,7 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
 
 [[Category:Essar Steel Algoma]]"""
 
-        newText = """
+        new_text = """
 == {{int:filedesc}} ==
 
 {{Information
@@ -53,16 +53,15 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
  |source = {{own assumed}}
  |author = {{Author assumed|[[User:Fungus Guy|Fungus Guy]]}}
  |permission =
- |other_versions ={{Image extracted|1=My new file.jpg}}
-}}
+ |other_versions ={{Image extracted|1=My new file.jpg}}}}
 
 == {{int:license-header}} ==
 {{Self|PD-self|author=Fungus Guy}}
 
 [[Category:Essar Steel Algoma]]"""
 
-        result = update_original_file_text("My new file.jpg", oldText)
-        assert result == newText
+        result = update_original_file_text("My new file.jpg", old_text)
+        assert result == new_text
 
     def testnotduplicateinsert(self):
         oldText = """
