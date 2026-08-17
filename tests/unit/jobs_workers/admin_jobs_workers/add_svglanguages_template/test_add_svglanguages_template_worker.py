@@ -54,6 +54,7 @@ def mock_add_svglanguages_services(monkeypatch: pytest.MonkeyPatch, mock_base_wo
     )
     return mocks
 
+
 # ── Test classes ─────────────────────────────────────────────────────────────
 
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from flask import Flask, current_app
 
@@ -61,6 +61,7 @@ def _load_job_args(job_args: list[dict[str, str]]) -> dict:
             _args[key_as] = arg_value
 
     return _args
+
 
 def _runner(
     runner_data: JobsRunner,

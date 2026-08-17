@@ -395,9 +395,7 @@ def test_download_main_files_for_templates_args_defaults_to_none(mock_path, mock
     """Test entry point works with default args."""
     mock_download_main_services.list.return_value = []
 
-    worker = DownloadMainFilesWorker(
-        JobsRunner( job_id=99, user={} )
-    )
+    worker = DownloadMainFilesWorker(JobsRunner(job_id=99, user={}))
     worker.run()
 
 

@@ -26,6 +26,7 @@ def flask_app():
     app = Flask(__name__)
     return app
 
+
 @pytest.fixture
 def mock_db_services(monkeypatch: pytest.MonkeyPatch):
     mocks = {
@@ -112,19 +113,16 @@ def test_cancel_job_worker(mock_db_services):
     mock_db_services["cancel_file"].assert_called_once_with("test_result.cancelled")
 
 
-
 @pytest.fixture
 def mock_jobs_data_admins(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
-    monkeypatch.setattr( "src.main_app.jobs_workers.jobs_worker.jobs_data_admins", _mock)
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.jobs_data_admins", _mock)
     return _mock
 
 
 class TestStartJob:
     def test_start_job_success(self, mock_db_services, mock_jobs_data_admins, flask_app):
-        mock_jobs_data_admins.__getitem__.return_value = MagicMock(
-            job_class=lambda *args, **kwargs: None, job_args=[]
-        )
+        mock_jobs_data_admins.__getitem__.return_value = MagicMock(job_class=lambda *args, **kwargs: None, job_args=[])
         mock_db_services["create"].return_value = MagicMock(id=123)
         user = {"username": "testuser"}
 
@@ -142,18 +140,14 @@ class TestStartJob:
             start_job({}, "test")
 
     def test_start_job_duplicate(self, mock_db_services, mock_jobs_data_admins, flask_app):
-        mock_jobs_data_admins.__getitem__.return_value = MagicMock(
-            job_class=lambda *args, **kwargs: None, job_args=[]
-        )
+        mock_jobs_data_admins.__getitem__.return_value = MagicMock(job_class=lambda *args, **kwargs: None, job_args=[])
         mock_db_services["create"].side_effect = DuplicateRecordError()
         with flask_app.app_context():
             with pytest.raises(DuplicateRecordError):
                 start_job({"username": "u"}, "test")
 
     def test_start_job_cli_success(self, mock_db_services, mock_jobs_data_admins, flask_app):
-        mock_jobs_data_admins.__getitem__.return_value = MagicMock(
-            job_class=lambda *args, **kwargs: None, job_args=[]
-        )
+        mock_jobs_data_admins.__getitem__.return_value = MagicMock(job_class=lambda *args, **kwargs: None, job_args=[])
         mock_db_services["create"].return_value = MagicMock(id=456)
         user = {"username": "testuser"}
 

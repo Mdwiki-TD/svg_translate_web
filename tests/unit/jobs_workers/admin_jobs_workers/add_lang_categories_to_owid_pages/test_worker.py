@@ -14,6 +14,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pa
 )
 from src.main_app.jobs_workers.objects import JobsRunner
 
+
 @pytest.fixture
 def mock_lang_categories_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     """Mock the services used by add_lang_categories_to_owid_pages worker."""
@@ -33,6 +34,7 @@ def mock_lang_categories_services(monkeypatch: pytest.MonkeyPatch, mock_base_wor
         mocks["get_file_languages"],
     )
     return mocks
+
 
 @pytest.fixture
 def mock_lang_worker(mock_base_worker, mock_before_run) -> AddLangCategoriesWorker:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .worker import CopySvgLangsWorker
 from .runner import setup_svg_langs_form
+from .worker import CopySvgLangsWorker
 
 __all__ = [
     "CopySvgLangsWorker",
