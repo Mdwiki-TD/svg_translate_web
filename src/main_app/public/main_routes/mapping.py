@@ -53,7 +53,7 @@ class DiffResult:
                     "after": after_new[key],
                 }
 
-        return cls(added=added, removed=removed, changed=changed)
+        return cls(added=added, removed=removed, changed=changed)  # pyright: ignore[reportCallIssue]
 
 
 __all__ = [
