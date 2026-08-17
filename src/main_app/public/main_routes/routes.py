@@ -14,7 +14,7 @@ from flask import (
 )
 from werkzeug.wrappers.response import Response
 
-from ...jobs_workers.public_jobs_workers.workers_list_public import setup_svg_langs_form
+from ...jobs_workers.public_jobs_workers.copy_svg_langs import setup_svg_langs_form
 
 logger = logging.getLogger(__name__)
 
