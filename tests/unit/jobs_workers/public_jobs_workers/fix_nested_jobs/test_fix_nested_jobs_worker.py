@@ -569,7 +569,9 @@ class TestRunStage(TestSetup):
         proc = self.processor
         assert proc._run_step(proc.result.stages.download, lambda: True) is True
 
-    def test_returns_false_and_sets_failed_when_step_returns_false(self, mock_fix_nested_services: MockFixNestedServices):
+    def test_returns_false_and_sets_failed_when_step_returns_false(
+        self, mock_fix_nested_services: MockFixNestedServices
+    ):
         mock_fix_nested_services.is_job_cancelled.return_value = False
         proc = self.processor
         assert proc._run_step(proc.result.stages.download, lambda: False) is False
