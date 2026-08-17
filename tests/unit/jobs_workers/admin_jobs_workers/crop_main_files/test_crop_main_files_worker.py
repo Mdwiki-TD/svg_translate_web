@@ -824,7 +824,7 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_page_reference(file_info, "Template:Test", "update_template")
+        processor._step_update_page_reference(file_info, "Template:Test", file_info.steps.update_template)
 
         assert file_info.steps.update_template.result is None
         assert file_info.steps.update_template.msg == "No update needed"
@@ -852,7 +852,7 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_page_reference(file_info, "Template:Test", "update_template")
+        processor._step_update_page_reference(file_info, "Template:Test", file_info.steps.update_template)
 
         assert file_info.steps.update_template.result is True
         mock_crop_services["MwClientPage"].return_value.edit.assert_called_once()
@@ -878,7 +878,7 @@ class TestCropMainFilesProcessorHelpers:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._fail(file_info, "download", "Download failed")
+        processor._fail(file_info, file_info.steps.download, "Download failed")
 
         assert file_info.status == "failed"
         assert file_info.error == "Download failed"
@@ -902,7 +902,7 @@ class TestCropMainFilesProcessorHelpers:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._skip_step(file_info, "upload_cropped", "Already exists")
+        processor._skip_step(file_info.steps.upload_cropped, "Already exists")
 
         assert file_info.steps.upload_cropped.result is None
         assert file_info.steps.upload_cropped.msg == "Already exists"
