@@ -48,7 +48,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         self.args = data.args or {}
 
         self.result: AddLangCategoriesWorkerObject = AddLangCategoriesWorkerObject(
-            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            job_id=self.job_id,
             args=self.args,
         )
 

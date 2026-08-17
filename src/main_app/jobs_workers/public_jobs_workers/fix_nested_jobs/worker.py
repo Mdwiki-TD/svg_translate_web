@@ -37,7 +37,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.args = data.args or {}
 
         self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject(
-            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            job_id=self.job_id,
             args=self.args,
         )
 

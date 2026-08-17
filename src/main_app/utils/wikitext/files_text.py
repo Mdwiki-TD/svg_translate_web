@@ -26,7 +26,7 @@ def append_image_extracted_template(
         return text
     cropped_file_name = cropped_file_name.removeprefix("File:")
     template_name_regex = r"(extracted ?(images?|file|photo)?|image ?extracted|cropped version)"
-    match = re.search(r"{{\s*" + template_name_regex + r"\s*(\s*|\|[^\}]+)}}", text, flags=re.IGNORECASE | re.MULTILINE)
+    match = re.search(r"{{\s*" + template_name_regex + r"\s*(\s*|\|[^\}]+)}}", text, flags=re.I | re.M)
     if not match:
         return text
 

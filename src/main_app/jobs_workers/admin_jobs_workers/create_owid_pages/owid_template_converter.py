@@ -22,7 +22,7 @@ def _extract_bullet_url(wikitext: str, label: str) -> str | None:
         *'''Source''': https://…
     Returns the URL string, or None if not found.
     """
-    pattern = re.compile(rf"^\*'''{re.escape(label)}''':\s*(\S+)", re.MULTILINE)
+    pattern = re.compile(rf"^\*'''{re.escape(label)}''':\s*(\S+)", re.M)
     m = pattern.search(wikitext)
     return m.group(1) if m else None
 
@@ -69,7 +69,7 @@ def create_new_text(wikitext: str, template_title: str) -> str:
         r"<syntaxhighlight\b[^>]*>.*?</syntaxhighlight>",
         "",
         wikitext,
-        flags=re.DOTALL | re.IGNORECASE,
+        flags=re.S | re.I,
     )
 
     parsed = wtp.parse(wikitext_clean)

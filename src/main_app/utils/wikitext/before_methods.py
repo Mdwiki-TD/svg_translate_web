@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def add_before(text: str, new_text: str, search_text: str) -> str:
-    res = re.search(search_text, text, flags=re.IGNORECASE | re.MULTILINE)
+    res = re.search(search_text, text, flags=re.I | re.M)
     if res:
         start = res.start()
         text = text[:start].rstrip() + "\n" + new_text + "\n\n" + text[start:].lstrip()

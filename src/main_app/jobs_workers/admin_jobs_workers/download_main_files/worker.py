@@ -70,7 +70,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         self.args = data.args or {}
 
         self.result: DownloadMainFilesWorkerObject = DownloadMainFilesWorkerObject(
-            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            job_id=self.job_id,
             args=self.args,
             output_path=str(self.output_dir),
         )

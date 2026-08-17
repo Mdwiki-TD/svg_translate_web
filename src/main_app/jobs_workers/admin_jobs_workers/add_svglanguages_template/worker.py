@@ -36,7 +36,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         self.args = data.args or {}
 
         self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject(
-            job_id=self.job_id,  # pyright: ignore[reportCallIssue]
+            job_id=self.job_id,
             args=self.args,
         )
 
