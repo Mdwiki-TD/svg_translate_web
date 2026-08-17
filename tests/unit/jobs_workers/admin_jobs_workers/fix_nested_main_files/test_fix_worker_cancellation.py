@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.database.models import TemplateRecord
-from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import runner as fix_runner
+from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import FixNestedMainFilesWorker
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -32,7 +32,8 @@ def test_fix_nested_main_files_worker_cancellation(mock_base_worker, monkeypatch
 
     cancel_event = threading.Event()
 
-    fix_runner.fix_nested_main_files_for_templates(JobsRunner(job_id=1, user={}, cancel_event=cancel_event))
+    worker = FixNestedMainFilesWorker(JobsRunner(job_id=1, user={}, cancel_event=cancel_event))
+    worker.run()
 
     result = mock_base_worker["save_job_result_by_name"].call_args[0][1]
     assert len(result["pages_success"]) == 2
