@@ -49,7 +49,11 @@ def _add_it(args_in_value: str, temp_name: str, first_param_valve: str) -> str:
     #   And we need to add `{{<Temp_name>|1=<first_param_valve>}}`
     new_temp = f"{args_in_value.strip()}\n{text_to_add}"
 
-    args_in_first_param = get_temp_param(text=args_in_value, temp_name=temp_name, params=["1"],)
+    args_in_first_param = get_temp_param(
+        text=args_in_value,
+        temp_name=temp_name,
+        params=["1"],
+    )
 
     # first check if <args_in_value> has template with name == <temp_name>
     if not args_in_first_param:
@@ -108,6 +112,7 @@ def add_other_versions_new(
         return text
 
     return parsed.string
+
 
 __all__ = [
     "add_other_versions_new",

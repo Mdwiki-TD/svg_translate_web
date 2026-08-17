@@ -122,13 +122,17 @@ class TestUpdateOriginalFileTextExtensive:
 
     def test_appends_to_existing_image_extracted_with_one_arg(self):
         """When Image extracted has one positional arg, the new file becomes |2=..."""
-        old_text = """{{Information\n|description=Some desc\n|other_versions={{Image extracted|Existing crop.jpg}}\n}}"""
+        old_text = (
+            """{{Information\n|description=Some desc\n|other_versions={{Image extracted|Existing crop.jpg}}\n}}"""
+        )
         result = update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|Existing crop.jpg|2=New crop.jpg}}" in result
 
     def test_appends_to_existing_image_extracted_with_two_args(self):
         """When Image extracted already has two args, the new file becomes |3=..."""
-        old_text = """{{Information\n|description=Some desc\n|other_versions={{Image extracted|First.jpg|Second.jpg}}\n}}"""
+        old_text = (
+            """{{Information\n|description=Some desc\n|other_versions={{Image extracted|First.jpg|Second.jpg}}\n}}"""
+        )
         result = update_original_file_text("Third.jpg", old_text)
         assert "{{Image extracted|First.jpg|Second.jpg|3=Third.jpg}}" in result
 

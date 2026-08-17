@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 import wikitextparser as wtp
 
 from src.main_app.utils.wikitext.cropped_file_text.other_versions import (
@@ -39,7 +38,6 @@ class TestGetArgs:
         assert args_in.value.strip() == "Daily meat consumption per person, World, 2022.svg"
         assert args_in.name == "1"
 
-
     def test_with_add_other_versions_new(self) -> None:
         """Test that template is added to existing content."""
         text = "{{Information|description=A cropped image|other_versions={{Extracted from| 1=Original test.svg |z=}}}}"
@@ -60,6 +58,7 @@ class TestGetArgs:
         assert result == text, "text should be equal to text"
 
         assert result.count("{{Extracted from|") == 1
+
 
 class TestAddOtherVersionsNew:
     """Tests for the add_other_versions_new function."""

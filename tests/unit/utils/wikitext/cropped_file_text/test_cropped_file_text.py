@@ -4,7 +4,6 @@ Tests for src/main_app/utils/wikitext/cropped_file_text/utils.py
 
 from __future__ import annotations
 
-
 from src.main_app.utils.wikitext.cropped_file_text.utils import (
     create_cropped_file_text,
 )
