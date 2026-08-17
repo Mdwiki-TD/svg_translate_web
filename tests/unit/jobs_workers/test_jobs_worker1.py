@@ -125,6 +125,11 @@ def test_cancel_nonexistent_job():
 def test_runner_calls_target_and_cleans_up():
     """Test the internal _runner function."""
     mock_target = MagicMock()
+    mock_target.run = MagicMock()
+
+    _mock = MagicMock()
+    _mock.return_value = mock_target
+
     job_id = 456
     user = {"name": "test"}
     event = threading.Event()
@@ -145,11 +150,11 @@ def test_runner_calls_target_and_cleans_up():
     )
     _runner(
         runner_data=data,
-        target_func=mock_target,
+        target_class=_mock,
         flask_app=flask_app,
     )
 
-    mock_target.assert_called_once_with(data)
+    mock_target.run.assert_called_once_with()
     flask_app.app_context.assert_called_once()
     # After runner finishes, event should be popped from CANCEL_EVENTS
     assert jobs_worker._get_jobs_cancel_event(job_id) is None
@@ -212,6 +217,11 @@ def test_multiple_jobs_can_be_cancelled_independently():
 def test_runner_passes_args_to_target():
     """Test that _runner forwards the args parameter to the target function."""
     mock_target = MagicMock()
+    mock_target.run = MagicMock()
+
+    _mock = MagicMock()
+    _mock.return_value = mock_target
+
     job_id = 789
     user = {"name": "test"}
     event = threading.Event()
@@ -231,15 +241,20 @@ def test_runner_passes_args_to_target():
     )
     _runner(
         runner_data=data,
-        target_func=mock_target,
+        target_class=_mock,
         flask_app=flask_app,
     )
-    mock_target.assert_called_once_with(data)
+    mock_target.run.assert_called_once_with()
 
 
 def test_runner_passes_none_args_by_default():
     """Test that _runner passes args=None to target when args not provided."""
     mock_target = MagicMock()
+    mock_target.run = MagicMock()
+
+    _mock = MagicMock()
+    _mock.return_value = mock_target
+
     job_id = 790
     user = None
     event = threading.Event()
@@ -258,10 +273,10 @@ def test_runner_passes_none_args_by_default():
     )
     _runner(
         runner_data=data,
-        target_func=mock_target,
+        target_class=_mock,
         flask_app=flask_app,
     )
-    mock_target.assert_called_once_with(data)
+    mock_target.run.assert_called_once_with()
 
 
 def test_start_job_param(mock_jobs_worker_services):

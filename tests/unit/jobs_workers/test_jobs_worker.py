@@ -43,7 +43,13 @@ def test_runner():
     job_id = 1
     user = {"username": "test"}
     cancel_event = threading.Event()
-    target_func = MagicMock()
+
+    target_class = MagicMock()
+    target_class.run = MagicMock()
+
+    _mock = MagicMock()
+    _mock.return_value = target_class
+
     src = Flask(__name__)
     args = {"foo": "bar"}
     data = JobsRunner(
@@ -56,9 +62,9 @@ def test_runner():
 
     _register_cancel_event(job_id, cancel_event)
 
-    _runner(data, target_func, src)
+    _runner(data, _mock, src)
 
-    target_func.assert_called_once_with(data)
+    target_class.run.assert_called_once_with()
     assert _get_jobs_cancel_event(job_id) is None
 
 
@@ -114,7 +120,7 @@ class TestStartJob(TestSetup):
         job_type = "test_type"
 
         mock_job_data = MagicMock()
-        mock_job_data.job_callable = MagicMock()
+        mock_job_data.job_class = MagicMock()
         mock_job_data.job_args = []  # Empty args to avoid SettingsService
         mock_jobs_data.get.return_value = mock_job_data
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from collections.abc import Callable
 from typing import Any
 
 from flask import Flask, current_app
@@ -64,15 +65,16 @@ def _load_job_args(job_args: list[dict[str, str]]) -> dict:
 
 def _runner(
     runner_data: JobsRunner,
-    target_func: Any,
+    target_class: Callable[[JobsRunner]],
     flask_app: Flask,
 ) -> None:
     """
-    args=(runner_data, target_func, resolved_flask_app),
+    args=(runner_data, target_class, flask_app),
     """
     with flask_app.app_context():
         try:
-            target_func(runner_data)
+            worker = target_class(runner_data)
+            worker.run()
         finally:
             _pop_cancel_event(runner_data.job_id)
 
@@ -119,9 +121,9 @@ def _start_job_impl(
     flask_app: Flask | None = None,
 ) -> int:
     job_data: JobData | None = load_job_data(job_type)
-    target_func = job_data.job_callable if job_data else None
+    job_class = job_data.job_class if job_data else None
 
-    if not job_data or not target_func:
+    if not job_data or not job_class:
         raise ValueError(f"Unknown job type: {job_type}")
 
     username = auth_payload.get("username") if auth_payload else None
@@ -161,7 +163,7 @@ def _start_job_impl(
     # Start background thread
     thread = threading.Thread(
         target=_runner,
-        args=(runner_data, target_func, resolved_flask_app),
+        args=(runner_data, job_class, resolved_flask_app),
         daemon=daemon,
     )
     thread.start()

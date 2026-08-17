@@ -1,13 +1,13 @@
 from ..objects import JobData
-from .add_lang_categories_to_owid_pages import add_lang_categories_to_owid_pages_entry
-from .add_svglanguages_template import add_svglanguages_template_to_templates
-from .collect_templates_data import collect_templates_data_entry
-from .create_owid_pages import create_owid_pages_for_templates
-from .crop_main_files import crop_main_files_worker_entry
-from .download_main_files import download_main_files_for_templates
-from .fix_nested_main_files import fix_nested_main_files_for_templates
-from .rename_owid_pages import rename_owid_pages_for_templates
-from .update_owid_charts import update_owid_charts_worker_entry
+from .add_lang_categories_to_owid_pages import AddLangCategoriesWorker
+from .add_svglanguages_template import AddSvgSVGLanguagesTemplate
+from .collect_templates_data import CollectMainFilesWorker
+from .create_owid_pages import CreateOwidPagesWorker
+from .crop_main_files import CropMainFilesWorker
+from .download_main_files import DownloadMainFilesWorker
+from .fix_nested_main_files import FixNestedMainFilesWorker
+from .rename_owid_pages import RenameOwidPagesWorker
+from .update_owid_charts import UpdateOwidChartsWorker
 
 jobs_data_admins = {
     # DB Jobs
@@ -16,7 +16,7 @@ jobs_data_admins = {
         job_name="Collect Templates data",
         job_details_template="jobs_templates/admin_templates/collect_templates_data/details.html",
         job_list_template="jobs_templates/admin_templates/collect_templates_data/list.html",
-        job_callable=collect_templates_data_entry,
+        job_class=CollectMainFilesWorker,
         job_args=[],
         start_confirm_message="This will start a background job to collect templates data for all templates that don't have one. Continue?",
     ),
@@ -25,7 +25,7 @@ jobs_data_admins = {
         job_name="Update OWID Charts",
         job_details_template="jobs_templates/admin_templates/update_owid_charts/details.html",
         job_list_template="jobs_templates/admin_templates/update_owid_charts/list.html",
-        job_callable=update_owid_charts_worker_entry,
+        job_class=UpdateOwidChartsWorker,
         job_args=[
             {"key": "owid_charts_limit_items", "as": "limit_items"},
         ],
@@ -37,7 +37,7 @@ jobs_data_admins = {
         job_name="Crop Newest World Files",
         job_details_template="jobs_templates/admin_templates/crop_main_files/details.html",
         job_list_template="jobs_templates/admin_templates/crop_main_files/list.html",
-        job_callable=crop_main_files_worker_entry,
+        job_class=CropMainFilesWorker,
         job_args=[
             {"key": "crop_newest_upload_limit", "as": "upload_limit"},
             {"key": "upload_jobs_files", "as": "upload_files"},
@@ -49,7 +49,7 @@ jobs_data_admins = {
         job_name="Fix Nested Main Files",
         job_details_template="jobs_templates/admin_templates/fix_nested_main_files/details.html",
         job_list_template="jobs_templates/admin_templates/fix_nested_main_files/list.html",
-        job_callable=fix_nested_main_files_for_templates,
+        job_class=FixNestedMainFilesWorker,
         job_args=[
             {"key": "upload_jobs_files", "as": "upload_files"},
         ],
@@ -61,7 +61,7 @@ jobs_data_admins = {
         job_name="Create OWID Pages",
         job_details_template="jobs_templates/admin_templates/create_owid_pages/details.html",
         job_list_template="jobs_templates/admin_templates/create_owid_pages/list.html",
-        job_callable=create_owid_pages_for_templates,
+        job_class=CreateOwidPagesWorker,
         job_args=[
             {"key": "create_owid_pages_limit", "as": "limit_items"},
         ],
@@ -72,7 +72,7 @@ jobs_data_admins = {
         job_name="Rename OWID Pages",
         job_details_template="jobs_templates/admin_templates/rename_owid_pages/details.html",
         job_list_template="jobs_templates/admin_templates/rename_owid_pages/list.html",
-        job_callable=rename_owid_pages_for_templates,
+        job_class=RenameOwidPagesWorker,
         job_args=[],
         start_confirm_message='This will start a background job that renames every Template:OWID/* and OWID/* page whose first character after "OWID/" is lowercase. Continue?',
     ),
@@ -81,7 +81,7 @@ jobs_data_admins = {
         job_name="Add {{SVGLanguages}}",
         job_details_template="jobs_templates/admin_templates/add_svglanguages_template/details.html",
         job_list_template="jobs_templates/admin_templates/add_svglanguages_template/list.html",
-        job_callable=add_svglanguages_template_to_templates,
+        job_class=AddSvgSVGLanguagesTemplate,
         job_args=[
             {"key": "add_svglanguages_limit_items", "as": "limit_items"},
         ],
@@ -92,7 +92,7 @@ jobs_data_admins = {
         job_name="Add Language Categories",
         job_details_template="jobs_templates/admin_templates/add_lang_categories_to_owid_pages/details.html",
         job_list_template="jobs_templates/admin_templates/add_lang_categories_to_owid_pages/list.html",
-        job_callable=add_lang_categories_to_owid_pages_entry,
+        job_class=AddLangCategoriesWorker,
         job_args=[
             {"key": "add_lang_categories_limit_items", "as": "limit_items"},
         ],
@@ -103,7 +103,7 @@ jobs_data_admins = {
         job_name="Download Main Files",
         job_details_template="jobs_templates/admin_templates/download_main_files/details.html",
         job_list_template="jobs_templates/admin_templates/download_main_files/list.html",
-        job_callable=download_main_files_for_templates,
+        job_class=DownloadMainFilesWorker,
         job_args=[
             {"key": "download_main_files_limit_items", "as": "limit_items"},
         ],
