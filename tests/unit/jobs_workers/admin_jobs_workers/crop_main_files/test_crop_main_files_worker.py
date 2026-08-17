@@ -31,6 +31,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "is_job_cancelled": MagicMock(return_value=False),
         "list": MagicMock(),
         "create_commons_session": MagicMock(),
+        "owid_charts_service": MagicMock(),
         "MwClientPage": MagicMock(),
         "download_file": MagicMock(),
         "crop_svg_file": MagicMock(),
@@ -43,6 +44,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "get_user_site": mock_base_worker["get_user_site"],
     }
 
+    mocks["OwidChartsService"] = MagicMock(return_value=mocks["owid_charts_service"])
     mocks["MwClientPage"].return_value.exists.return_value = False
 
     monkeypatch.setattr(
@@ -68,6 +70,10 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.MwClientPage",
         mocks["MwClientPage"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.OwidChartsService",
+        mocks["OwidChartsService"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.is_pages_exists",
@@ -528,6 +534,39 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.status == "uploaded"
         assert file_info.steps["upload_cropped"]["result"] is True
         assert processor.result.summary.uploaded == 1
+
+    def test_step_upload_passes_stored_source_to_wikitext_builder(self, mock_crop_services, tmp_path):
+        """Test that uploads use the citation stored for the OWID chart as the Author value."""
+        citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
+        mock_crop_services["owid_charts_service"].get_chart_by_slug.return_value = MagicMock(source=citation)
+        mock_crop_services["upload_cropped_file"].return_value = {"success": True}
+
+        processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
+        processor.site = MagicMock()
+        file_info = CropFileProcessingInfo(
+            template_id=1,
+            template_title="Template:Wheat production",
+            original_file="File:test.svg",
+            cropped_filename="File:test (cropped).svg",
+        )
+        file_info.cropped_path = tmp_path / "test (cropped).svg"
+        template = TemplateRecord(
+            id=1,
+            title="Template:Wheat production",
+            last_world_file="test.svg",
+            slug="wheat-production",
+        )
+
+        result = processor._step_upload(file_info, template)
+
+        assert result is True
+        mock_crop_services["owid_charts_service"].get_chart_by_slug.assert_called_once_with("wheat-production")
+        mock_crop_services["create_cropped_file_text"].assert_called_once_with(
+            file_name="File:test.svg",
+            text="Original file text",
+            author_citation=citation,
+        )
 
     def test_step_upload_file_exists(self, mock_crop_services, tmp_path):
         """Test _step_upload when file already exists."""
