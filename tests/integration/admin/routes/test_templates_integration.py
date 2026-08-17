@@ -1,4 +1,6 @@
-from unittest.mock import patch
+from unittest.mock import Mock
+
+import pytest
 
 from src.main_app.admin.routes.templates import (
     TemplatesRoutesFuncs,
@@ -6,13 +8,38 @@ from src.main_app.admin.routes.templates import (
 from src.main_app.database.services import TemplateService
 
 
-@patch("src.main_app.admin.routes.templates.flash")
-@patch("src.main_app.admin.routes.templates.redirect")
-@patch("src.main_app.admin.routes.templates.url_for")
-def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_app):
-    mock_url.return_value = "/dash"
-    mock_redirect.return_value = "redirected"
+@pytest.fixture
+def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
+    _mock = Mock()
+    monkeypatch.setattr("src.main_app.admin.routes.templates.flash", _mock)
+    return _mock
 
+
+@pytest.fixture
+def mock_redirect(monkeypatch: pytest.MonkeyPatch) -> Mock:
+    _mock = Mock()
+    _mock.return_value = "redirected"
+    monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", _mock)
+    return _mock
+
+
+@pytest.fixture
+def mock_url_for(monkeypatch: pytest.MonkeyPatch) -> Mock:
+    _mock = Mock()
+    _mock.return_value = "/dash"
+    monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", _mock)
+    return _mock
+
+
+@pytest.fixture
+def mock_render_template(monkeypatch: pytest.MonkeyPatch) -> Mock:
+    _mock = Mock()
+    _mock.return_value = "rendered"
+    monkeypatch.setattr("src.main_app.admin.routes.templates.render_template", _mock)
+    return _mock
+
+
+def test_add_template_success(mock_flash, mock_redirect, mock_url_for):
     resp = TemplatesRoutesFuncs()._add_template({"title": "NewT", "main_file": "f.svg"})
     assert resp == "redirected"
 
@@ -24,25 +51,13 @@ def test_add_template_success(mock_url, mock_redirect, mock_flash, mock_app):
     assert record.main_file == "f.svg"
 
 
-@patch("src.main_app.admin.routes.templates.flash")
-@patch("src.main_app.admin.routes.templates.redirect")
-@patch("src.main_app.admin.routes.templates.url_for")
-def test_add_template_missing_title(mock_url, mock_redirect, mock_flash, mock_app):
-    mock_url.return_value = "/dash"
-    mock_redirect.return_value = "redirected"
-
+def test_add_template_missing_title(mock_flash, mock_redirect, mock_url_for):
     resp = TemplatesRoutesFuncs()._add_template({"title": ""})
     assert resp == "redirected"
     mock_flash.assert_called_with("Title is required to add a template.", "danger")
 
 
-@patch("src.main_app.admin.routes.templates.flash")
-@patch("src.main_app.admin.routes.templates.redirect")
-@patch("src.main_app.admin.routes.templates.url_for")
-def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_app):
-    mock_url.return_value = "/dash"
-    mock_redirect.return_value = "redirected"
-
+def test_update_template_success(mock_flash, mock_redirect, mock_url_for):
     svc = TemplateService()
     created = svc.add_template_data({"title": "UpdT", "main_file": "f.svg"})
     assert created is not None
@@ -57,25 +72,13 @@ def test_update_template_success(mock_url, mock_redirect, mock_flash, mock_app):
     assert updated.main_file == "f2.svg"
 
 
-@patch("src.main_app.admin.routes.templates.flash")
-@patch("src.main_app.admin.routes.templates.redirect")
-@patch("src.main_app.admin.routes.templates.url_for")
-def test_update_template_missing_id(mock_url, mock_redirect, mock_flash, mock_app):
-    mock_url.return_value = "/dash"
-    mock_redirect.return_value = "redirected"
-
+def test_update_template_missing_id(mock_flash, mock_redirect, mock_url_for):
     resp = TemplatesRoutesFuncs()._update_template({"title": "UpdT"})
     assert resp == "redirected"
     mock_flash.assert_called_with("Template ID is required to update a template.", "danger")
 
 
-@patch("src.main_app.admin.routes.templates.flash")
-@patch("src.main_app.admin.routes.templates.redirect")
-@patch("src.main_app.admin.routes.templates.url_for")
-def test_delete_template_success(mock_url, mock_redirect, mock_flash, mock_app):
-    mock_url.return_value = "/dash"
-    mock_redirect.return_value = "redirected"
-
+def test_delete_template_success(mock_flash, mock_redirect, mock_url_for):
     svc = TemplateService()
     created = svc.add_template_data({"title": "DelT", "main_file": "f.svg"})
     assert created is not None
@@ -121,7 +124,7 @@ def test_create_json_file_no_templates(mock_app):
     assert "No templates found" in msg
 
 
-def test_edit_template_found(mock_app):
+def test_edit_template_found(mock_app, mock_render_template):
     """Test TemplatesRoutesFuncs().edit_template returns template when found."""
     svc = TemplateService()
     created = svc.add_template_data(
@@ -133,25 +136,21 @@ def test_edit_template_found(mock_app):
     assert created is not None
 
     with mock_app.test_request_context():
-        with patch("src.main_app.admin.routes.templates.render_template") as mock_render:
-            mock_render.return_value = "rendered"
-            result = TemplatesRoutesFuncs().edit_template(created.id)
-            assert result == "rendered"
-            mock_render.assert_called_once()
-            kwargs = mock_render.call_args[1]
-            assert kwargs["template"].id == created.id
-            assert kwargs["template"].title == "Test Template"
-            assert kwargs["error"] is None
+        result = TemplatesRoutesFuncs().edit_template(created.id)
+        assert result == "rendered"
+        mock_render_template.assert_called_once()
+        kwargs = mock_render_template.call_args[1]
+        assert kwargs["template"].id == created.id
+        assert kwargs["template"].title == "Test Template"
+        assert kwargs["error"] is None
 
 
-def test_edit_template_not_found(mock_app):
+def test_edit_template_not_found(mock_app, mock_render_template):
     """Test TemplatesRoutesFuncs().edit_template returns error when template not found."""
     with mock_app.test_request_context():
-        with patch("src.main_app.admin.routes.templates.render_template") as mock_render:
-            mock_render.return_value = "rendered"
-            result = TemplatesRoutesFuncs().edit_template(999)
-            assert result == "rendered"
-            mock_render.assert_called_once()
-            kwargs = mock_render.call_args[1]
-            assert kwargs["template"] is None
-            assert "not found" in kwargs["error"].lower()
+        result = TemplatesRoutesFuncs().edit_template(999)
+        assert result == "rendered"
+        mock_render_template.assert_called_once()
+        kwargs = mock_render_template.call_args[1]
+        assert kwargs["template"] is None
+        assert "not found" in kwargs["error"].lower()
