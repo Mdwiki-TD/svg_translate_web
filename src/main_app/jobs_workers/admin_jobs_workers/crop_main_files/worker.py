@@ -22,6 +22,7 @@ from ....utils.wikitext import (
     update_original_file_text,
     update_template_page_file_reference,
 )
+from ....utils.wikitext.cropped_file_text.utils import update_information_author
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject
@@ -151,8 +152,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         # pre steps if the file already in commons, skip download/upload files.
         if self._check_file_exists(cropped_filename):
             self._skip_process(file_info)
-            # Step 4 & 5 - Update wikitext references
-            updated = self.update_file_references(file_info)
+            # Update existing page texts, including the cropped file description.
+            updated = self.update_file_references(file_info, template)
 
             if updated:
                 file_info.status = "completed"
@@ -199,8 +200,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         uploaded = up_step is True
 
-        # Step 4 & 5 - Update wikitext references
-        updated = self.update_file_references(file_info)
+        # Update page texts, including the cropped file description.
+        updated = self.update_file_references(file_info, template)
 
         if uploaded:
             self.result.pages_uploaded.append(file_info.to_dict())
@@ -220,7 +221,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             file_exists = MwClientPage(cropped_filename, self.site).exists()
         return file_exists
 
-    def update_file_references(self, file_info: CropFileProcessingInfo) -> bool:
+    def update_file_references(self, file_info: CropFileProcessingInfo, template: TemplateRecord | None = None) -> bool:
+        """Update original, template, content, and cropped-file page wikitext."""
         # Step 4 - Update original file wikitext
         updated = self._step_update_original(file_info)
 
@@ -243,7 +245,10 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             self._skip_step(file_info, "update_page", "Skipped - title does not start with Template:")
             updated3 = False
 
-        return updated or updated2 or updated3
+        # Step 7 - Update the existing cropped file description with its stored OWID source citation.
+        updated4 = self._step_update_cropped(file_info, template)
+
+        return updated or updated2 or updated3 or updated4
 
     # ------------------------------------------------------------------
     # Individual pipeline steps
@@ -357,6 +362,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         self._skip_step(file_info, "update_original", "Skipped - upload failed")
         self._skip_step(file_info, "update_template", "Skipped - upload was not successful")
         self._skip_step(file_info, "update_page", "Skipped - upload was not successful")
+        self._skip_step(file_info, "update_cropped", "Skipped - upload was not successful")
 
         self._fail(file_info, "upload_cropped", error)
         file_info.cropped_filename = ""
@@ -397,6 +403,51 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         )
         # self._fail(file_info, "update_original", error)
         file_info.steps["update_original"] = {"result": False, "msg": error}
+        return False
+
+    def _step_update_cropped(self, file_info: CropFileProcessingInfo, template: TemplateRecord | None) -> bool:
+        """Update a cropped file page's Author field from the persisted OWID source citation."""
+        cropped_file_name = ensure_file_prefix(file_info.cropped_filename)
+        cropped_page = MwClientPage(cropped_file_name, self.site)
+        cropped_file_wikitext = cropped_page.get_text()
+
+        if not cropped_file_wikitext:
+            file_info.steps["update_cropped"] = {
+                "result": False,
+                "msg": f"Empty cropped file text: {cropped_file_name}",
+            }
+            return False
+
+        author_citation = self._get_author_citation(template)
+        new_wikitext = update_information_author(
+            text=cropped_file_wikitext,
+            author_citation=author_citation,
+        )
+        if new_wikitext == cropped_file_wikitext:
+            logger.info("Job %s: No cropped file update needed for %s", self.job_id, cropped_file_name)
+            file_info.steps["update_cropped"] = {"result": None, "msg": "No update needed"}
+            return False
+
+        update_result = cropped_page.edit(
+            new_wikitext,
+            summary="Update cropped file author attribution from OWID source",
+        )
+        if update_result.get("success"):
+            file_info.steps["update_cropped"] = {
+                "result": True,
+                "msg": "Updated cropped file wikitext",
+                "newrevid": update_result.get("newrevid", 0),
+            }
+            return True
+
+        error = update_result.get("error", "Unknown error")
+        logger.warning(
+            "Job %s: Failed to update cropped file text for %s (reason: %s)",
+            self.job_id,
+            cropped_file_name,
+            error,
+        )
+        file_info.steps["update_cropped"] = {"result": False, "msg": error}
         return False
 
     def _step_update_page_reference(
@@ -485,7 +536,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         file_info.steps[step] = {"result": None, "msg": reason}
 
     def _skip_upload_steps(self, file_info: CropFileProcessingInfo) -> None:
-        for step in ("upload_cropped", "update_original", "update_template", "update_page"):
+        for step in ("upload_cropped", "update_original", "update_template", "update_page", "update_cropped"):
             self._skip_step(file_info, step, "Skipped - upload disabled")
         file_info.status = "skipped"
         self.result.summary.skipped += 1

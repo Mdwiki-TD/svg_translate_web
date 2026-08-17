@@ -37,6 +37,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "crop_svg_file": MagicMock(),
         "upload_cropped_file": MagicMock(),
         "create_cropped_file_text": MagicMock(return_value="Cropped file wikitext"),
+        "update_information_author": MagicMock(side_effect=lambda text, author_citation: text),
         "update_original_file_text": MagicMock(return_value="Updated original text"),
         "update_template_page_file_reference": MagicMock(return_value="Updated template text"),
         "generate_cropped_filename": MagicMock(side_effect=lambda x: f"File:{x.replace('File:', '')} (cropped).svg"),
@@ -94,6 +95,10 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.create_cropped_file_text",
         mocks["create_cropped_file_text"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_information_author",
+        mocks["update_information_author"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_original_file_text",
@@ -214,6 +219,7 @@ class TestFileProcessingInfo:
         assert "crop" in info.steps
         assert "upload_cropped" in info.steps
         assert "update_page" in info.steps
+        assert "update_cropped" in info.steps
 
     def test_to_dict(self, tmp_path):
         """Test to_dict serialization."""
@@ -701,6 +707,99 @@ class TestCropMainFilesProcessorSteps:
         assert file_info.steps["update_original"]["result"] is False
         assert "Edit conflict" in file_info.steps["update_original"]["msg"]
 
+    def test_step_update_cropped_no_change(self, mock_crop_services):
+        """Test that unchanged cropped-file text is reported without an edit."""
+        citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Cropped file text"
+        mock_crop_services["owid_charts_service"].get_chart_by_slug.return_value = MagicMock(source=citation)
+
+        processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
+        processor.site = MagicMock()
+        file_info = CropFileProcessingInfo(
+            template_id=1,
+            template_title="Template:Wheat production",
+            original_file="File:wheat.svg",
+            cropped_filename="File:wheat (cropped).svg",
+        )
+        template = TemplateRecord(
+            id=1,
+            title="Template:Wheat production",
+            last_world_file="wheat.svg",
+            slug="wheat-production",
+        )
+
+        result = processor._step_update_cropped(file_info, template)
+
+        assert result is False
+        assert file_info.steps["update_cropped"] == {"result": None, "msg": "No update needed"}
+        mock_crop_services["update_information_author"].assert_called_once_with(
+            text="Cropped file text",
+            author_citation=citation,
+        )
+        mock_crop_services["MwClientPage"].return_value.edit.assert_not_called()
+
+    def test_step_update_cropped_with_update(self, mock_crop_services):
+        """Test that changed cropped-file text is saved to Commons."""
+        citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Cropped file text"
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True, "newrevid": 42}
+        mock_crop_services["update_information_author"].side_effect = None
+        mock_crop_services["update_information_author"].return_value = "Updated cropped file text"
+        mock_crop_services["owid_charts_service"].get_chart_by_slug.return_value = MagicMock(source=citation)
+
+        processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
+        processor.site = MagicMock()
+        file_info = CropFileProcessingInfo(
+            template_id=1,
+            template_title="Template:Wheat production",
+            original_file="File:wheat.svg",
+            cropped_filename="File:wheat (cropped).svg",
+        )
+        template = TemplateRecord(
+            id=1,
+            title="Template:Wheat production",
+            last_world_file="wheat.svg",
+            slug="wheat-production",
+        )
+
+        result = processor._step_update_cropped(file_info, template)
+
+        assert result is True
+        assert file_info.steps["update_cropped"]["result"] is True
+        assert file_info.steps["update_cropped"]["newrevid"] == 42
+        mock_crop_services["MwClientPage"].return_value.edit.assert_called_once_with(
+            "Updated cropped file text",
+            summary="Update cropped file author attribution from OWID source",
+        )
+
+    def test_step_update_cropped_edit_failure(self, mock_crop_services):
+        """Test that a failed cropped-file edit is recorded in the final step."""
+        mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Cropped file text"
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": False, "error": "Edit conflict"}
+        mock_crop_services["update_information_author"].side_effect = None
+        mock_crop_services["update_information_author"].return_value = "Updated cropped file text"
+        mock_crop_services["owid_charts_service"].get_chart_by_slug.return_value = MagicMock(source="Stored citation")
+
+        processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
+        processor.site = MagicMock()
+        file_info = CropFileProcessingInfo(
+            template_id=1,
+            template_title="Template:Wheat production",
+            original_file="File:wheat.svg",
+            cropped_filename="File:wheat (cropped).svg",
+        )
+        template = TemplateRecord(
+            id=1,
+            title="Template:Wheat production",
+            last_world_file="wheat.svg",
+            slug="wheat-production",
+        )
+
+        result = processor._step_update_cropped(file_info, template)
+
+        assert result is False
+        assert file_info.steps["update_cropped"] == {"result": False, "msg": "Edit conflict"}
+
     def test_step_update_page_reference_no_change(self, mock_crop_services):
         """Test _step_update_page_reference when no update is needed."""
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Some text"
@@ -829,6 +928,7 @@ class TestCropMainFilesProcessorHelpers:
         assert file_info.steps["update_original"]["result"] is None
         assert file_info.steps["update_template"]["result"] is None
         assert file_info.steps["update_page"]["result"] is None
+        assert file_info.steps["update_cropped"]["result"] is None
         assert processor.result.summary.skipped == 1
         assert file_info.cropped_filename == ""
 
