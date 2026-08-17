@@ -14,7 +14,8 @@ from mwclient.client import Site
 from ....api_services import MwClientPage, create_commons_session, is_pages_exists
 from ....config import settings
 from ....database.models import TemplateRecord
-from ....database.services import TemplateService
+from ....database.services import OwidChartsService, TemplateService
+from ....database.templates_utils import extract_slug
 from ....utils.wikitext import (
     create_cropped_file_text,
     ensure_file_prefix,
@@ -56,6 +57,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         )
 
         self.upload_limit = self.args.get("upload_limit") or 0
+        self.owid_charts_service = OwidChartsService()
 
         self.exists: dict[str, Any] = {}
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
@@ -187,7 +189,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         # ----------------------------------
         # Step 3 - Upload cropped file
-        up_step = self._step_upload(file_info)
+        up_step = self._step_upload(file_info, template)
         if up_step is False:
             self.result.pages_failed.append(file_info.to_dict())
             return False
@@ -293,13 +295,35 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         self.result.summary.cropped += 1
         return True
 
-    def _step_upload(self, file_info: CropFileProcessingInfo) -> bool | None:
+    def _get_author_citation(self, template: TemplateRecord | None) -> str | None:
+        """Read the OWID source citation persisted for the template's chart."""
+        if template is None:
+            return None
+
+        slug = template.slug or extract_slug(template.source)
+        if not slug:
+            return None
+
+        chart = self.owid_charts_service.get_chart_by_slug(slug)
+        source = chart.source if chart else None
+        if isinstance(source, str) and source.strip():
+            return source.strip()
+
+        logger.info("Job %s: No stored OWID author citation found for chart %s", self.job_id, slug)
+        return None
+
+    def _step_upload(self, file_info: CropFileProcessingInfo, template: TemplateRecord | None = None) -> bool | None:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""
         file_name = ensure_file_prefix(file_info.original_file)
         page = MwClientPage(file_name, self.site)
         wikitext = page.get_text()
+        author_citation = self._get_author_citation(template)
 
-        cropped_file_wikitext = create_cropped_file_text(file_info.original_file, wikitext)
+        cropped_file_wikitext = create_cropped_file_text(
+            file_name=file_info.original_file,
+            text=wikitext,
+            author_citation=author_citation,
+        )
 
         upload_result = upload_cropped_file(
             file_info.cropped_filename,
