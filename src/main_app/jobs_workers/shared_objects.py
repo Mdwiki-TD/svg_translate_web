@@ -70,16 +70,6 @@ class WorkerObject(SharedMapToJson):
     error: str | None = None
     error_type: str | None = None
 
-    # ------------------------------------------------------------------
-    # Factory helpers
-    # ------------------------------------------------------------------
-    @classmethod
-    def from_start(cls, job_id: int, args: dict[str, Any]) -> Any:
-        return cls(
-            job_id=job_id,
-            args=args,
-        )
-
 
 @dataclass
 class SharedworkerObject(WorkerObject):

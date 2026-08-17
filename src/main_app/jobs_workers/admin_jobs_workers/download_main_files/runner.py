@@ -11,8 +11,6 @@ from typing import Any
 from flask import send_file
 
 from ....config import settings
-from ...objects import JobsRunner
-from .worker import DownloadMainFilesWorker
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
@@ -54,17 +52,6 @@ def create_main_files_zip() -> tuple[Any, int]:
         200,
     )
 
-
-def download_main_files_for_templates(data: JobsRunner) -> None:
-    """
-    Background worker to download main files for all templates.
-    """
-    logger.info("Starting job %s: download main files for templates", data.job_id)
-    worker = DownloadMainFilesWorker(data)
-    worker.run()
-
-
 __all__ = [
-    "download_main_files_for_templates",
     "create_main_files_zip",
 ]

@@ -9,7 +9,7 @@ import pytest
 
 from src.main_app.api_services.clients.objects import RawGrapherMetadataResponse
 from src.main_app.database.models import TemplateRecord
-from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import runner
+from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import CollectMainFilesWorker
 
 
 @pytest.fixture
@@ -128,13 +128,14 @@ class TestRunner:
 
         def run_wrapper(job_id, user, cancel_event=None, args=None, form_data=None):
             data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
-            return runner.collect_templates_data_entry(data)
+            worker = CollectMainFilesWorker(data)
+            return worker.run()
 
         self.collect_runner = run_wrapper
         self.services = mock_collect_services
 
     def test_collect_templates_data_with_no_templates(self):
-        """Test collect_templates_data_entry when there are no templates."""
+        """Test collect templates data entry when there are no templates."""
         self.services["get_category_members"].return_value = []
         self.services["list"].return_value = []
 
@@ -721,7 +722,7 @@ class TestRunner:
         self.services["MwClientPage"].return_value.get_text.assert_called_once()
 
     def test_collect_templates_data_entry_cancel_event_is_keyword_only(self):
-        """Test that cancel_event is keyword-only in collect_templates_data_entry."""
+        """Test that cancel_event is keyword-only in collect templates data entry."""
 
         cancel_event = threading.Event()
         self.services["get_category_members"].return_value = []

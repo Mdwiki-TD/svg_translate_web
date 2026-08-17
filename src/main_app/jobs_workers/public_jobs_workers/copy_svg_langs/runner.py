@@ -7,9 +7,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...objects import JobsRunner
 from .forms import CopySvgLangsForm
-from .worker import CopySvgLangsWorker
 
 logger = logging.getLogger(__name__)
 
@@ -23,14 +21,6 @@ def setup_svg_langs_form(all_settings: dict[str, Any] | None = None) -> CopySvgL
     form.upload.data = not upload_disabled_by_default
     return form
 
-
-def copy_svg_langs_worker_entry(data: JobsRunner) -> None:
-    """Entry point for the background job."""
-
-    worker = CopySvgLangsWorker(data)
-    worker.run()
-
-
 __all__ = [
-    "copy_svg_langs_worker_entry",
+    "setup_svg_langs_form",
 ]
