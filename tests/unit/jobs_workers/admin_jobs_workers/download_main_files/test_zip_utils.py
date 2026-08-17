@@ -1,4 +1,4 @@
-"""Unit tests for download_main_files runner module."""
+"""Unit tests for download_main_files zip_utils module."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner import (
+from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.zip_utils import (
     MAIN_FILES_ZIP_NAME,
     create_main_files_zip,
 )
@@ -16,7 +16,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner imp
 def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.settings",
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.zip_utils.settings",
         _mock,
     )
     return _mock
@@ -49,7 +49,7 @@ class TestCreateMainFilesZip:
         assert status == 500
         assert "empty or corrupted" in result
 
-    @patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.runner.send_file")
+    @patch("src.main_app.jobs_workers.admin_jobs_workers.download_main_files.zip_utils.send_file")
     def test_zip_found_returns_file(self, mock_send_file, mock_settings, tmp_path):
         zip_path = tmp_path / MAIN_FILES_ZIP_NAME
         zip_path.write_bytes(b"PK\x03\x04fake zip content")
