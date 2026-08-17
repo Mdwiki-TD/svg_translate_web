@@ -14,17 +14,17 @@ from .other_versions import add_other_versions_new
 logger = logging.getLogger(__name__)
 
 
-def update_information_author(text: str, author: str | None) -> str:
+def update_information_author(text: str, author_citation: str | None) -> str:
     """Replace the Author value in the first ``{{Information}}`` template.
 
     Args:
         text: The original file-description wikitext.
-        author: The complete attribution to set. Empty values leave the text unchanged.
+        author_citation: The complete attribution to set. Empty values leave the text unchanged.
 
     Returns:
         The modified wikitext, or the original text if no Information template exists.
     """
-    if not author:
+    if not author_citation:
         return text
 
     parsed = wtp.parse(text)
@@ -36,16 +36,16 @@ def update_information_author(text: str, author: str | None) -> str:
             if argument.name.strip().lower() == "author":
 
                 if argument.value.strip().lower() == "our world in data":
-                    argument.value = f" {author}\n"
+                    argument.value = f" {author_citation}\n"
                     return parsed.string
 
-                if argument.value.strip() == author:
+                if argument.value.strip() == author_citation:
                     return text
 
-                argument.value = f" {author}\n"
+                argument.value = f" {author_citation}\n"
                 return parsed.string
 
-        template.set_arg("author", f" {author}\n")
+        template.set_arg("author", f" {author_citation}\n")
         return parsed.string
 
     return text

@@ -34,6 +34,7 @@ class CropFileProcessingInfo:
             "update_original": {"result": None, "msg": ""},
             "update_template": {"result": None, "msg": ""},
             "update_page": {"result": None, "msg": ""},
+            "update_cropped": {"result": None, "msg": ""},
         }
     )
 
