@@ -1,7 +1,7 @@
 from .admin_service import AdminService
 from .charts_and_templates_service import ChartAndTemplate, ChartsAndTemplatesService
 from .crud_service import CRUDService
-from .jobs_service import JobsService
+from .jobs_service import JobStats, JobsService, UserJobsStats
 from .owid_charts_service import OwidChartsService
 from .owid_slug_redirects_service import OwidSlugRedirectsService
 from .settings_service import SettingsService
@@ -14,7 +14,9 @@ __all__ = [
     "ChartAndTemplate",
     "ChartsAndTemplatesService",
     "AdminService",
+    "JobStats",
     "JobsService",
+    "UserJobsStats",
     "OwidChartsService",
     "OwidSlugRedirectsService",
     "SettingsService",

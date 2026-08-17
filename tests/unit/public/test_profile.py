@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Flask
 
-from src.main_app.database.services import JobsService
+from src.main_app.database.services import JobStats, JobsService, UserJobsStats
 
 
 class MockUser:
@@ -106,3 +106,59 @@ class TestDashboard:
         resp = mock_client.get("/profile/")
         assert resp.status_code == 200
         assert b"alice" in resp.data
+
+    def test_dashboard_passes_dataclass_attributes_to_template(
+        self,
+        mock_client: Flask.test_client,
+        monkeypatch: pytest.MonkeyPatch,
+        seeded_jobs: None,
+    ) -> None:
+        captured: dict[str, object] = {}
+
+        def capture_template(template: str, **context: object) -> str:
+            captured["template"] = template
+            captured.update(context)
+            return "profile response"
+
+        monkeypatch.setattr(
+            "src.main_app.public.profile.get_current_user",
+            lambda: MockUser(username="alice"),
+        )
+        monkeypatch.setattr("src.main_app.public.profile.render_template", capture_template)
+
+        response = mock_client.get("/profile/")
+
+        assert response.status_code == 200
+        assert captured["template"] == "profile.html"
+        assert isinstance(captured["stats"], JobStats)
+        assert captured["stats"].total == 2  # type: ignore[union-attr]
+        assert len(captured["recent_jobs"]) == 2  # type: ignore[arg-type]
+
+    def test_dashboard_uses_empty_dataclass_fallback_when_loading_fails(
+        self,
+        mock_client: Flask.test_client,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        captured: dict[str, object] = {}
+
+        def capture_template(template: str, **context: object) -> str:
+            captured["template"] = template
+            captured.update(context)
+            return "profile fallback"
+
+        def raise_loading_error(*_args: object, **_kwargs: object) -> UserJobsStats:
+            raise RuntimeError("database unavailable")
+
+        monkeypatch.setattr(
+            "src.main_app.public.profile.get_current_user",
+            lambda: MockUser(username="admin", is_active_admin=True),
+        )
+        monkeypatch.setattr(JobsService, "get_all_user_jobs_stats", raise_loading_error)
+        monkeypatch.setattr("src.main_app.public.profile.render_template", capture_template)
+
+        response = mock_client.get("/profile/other_user")
+
+        assert response.status_code == 200
+        assert captured["template"] == "profile.html"
+        assert captured["stats"] == JobStats()
+        assert captured["recent_jobs"] == []
