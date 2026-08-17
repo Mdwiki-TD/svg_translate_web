@@ -109,106 +109,73 @@ class TestFindLastWorldFileFromOwidslidersrcs:
 
     def test_template_without_gallery_world_returns_none(self):
         """Test that template without gallery-World returns None."""
-        text = """
-{{owidslidersrcs|id=gallery|widths=240
-|gallery-Asia=File:test.svg
-}}
+        text = """\n{{owidslidersrcs|id=gallery|widths=240\n|gallery-Asia=File:test.svg\n}}
         """
         result = find_newest_world_file(text)
         assert result is None
 
     def test_valid_template_returns_last_world_file(self):
         """Test valid template with gallery-World."""
-        text = """
-==Data==
-{{owidslidersrcs|id=gallery|widths=240|heights=240
-|gallery-World=
+        text = """\n==Data==\n{{owidslidersrcs|id=gallery|widths=240|heights=240\n|gallery-World=
 File:youth mortality rate, World, 1950.svg!year=1950
 File:youth mortality rate, World, 1951.svg!year=1951
-File:youth mortality rate, World, 1953.svg!year=1953
-}}
+File:youth mortality rate, World, 1953.svg!year=1953\n}}
         """
         result = find_newest_world_file(text)
         assert result == "File:youth mortality rate, World, 1953.svg"
 
     def test_case_insensitive_template_name(self):
         """Test that template name is case insensitive."""
-        text = """
-{{Owidslidersrcs|id=gallery|widths=240
-|gallery-World=File:test, World, 2000.svg!year=2000
-}}
+        text = """\n{{Owidslidersrcs|id=gallery|widths=240\n|gallery-World=File:test, World, 2000.svg!year=2000\n}}
         """
         result = find_newest_world_file(text)
         assert result == "File:test, World, 2000.svg"
 
     def test_template_with_whitespace_in_name(self):
         """Test template with whitespace in name."""
-        text = """
-{{ owidslidersrcs |id=gallery|widths=240
-|gallery-World=File:test, World, 2000.svg!year=2000
-}}
+        text = """\n{{ owidslidersrcs |id=gallery|widths=240\n|gallery-World=File:test, World, 2000.svg!year=2000\n}}
         """
         result = find_newest_world_file(text)
         assert result == "File:test, World, 2000.svg"
 
     def test_multiple_templates_uses_first(self):
         """Test that first matching template is used."""
-        text = """
-{{owidslidersrcs|id=gallery|widths=240
-|gallery-World=File:first, World, 2000.svg!year=2000
-}}
-{{owidslidersrcs|id=gallery2|widths=240
-|gallery-World=File:second, World, 2020.svg!year=2020
-}}
+        text = """\n{{owidslidersrcs|id=gallery|widths=240\n|gallery-World=File:first, World, 2000.svg!year=2000\n}}\n{{owidslidersrcs|id=gallery2|widths=240\n|gallery-World=File:second, World, 2020.svg!year=2020\n}}
         """
         result = find_newest_world_file(text)
         assert result == "File:first, World, 2000.svg"
 
     def test_template_with_empty_gallery_world(self):
         """Test template with empty gallery-World returns None (line 132)."""
-        text = """
-{{owidslidersrcs|id=gallery|widths=240
-|gallery-World=
-}}
+        text = """\n{{owidslidersrcs|id=gallery|widths=240\n|gallery-World=\n}}
         """
         result = find_newest_world_file(text)
         assert result is None
 
     def test_template_with_gallery_but_no_content(self):
         """Test template with gallery-World but no content returns None."""
-        text = """
-{{owidslidersrcs|id=gallery|widths=240
-|gallery-World=
-}}
+        text = """\n{{owidslidersrcs|id=gallery|widths=240\n|gallery-World=\n}}
         """
         result = find_newest_world_file(text)
         assert result is None
 
     def test_different_template_name_skipped(self):
         """Test that non-owidslidersrcs templates are skipped (line 132)."""
-        text = """
-{{SomeOtherTemplate|id=gallery
-|gallery-World=File:test.svg
-}}
+        text = """\n{{SomeOtherTemplate|id=gallery\n|gallery-World=File:test.svg\n}}
         """
         result = find_newest_world_file(text)
         assert result is None
 
     def test_multiple_templates_first_not_match(self):
         """Test that first non-matching template is skipped (line 132)."""
-        text = """
-{{OtherTemplate|value=xyz}}
-{{owidslidersrcs|id=gallery
-|gallery-World=File:test, World, 2000.svg!year=2000
-}}
+        text = """\n{{OtherTemplate|value=xyz}}\n{{owidslidersrcs|id=gallery\n|gallery-World=File:test, World, 2000.svg!year=2000\n}}
         """
         result = find_newest_world_file(text)
         assert result == "File:test, World, 2000.svg"
 
     def test_template_with_no_arguments(self):
         """Test template with no arguments returns None."""
-        text = """
-{{owidslidersrcs}}
+        text = """\n{{owidslidersrcs}}
         """
         result = find_newest_world_file(text)
         assert result is None

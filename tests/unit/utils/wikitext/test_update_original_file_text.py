@@ -9,10 +9,7 @@ class TestUpdateOriginalFileText:
     """Tests for the update_original_file_text function."""
 
     def testupdate_original_file_text_versions2(self):
-        old_text = """
-== {{int:filedesc}} ==
-
-{{Information
+        old_text = """\n== {{int:filedesc}} ==\n\n{{Information
  |description = '''English:'''<br>
 Algoma Steel<br>
 photo taken from Wallace Terrace<br>
@@ -27,18 +24,11 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
  |source = {{own assumed}}
  |author = {{Author assumed|[[User:Fungus Guy|Fungus Guy]]}}
  |permission =
- |other_versions =
-}}
-
-== {{int:license-header}} ==
-{{Self|PD-self|author=Fungus Guy}}
+ |other_versions =\n}}\n\n== {{int:license-header}} ==\n{{Self|PD-self|author=Fungus Guy}}
 
 [[Category:Essar Steel Algoma]]"""
 
-        new_text = """
-== {{int:filedesc}} ==
-
-{{Information
+        new_text = """\n== {{int:filedesc}} ==\n\n{{Information
  |description = '''English:'''<br>
 Algoma Steel<br>
 photo taken from Wallace Terrace<br>
@@ -53,10 +43,7 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
  |source = {{own assumed}}
  |author = {{Author assumed|[[User:Fungus Guy|Fungus Guy]]}}
  |permission =
- |other_versions ={{Image extracted|1=My new file.jpg}}}}
-
-== {{int:license-header}} ==
-{{Self|PD-self|author=Fungus Guy}}
+ |other_versions ={{Image extracted|1=My new file.jpg}}}}\n\n== {{int:license-header}} ==\n{{Self|PD-self|author=Fungus Guy}}
 
 [[Category:Essar Steel Algoma]]"""
 
@@ -99,25 +86,19 @@ class TestUpdateOriginalFileTextExtensive:
 
     def test_returns_unchanged_when_filename_already_present(self):
         """Text already contains the exact filename - must not be modified."""
-        text = """{{Information
-|other_versions={{Image extracted|1=My cropped file.jpg}}
-}}"""
+        text = """{{Information\n|other_versions={{Image extracted|1=My cropped file.jpg}}\n}}"""
         result = update_original_file_text("My cropped file.jpg", text)
         assert result == text
 
     def test_returns_unchanged_when_filename_with_file_prefix_already_present(self):
         """'File:' prefix is stripped before the duplicate check."""
-        text = """{{Information
-|other_versions={{Image extracted|1=My cropped file.jpg}}
-}}"""
+        text = """{{Information\n|other_versions={{Image extracted|1=My cropped file.jpg}}\n}}"""
         result = update_original_file_text("File:My cropped file.jpg", text)
         assert result == text
 
     def test_returns_unchanged_when_filename_with_underscores_already_present(self):
         """Underscores in the input are normalised to spaces for the duplicate check."""
-        text = """{{Information
-|other_versions={{Image extracted|1=Share-with-drug-use-disorders,World,2021 (cropped).svg}}
-}}"""
+        text = """{{Information\n|other_versions={{Image extracted|1=Share-with-drug-use-disorders,World,2021 (cropped).svg}}\n}}"""
         result = update_original_file_text("File:Share-with-drug-use-disorders,World,2021_(cropped).svg", text)
         assert result == text
 
@@ -141,36 +122,26 @@ class TestUpdateOriginalFileTextExtensive:
 
     def test_appends_to_existing_image_extracted_with_one_arg(self):
         """When Image extracted has one positional arg, the new file becomes |2=..."""
-        old_text = """{{Information
-|description=Some desc
-|other_versions={{Image extracted|Existing crop.jpg}}
-}}"""
+        old_text = """{{Information\n|description=Some desc\n|other_versions={{Image extracted|Existing crop.jpg}}\n}}"""
         result = update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|Existing crop.jpg|2=New crop.jpg}}" in result
 
     def test_appends_to_existing_image_extracted_with_two_args(self):
         """When Image extracted already has two args, the new file becomes |3=..."""
-        old_text = """{{Information
-|description=Some desc
-|other_versions={{Image extracted|First.jpg|Second.jpg}}
-}}"""
+        old_text = """{{Information\n|description=Some desc\n|other_versions={{Image extracted|First.jpg|Second.jpg}}\n}}"""
         result = update_original_file_text("Third.jpg", old_text)
         assert "{{Image extracted|First.jpg|Second.jpg|3=Third.jpg}}" in result
 
     def test_appends_to_extracted_images_template_variant(self):
         """Template aliases like 'Extracted images' are also recognised."""
-        old_text = """{{Information
-|other_versions={{Extracted images|Foo.jpg}}
-}}"""
+        old_text = """{{Information\n|other_versions={{Extracted images|Foo.jpg}}\n}}"""
         result = update_original_file_text("Bar.jpg", old_text)
         assert "Bar.jpg" in result
         assert old_text != result
 
     def test_file_prefix_stripped_when_appending_to_image_extracted(self):
         """'File:' prefix must be stripped from the filename before appending."""
-        old_text = """{{Information
-|other_versions={{Image extracted|Existing.jpg}}
-}}"""
+        old_text = """{{Information\n|other_versions={{Image extracted|Existing.jpg}}\n}}"""
         result = update_original_file_text("File:New crop.jpg", old_text)
         assert "New crop.jpg" in result
         assert "File:New crop.jpg" not in result
@@ -182,20 +153,13 @@ class TestUpdateOriginalFileTextExtensive:
 
     def test_adds_image_extracted_to_empty_other_versions_param(self):
         """Empty |other_versions = | inside {{Information}} gets the new template."""
-        old_text = """
-== {{int:filedesc}} ==
-
-{{Information
+        old_text = """\n== {{int:filedesc}} ==\n\n{{Information
  |description = Some description
  |date = 2006-07-30
  |source = {{own assumed}}
  |author = Some Author
  |permission =
- |other_versions =
-}}
-
-== {{int:license-header}} ==
-{{Self|PD-self|author=Some Author}}
+ |other_versions =\n}}\n\n== {{int:license-header}} ==\n{{Self|PD-self|author=Some Author}}
 
 [[Category:Some Category]]"""
 
@@ -207,10 +171,7 @@ class TestUpdateOriginalFileTextExtensive:
 
     def test_appends_to_non_empty_other_versions_without_image_extracted(self):
         """Non-empty |other_versions| without Image extracted gets the template appended."""
-        old_text = """{{Information
-|description=Some desc
-|other_versions=[[File:Related.jpg|thumb]]
-}}"""
+        old_text = """{{Information\n|description=Some desc\n|other_versions=[[File:Related.jpg|thumb]]\n}}"""
         result = update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
 
@@ -220,13 +181,7 @@ class TestUpdateOriginalFileTextExtensive:
 
     def test_creates_other_versions_param_when_information_has_none(self):
         """{{Information}} without any |other_versions| gets the param added."""
-        old_text = """{{Information
-|description={{en|1=Some description}}
-|author=Test Author
-|date=2022
-|source=https://example.com
-|permission=CC-BY
-}}"""
+        old_text = """{{Information\n|description={{en|1=Some description}}\n|author=Test Author\n|date=2022\n|source=https://example.com\n|permission=CC-BY\n}}"""
         result = update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
         assert result != old_text
@@ -237,10 +192,7 @@ class TestUpdateOriginalFileTextExtensive:
 
     def test_inserts_before_license_header_when_no_information_template(self):
         """Without {{Information}}, the template is inserted before the license header."""
-        old_text = """{{PD-old-70}}
-
-== {{int:license-header}} ==
-{{PD-old-70-1923}}
+        old_text = """{{PD-old-70}}\n\n== {{int:license-header}} ==\n{{PD-old-70-1923}}
 
 [[Category:Old photos]]"""
 
@@ -252,8 +204,7 @@ class TestUpdateOriginalFileTextExtensive:
 
     def test_license_header_match_is_case_insensitive(self):
         """License-header section marker is matched case-insensitively."""
-        old_text = """== {{int:License-Header}} ==
-{{PD-self}}"""
+        old_text = """== {{int:License-Header}} ==\n{{PD-self}}"""
         result = update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
 
@@ -302,30 +253,21 @@ class TestUpdateOriginalFileTextExtensive:
 
     def test_underscores_in_filename_are_converted_to_spaces(self):
         """Underscores in the input filename are replaced with spaces in the output."""
-        old_text = """{{Information
-|description=Some desc
-|other_versions=
-}}"""
+        old_text = """{{Information\n|description=Some desc\n|other_versions=\n}}"""
         result = update_original_file_text("My_new_file.jpg", old_text)
         assert "My new file.jpg" in result
         assert "My_new_file.jpg" not in result
 
     def test_file_prefix_stripped_in_output(self):
         """'File:' prefix must not appear in the inserted template text."""
-        old_text = """{{Information
-|description=Some desc
-|other_versions=
-}}"""
+        old_text = """{{Information\n|description=Some desc\n|other_versions=\n}}"""
         result = update_original_file_text("File:New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
         assert "File:New crop.jpg" not in result
 
     def test_file_prefix_and_underscores_together(self):
         """Both normalisation rules apply simultaneously."""
-        old_text = """{{Information
-|description=Some desc
-|other_versions=
-}}"""
+        old_text = """{{Information\n|description=Some desc\n|other_versions=\n}}"""
         result = update_original_file_text("File:My_new_crop.jpg", old_text)
         # Filename must appear without the File: prefix and without underscores
         assert "{{Image extracted|1=My new crop.jpg}}" in result
