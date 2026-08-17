@@ -34,6 +34,7 @@ class CopySvgLangsForm(FlaskForm):
 
     submit = SubmitField("Start")
 
+
 def setup_svg_langs_form(all_settings: dict[str, Any] | None = None) -> CopySvgLangsForm:
     form = CopySvgLangsForm()
     # set upload default dynamically only on GET (first load)
@@ -42,7 +43,6 @@ def setup_svg_langs_form(all_settings: dict[str, Any] | None = None) -> CopySvgL
     )
     form.upload.data = not upload_disabled_by_default
     return form
-
 
 
 __all__ = [

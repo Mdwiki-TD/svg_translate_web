@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
@@ -14,6 +15,7 @@ from src.main_app.services.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
 )
+
 
 @pytest.fixture
 def mock_fix_nested_admin_services(mock_before_run, monkeypatch: pytest.MonkeyPatch, mock_base_worker):

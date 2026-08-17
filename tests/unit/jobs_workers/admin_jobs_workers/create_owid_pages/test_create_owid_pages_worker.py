@@ -14,6 +14,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker impor
 )
 from src.main_app.jobs_workers.objects import JobsRunner
 
+
 @pytest.fixture
 def mock_owid_pages_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     """Mock the services used by create_owid_pages worker."""

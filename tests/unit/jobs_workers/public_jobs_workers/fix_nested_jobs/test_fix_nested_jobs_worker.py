@@ -19,8 +19,8 @@ from src.main_app.services.fix_nested.worker import (
     VerificationResult,
 )
 
-
 # ── jobs_workers fixtures ───────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
@@ -66,6 +66,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
     )
 
     return mocks
+
 
 # ---------------------------------------------------------------------------
 # steps
