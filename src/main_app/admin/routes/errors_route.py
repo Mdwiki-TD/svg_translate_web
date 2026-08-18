@@ -25,8 +25,13 @@ class CheckErrorsRoutes:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
-        self.bp.route("/<string:file_name>", methods=["GET"])(admin_required(self.app_log))
+
+        routes = [
+            ("/", "GET", self.dashboard),
+            ("/<string:file_name>", "GET", self.app_log),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(admin_required(target))
 
     @staticmethod
     def _list_log_files(log_dir: Path) -> list[str]:

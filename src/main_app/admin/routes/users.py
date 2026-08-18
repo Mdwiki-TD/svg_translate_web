@@ -30,9 +30,14 @@ class UsersRoutes:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
-        self.bp.route("/<int:user_id>/can_run_jobs", methods=["POST"])(admin_required(self.update_can_run_jobs))
-        self.bp.route("/<int:user_id>/can_run_bg_jobs", methods=["POST"])(admin_required(self.update_can_run_bg_jobs))
+
+        routes = [
+            ("/", "GET", self.dashboard),
+            ("/<int:user_id>/can_run_jobs", "POST", self.update_can_run_jobs),
+            ("/<int:user_id>/can_run_bg_jobs", "POST", self.update_can_run_bg_jobs),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(admin_required(target))
 
     def dashboard(self) -> str:
         """Render the user management dashboard."""

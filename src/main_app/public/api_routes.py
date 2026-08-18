@@ -29,14 +29,17 @@ class ApiRoutes:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.get("/templates")(self.templates_list)
-        self.bp.get("/templates-mismatched-years")(self.templates_mismatched_years_list)
-        self.bp.get("/templates-need-update")(self.templates_need_update_list)
 
-        self.bp.get("/owidcharts/")(self.owid_charts_list)
-        self.bp.get("/owidcharts/<string:template_filter>")(self.owid_charts_list)
-
-        self.bp.get("/languages/<path:file_name>")(self.file_languages)
+        routes = [
+            ("/templates", "GET", self.templates_list),
+            ("/templates-mismatched-years", "GET", self.templates_mismatched_years_list),
+            ("/templates-need-update", "GET", self.templates_need_update_list),
+            ("/owidcharts/", "GET", self.owid_charts_list),
+            ("/owidcharts/<string:template_filter>", "GET", self.owid_charts_list),
+            ("/languages/<path:file_name>", "GET", self.file_languages),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(target)
 
     def templates_list(self):
         templates: list[TemplateRecord] = self.templates_service.list()

@@ -129,11 +129,16 @@ class CoordinatorsRoutes(CoordinatorsFuncs):
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
-        self.bp.route("/add", methods=["POST"])(admin_required(self.add))
-        self.bp.route("/<int:coordinator_id>/activate", methods=["POST"])(admin_required(self.activate))
-        self.bp.route("/<int:coordinator_id>/deactivate", methods=["POST"])(admin_required(self.deactivate))
-        self.bp.route("/<int:coordinator_id>/delete", methods=["POST"])(admin_required(self.delete))
+
+        routes = [
+            ("/", "GET", self.dashboard),
+            ("/add", "POST", self.add),
+            ("/<int:coordinator_id>/activate", "POST", self.activate),
+            ("/<int:coordinator_id>/deactivate", "POST", self.deactivate),
+            ("/<int:coordinator_id>/delete", "POST", self.delete),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(admin_required(target))
 
 
 __all__ = [

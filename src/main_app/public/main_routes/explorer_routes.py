@@ -38,14 +38,19 @@ class ExplorerRoutes:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.get("/<title_dir>/downloads")(self.by_title_downloaded)
-        self.bp.get("/<title_dir>/translated")(self.by_title_translated)
-        self.bp.get("/<title_dir>/not_translated")(self.by_title_not_translated)
-        self.bp.get("/<title>")(self.by_title)
-        self.bp.route("/", methods=["GET"])(self.main)
-        self.bp.route("/media/<title_dir>/<subdir>/<string:filename>")(self.serve_media)
-        self.bp.route("/media_thumb/<title_dir>/<subdir>/<string:filename>")(self.serve_thumb)
-        self.bp.route("/compare/<title_dir>/<string:filename>")(self.compare)
+
+        routes = [
+            ("/", "GET", self.main),
+            ("/<title_dir>/downloads", "GET", self.by_title_downloaded),
+            ("/<title_dir>/translated", "GET", self.by_title_translated),
+            ("/<title_dir>/not_translated", "GET", self.by_title_not_translated),
+            ("/<title>", "GET", self.by_title),
+            ("/media/<title_dir>/<subdir>/<string:filename>", "GET", self.serve_media),
+            ("/media_thumb/<title_dir>/<subdir>/<string:filename>", "GET", self.serve_thumb),
+            ("/compare/<title_dir>/<string:filename>", "GET", self.compare),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(target)
 
     def by_title_downloaded(self, title_dir: str) -> str:
         files, title_path = get_files(title_dir, "files")
