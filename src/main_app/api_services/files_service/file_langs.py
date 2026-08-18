@@ -62,7 +62,8 @@ def get_file_languages(
     if isinstance(translations, list) and len(translations) > 0:
         # Extract language codes from translation entries
         langs_keys = [t["name"] for t in translations if isinstance(t, dict) and "name" in t]
-        return FileLanguagesMap(langs=langs_keys if langs_keys else ["en"])
+        langs_keys.append("en")
+        return FileLanguagesMap(langs=langs_keys)
 
     return FileLanguagesMap(langs=["en"])
 
