@@ -14,7 +14,8 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted">
-                        Enter an SVG file name from Wikimedia Commons and select a language code to begin translating interactively.
+                        Enter an SVG file name from Wikimedia Commons and select a language code to begin translating
+                        interactively.
                     </p>
 
                     <form method="POST" action="{{ url_for('translate.select_post') }}">
@@ -24,8 +25,9 @@
                             <label for="filename" class="form-label font-weight-bold">
                                 File Name <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control wiki-autocomplete-files" id="filename" name="filename"
-                                placeholder="e.g. MyImage.svg" value="{{ filename|default('', true) }}" required autocomplete="off">
+                            <input type="text" class="form-control wiki-autocomplete-files" id="filename"
+                                name="filename" placeholder="e.g. MyImage.svg" value="{{ filename|default('File:Death rate from obesity, World, 1990.svg', true) }}"
+                                required autocomplete="off">
                             <div class="form-text">
                                 You can include or omit the "File:" prefix.
                             </div>
@@ -36,9 +38,10 @@
                                 Language Code <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control" id="lang" name="lang"
-                                placeholder="e.g. ar, fr, de, es" value="{{ lang|default('', true) }}" required>
+                                placeholder="e.g. ar, fr, de, es" value="{{ lang|default('ar', true) }}" required>
                             <div class="form-text">
-                                ISO 639 language code (e.g., <strong>ar</strong> for Arabic, <strong>fr</strong> for French, <strong>de</strong> for German).
+                                ISO 639 language code (e.g., <strong>ar</strong> for Arabic, <strong>fr</strong> for
+                                French, <strong>de</strong> for German).
                             </div>
                         </div>
 
@@ -57,9 +60,11 @@
                         </h5>
                         <ol class="mb-0">
                             <li>We download the SVG file from Wikimedia Commons.</li>
-                            <li>We parse and extract all text elements (like headings, labels, legends) and show them to you.</li>
+                            <li>We parse and extract all text elements (like headings, labels, legends) and show them to
+                                you.</li>
                             <li>You can modify existing translations or add new ones directly in the editor.</li>
-                            <li>We inject your translations and upload the updated SVG file directly to Wikimedia Commons!</li>
+                            <li>We inject your translations and upload the updated SVG file directly to Wikimedia
+                                Commons!</li>
                         </ol>
                     </div>
                 </div>
