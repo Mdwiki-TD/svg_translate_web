@@ -5,9 +5,9 @@ Objects for collect_templates_data worker.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, Literal
 
-from ...shared_objects import StandardAdminWorkerObject
+from ...shared_objects import StandardAdminSummary, WorkerObject
 
 
 @dataclass
@@ -60,7 +60,7 @@ class TemplateInfos:
     id: int
     title: str
     source: str
-    status: str = "processing"
+    status: Literal["processing", "skipped", "updated", "failed", "completed"] = "processing"
     steps: FileSteps = field(default_factory=lambda: FileSteps())
 
     error: str | None = None
@@ -98,9 +98,15 @@ class TemplateData:
 
 
 @dataclass
-class CollectTemplatesDataWorkerObject(StandardAdminWorkerObject):
-    pages_added: list[dict[str, Any]] = field(default_factory=list)
-    pages_updated: list[dict[str, Any]] = field(default_factory=list)
+class CollectTemplatesDataWorkerObject(WorkerObject):
+    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
+    pages_added: list[TemplateInfos] = field(default_factory=list)
+    pages_updated: list[TemplateInfos] = field(default_factory=list)
+    pages_skipped: list[dict[str, Any]] = field(default_factory=list)
+    pages_failed: list[dict[str, Any]] = field(default_factory=list)
+    pages_processed: list[dict[str, Any]] = field(default_factory=list)
+
+    args: dict[str, Any] = field(default_factory=dict)
 
 
 __all__ = [
