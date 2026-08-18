@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from sqlalchemy import func
@@ -13,6 +14,29 @@ from .crud_service import CRUDService
 from .utils import retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class JobStats:
+    """Aggregated counts for a user's jobs."""
+
+    total: int = 0
+    completed: int = 0
+    failed: int = 0
+    cancelled: int = 0
+
+
+@dataclass(frozen=True)
+class UserJobsStats:
+    """Typed result returned by the user-job statistics queries."""
+
+    stats: JobStats
+    recent_jobs: list[JobRecord]
+
+    @classmethod
+    def empty(cls) -> UserJobsStats:
+        """Return the safe fallback used when statistics cannot be loaded."""
+        return cls(stats=JobStats(), recent_jobs=[])
 
 
 def _normalize_limit(limit: int | None, *, default: int = 100, max_limit: int = 500) -> int:
@@ -71,7 +95,7 @@ class JobsService(CRUDService[JobRecord]):
         self,
         username: str,
         limit: int | None = 100,
-    ) -> dict[str, dict[str, int] | list[JobRecord]]:
+    ) -> UserJobsStats:
         return self._get_all_user_jobs_stats(username, limit)
 
     def get_user_jobs_stats(
@@ -79,10 +103,8 @@ class JobsService(CRUDService[JobRecord]):
         username: str,
         jobs_types: list | None = None,
         limit: int | None = 100,
-    ) -> dict[str, dict[str, int] | list[JobRecord]]:
-        """
-        Get user jobs
-        """
+    ) -> UserJobsStats:
+        """Return typed statistics and recent jobs for the requested job types."""
         if jobs_types is None or not jobs_types:
             return self._get_all_user_jobs_stats(username, limit)
 
@@ -107,21 +129,16 @@ class JobsService(CRUDService[JobRecord]):
 
         total_jobs = sum(status_counts.values())
 
-        stats: dict[str, int] = {
-            "total": total_jobs,
-            "completed": status_counts.get("completed", 0),
-            "failed": status_counts.get("failed", 0),
-            "cancelled": status_counts.get("cancelled", 0),
+        stats = JobStats(
+            total=total_jobs,
+            completed=status_counts.get("completed", 0),
+            failed=status_counts.get("failed", 0),
+            cancelled=status_counts.get("cancelled", 0),
             # "running": status_counts.get("running", 0),
             # "pending": status_counts.get("pending", 0),
-        }
+        )
 
-        data = {
-            "stats": stats,
-            "recent_jobs": recent_jobs,
-        }
-
-        return data
+        return UserJobsStats(stats=stats, recent_jobs=recent_jobs,)
 
     def has_active_job(self, job_type: str) -> bool:
         """
@@ -294,10 +311,8 @@ class JobsService(CRUDService[JobRecord]):
 
     def _get_all_user_jobs_stats(
         self, username: str, limit: int | None = 100
-    ) -> dict[str, dict[str, int] | list[JobRecord]]:
-        """
-        Get user jobs
-        """
+    ) -> UserJobsStats:
+        """Return typed statistics and recent jobs for all of a user's job types."""
         limit = _normalize_limit(limit)
 
         base_query = self.session.query(JobRecord).filter(JobRecord.username == username)
@@ -314,21 +329,16 @@ class JobsService(CRUDService[JobRecord]):
 
         total_jobs = sum(status_counts.values())
 
-        stats: dict[str, int] = {
-            "total": total_jobs,
-            "completed": status_counts.get("completed", 0),
-            "failed": status_counts.get("failed", 0),
-            "cancelled": status_counts.get("cancelled", 0),
+        stats = JobStats(
+            total=total_jobs,
+            completed=status_counts.get("completed", 0),
+            failed=status_counts.get("failed", 0),
+            cancelled=status_counts.get("cancelled", 0),
             # "running": status_counts.get("running", 0),
             # "pending": status_counts.get("pending", 0),
-        }
+        )
 
-        data = {
-            "stats": stats,
-            "recent_jobs": recent_jobs,
-        }
-
-        return data
+        return UserJobsStats(stats=stats, recent_jobs=recent_jobs)
 
     def mark_as_completed(self, job: JobRecord) -> None:
         job.is_running = None
@@ -339,5 +349,7 @@ class JobsService(CRUDService[JobRecord]):
 
 
 __all__ = [
+    "JobStats",
     "JobsService",
+    "UserJobsStats",
 ]

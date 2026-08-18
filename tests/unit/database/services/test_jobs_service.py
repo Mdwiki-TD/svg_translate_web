@@ -9,7 +9,8 @@ from sqlalchemy.exc import OperationalError
 
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.database.models import JobRecord
-from src.main_app.database.services.jobs_service import JobsService, _normalize_limit
+from src.main_app.database.services import JobStats, JobsService, UserJobsStats
+from src.main_app.database.services.jobs_service import _normalize_limit
 
 
 class TestSetup:
@@ -215,16 +216,21 @@ class TestGetAllUserJobsStats(TestSetup):
         self.service.update_job_status(failed.id, "failed", job_type="failed_type")
 
         result = self.service.get_all_user_jobs_stats("test_user")
-        assert result["stats"]["total"] == 2  # type: ignore[index]
-        assert result["stats"]["completed"] == 1  # type: ignore[index]
-        assert result["stats"]["failed"] == 1  # type: ignore[index]
+        assert isinstance(result, UserJobsStats)
+        assert isinstance(result.stats, JobStats)
+        assert result.stats.total == 2
+        assert result.stats.completed == 1
+        assert result.stats.failed == 1
+        assert result.stats.cancelled == 0
 
     def test_handles_empty_records(self) -> None:
         result = self.service.get_all_user_jobs_stats("test_user")
-        assert result["stats"]["total"] == 0  # type: ignore[index]
-        assert result["stats"]["completed"] == 0  # type: ignore[index]
-        assert result["stats"]["failed"] == 0  # type: ignore[index]
-        assert result["recent_jobs"] == []
+        assert result == UserJobsStats.empty()
+        assert result.stats.total == 0
+        assert result.stats.completed == 0
+        assert result.stats.failed == 0
+        assert result.stats.cancelled == 0
+        assert result.recent_jobs == []
 
     def test_respects_limit_parameter(self) -> None:
         for i in range(3):
@@ -232,9 +238,9 @@ class TestGetAllUserJobsStats(TestSetup):
             self.service.update_job_status(job.id, "completed", job_type=f"completed_type_{i}")
 
         result = self.service.get_all_user_jobs_stats("test_user", limit=2)
-        assert result["stats"]["total"] == 3  # type: ignore[index]
-        assert result["stats"]["completed"] == 3  # type: ignore[index]
-        assert len(result["recent_jobs"]) == 2
+        assert result.stats.total == 3
+        assert result.stats.completed == 3
+        assert len(result.recent_jobs) == 2
 
 
 class TestGetUserJobsStats(TestSetup):
@@ -247,26 +253,27 @@ class TestGetUserJobsStats(TestSetup):
         self.service.update_job_status(excluded.id, "failed", job_type="type_c")
 
         result = self.service.get_user_jobs_stats("test_user", jobs_types=["type_a", "type_b"])
-        assert result["stats"]["total"] == 1  # type: ignore[index]
-        assert result["stats"]["completed"] == 1  # type: ignore[index]
-        assert result["stats"]["failed"] == 0  # type: ignore[index]
-        assert len(result["recent_jobs"]) == 1
+        assert isinstance(result, UserJobsStats)
+        assert result.stats.total == 1
+        assert result.stats.completed == 1
+        assert result.stats.failed == 0
+        assert len(result.recent_jobs) == 1
 
     def test_with_none_jobs_types_delegates(self) -> None:
         job = self.service.create_job("type_a", username="test_user")
         self.service.update_job_status(job.id, "completed", job_type="type_a")
 
         result = self.service.get_user_jobs_stats("test_user", jobs_types=None)
-        assert result["stats"]["total"] == 1  # type: ignore[index]
-        assert result["stats"]["completed"] == 1  # type: ignore[index]
+        assert result.stats.total == 1
+        assert result.stats.completed == 1
 
     def test_with_empty_jobs_types_delegates(self) -> None:
         job = self.service.create_job("type_a", username="test_user")
         self.service.update_job_status(job.id, "completed", job_type="type_a")
 
         result = self.service.get_user_jobs_stats("test_user", jobs_types=[])
-        assert result["stats"]["total"] == 1  # type: ignore[index]
-        assert result["stats"]["completed"] == 1  # type: ignore[index]
+        assert result.stats.total == 1
+        assert result.stats.completed == 1
 
 
 class TestHasActiveJob(TestSetup):
