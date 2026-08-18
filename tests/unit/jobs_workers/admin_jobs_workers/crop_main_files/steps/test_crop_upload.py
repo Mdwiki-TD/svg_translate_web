@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from src.main_app.api_services.files_service.objects import UploadResult
+from src.main_app.api_services.files_service.objects import FileData, UploadResult
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps import upload
 
 
@@ -41,11 +41,13 @@ class TestUploadCroppedFile:
 
         # Verify UploadFileNew was constructed with correct parameters
         mock_upload_class.return_value.upload_obj.assert_called_once_with(
-            file_name="test (cropped).svg",
-            file_path=cropped_path,
-            summary="[[:File:test.svg]] cropped to remove the footer.",
-            new_file=True,
-            description=None,
+            FileData(
+                file_name="test (cropped).svg",
+                file_path=cropped_path,
+                summary="[[:File:test.svg]] cropped to remove the footer.",
+                description=None,
+                new_file=True,
+            )
         )
 
     def test_upload_cropped_file_no_site(self, mock_upload_class, tmp_path):
@@ -253,6 +255,7 @@ class TestUploadCroppedFile:
 
         assert result["success"] is True
         call_args = mock_upload_class.return_value.upload_obj.call_args[1]
+
         assert call_args["description"] == wikitext
 
     def test_upload_cropped_file_upload_fails(self, mock_upload_class, tmp_path):
