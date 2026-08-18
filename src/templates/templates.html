@@ -31,11 +31,33 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
 {% block extra_js %}
 
 <script>
+    function getLanguages(button) {
+        const file = button.data('file');
+        const span = button.parent();
+
+        span.html('<span class="text-muted">Loading ...</span>');
+
+        return $.get(`/api/languages/${file}`)
+            .then(data => {
+                if (data) {
+                    span.html(`<span class="text-success">${data}</span>`);
+                } else {
+                    span.html(`<span class="text-danger">no result</span>`);
+                }
+            })
+            .catch(() => {
+                span.html(`<span class="text-warning">Error</span>`);
+            });
+    }
+
+    $("#templatesTable").on("click", 'button[data-file]', function () {
+        getLanguages($(this));
+    });
+
     $(document).ready(function () {
         const table = $("#templatesTable").DataTable({
             ajax: {
@@ -75,7 +97,12 @@
                     data: "main_file",
                     render: function (data, type, row) {
                         if (!data) return "";
-                        return `<button class="btn btn-sm btn-outline-primary" type="button" data-file="File:${data}">load</button>`;
+                        return `
+                        <span>
+                            <button class="btn btn-sm btn-outline-primary main_file_btn" type="button" data-file="File:${data}">
+                                load
+                            </button>
+                        </span>`;
                     }
                 },
                 // { data: "last_world_year", title: "Newest Year" },
