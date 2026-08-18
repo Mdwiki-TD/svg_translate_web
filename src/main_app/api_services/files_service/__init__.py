@@ -10,10 +10,7 @@ from .objects import (
     FileInfo,
 )
 from .service import FilesService
-from .upload_bot import (
-    UploadFile,
-    UploadService,
-)
+from .uploader import UploadService
 
 __all__ = [
     "FileInfo",
@@ -22,7 +19,6 @@ __all__ = [
     "FilesService",
     "UploadService",
     "get_file_info",
-    "UploadFile",
     "get_file_languages",
     "FileLanguagesMap",
 ]
