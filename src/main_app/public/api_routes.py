@@ -32,16 +32,19 @@ class ApiRoutes:
 
         routes = [
             ("/templates", "GET", self.templates_list),
+            ("/templates/<string:filter>", "GET", self.templates_list),
             ("/templates-mismatched-years", "GET", self.templates_mismatched_years_list),
             ("/templates-need-update", "GET", self.templates_need_update_list),
+
             ("/owidcharts/", "GET", self.owid_charts_list),
             ("/owidcharts/<string:template_filter>", "GET", self.owid_charts_list),
+
             ("/languages/<path:file_name>", "GET", self.file_languages),
         ]
         for rule, method, target in routes:
             self.bp.route(rule, methods=[method])(target)
 
-    def templates_list(self):
+    def templates_list(self, filter: str = ""):
         templates: list[TemplateRecord] = self.templates_service.list()
 
         data: list[dict[str, Any]] = []
@@ -50,9 +53,13 @@ class ApiRoutes:
         with_last_world_year = 0
         with_source = 0
 
+        if filter == "has_file":
+            templates = [ x for x in templates if x.main_file ]
+
         # Single-pass loop to build data and summary
         for t in templates:
             data.append(t.to_dict())
+
             if t.main_file:
                 with_main_file += 1
 

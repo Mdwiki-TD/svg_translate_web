@@ -61,8 +61,17 @@
 
     $(document).ready(function () {
         const table = $("#templatesTable").DataTable({
+            responsive: true,
+            pageLength: 100,
+            order: [[0, 'asc']],
+            lengthMenu: [
+                [100, 200, 500, 1000],
+                [100, 200, 500, 1000]
+            ],
+            serverSide: false,
+            processing: true,
             ajax: {
-                url: "/api/templates",
+                url: "/api/templates/has_file",
                 type: "GET",
                 dataSrc: function (json) {
                     if (json.summary) {
@@ -129,8 +138,6 @@
                     }
                 }
             ],
-            serverSide: false,
-            processing: true
         });
     });
 </script>
