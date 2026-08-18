@@ -134,9 +134,11 @@ class JobsService(CRUDService[JobRecord]):
             completed=status_counts.get("completed", 0),
             failed=status_counts.get("failed", 0),
             cancelled=status_counts.get("cancelled", 0),
+            # "running": status_counts.get("running", 0),
+            # "pending": status_counts.get("pending", 0),
         )
 
-        return UserJobsStats(stats=stats, recent_jobs=recent_jobs)
+        return UserJobsStats(stats=stats, recent_jobs=recent_jobs,)
 
     def has_active_job(self, job_type: str) -> bool:
         """
@@ -332,6 +334,8 @@ class JobsService(CRUDService[JobRecord]):
             completed=status_counts.get("completed", 0),
             failed=status_counts.get("failed", 0),
             cancelled=status_counts.get("cancelled", 0),
+            # "running": status_counts.get("running", 0),
+            # "pending": status_counts.get("pending", 0),
         )
 
         return UserJobsStats(stats=stats, recent_jobs=recent_jobs)
