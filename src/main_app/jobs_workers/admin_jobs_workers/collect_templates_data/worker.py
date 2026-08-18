@@ -29,8 +29,8 @@ from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ..slugs_helpers import check_slugs
 from .objects import (
-    CollectTemplatesDataWorkerObject,
-    StepResult,
+    CollectTemplatesDataMapping,
+    CollectStepResult,
     TemplateData,
     TemplateInfos,
 )
@@ -148,7 +148,7 @@ class OneFileProcessor:
 
         # ------------------
         # template_info step # 4 source
-        source_step: StepResult = template_info.steps.source
+        source_step: CollectStepResult = template_info.steps.source
         try:
             source = find_template_source(wikitext, check_grapher=False)
             if not source:
@@ -269,7 +269,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         super().__init__(data)
 
         self.args = data.args or {}
-        self.result: CollectTemplatesDataWorkerObject = CollectTemplatesDataWorkerObject(
+        self.result: CollectTemplatesDataMapping = CollectTemplatesDataMapping(
             job_id=self.job_id,
             args=self.args,  # pyright: ignore[reportCallIssue]
         )
@@ -399,7 +399,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     # sub public entry-point
     # ------------------------------------------------------------------
 
-    def process_one(self, template_title: str) -> CollectTemplatesDataWorkerObject:
+    def process_one(self, template_title: str) -> CollectTemplatesDataMapping:
         """Process a single template by title."""
 
         template = self.template_service.get_template_by_title(template_title)
@@ -425,7 +425,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return self.result
 
-    def process_all(self) -> CollectTemplatesDataWorkerObject:
+    def process_all(self) -> CollectTemplatesDataMapping:
         """Execute the collection processing logic."""
         # Step 1: Fetch new templates from category and add them
         self._fetch_and_add_new_templates()
@@ -447,7 +447,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         return self.start_process(tmps_to_process)
 
-    def start_process(self, tmps_to_process: list[TemplateRecord]) -> CollectTemplatesDataWorkerObject:
+    def start_process(self, tmps_to_process: list[TemplateRecord]) -> CollectTemplatesDataMapping:
 
         # change TemplateRecord to TemplateData
         templates_data = [
@@ -490,7 +490,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     # Public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> CollectTemplatesDataWorkerObject:
+    def process(self) -> CollectTemplatesDataMapping:
         """Execute the collection processing logic."""
         if not self._check_site():
             return self.result

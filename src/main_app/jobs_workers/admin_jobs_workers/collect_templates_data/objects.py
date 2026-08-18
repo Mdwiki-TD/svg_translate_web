@@ -7,11 +7,11 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
-from ...shared_objects import StandardAdminSummary, WorkerObject
+from ...shared_objects import StandardAdminSummary, WorkerMapping
 
 
 @dataclass
-class StepResult:
+class CollectStepResult:
     """
     "main_file": {"result": None, "value": "", "new_value": "", "msg": ""},
     """
@@ -44,21 +44,21 @@ class StepResult:
 
 
 @dataclass
-class FileSteps:
-    main_file: StepResult = field(default_factory=lambda: StepResult())
-    last_world_file: StepResult = field(default_factory=lambda: StepResult())
-    newest_year: StepResult = field(default_factory=lambda: StepResult())
-    source: StepResult = field(default_factory=lambda: StepResult())
-    slug: StepResult = field(default_factory=lambda: StepResult())
-    files: StepResult = field(default_factory=lambda: StepResult())
+class CollectFileSteps:
+    main_file: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+    last_world_file: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+    newest_year: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+    source: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+    slug: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+    files: CollectStepResult = field(default_factory=lambda: CollectStepResult())
 
     @classmethod
     def from_template(cls, template: TemplateData) -> TemplateInfos:
         return cls(
-            main_file=StepResult(value=template.main_file or ""),
-            last_world_file=StepResult(value=template.last_world_file or ""),
-            source=StepResult(value=template.source),
-            slug=StepResult(value=template.slug),
+            main_file=CollectStepResult(value=template.main_file or ""),
+            last_world_file=CollectStepResult(value=template.last_world_file or ""),
+            source=CollectStepResult(value=template.source),
+            slug=CollectStepResult(value=template.slug),
         )
 
 
@@ -71,8 +71,8 @@ class TemplateInfos:
     id: int
     title: str
     source: str
-    status: Literal["processing", "skipped", "updated", "failed", "completed"] = "processing"
-    steps: FileSteps = field(default_factory=lambda: FileSteps())
+    status: Literal["pending", "skipped", "updated", "failed", "completed"] = "pending"
+    steps: CollectFileSteps = field(default_factory=lambda: CollectFileSteps())
 
     error: str | None = None
     error_type: str | None = None
@@ -87,7 +87,7 @@ class TemplateInfos:
             title=template.title,
             source="",
             status="",
-            steps=FileSteps.from_template(template),
+            steps=CollectFileSteps.from_template(template),
         )
 
 
@@ -109,7 +109,7 @@ class TemplateData:
 
 
 @dataclass
-class CollectTemplatesDataWorkerObject(WorkerObject):
+class CollectTemplatesDataMapping(WorkerMapping):
     summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
     pages_added: list[TemplateInfos] = field(default_factory=list)
     pages_updated: list[TemplateInfos] = field(default_factory=list)
@@ -121,5 +121,5 @@ class CollectTemplatesDataWorkerObject(WorkerObject):
 
 
 __all__ = [
-    "CollectTemplatesDataWorkerObject",
+    "CollectTemplatesDataMapping",
 ]

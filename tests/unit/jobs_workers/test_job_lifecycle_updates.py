@@ -9,7 +9,7 @@ from sqlalchemy import text
 from src.main_app.database.models.jobs import JobRecord
 from src.main_app.database.services.jobs_service import JobsService
 from src.main_app.extensions import db
-from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker, WorkerObject
+from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker, WorkerMapping
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -21,7 +21,7 @@ class MockWorker(BaseObjectsJobWorker):
 
         super().__init__(JobsRunner(job_id=job_id, user={}))
 
-        self.result: WorkerObject = WorkerObject()
+        self.result: WorkerMapping = WorkerMapping()
 
     def get_job_type(self) -> str:
         return self._job_type_name
