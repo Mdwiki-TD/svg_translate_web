@@ -362,7 +362,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         logger.info(f"Found {len(result)} pages in category {category}")
 
-        EXCLUDED_TEMPLATES = {"template:owid"}
+        EXCLUDED_TEMPLATES = {"template:owid", "template:owidslider"}
         category_templates = [x for x in result if x.startswith("Template:") and x.lower() not in EXCLUDED_TEMPLATES]
         return category_templates
 
