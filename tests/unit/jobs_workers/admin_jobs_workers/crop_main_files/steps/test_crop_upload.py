@@ -90,9 +90,11 @@ class TestUploadCroppedFile:
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
         # Verify the File: prefix was stripped
-        call_args = mock_upload_class.return_value.upload_obj.call_args[1]
-        assert call_args["file_name"] == "test (cropped).svg"
-        assert not call_args["file_name"].startswith("File:")
+        call_args = mock_upload_class.return_value.upload_obj.call_args[0][0]
+        assert isinstance(call_args, FileData)
+
+        assert call_args.file_name == "test (cropped).svg"
+        assert not call_args.file_name.startswith("File:")
 
     def test_upload_cropped_file_without_file_prefix(self, mock_upload_class, tmp_path):
         """Test upload with filename that doesn't have 'File:' prefix."""
@@ -107,8 +109,9 @@ class TestUploadCroppedFile:
 
         assert result["success"] is True
         # Should use the filename as-is
-        call_args = mock_upload_class.return_value.upload_obj.call_args[1]
-        assert call_args["file_name"] == "test (cropped).svg"
+        call_args = mock_upload_class.return_value.upload_obj.call_args[0][0]
+        assert isinstance(call_args, FileData)
+        assert call_args.file_name == "test (cropped).svg"
 
     def test_upload_cropped_file_with_special_characters(self, mock_upload_class, tmp_path):
         """Test upload with filename containing special characters."""
@@ -122,8 +125,9 @@ class TestUploadCroppedFile:
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
         assert result["success"] is True
-        call_args = mock_upload_class.return_value.upload_obj.call_args[1]
-        assert call_args["file_name"] == "test & image (cropped).svg"
+        call_args = mock_upload_class.return_value.upload_obj.call_args[0][0]
+        assert isinstance(call_args, FileData)
+        assert call_args.file_name == "test & image (cropped).svg"
 
     def test_upload_cropped_file_uses_new_file_flag(self, mock_upload_class, tmp_path):
         """Test that upload is called with new_file=True."""
@@ -137,8 +141,9 @@ class TestUploadCroppedFile:
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
         # Verify new_file=True is set
-        call_args = mock_upload_class.return_value.upload_obj.call_args[1]
-        assert call_args["new_file"] is True
+        call_args = mock_upload_class.return_value.upload_obj.call_args[0][0]
+        assert isinstance(call_args, FileData)
+        assert call_args.new_file is True
 
     def test_upload_cropped_file_uses_correct_summary(self, mock_upload_class, tmp_path):
         """Test that upload uses correct summary text."""
@@ -152,8 +157,9 @@ class TestUploadCroppedFile:
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
         # Verify summary is correct
-        call_args = mock_upload_class.return_value.upload_obj.call_args[1]
-        assert call_args["summary"] == "[[:File:test.svg]] cropped to remove the footer."
+        call_args = mock_upload_class.return_value.upload_obj.call_args[0][0]
+        assert isinstance(call_args, FileData)
+        assert call_args.summary == "[[:File:test.svg]] cropped to remove the footer."
 
     def test_upload_cropped_file_returns_filename_in_result(self, mock_upload_class, tmp_path):
         """Test that result always includes the cropped filename."""
@@ -208,8 +214,9 @@ class TestUploadCroppedFile:
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
         assert result["success"] is True
-        call_args = mock_upload_class.return_value.upload_obj.call_args[1]
-        assert "测试图片" in call_args["file_name"]
+        call_args = mock_upload_class.return_value.upload_obj.call_args[0][0]
+        assert isinstance(call_args, FileData)
+        assert "测试图片" in call_args.file_name
 
     def test_upload_cropped_file_with_path_object(self, mock_upload_class, tmp_path):
         """Test upload works with Path object for cropped_path."""
@@ -224,8 +231,9 @@ class TestUploadCroppedFile:
 
         assert result["success"] is True
         # Verify Path object was passed correctly
-        call_args = mock_upload_class.return_value.upload_obj.call_args[1]
-        assert call_args["file_path"] == cropped_path
+        call_args = mock_upload_class.return_value.upload_obj.call_args[0][0]
+        assert isinstance(call_args, FileData)
+        assert call_args.file_path == cropped_path
 
     def test_upload_cropped_file_empty_filename(self, mock_upload_class, tmp_path):
         """Test upload with empty filename."""
@@ -254,9 +262,10 @@ class TestUploadCroppedFile:
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site, wikitext)
 
         assert result["success"] is True
-        call_args = mock_upload_class.return_value.upload_obj.call_args[1]
+        call_args = mock_upload_class.return_value.upload_obj.call_args[0][0]
+        assert isinstance(call_args, FileData)
 
-        assert call_args["description"] == wikitext
+        assert call_args.description == wikitext
 
     def test_upload_cropped_file_upload_fails(self, mock_upload_class, tmp_path):
         """Test handling of upload failure."""
