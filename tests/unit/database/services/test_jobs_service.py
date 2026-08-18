@@ -9,7 +9,7 @@ from sqlalchemy.exc import OperationalError
 
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.database.models import JobRecord
-from src.main_app.database.services import JobStats, JobsService, UserJobsStats
+from src.main_app.database.services import JobsService, JobStats, UserJobsStats
 from src.main_app.database.services.jobs_service import _normalize_limit
 
 

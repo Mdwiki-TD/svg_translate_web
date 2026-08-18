@@ -138,7 +138,10 @@ class JobsService(CRUDService[JobRecord]):
             # "pending": status_counts.get("pending", 0),
         )
 
-        return UserJobsStats(stats=stats, recent_jobs=recent_jobs,)
+        return UserJobsStats(
+            stats=stats,
+            recent_jobs=recent_jobs,
+        )
 
     def has_active_job(self, job_type: str) -> bool:
         """
@@ -309,9 +312,7 @@ class JobsService(CRUDService[JobRecord]):
 
         return job
 
-    def _get_all_user_jobs_stats(
-        self, username: str, limit: int | None = 100
-    ) -> UserJobsStats:
+    def _get_all_user_jobs_stats(self, username: str, limit: int | None = 100) -> UserJobsStats:
         """Return typed statistics and recent jobs for all of a user's job types."""
         limit = _normalize_limit(limit)
 
