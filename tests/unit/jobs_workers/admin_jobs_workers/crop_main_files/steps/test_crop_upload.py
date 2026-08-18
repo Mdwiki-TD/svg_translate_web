@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
+from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps import upload
 
 
@@ -14,7 +15,7 @@ def mock_upload_class(monkeypatch):
     """Mock the UploadFile class so constructor args are captured."""
     _mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.upload.UploadFile",
+        "src.main_app.api_services.files_service.upload_bot.UploadFile",
         _mock,
     )
     return _mock
@@ -30,7 +31,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -67,7 +68,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.side_effect = RuntimeError("Network timeout")
+        mock_upload_class.return_value.upload_obj.side_effect = RuntimeError("Network timeout")
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -83,7 +84,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -99,7 +100,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -115,7 +116,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -130,7 +131,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -145,7 +146,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -172,7 +173,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -186,7 +187,7 @@ class TestUploadCroppedFile:
         site = Mock()
 
         # Return a result without 'error' key
-        mock_upload_class.return_value.upload.return_value = {"result": "Failure"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=False)
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -201,7 +202,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -217,7 +218,7 @@ class TestUploadCroppedFile:
         site = Mock()
         site.name = "commons"
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -233,7 +234,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -249,7 +250,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 
@@ -264,7 +265,7 @@ class TestUploadCroppedFile:
         site = Mock()
         wikitext = "==Summary==\nTest description"
 
-        mock_upload_class.return_value.upload.return_value = {"result": "success"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=True)
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site, wikitext)
 
@@ -279,7 +280,7 @@ class TestUploadCroppedFile:
         cropped_path.write_text("<svg></svg>")
         site = Mock()
 
-        mock_upload_class.return_value.upload.return_value = {"result": "Failure", "error": "File already exists"}
+        mock_upload_class.return_value.upload_obj.return_value = UploadResult(ok=False, error="File already exists")
 
         result = upload.upload_cropped_file(cropped_filename, cropped_path, site)
 

@@ -252,6 +252,13 @@ class UploadFile:
                 result=None,
             )
 
+        """
+        "details": {
+            "error": "fileexists-shared-forbidden",
+            "error_details": "A file with this name already exists in the shared file repository. If you still want to upload your file, please go back and use a new name. [[File:Share_of_deaths_obesity,_AFG.svg|thumb|center|Share_of_deaths_obesity,_AFG.svg]]",
+          },
+        """
+
         return UploadResult(
             ok=False,
             error=result_error,
@@ -261,6 +268,37 @@ class UploadFile:
         )
 
 
+class UploadService:
+    def __init__(self, site: Site) -> None:
+        self.site: Site = site
+
+    # ----------------------
+    #  upload methods
+    # ----------------------
+
+    def upload_svg(
+        self,
+        filename: str,
+        file_path: Path,
+        summary: str,
+        description: str | None = None,
+        new_file: bool = False,
+    ) -> UploadResult:
+        """Upload SVG file to Commons."""
+        logger.info(f"Uploading file: {filename}")
+
+        uploader = UploadFile(
+            file_name=filename,
+            file_path=file_path,
+            site=self.site,
+            summary=summary,
+            description=description,
+            new_file=new_file,
+        )
+        return uploader.upload_obj()
+
+
 __all__ = [
+    "UploadService",
     "UploadFile",
 ]
