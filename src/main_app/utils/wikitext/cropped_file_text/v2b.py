@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 import wikitextparser as wtp
 
@@ -40,7 +39,7 @@ class OtherVersionsManager:
     def __init__(
         self,
         main_template_name: str = DEFAULT_MAIN_TEMPLATE,
-        main_template_args: Optional[list[str]] = None,
+        main_template_args: list[str] | None = None,
         case_insensitive: bool = True,
     ) -> None:
         self.main_template_name = main_template_name
@@ -74,12 +73,9 @@ class OtherVersionsManager:
         self._apply_to_template(template, temp_name, first_param_value)
         return parsed.string
 
-    def get_template_param(self, text: str, template_name: str, params: list[str]) -> Optional[str]:
+    def get_template_param(self, text: str, template_name: str, params: list[str]) -> str | None:
         """Extract the value of a specific parameter from a given template in the text."""
-        matching = [
-            t for t in wtp.WikiText(text).templates
-            if str(t.normal_name()).strip() == template_name.strip()
-        ]
+        matching = [t for t in wtp.WikiText(text).templates if str(t.normal_name()).strip() == template_name.strip()]
         if not matching:
             return None
 
@@ -90,7 +86,7 @@ class OtherVersionsManager:
     # Internal helpers
     # ---------------------------------------------------------------- #
 
-    def _find_main_template(self, parsed: wtp.WikiText) -> Optional[wtp.Template]:
+    def _find_main_template(self, parsed: wtp.WikiText) -> wtp.Template | None:
         name = self.main_template_name.lower()
         for template in parsed.templates:
             if template.name.strip().lower() == name:
@@ -146,7 +142,7 @@ class OtherVersionsManager:
         return f"{{{{{temp_name}|1={first_param_value}}}}}"
 
     @staticmethod
-    def _get_argument(template: wtp.Template, params: list[str]) -> Optional[wtp.Argument]:
+    def _get_argument(template: wtp.Template, params: list[str]) -> wtp.Argument | None:
         args_map = {arg.name.lower().strip(): arg for arg in template.arguments}
         for param in params:
             found = args_map.get(param) or args_map.get(param.lower())

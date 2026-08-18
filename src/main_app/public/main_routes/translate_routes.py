@@ -18,12 +18,11 @@ from flask import (
     url_for,
 )
 
-from ...services.copysvg_wrapper.mapping import ExtractorData
-from ...public.auth import oauth_required
-
 from ...api_services import FilesService, UploadService, get_user_site
 from ...config import settings
+from ...public.auth import oauth_required
 from ...services.copysvg_wrapper import extract_from_path, inject_step_one_file
+from ...services.copysvg_wrapper.mapping import ExtractorData
 from ..utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)
@@ -96,7 +95,10 @@ class TranslateRoutes:
         mapping = extract_result.mapping
 
         if extract_result is None or mapping is None or extract_result.error:
-            flash(f"Failed to parse or extract translations from {processed_filename}: {extract_result.error or ''}", "danger")
+            flash(
+                f"Failed to parse or extract translations from {processed_filename}: {extract_result.error or ''}",
+                "danger",
+            )
             if session_dir.exists():
                 shutil.rmtree(session_dir)
             return redirect(url_for("translate.dashboard"))
@@ -139,7 +141,7 @@ class TranslateRoutes:
 
         # Extract only mapping['new'] keys for translating
         new_translations = mapping_data.get("new", {})
-        all_keys = sorted(list(new_translations.keys()))
+        all_keys = sorted(new_translations.keys())
 
         texts_with_translations = []
         for key in all_keys:
@@ -147,10 +149,12 @@ class TranslateRoutes:
             if key in new_translations and lang in new_translations[key]:
                 existing_trans = new_translations[key][lang]
 
-            texts_with_translations.append({
-                "original": key,
-                "translation": existing_trans,
-            })
+            texts_with_translations.append(
+                {
+                    "original": key,
+                    "translation": existing_trans,
+                }
+            )
 
         return render_template(
             "translate/edit.html",
@@ -254,13 +258,18 @@ class TranslateRoutes:
 
         if upload_res.ok:
             commons_link = f"https://commons.wikimedia.org/wiki/File:{filename}"
-            flash(f"Successfully uploaded to <a href='{commons_link}' target='_blank' rel='noopener noreferrer'>Wikimedia Commons</a>!", "success")
+            flash(
+                f"Successfully uploaded to <a href='{commons_link}' target='_blank' rel='noopener noreferrer'>Wikimedia Commons</a>!",
+                "success",
+            )
             return redirect(url_for("translate.dashboard"))
         elif upload_res.error == "skipped" or upload_res.msg == "File already exists with same content":
             flash("No translation changes detected or file already exists with identical content.", "warning")
             return redirect(url_for("translate.dashboard"))
         else:
-            flash(f"Failed to upload file: {upload_res.error or 'unknown'} - {upload_res.error_details or ''}", "danger")
+            flash(
+                f"Failed to upload file: {upload_res.error or 'unknown'} - {upload_res.error_details or ''}", "danger"
+            )
             return redirect(url_for("translate.dashboard"))
 
 

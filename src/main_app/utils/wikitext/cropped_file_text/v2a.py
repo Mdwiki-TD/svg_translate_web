@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Sequence
+from collections.abc import Sequence
 
 import wikitextparser as wtp
 
@@ -49,9 +49,7 @@ class OtherVersionsAdder:
         self.first_param_value = first_param_value
         self.main_template_name = main_template_name
         self.main_template_args = (
-            list(main_template_args)
-            if main_template_args is not None
-            else list(DEFAULT_MAIN_TEMPLATE_ARGS)
+            list(main_template_args) if main_template_args is not None else list(DEFAULT_MAIN_TEMPLATE_ARGS)
         )
         self.case_insensitive = case_insensitive
 
@@ -93,9 +91,7 @@ class OtherVersionsAdder:
     def _apply_to_template(self, template: wtp.Template) -> None:
         """Update or create the "other versions" parameter on the given template."""
         existing_arg = self._get_named_arg(template, self.main_template_args)
-        existing_value = (
-            existing_arg.value.strip() if existing_arg and existing_arg.value else ""
-        )
+        existing_value = existing_arg.value.strip() if existing_arg and existing_arg.value else ""
 
         new_value = self._merge_value(existing_value)
 
@@ -125,15 +121,11 @@ class OtherVersionsAdder:
             return True
 
         # Semantic match (same template name + same first parameter value)
-        current_first_param = self._get_template_param(
-            existing_value, self.temp_name, ["1"]
-        )
+        current_first_param = self._get_template_param(existing_value, self.temp_name, ["1"])
         if current_first_param is None:
             return False
 
-        return self._normalize(current_first_param) == self._normalize(
-            self.first_param_value
-        )
+        return self._normalize(current_first_param) == self._normalize(self.first_param_value)
 
     def _render_insertion(self) -> str:
         """Build the template string to insert."""
@@ -145,13 +137,9 @@ class OtherVersionsAdder:
         return result.lower() if self.case_insensitive else result
 
     @staticmethod
-    def _get_named_arg(
-        template: wtp.Template, param_names: Sequence[str]
-    ) -> wtp.Argument | None:
+    def _get_named_arg(template: wtp.Template, param_names: Sequence[str]) -> wtp.Argument | None:
         """Return the first matching argument from ``param_names``."""
-        args_by_name = {
-            arg.name.lower().strip(): arg for arg in template.arguments
-        }
+        args_by_name = {arg.name.lower().strip(): arg for arg in template.arguments}
         for param in param_names:
             found = args_by_name.get(param) or args_by_name.get(param.lower())
             if found:
@@ -159,15 +147,10 @@ class OtherVersionsAdder:
         return None
 
     @classmethod
-    def _get_template_param(
-        cls, text: str, temp_name: str, param_names: Sequence[str]
-    ) -> str | None:
+    def _get_template_param(cls, text: str, temp_name: str, param_names: Sequence[str]) -> str | None:
         """Extract a parameter value from the first matching template in ``text``."""
         templates = wtp.WikiText(text).templates
-        matches = [
-            t for t in templates
-            if str(t.normal_name()).strip() == temp_name.strip()
-        ]
+        matches = [t for t in templates if str(t.normal_name()).strip() == temp_name.strip()]
         if not matches:
             return None
 
