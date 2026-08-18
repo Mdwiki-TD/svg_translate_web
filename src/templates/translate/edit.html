@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Translate SVG - {{ filename }}{% endblock %}
+
+{% block content_fluid %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-11 col-lg-10">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0 h5">
+                        <i class="bi bi-pencil-square"></i> Translate SVG
+                    </h3>
+                    <span class="badge bg-light text-dark fs-6">
+                        Target Language: <strong class="text-uppercase">{{ lang }}</strong>
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <span class="fs-5 text-truncate">
+                            <i class="bi bi-file-earmark-image"></i> {{ filename }}
+                        </span>
+                        <a href="{{ url_for('translate.dashboard') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Change File/Lang
+                        </a>
+                    </div>
+
+                    {% if not texts_with_translations %}
+                    <div class="alert alert-warning">
+                        No translatable text segments were found in this SVG file.
+                    </div>
+                    {% else %}
+                    <p class="text-muted small">
+                        Below is a list of English text segments extracted from the SVG. Edit or add the translations in the right column. Empty translation fields will be ignored.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('translate.save_post') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="session_id" value="{{ session_id }}" />
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 45%;">English (Original)</th>
+                                        <th style="width: 55%;">Translation ({{ lang | upper }})</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in texts_with_translations %}
+                                    <tr>
+                                        <td>
+                                            <div class="p-2 bg-light border rounded font-monospace small text-wrap text-break" style="max-height: 120px; overflow-y: auto;">
+                                                {{ item.original }}
+                                            </div>
+                                            <input type="hidden" name="originals" value="{{ item.original | e }}" />
+                                        </td>
+                                        <td>
+                                            <textarea class="form-control" name="translations" rows="2" placeholder="Enter translation here...">{{ item.translation }}</textarea>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <a href="{{ url_for('translate.dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" name="action" value="download" class="btn btn-outline-primary">
+                                <i class="bi bi-download"></i> Download SVG
+                            </button>
+                            <button type="submit" name="action" value="upload" class="btn btn-success">
+                                <i class="bi bi-cloud-arrow-up-fill"></i> Save & Upload to Commons
+                            </button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
