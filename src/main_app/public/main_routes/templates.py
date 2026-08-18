@@ -8,11 +8,13 @@ from flask import (
     Blueprint,
     render_template,
 )
+
 from ...database.services import (
     TemplateService,
 )
 
 logger = logging.getLogger(__name__)
+
 
 class TemplatesView:
     def __init__(self, bp: Blueprint) -> None:
@@ -32,6 +34,7 @@ class TemplatesView:
         return render_template(
             "templates.html",
         )
+
 
 __all__ = [
     "TemplatesView",

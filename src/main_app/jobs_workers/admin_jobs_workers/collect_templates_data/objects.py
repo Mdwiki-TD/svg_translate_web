@@ -41,6 +41,15 @@ class FileSteps:
     slug: StepResult = field(default_factory=lambda: StepResult())
     files: StepResult = field(default_factory=lambda: StepResult())
 
+    @classmethod
+    def from_template(cls, template: TemplateData) -> TemplateInfos:
+        return cls(
+            main_file=StepResult(value=template.main_file or ""),
+            last_world_file=StepResult(value=template.last_world_file or ""),
+            source=StepResult(value=template.source),
+            slug=StepResult(value=template.slug),
+        )
+
 
 @dataclass
 class TemplateInfos:
@@ -52,12 +61,23 @@ class TemplateInfos:
     title: str
     source: str
     status: str = "processing"
+    steps: FileSteps = field(default_factory=lambda: FileSteps())
+
     error: str | None = None
     error_type: str | None = None
-    steps: FileSteps = field(default_factory=lambda: FileSteps())
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)  # pyright: ignore[reportCallIssue]
+
+    @classmethod
+    def from_template(cls, template: TemplateData) -> TemplateInfos:
+        return cls(
+            id=template.id,
+            title=template.title,
+            source="",
+            status="",
+            steps=FileSteps.from_template(template),
+        )
 
 
 @dataclass

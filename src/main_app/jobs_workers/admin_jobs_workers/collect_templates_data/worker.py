@@ -154,28 +154,10 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     # Per-template orchestration
     # ------------------------------------------------------------------
 
-    def _load_temp_info(self, template: TemplateData) -> TemplateInfos:
-        template_info = TemplateInfos(
-            id=template.id,  # pyright: ignore[reportCallIssue]
-            title=template.title,
-            source="",
-            status="",
-        )
-        if template.main_file:
-            template_info.steps.main_file.value = template.main_file
-
-        if template.last_world_file:
-            template_info.steps.last_world_file.value = template.last_world_file
-
-        template_info.steps.source.value = template.source
-        template_info.steps.slug.value = template.slug
-
-        return template_info
-
     def _process_one_item(self, template: TemplateData) -> bool:
         self.result.summary.processed += 1
 
-        template_info = self._load_temp_info(template)
+        template_info = TemplateInfos.from_template(template)
 
         logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
         # Fetch wikitext from Commons
@@ -189,13 +171,14 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             logger.warning(f"Job {self.job_id}: Could not fetch wikitext for {template.title}")
             return False
 
-        template_data: dict[str, Any] = {
+        db_data: dict[str, Any] = {
             "main_file": None,
             "last_world_file": None,
             "last_world_year": None,
             "slug": None,
             "source": None,
         }
+
         skip_msg = "No changes"
 
         # ------------------
@@ -213,7 +196,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         if main_file:
             if main_file != template.main_file:
                 template_info.steps.main_file._update(result="updated", new_value=main_file)
-                template_data["main_file"] = main_file
+                db_data["main_file"] = main_file
             else:
                 template_info.steps.main_file._update(result="skipped", msg="No changes")
 
@@ -232,7 +215,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             if last_file != template.last_world_file:
                 # template_info.last_world_file = last_world_file
                 template_info.steps.last_world_file._update(result="updated", new_value=last_file)
-                template_data["last_world_file"] = last_file
+                db_data["last_world_file"] = last_file
             else:
                 template_info.steps.last_world_file._update(result="skipped", msg="No changes")
 
@@ -250,7 +233,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             if newest_y != template.last_world_year:
                 # template_info.newest_year = newest_year
                 template_info.steps.newest_year._update(result="updated", new_value=newest_y)
-                template_data["last_world_year"] = newest_y
+                db_data["last_world_year"] = newest_y
             else:
                 template_info.steps.newest_year._update(result="skipped", msg="No changes")
 
@@ -269,14 +252,14 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             if source != template.source:
                 # template_info.source = source
                 template_info.steps.source._update(result="updated", new_value=source)
-                template_data["source"] = source
+                db_data["source"] = source
             else:
                 template_info.steps.source._update(result="skipped", msg="No changes")
 
         # ------------------
         # template_info step # 5 slug
         try:
-            _slug = self._load_slug(template.title, template.slug, template_data.get("source"))
+            _slug = self._load_slug(template.title, template.slug, db_data.get("source"))
             if not _slug:
                 raise Exception("Could not find slug")
         except Exception as e:
@@ -287,7 +270,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         if _slug:
             if _slug != template.slug:
                 template_info.steps.slug._update(result="updated", new_value=_slug)
-                template_data["slug"] = _slug
+                db_data["slug"] = _slug
             else:
                 template_info.steps.slug._update(result="skipped", msg="No changes")
 
@@ -303,8 +286,8 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             )
             return False
 
-        template_data = {x: v for x, v in template_data.items() if v and v is not None}
-        if not template_data:
+        db_data = {x: v for x, v in db_data.items() if v and v is not None}
+        if not db_data:
             template_info.status = "skipped"
             template_info.error = skip_msg
             self.result.pages_skipped.append(template_info.to_dict())
@@ -319,10 +302,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         )
 
         try:
-            self.template_service.update_template_data(
-                template.id,
-                template_data,
-            )
+            self.template_service.update_template_data( template.id, db_data )
 
             template_info.status = "updated"
             self.result.pages_updated.append(template_info.to_dict())
@@ -438,7 +418,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     def start_process(self, tmps_to_process: list[TemplateRecord]) -> CollectTemplatesDataWorkerObject:
 
         # change TemplateRecord to TemplateData
-        # templates_data = [TemplateData(**x.to_dict()) for x in tmps_to_process]
         templates_data = [
             TemplateData(
                 id=x.id,
