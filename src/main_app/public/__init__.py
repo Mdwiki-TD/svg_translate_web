@@ -15,6 +15,7 @@ from .main_routes import (
     InjectRoutes,
     MainRoutes,
     OwidChartsRoutes,
+    TemplatesView,
     TranslateRoutes,
 )
 from .profile import ProfileRoutes
@@ -40,6 +41,7 @@ PUBLIC_ROUTE_MODULES: list[PublicRouteModule] = [
     PublicRouteModule(ApiRoutes, "api", "/api"),
     PublicRouteModule(OwidChartsRoutes, "owid_charts", "/owidcharts"),
     PublicRouteModule(UtilsJobsBp, "jobs_utils", "/jobs_utils"),
+    PublicRouteModule(TemplatesView, "templates", "/templates"),
     PublicRouteModule(
         PublicJobsRoutes,
         "public_jobs",
