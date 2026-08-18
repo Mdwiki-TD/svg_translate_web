@@ -13,7 +13,7 @@ from .owid_sliders_rcs import (
 )
 from .temp_source import find_template_source
 from .template_page import update_template_page_file_reference
-from .temps_bot import get_files_list_data, get_titles, get_titles_from_wikilinks, count_svg_files
+from .temps_bot import count_svg_files, get_files_list_data, get_titles, get_titles_from_wikilinks
 
 
 def ensure_file_prefix(file_name) -> str:

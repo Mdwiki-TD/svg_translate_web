@@ -30,8 +30,8 @@ from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ..slugs_helpers import check_slugs
 from .objects import (
-    CollectTemplatesDataMapping,
     CollectStepResult,
+    CollectTemplatesDataMapping,
     TemplateData,
     TemplateInfos,
 )
@@ -93,7 +93,7 @@ class OneFileProcessor:
             "last_world_year": None,
             "slug": None,
             "source": None,
-            "files": count_svg_files(wikitext),
+            "files": None,
         }
 
         # ------------------
@@ -182,8 +182,15 @@ class OneFileProcessor:
                 db_data["slug"] = _slug
 
         # ------------------
+        files_len = count_svg_files(wikitext)
+        if files_len:
+            template_info.steps.files._update_if_diff(new_value=files_len)
+            if files_len != template.files:
+                db_data["files"] = files_len
+
+        # ------------------
         # update status
-        if not main_file and not last_file and not newest_y and not source:
+        if not main_file and not last_file and not newest_y and not source and not files_len:
             template_info.status = "failed"
             template_info.error = "Could not find (main file or newest world file or source) in wikitext"
             logger.warning(
@@ -452,18 +459,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     def start_process(self, tmps_to_process: list[TemplateRecord]) -> CollectTemplatesDataMapping:
 
         # change TemplateRecord to TemplateData
-        templates_data = [
-            TemplateData(
-                id=x.id,
-                title=x.title,
-                main_file=x.main_file,
-                last_world_file=x.last_world_file,
-                last_world_year=x.last_world_year,
-                slug=x.slug,
-                source=x.source,
-            )
-            for x in tmps_to_process
-        ]
+        templates_data = [TemplateData.from_template(x) for x in tmps_to_process]
 
         # Sort templates by priority
         per_item = self.get_priority(len(templates_data))

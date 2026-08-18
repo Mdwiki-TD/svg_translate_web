@@ -77,9 +77,11 @@ def get_files_list_data(text: str, filter_duplicates: bool = True) -> dict[str, 
 
     return {"main_title": main_title, "titles": titles}
 
+
 def count_svg_files(text: str) -> int:
     data = get_files_list_data(text, filter_duplicates=True)
     return len(data["titles"])
+
 
 __all__ = [
     "get_titles",

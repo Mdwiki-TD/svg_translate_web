@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import StandardAdminWorkerObject, STATUS_LITERAL
+from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
 
 
 @dataclass

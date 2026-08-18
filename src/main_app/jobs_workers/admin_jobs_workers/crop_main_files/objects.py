@@ -33,6 +33,7 @@ class CropFileSteps:
 
 STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "uploaded", "failed"]
 
+
 @dataclass
 class CropFileProcessingInfo:
     """Holds all state for a single file being processed."""

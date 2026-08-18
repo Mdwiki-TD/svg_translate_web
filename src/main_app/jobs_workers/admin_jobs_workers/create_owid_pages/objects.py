@@ -13,6 +13,7 @@ from ...shared_objects import StandardAdminWorkerObject
 
 STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "created", "failed"]
 
+
 @dataclass
 class TemplateProcessingInfo:
     """Holds all state for a single template being processed."""

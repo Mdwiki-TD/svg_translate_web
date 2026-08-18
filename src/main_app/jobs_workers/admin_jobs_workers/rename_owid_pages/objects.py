@@ -12,6 +12,7 @@ from ...shared_objects import StandardAdminWorkerObject
 
 STATUS_LIST = Literal["pending", "renamed", "skipped_target_exists", "failed", "redirected"]
 
+
 @dataclass
 class RenameInfo:
     """Holds the outcome of attempting to rename a single page."""

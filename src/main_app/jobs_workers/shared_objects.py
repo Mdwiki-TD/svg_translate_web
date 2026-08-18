@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 STATUS_LITERAL = Literal["pending", "running", "success", "skipped", "failed", "completed", "cancelled"]
 
+
 @dataclass
 class SharedMapToJson:
     def to_json(self) -> dict[str, Any]:
@@ -50,6 +51,7 @@ class Summary(SharedMapToJson):
     # changed: int = 0
     # errors: int = 0
     processed: int = 0
+
 
 @dataclass
 class WorkerMapping(SharedMapToJson):

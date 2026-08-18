@@ -9,10 +9,10 @@ from datetime import datetime
 from typing import Any, Literal
 
 from ....database.models import OwidChartRecord
-from ...shared_objects import StandardAdminWorkerObject, STATUS_LITERAL
-
+from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
 
 STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "created", "failed"]
+
 
 @dataclass
 class StepInfo:
@@ -23,6 +23,7 @@ class StepInfo:
     def _update_if_diff(self, after: str | int | None) -> None:
         if after and self.before != after:
             self.after = after
+
 
 @dataclass
 class ChartNewInfo:

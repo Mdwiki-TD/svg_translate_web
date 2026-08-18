@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ...shared_objects import StandardAdminSummary, WorkerMapping, STATUS_LITERAL
+from ...shared_objects import STATUS_LITERAL, StandardAdminSummary, WorkerMapping
 
 
 @dataclass

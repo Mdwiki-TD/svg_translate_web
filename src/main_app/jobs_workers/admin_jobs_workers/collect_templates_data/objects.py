@@ -7,6 +7,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
+from ....database.models import TemplateRecord
 from ...shared_objects import StandardAdminSummary, WorkerMapping
 
 
@@ -59,6 +60,7 @@ class CollectFileSteps:
             last_world_file=CollectStepResult(value=template.last_world_file or ""),
             source=CollectStepResult(value=template.source),
             slug=CollectStepResult(value=template.slug),
+            files=CollectStepResult(value=template.files),
         )
 
 
@@ -98,6 +100,7 @@ class TemplateData:
     main_file: str | None = None
     last_world_file: str | None = None
     last_world_year: int | None = None
+    files: int | None = None
     slug: str = ""
     source: str = ""
 
@@ -106,6 +109,19 @@ class TemplateData:
             self.main_file = self.main_file.removeprefix("File:")
         if self.last_world_file:
             self.last_world_file = self.last_world_file.removeprefix("File:")
+
+    @classmethod
+    def from_template(cls, x: TemplateRecord) -> TemplateData:
+        return cls(
+            id=x.id,
+            title=x.title,
+            main_file=x.main_file,
+            last_world_file=x.last_world_file,
+            last_world_year=x.last_world_year,
+            files=x.files,
+            slug=x.slug,
+            source=x.source,
+        )
 
 
 @dataclass
