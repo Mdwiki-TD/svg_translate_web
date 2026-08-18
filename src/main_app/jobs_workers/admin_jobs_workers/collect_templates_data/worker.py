@@ -28,7 +28,7 @@ from ....utils.wikitext import (
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ..slugs_helpers import check_slugs
-from .objects import CollectTemplatesDataWorkerObject, TemplateData, TemplateInfo
+from .objects import CollectTemplatesDataWorkerObject, TemplateData, TemplateInfos
 
 logger = logging.getLogger(__name__)
 
@@ -111,12 +111,9 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
                 logger.info(f"Job {self.job_id}: Cancellation detected during template addition.")
                 break
 
-            tmp_info = TemplateInfo(
+            tmp_info = TemplateInfos(
                 id=n,
                 title=title,
-                new_main_file="",
-                last_world_file="",
-                newest_year=None,
                 source="",
                 status="",
             )
@@ -157,13 +154,10 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     # Per-template orchestration
     # ------------------------------------------------------------------
 
-    def _load_temp_info(self, template: TemplateData) -> TemplateInfo:
-        template_info = TemplateInfo(
+    def _load_temp_info(self, template: TemplateData) -> TemplateInfos:
+        template_info = TemplateInfos(
             id=template.id,  # pyright: ignore[reportCallIssue]
             title=template.title,
-            new_main_file="",
-            last_world_file="",
-            newest_year=None,
             source="",
             status="",
         )
@@ -218,7 +212,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         if main_file:
             if main_file != template.main_file:
-                # template_info.new_main_file = main_file
                 template_info.steps.main_file._update(result="updated", new_value=main_file)
                 template_data["main_file"] = main_file
             else:
@@ -246,18 +239,18 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # ------------------
         # template_info step # 2 newest_year
         try:
-            newest_year = find_newest_year(wikitext)
-            if not newest_year:
+            newest_y = find_newest_year(wikitext)
+            if not newest_y:
                 raise Exception("Could not find newest year")
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting newest year: {e}")
-            newest_year = None
+            newest_y = None
             template_info.steps.newest_year._update(result="failed", msg=str(e))
-        if newest_year:
-            if newest_year != template.last_world_year:
+        if newest_y:
+            if newest_y != template.last_world_year:
                 # template_info.newest_year = newest_year
-                template_info.steps.newest_year._update(result="updated", new_value=newest_year)
-                template_data["last_world_year"] = newest_year
+                template_info.steps.newest_year._update(result="updated", new_value=newest_y)
+                template_data["last_world_year"] = newest_y
             else:
                 template_info.steps.newest_year._update(result="skipped", msg="No changes")
 
@@ -300,7 +293,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         # ------------------
         # update status
-        if not main_file and not last_file and not newest_year and not source:
+        if not main_file and not last_file and not newest_y and not source:
             template_info.status = "failed"
             template_info.error = "Could not find (main file or newest world file or source) in wikitext"
             self.result.pages_failed.append(template_info.to_dict())
@@ -321,7 +314,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         # Update template with main file
         logger.info(
             f"Job {self.job_id}: Updating {template.title} with main_file: {main_file} "
-            f"and last_world_file: {last_file} "
+            f"and last world file: {last_file} "
             f"and source: {source}"
         )
 

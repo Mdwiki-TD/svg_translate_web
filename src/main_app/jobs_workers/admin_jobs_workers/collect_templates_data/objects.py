@@ -39,19 +39,17 @@ class FileSteps:
     newest_year: StepResult = field(default_factory=lambda: StepResult())
     source: StepResult = field(default_factory=lambda: StepResult())
     slug: StepResult = field(default_factory=lambda: StepResult())
+    files: StepResult = field(default_factory=lambda: StepResult())
 
 
 @dataclass
-class TemplateInfo:
+class TemplateInfos:
     """
     Holds all state for a single template being processed.
     """
 
     id: int
     title: str
-    new_main_file: str
-    last_world_file: str
-    newest_year: int | None
     source: str
     status: str = "processing"
     error: str | None = None

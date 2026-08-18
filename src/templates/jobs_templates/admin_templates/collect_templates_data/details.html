@@ -108,6 +108,7 @@
                         <th>Template year</th>
                         <th>Source</th>
                         <th>Slug</th>
+                        <th>Files</th>
                         <th>Msg</th>
                     </tr>
                 </thead>
@@ -131,15 +132,19 @@
                         <td>
                             {% if template.steps %}
                             {{ render_step(template.steps.main_file) }}
-                            {% else %}
+                            {% elif template and template.new_main_file %}
                             {{ commons_file_link(template.new_main_file) }}
+                            {% else %}
+                            <code>-</code>
                             {% endif %}
                         </td>
                         <td>
                             {% if template.steps %}
                             {{ render_step(template.steps.last_world_file) }}
-                            {% else %}
+                            {% elif template and template.last_world_file %}
                             {{ commons_file_link(template.last_world_file) }}
+                            {% else %}
+                            <code>-</code>
                             {% endif %}
                         </td>
                         <td>
@@ -159,6 +164,13 @@
                         <td>
                             {% if template.steps %}
                             {{ render_step(template.steps.slug) }}
+                            {% else %}
+                            <code>-</code>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if template.steps and template.steps.files %}
+                            {{ render_step(template.steps.files) }}
                             {% else %}
                             <code>-</code>
                             {% endif %}
