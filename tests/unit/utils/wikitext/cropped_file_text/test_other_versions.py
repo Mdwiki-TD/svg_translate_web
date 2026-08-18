@@ -4,19 +4,19 @@ from __future__ import annotations
 
 import wikitextparser as wtp
 
+from src.main_app.utils.wikitext.cropped_file_text import add_other_versions_new
 from src.main_app.utils.wikitext.cropped_file_text.other_versions import (
-    _get_args,
-    add_other_versions_new,
+    OtherVersionsAdder,
 )
 
 
 class TestGetArgs:
-    """Tests for the _get_args function."""
+    """Tests for the _get_argument function."""
 
     def test_basic(self) -> None:
         text_raw = """{{Information |description={{en|1=Daily per capita supply of all meat, World}} |author = Our World In Data |date= 2022 |Other_versions={{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}}}"""
         template = wtp.Template(text_raw)
-        args_in = _get_args(template, ["other versions", "other_versions"])
+        args_in = OtherVersionsAdder._get_argument(template, ["other versions", "other_versions"])
         assert args_in is not None
         assert args_in.value == "{{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}"
         assert args_in.name == "Other_versions"
@@ -24,7 +24,7 @@ class TestGetArgs:
     def test_basic_args(self) -> None:
         text_raw = """{{Extracted from| 1 =  Daily meat consumption per person, World, 2022.svg}}"""
         template = wtp.Template(text_raw)
-        args_in = _get_args(template, ["1"])
+        args_in = OtherVersionsAdder._get_argument(template, ["1"])
         assert args_in is not None
         assert args_in.value == "  Daily meat consumption per person, World, 2022.svg"
         assert args_in.name == " 1 "
@@ -33,7 +33,7 @@ class TestGetArgs:
         text_raw = """ hello? {{Extracted from | Daily meat consumption per person, World, 2022.svg}} zz"""
         template = wtp.WikiText(text_raw).templates[0]
         assert template.name.strip() == "Extracted from"
-        args_in = _get_args(template, ["1"])
+        args_in = OtherVersionsAdder._get_argument(template, ["1"])
         assert args_in is not None
         assert args_in.value.strip() == "Daily meat consumption per person, World, 2022.svg"
         assert args_in.name == "1"
