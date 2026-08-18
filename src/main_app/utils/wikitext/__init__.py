@@ -13,7 +13,7 @@ from .owid_sliders_rcs import (
 )
 from .temp_source import find_template_source
 from .template_page import update_template_page_file_reference
-from .temps_bot import get_files_list_data, get_titles, get_titles_from_wikilinks
+from .temps_bot import get_files_list_data, get_titles, get_titles_from_wikilinks, count_svg_files
 
 
 def ensure_file_prefix(file_name) -> str:
@@ -25,6 +25,7 @@ def ensure_file_prefix(file_name) -> str:
 
 
 __all__ = [
+    "count_svg_files",
     "find_newest_world_file",
     "find_newest_year",
     "find_main_title",

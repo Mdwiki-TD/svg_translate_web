@@ -20,6 +20,7 @@ from ....database.services import (
 )
 from ....database.templates_utils import extract_slug
 from ....utils.wikitext import (
+    count_svg_files,
     find_main_title,
     find_newest_world_file,
     find_newest_year,
@@ -92,6 +93,7 @@ class OneFileProcessor:
             "last_world_year": None,
             "slug": None,
             "source": None,
+            "files": count_svg_files(wikitext),
         }
 
         # ------------------
