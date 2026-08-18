@@ -45,7 +45,7 @@ def mock_auth(monkeypatch: pytest.MonkeyPatch) -> None:
         return mock_user
 
     monkeypatch.setattr(
-        "src.main_app.public.auth.utils.load_user",
+        "src.main_app.public.auth.decorators.get_current_user",
         fake_load_user,
     )
 
