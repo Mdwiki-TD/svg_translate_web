@@ -18,7 +18,7 @@ class StepInfo:
     before: str | int | None = None
     after: str | int | None = None
 
-    def _update(self, after: str | int | None) -> None:
+    def _update_if_diff(self, after: str | int | None) -> None:
         if after and self.before != after:
             self.after = after
 

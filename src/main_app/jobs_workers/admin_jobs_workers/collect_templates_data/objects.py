@@ -31,6 +31,17 @@ class StepResult:
         if new_value:
             self.new_value = new_value
 
+    def _update_if_diff(self, new_value: str = "") -> None:
+        if not new_value:
+            return
+
+        if self.value != new_value:
+            self.new_value = new_value
+            self.result = "updated"
+        else:
+            self.result = "skipped"
+            self.msg = "No changes"
+
 
 @dataclass
 class FileSteps:

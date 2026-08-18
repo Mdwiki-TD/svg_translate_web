@@ -21,12 +21,6 @@ class AdminRouteModule:
     url_prefix: str = ""
     extra_kwargs: dict[str, Any] = field(default_factory=dict)
 
-    def __init__(self, route_cls: type, name: str, url_prefix: str = "", extra_kwargs: dict[str, Any] = None) -> None:
-        self.route_cls = route_cls  # pyright: ignore[reportAttributeAccessIssue]
-        self.name = name  # pyright: ignore[reportAttributeAccessIssue]
-        self.url_prefix = url_prefix  # pyright: ignore[reportAttributeAccessIssue]
-        self.extra_kwargs = extra_kwargs or {}  # pyright: ignore[reportAttributeAccessIssue]
-
 
 ADMIN_ROUTE_MODULES: list[AdminRouteModule] = [
     AdminRouteModule(route_cls=CoordinatorsRoutes, name="coordinators", url_prefix="/coordinators"),

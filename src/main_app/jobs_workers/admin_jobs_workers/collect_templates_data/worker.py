@@ -28,7 +28,12 @@ from ....utils.wikitext import (
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ..slugs_helpers import check_slugs
-from .objects import CollectTemplatesDataWorkerObject, TemplateData, TemplateInfos
+from .objects import (
+    CollectTemplatesDataWorkerObject,
+    StepResult,
+    TemplateData,
+    TemplateInfos,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -89,8 +94,6 @@ class OneFileProcessor:
             "source": None,
         }
 
-        skip_msg = "No changes"
-
         # ------------------
         # template_info step # 1 main_file
         try:
@@ -104,11 +107,10 @@ class OneFileProcessor:
             template_info.steps.main_file._update(result="failed", msg=str(e))
 
         if main_file:
+            template_info.steps.main_file._update_if_diff(new_value=main_file)
+
             if main_file != template.main_file:
-                template_info.steps.main_file._update(result="updated", new_value=main_file)
                 db_data["main_file"] = main_file
-            else:
-                template_info.steps.main_file._update(result="skipped", msg="No changes")
 
         # ------------------
         # template_info step # 2 last_world_file
@@ -122,12 +124,10 @@ class OneFileProcessor:
             template_info.steps.last_world_file._update(result="failed", msg=str(e))
 
         if last_file:
+            template_info.steps.last_world_file._update_if_diff(new_value=last_file)
+
             if last_file != template.last_world_file:
-                # template_info.last_world_file = last_world_file
-                template_info.steps.last_world_file._update(result="updated", new_value=last_file)
                 db_data["last_world_file"] = last_file
-            else:
-                template_info.steps.last_world_file._update(result="skipped", msg="No changes")
 
         # ------------------
         # template_info step # 2 newest_year
@@ -139,16 +139,16 @@ class OneFileProcessor:
             logger.error(f"Job {self.job_id}: Error while extracting newest year: {e}")
             newest_y = None
             template_info.steps.newest_year._update(result="failed", msg=str(e))
+
         if newest_y:
+            template_info.steps.newest_year._update_if_diff(new_value=newest_y)
+
             if newest_y != template.last_world_year:
-                # template_info.newest_year = newest_year
-                template_info.steps.newest_year._update(result="updated", new_value=newest_y)
                 db_data["last_world_year"] = newest_y
-            else:
-                template_info.steps.newest_year._update(result="skipped", msg="No changes")
 
         # ------------------
         # template_info step # 4 source
+        source_step: StepResult = template_info.steps.source
         try:
             source = find_template_source(wikitext, check_grapher=False)
             if not source:
@@ -156,15 +156,12 @@ class OneFileProcessor:
         except Exception as e:
             logger.error(f"Job {self.job_id}: Error while extracting source: {e}")
             source = None
-            template_info.steps.source._update(result="failed", msg=str(e))
+            source_step._update(result="failed", msg=str(e))
 
         if source:
+            source_step._update_if_diff(new_value=source)
             if source != template.source:
-                # template_info.source = source
-                template_info.steps.source._update(result="updated", new_value=source)
                 db_data["source"] = source
-            else:
-                template_info.steps.source._update(result="skipped", msg="No changes")
 
         # ------------------
         # template_info step # 5 slug
@@ -178,11 +175,9 @@ class OneFileProcessor:
             template_info.steps.slug._update(result="failed", msg=str(e))
 
         if _slug:
+            template_info.steps.slug._update_if_diff(new_value=_slug)
             if _slug != template.slug:
-                template_info.steps.slug._update(result="updated", new_value=_slug)
                 db_data["slug"] = _slug
-            else:
-                template_info.steps.slug._update(result="skipped", msg="No changes")
 
         # ------------------
         # update status
@@ -197,7 +192,7 @@ class OneFileProcessor:
         db_data = {x: v for x, v in db_data.items() if v and v is not None}
         if not db_data:
             template_info.status = "skipped"
-            template_info.error = skip_msg
+            template_info.error = "No changes"
             logger.info(f"Job {self.job_id}: No changes for {template.title}")
             return False
 
@@ -208,13 +203,9 @@ class OneFileProcessor:
             f"and source: {source}"
         )
 
-        updated = self._update(template, db_data, template_info)
+        return self._update_db(template, db_data, template_info)
 
-        if updated:
-            return True
-        return False
-
-    def _update(
+    def _update_db(
         self,
         template: TemplateData,
         data: dict[str, Any],
