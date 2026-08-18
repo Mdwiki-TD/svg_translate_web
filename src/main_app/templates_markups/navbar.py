@@ -205,10 +205,16 @@ nav_list = [
         path="/owidcharts",
     ),
     NavDropdown(
-        text="Extract/Inject",
+        text="Translate/Extract/Inject",
         icon="bi-filetype-svg",
         dropdown_id="navbarDarkDropdownMenuLink",
         items=[
+            NavLink(
+                text="Extract",
+                icon="bi-translate",
+                url_endpoint="translate.dashboard",
+                path="/translate",
+            ),
             NavLink(
                 text="Extract",
                 icon="bi-file-earmark-text",
