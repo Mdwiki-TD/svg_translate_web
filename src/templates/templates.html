@@ -1,73 +1,33 @@
-{% extends "admins/base1.html" %}
+{% extends "base.html" %}
 {% from "_macros.html" import summary_card_2 %}
 
 {% block title %}Templates · {{ tool_title }}{% endblock %}
 
-{% block admin_contents %}
+{% block content_fluid %}
 
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="headline mb-0">Templates</h3>
-        <a href="{{ url_for('adminpanel.templates.download_templates_json') }}" class="btn btn-outline-success">
-            <i class="bi bi-download"></i> Download Json
-        </a>
-    </div>
-    <div class="card-body">
-        <div class="row g-3 mb-4" id="summaryCards">
-            <div class="col-md">
-                {{ summary_card_2('Total Templates', '-', id="totalCount") }}
-            </div>
-            <div class="col-md">
-                {{ summary_card_2('With Oldest File', '-', id="withMainFile") }}
-            </div>
-            <div class="col-md">
-                {{ summary_card_2('With Newest File', '-', id="withLastWorldFile") }}
-            </div>
-            <div class="col-md">
-                {{ summary_card_2('With Source', '-', id="withSource") }}
-            </div>
-            <div class="col-md">
-                {{ summary_card_2('mismatched year', '-', id="mismatched_year") }}
-            </div>
-        </div>
-        <div class="card mb-2 shadow-sm">
-            <div class="card-body">
-                <form method="post" action="{{ url_for('adminpanel.templates.add_template') }}"
-                    class="row g-2 align-items-end">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <div class="row">
-                        <div class="col-md-4 col-sm-12">
-                            <div class="input-group">
-                                <span class="input-group-text">Template name</span>
-                                <input type="text" class="form-control wiki-autocomplete" id="title" name="title"
-                                    required />
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-sm-12">
-                            <button type="submit" class="btn btn-outline-primary">
-                                <i class="bi bi-person-plus-fill"></i> Add
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+<div class="container py-4">
 
-        <div class="table-responsive shadow-sm">
-            <table class="table table-hover align-middle mb-0" id="templatesTable">
-                <thead>
-                    <tr>
-                        <th scope="col" style="width: 5%">#</th>
-                        <th scope="col">Template</th>
-                        <th scope="col" class="text-center">Oldest File</th>
-                        <th scope="col" class="text-center">Newest File</th>
-                        <th scope="col" class="text-center">Newest Year</th>
-                        <th scope="col" class="text-center" style="width: 20%">Source</th>
-                        <th scope="col" class="text-center" style="width: 10%">Edit</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="headline mb-0">Templates</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive shadow-sm">
+                <table class="table table-hover align-middle mb-0" id="templatesTable">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width: 5%">#</th>
+                            <th scope="col">Template</th>
+                            <th scope="col" class="text-center">Main File</th>
+                            <th scope="col" class="text-center">Main File languages</th>
+                            <!-- <th scope="col" class="text-center">Newest Year</th> -->
+                            <th scope="col" class="text-center" style="width: 20%">Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -77,10 +37,6 @@
 
 <script>
     $(document).ready(function () {
-        // get `/api/templates-mismatched-years`, count data, set #mismatched_year = count
-        $.get('/api/templates-mismatched-years', function (result) {
-            $('#mismatched_year').text(result.data ? result.data.length : 0);
-        });
         const table = $("#templatesTable").DataTable({
             ajax: {
                 url: "/api/templates",
@@ -116,16 +72,13 @@
                     }
                 },
                 {
-                    data: "last_world_file",
+                    data: "main_file",
                     render: function (data, type, row) {
                         if (!data) return "";
-                        return `<a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">File:${data}</a>`;
+                        return `<button class="btn btn-sm btn-outline-primary" type="button" data-file="File:${data}">load</button>`;
                     }
                 },
-                {
-                    data: "last_world_year",
-                    title: "Newest Year",
-                },
+                // { data: "last_world_year", title: "Newest Year" },
                 {
                     data: "source",
                     render: function (data, type, row) {
@@ -137,15 +90,6 @@
                         if (shortUrl.length > 50) shortUrl = shortUrl.substring(0, 50) + "...";
                         return `<a title="${data}" href="${data}" target="_blank" rel="noopener noreferrer">${shortUrl}</a>`;
                     }
-                },
-                {
-                    data: "id",
-                    render: function (data, type, row) {
-                        // const edit_url = `/adminpanel/templates/${data}/edit`;
-                        const base_url = "{{ url_for('adminpanel.templates.edit_template', template_id='550000000055') }}";
-                        const edit_url = base_url.replace('550000000055', data);
-                        return `<button type="button" class="btn btn-outline-primary btn-sm" pup-target="${edit_url}" onclick="pup_window_new(this, 700, 600)"><i class="bi bi-pencil"></i> Edit</button>`;
-                    },
                 }
             ],
             serverSide: false,
