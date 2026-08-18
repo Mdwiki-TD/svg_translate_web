@@ -9,7 +9,7 @@ from typing import Any, Literal
 
 logger = logging.getLogger(__name__)
 
-STATUS_LITERAL = Literal["pending", "running", "skipped", "failed", "completed", "cancelled"]
+STATUS_LITERAL = Literal["pending", "running", "success", "skipped", "failed", "completed", "cancelled"]
 
 @dataclass
 class SharedMapToJson:

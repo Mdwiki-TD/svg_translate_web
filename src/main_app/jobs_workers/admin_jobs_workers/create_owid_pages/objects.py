@@ -7,10 +7,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from ...shared_objects import StandardAdminWorkerObject
 
+STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "created", "failed"]
 
 @dataclass
 class TemplateProcessingInfo:
@@ -20,7 +21,7 @@ class TemplateProcessingInfo:
     template_title: str
     new_page_title: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: str = "pending"
+    status: STATUS_LIST = "pending"
     error: str | None = None
     steps: dict[str, dict[str, Any]] = field(
         default_factory=lambda: {

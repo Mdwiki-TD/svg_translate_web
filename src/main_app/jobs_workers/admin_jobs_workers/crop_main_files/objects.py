@@ -6,7 +6,7 @@ import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from ...shared_objects import StandardAdminWorkerObject
 
@@ -31,6 +31,8 @@ class CropFileSteps:
     update_cropped: FileStep = field(default_factory=FileStep)
 
 
+STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "uploaded", "failed"]
+
 @dataclass
 class CropFileProcessingInfo:
     """Holds all state for a single file being processed."""
@@ -40,7 +42,7 @@ class CropFileProcessingInfo:
     original_file: str
     cropped_filename: str
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: str = "pending"
+    status: STATUS_LIST = "pending"
     error: str | None = None
     downloaded_path: Path | None = None
     cropped_path: Path | None = None
