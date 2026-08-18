@@ -34,6 +34,7 @@ def tmp_file(tmp_path):
 def make_upload_response(result: str = "success") -> dict:
     return {"result": result, "filename": "Test_file.jpg"}
 
+
 # ══════════════════════════════════════════════════════════════════════════════
 # upload  (full flow)
 # ══════════════════════════════════════════════════════════════════════════════
@@ -102,10 +103,11 @@ class TestUpload:
         u = self._make_uploader(mock_site, new_file=True)
         u._site_upload = MagicMock(return_value=make_upload_response())
 
-        data = FileData.from_dict(file_name="Test.jpg", file_path=tmp_file)
+        data = FileData.from_dict(file_name="Test.jpg", file_path=tmp_file, new_file=True)
 
         with patch("builtins.open", mock_open(read_data=b"data")):
             result = u.upload(data)
+
         assert result["result"] == "success"
 
 
@@ -124,18 +126,18 @@ class TestUploadBotIntegration:
         # Mock only the network call, keep the file logic real
         mock_site.pages.__getitem__.return_value.exists = True
 
-        data = FileData.from_dict(file_name="Integration_Test.jpg", file_path=image_path, new_file=False)
-
         def fake_upload(*, file, **kwargs):
             assert file.read() == image_content
             return {"result": "success"}
 
         mock_site.upload.side_effect = fake_upload
+
         uploader = UploadFileNew(mock_site)
+
+        data = FileData.from_dict(file_name="Integration_Test.jpg", file_path=image_path, new_file=False)
 
         result = uploader.upload(data)
 
-        assert result == {}
         assert result["result"] == "success"
         assert image_path.exists()
 

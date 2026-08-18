@@ -31,12 +31,12 @@ class FileData(SharedMapToJson):
             new_file=data.get("new_file", False),
         )
 
-
     def fix_file_name(self, file_name: str) -> str:
         file_name = file_name.strip()
         if file_name.lower().startswith("file:"):
             file_name = file_name[5:].lstrip()
         return file_name
+
 
 @dataclass
 class WriteData(SharedMapToJson):

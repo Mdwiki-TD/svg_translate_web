@@ -9,11 +9,12 @@ import mwclient.errors
 import requests
 from mwclient.client import Site
 
-from .objects import UploadResult, FileData
+from .objects import FileData, UploadResult
 
 logger = logging.getLogger(__name__)
 
 _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
+
 
 class UploadFileNew:
     def __init__(self, site: Site) -> None:
@@ -194,27 +195,8 @@ class UploadFileNew:
         # handle retry
         return self._upload_with_retry(file_data)
 
-    def upload_obj(
-        self,
-        file_name: str,
-        file_path: Path,
-        summary: str | None = None,
-        description: str | None = None,
-        new_file: bool = False,
-    ) -> UploadResult:
-        file_name = file_name
-        file_path = file_path
-        summary = summary
-        description = description
-        new_file = new_file
+    def upload_obj(self, file_data: FileData) -> UploadResult:
 
-        file_data = FileData.from_dict(
-            file_name = file_name,
-            file_path = file_path,
-            summary = summary,
-            description = description,
-            new_file = new_file,
-        )
         if not self.site:
             return UploadResult(
                 ok=False,
@@ -284,13 +266,16 @@ class UploadService:
         """Upload SVG file to Commons."""
         logger.info(f"Uploading file: {filename}")
 
-        return self.uploader.upload_obj(
+        file_data = FileData.from_dict(
             file_name=filename,
             file_path=file_path,
             summary=summary,
             description=description,
             new_file=new_file,
         )
+
+        return self.uploader.upload_obj(file_data)
+
 
 __all__ = [
     "UploadService",
