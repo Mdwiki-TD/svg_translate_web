@@ -214,7 +214,7 @@ class TestTranslateRoutes:
         svg_path.write_text("<svg></svg>", encoding="utf-8")
 
         session_data = {
-            "filename": "Example.svg",
+            "filename": "Example1.svg",
             "lang": "ar",
             "mapping": {
                 "new": {
