@@ -43,6 +43,7 @@ class TemplateRecord(TimestampMixin, db.Model):
     last_world_year: Mapped[int | None] = mapped_column(nullable=True)
     slug: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
     source: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
+    files: Mapped[int | None] = mapped_column(nullable=True)
 
     def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
@@ -60,6 +61,7 @@ class TemplateRecord(TimestampMixin, db.Model):
             "slug": self.slug,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
+            "files": self.files,
         }
 
     def validate(self) -> None:

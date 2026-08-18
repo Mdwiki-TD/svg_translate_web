@@ -18,6 +18,7 @@
                         <tr>
                             <th scope="col" style="width: 5%">#</th>
                             <th scope="col">Template</th>
+                            <th scope="col" class="text-center">files</th>
                             <th scope="col" class="text-center">Main File</th>
                             <th scope="col" class="text-center">Main File languages</th>
                             <!-- <th scope="col" class="text-center">Newest Year</th> -->
@@ -87,10 +88,18 @@
                     }
                 },
                 {
+                    data: "files",
+                },
+                {
                     data: "main_file",
                     render: function (data, type, row) {
                         if (!data) return "";
-                        return `<a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">File:${data}</a>`;
+                        return `
+                        <a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">
+                            File:${data}
+                        </a>
+                        (<a href="https://svgtranslate.toolforge.org/File:${data}" target="_blank" rel="noopener noreferrer">translate</a>)
+                        `;
                     }
                 },
                 {
@@ -105,9 +114,10 @@
                         </span>`;
                     }
                 },
-                // { data: "last_world_year", title: "Newest Year" },
+                { data: "last_world_year", title: "Newest Year", visible: false },
                 {
                     data: "source",
+                    visible: false,
                     render: function (data, type, row) {
                         if (!data) return "";
                         if (type === 'filter' || type === 'search') {
