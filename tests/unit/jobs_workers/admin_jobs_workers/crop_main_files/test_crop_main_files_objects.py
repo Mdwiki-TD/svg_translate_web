@@ -2,7 +2,6 @@
 Unit tests for src/main_app/jobs_workers/admin_jobs_workers/crop_main_files/objects.py module.
 """
 
-
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.objects import (
     CropFileProcessingInfo,
     CropFileSteps,
