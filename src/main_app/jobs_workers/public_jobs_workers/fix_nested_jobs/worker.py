@@ -53,7 +53,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "fix_nested_jobs"
 
-    def _download_step(self) -> bool | None:
+    def _download_step(self, download_stage: StageDetail) -> bool | None:
         """Download SVG files from Commons."""
 
         temp_dir = Path(tempfile.gettempdir())
@@ -65,7 +65,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         if download_result.result == "success":
             download_path = str(download_result.path)
-            self.result.stages.download._update("success", "Downloaded success")
+            download_stage._update("success", "Downloaded success")
             self.result.file_result = FileResult(
                 success=True,
                 status="success",
@@ -75,7 +75,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             self.file_path = Path(download_path)
             return True
 
-        self.result.stages.download._update("failed", "Downloaded Failed")
+        download_stage._update("failed", "Downloaded Failed")
 
         # Update stage message
         self.result.file_result = FileResult(
@@ -87,15 +87,15 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         return False
 
-    def _analyze_step(self) -> bool | None:
+    def _analyze_step(self, analyze_stage: StageDetail) -> bool | None:
         """Analyze nested tags in downloaded files."""
 
-        if self.result.stages.download.status != "success" or not self.file_path:
-            self.result.stages.analyze._update("skipped", "download step Failed")
+        if not self.file_path:
+            analyze_stage._update("skipped", "download step Failed")
             return None
 
         if not self.file_path or not self.file_path.is_file():
-            self.result.stages.analyze._update("failed", "File not found")
+            analyze_stage._update("failed", "File not found")
             return False
 
         detect_result: DetectionResult = detect_nested_tags(self.file_path)
@@ -104,35 +104,31 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.result.file_result.nested_tags = detect_result.tags
 
         if detect_result.count == 0:
-            self.result.stages.analyze._update("skipped", "No nested tags found")
+            analyze_stage._update("skipped", "No nested tags found")
             return None
 
         analyze_message = f"Found {detect_result.count} nested tags"
-        self.result.stages.analyze._update("success", analyze_message)
+        analyze_stage._update("success", analyze_message)
 
         return True
 
-    def _fix_step(self) -> bool | None:
+    def _fix_step(self, fix_stage: StageDetail) -> bool | None:
         """Fix nested tags in files."""
-
-        if self.result.stages.analyze.status != "success":
-            self.result.stages.fix._update("skipped", self.result.stages.analyze.message or "skipped")
-            return None
 
         fix_success = fix_nested_tags(self.file_path)
 
         if fix_success:
-            self.result.stages.fix._update("success", "Nested tags fixed successfully")
+            fix_stage._update("success", "Nested tags fixed successfully")
             return True
 
-        self.result.stages.fix._update("failed", "Failed to fix nested tags")
+        fix_stage._update("failed", "Failed to fix nested tags")
         return False
 
-    def _verify_step(self) -> bool | None:
+    def _verify_step(self, verify_stage: StageDetail) -> bool | None:
         """Verify that nested tags were fixed."""
 
         if self.result.stages.fix.status != "success":
-            self.result.stages.verify._update("skipped", "fix failed")
+            verify_stage._update("skipped", "fix failed")
             return None
 
         before_count = self.result.file_result.nested_tags_before
@@ -143,33 +139,33 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         if verify_result.fixed > 0:
             message = f"Verified: {verify_result.fixed} tags fixed"
-            self.result.stages.verify._update("success", message)
+            verify_stage._update("success", message)
             return True
 
         message = "No tags were fixed"
-        self.result.stages.verify._update("failed", message)
+        verify_stage._update("failed", message)
 
         return False
 
-    def _upload_step(self) -> bool | None:
+    def _upload_step(self, upload_stage: StageDetail) -> bool | None:
         """Upload fixed files to Commons."""
 
         # Check if settings upload_files option is disabled
         if self.args.get("upload_files") is False:
-            self.result.stages.upload._update("skipped", "Upload disabled from settings")
+            upload_stage._update("skipped", "Upload disabled from settings")
             return None
 
         # Check if form upload input is enabled
         if not bool(self.args.get("upload")):
-            self.result.stages.upload._update("skipped", "Upload disabled")
+            upload_stage._update("skipped", "Upload disabled")
             return None
 
         if not self.site:
-            self.result.stages.upload._update("failed", "Authentication failed")
+            upload_stage._update("failed", "Authentication failed")
             return None
 
         if self.result.stages.verify.status != "success":
-            self.result.stages.upload._update("skipped", "Skipped (not fixed)")
+            upload_stage._update("skipped", "Skipped (not fixed)")
             return None
 
         tags_fixed = self.result.file_result.nested_tags_fixed
@@ -183,19 +179,19 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         )
 
         if upload_result.ok:
-            self.result.stages.upload._update("success", "Uploaded successfully")
+            upload_stage._update("success", "Uploaded successfully")
             return True
 
         message = upload_result.error or "Upload failed"
 
-        self.result.stages.upload._update("failed", message)
+        upload_stage._update("failed", message)
 
         return False
 
     def _run_step(
         self,
         stage: StageDetail,
-        step_func: Callable[[], bool | None],
+        step_func: Callable[[StageDetail], bool | None],
     ) -> bool:
         """Run a single stage and update result."""
         stage_name = stage.name
@@ -209,7 +205,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         try:
             # Call the lambda / callback directly without passing args
-            step_result = step_func()
+            step_result = step_func(stage)
             if step_result:
                 return True
             elif step_result is False:
@@ -246,13 +242,16 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         # ----------------------------------------------
         # Stage 1: Download SVG files
+        self.result.file_result = FileResult()
 
         if not self._run_step(self.result.stages.download, self._download_step):
+            self.result.stages.analyze._update("skipped", "download step Failed")
             return self.result
 
         # ----------------------------------------------
         # Stage 2: Analyze nested tags
         if not self._run_step(self.result.stages.analyze, self._analyze_step):
+            self.result.stages.fix._update("skipped", self.result.stages.analyze.message or "skipped")
             return self.result
 
         # ----------------------------------------------
