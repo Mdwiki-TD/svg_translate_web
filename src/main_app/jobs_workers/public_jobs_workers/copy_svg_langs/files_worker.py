@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
+from mwclient.client import Site
 
 from ....api_services import UploadService
 from ....api_services.files_service import FilesService
@@ -34,10 +35,11 @@ logger = logging.getLogger(__name__)
 
 class OneFileProcessor:
 
-    def __init__(self, config: SvgLangsConfig, files_service: FilesService) -> None:
+    def __init__(self, config: SvgLangsConfig, files_service: FilesService, site: Site) -> None:
         self.config = config
         self.files_service = files_service
-        self.upload_service = UploadService({})
+        self.site = site
+        self.upload_service = UploadService(self.site)
         self.mapping: ExtractorData | None = None
         self.upload_done = 0
         self.nested_processer: MatchFixNestedTags
