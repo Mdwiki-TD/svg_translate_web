@@ -215,8 +215,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         return self.result
 
     def update_status(self, info: TemplateInfo) -> None:
-        """
-        """
+        """ """
         self.result.summary.processed += 1
         if info.status in ["pending", "running"]:
             info.status = "completed"
