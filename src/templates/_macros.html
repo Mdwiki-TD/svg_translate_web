@@ -57,12 +57,20 @@
 {%- endmacro -%}
 
 {%- macro flash_messages() -%}
+{% set bs_classes = {
+    'message':'info',
+    'warning':'warning',
+    'danger':'danger',
+    'error':'danger',
+    'success':'success',
+    'info':'info'
+} %}
 {% with messages = get_flashed_messages(with_categories=True) %}
 {% if messages %}
 <div class="container">
     <div class="alert-stack mb-4">
         {% for category, message in messages %}
-        {% set bs_class = {'message':'info','warning':'warning','danger':'danger','error':'danger','success':'success','info':'info'}.get(category.lower(), 'info') %}
+        {% set bs_class = bs_classes.get(category.lower(), 'info') %}
         <div class="alert alert-{{ bs_class }} alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

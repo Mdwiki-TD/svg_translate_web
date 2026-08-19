@@ -40,7 +40,7 @@ def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
     step_result: ExtractResult = extract_from_path(file_path)
 
     if not step_result.success:
-        flash(f"Invalid or empty translation data in {file_path.name}", "danger")
+        flash(f"Invalid or empty translation data in {file_path.name}.<br> Error code: {step_result.error}", "danger")
         return None
 
     file_translations = step_result.translations or {}

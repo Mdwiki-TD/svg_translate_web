@@ -91,18 +91,19 @@ def extract_from_path(main_title_path: Path, fast_return_false: bool = True) -> 
             return ExtractResult(
                 success=False,
                 message="",
-                error="No translations found in main file",
+                error=mapping.error or "No translations found in main file",
                 translations={},
                 mapping=mapping,
             )
 
     # Sort new data: alphabetical keys first, numeric keys last
-    mapping.new = dict(
-        sorted(
-            new_translations.items(),
-            key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
+    if new_translations:
+        mapping.new = dict(
+            sorted(
+                new_translations.items(),
+                key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
+            )
         )
-    )
     message = f"Loaded {new_translations_count} translations from main file"
 
     return ExtractResult(
