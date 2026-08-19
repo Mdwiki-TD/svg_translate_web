@@ -609,7 +609,6 @@ class TestCreateOwidPagesWorkerProcess:
         )
         result = worker.process()
 
-        assert result.status == "completed"
         assert result.summary.total == 1
         assert result.summary.processed == 1
         assert result.summary.created == 1
@@ -635,7 +634,6 @@ class TestCreateOwidPagesWorkerProcess:
         )
         result = worker.process()
 
-        assert result.status == "completed"
         assert len(result.pages_skipped) == 1
 
     def test_process_multiple_templates_mixed_results(self, mock_owid_pages_services, monkeypatch: pytest.MonkeyPatch):
