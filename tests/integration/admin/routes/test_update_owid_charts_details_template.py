@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from html import unescape
+from typing import Any
 
 from src.main_app.database.services import JobsService
 

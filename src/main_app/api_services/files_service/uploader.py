@@ -76,7 +76,7 @@ class FileUploader:
         except mwclient.errors.APIError as exc:
             if exc.code == "fileexists-shared-forbidden":
                 logger.debug("Upload result: fileexists-shared-forbidden")
-                raise SharedFileExistsError(code=exc.code, info=exc.info) from exc
+                raise SharedFileExistsError(info=exc.info) from exc
             raise
 
     def _check_kwargs(self, file_data: FileData) -> dict[str, Any]:
@@ -251,6 +251,17 @@ class FileUploader:
                 error="skipped",
                 error_details=error_details,
                 msg="File already exists with same content",
+                result=None,
+            )
+
+        if result_error == "fileexists-shared-forbidden":
+            existing_file_name = upload_result.get("existing_file_name", "")
+            return UploadResult(
+                ok=False,
+                error="failed",
+                error_details=error_details,
+                msg=f"Another file already exists with same content, {existing_file_name}",
+                existing_file_name=existing_file_name,
                 result=None,
             )
 

@@ -1,13 +1,13 @@
 import re
-from typing import Any
 
 # Matches the [[File:Name.svg|...]] (or [[Image:Name.svg|...]]) link embedded in
 # the `info` string of a `fileexists-shared-forbidden` API error.
-_SHARED_FILE_LINK_RE = re.compile(r"\[\[\s*(?:File|Image)\s*:\s*([^\]|]+)")
+_SHARED_FILE_LINK_RE = re.compile(r"\[\[\s*(File|Image)\s*:\s*([^\]|]+)")
 
 
 class SharedFileExistsError(Exception):
-    """Raised when an upload is rejected because the file name already exists
+    """
+    Raised when an upload is rejected because the file name already exists
     in the shared file repository (``fileexists-shared-forbidden``).
 
     The MediaWiki API embeds the conflicting file name inside a wikilink in the
@@ -27,9 +27,9 @@ class SharedFileExistsError(Exception):
     }
     """
 
-    def __init__(self, code: str, info: str) -> None:
+    def __init__(self, info: str) -> None:
         super().__init__(info)
-        self.code = code
+        self.code = "fileexists-shared-forbidden"
         self.info = info
         self.existing_file_name: str | None = self._extract_file_name(info)
 
@@ -39,17 +39,14 @@ class SharedFileExistsError(Exception):
         if not match:
             return None
         # Strip the leading "File:"/"Image:" prefix and surrounding whitespace.
-        name = match.group(1).strip()
-        if name.lower().startswith(("file:", "image:")):
-            name = name.split(":", 1)[1].strip()
-        return name or None
+        prefix = match.group(1).strip()
+        name = match.group(2).strip()
 
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "code": self.code,
-            "info": self.info,
-            "existing_file_name": self.existing_file_name,
-        }
+        if name:
+            name = name.split("|")[0].strip()
+            if name:
+                name = f"{prefix}:{name}"
+        return name or None
 
 
 __all__ = [

@@ -83,6 +83,7 @@ class UploadResult(SharedMapToJson):
     msg: str | None = None
     result: dict[str, Any] | None = None
     error: str | None = None
+    existing_file_name: str | None = None
 
 
 __all__ = [
