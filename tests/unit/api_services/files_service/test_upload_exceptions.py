@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from src.main_app.api_services.files_service.exceptions import SharedFileExistsError
 
 
