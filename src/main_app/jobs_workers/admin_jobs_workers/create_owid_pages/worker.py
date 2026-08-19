@@ -313,7 +313,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         self.result.summary.failed += 1
 
 
-
 __all__ = [
     "CreateOwidPagesWorker",
 ]

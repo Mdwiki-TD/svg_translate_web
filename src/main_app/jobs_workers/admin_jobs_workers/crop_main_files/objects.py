@@ -24,6 +24,7 @@ class FileStep:
         self.result = None
         self.msg = msg
 
+
 @dataclass
 class CropFileSteps:
     download: FileStep = field(default_factory=FileStep)

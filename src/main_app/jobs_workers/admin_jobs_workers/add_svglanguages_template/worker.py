@@ -83,7 +83,10 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
 
         match = RE_SVG_LANG.search(file_info._text if file_info._text else "")
         if match:
-            file_info.steps["load_template_text"] = {"result": None, "msg": "Skipped - page content is already has {{SVGLanguages|...}}"}
+            file_info.steps["load_template_text"] = {
+                "result": None,
+                "msg": "Skipped - page content is already has {{SVGLanguages|...}}",
+            }
             self.result.pages_skipped.append(file_info.to_dict())
             return False
 
