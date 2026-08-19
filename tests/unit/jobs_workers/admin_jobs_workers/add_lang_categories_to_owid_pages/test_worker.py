@@ -75,10 +75,10 @@ class TestPageInfo:
             "check_existing",
             "save_page",
         ]
-        for step in expected_steps:
-            assert step in info.steps
-            assert info.steps[step]["result"] is None
-            assert info.steps[step]["msg"] == ""
+        for step_name in expected_steps:
+            step = getattr(info.steps, step_name)
+            assert step.result is None
+            assert step.msg is None
 
     def test_page_info_to_dict(self):
         info = PageInfo(page_title="OWID/test_page")
@@ -189,7 +189,7 @@ class TestStepLoadPageText:
 
         assert result is True
         assert info._text == "Some page content"
-        assert info.steps["load_page_text"]["result"] is True
+        assert info.steps.load_page_text.result is True
 
     def test_failure_on_empty_text(self, mock_lang_worker):
         mock_page = MagicMock()
@@ -200,7 +200,7 @@ class TestStepLoadPageText:
 
         assert result is False
         assert info.status == "failed"
-        assert info.steps["load_page_text"]["result"] is False
+        assert info.steps.load_page_text.result is False
 
 
 # ── Step: extract_file_name ────────────────────────────────────────────────
@@ -215,7 +215,7 @@ class TestStepExtractFileName:
 
         assert result is True
         assert info.svg_file == "test_chart.svg"
-        assert info.steps["extract_file_name"]["result"] is True
+        assert info.steps.extract_file_name.result is True
 
     def test_failure_no_translate_link(self, mock_lang_worker):
         info = PageInfo(page_title="OWID/test")
@@ -287,7 +287,7 @@ class TestStepGetLanguages:
 
         assert result is False
         assert info.status == "skipped"
-        assert info.steps["get_languages"]["msg"] == "Skipped — No non-English languages found"
+        assert info.steps.get_languages.msg == "Skipped — No non-English languages found"
 
     def test_success_on_english_plus_other(
         self, mock_lang_worker: AddLangCategoriesWorker, mock_lang_categories_services
@@ -415,7 +415,7 @@ class TestStepSavePage:
 
         assert result is True
         assert mock_lang_worker.result.summary.success == 1
-        assert info.steps["save_page"]["result"] is True
+        assert info.steps.save_page.result is True
         mock_page.edit.assert_called_once()
         # Verify the merged text was passed to edit
         call_args = mock_page.edit.call_args
