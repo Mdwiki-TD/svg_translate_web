@@ -263,7 +263,6 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         # Stage 1: Download SVG files
         self.result.file_result = FileResult()
 
-        # if not self._run_step(self.result.stages.download, self._download_step):
         if not self._download_step(self.result.stages.download):
             self.result.stages.analyze._update("skipped", "download step Failed")
             return self.result
