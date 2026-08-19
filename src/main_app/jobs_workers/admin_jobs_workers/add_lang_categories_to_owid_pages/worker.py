@@ -20,7 +20,7 @@ from ....api_services.files_service.file_langs import get_file_languages
 from ....utils.wikitext.categories_utils import get_missing_categories_list
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import AddLangCategoriesWorkerObject, InfoSteps, OneStep, PageInfo
+from .objects import AddLangCategoriesWorkerObject, OneStep, PageInfo
 from .utils import (
     build_category_names,
     extract_svg_file_name,

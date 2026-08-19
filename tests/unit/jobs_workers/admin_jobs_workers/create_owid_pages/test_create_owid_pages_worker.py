@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.database.models import TemplateRecord
+from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.objects import OneStep
 from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker import (
     CreateOwidPagesWorker,
     TemplateProcessingInfo,
@@ -86,9 +87,9 @@ class TestTemplateProcessingInfo:
         assert info.error is None
         assert info._template_text is None
         assert info._new_text is None
-        assert "load_template_text" in info.steps
-        assert "create_new_text" in info.steps
-        assert "create_new_page" in info.steps
+        assert hasattr(info.steps, "load_template_text")
+        assert hasattr(info.steps, "create_new_text")
+        assert hasattr(info.steps, "create_new_page")
 
     def test_to_dict(self):
         """Test to_dict serialization."""
@@ -99,7 +100,7 @@ class TestTemplateProcessingInfo:
             status="completed",
             error="Test error",
         )
-        info.steps["load_template_text"] = {"result": True, "msg": "Loaded"}
+        info.steps.load_template_text = OneStep(result=True, msg="Loaded")
 
         result = info.to_dict()
 
@@ -322,7 +323,7 @@ class TestCreateOwidPagesWorkerSteps:
 
         assert result is True
         assert info._template_text == "Template wikitext content"
-        assert info.steps["load_template_text"]["result"] is True
+        assert info.steps.load_template_text.result is True
 
     def test_step_load_template_text_failure(self, mock_owid_pages_services):
         """Test _step_load_template_text when text retrieval fails."""
@@ -342,7 +343,7 @@ class TestCreateOwidPagesWorkerSteps:
 
         assert result is False
         assert info.status == "failed"
-        assert info.steps["load_template_text"]["result"] is False
+        assert info.steps.load_template_text.result is False
         assert worker.result.summary.failed == 1
 
 
@@ -365,7 +366,7 @@ class TestCreateNewTextStep:
 
         assert result is True
         assert info._new_text == "New OWID page content"
-        assert info.steps["create_new_text"]["result"] is True
+        assert info.steps.create_new_text.result is True
         mock_owid_pages_services["create_new_text"].assert_called_once_with("Template content", "Template:OWID/Test")
 
     def test_step_create_new_text_exception(self, mock_owid_pages_services):
@@ -386,8 +387,8 @@ class TestCreateNewTextStep:
 
         assert result is False
         assert info.status == "failed"
-        assert info.steps["create_new_text"]["result"] is False
-        assert "Invalid template format" in info.steps["create_new_text"]["msg"]
+        assert info.steps.create_new_text.result is False
+        assert "Invalid template format" in info.steps.create_new_text.msg
 
 
 class TestUpdateStep:
@@ -474,7 +475,7 @@ class TestCreateNewPageStep:
 
         assert result is True
         assert info.new_page_title == "OWID/Test"
-        assert info.steps["create_new_page"]["result"] is True
+        assert info.steps.create_new_page.result is True
         assert worker.result.summary.created == 1
         mock_owid_pages_services["page_instance"].create.assert_called_once_with(
             "New OWID page content",
@@ -552,8 +553,8 @@ class TestCreateOwidPagesWorkerHelpers:
 
         assert info.status == "failed"
         assert info.error == "Failed to load"
-        assert info.steps["load_template_text"]["result"] is False
-        assert info.steps["load_template_text"]["msg"] == "Failed to load"
+        assert info.steps.load_template_text.result is False
+        assert info.steps.load_template_text.msg == "Failed to load"
         assert worker.result.summary.failed == 1
 
 
