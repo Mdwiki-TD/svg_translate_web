@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from CopySVGTranslation import SVGTranslationExtractor, TranslationConfig  # type: ignore
+from CopySVGTranslation.exceptions import CopySVGTranslationError
 
 from .mapping import ExtractorData, ExtractResult
 
@@ -35,10 +36,15 @@ def _extract_file_translations(
 
     extractor = SVGTranslationExtractor(config=config)
 
+    file_name = source_file.name if isinstance(source_file, Path) else str(source_file)
+
     try:
         result_json: dict[str, Any] = extractor.extract_json(source_file)
+    except CopySVGTranslationError as exc:
+        logger.error(f"CopySVGTranslationError on file:{file_name}. code: {exc.code}")
+        return ExtractorData(error=str(exc))
     except Exception as e:
-        logger.error(f"Failed to extract translations from {source_file}: {e}")
+        logger.error(f"Failed to extract translations from {file_name}: {e}")
         return ExtractorData(error=str(e))
 
     if not result_json:
