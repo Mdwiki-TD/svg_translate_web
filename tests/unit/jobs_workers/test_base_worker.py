@@ -57,7 +57,7 @@ class TestValidateUserPermissions:
         assert worker._validate_user_permissions() is False
         assert worker.result.status == "failed"
         assert any("autopatrol" in e["error"] for e in worker.result.errors)
-        assert worker.result.errors[-1]["error_type"] == "PermissionError"
+        assert worker.result.errors[-1]["error_type"] == "AutopatrolPermissionError"
 
     def test_returns_false_when_site_is_none(self) -> None:
         worker = self._make_worker()
@@ -99,5 +99,5 @@ class TestValidateUserPermissions:
         worker._validate_user_permissions()
         worker._validate_user_permissions()
 
-        perm_errors = [e for e in worker.result.errors if e["error_type"] == "PermissionError"]
+        perm_errors = [e for e in worker.result.errors if e["error_type"] == "AutopatrolPermissionError"]
         assert len(perm_errors) == 2

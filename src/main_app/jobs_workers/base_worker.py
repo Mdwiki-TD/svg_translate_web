@@ -239,7 +239,7 @@ class BaseObjectsJobWorker(ABC):
         if "autopatrol" not in self.site.rights:
             logger.error("User does not have autopatrol right")
             self.result.status = "failed"
-            self.log_errors(f"User:{self.site.username} does not have autopatrol right", "PermissionError")
+            self.log_errors(f"User:{self.site.username} does not have autopatrol right", "AutopatrolPermissionError")
             return False
 
         return True

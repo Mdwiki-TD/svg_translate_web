@@ -139,6 +139,11 @@
             <!-- Job Results -->
             {% if result_data %}
             {% block job_results %}
+
+            {% if result_data.errors %}
+            {{ job_errors_div(result_data.errors, job.username) }}
+            {% endif %}
+
             <div class="card mb-3">
                 <div class="card-header">
                     {{ card_header("Job Summary") }}
@@ -161,10 +166,6 @@
                             {{ result_data.note }}
                         </div>
                     </div>
-                    {% endif %}
-
-                    {% if result_data.errors %}
-                    {{ job_errors_div(result_data.errors) }}
                     {% endif %}
                 </div>
             </div>
