@@ -5,13 +5,14 @@ Objects for collect_templates_data worker.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, Literal
 
-from ...shared_objects import StandardAdminWorkerObject
+from ....database.models import TemplateRecord
+from ...shared_objects import StandardAdminSummary, WorkerMapping
 
 
 @dataclass
-class StepResult:
+class CollectStepResult:
     """
     "main_file": {"result": None, "value": "", "new_value": "", "msg": ""},
     """
@@ -31,35 +32,65 @@ class StepResult:
         if new_value:
             self.new_value = new_value
 
+    def _update_if_diff(self, new_value: str = "") -> None:
+        if not new_value:
+            return
+
+        if self.value != new_value:
+            self.new_value = new_value
+            self.result = "updated"
+        else:
+            self.result = "skipped"
+            self.msg = "No changes"
+
 
 @dataclass
-class FileSteps:
-    main_file: StepResult = field(default_factory=lambda: StepResult())
-    last_world_file: StepResult = field(default_factory=lambda: StepResult())
-    newest_year: StepResult = field(default_factory=lambda: StepResult())
-    source: StepResult = field(default_factory=lambda: StepResult())
-    slug: StepResult = field(default_factory=lambda: StepResult())
+class CollectFileSteps:
+    main_file: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+    last_world_file: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+    newest_year: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+    source: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+    slug: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+    files: CollectStepResult = field(default_factory=lambda: CollectStepResult())
+
+    @classmethod
+    def from_template(cls, template: TemplateData) -> TemplateInfos:
+        return cls(
+            main_file=CollectStepResult(value=template.main_file or ""),
+            last_world_file=CollectStepResult(value=template.last_world_file or ""),
+            source=CollectStepResult(value=template.source),
+            slug=CollectStepResult(value=template.slug),
+            files=CollectStepResult(value=template.files),
+        )
 
 
 @dataclass
-class TemplateInfo:
+class TemplateInfos:
     """
     Holds all state for a single template being processed.
     """
 
     id: int
     title: str
-    new_main_file: str
-    last_world_file: str
-    newest_year: int | None
     source: str
-    status: str = "processing"
+    status: Literal["pending", "skipped", "updated", "failed", "completed"] = "pending"
+    steps: CollectFileSteps = field(default_factory=lambda: CollectFileSteps())
+
     error: str | None = None
     error_type: str | None = None
-    steps: FileSteps = field(default_factory=lambda: FileSteps())
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)  # pyright: ignore[reportCallIssue]
+
+    @classmethod
+    def from_template(cls, template: TemplateData) -> TemplateInfos:
+        return cls(
+            id=template.id,
+            title=template.title,
+            source="",
+            status="",
+            steps=CollectFileSteps.from_template(template),
+        )
 
 
 @dataclass
@@ -69,6 +100,7 @@ class TemplateData:
     main_file: str | None = None
     last_world_file: str | None = None
     last_world_year: int | None = None
+    files: int | None = None
     slug: str = ""
     source: str = ""
 
@@ -78,13 +110,32 @@ class TemplateData:
         if self.last_world_file:
             self.last_world_file = self.last_world_file.removeprefix("File:")
 
+    @classmethod
+    def from_template(cls, x: TemplateRecord) -> TemplateData:
+        return cls(
+            id=x.id,
+            title=x.title,
+            main_file=x.main_file,
+            last_world_file=x.last_world_file,
+            last_world_year=x.last_world_year,
+            files=x.files,
+            slug=x.slug,
+            source=x.source,
+        )
+
 
 @dataclass
-class CollectTemplatesDataWorkerObject(StandardAdminWorkerObject):
-    pages_added: list[dict[str, Any]] = field(default_factory=list)
-    pages_updated: list[dict[str, Any]] = field(default_factory=list)
+class CollectTemplatesDataMapping(WorkerMapping):
+    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
+    pages_added: list[TemplateInfos] = field(default_factory=list)
+    pages_updated: list[TemplateInfos] = field(default_factory=list)
+    pages_skipped: list[dict[str, Any]] = field(default_factory=list)
+    pages_failed: list[dict[str, Any]] = field(default_factory=list)
+    pages_processed: list[dict[str, Any]] = field(default_factory=list)
+
+    args: dict[str, Any] = field(default_factory=dict)
 
 
 __all__ = [
-    "CollectTemplatesDataWorkerObject",
+    "CollectTemplatesDataMapping",
 ]

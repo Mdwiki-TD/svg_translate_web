@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.jobs_workers.base_worker import WorkerObject
+from src.main_app.jobs_workers.base_worker import WorkerMapping
 from src.main_app.jobs_workers.shared_objects import (
     SharedworkerObject,
     Summary,
@@ -58,7 +58,7 @@ class TestSummary:
 class TestSharedworkerObject:
     def test_inherits_worker_object(self):
         obj = SharedworkerObject()
-        assert isinstance(obj, WorkerObject)
+        assert isinstance(obj, WorkerMapping)
 
     def test_default_lists_are_empty(self):
         obj = SharedworkerObject()

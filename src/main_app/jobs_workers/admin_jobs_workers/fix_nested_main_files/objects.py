@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import WorkerObject
+from ...shared_objects import WorkerMapping
 
 
 @dataclass
@@ -39,7 +39,7 @@ class Summary:
 
 
 @dataclass
-class FixNestedMainFilesWorkerObject(WorkerObject):
+class FixNestedMainFilesWorkerObject(WorkerMapping):
     summary: Summary = field(default_factory=Summary)
     pages_success: list[TitleInfo] = field(default_factory=list)
     pages_skipped: list[TitleInfo] = field(default_factory=list)

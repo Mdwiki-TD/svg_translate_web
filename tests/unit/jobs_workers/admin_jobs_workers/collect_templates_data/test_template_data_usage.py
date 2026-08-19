@@ -119,47 +119,6 @@ class TestTemplateRecordToTemplateDataConversion:
         assert data.last_world_file == "test_2020.svg"
 
 
-class TestLoadTempInfoFromTemplateData:
-    """_load_temp_info reads attributes from TemplateData objects."""
-
-    @pytest.fixture
-    def worker(self, mock_base_worker):
-        import threading
-
-        w = CollectMainFilesWorker(
-            JobsRunner(
-                job_id=1,
-                user={},
-                cancel_event=threading.Event(),
-            )
-        )
-        w.site = MagicMock()
-        return w
-
-    def test_loads_basic_info(self, worker):
-        template = TemplateData(id=10, title="Template:Test", main_file=None, last_world_file=None, slug="", source="")
-        info = worker._load_temp_info(template)
-        assert info.id == 10
-        assert info.title == "Template:Test"
-        assert info.status == ""
-
-    def test_preserves_existing_main_file_in_step(self, worker):
-        template = TemplateData(id=1, title="T", main_file="existing.svg", last_world_file=None, slug="", source="")
-        info = worker._load_temp_info(template)
-        assert info.steps.main_file.value == "existing.svg"
-
-    def test_preserves_existing_last_world_file_in_step(self, worker):
-        template = TemplateData(id=1, title="T", main_file=None, last_world_file="world.svg", slug="", source="")
-        info = worker._load_temp_info(template)
-        assert info.steps.last_world_file.value == "world.svg"
-
-    def test_preserves_source_and_slug(self, worker):
-        template = TemplateData(id=1, title="T", main_file=None, last_world_file=None, slug="my-slug", source="src")
-        info = worker._load_temp_info(template)
-        assert info.steps.source.value == "src"
-        assert info.steps.slug.value == "my-slug"
-
-
 class TestProcessOneItemWithTemplateData:
     """_process_one_item compares extracted values against TemplateData attributes."""
 
@@ -201,7 +160,7 @@ class TestProcessOneItemWithTemplateData:
     @pytest.fixture
     def worker_with_slug(self, worker, monkeypatch):
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.CollectMainFilesWorker._load_slug",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OneFileProcessor._load_slug",
             lambda self, title, slug, source: "test-slug",
         )
         return worker
@@ -252,7 +211,7 @@ class TestProcessOneItemWithTemplateData:
             lambda text, check_grapher=False: None,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.CollectMainFilesWorker._load_slug",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OneFileProcessor._load_slug",
             lambda self, title, slug, source: None,
         )
         template = TemplateData(id=1, title="T", main_file=None, last_world_file=None, slug="", source="")
@@ -263,7 +222,7 @@ class TestProcessOneItemWithTemplateData:
     def test_slug_updated_from_extracted(self, worker_with_slug, monkeypatch):
         worker_with_slug.template_service.update_template_data = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.CollectMainFilesWorker._load_slug",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OneFileProcessor._load_slug",
             lambda self, title, slug, source: "new-slug",
         )
         template = TemplateData(

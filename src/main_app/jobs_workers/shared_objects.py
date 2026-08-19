@@ -9,6 +9,8 @@ from typing import Any, Literal
 
 logger = logging.getLogger(__name__)
 
+STATUS_LITERAL = Literal["pending", "running", "success", "skipped", "failed", "completed", "cancelled"]
+
 
 @dataclass
 class SharedMapToJson:
@@ -52,9 +54,9 @@ class Summary(SharedMapToJson):
 
 
 @dataclass
-class WorkerObject(SharedMapToJson):
+class WorkerMapping(SharedMapToJson):
     note: str | None = None
-    status: str = "pending"
+    status: STATUS_LITERAL = "pending"
     job_id: int = 0
 
     started_at: str = field(default_factory=lambda: datetime.now().isoformat())
@@ -72,7 +74,7 @@ class WorkerObject(SharedMapToJson):
 
 
 @dataclass
-class SharedworkerObject(WorkerObject):
+class SharedworkerObject(WorkerMapping):
     summary: Summary = field(default_factory=Summary)
 
     pages_processed: list[dict[str, Any]] = field(default_factory=list)
@@ -86,7 +88,7 @@ class SharedworkerObject(WorkerObject):
 
 
 @dataclass
-class StandardAdminWorkerObject(WorkerObject):
+class StandardAdminWorkerObject(WorkerMapping):
     summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
     pages_processed: list[dict[str, Any]] = field(default_factory=list)
     pages_success: list[dict[str, Any]] = field(default_factory=list)

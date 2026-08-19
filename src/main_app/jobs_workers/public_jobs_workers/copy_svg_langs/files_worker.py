@@ -207,7 +207,13 @@ class OneFileProcessor:
             "error_details": upload_result.error_details,
             "summary": summary,
         }
-
+        """
+        "details": {
+            "error": "fileexists-shared-forbidden",
+            "error_details": "A file with this name already exists in the shared file repository. If you still want to upload your file, please go back and use a new name. [[File:Share_of_deaths_obesity,_AFG.svg|thumb|center|Share_of_deaths_obesity,_AFG.svg]]",
+            "summary": "1 languages injected, 1 translations inserted from [[File:Death rate from obesity, World, 1990.svg]]"
+          },
+        """
         is_no_changes = upload_result.error in {"skipped", "fileexists-no-change"}
         if upload_result.ok is None and is_no_changes:
             title_info.steps.upload._update(

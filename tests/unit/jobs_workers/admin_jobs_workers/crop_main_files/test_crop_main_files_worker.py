@@ -885,28 +885,6 @@ class TestCropMainFilesProcessorHelpers:
         assert file_info.steps.download.result is False
         assert processor.result.summary.failed == 1
 
-    def test_skip_step_updates_step_status(self, mock_crop_services):
-        """Test _skip_step updates step status."""
-
-        processor = CropMainFilesWorker(
-            JobsRunner(
-                job_id=1,
-                user={},
-            )
-        )
-
-        file_info = CropFileProcessingInfo(
-            template_id=1,
-            template_title="Template:Test",
-            original_file="File:test.svg",
-            cropped_filename="File:test (cropped).svg",
-        )
-
-        processor._skip_step(file_info.steps.upload_cropped, "Already exists")
-
-        assert file_info.steps.upload_cropped.result is None
-        assert file_info.steps.upload_cropped.msg == "Already exists"
-
     def test_skip_upload_steps(self, mock_crop_services):
         """Test _skip_upload_steps marks upload steps as skipped."""
 

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% from "_macros.html" import summary_card_2 %}
+
+{% block title %}Templates · {{ tool_title }}{% endblock %}
+
+{% block content_fluid %}
+
+<div class="container py-4">
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="headline mb-0">Templates</h3>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" role="alert">
+                NOTE: Chose template you want to use and click "(translate)" to translate the svg file to language you
+                chose. After uploadimg the translated svg file, click on "start job"
+            </div>
+            <div class="table-responsive shadow-sm">
+                <table class="table table-hover align-middle mb-0" id="templatesTable">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width: 5%">#</th>
+                            <th scope="col">Template</th>
+                            <th scope="col" class="text-center">files</th>
+                            <th scope="col" class="text-center">Translate Main File</th>
+                            <th scope="col" class="text-center">Main File languages</th>
+                            <!-- <th scope="col" class="text-center">Newest Year</th> -->
+                            <th scope="col" class="text-center">Source</th>
+                            <th scope="col" class="text-center">start job</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+
+<script>
+    function getLanguages(button) {
+        const file = button.data('file');
+        const span = button.parent();
+
+        span.html('<span class="text-muted">Loading ...</span>');
+
+        return $.get(`/api/languages/${file}`)
+            .then(data => {
+                if (data) {
+                    span.html(`<span class="text-success">${data}</span>`);
+                } else {
+                    span.html(`<span class="text-danger">no result</span>`);
+                }
+            })
+            .catch(() => {
+                span.html(`<span class="text-warning">Error</span>`);
+            });
+    }
+
+    $("#templatesTable").on("click", 'button[data-file]', function () {
+        getLanguages($(this));
+    });
+
+    $(document).ready(function () {
+        const table = $("#templatesTable").DataTable({
+            responsive: true,
+            pageLength: 100,
+            order: [[0, 'asc']],
+            lengthMenu: [
+                [100, 200, 500, 1000],
+                [100, 200, 500, 1000]
+            ],
+            serverSide: false,
+            processing: true,
+            ajax: {
+                url: "/api/templates/has_file",
+                type: "GET",
+                dataSrc: function (json) {
+                    if (json.summary) {
+                        $("#totalCount").text(json.summary.total);
+                        $("#withMainFile").text(json.summary.with_main_file);
+                        $("#withLastWorldFile").text(json.summary.with_last_world_file);
+                        $("#withSource").text(json.summary.with_source);
+                    }
+                    return json.data || [];
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
+                    },
+                },
+                {
+                    data: "title",
+                    render: function (data, type, row) {
+                        return `<a href="https://commons.wikimedia.org/wiki/${data}" target="_blank" rel="noopener noreferrer">${data}</a>`;
+                    }
+                },
+                {
+                    data: "files",
+                },
+                {
+                    data: "main_file",
+                    render: function (data, type, row) {
+                        if (!data) return "";
+                        var link = `
+                        <a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">
+                            File:${data}
+                        </a>
+                        (<a href="https://svgtranslate.toolforge.org/File:${data}" target="_blank" rel="noopener noreferrer">translate</a>)
+                        `;
+                        return `
+                        <a href="https://svgtranslate.toolforge.org/File:${data}" target="_blank" rel="noopener noreferrer">Translate</a>
+                        `;
+                    }
+                },
+                {
+                    data: "main_file",
+                    render: function (data, type, row) {
+                        if (!data) return "";
+                        return `
+                        <span>
+                            <button class="btn btn-sm btn-outline-primary main_file_btn" type="button" data-file="File:${data}">
+                                load
+                            </button>
+                        </span>`;
+                    }
+                },
+                { data: "last_world_year", title: "Newest Year", visible: false },
+                {
+                    data: "source",
+                    visible: false,
+                    render: function (data, type, row) {
+                        if (!data) return "";
+                        if (type === 'filter' || type === 'search') {
+                            return data;
+                        }
+                        let shortUrl = data.split("/").pop().split("?")[0].trim();
+                        if (shortUrl.length > 50) shortUrl = shortUrl.substring(0, 50) + "...";
+                        return `<a title="${data}" href="${data}" target="_blank" rel="noopener noreferrer">${shortUrl}</a>`;
+                    }
+                },
+                {
+                    data: "title",
+                    title: "Start job",
+                    render: function (data, type, row) {
+                        return `<a href="/jobs/copy_svg_langs/?title=${data}" target="_blank">start job</a>`;
+                    }
+                },
+            ],
+        });
+    });
+</script>
+{% endblock %}

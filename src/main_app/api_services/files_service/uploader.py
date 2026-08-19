@@ -9,75 +9,52 @@ import mwclient.errors
 import requests
 from mwclient.client import Site
 
-from .objects import UploadResult
+from .objects import FileData, UploadResult
 
 logger = logging.getLogger(__name__)
 
 _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
 
 
-def fix_file_name(file_name: str) -> str:
-    file_name = file_name.strip()
-    if file_name.lower().startswith("file:"):
-        file_name = file_name[5:].lstrip()
-    return file_name
-
-
-class UploadFile:
-    def __init__(
-        self,
-        file_name: str,
-        file_path: Path,
-        site: Site,
-        summary: str | None = None,
-        description: str | None = None,
-        new_file: bool = False,
-    ) -> None:
-        self.file_name = file_name
+class FileUploader:
+    def __init__(self, site: Site) -> None:
         self.site = site
-        self.file_path = file_path
-        self.summary = summary
-        self.description = description
-        self.new_file = new_file
-
-        if self.file_name:
-            self.file_name = fix_file_name(self.file_name)
 
     @staticmethod
     def _err(message: str, error_details: str = "") -> dict[str, object]:
         return {"success": False, "error": message, "error_details": error_details}
 
-    def _check_kwargs(self) -> dict:
+    def _check_kwargs(self, file_data: FileData) -> dict:
         """
         Check if the kwargs are valid
         """
-        if not self.file_name:
+        if not file_data.file_name:
             return self._err("File name is required")
 
-        if self.file_path is None or not self.file_path:
+        if file_data.file_path is None or not file_data.file_path:
             return self._err("File path is None")
 
-        file_path = Path(self.file_path)
+        file_path = Path(file_data.file_path)
         if not file_path.is_file():
-            logger.error("File not found: %s", self.file_path)
+            logger.error("File not found: %s", file_data.file_path)
             return self._err("File not found")
 
         if not self.site:
             return {"success": False, "error": "No site provided", "error_details": ""}
 
-        page = self.site.pages[f"File:{self.file_name}"]
-        if not self.new_file:
+        page = self.site.pages[f"File:{file_data.file_name}"]
+        if not file_data.new_file:
             if not page.exists:
-                logger.error("File %s does not exist on Commons", self.file_name)
+                logger.error("File %s does not exist on Commons", file_data.file_name)
                 return self._err("File not found on Commons")
         else:
             if page.exists:
-                logger.error("File %s already exists on Commons", self.file_name)
+                logger.error("File %s already exists on Commons", file_data.file_name)
                 return self._err("File already exists on Commons")
 
         return {"success": True, "error": None}
 
-    def _upload_file(self) -> dict:
+    def _upload_file(self, file_data: FileData) -> dict:
         """
         Single upload attempt — returns a result dict, never raises.
         """
@@ -85,8 +62,8 @@ class UploadFile:
             return {"success": False, "error": "No site provided", "error_details": ""}
 
         try:
-            response = self._site_upload()
-            logger.debug("Successfully uploaded %s to Wikimedia Commons", self.file_name)
+            response = self._site_upload(file_data)
+            logger.debug("Successfully uploaded %s to Wikimedia Commons", file_data.file_name)
             return {"success": True, "result": response.get("result", ""), "response": response}
 
         except mwclient.errors.AssertUserFailedError:
@@ -140,10 +117,10 @@ class UploadFile:
             return self._err(exc.code, exc.info)
 
         except Exception as exc:
-            logger.exception("Unexpected error uploading %s", self.file_name)
+            logger.exception("Unexpected error uploading %s", file_data.file_name)
             return self._err("unexpected", str(exc))
 
-    def _site_upload(self) -> dict:
+    def _site_upload(self, file_data: FileData) -> dict:
         """
         Upload a file to the site.
 
@@ -176,49 +153,50 @@ class UploadFile:
             requests.exceptions.ConnectionError
             requests.exceptions.Timeout
         """
-        with open(self.file_path, "rb") as f:
+        with open(file_data.file_path, "rb") as f:
             response = self.site.upload(
                 file=f,
-                description=self.description,
-                filename=self.file_name,
-                comment=self.summary or "",
+                description=file_data.description,
+                filename=file_data.file_name,
+                comment=file_data.summary or "",
                 ignore=True,  # skip warnings like "file exists"
             )
 
         return response
 
-    def _upload_with_retry(self) -> dict:
+    def _upload_with_retry(self, file_data: FileData) -> dict:
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
             logger.warning(
                 "Rate limited on upload attempt %d/%d for file '%s'. Retrying in %ds...",
                 attempt,
                 len(_RETRY_DELAYS),
-                self.file_name,
+                file_data.file_name,
                 delay,
             )
             time.sleep(delay)
 
-            _result = self._upload_file()
+            _result = self._upload_file(file_data)
 
             if _result.get("error") != "ratelimited":
                 return _result
 
         return self._err("ratelimited", "Exceeded rate limit after all retry attempts")
 
-    def upload(self) -> dict:
-        check = self._check_kwargs()
+    def upload(self, file_data: FileData) -> dict:
+        check = self._check_kwargs(file_data)
         if check["error"]:
             return check
 
-        _result = self._upload_file()
+        _result = self._upload_file(file_data)
 
         if _result.get("error") != "ratelimited":
             return _result
 
         # handle retry
-        return self._upload_with_retry()
+        return self._upload_with_retry(file_data)
 
-    def upload_obj(self) -> UploadResult:
+    def upload_obj(self, file_data: FileData) -> UploadResult:
+
         if not self.site:
             return UploadResult(
                 ok=False,
@@ -228,7 +206,7 @@ class UploadFile:
                 result=None,
             )
 
-        upload_result = self.upload()
+        upload_result = self.upload(file_data)
 
         result_status = upload_result.get("result") or ""
         error_details = upload_result.get("error_details", "")
@@ -252,6 +230,13 @@ class UploadFile:
                 result=None,
             )
 
+        """
+        "details": {
+            "error": "fileexists-shared-forbidden",
+            "error_details": "A file with this name already exists in the shared file repository. If you still want to upload your file, please go back and use a new name. [[File:Share_of_deaths_obesity,_AFG.svg|thumb|center|Share_of_deaths_obesity,_AFG.svg]]",
+          },
+        """
+
         return UploadResult(
             ok=False,
             error=result_error,
@@ -261,6 +246,38 @@ class UploadFile:
         )
 
 
+class UploadService:
+    def __init__(self, site: Site) -> None:
+        self.site: Site = site
+        self.uploader: FileUploader = FileUploader(site)
+
+    # ----------------------
+    #  upload methods
+    # ----------------------
+
+    def upload_svg(
+        self,
+        filename: str,
+        file_path: Path,
+        summary: str,
+        description: str | None = None,
+        new_file: bool = False,
+    ) -> UploadResult:
+        """Upload SVG file to Commons."""
+        logger.info(f"Uploading file: {filename}")
+
+        file_data = FileData.from_dict(
+            file_name=filename,
+            file_path=file_path,
+            summary=summary,
+            description=description,
+            new_file=new_file,
+        )
+
+        return self.uploader.upload_obj(file_data)
+
+
 __all__ = [
-    "UploadFile",
+    "UploadService",
+    "FileUploader",
 ]

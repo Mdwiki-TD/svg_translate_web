@@ -105,7 +105,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
     # Per-chart processing
     # ------------------------------------------------------------------
-    def _update(
+    def _update_db(
         self,
         chart: OwidChartRecord,
         data: dict[str, Any],
@@ -140,7 +140,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         grapher_data = fetch_grapher_metadata_raw(chart.slug)
 
         if grapher_data.status_code == 404:
-            self._update(chart, {"status_404": 404}, info)
+            self._update_db(chart, {"status_404": 404}, info)
             info.status = "failed"
             info.error = "Chart not found"
             return False
@@ -194,21 +194,18 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             if parsed:
                 min_t, max_t, len_y = parsed
 
-                info.min_time.after = min_t if min_t != info.min_time.before else None
-                info.max_time.after = max_t if max_t != info.max_time else None
-                info.len_years.after = len_y if len_y != info.len_years else None
+                info.min_time._update_if_diff(after=min_t)
+                info.max_time._update_if_diff(after=max_t)
+                info.len_years._update_if_diff(after=len_y)
+                # info.min_time.after = min_t if min_t != info.min_time.before else None
+                # info.max_time.after = max_t if max_t != info.max_time else None
+                # info.len_years.after = len_y if len_y != info.len_years else None
 
                 # 4. Compare — skip if nothing changed
                 if min_t == chart.min_time and max_t == chart.max_time and len_y == chart.len_years:
                     logger.info("Chart '%s' has no changes in timespan", chart.slug)
                 else:
-                    db_data.update(
-                        {
-                            "min_time": min_t,
-                            "max_time": max_t,
-                            "len_years": len_y,
-                        }
-                    )
+                    db_data.update({"min_time": min_t, "max_time": max_t, "len_years": len_y})
 
         # 5. Update DB
         if not db_data:
@@ -216,7 +213,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             info.skip_reason = "nothing to update"
             return False
 
-        updated = self._update(chart, db_data, info)
+        updated = self._update_db(chart, db_data, info)
         if updated:
             info.status = "updated"
             return True

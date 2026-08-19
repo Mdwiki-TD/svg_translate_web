@@ -112,11 +112,16 @@ class SlugRedirectsRoutes(SlugFuncs):
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
-        self.bp.route("/<int:redirect_id>/edit", methods=["GET"])(admin_required(self.edit_slug_redirect))
-        self.bp.route("/update", methods=["POST"])(admin_required(self.update_slug_redirect_data))
-        self.bp.route("/<int:redirect_id>/delete", methods=["POST"])(admin_required(self.delete_slug_redirect_data))
-        self.bp.route("/bulk_action", methods=["POST"])(admin_required(self.bulk_action))
+
+        routes = [
+            ("/", "GET", self.dashboard),
+            ("/<int:redirect_id>/edit", "GET", self.edit_slug_redirect),
+            ("/update", "POST", self.update_slug_redirect_data),
+            ("/<int:redirect_id>/delete", "POST", self.delete_slug_redirect_data),
+            ("/bulk_action", "POST", self.bulk_action),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(admin_required(target))
 
 
 __all__ = [

@@ -26,9 +26,13 @@ class ExtractRoutes:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/", methods=["GET"])(self.dashboard)
-        self.bp.route("/<string:file_name>", methods=["GET"])(self.extract_get)
-        self.bp.route("/", methods=["POST"])(self.extract_post)
+        routes = [
+            ("/", "GET", self.dashboard),
+            ("/<string:file_name>", "GET", self.extract_get),
+            ("/", "POST", self.extract_post),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(target)
 
     def extract_post(self) -> str:
         filename = request.form.get("filename", "").strip()

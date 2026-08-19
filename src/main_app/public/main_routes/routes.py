@@ -25,8 +25,12 @@ class MainRoutes:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/", methods=["GET"])(self.index)
-        self.bp.get("/favicon.ico")(self.favicon)
+        routes = [
+            ("/", "GET", self.index),
+            ("/favicon.ico", "GET", self.favicon),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(target)
 
     def index(self) -> str:
         form = setup_svg_langs_form()

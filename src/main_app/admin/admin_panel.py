@@ -32,7 +32,12 @@ class AdminPanel:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/", methods=["GET"])(admin_required(self.admin_dashboard))
+
+        routes = [
+            ("/", "GET", self.admin_dashboard),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(admin_required(target))
 
         @self.bp.app_context_processor
         def inject_sidebar() -> dict[str, Any]:

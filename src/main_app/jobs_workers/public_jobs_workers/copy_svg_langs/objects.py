@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ...shared_objects import StandardAdminSummary, WorkerObject
+from ...shared_objects import STATUS_LITERAL, StandardAdminSummary, WorkerMapping
 
 
 @dataclass
@@ -30,7 +30,7 @@ class SvgLangsConfig:
 @dataclass
 class StageDetail:
     name: str = ""
-    status: str = "pending"
+    status: STATUS_LITERAL = "pending"
     message: str = ""
     data: Any = None
 
@@ -94,7 +94,7 @@ class FileSteps:
 class FilesProcessedItem:
     title: str
     file_path: str | None = None
-    status: str = "pending"
+    status: STATUS_LITERAL = "pending"
     error: str | None = None
     steps: FileSteps = field(default_factory=lambda: FileSteps())
     is_mapping_merged: bool = False
@@ -104,7 +104,7 @@ class FilesProcessedItem:
 
 
 @dataclass
-class CopySvgLangsWorkerObject(WorkerObject):
+class CopySvgLangsWorkerObject(WorkerMapping):
 
     summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
     title: str | None = None

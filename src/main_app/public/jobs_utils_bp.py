@@ -31,22 +31,15 @@ class UtilsJobsBp:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/download_main_files/file/<string:filename>", methods=["GET"])(
-            admin_required(self.serve_download_main_file)
-        )
-        self.bp.route("/download_main_files/download-all", methods=["GET"])(
-            admin_required(self.download_all_main_files)
-        )
-
-        self.bp.route("/crop-main-files/original/<string:filename>", methods=["GET"])(
-            admin_required(self.serve_crop_original_file)
-        )
-        self.bp.route("/crop-main-files/cropped/<string:filename>", methods=["GET"])(
-            admin_required(self.serve_crop_cropped_file)
-        )
-        self.bp.route("/crop-main-files/compare/<string:original>/<string:cropped>", methods=["GET"])(
-            admin_required(self.compare_crop_files)
-        )
+        routes = [
+            ("/download_main_files/file/<string:filename>", "GET", self.serve_download_main_file),
+            ("/download_main_files/download-all", "GET", self.download_all_main_files),
+            ("/crop-main-files/original/<string:filename>", "GET", self.serve_crop_original_file),
+            ("/crop-main-files/cropped/<string:filename>", "GET", self.serve_crop_cropped_file),
+            ("/crop-main-files/compare/<string:original>/<string:cropped>", "GET", self.compare_crop_files),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(admin_required(target))
 
     def serve_download_main_file(self, filename: str) -> Response:
         """

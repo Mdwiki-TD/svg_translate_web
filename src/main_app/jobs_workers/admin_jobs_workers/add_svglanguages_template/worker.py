@@ -83,9 +83,10 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
 
         match = RE_SVG_LANG.search(file_info._text if file_info._text else "")
         if match:
-            self._skip_step(
-                file_info, "load_template_text", "Skipped - page content is already has {{SVGLanguages|...}}"
-            )
+            file_info.steps["load_template_text"] = {
+                "result": None,
+                "msg": "Skipped - page content is already has {{SVGLanguages|...}}",
+            }
             self.result.pages_skipped.append(file_info.to_dict())
             return False
 
@@ -144,7 +145,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         info._new_text = add_template_to_text(info._text, info._template_text)
 
         if info._text and (info._text.strip() == info._new_text.strip()):
-            self._skip_step(info, "add_template_text", "Skipped - page content is already identical")
+            info.steps["add_template_text"] = {"result": None, "msg": "Skipped - page content is already identical"}
             info.status = "skipped"
             return False
 
@@ -181,10 +182,6 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         file_info.steps[step] = {"result": False, "msg": error}
         file_info.status = "failed"
         file_info.error = error
-
-    def _skip_step(self, file_info: TemplateInfo, step: str, reason: str) -> None:
-        """Mark a step as skipped (result=None)."""
-        file_info.steps[step] = {"result": None, "msg": reason}
 
     # ------------------------------------------------------------------
     # Public entry-point

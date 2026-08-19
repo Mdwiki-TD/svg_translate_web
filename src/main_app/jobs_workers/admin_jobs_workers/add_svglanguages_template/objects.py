@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
 
 
 @dataclass
@@ -18,7 +18,7 @@ class TemplateInfo:
     template_id: int
     template_title: str
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: str = "pending"
+    status: STATUS_LITERAL = "pending"
     error: str | None = None
     steps: dict[str, dict[str, Any]] = field(
         default_factory=lambda: {

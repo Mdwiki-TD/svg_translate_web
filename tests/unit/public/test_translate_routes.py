@@ -214,7 +214,7 @@ class TestTranslateRoutes:
         svg_path.write_text("<svg></svg>", encoding="utf-8")
 
         session_data = {
-            "filename": "Example.svg",
+            "filename": "Example1.svg",
             "lang": "ar",
             "mapping": {
                 "new": {
@@ -249,5 +249,10 @@ class TestTranslateRoutes:
             assert resp.mimetype == "image/svg+xml"
             assert b"Translated content" in resp.data
         finally:
+            # send_file keeps the translated SVG open on Windows until the
+            # response is closed; close it before removing the session dir to
+            # avoid a PermissionError (WinError 32) when deleting the file.
+            if resp is not None:
+                resp.close()
             if session_dir.exists():
                 shutil.rmtree(session_dir)

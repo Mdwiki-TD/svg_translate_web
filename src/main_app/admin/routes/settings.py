@@ -115,9 +115,13 @@ class SettingsRoutes(SettingsFuncs):
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
-        self.bp.post("/create")(admin_required(self.create))
-        self.bp.post("/update")(admin_required(self.update))
+        routes = [
+            ("/", "GET", self.dashboard),
+            ("/create", "POST", self.create),
+            ("/update", "POST", self.update),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(admin_required(target))
 
 
 __all__ = [

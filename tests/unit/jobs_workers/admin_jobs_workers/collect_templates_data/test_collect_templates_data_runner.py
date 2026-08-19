@@ -453,6 +453,7 @@ class TestRunner:
                 "last_world_file": "test, World, 2021.svg",
                 "last_world_year": 2021,
                 "slug": "test",
+                "files": 2,
             },
         )
 
@@ -578,6 +579,7 @@ class TestRunner:
                 "last_world_file": "test, World, 2021.svg",
                 "last_world_year": 2021,
                 "slug": "test",
+                "files": 1,
             },
         )
 

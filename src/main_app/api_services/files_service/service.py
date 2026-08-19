@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 
 import requests
-from mwclient.client import Site
 
 from ..clients import create_commons_session
 from .downloader import download_and_save
@@ -12,9 +11,7 @@ from .objects import (
     DownloadAndSaveData,
     FileInfo,
     FileLanguagesMap,
-    UploadResult,
 )
-from .upload_bot import UploadFile
 
 logger = logging.getLogger(__name__)
 
@@ -48,29 +45,3 @@ class FilesService:
             session=self.session,
             overwrite_download=overwrite_download,
         )
-
-
-class UploadService:
-    def __init__(self, site: Site) -> None:
-        self.site: Site = site
-
-    # ----------------------
-    #  upload methods
-    # ----------------------
-
-    def upload_svg(
-        self,
-        filename: str,
-        file_path: Path,
-        summary: str,
-    ) -> UploadResult:
-        """Upload SVG file to Commons."""
-        logger.info(f"Uploading file: {filename}")
-
-        bot = UploadFile(
-            file_name=filename,
-            file_path=file_path,
-            site=self.site,
-            summary=summary,
-        )
-        return bot.upload_obj()

@@ -16,7 +16,7 @@ from ..config import settings
 from ..database.services import JobsService
 from ..io import is_job_cancelled_file_exist, save_job_result_by_name
 from .objects import JobsRunner
-from .shared_objects import WorkerObject
+from .shared_objects import WorkerMapping
 from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class BaseObjectsJobWorker(ABC):
 
         self._edit_count: int = 0
         self.site: Site | None = None
-        self.result: WorkerObject = WorkerObject()
+        self.result: WorkerMapping = WorkerMapping()
         self._jobs_service = JobsService()
 
     @abstractmethod
@@ -66,14 +66,14 @@ class BaseObjectsJobWorker(ABC):
         ...
 
     @abstractmethod
-    def process(self) -> WorkerObject:
+    def process(self) -> WorkerMapping:
         """Execute the main processing logic.
 
         This method should contain the actual work of the job.
         It should check for cancellation via self.cancel_event periodically.
 
         Returns:
-            The populated result WorkerObject
+            The populated result WorkerMapping
         """
         ...
 

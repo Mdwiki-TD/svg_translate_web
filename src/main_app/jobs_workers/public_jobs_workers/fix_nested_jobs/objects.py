@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from ...base_worker import WorkerObject
+from ...base_worker import WorkerMapping
 
 
 @dataclass
@@ -70,7 +70,7 @@ class FileResult:
 
 
 @dataclass
-class FixNestedJobsWorkerObject(WorkerObject):
+class FixNestedJobsWorkerObject(WorkerMapping):
     job_id: int | None = None
     note: str = ""
     args: dict[str, Any] = field(default_factory=dict)

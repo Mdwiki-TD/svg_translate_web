@@ -260,7 +260,7 @@ class JobsBp(ABC):
         if template_data.load_settings:
             all_settings = self.settings_service.get_all_settings_ready()
 
-        form = template_data.form_class(all_settings=all_settings)
+        form = template_data.form_class(all_settings=all_settings, request_args=request.args)
         return form
 
     # -----------------------

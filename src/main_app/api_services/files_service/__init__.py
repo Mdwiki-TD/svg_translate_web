@@ -9,10 +9,8 @@ from .objects import (
     DownloadResult,
     FileInfo,
 )
-from .service import FilesService, UploadService
-from .upload_bot import (
-    UploadFile,
-)
+from .service import FilesService
+from .uploader import UploadService
 
 __all__ = [
     "FileInfo",
@@ -21,7 +19,6 @@ __all__ = [
     "FilesService",
     "UploadService",
     "get_file_info",
-    "UploadFile",
     "get_file_languages",
     "FileLanguagesMap",
 ]

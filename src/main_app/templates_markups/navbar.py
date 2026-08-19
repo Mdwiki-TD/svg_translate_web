@@ -210,7 +210,14 @@ nav_list = [
         path="/jobs/fix_nested_jobs",
     ),
     NavLink(
-        text="OWID Charts",
+        text="Templates",
+        icon="bi-list-columns",
+        url_endpoint="templates.dashboard",
+        title="OWID Charts",
+        path="/templates",
+    ),
+    NavLink(
+        text="Charts",
         icon="bi-graph-up",
         url_endpoint="owid_charts.all_charts",
         title="OWID Charts",

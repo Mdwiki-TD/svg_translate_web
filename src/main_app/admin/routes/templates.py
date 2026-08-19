@@ -241,14 +241,18 @@ class TemplatesRoutes(TemplatesRoutesFuncs):
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/", methods=["GET"])(admin_required(self.dashboard))
-        self.bp.route("/templates-need-update", methods=["GET"])(admin_required(self.templates_need_update))
-        self.bp.post("/add")(admin_required(self.add_template))
-        self.bp.post("/update")(admin_required(self.update_template))
-        self.bp.post("/<int:template_id>/delete")(admin_required(self.delete_template))
-        self.bp.route("/<int:template_id>/edit", methods=["GET"])(admin_required(self.edit_template))
-        self.bp.route("/<path:template_title>/edit_by_title", methods=["GET"])(admin_required(self.edit_by_title))
-        self.bp.route("/download-json", methods=["GET"])(admin_required(self.download_templates_json))
+        routes = [
+            ("/", "GET", self.dashboard),
+            ("/add", "POST", self.add_template),
+            ("/update", "POST", self.update_template),
+            ("/<int:template_id>/delete", "POST", self.delete_template),
+            ("/templates-need-update", "GET", self.templates_need_update),
+            ("/<int:template_id>/edit", "GET", self.edit_template),
+            ("/<path:template_title>/edit_by_title", "GET", self.edit_by_title),
+            ("/download-json", "GET", self.download_templates_json),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(admin_required(target))
 
     def update_template(self) -> ResponseReturnValue:
         return self._update_template(request.form)

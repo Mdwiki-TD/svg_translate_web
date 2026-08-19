@@ -10,7 +10,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from .....api_services.files_service import UploadFile
+from .....api_services import UploadService
 
 logger = logging.getLogger(__name__)
 
@@ -53,23 +53,20 @@ def upload_cropped_file(
     summary = f"[[:File:{original_file}]] cropped to remove the footer."
 
     try:
-        uploader = UploadFile(
-            file_name=clean_cropped_name,
+        upload_service = UploadService(site)
+        upload_result = upload_service.upload_svg(
+            filename=clean_cropped_name,
             file_path=cropped_path,
-            description=wikitext,
-            site=site,
             summary=summary,
+            description=wikitext,
             new_file=True,
         )
 
-        upload_result = uploader.upload()
-
-        result_status = upload_result.get("result") or ""
-        if result_status.lower() == "success":
+        if upload_result.ok is True:
             result["success"] = True
             logger.info("Successfully uploaded cropped file: %s", cropped_filename)
         else:
-            error_msg = upload_result.get("error", "Unknown upload error")
+            error_msg = upload_result.error or "Unknown upload error"
             if error_msg == "File already exists on Commons":
                 result["file_exists"] = True
                 logger.warning("Skipped upload for %s: file already exists on Commons", cropped_filename)

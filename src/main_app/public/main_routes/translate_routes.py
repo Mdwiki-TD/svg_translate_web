@@ -43,10 +43,14 @@ class TranslateRoutes:
         self._setup_routes()
 
     def _setup_routes(self) -> None:
-        self.bp.route("/", methods=["GET"])(oauth_required(self.dashboard))
-        self.bp.route("/select", methods=["POST"])(oauth_required(self.select_post))
-        self.bp.route("/edit", methods=["GET"])(oauth_required(self.edit_get))
-        self.bp.route("/save", methods=["POST"])(oauth_required(self.save_post))
+        routes = [
+            ("/", "GET", oauth_required(self.dashboard)),
+            ("/select", "POST", oauth_required(self.select_post)),
+            ("/edit", "GET", oauth_required(self.edit_get)),
+            ("/save", "POST", oauth_required(self.save_post)),
+        ]
+        for rule, method, target in routes:
+            self.bp.route(rule, methods=[method])(target)
 
     def dashboard(self) -> str:
         """Display select form with filename and language fields."""

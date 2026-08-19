@@ -5,7 +5,6 @@ Worker module for cropping main files and uploading them with (cropped) suffix.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -26,10 +25,12 @@ from ....utils.wikitext.cropped_file_text.utils import update_information_author
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject, FileStep
-from .steps.crop_file import crop_svg_file
-from .steps.crop_utils import generate_cropped_filename
-from .steps.download import download_file_for_cropping
-from .steps.upload import upload_cropped_file
+from .steps import (
+    crop_svg_file,
+    download_file_for_cropping,
+    generate_cropped_filename,
+    upload_cropped_file,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         self.upload_limit = self.args.get("upload_limit") or 0
         self.owid_charts_service = OwidChartsService()
+        self.template_service = TemplateService()
 
         self.exists: dict[str, Any] = {}
         self.original_dir = Path(settings.paths.crop_main_files_path) / "original"
@@ -120,7 +122,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         logger.info("self.exists: %d", len(self.exists))
 
     def _load_templates(self) -> list[TemplateRecord]:
-        templates = TemplateService().list()
+        templates = self.template_service.list()
         _templates = [t for t in templates if t.last_world_file]
         return self._apply_limits(_templates)
 
@@ -138,42 +140,38 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     def _process_one_item(self, template: TemplateRecord) -> bool:
         self.result.summary.processed += 1
 
-        cropped_filename = generate_cropped_filename(template.last_world_file)
-
         # file info
-        file_info = CropFileProcessingInfo(
-            template_id=template.id,
-            template_title=template.title,
-            original_file=template.last_world_file,
-            cropped_filename=cropped_filename,
-            timestamp=datetime.now().isoformat(),
-        )
+        file_info = CropFileProcessingInfo.from_template(template)
+
+
+        cropped_filename = file_info.cropped_filename
 
         # pre steps if the file already in commons, skip download/upload files.
         if self._check_file_exists(cropped_filename):
             self._skip_process(file_info)
+
             # Update existing page texts, including the cropped file description.
             updated = self.update_file_references(file_info, template)
 
             if updated:
-                file_info.status = "completed"
+                file_info.status = "updated"
                 self.result.summary.updated += 1
                 self.result.pages_updated.append(file_info.to_dict())
                 return True
-            else:
-                # if all file_info.steps "result" is None do:
-                all_steps = (
-                    file_info.steps.download,
-                    file_info.steps.crop,
-                    file_info.steps.upload_cropped,
-                    file_info.steps.update_original,
-                    file_info.steps.update_template,
-                    file_info.steps.update_page,
-                    file_info.steps.update_cropped,
-                )
-                if all(step.result is None for step in all_steps):
-                    file_info.status = "skipped"
-                    self.result.summary.skipped += 1
+
+            # if all file_info.steps "result" is None do:
+            all_steps = (
+                file_info.steps.download,
+                file_info.steps.crop,
+                file_info.steps.upload_cropped,
+                file_info.steps.update_original,
+                file_info.steps.update_template,
+                file_info.steps.update_page,
+                file_info.steps.update_cropped,
+            )
+            if all(step.result is None for step in all_steps):
+                file_info.status = "skipped"
+                self.result.summary.skipped += 1
 
             self.result.pages_skipped.append(file_info.to_dict())
             return False
@@ -251,7 +249,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
                 file_info.steps.update_page,
             )
         else:
-            self._skip_step(file_info.steps.update_page, "Skipped - title does not start with Template:")
+            file_info.steps.update_page.skip("Skipped - title does not start with Template:")
             updated3 = False
 
         # Step 7 - Update the existing cropped file description with its stored OWID source citation.
@@ -354,7 +352,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
                 self.job_id,
                 file_info.cropped_filename,
             )
-            self._skip_step(file_info.steps.upload_cropped, "Skipped - file already exists on Commons")
+            file_info.steps.upload_cropped.skip("Skipped - file already exists on Commons")
             file_info.status = "skipped"
             self.result.summary.skipped += 1
             # Still continue to wikitext updates even if file existed
@@ -371,10 +369,10 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         error = upload_result.get("error", "Unknown upload error")
         logger.warning("Job %s: Failed to upload %s", self.job_id, file_info.cropped_filename)
 
-        self._skip_step(file_info.steps.update_original, "Skipped - upload failed")
-        self._skip_step(file_info.steps.update_template, "Skipped - upload was not successful")
-        self._skip_step(file_info.steps.update_page, "Skipped - upload was not successful")
-        self._skip_step(file_info.steps.update_cropped, "Skipped - upload was not successful")
+        file_info.steps.update_original.skip("Skipped - upload failed")
+        file_info.steps.update_template.skip("Skipped - upload was not successful")
+        file_info.steps.update_page.skip("Skipped - upload was not successful")
+        file_info.steps.update_cropped.skip("Skipped - upload was not successful")
 
         self._fail(file_info, file_info.steps.upload_cropped, error)
         file_info.cropped_filename = ""
@@ -519,9 +517,9 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
 
     def _skip_process(self, file_info: CropFileProcessingInfo) -> None:
-        self._skip_step(file_info.steps.download, "Skipped - file already exists on Commons")
-        self._skip_step(file_info.steps.crop, "Skipped - file already exists on Commons")
-        self._skip_step(file_info.steps.upload_cropped, "Skipped - file already exists on Commons")
+        file_info.steps.download.skip("Skipped - file already exists on Commons")
+        file_info.steps.crop.skip("Skipped - file already exists on Commons")
+        file_info.steps.upload_cropped.skip("Skipped - file already exists on Commons")
 
     def _fail(self, file_info: CropFileProcessingInfo, step_obj: FileStep, error: str) -> None:
         """Mark a step and the file as failed, and increment the summary counter."""
@@ -531,17 +529,12 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         file_info.error = error
         self.result.summary.failed += 1
 
-    def _skip_step(self, step_obj: FileStep, reason: str) -> None:
-        """Mark a step as skipped (result=None)."""
-        step_obj.result = None
-        step_obj.msg = reason
-
     def _skip_upload_steps(self, file_info: CropFileProcessingInfo) -> None:
-        self._skip_step(file_info.steps.upload_cropped, "Skipped - upload disabled")
-        self._skip_step(file_info.steps.update_original, "Skipped - upload disabled")
-        self._skip_step(file_info.steps.update_template, "Skipped - upload disabled")
-        self._skip_step(file_info.steps.update_page, "Skipped - upload disabled")
-        self._skip_step(file_info.steps.update_cropped, "Skipped - upload disabled")
+        file_info.steps.upload_cropped.skip("Skipped - upload disabled")
+        file_info.steps.update_original.skip("Skipped - upload disabled")
+        file_info.steps.update_template.skip("Skipped - upload disabled")
+        file_info.steps.update_page.skip("Skipped - upload disabled")
+        file_info.steps.update_cropped.skip("Skipped - upload disabled")
         file_info.status = "skipped"
         self.result.summary.skipped += 1
         logger.info("Job %s: Skipped upload for %s (upload disabled)", self.job_id, file_info.cropped_filename)

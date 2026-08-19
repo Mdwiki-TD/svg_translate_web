@@ -6,10 +6,12 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from ....database.models import OwidChartRecord
-from ...shared_objects import StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
+
+STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "created", "failed"]
 
 
 @dataclass
@@ -18,7 +20,7 @@ class StepInfo:
     before: str | int | None = None
     after: str | int | None = None
 
-    def _update(self, after: str | int | None) -> None:
+    def _update_if_diff(self, after: str | int | None) -> None:
         if after and self.before != after:
             self.after = after
 
@@ -27,7 +29,7 @@ class StepInfo:
 class ChartNewInfo:
     chart_id: int
     slug: str
-    status: str = "pending"  # updated | skipped | failed
+    status: STATUS_LIST = "pending"  # updated | skipped | failed
     skip_reason: str | None = None
     error: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
@@ -82,7 +84,7 @@ class UpdateOwidChartsWorkerObject(StandardAdminWorkerObject):
 class ChartUpdateInfo:
     chart_id: int
     slug: str
-    status: str = "pending"  # updated | skipped | failed
+    status: STATUS_LITERAL = "pending"  # updated | skipped | failed
     skip_reason: str | None = None
     error: str | None = None
 

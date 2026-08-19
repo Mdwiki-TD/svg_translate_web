@@ -1,4 +1,4 @@
-"""Unit tests for BaseObjectsJobWorker and WorkerObject."""
+"""Unit tests for BaseObjectsJobWorker and WorkerMapping."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import pytest
 from src.main_app.database.services import JobsService
 from src.main_app.jobs_workers.base_worker import (
     BaseObjectsJobWorker,
-    WorkerObject,
+    WorkerMapping,
 )
 from src.main_app.jobs_workers.objects import JobsRunner
 
@@ -38,7 +38,7 @@ class MockWorker(BaseObjectsJobWorker):
     def get_job_type(self) -> str:
         return "mock_job"
 
-    def process(self) -> WorkerObject:
+    def process(self) -> WorkerMapping:
         return self.result
 
 
@@ -73,7 +73,7 @@ def worker(seeded_job):
             user=user,
         )
     )
-    worker.result = WorkerObject()
+    worker.result = WorkerMapping()
     return worker
 
 
@@ -87,12 +87,12 @@ def worker_no_job():
             user=user,
         )
     )
-    worker.result = WorkerObject()
+    worker.result = WorkerMapping()
     return worker
 
 
 def test_worker_object_to_json():
-    obj = WorkerObject(status="running", error="some error")
+    obj = WorkerMapping(status="running", error="some error")
     data = obj.to_json()
     assert data["status"] == "running"
     assert data["error"] == "some error"

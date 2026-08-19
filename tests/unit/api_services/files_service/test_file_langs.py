@@ -147,7 +147,7 @@ class TestGetFileLanguages:
 
         result = get_file_languages("Test.svg", mock_session)
         assert result.error is None
-        assert result.langs == ["fr", "de", "es"]
+        assert result.langs == ["fr", "de", "es", "en"]
 
     def test_no_translations_defaults_to_en(self):
         mock_session = MagicMock()
@@ -237,7 +237,7 @@ class TestGetFileLanguages:
 
         result = get_file_languages("Test.svg", mock_session)
         assert result.error is None
-        assert result.langs == ["fr"]
+        assert result.langs == ["fr", "en"]
 
     def test_custom_session_used(self):
         mock_session = MagicMock()
@@ -289,4 +289,4 @@ class TestGetFileLanguages:
 
         result = get_file_languages("Test.svg", mock_session)
         assert result.error is None
-        assert result.langs == ["it"]
+        assert result.langs == ["it", "en"]
