@@ -57,7 +57,7 @@ def test_extract_get_restores_filename_from_session(mock_client) -> None:
 
 
 @pytest.fixture
-def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict:
+def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     """Mock render_template to capture context without template processing."""
     captured: dict[str, Any] = {}
 

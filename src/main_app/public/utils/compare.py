@@ -2,6 +2,7 @@
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from lxml import etree  # pyright: ignore[reportAttributeAccessIssue]
 
@@ -31,7 +32,7 @@ def file_langs(file_path: Path) -> list:
     return list(languages)
 
 
-def analyze_file(file_path: Path) -> dict:
+def analyze_file(file_path: Path) -> dict[str, Any]:
     # TODO: compare the two SVG files and return comparison results
     result = {
         "languages": file_langs(file_path),

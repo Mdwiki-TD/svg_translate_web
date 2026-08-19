@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -20,7 +21,7 @@ from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
-def mock_db_services(monkeypatch: pytest.MonkeyPatch) -> dict:
+def mock_db_services(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     """Mock get_template_by_title and update_template_data."""
     mocks = {
         "get_template_by_title": MagicMock(return_value=None),

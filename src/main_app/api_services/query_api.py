@@ -185,7 +185,7 @@ def get_page_links(
     title: str,
     site: Site,
     namespace: int = 0,
-) -> dict:
+) -> dict[str, Any]:
     """Return wikilinks on *title* in *namespace*.
 
     Returns ``{"links": {title: {"ns", "title"}}, "normalized": [...], "redirects": [...]}``.

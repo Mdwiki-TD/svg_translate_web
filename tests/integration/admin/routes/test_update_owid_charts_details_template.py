@@ -15,13 +15,14 @@ from __future__ import annotations
 
 import json
 from html import unescape
+from typing import Any
 
 from src.main_app.database.services import JobsService
 
 _JOB_TYPE = "update_owid_charts"
 
 
-def _make_chart(slug: str = "test-chart") -> dict:
+def _make_chart(slug: str = "test-chart") -> dict[str, Any]:
     return {
         "slug": slug,
         "status": "updated",
@@ -32,15 +33,15 @@ def _make_chart(slug: str = "test-chart") -> dict:
     }
 
 
-def _make_failed_chart(slug: str = "failed-chart") -> dict:
+def _make_failed_chart(slug: str = "failed-chart") -> dict[str, Any]:
     return {"slug": slug, "status": "failed", "error": "fetch error"}
 
 
-def _make_skipped_chart(slug: str = "skipped-chart") -> dict:
+def _make_skipped_chart(slug: str = "skipped-chart") -> dict[str, Any]:
     return {"slug": slug, "status": "skipped", "skip_reason": "unchanged"}
 
 
-def _result_data(updated=None, failed=None, skipped=None) -> dict:
+def _result_data(updated=None, failed=None, skipped=None) -> dict[str, Any]:
     updated = updated or []
     failed = failed or []
     skipped = skipped or []

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -31,7 +32,7 @@ def tmp_file(tmp_path):
     return f
 
 
-def make_upload_response(result: str = "success") -> dict:
+def make_upload_response(result: str = "success") -> dict[str, Any]:
     return {"result": result, "filename": "Test_file.jpg"}
 
 

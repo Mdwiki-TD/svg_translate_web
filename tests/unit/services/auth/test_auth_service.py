@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from mwoauth import RequestToken
@@ -106,7 +107,7 @@ class TestAuthService:
                 assert query_string == "oauth=1"
                 return SimpleNamespace(key="k", secret="s")
 
-            def identify(self, token) -> dict:
+            def identify(self, token) -> dict[str, Any]:
                 assert token.key == "k"
                 return {"sub": "123", "username": "Tester"}
 
@@ -128,7 +129,7 @@ class TestAuthService:
             def complete(self, token, query_string: str):
                 return "token"
 
-            def identify(self, token) -> dict:
+            def identify(self, token) -> dict[str, Any]:
                 raise ValueError("bad")
 
         monkeypatch.setattr(

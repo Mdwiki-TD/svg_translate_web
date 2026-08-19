@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock
 
 import mwclient.errors
@@ -53,7 +54,7 @@ def make_api_error(code: str, info: str = "") -> mwclient.errors.APIError:
     return mwclient.errors.APIError(code, info, {})
 
 
-def make_upload_response(result: str = "success") -> dict:
+def make_upload_response(result: str = "success") -> dict[str, Any]:
     return {"result": result, "filename": "Test_file.jpg"}
 
 

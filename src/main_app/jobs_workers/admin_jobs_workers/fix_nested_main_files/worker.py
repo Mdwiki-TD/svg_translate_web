@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import tempfile
 from pathlib import Path
+from typing import Any
 
 from mwclient.client import Site
 
@@ -132,7 +133,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         self,
         filename: str,
         temp_dir: Path,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """High-level orchestration for fixing nested SVG tags.
 
         Args:
