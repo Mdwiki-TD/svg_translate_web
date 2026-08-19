@@ -164,7 +164,7 @@ class OneFileProcessor:
 
         error_msg = download_result.get("error", "Unknown download error")
         logger.warning("Job %s: Failed to download %s", self.job_id, template.last_world_file)
-        file_info.status = "failed"
+
         self._fail(file_info, file_info.steps.download, error_msg)
         return False
 
@@ -185,7 +185,7 @@ class OneFileProcessor:
 
         error_msg = crop_result.get("error", "Unknown crop error")
         logger.warning("Job %s: Failed to crop %s", self.job_id, template.last_world_file)
-        file_info.status = "failed"
+
         self._fail(file_info, file_info.steps.crop, error_msg)
         return False
 
@@ -254,7 +254,6 @@ class OneFileProcessor:
         file_info.steps.update_page.skip("Skipped - upload was not successful")
         file_info.steps.update_cropped.skip("Skipped - upload was not successful")
 
-        file_info.status = "failed"
         self._fail(file_info, file_info.steps.upload_cropped, error)
         file_info.cropped_filename = ""
         return False
@@ -411,11 +410,13 @@ class OneFileProcessor:
         file_info.steps.update_cropped.skip("Skipped - upload disabled")
         logger.info("Job %s: Skipped upload for %s (upload disabled)", self.job_id, file_info.cropped_filename)
         file_info.cropped_filename = ""
+        file_info.status = "skipped"
 
     def _fail(self, file_info: CropFileProcessingInfo, step_obj: FileStep, error: str) -> None:
         step_obj.result = False
         step_obj.msg = error
         file_info.error = error
+        file_info.status = "failed"
 
 
 __all__ = [

@@ -377,6 +377,11 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         ok = self.files_processor._process_one_item(template_info, template)
 
+        self.update_status(template_info)
+
+        return ok
+
+    def update_status(self, template_info: TemplateInfos):
         if template_info.status.lower() in ["pending", "running"]:
             template_info.status = "completed"
 
@@ -390,8 +395,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             self.result.pages_failed.append(template_info)
         else:
             self.result.pages_processed.append(template_info)
-
-        return ok
 
     def finish(self) -> None:
         # Update summary skipped count

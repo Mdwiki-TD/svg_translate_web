@@ -132,6 +132,11 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         ok = self.files_processor.process_one_item(file_info, template)
 
+        self.update_status(file_info)
+
+        return ok
+
+    def update_status(self, file_info: CropFileProcessingInfo) -> None:
         if file_info.status.lower() in ["pending", "running"]:
             file_info.status = "completed"
 
@@ -155,8 +160,6 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         if file_info.steps.crop.result is True:
             self.result.summary.cropped += 1
-
-        return ok
 
 
 __all__ = [
