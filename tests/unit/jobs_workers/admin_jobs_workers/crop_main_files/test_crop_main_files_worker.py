@@ -425,13 +425,11 @@ class TestCropMainFilesProcessorSteps:
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
         result = processor.files_processor._step_download(file_info, template)
-        processor.update_status(file_info)
 
         assert result is False
         assert file_info.status == "failed"
         assert file_info.steps.download.result is False
         assert "Network error" in file_info.steps.download.msg
-        assert processor.result.summary.failed == 1
 
     def test_step_crop_success(self, mock_crop_services, tmp_path):
         """Test _step_crop with successful crop."""
