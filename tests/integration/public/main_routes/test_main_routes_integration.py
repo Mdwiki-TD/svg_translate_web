@@ -37,3 +37,13 @@ def test_favicon(mock_client):
     with mock_client as client:
         resp = client.get("/favicon.ico")
         assert resp.status_code == 200
+
+
+def test_templates_page_renders_usage_instructions(mock_client):
+    """The templates page presents the complete translation workflow to users."""
+    response = mock_client.get("/templates/")
+
+    assert response.status_code == 200
+    assert b"How to use this page:" in response.data
+    assert b"Translate Main File" in response.data
+    assert b"Start Job" in response.data
