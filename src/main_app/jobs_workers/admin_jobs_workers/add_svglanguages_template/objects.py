@@ -12,6 +12,19 @@ from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
 
 
 @dataclass
+class OneStep:
+    result: bool | None = None
+    msg: str | None = None
+
+@dataclass
+class InfoSteps:
+    load_template_text: OneStep = field(default_factory=OneStep)
+    generate_template_text: OneStep = field(default_factory=OneStep)
+    add_template_text: OneStep = field(default_factory=OneStep)
+    save_new_text: OneStep = field(default_factory=OneStep)
+
+
+@dataclass
 class TemplateInfo:
     """Holds all state for a single template being processed."""
 

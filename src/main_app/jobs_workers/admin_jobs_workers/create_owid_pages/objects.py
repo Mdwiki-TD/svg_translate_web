@@ -16,6 +16,20 @@ STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "created", "
 
 
 @dataclass
+class OneStep:
+    result: bool | None = None
+    msg: str | None = None
+
+
+@dataclass
+class InfoSteps:
+    load_template_text: OneStep = field(default_factory=OneStep)
+    create_new_text: OneStep = field(default_factory=OneStep)
+    update_text: OneStep = field(default_factory=OneStep)
+    create_new_page: OneStep = field(default_factory=OneStep)
+
+
+@dataclass
 class TemplateProcessingInfo:
     """Holds all state for a single template being processed."""
 

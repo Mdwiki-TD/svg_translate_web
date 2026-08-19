@@ -10,6 +10,19 @@ from typing import Any
 
 from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
 
+@dataclass
+class OneStep:
+    result: bool | None = None
+    msg: str | None = None
+
+@dataclass
+class InfoSteps:
+    load_page_text: OneStep = field(default_factory=OneStep)
+    extract_file_name: OneStep = field(default_factory=OneStep)
+    get_languages: OneStep = field(default_factory=OneStep)
+    build_categories: OneStep = field(default_factory=OneStep)
+    check_existing: OneStep = field(default_factory=OneStep)
+    save_page: OneStep = field(default_factory=OneStep)
 
 @dataclass
 class PageInfo:
