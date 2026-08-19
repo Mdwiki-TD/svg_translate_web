@@ -19,6 +19,20 @@ from .mapping import (
 logger = logging.getLogger(__name__)
 
 
+def write_msg(stats: InjectorStats) -> str:
+
+    if stats.new_languages_count > 0:
+        msg = f"{stats.new_languages_count} languages injected"
+
+    elif stats.updated_translations > 0:
+        msg = f"{stats.updated_translations} translations Updated"
+
+    elif stats.inserted_translations > 0:
+        msg = f"{stats.inserted_translations} translations inserted"
+
+    return msg
+
+
 def start_svg_injection(
     *,
     inject_file: Path | str,
@@ -38,8 +52,9 @@ def start_svg_injection(
     file_name = inject_file.name if isinstance(inject_file, Path) else str(inject_file)
 
     injector = SVGTranslationInjector(config=config)
+
     try:
-        data: InjectorData | Any = injector.inject(
+        data: InjectorData = injector.inject(
             svg_path=inject_file,
             mapping=mapping,
         )
@@ -50,20 +65,9 @@ def start_svg_injection(
         logger.error(f"Error label: {exc.label}")
         return InjectorData.from_error(exc)
 
-    except Exception as e:
-        logger.error(f"Error injecting translations into {file_name}: {e}")
-        data = None
-
-    if not data:
-        return InjectorData()
-
-    if not isinstance(data, InjectorData):
-        data = InjectorData(
-            tree=getattr(data, "tree", None),
-            inject_stats=getattr(data, "inject_stats", InjectorStats()),
-        )
-    # stats = data.inject_stats.to_json()
-    # return data.tree, stats
+    except Exception as exc:
+        logger.error(f"Error injecting translations into {file_name}: {exc}")
+        return InjectorData.from_error(exc)
 
     return data
 
@@ -89,6 +93,8 @@ def _start_injects(
         mapping=translations,
         overwrite_translations=overwrite_translations,
     )
+
+    data_error = data.error
     stats_obj = data.inject_stats
     tree = data.tree
 
@@ -101,55 +107,30 @@ def _start_injects(
 
         return InjectResult(result=False, msg=msg)
 
-    languages_after = stats_obj.languages_after
-
-    new_languages_count = stats_obj.new_languages_count
-    inserted_translations = stats_obj.inserted_translations
-    updated_translations = stats_obj.updated_translations
-
     if stats_obj.error:
         logger.debug(f"Failed to translate {file.name}")
         return InjectResult(result=False, msg=stats_obj.error)
 
-    if not any((new_languages_count, updated_translations, inserted_translations)):
+    if not stats_obj.has_changes():
         return InjectResult(result=None, msg="No changes")
 
     msg = write_msg(stats_obj)
 
     try:
         tree.write(str(output_file), encoding="utf-8", xml_declaration=True, pretty_print=True)  # type: ignore
-        return InjectResult(
+        return InjectResult.from_stats(
+            stats=stats_obj,
             result=True,
             msg=msg,
-            languages_after=languages_after,
-            new_languages_count=new_languages_count,
-            inserted_translations=inserted_translations,
-            updated_translations=updated_translations,
         )
+
     except (OSError, Exception):
         logger.error("Failed to write translated SVG: %s", output_file)
-        return InjectResult(
+        return InjectResult.from_stats(
+            stats=stats_obj,
             result=False,
             msg="Failed to write file",
-            languages_after=languages_after,
-            new_languages_count=new_languages_count,
-            inserted_translations=inserted_translations,
-            updated_translations=updated_translations,
         )
-
-
-def write_msg(stats: InjectorStats) -> str:
-
-    if stats.new_languages_count > 0:
-        msg = f"{stats.new_languages_count} languages injected"
-
-    elif stats.updated_translations > 0:
-        msg = f"{stats.updated_translations} translations Updated"
-
-    elif stats.inserted_translations > 0:
-        msg = f"{stats.inserted_translations} translations inserted"
-
-    return msg
 
 
 def inject_step_one_file(

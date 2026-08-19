@@ -30,6 +30,26 @@ class InjectResult(SharedMapToJson):
     languages_before: list[str] = field(default_factory=list)
     languages_after: list[str] = field(default_factory=list)
 
+    # ------------------------------------------------------------------
+    # Factory helpers
+    # ------------------------------------------------------------------
+    @classmethod
+    def from_stats(
+        cls,
+        stats: InjectorStats,
+        result: bool | None = None,
+        msg: str | None = None,
+    ) -> InjectResult:
+        return cls(
+            result=result,
+            msg=msg,
+            new_languages_count=stats.new_languages_count,
+            updated_translations=stats.updated_translations,
+            inserted_translations=stats.inserted_translations,
+            languages_before=stats.languages_before,
+            languages_after=stats.languages_after,
+        )
+
 
 @dataclass
 class ExtractResult(SharedMapToJson):

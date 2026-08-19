@@ -111,7 +111,6 @@ class TestStartInjects:
                 "new_languages_count": 0,
                 "updated_translations": 0,
                 "error": "Some error occurred",
-
             },
         )
 

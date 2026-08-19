@@ -220,4 +220,3 @@ class TestExtractRender:
         assert response.data.decode() == "rendered:extract/result.html"
         assert ("Translations extracted successfully", "success") in mock_flash
         assert patch_render["context"]["translations"]["new"] == sample_translations["new"]
-        # assert ('Translations extracted successfully', 'success') in [('Failed to parse main SVG', 'danger')]

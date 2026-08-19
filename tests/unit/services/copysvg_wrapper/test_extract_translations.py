@@ -44,26 +44,8 @@ class TestExtractFromPath:
 
         assert result.success is False
         assert result.translations == {}
-        assert "No translations found in main file" in result.error
-
-    def test_extract_translations_extract_exception(self, monkeypatch, tmp_path):
-        fake_svg_path = tmp_path / "Example.svg"
-        fake_svg_path.write_text("<svg></svg>")
-
-        def fake_extract(path):
-            raise ValueError("SVG parse error")
-
-        monkeypatch.setattr(
-            "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",
-            fake_extract,
-        )
-
-        fake_svg_path = tmp_path / "Example.svg"
-        result = extract_from_path(fake_svg_path)
-
-        assert result.success is False
-        assert result.translations == {}
-        assert result.error == "Failed to parse main SVG"
+        assert "No translations found in main file" == result.message
+        assert "io-error" == result.error
 
     def test_extract_translations_success(self, monkeypatch, tmp_path):
         fake_svg_path = tmp_path / "Example.svg"
