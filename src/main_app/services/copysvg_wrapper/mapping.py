@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from CopySVGTranslation import TranslationMapping  # type: ignore
-from CopySVGTranslation.result import InjectorData, InjectorStats  # type: ignore
+from CopySVGTranslation.core.mapping import InjectorData, InjectorStats  # type: ignore
 
 logger = logging.getLogger(__name__)
 
