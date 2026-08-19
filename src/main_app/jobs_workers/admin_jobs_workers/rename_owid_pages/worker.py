@@ -122,9 +122,9 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
 
             self.result.summary.processed += 1
 
-            changed = self._rename_one(info)
+            changed = self._process_one_item(info)
 
-            self.update_rename_statistics(info)
+            self.update_status(info)
 
             if changed and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -138,7 +138,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
 
         return self.result
 
-    def update_rename_statistics(self, info: RenameInfo) -> None:
+    def update_status(self, info: RenameInfo) -> None:
         if info.status == "skipped_target_exists":
             self.result.summary.skipped_target_exists += 1
             self.result.pages_skipped.append(info.to_dict())
@@ -173,7 +173,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             )
         return []
 
-    def _rename_one(self, info: RenameInfo) -> bool:
+    def _process_one_item(self, info: RenameInfo) -> bool:
         old_title = info.old_title
         new_title = info.new_title
 

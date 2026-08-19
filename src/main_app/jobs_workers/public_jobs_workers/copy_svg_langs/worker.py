@@ -284,19 +284,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             if title_info.is_mapping_merged:
                 self.result.mapping_mereged += 1
 
-            if title_info.status.lower() in ["pending", "running"]:
-                title_info.status = "completed"
-
-            if title_info.status == "success":
-                self.result.files_success.append(title_info)
-
-            elif title_info.status == "skipped":
-                self.result.files_skipped.append(title_info)
-
-            elif title_info.status == "failed":
-                self.result.files_failed.append(title_info)
-            else:
-                self.result.files_processed.append(title_info)
+            self.update_status(title_info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -370,6 +358,21 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             self.files_processor._save_mapping(self.job_id)
 
         super().after_run()
+
+    def update_status(self, info: FilesProcessedItem):
+        if info.status.lower() in ["pending", "running"]:
+            info.status = "completed"
+
+        if info.status == "success":
+            self.result.files_success.append(info)
+
+        elif info.status == "skipped":
+            self.result.files_skipped.append(info)
+
+        elif info.status == "failed":
+            self.result.files_failed.append(info)
+        else:
+            self.result.files_processed.append(info)
 
 
 __all__ = [

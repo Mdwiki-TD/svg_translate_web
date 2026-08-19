@@ -78,7 +78,11 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
                 break
 
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(pages), page_title)
-            ok = self._process_one_item(page_title)
+            info = PageInfo(page_title=page_title)
+
+            self.result.summary.processed += 1
+            ok = self._process_one_item(info)
+            self.update_status(info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -122,49 +126,37 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
     # Per-page orchestration
     # ------------------------------------------------------------------
 
-    def _process_one_item(self, page_title: str) -> bool:
-        self.result.summary.processed += 1
+    def _process_one_item(self, info: PageInfo) -> bool:
 
-        info = PageInfo(page_title=page_title)
-        page = MwClientPage(page_title, self.site)
+        page = MwClientPage(info.page_title, self.site)
 
         # Step 1 — load_page_text
         if not self._step_load_page_text(info, page):
-            self.result.pages_failed.append(info.to_dict())
             return False
 
         # Step 2 — extract_file_name
         if not self._step_extract_file_name(info):
-            self.result.pages_failed.append(info.to_dict())
             return False
 
         # Step 3 — get_languages
         if not self._step_get_languages(info):
-            if info.status == "skipped":
-                self.result.pages_skipped.append(info.to_dict())
-            else:
-                self.result.pages_failed.append(info.to_dict())
             return False
 
         # Step 4 — build_categories
         if not self._step_build_categories(info):
-            self.result.pages_skipped.append(info.to_dict())
             return False
 
         # Step 5 — check_existing
         new_categories = self._step_check_existing(info)
         if not new_categories:
-            self.result.pages_skipped.append(info.to_dict())
             return False
 
         # Step 6 — save_page
         if not self._step_save_page(info, page, new_categories):
-            self.result.pages_failed.append(info.to_dict())
             return False
 
-        info.status = "completed"
+        info.status = "success"
         info.categories_added = new_categories
-        self.result.pages_success.append(info.to_dict())
         return True
 
     # ------------------------------------------------------------------
@@ -307,6 +299,25 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         info.status = "failed"
         info.error = error
         self.result.summary.failed += 1
+
+    def update_status(self, info: PageInfo):
+        if info.status.lower() in ["pending", "running"]:
+            info.status = "completed"
+
+        if info.status == "updated":
+            self.result.pages_updated.append(info)
+
+        elif info.status == "skipped":
+            self.result.pages_skipped.append(info)
+
+        elif info.status == "success":
+            self.result.pages_success.append(info)
+
+        elif info.status == "failed":
+            self.result.pages_failed.append(info)
+
+        else:
+            self.result.pages_processed.append(info)
 
 
 __all__ = [

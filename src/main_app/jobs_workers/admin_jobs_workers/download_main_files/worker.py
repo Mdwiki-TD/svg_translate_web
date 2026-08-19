@@ -163,18 +163,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
             ok = self._process_one_item(file_info)
 
-            if file_info.status.lower() in ["pending", "running"]:
-                file_info.status = "completed"
-
-            if file_info.status == "downloaded":
-                self.result.files_downloaded.append(file_info)
-                self.result.summary.success += 1
-
-            elif file_info.status == "failed":
-                self.result.files_failed.append(file_info)
-                self.result.summary.failed += 1
-            else:
-                self.result.files_processed.append(file_info)
+            self.update_status(file_info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -200,6 +189,20 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         )
 
         return self.result
+
+    def update_status(self, info: FileInfo):
+        if info.status.lower() in ["pending", "running"]:
+            info.status = "completed"
+
+        if info.status == "downloaded":
+            self.result.files_downloaded.append(info)
+            self.result.summary.success += 1
+
+        elif info.status == "failed":
+            self.result.files_failed.append(info)
+            self.result.summary.failed += 1
+        else:
+            self.result.files_processed.append(info)
 
 
 __all__ = [

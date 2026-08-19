@@ -78,7 +78,16 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
                 break
 
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
-            ok = self._process_one_item(template)
+            # file info
+            file_info = TemplateProcessingInfo(
+                template_id=template.id,
+                template_title=template.title,
+                slug=template.slug,
+            )
+
+            self.result.summary.processed += 1
+            ok = self._process_one_item(file_info)
+            self.update_status(file_info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -135,14 +144,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
         return new_text
 
-    def _process_one_item(self, template: TemplateRecord) -> bool:
-        self.result.summary.processed += 1
-
-        # file info
-        file_info = TemplateProcessingInfo(
-            template_id=template.id,
-            template_title=template.title,
-        )
+    def _process_one_item(self, file_info: TemplateProcessingInfo) -> bool:
 
         # ----------------------------------
         # Step 1 - load_template_text
@@ -156,8 +158,8 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             self.result.pages_failed.append(file_info.to_dict())
             return False
 
-        if file_info._new_text and template.slug:
-            categories = get_slug_categories(template.slug)
+        if file_info._new_text and file_info.slug:
+            categories = get_slug_categories(file_info.slug)
             file_info._new_text = self.add_slug_categories(file_info._new_text, categories)
 
         # ----------------------------------
@@ -311,6 +313,10 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         file_info.status = "failed"
         file_info.error = error
         self.result.summary.failed += 1
+
+    def update_status(self, info: TemplateProcessingInfo) -> None:
+        if info.status.lower() in ["pending", "running"]:
+            info.status = "completed"
 
 
 __all__ = [

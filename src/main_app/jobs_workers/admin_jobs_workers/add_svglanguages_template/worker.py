@@ -66,14 +66,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
     # Per-template orchestration
     # ------------------------------------------------------------------
-    def _process_one_item(self, template: TemplateRecord) -> bool:
-        self.result.summary.processed += 1
-
-        # file info
-        file_info = TemplateInfo(
-            template_id=template.id,
-            template_title=template.title,
-        )
+    def _process_one_item(self, file_info: TemplateInfo) -> bool:
 
         page = MwClientPage(file_info.template_title, self.site)
         # Step 1 - load_template_text
@@ -203,7 +196,15 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
                 break
 
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
-            ok = self._process_one_item(template)
+            self.result.summary.processed += 1
+            # file info
+            file_info = TemplateInfo(
+                template_id=template.id,
+                template_title=template.title,
+            )
+
+            ok = self._process_one_item(file_info)
+            self.update_status(file_info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -220,6 +221,10 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         self.result.summary.success = len(self.result.pages_success)
 
         return self.result
+
+    def update_status(self, info: TemplateInfo) -> None:
+        if info.status.lower() in ["pending", "running"]:
+            info.status = "completed"
 
 
 __all__ = [

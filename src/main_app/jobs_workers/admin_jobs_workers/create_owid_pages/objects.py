@@ -21,6 +21,7 @@ class TemplateProcessingInfo:
     template_id: int
     template_title: str
     new_page_title: str | None = None
+    slug: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: STATUS_LIST = "pending"
     error: str | None = None
@@ -42,6 +43,7 @@ class TemplateProcessingInfo:
             "template_id": self.template_id,
             "template_title": self.template_title,
             "new_page_title": self.new_page_title,
+            "slug": self.slug,
             "timestamp": self.timestamp,
             "status": self.status,
             "error": self.error,

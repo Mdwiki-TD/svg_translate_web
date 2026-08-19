@@ -12,7 +12,6 @@ from pathlib import Path
 from mwclient.client import Site
 
 from ....api_services import FilesService, UploadService
-from ....database.models import TemplateRecord
 from ....database.services import TemplateService
 from ....services.fix_nested.worker import (
     DetectionResult,
@@ -47,18 +46,10 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "fix_nested_main_files"
 
-    def _process_one_item(self, template: TemplateRecord) -> bool:
-        self.result.summary.processed += 1
-
-        template_info = TitleInfo(
-            id=template.id,
-            title=template.title,
-            main_file=template.main_file,
-            timestamp=datetime.now().isoformat(),
-        )
+    def _process_one_item(self, template_info: TitleInfo) -> bool:
 
         # Skip if template doesn't have a main_file
-        if not template.main_file:
+        if not template_info.main_file:
             template_info._update("skipped", "No main_file set")
             self.result.pages_skipped.append(template_info)
             return False
@@ -67,7 +58,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
             temp_dir = Path(tmp_dir)
             # Process without job_id and db_store since we're tracking in the job
             fix_result = self.repair_nested_svg_tags(
-                filename=template.main_file,
+                filename=template_info.main_file,
                 temp_dir=temp_dir,
             )
 
@@ -77,7 +68,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
             template_info._update("success", "")
 
             self.result.pages_success.append(template_info)
-            logger.info("Job %s: Successfully processed %s", self.job_id, template.main_file)
+            logger.info("Job %s: Successfully processed %s", self.job_id, template_info.main_file)
             return True
 
         elif fix_result.get("no_nested_tags", False):
@@ -85,14 +76,14 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
             self.result.pages_skipped.append(template_info)
 
-            logger.info("Job %s: No nested tags found in %s", self.job_id, template.main_file)
+            logger.info("Job %s: No nested tags found in %s", self.job_id, template_info.main_file)
             return False
 
         message = fix_result.get("message", "Unknown error")
         template_info._update("failed", message)
 
         self.result.pages_failed.append(template_info)
-        logger.warning("Job %s: Failed to process %s: %s", self.job_id, template.main_file, message)
+        logger.warning("Job %s: Failed to process %s: %s", self.job_id, template_info.main_file, message)
 
         return False
 
@@ -123,7 +114,17 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
                 break
 
-            ok = self._process_one_item(template)
+            self.result.summary.processed += 1
+
+            template_info = TitleInfo(
+                id=template.id,
+                title=template.title,
+                main_file=template.main_file,
+                timestamp=datetime.now().isoformat(),
+            )
+
+            ok = self._process_one_item(template_info)
+            self.update_status(template_info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -225,6 +226,10 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 "upload_result": upload.result,
             },
         }
+
+    def update_status(self, info: TitleInfo) -> None:
+        if info.status.lower() in ["pending", "running"]:
+            info.status = "completed"
 
 
 __all__ = [

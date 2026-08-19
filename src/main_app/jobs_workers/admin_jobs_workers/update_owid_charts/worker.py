@@ -133,8 +133,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             info.error = str(exc)
         return False
 
-    def _process_chart(self, chart: OwidChartRecord, info: ChartNewInfo) -> bool:
-        self.result.summary.processed += 1
+    def _process_one_item(self, chart: OwidChartRecord, info: ChartNewInfo) -> bool:
 
         # 1 A). Fetch metadata
         grapher_data = fetch_grapher_metadata_raw(chart.slug)
@@ -259,8 +258,9 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
         info = ChartNewInfo.from_chart(chart)
 
-        _changed = self._process_chart(chart, info)
-        self.append_results(chart.slug, info)
+        self.result.summary.processed += 1
+        _changed = self._process_one_item(chart, info)
+        self.update_status(chart.slug, info)
 
         self._save_progress()
 
@@ -285,8 +285,8 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, total, chart.slug)
             info = ChartNewInfo.from_chart(chart)
 
-            changed = self._process_chart(chart, info)
-            self.append_results(chart.slug, info)
+            changed = self._process_one_item(chart, info)
+            self.update_status(chart.slug, info)
 
             if changed and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -300,7 +300,23 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
         return self.result
 
-    def append_results(self, slug: str, info: ChartNewInfo) -> None:
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
+    def process(self) -> UpdateOwidChartsWorkerObject:
+        """Execute the collection processing logic."""
+        if not self._check_site():
+            return self.result
+
+        # Single chart mode: if a chart_id arg is provided, process only that one
+        if self.args.get("chart_id"):
+            return self.process_one(self.args["chart_id"])
+
+        # Default mode: process all charts
+        return self.process_all()
+
+    def update_status(self, slug: str, info: ChartNewInfo) -> None:
         if info.status == "failed":
             if info.error:
                 self.result.failed_charts.append(
@@ -322,22 +338,6 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
             )
         elif info.status == "updated":
             self.result.updated_charts.append(info.to_dict())
-
-    # ------------------------------------------------------------------
-    # Public entry-point
-    # ------------------------------------------------------------------
-
-    def process(self) -> UpdateOwidChartsWorkerObject:
-        """Execute the collection processing logic."""
-        if not self._check_site():
-            return self.result
-
-        # Single chart mode: if a chart_id arg is provided, process only that one
-        if self.args.get("chart_id"):
-            return self.process_one(self.args["chart_id"])
-
-        # Default mode: process all charts
-        return self.process_all()
 
 
 __all__ = [

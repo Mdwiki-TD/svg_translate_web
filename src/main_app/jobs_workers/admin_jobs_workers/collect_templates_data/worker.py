@@ -371,7 +371,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
 
     def _process_one_item(self, template: TemplateData) -> bool:
-        self.result.summary.processed += 1
 
         template_info = TemplateInfos.from_template(template)
 
@@ -380,21 +379,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         self.update_status(template_info)
 
         return ok
-
-    def update_status(self, template_info: TemplateInfos):
-        if template_info.status.lower() in ["pending", "running"]:
-            template_info.status = "completed"
-
-        if template_info.status == "updated":
-            self.result.pages_updated.append(template_info)
-
-        elif template_info.status == "skipped":
-            self.result.pages_skipped.append(template_info)
-
-        elif template_info.status == "failed":
-            self.result.pages_failed.append(template_info)
-        else:
-            self.result.pages_processed.append(template_info)
 
     def finish(self) -> None:
         # Update summary skipped count
@@ -429,6 +413,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         logger.debug(f"Job {self.job_id}: Processing single template {template.title}")
 
+        self.result.summary.processed += 1
         _updated = self._process_one_item(template)
         if _updated:
             logger.debug(f"Job {self.job_id}: Template {template.title} updated")
@@ -517,6 +502,21 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         # Default mode: process all templates
         return self.process_all()
+
+    def update_status(self, info: TemplateInfos):
+        if info.status.lower() in ["pending", "running"]:
+            info.status = "completed"
+
+        if info.status == "updated":
+            self.result.pages_updated.append(info)
+
+        elif info.status == "skipped":
+            self.result.pages_skipped.append(info)
+
+        elif info.status == "failed":
+            self.result.pages_failed.append(info)
+        else:
+            self.result.pages_processed.append(info)
 
 
 __all__ = [

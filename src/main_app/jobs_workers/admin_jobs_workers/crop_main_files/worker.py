@@ -79,6 +79,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
                 break
 
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
+
+            self.result.summary.processed += 1
             ok = self._process_one_item(template)
 
             if ok and self.check_cancel_db_periodic():
@@ -125,7 +127,6 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     # Per-template orchestration
     # ------------------------------------------------------------------
     def _process_one_item(self, template: TemplateRecord) -> bool:
-        self.result.summary.processed += 1
 
         # file info
         file_info = CropFileProcessingInfo.from_template(template)
@@ -136,29 +137,29 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
         return ok
 
-    def update_status(self, file_info: CropFileProcessingInfo) -> None:
-        if file_info.status.lower() in ["pending", "running"]:
-            file_info.status = "completed"
+    def update_status(self, info: CropFileProcessingInfo) -> None:
+        if info.status.lower() in ["pending", "running"]:
+            info.status = "completed"
 
-        if file_info.status == "updated":
+        if info.status == "updated":
             self.result.summary.updated += 1
-            self.result.pages_updated.append(file_info)
+            self.result.pages_updated.append(info)
 
-        elif file_info.status == "uploaded":
+        elif info.status == "uploaded":
             self.result.summary.uploaded += 1
-            self.result.pages_uploaded.append(file_info)
+            self.result.pages_uploaded.append(info)
 
-        elif file_info.status == "skipped":
+        elif info.status == "skipped":
             self.result.summary.skipped += 1
-            self.result.pages_skipped.append(file_info)
+            self.result.pages_skipped.append(info)
 
-        elif file_info.status == "failed":
+        elif info.status == "failed":
             self.result.summary.failed += 1
-            self.result.pages_failed.append(file_info)
+            self.result.pages_failed.append(info)
         else:
-            self.result.pages_processed.append(file_info)
+            self.result.pages_processed.append(info)
 
-        if file_info.steps.crop.result is True:
+        if info.steps.crop.result is True:
             self.result.summary.cropped += 1
 
 

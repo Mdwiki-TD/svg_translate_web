@@ -232,7 +232,7 @@ class TestStepExtractFileName:
 
 
 class TestStepGetLanguages:
-    def test_success(self, mock_lang_worker, mock_lang_categories_services):
+    def test_success(self, mock_lang_worker: AddLangCategoriesWorker, mock_lang_categories_services):
         mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
             error=None,
             langs=["en", "ja"],
@@ -246,7 +246,7 @@ class TestStepGetLanguages:
         assert result is True
         assert info.lang_codes == ["en", "ja"]
 
-    def test_failure_on_api_error(self, mock_lang_worker, mock_lang_categories_services):
+    def test_failure_on_api_error(self, mock_lang_worker: AddLangCategoriesWorker, mock_lang_categories_services):
         mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
             error="API error: timeout",
             langs=None,
@@ -261,7 +261,7 @@ class TestStepGetLanguages:
         assert info.status == "failed"
         assert "API error" in info.error
 
-    def test_failure_on_empty_langs(self, mock_lang_worker, mock_lang_categories_services):
+    def test_failure_on_empty_langs(self, mock_lang_worker: AddLangCategoriesWorker, mock_lang_categories_services):
         mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
             error=None,
             langs=None,
@@ -274,7 +274,7 @@ class TestStepGetLanguages:
 
         assert result is False
 
-    def test_failure_on_english_only(self, mock_lang_worker, mock_lang_categories_services):
+    def test_failure_on_english_only(self, mock_lang_worker: AddLangCategoriesWorker, mock_lang_categories_services):
         mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
             error=None,
             langs=["en"],
@@ -289,7 +289,9 @@ class TestStepGetLanguages:
         assert info.status == "skipped"
         assert info.steps["get_languages"]["msg"] == "Skipped — No non-English languages found"
 
-    def test_success_on_english_plus_other(self, mock_lang_worker, mock_lang_categories_services):
+    def test_success_on_english_plus_other(
+        self, mock_lang_worker: AddLangCategoriesWorker, mock_lang_categories_services
+    ):
         """English alongside other languages should still succeed."""
         mock_lang_categories_services["get_file_languages"].return_value = FileLanguagesMap(
             error=None,
@@ -438,7 +440,7 @@ class TestStepSavePage:
 
 
 class TestProcessOneItem:
-    def test_success_flow(self, mock_lang_worker, mock_lang_categories_services):
+    def test_success_flow(self, mock_lang_worker: AddLangCategoriesWorker, mock_lang_categories_services):
 
         def mock_load(info, page):
             info._text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
@@ -462,7 +464,7 @@ class TestProcessOneItem:
         mock_lang_worker._step_build_categories = MagicMock(side_effect=mock_build)
         mock_lang_worker._step_save_page = MagicMock(return_value=True)
 
-        result = mock_lang_worker._process_one_item("OWID/test")
+        result = mock_lang_worker._process_one_item(PageInfo(page_title="OWID/test"))
 
         assert result is True
         assert mock_lang_worker.result.summary.processed == 1
@@ -472,7 +474,7 @@ class TestProcessOneItem:
         mock_lang_worker._step_extract_file_name = MagicMock()
         mock_lang_worker._step_get_languages = MagicMock()
 
-        result = mock_lang_worker._process_one_item("OWID/test")
+        result = mock_lang_worker._process_one_item(PageInfo(page_title="OWID/test"))
 
         assert result is False
         mock_lang_worker._step_extract_file_name.assert_not_called()
@@ -487,7 +489,7 @@ class TestProcessOneItem:
         mock_lang_worker._step_extract_file_name = MagicMock(return_value=False)
         mock_lang_worker._step_get_languages = MagicMock()
 
-        result = mock_lang_worker._process_one_item("OWID/test")
+        result = mock_lang_worker._process_one_item(PageInfo(page_title="OWID/test"))
 
         assert result is False
         mock_lang_worker._step_get_languages.assert_not_called()
@@ -516,7 +518,7 @@ class TestProcessOneItem:
         mock_lang_worker._step_check_existing = MagicMock(return_value=[])
         mock_lang_worker._step_save_page = MagicMock()
 
-        result = mock_lang_worker._process_one_item("OWID/test")
+        result = mock_lang_worker._process_one_item(PageInfo(page_title="OWID/test"))
 
         assert result is False
         mock_lang_worker._step_save_page.assert_not_called()
