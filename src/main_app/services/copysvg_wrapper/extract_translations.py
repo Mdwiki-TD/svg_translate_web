@@ -6,19 +6,18 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
 
 from CopySVGTranslation import SVGTranslationExtractor, TranslationConfig  # type: ignore
 from CopySVGTranslation.exceptions import CopySVGTranslationError
 
-from .mapping import ExtractorData, ExtractResult, TranslationMapping
+from .mapping import ExtractResult, TranslationMapping
 
 logger = logging.getLogger(__name__)
 
 
 def _extract_file_translations(
     source_file: str | Path,
-) -> ExtractorData:
+) -> TranslationMapping:
     """
     Legacy function-style wrapper around SVGTranslationExtractor, kept for
     backward compatibility with existing callers.
@@ -39,30 +38,19 @@ def _extract_file_translations(
     file_name = source_file.name if isinstance(source_file, Path) else str(source_file)
 
     try:
-        result_json: TranslationMapping = extractor.extract(source_file)
+        result: TranslationMapping = extractor.extract(source_file)
     except CopySVGTranslationError as exc:
         logger.error(f"CopySVGTranslationError on file:{file_name}.")
         logger.error(f"Error code: {exc.code}")
         logger.error(f"Error label: {exc.label}")
 
-        return ExtractorData(error=exc.code, message=exc.label)
+        return TranslationMapping(error=exc.code)  # , message=exc.label)
     except Exception as e:
         logger.error(f"Failed to extract translations from {file_name}: {e}")
-        return ExtractorData(error=str(e))
+        return TranslationMapping(error=str(e))
 
-    if not result_json:
-        return ExtractorData()
-
-    error = result_json.get("error", "")
-    meta = result_json.get("meta", {})
-
-    if not error and meta:
-        error = meta.get("error", "")
-
-    result = ExtractorData.from_any(result_json)
-
-    if error and not result.error:
-        result.error = error
+    if not result:
+        return TranslationMapping()
 
     return result
 
@@ -88,7 +76,7 @@ def extract_from_path(main_title_path: Path, fast_return_false: bool = True) -> 
             message="",
             error="Failed to parse main SVG",
             translations={},
-            mapping=ExtractorData(),
+            mapping=TranslationMapping(),
         )
 
     new_translations = mapping.new
