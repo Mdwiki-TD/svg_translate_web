@@ -26,16 +26,6 @@ def mock_inject(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.services.copysvg_wrapper.inject_one_file.start_svg_injection",
         mock,
     )
-
-    def mock_return(tree, stats):
-        data = InjectorData(
-            tree=tree,
-        )
-        data.inject_stats._update(**stats)
-        mock.return_value = data
-
-    mock.mock_return = mock_return
-
     return mock
 
 
@@ -55,10 +45,10 @@ def output_file(tmp_path: Path) -> Path:
 
 class TestStartInjects:
     def test_new_languages(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(
-            mock_tree,
-            {"new_languages_count": 3, "updated_translations": 0, "error": None},
-        )
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(new_languages_count=3, updated_translations=0, error=None)
+
+        mock_inject.return_value = data
 
         result = _start_injects(svg_file, {"new": {"en": "Hello"}}, output_file, overwrite_translations=False)
 
@@ -71,10 +61,11 @@ class TestStartInjects:
         )
 
     def test_updated_translations_only(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(
-            mock_tree,
-            {"new_languages_count": 0, "updated_translations": 5, "error": None},
-        )
+
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(new_languages_count=0, updated_translations=5, error=None)
+
+        mock_inject.return_value = data
 
         result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
@@ -84,10 +75,10 @@ class TestStartInjects:
         assert result.updated_translations == 5
 
     def test_no_changes(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(
-            mock_tree,
-            {"new_languages_count": 0, "updated_translations": 0, "error": None},
-        )
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(new_languages_count=0, updated_translations=0, error=None)
+
+        mock_inject.return_value = data
 
         result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
@@ -97,7 +88,7 @@ class TestStartInjects:
         assert result.updated_translations is None
 
     def test_failed_to_translate(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(None, {})
+        mock_inject.return_value = InjectorData(tree=None)
 
         result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
@@ -105,14 +96,10 @@ class TestStartInjects:
         assert result.msg == "Failed to translate"
 
     def test_stats_error(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(
-            mock_tree,
-            {
-                "new_languages_count": 0,
-                "updated_translations": 0,
-                "error": "Some error occurred",
-            },
-        )
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(new_languages_count=0, updated_translations=0, error="Some error occurred")
+
+        mock_inject.return_value = data
 
         result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
@@ -121,10 +108,14 @@ class TestStartInjects:
 
     def test_tree_write_oserror(self, mock_inject, mock_tree, svg_file, output_file):
         mock_tree.write.side_effect = OSError("Permission denied")
-        mock_inject.mock_return(
-            mock_tree,
-            {"new_languages_count": 2, "updated_translations": 1, "error": None},
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(
+            new_languages_count=2,
+            updated_translations=1,
+            error=None,
         )
+
+        mock_inject.return_value = data
 
         result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
@@ -135,10 +126,14 @@ class TestStartInjects:
 
     def test_tree_write_generic_exception(self, mock_inject, mock_tree, svg_file, output_file):
         mock_tree.write.side_effect = RuntimeError("disk full")
-        mock_inject.mock_return(
-            mock_tree,
-            {"new_languages_count": 2, "updated_translations": 1, "error": None},
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(
+            new_languages_count=2,
+            updated_translations=1,
+            error=None,
         )
+
+        mock_inject.return_value = data
 
         result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
@@ -146,10 +141,14 @@ class TestStartInjects:
         assert result.msg == "Failed to write file"
 
     def test_new_and_updated_both_present(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(
-            mock_tree,
-            {"new_languages_count": 2, "updated_translations": 3, "error": None},
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(
+            new_languages_count=2,
+            updated_translations=3,
+            error=None,
         )
+
+        mock_inject.return_value = data
 
         result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
@@ -161,10 +160,14 @@ class TestStartInjects:
 
 class TestInjectStepOneFile:
     def test_success(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(
-            mock_tree,
-            {"new_languages_count": 1, "updated_translations": 0, "error": None},
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(
+            new_languages_count=1,
+            updated_translations=0,
+            error=None,
         )
+
+        mock_inject.return_value = data
 
         result = inject_step_one_file(svg_file, {"new": {"en": "Hi"}}, output_file, overwrite_translations=False)
 
@@ -173,10 +176,14 @@ class TestInjectStepOneFile:
         assert result.new_languages_count == 1
 
     def test_passthrough_no_changes(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(
-            mock_tree,
-            {"new_languages_count": 0, "updated_translations": 0, "error": None},
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(
+            new_languages_count=0,
+            updated_translations=0,
+            error=None,
         )
+
+        mock_inject.return_value = data
 
         result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
@@ -195,7 +202,10 @@ class TestInjectStepOneFile:
 
 class TestInjectStepOneFileNestedError:
     def test_passthrough_failure(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(None, {"error": "nested_tspan_error"})
+        data = InjectorData(tree=None)
+        data.inject_stats._update(error="nested_tspan_error")
+
+        mock_inject.return_value = data
 
         result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
@@ -203,7 +213,11 @@ class TestInjectStepOneFileNestedError:
         assert result.msg == "Nested tspan error"
 
     def test_nested_tspan_error(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(None, {"error": "nested_tspan_error"})
+
+        data = InjectorData(tree=None)
+        data.inject_stats._update(error="nested_tspan_error")
+
+        mock_inject.return_value = data
 
         result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
@@ -211,7 +225,11 @@ class TestInjectStepOneFileNestedError:
         assert result.msg == "Nested tspan error"
 
     def test_nested_tspan_error_new(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.mock_return(None, {"error": "nested_tspan_error"})
+
+        data = InjectorData(tree=None)
+        data.inject_stats._update(error="nested_tspan_error")
+
+        mock_inject.return_value = data
 
         result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
 
