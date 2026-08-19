@@ -34,6 +34,94 @@ from .steps import (
 
 logger = logging.getLogger(__name__)
 
+class OneFileProcessor:
+
+    def __init__(self, job_id: int, site: Site) -> None:
+        self.job_id = job_id
+        self.site = site
+
+    # ------------------------------------------------------------------
+    # Per-template orchestration
+    # ------------------------------------------------------------------
+
+    def process_one_item(self, file_info: CropFileProcessingInfo, template: TemplateRecord) -> bool:
+
+        cropped_filename = file_info.cropped_filename
+
+        # pre steps if the file already in commons, skip download/upload files.
+        if self._check_file_exists(cropped_filename):
+            self._skip_process(file_info)
+
+            # Update existing page texts, including the cropped file description.
+            updated = self.update_file_references(file_info, template)
+
+            if updated:
+                file_info.status = "updated"
+                return True
+
+            # if all file_info.steps "result" is None do:
+            all_steps = (
+                file_info.steps.download,
+                file_info.steps.crop,
+                file_info.steps.upload_cropped,
+                file_info.steps.update_original,
+                file_info.steps.update_template,
+                file_info.steps.update_page,
+                file_info.steps.update_cropped,
+            )
+            if all(step.result is None for step in all_steps):
+                file_info.status = "skipped"
+                self.result.summary.skipped += 1
+
+            self.result.pages_skipped.append(file_info.to_dict())
+            return False
+
+        # ----------------------------------
+        # Step 1 - Download
+        if not self._step_download(file_info, template):
+            self.result.pages_failed.append(file_info.to_dict())
+            return False
+
+        # ----------------------------------
+        # Step 2 - Crop
+        cropped_output_path = self.cropped_dir / Path(cropped_filename.removeprefix("File:")).name
+        if not self._step_crop(file_info, template, cropped_output_path):
+            self.result.pages_failed.append(file_info.to_dict())
+            return False
+
+        # Upload disabled → mark skipped and move on
+        if self.args.get("upload_files") is False:
+            self._skip_upload_steps(file_info)
+            self.result.pages_skipped.append(file_info.to_dict())
+            return False
+
+        # ----------------------------------
+        # Step 3 - Upload cropped file
+        up_step = self._step_upload(file_info, template)
+        if up_step is False:
+            self.result.pages_failed.append(file_info.to_dict())
+            return False
+
+        elif up_step is None:
+            logger.debug("file %s exists", file_info.cropped_filename)
+
+        uploaded = up_step is True
+
+        # Update page texts, including the cropped file description.
+        updated = self.update_file_references(file_info, template)
+
+        if uploaded:
+            self.result.pages_uploaded.append(file_info.to_dict())
+            return True
+
+        elif updated:
+            self.result.pages_updated.append(file_info.to_dict())
+            return True
+
+        file_info.status = "completed"
+        self.result.pages_processed.append(file_info.to_dict())
+        return False
+
 
 class CropMainFilesWorker(BaseObjectsJobWorker):
     """
@@ -145,85 +233,24 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         # file info
         file_info = CropFileProcessingInfo.from_template(template)
 
+        ok = self.files_processor.process_one_item(file_info, template)
 
-        cropped_filename = file_info.cropped_filename
+        if file_info.status.lower() in ["pending", "running"]:
+            file_info.status = "completed"
 
-        # pre steps if the file already in commons, skip download/upload files.
-        if self._check_file_exists(cropped_filename):
-            self._skip_process(file_info)
-
-            # Update existing page texts, including the cropped file description.
-            updated = self.update_file_references(file_info, template)
-
-            if updated:
-                file_info.status = "updated"
-                self.result.summary.updated += 1
-                self.result.pages_updated.append(file_info.to_dict())
-                return True
-
-            # if all file_info.steps "result" is None do:
-            all_steps = (
-                file_info.steps.download,
-                file_info.steps.crop,
-                file_info.steps.upload_cropped,
-                file_info.steps.update_original,
-                file_info.steps.update_template,
-                file_info.steps.update_page,
-                file_info.steps.update_cropped,
-            )
-            if all(step.result is None for step in all_steps):
-                file_info.status = "skipped"
-                self.result.summary.skipped += 1
-
-            self.result.pages_skipped.append(file_info.to_dict())
-            return False
-
-        # ----------------------------------
-        # Step 1 - Download
-        if not self._step_download(file_info, template):
-            self.result.pages_failed.append(file_info.to_dict())
-            return False
-
-        # ----------------------------------
-        # Step 2 - Crop
-        cropped_output_path = self.cropped_dir / Path(cropped_filename.removeprefix("File:")).name
-        if not self._step_crop(file_info, template, cropped_output_path):
-            self.result.pages_failed.append(file_info.to_dict())
-            return False
-
-        # Upload disabled → mark skipped and move on
-        if self.args.get("upload_files") is False:
-            self._skip_upload_steps(file_info)
-            self.result.pages_skipped.append(file_info.to_dict())
-            return False
-
-        # ----------------------------------
-        # Step 3 - Upload cropped file
-        up_step = self._step_upload(file_info, template)
-        if up_step is False:
-            self.result.pages_failed.append(file_info.to_dict())
-            return False
-
-        elif up_step is None:
-            logger.debug("file %s exists", file_info.cropped_filename)
-
-        uploaded = up_step is True
-
-        # Update page texts, including the cropped file description.
-        updated = self.update_file_references(file_info, template)
-
-        if uploaded:
-            self.result.pages_uploaded.append(file_info.to_dict())
-            return True
-
-        elif updated:
+        if file_info.status == "updated":
+            self.result.summary.updated += 1
             self.result.pages_updated.append(file_info.to_dict())
-            return True
 
-        file_info.status = "completed"
-        self.result.pages_processed.append(file_info.to_dict())
-        return False
+        elif file_info.status == "skipped":
+            self.result.pages_skipped.append(file_info)
 
+        elif file_info.status == "failed":
+            self.result.pages_failed.append(file_info)
+        else:
+            self.result.pages_processed.append(file_info)
+
+        return ok
     def _check_file_exists(self, cropped_filename):
         file_exists = self.exists.get(cropped_filename.removeprefix("File:"))
         if file_exists is None:
