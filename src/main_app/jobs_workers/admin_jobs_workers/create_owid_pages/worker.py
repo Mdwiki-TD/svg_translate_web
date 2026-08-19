@@ -169,13 +169,12 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         create_step = self._step_create_new_page(file_info)
         if create_step is False:
             return False
+
         elif create_step is True:
-            self.result.pages_created.append(file_info.to_dict())
             return True
 
         # dead code?
         file_info.status = "completed"
-        self.result.pages_processed.append(file_info.to_dict())
         return True
 
     # ------------------------------------------------------------------
@@ -230,7 +229,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             info.steps.update_text.msg = "Skipped - page content is already identical"
             info.status = "skipped"
             info.new_page_title = new_title
-            self.result.summary.skipped += 1
             return None  # nothing to update
 
         # Content is different, perform update
@@ -270,7 +268,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             self._fail(info, info.steps.create_new_page, err)
             return False
 
-        self.result.summary.created += 1
         info.steps.create_new_page = OneStep(
             result=True,
             msg=f"Created: {new_title}",
@@ -303,22 +300,20 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         """
         self.result.summary.processed += 1
 
-        if info.status.lower() in ["pending", "running"]:
+        if info.status in ["pending", "running"]:
             info.status = "completed"
 
         if info.status == "skipped":
             self.result.pages_skipped.append(info)
 
-        elif info.status == "success":
-            self.result.pages_success.append(info)
-
         elif info.status == "failed":
             self.result.pages_failed.append(info)
-            self.result.summary.failed += 1
 
         elif info.status == "updated":
-            self.result.summary.updated += 1
             self.result.pages_updated.append(info)
+
+        elif info.status == "created":
+            self.result.pages_created.append(info)
 
         else:
             self.result.pages_processed.append(info)

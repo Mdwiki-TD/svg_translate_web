@@ -214,7 +214,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
     def update_status(self, info: TitleInfo) -> None:
         self.result.summary.processed += 1
 
-        if info.status.lower() in ["pending", "running"]:
+        if info.status in ["pending", "running"]:
             info.status = "completed"
 
         elif info.status == "skipped":

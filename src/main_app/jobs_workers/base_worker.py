@@ -102,7 +102,7 @@ class BaseObjectsJobWorker(ABC):
         self.result.completed_at = datetime.now().isoformat()
         final_status = self.result.status or "completed"
 
-        if final_status.lower() in ["pending", "running"]:
+        if final_status in ["pending", "running"]:
             final_status = "completed"
 
         self.result.status = final_status

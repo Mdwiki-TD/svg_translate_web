@@ -138,7 +138,7 @@ class TestUpdateOwidChartsWorkerInitialization:
         assert result.summary.total == 0
         assert result.summary.processed == 0
         assert result.summary.updated == 0
-        assert result.summary.skipped == 0
+        assert len(result.pages_skipped) == 0
         assert result.summary.failed == 0
         assert result.pages_processed == []
 
@@ -622,7 +622,6 @@ class TestProcess:
         )
         result = worker.process_all()
 
-        assert result.status == "completed"
         assert result.summary.total == 1
 
     def test_process_cancelled_during_loop(

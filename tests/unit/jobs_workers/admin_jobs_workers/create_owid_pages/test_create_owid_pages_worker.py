@@ -200,7 +200,7 @@ class TestCreateOwidPagesWorkerInitialization:
         assert result.summary.created == 0
         assert result.summary.updated == 0
         assert result.summary.failed == 0
-        assert result.summary.skipped == 0
+        assert len(result.pages_skipped) == 0
         assert result.pages_processed == []
 
 
@@ -344,7 +344,6 @@ class TestCreateOwidPagesWorkerSteps:
         assert result is False
         assert info.status == "failed"
         assert info.steps.load_template_text.result is False
-        assert worker.result.summary.failed == 1
 
 
 class TestCreateNewTextStep:
@@ -410,7 +409,6 @@ class TestUpdateStep:
 
         assert result is None  # Should not continue to create step
         assert info.status == "skipped"
-        assert worker.result.summary.skipped == 1
 
     def test_step_update_page_different_content(self, mock_owid_pages_services):
         """Test _step_update when page has different content."""
@@ -430,7 +428,6 @@ class TestUpdateStep:
         result = worker._step_update(info, "OWID/Test")
 
         assert result is True
-        assert worker.result.summary.updated == 1
         assert info.status == "updated"
         mock_owid_pages_services["page_instance"].edit.assert_called_once()
 
@@ -476,7 +473,6 @@ class TestCreateNewPageStep:
         assert result is True
         assert info.new_page_title == "OWID/Test"
         assert info.steps.create_new_page.result is True
-        assert worker.result.summary.created == 1
         mock_owid_pages_services["page_instance"].create.assert_called_once_with(
             "New OWID page content",
             summary="Creating OWID page from [[Template:OWID/Test]]",
@@ -502,7 +498,6 @@ class TestCreateNewPageStep:
         assert result is False
         assert info.status == "failed"
         assert info.error == "Permission denied"
-        assert worker.result.summary.failed == 1
 
 
 class TestCreateOwidPagesWorkerHelpers:
@@ -555,7 +550,6 @@ class TestCreateOwidPagesWorkerHelpers:
         assert info.error == "Failed to load"
         assert info.steps.load_template_text.result is False
         assert info.steps.load_template_text.msg == "Failed to load"
-        assert worker.result.summary.failed == 1
 
 
 class TestCreateOwidPagesWorkerProcess:
@@ -642,7 +636,7 @@ class TestCreateOwidPagesWorkerProcess:
         result = worker.process()
 
         assert result.status == "completed"
-        assert result.summary.skipped == 1
+        assert len(result.pages_skipped) == 1
 
     def test_process_multiple_templates_mixed_results(self, mock_owid_pages_services, monkeypatch: pytest.MonkeyPatch):
         """Test process with multiple templates having different outcomes."""
@@ -678,8 +672,8 @@ class TestCreateOwidPagesWorkerProcess:
 
         assert result.summary.total == 3
         assert result.summary.processed == 3
-        assert result.summary.failed == 1
-        assert result.summary.created == 2
+        assert len(result.pages_failed) == 1
+        assert len(result.pages_created) == 2
 
     def test_process_with_cancellation(self, mock_owid_pages_services, monkeypatch: pytest.MonkeyPatch):
         """Test process respects cancellation event."""

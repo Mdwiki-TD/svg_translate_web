@@ -505,7 +505,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     def update_status(self, info: TemplateInfos):
         self.result.summary.processed += 1
 
-        if info.status.lower() in ["pending", "running"]:
+        if info.status in ["pending", "running"]:
             info.status = "completed"
 
         if info.status == "updated":
