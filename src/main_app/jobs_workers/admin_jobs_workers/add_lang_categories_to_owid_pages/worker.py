@@ -94,9 +94,6 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.status in ("pending", "running"):
-            self.result.status = "completed"
-
         return self.result
 
     # ------------------------------------------------------------------
@@ -170,7 +167,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         """Download the page wikitext. Returns True on success."""
         text = page.get_text()
         if not text:
-            self._fail(info, "load_page_text", f"Could not retrieve text for {info.page_title}")
+            self._fail(info, info.steps.load_page_text, f"Could not retrieve text for {info.page_title}")
             return False
 
         info.steps.load_page_text = OneStep(result=True, msg="Loaded page text")
@@ -180,12 +177,12 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
     def _step_extract_file_name(self, info: PageInfo) -> bool:
         """Extract SVG file name from the Translate link. Returns True on success."""
         if not info._text:
-            self._fail(info, "extract_file_name", f"No text found for {info.page_title}")
+            self._fail(info, info.steps.extract_file_name, f"No text found for {info.page_title}")
             return False
 
         file_name = extract_svg_file_name(info._text or "")
         if not file_name:
-            self._fail(info, "extract_file_name", f"No Translate link found in {info.page_title}")
+            self._fail(info, info.steps.extract_file_name, f"No Translate link found in {info.page_title}")
             self.result.summary.no_file += 1
             return False
 
@@ -200,12 +197,11 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         langs = result.langs
 
         if error or not langs:
-            self._fail(info, "get_languages", error or "No languages returned")
+            self._fail(info, info.steps.get_languages, error or "No languages returned")
             return False
 
         if len(langs) == 1 and langs[0] == "en":
             info.steps.get_languages = OneStep(
-                result=None,
                 msg="Skipped — No non-English languages found",
             )
             info.status = "skipped"
@@ -219,7 +215,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         """Build category names from language codes. Returns False if no valid codes."""
         categories = build_category_names(info.lang_codes)
         if not categories:
-            self._fail(info, "build_categories", f"No recognised language codes in {info.lang_codes}")
+            self._fail(info, info.steps.build_categories, f"No recognised language codes in {info.lang_codes}")
             return False
 
         info.steps.build_categories = OneStep(
@@ -246,7 +242,6 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         new_categories = get_missing_categories_list(candidate_names, original_text)
         if not new_categories:
             info.steps.check_existing = OneStep(
-                result=None,
                 msg="Skipped — all language categories already exist",
             )
             info.status = "skipped"
@@ -270,7 +265,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
         text = info._text
         if not text:
-            self._fail(info, "save_page", f"No text to save for {info.page_title}")
+            self._fail(info, info.steps.save_page, f"No text to save for {info.page_title}")
             return False
 
         res = page.edit(
@@ -288,19 +283,19 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             return True
 
         err = res.get("error", "Unknown error")
-        self._fail(info, "save_page", err)
+        self._fail(info, info.steps.save_page, err)
         return False
 
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
 
-    def _fail(self, info: PageInfo, step: str, error: str) -> None:
-        """Mark a step and the page as failed, and increment the summary counter."""
-        setattr(info.steps, step, OneStep(result=False, msg=error))
+    def _fail(self, info: PageInfo, step_obj: OneStep, error: str) -> None:
+        """Mark a step and the info as failed."""
+        step_obj.result = False
+        step_obj.msg = error
         info.status = "failed"
         info.error = error
-        self.result.summary.failed += 1
 
     def update_status(self, info: PageInfo):
         self.result.summary.processed += 1
@@ -316,6 +311,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
         elif info.status == "failed":
             self.result.pages_failed.append(info)
+            self.result.summary.failed += 1
 
         else:
             self.result.pages_processed.append(info)

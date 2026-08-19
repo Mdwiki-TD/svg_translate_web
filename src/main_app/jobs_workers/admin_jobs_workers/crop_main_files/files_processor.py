@@ -412,11 +412,12 @@ class OneFileProcessor:
         file_info.cropped_filename = ""
         file_info.status = "skipped"
 
-    def _fail(self, file_info: CropFileProcessingInfo, step_obj: FileStep, error: str) -> None:
+    def _fail(self, info: CropFileProcessingInfo, step_obj: FileStep, error: str) -> None:
+        """Mark a step and the info as failed."""
         step_obj.result = False
         step_obj.msg = error
-        file_info.error = error
-        file_info.status = "failed"
+        info.status = "failed"
+        info.error = error
 
 
 __all__ = [

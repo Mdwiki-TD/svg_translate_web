@@ -5,10 +5,10 @@ Objects for collect_templates_data worker.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Literal
+from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import StandardAdminSummary, WorkerMapping
+from ...shared_objects import STATUS_LIST, StandardAdminSummary, WorkerMapping
 
 
 @dataclass
@@ -74,7 +74,7 @@ class TemplateInfos:
     id: int
     title: str
     source: str
-    status: Literal["pending", "skipped", "updated", "failed", "completed"] = "pending"
+    status: STATUS_LIST = "pending"
     steps: CollectFileSteps = field(default_factory=lambda: CollectFileSteps())
 
     error: str | None = None

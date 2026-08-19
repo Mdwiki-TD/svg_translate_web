@@ -91,9 +91,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.status in ["pending", "running"]:
-            self.result.status = "completed"
-
         return self.result
 
     # ------------------------------------------------------------------
@@ -198,7 +195,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         """Download the original Template wikitext. Returns True on success."""
         text = MwClientPage(info.template_title, self.site).get_text()
         if not text:
-            self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
+            self._fail(info, info.steps.load_template_text, f"Could not retrieve text for {info.template_title}")
             return False
 
         info.steps.load_template_text = OneStep(result=True, msg="Loaded template text")
@@ -213,7 +210,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             info._new_text = new_text
             return True
         except Exception as exc:
-            self._fail(info, "create_new_text", str(exc))
+            self._fail(info, info.steps.create_new_text, str(exc))
             return False
 
     def _step_update(self, info: TemplateProcessingInfo, new_title: str) -> bool | None:
@@ -227,7 +224,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
         current_text = new_title_page.get_text()
         if not current_text:
-            self._fail(info, "update_text", f"Could not retrieve text for {new_title}")
+            self._fail(info, info.steps.update_text, f"Could not retrieve text for {new_title}")
             return False
 
         # extend categories from current text
@@ -238,7 +235,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         current_text = sort_categories(current_text)
 
         if current_text.strip() == info._new_text.strip():
-            info.steps.update_text = OneStep(result=None, msg="Skipped - page content is already identical")
+            info.steps.update_text = OneStep(msg="Skipped - page content is already identical")
             info.status = "skipped"
             info.new_page_title = new_title
             self.result.summary.skipped += 1
@@ -262,7 +259,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             return True
 
         err = res.get("error", "Unknown error")
-        self._fail(info, "update_text", err)
+        self._fail(info, info.steps.update_text, err)
         return False
 
     def _step_create_new_page(self, info: TemplateProcessingInfo) -> bool:
@@ -279,7 +276,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
         if not res["success"]:
             err = res.get("error", "Unknown error")
-            self._fail(info, "create_new_page", err)
+            self._fail(info, info.steps.create_new_page, err)
             return False
 
         self.result.summary.created += 1
@@ -302,12 +299,12 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
     # Helpers
     # ------------------------------------------------------------------
 
-    def _fail(self, file_info: TemplateProcessingInfo, step: str, error: str) -> None:
-        """Mark a step and the file as failed, and increment the summary counter."""
-        setattr(file_info.steps, step, OneStep(result=False, msg=error))
-        file_info.status = "failed"
-        file_info.error = error
-        self.result.summary.failed += 1
+    def _fail(self, info: TemplateProcessingInfo, step_obj: OneStep, error: str) -> None:
+        """Mark a step and the info as failed."""
+        step_obj.result = False
+        step_obj.msg = error
+        info.status = "failed"
+        info.error = error
 
     def update_status(self, info: TemplateProcessingInfo) -> None:
         """
@@ -317,6 +314,22 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
+
+        if info.status.lower() in ["pending", "running"]:
+            info.status = "completed"
+
+        if info.status == "skipped":
+            self.result.pages_skipped.append(info)
+
+        elif info.status == "success":
+            self.result.pages_success.append(info)
+
+        elif info.status == "failed":
+            self.result.pages_failed.append(info)
+            self.result.summary.failed += 1
+
+        else:
+            self.result.pages_processed.append(info)
 
 
 __all__ = [

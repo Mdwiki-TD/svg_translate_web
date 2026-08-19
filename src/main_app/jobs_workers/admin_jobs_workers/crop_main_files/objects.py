@@ -6,10 +6,10 @@ import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import StandardAdminWorkerObject
+from ...shared_objects import STATUS_LIST2, StandardAdminWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +36,6 @@ class CropFileSteps:
     update_cropped: FileStep = field(default_factory=FileStep)
 
 
-STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "uploaded", "failed"]
-
-
 @dataclass
 class CropFileProcessingInfo:
     """Holds all state for a single file being processed."""
@@ -48,7 +45,7 @@ class CropFileProcessingInfo:
     original_file: str
     cropped_filename: str
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: STATUS_LIST = "pending"
+    status: STATUS_LIST2 = "pending"
     error: str | None = None
     downloaded_path: Path | None = None
     cropped_path: Path | None = None

@@ -8,14 +8,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
-
-
-@dataclass
-class OneStep:
-    result: bool | None = None
-    msg: str | None = None
-    newrevid: int = 0
+from ...shared_objects import STATUS_LITERAL, OneStep, StandardAdminWorkerObject
 
 
 @dataclass
@@ -26,10 +19,6 @@ class InfoSteps:
     build_categories: OneStep = field(default_factory=OneStep)
     check_existing: OneStep = field(default_factory=OneStep)
     save_page: OneStep = field(default_factory=OneStep)
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """Dict-like access for backward compatibility with templates."""
-        return getattr(self, key, default)
 
 
 @dataclass

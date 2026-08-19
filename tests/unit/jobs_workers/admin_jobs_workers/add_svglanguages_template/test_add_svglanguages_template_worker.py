@@ -447,7 +447,7 @@ class TestHelperMethods:
         """Test that _fail correctly marks step and file as failed."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
 
-        mock_add_svg_worker._fail(info, "save_new_text", "Test error message")
+        mock_add_svg_worker._fail(info, info.steps.save_new_text, "Test error message")
 
         assert info.steps.save_new_text.result is False
         assert info.steps.save_new_text.msg == "Test error message"

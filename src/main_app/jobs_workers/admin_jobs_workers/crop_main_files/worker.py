@@ -89,9 +89,6 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.status in ["pending", "running"]:
-            self.result.status = "completed"
-
         return self.result
 
     # ------------------------------------------------------------------

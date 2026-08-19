@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import pytest
 from flask.app import Flask
 from sqlalchemy import text

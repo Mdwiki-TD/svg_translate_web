@@ -7,19 +7,10 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import StandardAdminWorkerObject
-
-STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "created", "failed"]
-
-
-@dataclass
-class OneStep:
-    result: bool | None = None
-    msg: str | None = None
-    newrevid: int = 0
+from ...shared_objects import STATUS_LIST, OneStep, StandardAdminWorkerObject
 
 
 @dataclass
@@ -28,10 +19,6 @@ class InfoSteps:
     create_new_text: OneStep = field(default_factory=OneStep)
     update_text: OneStep = field(default_factory=OneStep)
     create_new_page: OneStep = field(default_factory=OneStep)
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """Dict-like access for backward compatibility with templates."""
-        return getattr(self, key, default)
 
 
 @dataclass

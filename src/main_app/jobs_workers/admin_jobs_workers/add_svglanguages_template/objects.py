@@ -8,14 +8,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
-
-
-@dataclass
-class OneStep:
-    result: bool | None = None
-    msg: str | None = None
-    newrevid: int = 0
+from ...shared_objects import STATUS_LITERAL, OneStep, StandardAdminWorkerObject
 
 
 @dataclass
@@ -25,10 +18,6 @@ class InfoSteps:
     add_template_text: OneStep = field(default_factory=OneStep)
     save_new_text: OneStep = field(default_factory=OneStep)
 
-    def get(self, key: str, default: Any = None) -> Any:
-        """Dict-like access for backward compatibility with templates."""
-        return getattr(self, key, default)
-
 
 @dataclass
 class TemplateInfo:
@@ -36,9 +25,10 @@ class TemplateInfo:
 
     template_id: int
     template_title: str
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: STATUS_LITERAL = "pending"
     error: str | None = None
+
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     steps: InfoSteps = field(default_factory=InfoSteps)
 
     # Internal temporary state

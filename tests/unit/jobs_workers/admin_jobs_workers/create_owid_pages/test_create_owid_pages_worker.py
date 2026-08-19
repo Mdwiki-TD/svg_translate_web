@@ -549,7 +549,7 @@ class TestCreateOwidPagesWorkerHelpers:
         )
         info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
 
-        worker._fail(info, "load_template_text", "Failed to load")
+        worker._fail(info, info.steps.load_template_text, "Failed to load")
 
         assert info.status == "failed"
         assert info.error == "Failed to load"
