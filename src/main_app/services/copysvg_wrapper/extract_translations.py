@@ -30,6 +30,8 @@ def _extract_file_translations(
     config = TranslationConfig(
         case_insensitive=True,
     )
+    if hasattr(config, "prepare_before_extraction"):
+        config.prepare_before_extraction = True
 
     extractor = SVGTranslationExtractor(config=config)
 
