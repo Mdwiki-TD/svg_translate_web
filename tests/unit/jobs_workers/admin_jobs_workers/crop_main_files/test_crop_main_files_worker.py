@@ -40,7 +40,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "update_information_author": MagicMock(side_effect=lambda text, author_citation: text),
         "update_original_file_text": MagicMock(return_value="Updated original text"),
         "update_template_page_file_reference": MagicMock(return_value="Updated template text"),
-        "generate_cropped_filename": MagicMock(side_effect=lambda x: f"File:{x.replace('File:', '')} (cropped).svg"),
+        # "generate_cropped_filename": MagicMock(side_effect=lambda x: f"File:{x.replace('File:', '')} (cropped).svg"),
         "settings": mock_settings,
         "get_user_site": mock_base_worker["get_user_site"],
     }
@@ -65,15 +65,15 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         mocks["list"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.create_commons_session",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.create_commons_session",
         mocks["create_commons_session"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.MwClientPage",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.MwClientPage",
         mocks["MwClientPage"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.OwidChartsService",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.OwidChartsService",
         mocks["OwidChartsService"],
     )
     monkeypatch.setattr(
@@ -81,39 +81,39 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         MagicMock(return_value={}),
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.download_file_for_cropping",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.download_file_for_cropping",
         mocks["download_file"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.crop_svg_file",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.crop_svg_file",
         mocks["crop_svg_file"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.upload_cropped_file",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.upload_cropped_file",
         mocks["upload_cropped_file"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.create_cropped_file_text",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.create_cropped_file_text",
         mocks["create_cropped_file_text"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_information_author",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.update_information_author",
         mocks["update_information_author"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_original_file_text",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.update_original_file_text",
         mocks["update_original_file_text"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_template_page_file_reference",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.update_template_page_file_reference",
         mocks["update_template_page_file_reference"],
     )
+    # monkeypatch.setattr(
+    #     "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.generate_cropped_filename",
+    #     mocks["generate_cropped_filename"],
+    # )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.generate_cropped_filename",
-        mocks["generate_cropped_filename"],
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.settings",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.settings",
         mocks["settings"],
     )
 

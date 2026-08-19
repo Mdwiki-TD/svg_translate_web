@@ -435,6 +435,7 @@ class TestHelperMethods:
         assert info.status == "failed"
         assert info.error == "Test error message"
 
+
 class TestProcessMethod:
     """Tests for the main process() method."""
 
