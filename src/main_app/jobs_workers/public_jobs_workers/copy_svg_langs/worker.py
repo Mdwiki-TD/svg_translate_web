@@ -313,6 +313,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if self.site is None:
             raise ValueError("Site is not set")
 
+        if not self._validate_user_permissions():
+            # check if user has autopatrol right
+            return self.result
+
         self.files_processor.site = self.site
         self.files_processor.upload_service.site = self.site
 
