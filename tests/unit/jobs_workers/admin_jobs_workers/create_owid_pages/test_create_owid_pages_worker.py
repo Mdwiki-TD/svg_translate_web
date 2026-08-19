@@ -556,22 +556,6 @@ class TestCreateOwidPagesWorkerHelpers:
         assert info.steps["load_template_text"]["msg"] == "Failed to load"
         assert worker.result.summary.failed == 1
 
-    def test_skip_step_updates_step_status(self, mock_owid_pages_services):
-        """Test _skip_step updates step status."""
-        worker = CreateOwidPagesWorker(
-            JobsRunner(
-                job_id=1,
-                user={},
-                cancel_event=None,
-            )
-        )
-        info = TemplateProcessingInfo(template_id=1, template_title="Template:OWID/Test")
-
-        worker._skip_step(info, "create_new_page", "Already exists")
-
-        assert info.steps["create_new_page"]["result"] is None
-        assert info.steps["create_new_page"]["msg"] == "Already exists"
-
 
 class TestCreateOwidPagesWorkerProcess:
     """Tests for the main process method."""

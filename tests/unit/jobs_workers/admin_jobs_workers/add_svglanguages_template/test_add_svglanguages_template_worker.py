@@ -317,14 +317,11 @@ class TestStepLoadTemplateText:
         mock_add_svg_worker._step_add_template = MagicMock()
         mock_add_svg_worker._step_save_new_text = MagicMock()
 
-        mock_add_svg_worker._skip_step = MagicMock()
-
         result = mock_add_svg_worker._process_one_item(template)
 
         assert result is False
         mock_add_svg_worker._step_load_template_text.assert_called_once()
         mock_add_svg_worker._step_generate_template_text.assert_not_called()
-        # mock_worker._skip_step.assert_called_once()
 
 
 class TestStepGenerateTemplateText:
@@ -425,7 +422,7 @@ class TestStepSaveNewText:
 
 
 class TestHelperMethods:
-    """Tests for helper methods _fail, _skip_step."""
+    """Tests for helper methods _fail."""
 
     def test_fail_marks_step_and_file_as_failed(self, mock_add_svg_worker):
         """Test that _fail correctly marks step and file as failed."""
@@ -437,16 +434,6 @@ class TestHelperMethods:
         assert info.steps["test_step"]["msg"] == "Test error message"
         assert info.status == "failed"
         assert info.error == "Test error message"
-
-    def test_skip_step_marks_step_as_skipped(self, mock_add_svg_worker):
-        """Test that _skip_step correctly marks step as skipped."""
-        info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
-
-        mock_add_svg_worker._skip_step(info, "test_step", "Skip reason")
-
-        assert info.steps["test_step"]["result"] is None
-        assert info.steps["test_step"]["msg"] == "Skip reason"
-
 
 class TestProcessMethod:
     """Tests for the main process() method."""
