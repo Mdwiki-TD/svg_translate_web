@@ -97,12 +97,20 @@ class OneFileProcessor:
         file_path = Path(file_path)
         output_file = self.config.output_dir / "translated" / file_path.name
 
-        inject_result: InjectResult = inject_step_one_file(
-            file_path=file_path,
-            translations=self.mapping,
-            output_file=output_file,
-            overwrite_translations=self.config.overwrite_translations,
-        )
+        try:
+            inject_result: InjectResult = inject_step_one_file(
+                file=file_path,
+                translations=self.mapping,
+                output_file=output_file,
+                overwrite_translations=self.config.overwrite_translations,
+            )
+        except Exception:
+            logger.exception("Failed during SVG translation injection")
+            inject_result = InjectResult(
+                result=False,
+                msg="Failed during SVG translation injection",
+                new_languages_count=None,
+            )
 
         if inject_result.result is None:
             if inject_result.msg == "No changes":

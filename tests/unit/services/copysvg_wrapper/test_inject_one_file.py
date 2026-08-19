@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.main_app.services.copysvg_wrapper.inject_one_file import (
-    _start_injects,
     inject_step_one_file,
 )
 from src.main_app.services.copysvg_wrapper.mapping import InjectorData
@@ -50,7 +49,7 @@ class TestStartInjects:
 
         mock_inject.return_value = data
 
-        result = _start_injects(svg_file, {"new": {"en": "Hello"}}, output_file, overwrite_translations=False)
+        result = inject_step_one_file(svg_file, {"new": {"en": "Hello"}}, output_file, overwrite_translations=False)
 
         assert result.result is True
         assert result.msg == "3 languages injected"
@@ -67,7 +66,7 @@ class TestStartInjects:
 
         mock_inject.return_value = data
 
-        result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is True
         assert result.msg == "5 translations Updated"
@@ -80,7 +79,7 @@ class TestStartInjects:
 
         mock_inject.return_value = data
 
-        result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is None
         assert result.msg == "No changes"
@@ -90,7 +89,7 @@ class TestStartInjects:
     def test_failed_to_translate(self, mock_inject, mock_tree, svg_file, output_file):
         mock_inject.return_value = InjectorData(tree=None)
 
-        result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Failed to translate"
@@ -101,7 +100,7 @@ class TestStartInjects:
 
         mock_inject.return_value = data
 
-        result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Some error occurred"
@@ -117,7 +116,7 @@ class TestStartInjects:
 
         mock_inject.return_value = data
 
-        result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Failed to write file"
@@ -135,7 +134,7 @@ class TestStartInjects:
 
         mock_inject.return_value = data
 
-        result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Failed to write file"
@@ -150,7 +149,7 @@ class TestStartInjects:
 
         mock_inject.return_value = data
 
-        result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is True
         assert result.msg == "2 languages injected"
@@ -158,60 +157,7 @@ class TestStartInjects:
         assert result.updated_translations == 3
 
 
-class TestInjectStepOneFile:
-    def test_success(self, mock_inject, mock_tree, svg_file, output_file):
-        data = InjectorData(tree=mock_tree)
-        data.inject_stats._update(
-            new_languages_count=1,
-            updated_translations=0,
-            error=None,
-        )
-
-        mock_inject.return_value = data
-
-        result = inject_step_one_file(svg_file, {"new": {"en": "Hi"}}, output_file, overwrite_translations=False)
-
-        assert result.result is True
-        assert result.msg == "1 languages injected"
-        assert result.new_languages_count == 1
-
-    def test_passthrough_no_changes(self, mock_inject, mock_tree, svg_file, output_file):
-        data = InjectorData(tree=mock_tree)
-        data.inject_stats._update(
-            new_languages_count=0,
-            updated_translations=0,
-            error=None,
-        )
-
-        mock_inject.return_value = data
-
-        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
-
-        assert result.result is None
-        assert result.msg == "No changes"
-
-    def test_exception_handling(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_inject.side_effect = RuntimeError("Unexpected error")
-
-        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
-
-        assert result.result is False
-        assert result.msg == "Failed during SVG translation injection"
-        assert result.new_languages_count is None
-
-
 class TestInjectStepOneFileNestedError:
-    def test_passthrough_failure(self, mock_inject, mock_tree, svg_file, output_file):
-        data = InjectorData(tree=None)
-        data.inject_stats._update(error="nested_tspan_error")
-
-        mock_inject.return_value = data
-
-        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
-
-        assert result.result is False
-        assert result.msg == "Nested tspan error"
-
     def test_nested_tspan_error(self, mock_inject, mock_tree, svg_file, output_file):
 
         data = InjectorData(tree=None)
@@ -219,7 +165,7 @@ class TestInjectStepOneFileNestedError:
 
         mock_inject.return_value = data
 
-        result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Nested tspan error"
@@ -231,7 +177,7 @@ class TestInjectStepOneFileNestedError:
 
         mock_inject.return_value = data
 
-        result = _start_injects(svg_file, {}, output_file, overwrite_translations=False)
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
 
         assert result.result is False
         assert result.msg == "Nested tspan error"

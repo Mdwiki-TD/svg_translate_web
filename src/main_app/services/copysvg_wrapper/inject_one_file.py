@@ -72,7 +72,7 @@ def start_svg_injection(
     return data
 
 
-def _start_injects(
+def inject_step_one_file(
     file: Path,
     translations: dict[str, Any] | TranslationMapping,
     output_file: Path,
@@ -127,33 +127,7 @@ def _start_injects(
         )
 
 
-def inject_step_one_file(
-    file_path: Path,
-    translations: dict[str, Any] | TranslationMapping,
-    output_file: Path,
-    overwrite_translations: bool = False,
-) -> InjectResult:
-    """ """
-    try:
-        injects_result: InjectResult = _start_injects(
-            file=file_path,
-            translations=translations,
-            output_file=output_file,
-            overwrite_translations=overwrite_translations,
-        )
-    except Exception:
-        logger.exception("Failed during SVG translation injection")
-        return InjectResult(
-            result=False,
-            msg="Failed during SVG translation injection",
-            new_languages_count=None,
-        )
-
-    return injects_result
-
-
 __all__ = [
     "InjectResult",
-    "_start_injects",
     "inject_step_one_file",
 ]

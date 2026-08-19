@@ -188,12 +188,20 @@ class InjectRoutes:
         output_dir.mkdir(exist_ok=True)
         output_file = output_dir / target
 
-        inject_result: InjectResult = inject_step_one_file(
-            file_path=target_file_path,
-            translations=source_translations,
-            output_file=output_file,
-            overwrite_translations=True,
-        )
+        try:
+            inject_result: InjectResult = inject_step_one_file(
+                file=target_file_path,
+                translations=source_translations,
+                output_file=output_file,
+                overwrite_translations=True,
+            )
+        except Exception:
+            logger.exception("Failed during SVG translation injection")
+            inject_result = InjectResult(
+                result=False,
+                msg="Failed during SVG translation injection",
+                new_languages_count=None,
+            )
 
         # Step 4: Re-extract from the injected file (only if inject succeeded)
         target_after: dict[str, Any] | None = None
