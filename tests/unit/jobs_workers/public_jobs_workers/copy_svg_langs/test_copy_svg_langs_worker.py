@@ -110,9 +110,9 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
 
 @pytest.fixture
-def mock_clients(monkeypatch: pytest.MonkeyPatch):
+def mock_clients(monkeypatch: pytest.MonkeyPatch, mock_site):
     """"""
-    mock_get_user_site = MagicMock(return_value=MagicMock(name="mw_site"))
+    mock_get_user_site = MagicMock(return_value=mock_site)
 
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService.update_job_status", MagicMock())
     monkeypatch.setattr(

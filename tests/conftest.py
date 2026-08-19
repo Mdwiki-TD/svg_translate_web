@@ -180,7 +180,10 @@ def sqlite_db():
 
 @pytest.fixture
 def mock_site() -> MagicMock:
-    return MagicMock()
+    _mock_site = MagicMock(name="mw_site")
+    _mock_site.username = "user"
+    _mock_site.rights = ["autopatrol", "edit", "upload"]
+    return _mock_site
 
 
 @pytest.fixture
