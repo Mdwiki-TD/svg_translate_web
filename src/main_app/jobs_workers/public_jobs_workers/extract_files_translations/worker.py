@@ -17,7 +17,7 @@ from ....services.copysvg_wrapper import (
     ExtractResult,
     extract_from_path,
 )
-from ....services.copysvg_wrapper.mapping import ExtractorData
+from ....services.copysvg_wrapper.mapping import TranslationMapping
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ..copy_svg_langs.steps import (
@@ -56,7 +56,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self.text: str = ""
         self.titles: list[str] = []
         self.files_service = FilesService()
-        self.mapping: ExtractorData = ExtractorData()
+        self.mapping: TranslationMapping = TranslationMapping()
 
     def _compute_output_dir(self, title: str) -> Path:
         if not title:
@@ -338,7 +338,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         except Exception as e:
             logger.error(f"Error saving mapping: {e}")
 
-    def update_translations(self, mapping: ExtractorData) -> None:
+    def update_translations(self, mapping: TranslationMapping) -> None:
         if mapping.is_empty():
             return
 

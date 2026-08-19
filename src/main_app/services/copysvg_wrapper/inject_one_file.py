@@ -6,13 +6,13 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import SVGTranslationInjector, TranslationConfig, TranslationMapping  # type: ignore
+from CopySVGTranslation import SVGTranslationInjector, TranslationConfig  # type: ignore
 
 from .mapping import (
-    ExtractorData,
     InjectorData,
     InjectorStats,
     InjectResult,
+    TranslationMapping,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ def start_svg_injection(
 
 def _start_injects(
     file: Path,
-    translations: dict[str, Any] | ExtractorData,
+    translations: dict[str, Any] | TranslationMapping,
     output_file: Path,
     overwrite_translations: bool = False,
 ) -> InjectResult:
@@ -63,7 +63,7 @@ def _start_injects(
         "updated_translations": 0,
     }
 
-    if isinstance(translations, ExtractorData):
+    if isinstance(translations, TranslationMapping):
         translations = translations.to_json()
 
     data = start_svg_injection(
@@ -136,7 +136,7 @@ def write_msg(stats: InjectorStats) -> str:
 
 def inject_step_one_file(
     file_path: Path,
-    translations: dict[str, Any] | ExtractorData,
+    translations: dict[str, Any] | TranslationMapping,
     output_file: Path,
     overwrite_translations: bool = False,
 ) -> InjectResult:

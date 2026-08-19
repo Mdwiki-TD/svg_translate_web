@@ -10,14 +10,14 @@ from typing import Any
 
 from CopySVGTranslation import SVGTranslationExtractor, TranslationConfig  # type: ignore
 
-from .mapping import ExtractorData, ExtractResult
+from .mapping import ExtractResult, TranslationMapping
 
 logger = logging.getLogger(__name__)
 
 
 def _extract_file_translations(
     source_file: str | Path,
-) -> ExtractorData:
+) -> TranslationMapping:
     """
     Legacy function-style wrapper around SVGTranslationExtractor, kept for
     backward compatibility with existing callers.
@@ -39,17 +39,17 @@ def _extract_file_translations(
         result_json: dict[str, Any] = extractor.extract_json(source_file)
     except Exception as e:
         logger.error(f"Failed to extract translations from {source_file}: {e}")
-        return ExtractorData()
+        return TranslationMapping()
 
     if not result_json:
-        return ExtractorData()
+        return TranslationMapping()
 
     error = result_json.get("error", "")
     meta = result_json.get("meta", {})
     if not error and meta:
         error = meta.get("error", "")
 
-    result = ExtractorData.from_any(result_json)
+    result = TranslationMapping.from_any(result_json)
 
     if error and not result.error:
         result.error = error
@@ -78,7 +78,7 @@ def extract_from_path(main_title_path: Path, fast_return_false: bool = True) -> 
             message="",
             error="Failed to parse main SVG",
             translations={},
-            mapping=ExtractorData(),
+            mapping=TranslationMapping(),
         )
 
     new_translations = mapping.new

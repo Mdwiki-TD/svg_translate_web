@@ -10,7 +10,7 @@ from pytest_mock import MockerFixture
 
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.public.main_routes.extract_routes import EXTRACT_FILENAME_KEY
-from src.main_app.services.copysvg_wrapper.extract_translations import ExtractorData
+from src.main_app.services.copysvg_wrapper.extract_translations import TranslationMapping
 
 
 @pytest.fixture(autouse=True)
@@ -136,7 +136,7 @@ class TestExtractRender:
         mock_extract = mocker.patch(
             "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations"
         )
-        mock_extract.return_value = ExtractorData(new={})
+        mock_extract.return_value = TranslationMapping(new={})
 
         mock_client.post(
             "/extract/",
@@ -200,7 +200,7 @@ class TestExtractRender:
         }
 
         def mock_extract(*args, **kwargs):
-            return ExtractorData.from_any(sample_translations)
+            return TranslationMapping.from_any(sample_translations)
 
         monkeypatch.setattr(
             "src.main_app.public.main_routes.extract_routes.FilesService.download_and_save", mock_download

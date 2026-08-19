@@ -86,7 +86,7 @@ class ExtractResult(SharedMapToJson):
     message: str | None = None
     error: str | None = None
     translations: dict | None = None
-    mapping: ExtractorData | None = None
+    mapping: TranslationMapping | None = None
 
     # ------------------------------------------------------------------
     # Factory helpers
@@ -97,7 +97,7 @@ class ExtractResult(SharedMapToJson):
             return data
 
         translations = data.get("translations") or {}
-        mapping = data.get("mapping") or ExtractorData.from_any(translations)
+        mapping = data.get("mapping") or TranslationMapping.from_any(translations)
 
         return cls(
             success=data.get("success"),
@@ -109,7 +109,7 @@ class ExtractResult(SharedMapToJson):
 
 
 @dataclass
-class ExtractorData:
+class TranslationMapping:
     """
     Full mapping produced by extraction and consumed by injection.
 
@@ -135,14 +135,14 @@ class ExtractorData:
     # Factory helpers
     # ------------------------------------------------------------------
     @classmethod
-    def from_any(cls, data: dict[str, Any] | ExtractorData) -> ExtractorData:
-        if isinstance(data, ExtractorData):
+    def from_any(cls, data: dict[str, Any] | TranslationMapping) -> TranslationMapping:
+        if isinstance(data, TranslationMapping):
             return data
 
         data_json = data
 
         if not isinstance(data_json, dict) and not isinstance(data_json, Mapping):
-            raise TypeError(f"Expected Mapping/ExtractorData/dict, got {type(data_json)}")
+            raise TypeError(f"Expected Mapping/TranslationMapping/dict, got {type(data_json)}")
 
         # data_json = copy.deepcopy(data_json)
         return cls(
@@ -154,7 +154,7 @@ class ExtractorData:
         )
 
     @classmethod
-    def from_extractor_data(cls, data: Mapping[str, Any]) -> ExtractorData:
+    def from_extractor_data(cls, data: Mapping[str, Any]) -> TranslationMapping:
         """Create from the dict currently returned by the legacy extractor."""
         return cls.from_any(data)
 
@@ -194,7 +194,7 @@ class ExtractorData:
         key = source.lower() if case_insensitive else source
         self.new.setdefault(key, {})[lang] = text
 
-    def merge(self, other: ExtractorData | Mapping[str, Any], merge_keys: list[str] | None = None) -> None:
+    def merge(self, other: TranslationMapping | Mapping[str, Any], merge_keys: list[str] | None = None) -> None:
         """
         Mapping structure to understand merge logic:
         {
@@ -251,6 +251,6 @@ __all__ = [
     "InjectResult",
     "InjectorStats",
     "InjectorData",
-    "ExtractorData",
+    "TranslationMapping",
     "ExtractResult",
 ]
