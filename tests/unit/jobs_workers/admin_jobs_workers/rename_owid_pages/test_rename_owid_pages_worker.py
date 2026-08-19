@@ -330,7 +330,7 @@ class TestRedirectOldToNew:
 
         assert result is True
         assert info.status == "redirected"
-        assert self.worker.result.summary.redirected == 1
+        assert len(self.worker.result.pages_redirected) == 1
         assert self.worker.result.summary.failed == 0
         mock_page.edit.assert_called_once_with(
             text="#REDIRECT [[Template:OWID/Daily]]",
