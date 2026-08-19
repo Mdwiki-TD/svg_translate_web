@@ -136,7 +136,7 @@ class TestUpdateOwidChartsWorkerInitialization:
         assert result.completed_at is None
         assert result.cancelled_at is None
         assert result.summary.total == 0
-        assert result.summary.processed == 0
+        assert len(result.pages_processed) == 0
         assert result.summary.updated == 0
         assert len(result.pages_skipped) == 0
         assert result.summary.failed == 0
@@ -649,7 +649,7 @@ class TestProcess:
         result = worker.process_all()
 
         assert result.summary.total == 2
-        assert result.summary.processed == 0
+        assert len(result.pages_processed) == 0
 
     def test_process_cancelled_by_periodic_check(
         self, mock_update_owid_services: MockServices, monkeypatch: pytest.MonkeyPatch

@@ -196,7 +196,7 @@ class TestCreateOwidPagesWorkerInitialization:
         assert result.completed_at is None
         assert result.cancelled_at is None
         assert result.summary.total == 0
-        assert result.summary.processed == 0
+        assert len(result.pages_processed) == 0
         assert result.summary.created == 0
         assert result.summary.updated == 0
         assert result.summary.failed == 0
@@ -587,7 +587,7 @@ class TestCreateOwidPagesWorkerProcess:
 
         assert result.status == "skipped"
         assert result.summary.total == 0
-        assert result.summary.processed == 0
+        assert len(result.pages_processed) == 0
 
     def test_process_single_template_success(self, mock_owid_pages_services, monkeypatch: pytest.MonkeyPatch):
         """Test process with a single successful template."""
@@ -610,7 +610,7 @@ class TestCreateOwidPagesWorkerProcess:
         result = worker.process()
 
         assert result.summary.total == 1
-        assert result.summary.processed == 1
+        assert len(result.pages_processed) == 1
         assert result.summary.created == 1
         assert result.summary.failed == 0
 
@@ -669,7 +669,7 @@ class TestCreateOwidPagesWorkerProcess:
         result = worker.process()
 
         assert result.summary.total == 3
-        assert result.summary.processed == 3
+        assert len(result.pages_processed) == 3
         assert len(result.pages_failed) == 1
         assert len(result.pages_created) == 2
 

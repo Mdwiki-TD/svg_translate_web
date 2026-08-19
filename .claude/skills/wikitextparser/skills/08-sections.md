@@ -107,7 +107,7 @@ output that MediaWiki will not recognise as a heading.
 ### 5. Filter by level
 
 ```python
-parsed.get_sections(level=2)                        # only `== ==`
+parsed.get_sections(level=2)                        # only `==`
 parsed.get_sections(include_subsections=False)      # no nested folding
 parsed.get_sections(top_levels_only=True)           # only sections that are not subsections of another
 ```
@@ -170,7 +170,7 @@ for s in parsed.sections:
   `A.1` folded into its `contents`, and `A.1` also appears as its own
   separate entry. Both are valid views of the same buffer.
 - **Section levels do not auto-correct.** If you demote `== A ==` to
-  `=== A ===` while its previous parent was also `== ==`, you create an
+  `=== A ===` while its previous parent was also `==`, you create an
   invalid hierarchy in the output. The library does not validate this;
   it's your job.
 - **Tables-of-contents magic words** (`__TOC__`, `__NOTOC__`) are not
