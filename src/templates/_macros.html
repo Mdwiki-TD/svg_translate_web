@@ -194,21 +194,51 @@
 {%- endmacro -%}
 
 {# Errors alerts #}
-{% macro job_errors_div(errors) %}
+{% macro autopatrol_err_macro(username) %}
+<div class="card shadow-sm border-danger mb-3">
+    <div class="card-header card-danger">
+        <h4 class="alert-heading">Autopatrol permission error!</h4>
+    </div>
+    <div class="card-body p-4">
+        <p class="mb-3">
+
+            {% if username %}
+            <a href="https://commons.wikimedia.org/wiki/Special:UserRights/{{ username }}" target="_blank"
+                rel="noopener noreferrer">
+                User:{{ username }}
+            </a>
+            {% else %}
+            User
+            {% endif %}
+            need <strong>Autopatrol</strong> permission to use run this task.
+            <a href="https://commons.wikimedia.org/wiki/Commons:Requests_for_rights#Autopatrol" target="_blank"
+                rel="noopener noreferrer">
+                Request Autopatrol permission
+            </a>
+        </p>
+    </div>
+</div>
+{%- endmacro -%}
+
+{% macro job_errors_div(errors, username="") %}
 {# Filter out errors where 'error' is empty, null, or whitespace #}
 {% set valid_errors = errors | selectattr("error") | list %}
 
 {# Only render the alert if there is at least one valid error message #}
 {% if valid_errors | length > 0 %}
+{% for err in valid_errors %}
+{% if err.error_type == "AutopatrolPermissionError" %}
+{{ autopatrol_err_macro(username) }}
+{% else %}
 <div class="alert alert-danger" role="alert">
     <h5 class="alert-heading">Error!</h5>
-    {% for err in valid_errors %}
     <div>
         <strong>{{ err.error_type if err.error_type else 'Error' }}:</strong>
         {{ err.error }}
     </div>
-    {% endfor %}
 </div>
+{% endif %}
+{% endfor %}
 {% endif %}
 {%- endmacro -%}
 

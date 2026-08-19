@@ -71,6 +71,9 @@ class TestGetUserSite:
         class DummySite:
             def __init__(self, host: str, **kwargs: object) -> None:
                 calls.append({"host": host, **kwargs})
+                self.username = "username"
+                self.rights = ["edit"]
+
 
         monkeypatch.setattr("src.main_app.api_services.clients.wiki_client.Site", DummySite)
 

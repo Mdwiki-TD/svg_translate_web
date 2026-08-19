@@ -164,7 +164,7 @@
                     {% endif %}
 
                     {% if result_data.errors %}
-                    {{ job_errors_div(result_data.errors) }}
+                    {{ job_errors_div(result_data.errors, job.username) }}
                     {% endif %}
                 </div>
             </div>

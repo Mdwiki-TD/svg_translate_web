@@ -4,11 +4,13 @@
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
 {% block job_info_extra %}
-{% if result_data and result_data.title %}
+{% if result_data %}
+{% set title = result_data.title or (result_data.args.title if result_data.args else None) %}
+{% if title %}
 <tr>
     <th>Template:</th>
     <td>
-        {{ commons_link(result_data.title) }}
+        {{ commons_link(title) }}
     </td>
 </tr>
 {% endif %}
@@ -19,6 +21,7 @@
         {{ commons_file_link(result_data.main_title) }}
     </td>
 </tr>
+{% endif %}
 {% endif %}
 {% endblock %}
 

@@ -232,6 +232,18 @@ class BaseObjectsJobWorker(ABC):
         self.result.failed_at = datetime.now().isoformat()
         self.log_errors("No authenticated user site available.")
 
+    def _validate_user_permissions(self) -> bool:
+        if not self.site:
+            return False
+
+        if "autopatrol" not in self.site.rights:
+            logger.error("User does not have autopatrol right")
+            self.result.status = "failed"
+            self.log_errors(f"User:{self.site.username} does not have autopatrol right", "AutopatrolPermissionError")
+            return False
+
+        return True
+
     def _check_site(self) -> bool:
         self.site = get_user_site(self.user)
         if not self.site:
