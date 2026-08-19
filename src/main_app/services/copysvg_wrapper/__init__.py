@@ -4,11 +4,11 @@ from .inject_one_file import (
     inject_step_one_file,
 )
 from .mapping import (
-    ExtractorData,
     ExtractResult,
     InjectorData,
     InjectorStats,
     InjectResult,
+    TranslationMapping,
 )
 from .nested_fixer import MatchFixNestedTags
 
@@ -20,6 +20,6 @@ __all__ = [
     "InjectResult",
     "InjectorStats",
     "InjectorData",
-    "ExtractorData",
+    "TranslationMapping",
     "ExtractResult",
 ]

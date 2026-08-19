@@ -15,9 +15,9 @@ from src.main_app.api_services.files_service.objects import (
 )
 from src.main_app.public.main_routes.translate_routes import get_session_dir
 from src.main_app.services.copysvg_wrapper.mapping import (
-    ExtractorData,
     ExtractResult,
     InjectResult,
+    TranslationMapping,
 )
 
 
@@ -76,7 +76,7 @@ class TestTranslateRoutes:
         )
 
         # Mock extract_from_path
-        mapping = ExtractorData(new={"Hello": {}})
+        mapping = TranslationMapping(new={"Hello": {}})
         mock_extract = ExtractResult(success=True, mapping=mapping)
         monkeypatch.setattr(
             "src.main_app.public.main_routes.translate_routes.extract_from_path",

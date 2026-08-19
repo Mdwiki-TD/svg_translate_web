@@ -14,10 +14,10 @@ from ....api_services import UploadService
 from ....api_services.files_service import FilesService
 from ....api_services.files_service.downloader import DownloadAndSaveData
 from ....services.copysvg_wrapper import (
-    ExtractorData,
     ExtractResult,
     InjectResult,
     MatchFixNestedTags,
+    TranslationMapping,
     extract_from_path,
     inject_step_one_file,
 )
@@ -41,7 +41,7 @@ class OneFileProcessor:
         self.files_service = files_service
         self.site = site
         self.upload_service = UploadService(self.site)
-        self.mapping: ExtractorData | None = None
+        self.mapping: TranslationMapping | None = None
         self.upload_done = 0
         self.nested_processer: MatchFixNestedTags
 
@@ -320,7 +320,7 @@ class OneFileProcessor:
     # Public API
     # ------------------
 
-    def update_translations(self, mapping: ExtractorData) -> None:
+    def update_translations(self, mapping: TranslationMapping) -> None:
         if mapping.is_empty():
             return
 
