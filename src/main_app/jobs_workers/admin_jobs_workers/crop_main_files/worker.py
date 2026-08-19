@@ -26,10 +26,12 @@ from ....utils.wikitext.cropped_file_text.utils import update_information_author
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject, FileStep
-from .steps.crop_file import crop_svg_file
-from .steps.crop_utils import generate_cropped_filename
-from .steps.download import download_file_for_cropping
-from .steps.upload import upload_cropped_file
+from .steps import (
+    crop_svg_file,
+    download_file_for_cropping,
+    generate_cropped_filename,
+    upload_cropped_file,
+)
 
 logger = logging.getLogger(__name__)
 
