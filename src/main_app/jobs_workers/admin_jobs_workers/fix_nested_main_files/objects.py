@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
+from ....database.models import TemplateRecord
 from ...shared_objects import WorkerMapping
 
 
@@ -30,6 +31,15 @@ class TitleInfo:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)  # pyright: ignore[reportCallIssue]
+
+    @classmethod
+    def from_template(cls, template: TemplateRecord) -> TitleInfo:
+        return cls(
+            id=template.id,
+            title=template.title,
+            main_file=template.main_file,
+            timestamp=datetime.now().isoformat(),
+        )
 
 
 @dataclass

@@ -79,11 +79,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
             # file info
-            file_info = TemplateProcessingInfo(
-                template_id=template.id,
-                template_title=template.title,
-                slug=template.slug,
-            )
+            file_info = TemplateProcessingInfo.from_template(template)
 
             ok = self._process_one_item(file_info)
             self.update_status(file_info)
@@ -317,7 +313,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         """
         TODO: move self.result.<stats>.append() into this method
         """
-        self.result.summary.processed +=  1
+        self.result.summary.processed += 1
 
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"

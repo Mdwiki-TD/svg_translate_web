@@ -114,12 +114,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
                 break
 
-            template_info = TitleInfo(
-                id=template.id,
-                title=template.title,
-                main_file=template.main_file,
-                timestamp=datetime.now().isoformat(),
-            )
+            template_info = TitleInfo.from_template(template)
 
             ok = self._process_one_item(template_info)
             self.update_status(template_info)
@@ -229,7 +224,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """
         TODO: move self.result.<stats>.append() into this method
         """
-        self.result.summary.processed +=  1
+        self.result.summary.processed += 1
 
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"

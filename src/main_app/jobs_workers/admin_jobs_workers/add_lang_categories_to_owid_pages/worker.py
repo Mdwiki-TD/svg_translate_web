@@ -304,15 +304,12 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         self.result.summary.failed += 1
 
     def update_status(self, info: PageInfo):
-        self.result.summary.processed +=  1
+        self.result.summary.processed += 1
 
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 
-        if info.status == "updated":
-            self.result.pages_updated.append(info)
-
-        elif info.status == "skipped":
+        if info.status == "skipped":
             self.result.pages_skipped.append(info)
 
         elif info.status == "success":

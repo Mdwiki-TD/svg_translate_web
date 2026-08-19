@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Literal
 
+from ....database.models import TemplateRecord
 from ...shared_objects import StandardAdminWorkerObject
 
 STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "created", "failed"]
@@ -49,6 +50,14 @@ class TemplateProcessingInfo:
             "error": self.error,
             "steps": self.steps,
         }
+
+    @classmethod
+    def from_template(cls, template: TemplateRecord) -> TemplateProcessingInfo:
+        return cls(
+            template_id=template.id,
+            template_title=template.title,
+            slug=template.slug,
+        )
 
 
 @dataclass
