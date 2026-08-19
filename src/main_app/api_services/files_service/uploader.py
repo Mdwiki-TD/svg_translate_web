@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
 
 
-class UploadFileNew:
+class FileUploader:
     def __init__(self, site: Site) -> None:
         self.site = site
 
@@ -249,7 +249,7 @@ class UploadFileNew:
 class UploadService:
     def __init__(self, site: Site) -> None:
         self.site: Site = site
-        self.uploader: UploadFileNew = UploadFileNew(site)
+        self.uploader: FileUploader = FileUploader(site)
 
     # ----------------------
     #  upload methods
@@ -279,5 +279,5 @@ class UploadService:
 
 __all__ = [
     "UploadService",
-    "UploadFileNew",
+    "FileUploader",
 ]

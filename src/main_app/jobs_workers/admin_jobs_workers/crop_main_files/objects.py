@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
+from ....database.models import TemplateRecord
 from ...shared_objects import StandardAdminWorkerObject
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,9 @@ class FileStep:
     msg: str = ""
     newrevid: int | None = None
 
+    def skip(self, msg: str) -> None:
+        self.result = None
+        self.msg = msg
 
 @dataclass
 class CropFileSteps:
@@ -55,6 +59,37 @@ class CropFileProcessingInfo:
             if isinstance(v, Path):
                 data[x] = str(v)
         return data
+
+    @classmethod
+    def from_template(cls, template: TemplateRecord) -> CropFileProcessingInfo:
+        cropped_filename = cls.generate_cropped_filename(template.last_world_file)
+
+        return cls(
+            template_id=template.id,
+            template_title=template.title,
+            original_file=template.last_world_file,
+            cropped_filename=cropped_filename,
+            timestamp=datetime.now().isoformat(),
+        )
+
+    @staticmethod
+    def generate_cropped_filename(filename: str) -> str:
+        """
+        Transform filename to cropped version.
+
+        Examples:
+            "File:Death rate from obesity, World, 2021.svg"
+            → "File:Death rate from obesity, World, 2021 (cropped).svg"
+        """
+        if filename.startswith("File:"):
+            base_name = filename[5:]
+        else:
+            base_name = filename
+
+        path = Path(base_name)
+        new_stem = f"{path.stem} (cropped)"
+        new_filename = new_stem + path.suffix
+        return f"File:{new_filename}"
 
 
 @dataclass

@@ -10,7 +10,7 @@ import requests
 from src.main_app.api_services.files_service.objects import FileData
 from src.main_app.api_services.files_service.uploader import (
     _RETRY_DELAYS,
-    UploadFileNew,
+    FileUploader,
 )
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -29,7 +29,7 @@ def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 
 
 def _err(message: str | None, error_details: str = "") -> dict[str, object]:
-    """Helper to match the expected return structure of UploadFileNew."""
+    """Helper to match the expected return structure of FileUploader."""
     return {"success": False, "error": message, "error_details": error_details}
 
 
@@ -44,7 +44,7 @@ def tmp_file(tmp_path):
 @pytest.fixture
 def uploader(mock_site, tmp_file):
     """Standard uploader instance with mocks."""
-    return UploadFileNew(
+    return FileUploader(
         site=mock_site,
     )
 
@@ -68,39 +68,39 @@ def make_upload_response(result: str = "success") -> dict:
 
 class TestCheckKwargs:
     def test_no_site(self, tmp_file):
-        u = UploadFileNew(site=None)
+        u = FileUploader(site=None)
         data = FileData.from_dict(file_name="Test.jpg", file_path=tmp_file)
         assert u._check_kwargs(data) == _err("No site provided")
 
     def test_no_file_name(self, mock_site, tmp_file):
-        u = UploadFileNew(site=mock_site)
+        u = FileUploader(site=mock_site)
 
         data = FileData.from_dict(file_name=None, file_path=tmp_file)
         assert u._check_kwargs(data) == _err("File name is required")
 
     def test_no_file_path(self, mock_site):
-        u = UploadFileNew(site=mock_site)
+        u = FileUploader(site=mock_site)
 
         data = FileData.from_dict(file_name="Test.jpg", file_path=None)
         assert u._check_kwargs(data) == _err("File path is None")
 
     def test_existing_file_mode_not_on_commons(self, mock_site, tmp_file):
         mock_site.pages.__getitem__.return_value.exists = False
-        u = UploadFileNew(site=mock_site)
+        u = FileUploader(site=mock_site)
 
         data = FileData.from_dict(file_name="Test.jpg", file_path=tmp_file, new_file=False)
         assert u._check_kwargs(data) == _err("File not found on Commons")
 
     def test_new_file_mode_already_on_commons(self, mock_site, tmp_file):
         mock_site.pages.__getitem__.return_value.exists = True
-        u = UploadFileNew(site=mock_site)
+        u = FileUploader(site=mock_site)
 
         data = FileData.from_dict(file_name="Test.jpg", file_path=tmp_file, new_file=True)
         assert u._check_kwargs(data) == _err("File already exists on Commons")
 
     def test_file_not_on_local_filesystem(self, mock_site):
         mock_site.pages.__getitem__.return_value.exists = True
-        u = UploadFileNew(site=mock_site)
+        u = FileUploader(site=mock_site)
 
         data = FileData.from_dict(file_name="Test.jpg", file_path=Path("/nonexistent/path.jpg"), new_file=False)
         assert u._check_kwargs(data) == _err("File not found")
@@ -110,13 +110,13 @@ class TestCheckKwargs:
         mock_page.exists = True
         mock_site.pages.__getitem__.return_value = mock_page
         data = FileData.from_dict(file_name="Test.jpg", file_path=tmp_file, new_file=False)
-        u = UploadFileNew(site=mock_site)
+        u = FileUploader(site=mock_site)
 
         assert u._check_kwargs(data) == {"success": True, "error": None}
 
     def test_all_valid_new_file(self, mock_site_pages, tmp_file):
         _site = mock_site_pages(False)
-        u = UploadFileNew(site=_site)
+        u = FileUploader(site=_site)
 
         data = FileData.from_dict(file_name="Test.jpg", file_path=tmp_file, new_file=True)
         assert u._check_kwargs(data) == {"success": True, "error": None}
@@ -130,7 +130,7 @@ class TestCheckKwargs:
 class TestUploadFileInternal:
     """Tests the error handling mapping in _upload_file."""
 
-    def test_success(self, uploader: UploadFileNew) -> None:
+    def test_success(self, uploader: FileUploader) -> None:
         uploader._site_upload = MagicMock(return_value=make_upload_response())
         data = FileData.from_dict(
             file_name="Test_file.jpg",
@@ -172,7 +172,7 @@ class TestUploadFileInternal:
         result = uploader._upload_file(data)
         assert result["error"] == expected_code
 
-    def test_other_api_error(self, uploader: UploadFileNew) -> None:
+    def test_other_api_error(self, uploader: FileUploader) -> None:
         uploader._site_upload = MagicMock(side_effect=make_api_error("badtoken", "Invalid token"))
         data = FileData.from_dict(
             file_name="Test_file.jpg",
@@ -186,7 +186,7 @@ class TestUploadFileInternal:
         assert result["error"] == "badtoken"
         assert "error_details" in result
 
-    def test_unexpected_exception(self, uploader: UploadFileNew) -> None:
+    def test_unexpected_exception(self, uploader: FileUploader) -> None:
         uploader._site_upload = MagicMock(side_effect=RuntimeError("boom"))
         data = FileData.from_dict(
             file_name="Test_file.jpg",
@@ -207,12 +207,12 @@ class TestUploadFileInternal:
 
 
 class TestUploadWithRetry:
-    def test_succeeds_on_first_retry(self, uploader: UploadFileNew) -> None:
+    def test_succeeds_on_first_retry(self, uploader: FileUploader) -> None:
         uploader._upload_file = MagicMock(return_value=make_upload_response())
         result = uploader._upload_with_retry(FileData(file_name="file.svg", file_path=""))
         assert result["result"] == "success"
 
-    def test_exhausts_all_retries(self, uploader: UploadFileNew) -> None:
+    def test_exhausts_all_retries(self, uploader: FileUploader) -> None:
         uploader._upload_file = MagicMock(return_value=_err("ratelimited", ""))
         result = uploader._upload_with_retry(FileData(file_name="file.svg", file_path=""))
         assert result["error"] == "ratelimited"
@@ -224,7 +224,7 @@ class TestUploadWithRetry:
         sleep_calls = [call.args[0] for call in mock_sleep.call_args_list]
         assert sleep_calls == list(_RETRY_DELAYS)
 
-    def test_stops_early_on_non_ratelimited_error(self, uploader: UploadFileNew) -> None:
+    def test_stops_early_on_non_ratelimited_error(self, uploader: FileUploader) -> None:
         """If a non-ratelimited error occurs during retry, return it immediately."""
         uploader._upload_file = MagicMock(
             side_effect=[
@@ -236,7 +236,7 @@ class TestUploadWithRetry:
         assert result["error"] == "userblocked"
         assert uploader._upload_file.call_count == 2
 
-    def test_succeeds_on_second_retry(self, uploader: UploadFileNew) -> None:
+    def test_succeeds_on_second_retry(self, uploader: FileUploader) -> None:
         uploader._upload_file = MagicMock(
             side_effect=[
                 _err("ratelimited", ""),

@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 
 from src.main_app.api_services.files_service.objects import FileData
-from src.main_app.api_services.files_service.uploader import _RETRY_DELAYS, UploadFileNew
+from src.main_app.api_services.files_service.uploader import _RETRY_DELAYS, FileUploader
 
 
 @pytest.fixture(autouse=True)
@@ -19,7 +19,7 @@ def mock_sleep(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 
 
 def _err(message: str | None, error_details: str = "") -> dict[str, object]:
-    """Helper to match the expected return structure of UploadFileNew."""
+    """Helper to match the expected return structure of FileUploader."""
     return {"success": False, "error": message, "error_details": error_details}
 
 
@@ -45,12 +45,12 @@ class TestUpload:
         mock_p = MagicMock()
         mock_p.exists = not new_file  # exists=True for update, False for new
         site.pages.__getitem__.return_value = mock_p
-        return UploadFileNew(site=site)
-        # return UploadFileNew("Test.jpg", tmp_file, site, new_file=new_file)
+        return FileUploader(site=site)
+        # return FileUploader("Test.jpg", tmp_file, site, new_file=new_file)
 
     def test_check_kwargs_fails_early(self, mock_site, tmp_file):
         """upload() returns error immediately if _check_kwargs fails."""
-        u = UploadFileNew(None)
+        u = FileUploader(None)
 
         data = FileData.from_dict(file_name="Test.jpg", file_path=tmp_file)
         result = u.upload(data)
@@ -132,7 +132,7 @@ class TestUploadBotIntegration:
 
         mock_site.upload.side_effect = fake_upload
 
-        uploader = UploadFileNew(mock_site)
+        uploader = FileUploader(mock_site)
 
         data = FileData.from_dict(file_name="Integration_Test.jpg", file_path=image_path, new_file=False)
 
@@ -144,7 +144,7 @@ class TestUploadBotIntegration:
     def test_invalid_path_error_handling(self, mock_site, tmp_path):
         # Test behavior with a path that definitely doesn't exist on the OS
         bad_path = tmp_path / "should_not_exist_12345.jpg"
-        uploader = UploadFileNew(mock_site)
+        uploader = FileUploader(mock_site)
 
         data = FileData.from_dict(file_name="Test.jpg", file_path=bad_path)
 

@@ -12,10 +12,10 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps import u
 
 @pytest.fixture
 def mock_upload_class(monkeypatch):
-    """Mock the UploadFileNew class so constructor args are captured."""
+    """Mock the FileUploader class so constructor args are captured."""
     _mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.api_services.files_service.uploader.UploadFileNew",
+        "src.main_app.api_services.files_service.uploader.FileUploader",
         _mock,
     )
     return _mock
@@ -39,7 +39,7 @@ class TestUploadCroppedFile:
         assert result["cropped_filename"] == cropped_filename
         assert result["error"] is None
 
-        # Verify UploadFileNew was constructed with correct parameters
+        # Verify FileUploader was constructed with correct parameters
         mock_upload_class.return_value.upload_obj.assert_called_once_with(
             FileData(
                 file_name="test (cropped).svg",

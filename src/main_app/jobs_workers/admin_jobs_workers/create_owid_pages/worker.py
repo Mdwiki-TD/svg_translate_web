@@ -241,7 +241,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         current_text = sort_categories(current_text)
 
         if current_text.strip() == info._new_text.strip():
-            self._skip_step(info, "update_text", "Skipped - page content is already identical")
+            info.steps["update_text"] = {"result": None, "msg": "Skipped - page content is already identical"}
             info.status = "skipped"
             info.new_page_title = new_title
             self.result.summary.skipped += 1
@@ -312,9 +312,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         file_info.error = error
         self.result.summary.failed += 1
 
-    def _skip_step(self, file_info: TemplateProcessingInfo, step: str, reason: str) -> None:
-        """Mark a step as skipped (result=None)."""
-        file_info.steps[step] = {"result": None, "msg": reason}
 
 
 __all__ = [
