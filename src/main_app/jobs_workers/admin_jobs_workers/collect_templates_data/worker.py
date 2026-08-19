@@ -329,7 +329,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
                 id=n,
                 title=title,
                 source="",
-                status="",
+                status="pending",
             )
             try:
                 self.template_service.add_template_data({"title": title})

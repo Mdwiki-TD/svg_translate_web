@@ -5,7 +5,7 @@ Objects for create_owid_pages worker.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Literal
 
@@ -19,6 +19,7 @@ STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "created", "
 class OneStep:
     result: bool | None = None
     msg: str | None = None
+    newrevid: int = 0
 
 
 @dataclass
@@ -27,6 +28,10 @@ class InfoSteps:
     create_new_text: OneStep = field(default_factory=OneStep)
     update_text: OneStep = field(default_factory=OneStep)
     create_new_page: OneStep = field(default_factory=OneStep)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Dict-like access for backward compatibility with templates."""
+        return getattr(self, key, default)
 
 
 @dataclass
@@ -40,14 +45,7 @@ class TemplateProcessingInfo:
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: STATUS_LIST = "pending"
     error: str | None = None
-    steps: dict[str, dict[str, Any]] = field(
-        default_factory=lambda: {
-            "load_template_text": {"result": None, "msg": ""},
-            "create_new_text": {"result": None, "msg": ""},
-            "update_text": {"result": None, "msg": ""},
-            "create_new_page": {"result": None, "msg": ""},
-        }
-    )
+    steps: InfoSteps = field(default_factory=InfoSteps)
 
     # Internal temporary state
     _template_text: str | None = None
@@ -62,7 +60,7 @@ class TemplateProcessingInfo:
             "timestamp": self.timestamp,
             "status": self.status,
             "error": self.error,
-            "steps": self.steps,
+            "steps": asdict(self.steps),
         }
 
     @classmethod

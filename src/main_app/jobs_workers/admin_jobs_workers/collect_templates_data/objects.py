@@ -32,7 +32,7 @@ class CollectStepResult:
         if new_value:
             self.new_value = new_value
 
-    def _update_if_diff(self, new_value: str = "") -> None:
+    def _update_if_diff(self, new_value: str | None = "") -> None:
         if not new_value:
             return
 
@@ -54,13 +54,14 @@ class CollectFileSteps:
     files: CollectStepResult = field(default_factory=lambda: CollectStepResult())
 
     @classmethod
-    def from_template(cls, template: TemplateData) -> TemplateInfos:
+    def from_template(cls, template: TemplateData) -> CollectFileSteps:
         return cls(
             main_file=CollectStepResult(value=template.main_file or ""),
             last_world_file=CollectStepResult(value=template.last_world_file or ""),
+            newest_year=CollectStepResult(value=str(template.last_world_year or "")),
             source=CollectStepResult(value=template.source),
             slug=CollectStepResult(value=template.slug),
-            files=CollectStepResult(value=template.files),
+            files=CollectStepResult(value=str(template.files or "")),
         )
 
 
@@ -88,7 +89,7 @@ class TemplateInfos:
             id=template.id,
             title=template.title,
             source="",
-            status="",
+            status="pending",
             steps=CollectFileSteps.from_template(template),
         )
 
