@@ -258,7 +258,6 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
         info = ChartNewInfo.from_chart(chart)
 
-        self.result.summary.processed += 1
         _changed = self._process_one_item(chart, info)
         self.update_status(chart.slug, info)
 
@@ -317,6 +316,8 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         return self.process_all()
 
     def update_status(self, slug: str, info: ChartNewInfo) -> None:
+        self.result.summary.processed +=  1
+
         if info.status == "failed":
             if info.error:
                 self.result.failed_charts.append(

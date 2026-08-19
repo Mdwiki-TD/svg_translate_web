@@ -278,7 +278,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
             title_info = FilesProcessedItem(title=title)
 
-            self.result.summary.processed += 1
             ok = self._process_one_item(title_info, self.main_title)
 
             if title_info.is_mapping_merged:
@@ -360,6 +359,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         super().after_run()
 
     def update_status(self, info: FilesProcessedItem):
+        self.result.summary.processed +=  1
+
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 

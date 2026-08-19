@@ -85,7 +85,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
                 slug=template.slug,
             )
 
-            self.result.summary.processed += 1
             ok = self._process_one_item(file_info)
             self.update_status(file_info)
 
@@ -315,6 +314,8 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         self.result.summary.failed += 1
 
     def update_status(self, info: TemplateProcessingInfo) -> None:
+        self.result.summary.processed +=  1
+
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 

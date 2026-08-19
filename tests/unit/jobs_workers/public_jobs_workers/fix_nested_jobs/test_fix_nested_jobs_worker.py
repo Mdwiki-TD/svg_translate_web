@@ -155,7 +155,7 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
 
         mock_fix_nested_services.verify_fix.return_value = VerificationResult(before=2, after=0, fixed=2)
 
-        result = self.processor._verify_step()
+        result = self.processor._upload_step(self.processor.result.stages.verify)
 
         assert result is True
         assert self.processor.result.stages.verify.status == "success"
@@ -166,7 +166,7 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
 
         mock_fix_nested_services.verify_fix.return_value = VerificationResult(before=2, after=2, fixed=0)
 
-        result = self.processor._verify_step()
+        result = self.processor._upload_step(self.processor.result.stages.verify)
 
         assert result is False
         assert self.processor.result.stages.verify.status == "failed"
@@ -177,7 +177,7 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
         self.processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
         mock_fix_nested_services.upload_svg.return_value = UploadResult(ok=True, result={"some": "data"})
 
-        result = self.processor._upload_step()
+        result = self.processor._upload_step(self.processor.result.stages.upload)
 
         assert result is True
         assert self.processor.result.stages.upload.status == "success"
@@ -188,7 +188,7 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
         self.processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
         mock_fix_nested_services.upload_svg.return_value = UploadResult(ok=False, error="Upload failed message")
 
-        result = self.processor._upload_step()
+        result = self.processor._upload_step(self.processor.result.stages.upload)
 
         assert result is False
         assert self.processor.result.stages.upload.status == "failed"
@@ -377,7 +377,7 @@ class TestDownloadStep(TestSetup):
         svg.touch()
         mock_fix_nested_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=svg)
         proc = self.processor
-        result = proc._download_step()
+        result = proc._upload_step(self.processor.result.stages.download)
         assert result is True
         assert proc.result.file_result.success is True
         assert proc.result.stages.download.status == "success"
@@ -387,7 +387,7 @@ class TestDownloadStep(TestSetup):
             result="failed", error="network_error"
         )
         proc = self.processor
-        result = proc._download_step()
+        result = proc._upload_step(self.processor.result.stages.download)
         assert result is False
         assert proc.result.file_result.success is False
         assert proc.result.file_result.error == "network_error"
@@ -396,7 +396,7 @@ class TestDownloadStep(TestSetup):
     def test_failure_defaults_error_when_missing(self, mock_fix_nested_services: MockFixNestedServices):
         mock_fix_nested_services.download_and_save.return_value = DownloadAndSaveData(result="failed")
         proc = self.processor
-        proc._download_step()
+        proc._upload_step(self.processor.result.stages.download)
         assert proc.result.file_result.error == "download_failed"
 
 
@@ -411,13 +411,13 @@ class TestAnalyzeStep(TestSetup):
     def test_skips_when_download_not_success(self, mock_fix_nested_services: MockFixNestedServices):
         proc = self.processor
         proc.result.stages.download.status = "failed"
-        result = proc._analyze_step()
+        result = proc._upload_step(self.processor.result.stages.analyze)
         assert result is None
         mock_fix_nested_services.detect_nested_tags.assert_not_called()
 
     def test_returns_false_when_file_missing(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         proc = self._proc_with_download_success(tmp_path / "missing.svg")
-        result = proc._analyze_step()
+        result = proc._upload_step(self.processor.result.stages.analyze)
         assert result is False
         mock_fix_nested_services.detect_nested_tags.assert_not_called()
 
@@ -426,7 +426,7 @@ class TestAnalyzeStep(TestSetup):
         svg.touch()
         mock_fix_nested_services.detect_nested_tags.return_value = DetectionResult(count=0, tags=[])
         proc = self._proc_with_download_success(svg)
-        result = proc._analyze_step()
+        result = proc._upload_step(self.processor.result.stages.analyze)
         assert result is None
         assert proc.result.stages.analyze.status == "skipped"
         mock_fix_nested_services.detect_nested_tags.assert_called_once()
@@ -436,7 +436,7 @@ class TestAnalyzeStep(TestSetup):
         svg.touch()
         mock_fix_nested_services.detect_nested_tags.return_value = DetectionResult(count=3, tags=["g", "g", "svg"])
         proc = self._proc_with_download_success(svg)
-        result = proc._analyze_step()
+        result = proc._upload_step(self.processor.result.stages.analyze)
         assert result is True
         assert proc.result.file_result.nested_tags_before == 3
         assert proc.result.stages.analyze.status == "success"
@@ -454,21 +454,21 @@ class TestFixStep(TestSetup):
         proc = self.processor
         proc.result.stages.analyze.status = "skipped"
         proc.result.stages.analyze.message = "No nested tags found"
-        result = proc._fix_step()
+        result = proc._upload_step(self.processor.result.stages.fix)
         assert result is None
         mock_fix_nested_services.fix_nested_tags.assert_not_called()
 
     def test_returns_true_on_success(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.fix_nested_tags.return_value = True
         proc = self._proc_after_analyze(tmp_path / "x.svg")
-        result = proc._fix_step()
+        result = proc._upload_step(self.processor.result.stages.fix)
         assert result is True
         assert proc.result.stages.fix.status == "success"
 
     def test_returns_false_on_failure(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.fix_nested_tags.return_value = False
         proc = self._proc_after_analyze(tmp_path / "x.svg")
-        result = proc._fix_step()
+        result = proc._upload_step(self.processor.result.stages.fix)
         assert result is False
         assert proc.result.stages.fix.status == "failed"
 
@@ -483,14 +483,14 @@ class TestVerifyStep(TestSetup):
     def test_skips_when_fix_not_success(self, mock_fix_nested_services: MockFixNestedServices):
         proc = self.processor
         proc.result.stages.fix.status = "failed"
-        result = proc._verify_step()
+        result = proc._upload_step(self.processor.result.stages.verify)
         assert result is None
         mock_fix_nested_services.verify_fix.assert_not_called()
 
     def test_returns_true_when_tags_fixed(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.verify_fix.return_value = VerificationResult(before=0, after=0, fixed=5)
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
-        result = proc._verify_step()
+        result = proc._upload_step(self.processor.result.stages.verify)
         assert result is True
         assert proc.result.file_result.nested_tags_after == 0
         assert proc.result.file_result.nested_tags_fixed == 5
@@ -499,7 +499,7 @@ class TestVerifyStep(TestSetup):
     def test_returns_false_when_no_tags_fixed(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.verify_fix.return_value = VerificationResult(before=0, after=5, fixed=0)
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
-        result = proc._verify_step()
+        result = proc._upload_step(self.processor.result.stages.verify)
         assert result is False
         assert proc.result.stages.verify.status == "failed"
 
@@ -524,35 +524,35 @@ class TestUploadStep(TestSetup):
     def test_skips_when_upload_disabled(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         proc = self._make_processor(args={"filename": "File:x.svg", "upload": False})
         proc.result.stages.verify.status = "success"
-        result = proc._upload_step()
+        result = proc._upload_step(self.processor.result.stages.upload)
         assert result is None
         mock_fix_nested_services.upload_svg.assert_not_called()
 
     def test_skips_when_no_site(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         proc.site = None
-        result = proc._upload_step()
+        result = proc._upload_step(self.processor.result.stages.upload)
         assert result is None
         mock_fix_nested_services.upload_svg.assert_not_called()
 
     def test_skips_when_verify_not_success(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         proc.result.stages.verify.status = "failed"
-        result = proc._upload_step()
+        result = proc._upload_step(self.processor.result.stages.upload)
         assert result is None
         mock_fix_nested_services.upload_svg.assert_not_called()
 
     def test_returns_true_on_success(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.upload_svg.return_value = UploadResult(ok=True, result={})
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
-        result = proc._upload_step()
+        result = proc._upload_step(self.processor.result.stages.upload)
         assert result is True
         assert proc.result.stages.upload.status == "success"
 
     def test_returns_false_on_failure(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.upload_svg.return_value = UploadResult(ok=False, error="permission_denied")
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
-        result = proc._upload_step()
+        result = proc._upload_step(self.processor.result.stages.upload)
         assert result is False
         assert proc.result.stages.upload.status == "failed"
         assert proc.result.stages.upload.message == "permission_denied"

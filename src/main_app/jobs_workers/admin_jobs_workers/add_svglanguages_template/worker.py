@@ -196,7 +196,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
                 break
 
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
-            self.result.summary.processed += 1
+
             # file info
             file_info = TemplateInfo(
                 template_id=template.id,
@@ -223,6 +223,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         return self.result
 
     def update_status(self, info: TemplateInfo) -> None:
+        self.result.summary.processed +=  1
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 

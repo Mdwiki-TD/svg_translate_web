@@ -464,7 +464,9 @@ class TestProcessOneItem:
         mock_lang_worker._step_build_categories = MagicMock(side_effect=mock_build)
         mock_lang_worker._step_save_page = MagicMock(return_value=True)
 
-        result = mock_lang_worker._process_one_item(PageInfo(page_title="OWID/test"))
+        info = PageInfo(page_title="OWID/test")
+        result = mock_lang_worker._process_one_item(info)
+        mock_lang_worker.update_status(info)
 
         assert result is True
         assert mock_lang_worker.result.summary.processed == 1
@@ -474,7 +476,9 @@ class TestProcessOneItem:
         mock_lang_worker._step_extract_file_name = MagicMock()
         mock_lang_worker._step_get_languages = MagicMock()
 
-        result = mock_lang_worker._process_one_item(PageInfo(page_title="OWID/test"))
+        info = PageInfo(page_title="OWID/test")
+        result = mock_lang_worker._process_one_item(info)
+        mock_lang_worker.update_status(info)
 
         assert result is False
         mock_lang_worker._step_extract_file_name.assert_not_called()
@@ -489,7 +493,9 @@ class TestProcessOneItem:
         mock_lang_worker._step_extract_file_name = MagicMock(return_value=False)
         mock_lang_worker._step_get_languages = MagicMock()
 
-        result = mock_lang_worker._process_one_item(PageInfo(page_title="OWID/test"))
+        info = PageInfo(page_title="OWID/test")
+        result = mock_lang_worker._process_one_item(info)
+        mock_lang_worker.update_status(info)
 
         assert result is False
         mock_lang_worker._step_get_languages.assert_not_called()
@@ -518,7 +524,9 @@ class TestProcessOneItem:
         mock_lang_worker._step_check_existing = MagicMock(return_value=[])
         mock_lang_worker._step_save_page = MagicMock()
 
-        result = mock_lang_worker._process_one_item(PageInfo(page_title="OWID/test"))
+        info = PageInfo(page_title="OWID/test")
+        result = mock_lang_worker._process_one_item(info)
+        mock_lang_worker.update_status(info)
 
         assert result is False
         mock_lang_worker._step_save_page.assert_not_called()

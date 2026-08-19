@@ -77,6 +77,10 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
     def get_job_type(self) -> str:
         return "rename_owid_pages"
 
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
     def process(self) -> RenameOwidPagesWorkerObject:
         if not self._check_site():
             return self.result
@@ -120,8 +124,6 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
 
             info = RenameInfo(namespace=namespace, old_title=old_title, new_title=new_title)
 
-            self.result.summary.processed += 1
-
             changed = self._process_one_item(info)
 
             self.update_status(info)
@@ -139,6 +141,8 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         return self.result
 
     def update_status(self, info: RenameInfo) -> None:
+        self.result.summary.processed +=  1
+
         if info.status == "skipped_target_exists":
             self.result.summary.skipped_target_exists += 1
             self.result.pages_skipped.append(info.to_dict())

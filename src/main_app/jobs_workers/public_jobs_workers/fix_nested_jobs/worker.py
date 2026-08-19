@@ -26,7 +26,6 @@ from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
 
 logger = logging.getLogger(__name__)
 
-
 class FixNestedJobsProcessor(BaseObjectsJobWorker):
     """
     Orchestrates the pipeline for fixing nested tags in SVG files.
@@ -49,12 +48,27 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.files_service = FilesService()
         self.upload_service = UploadService(self.site)
 
+    # ------------------------------------------------------------------
+    # BaseObjectsJobWorker hooks
+    # ------------------------------------------------------------------
+
     def get_job_type(self) -> str:
         """Return the job type identifier."""
         return "fix_nested_jobs"
 
+    # ------------------------------------------------------------------
+    # Per-step
+    # ------------------------------------------------------------------
+
     def _download_step(self, download_stage: StageDetail) -> bool | None:
         """Download SVG files from Commons."""
+
+        if self.is_cancelled():
+            download_stage.status = "cancelled"
+            return False
+
+        download_stage.status = "running"
+        self._save_progress()
 
         temp_dir = Path(tempfile.gettempdir())
 
@@ -85,6 +99,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             error=download_result.error or "download_failed",
         )
 
+        self.result.status = "failed"
         return False
 
     def _analyze_step(self, analyze_stage: StageDetail) -> bool | None:
@@ -222,6 +237,10 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             self.result.status = "failed"
             return False
 
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
     def process(self) -> FixNestedJobsWorkerObject:
         """Execute the full pipeline."""
         if not self._check_site():
@@ -244,7 +263,8 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         # Stage 1: Download SVG files
         self.result.file_result = FileResult()
 
-        if not self._run_step(self.result.stages.download, self._download_step):
+        # if not self._run_step(self.result.stages.download, self._download_step):
+        if not self._download_step(self.result.stages.download):
             self.result.stages.analyze._update("skipped", "download step Failed")
             return self.result
 

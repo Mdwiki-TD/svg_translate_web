@@ -61,6 +61,10 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
     def get_job_type(self) -> str:
         return "add_lang_categories_to_owid_pages"
 
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
     def process(self) -> AddLangCategoriesWorkerObject:
         if not self._check_site():
             return self.result
@@ -80,7 +84,6 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(pages), page_title)
             info = PageInfo(page_title=page_title)
 
-            self.result.summary.processed += 1
             ok = self._process_one_item(info)
             self.update_status(info)
 
@@ -301,6 +304,8 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         self.result.summary.failed += 1
 
     def update_status(self, info: PageInfo):
+        self.result.summary.processed +=  1
+
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 

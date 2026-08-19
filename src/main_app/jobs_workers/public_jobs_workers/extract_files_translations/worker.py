@@ -183,7 +183,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
             self.one_file(title_info)
 
-            self.result.summary.processed += 1
             if title_info.is_mapping_merged:
                 self.result.mapping_mereged += 1
 
@@ -358,6 +357,8 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self._save_progress()
 
     def update_status(self, info: FilesProcessedItem):
+        self.result.summary.processed +=  1
+
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 

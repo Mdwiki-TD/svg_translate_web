@@ -80,7 +80,6 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
 
-            self.result.summary.processed += 1
             ok = self._process_one_item(template)
 
             if ok and self.check_cancel_db_periodic():
@@ -138,6 +137,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         return ok
 
     def update_status(self, info: CropFileProcessingInfo) -> None:
+        self.result.summary.processed +=  1
+
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 

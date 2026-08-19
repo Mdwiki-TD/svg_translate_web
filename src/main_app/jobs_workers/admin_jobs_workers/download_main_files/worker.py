@@ -152,8 +152,6 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
                 logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
                 break
 
-            self.result.summary.processed += 1
-
             file_info = FileInfo(
                 template_id=template.id,
                 template_title=template.title,
@@ -191,6 +189,8 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         return self.result
 
     def update_status(self, info: FileInfo):
+        self.result.summary.processed +=  1
+
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 

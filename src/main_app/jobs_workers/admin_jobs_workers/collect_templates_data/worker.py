@@ -413,7 +413,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         logger.debug(f"Job {self.job_id}: Processing single template {template.title}")
 
-        self.result.summary.processed += 1
         _updated = self._process_one_item(template)
         if _updated:
             logger.debug(f"Job {self.job_id}: Template {template.title} updated")
@@ -504,6 +503,8 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         return self.process_all()
 
     def update_status(self, info: TemplateInfos):
+        self.result.summary.processed +=  1
+
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 
