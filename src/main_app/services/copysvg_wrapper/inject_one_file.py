@@ -79,12 +79,6 @@ def _start_injects(
     overwrite_translations: bool = False,
 ) -> InjectResult:
     """Inject translations into a collection of SVG files and write the results."""
-    _stats = {
-        "error": None,
-        "new_languages_count": 0,
-        "updated_translations": 0,
-    }
-
     if isinstance(translations, TranslationMapping):
         translations = translations.to_json()
 
@@ -94,22 +88,22 @@ def _start_injects(
         overwrite_translations=overwrite_translations,
     )
 
-    data_error = data.error
     stats_obj = data.inject_stats
+    result_error = stats_obj.error or (data.error.code if data.error else None)
     tree = data.tree
 
     if not tree:
         logger.debug(f"Failed to translate {file.name}")
         msg = "Failed to translate"
 
-        if stats_obj.error == "nested_tspan_error":
+        if result_error == "nested_tspan_error":
             msg = "Nested tspan error"
 
         return InjectResult(result=False, msg=msg)
 
-    if stats_obj.error:
+    if result_error:
         logger.debug(f"Failed to translate {file.name}")
-        return InjectResult(result=False, msg=stats_obj.error)
+        return InjectResult(result=False, msg=result_error)
 
     if not stats_obj.has_changes():
         return InjectResult(result=None, msg="No changes")
