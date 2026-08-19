@@ -9,6 +9,7 @@ import pytest
 
 from src.main_app.api_services.clients.objects import RawGrapherMetadataResponse
 from src.main_app.database.models import TemplateRecord
+from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import CollectMainFilesWorker
 
 
@@ -124,7 +125,6 @@ class TestRunner:
 
     @pytest.fixture(autouse=True)
     def setup(self, mock_collect_services):
-        from src.main_app.jobs_workers.objects import JobsRunner
 
         def run_wrapper(job_id, user, cancel_event=None, args=None, form_data=None):
             data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)

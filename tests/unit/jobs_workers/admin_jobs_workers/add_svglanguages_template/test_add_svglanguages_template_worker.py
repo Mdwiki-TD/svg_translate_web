@@ -75,20 +75,22 @@ class TestTemplateInfo:
         assert isinstance(info.timestamp, str)
 
     def test_template_info_steps_initialized(self):
-        """Test that steps dictionary is properly initialized."""
+        """Test that steps are properly initialized."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
 
         expected_steps = ["load_template_text", "generate_template_text", "add_template_text", "save_new_text"]
-        for step in expected_steps:
-            assert step in info.steps
-            assert info.steps[step]["result"] is None
-            assert info.steps[step]["msg"] == ""
+        for step_name in expected_steps:
+            step = getattr(info.steps, step_name)
+            assert step.result is None
+            assert step.msg is None
 
     def test_template_info_to_dict(self):
         """Test TemplateInfo.to_dict() returns correct structure."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info.status = "completed"
-        info.steps["load_template_text"] = {"result": True, "msg": "Loaded"}
+        from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.objects import OneStep
+
+        info.steps.load_template_text = OneStep(result=True, msg="Loaded")
 
         result = info.to_dict()
 
@@ -290,7 +292,7 @@ class TestStepLoadTemplateText:
 
         assert result is True
         assert info._text is not None
-        assert info.steps["load_template_text"]["result"] is True
+        assert info.steps.load_template_text.result is True
 
     def test_load_template_text_returns_empty_string(
         self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate
@@ -305,7 +307,7 @@ class TestStepLoadTemplateText:
         assert result is False
         assert info.status == "failed"
         assert info.error is not None
-        assert info.steps["load_template_text"]["result"] is False
+        assert info.steps.load_template_text.result is False
 
     def test_load_template_text_skips_if_already_has_svglanguages(
         self, mock_add_svglanguages_services, mock_add_svg_worker
@@ -345,7 +347,7 @@ class TestStepGenerateTemplateText:
 
         assert result is True
         assert info._template_text == "{{SVGLanguages|test-file.svg}}"
-        assert info.steps["generate_template_text"]["result"] is True
+        assert info.steps.generate_template_text.result is True
 
     def test_generate_template_text_no_translate_link(self, mock_add_svg_worker: AddSvgSVGLanguagesTemplate):
         """Test failure when no Translate link is found."""
@@ -396,7 +398,7 @@ class TestStepAddTemplate:
 
         assert result is False
         assert info.status == "skipped"
-        assert info.steps["add_template_text"]["result"] is None
+        assert info.steps.add_template_text.result is None
 
 
 class TestStepSaveNewText:
@@ -416,7 +418,7 @@ class TestStepSaveNewText:
         result = mock_add_svg_worker._step_save_new_text(info, mock_page)
 
         assert result is True
-        assert info.steps["save_new_text"]["result"] is True
+        assert info.steps.save_new_text.result is True
         mock_page.edit.assert_called_once()
 
     def test_save_new_text_failure(
@@ -435,7 +437,7 @@ class TestStepSaveNewText:
         assert result is False
         assert info.status == "failed"
         assert info.error == "API error"
-        assert info.steps["save_new_text"]["result"] is False
+        assert info.steps.save_new_text.result is False
 
 
 class TestHelperMethods:
@@ -445,10 +447,10 @@ class TestHelperMethods:
         """Test that _fail correctly marks step and file as failed."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
 
-        mock_add_svg_worker._fail(info, "test_step", "Test error message")
+        mock_add_svg_worker._fail(info, "save_new_text", "Test error message")
 
-        assert info.steps["test_step"]["result"] is False
-        assert info.steps["test_step"]["msg"] == "Test error message"
+        assert info.steps.save_new_text.result is False
+        assert info.steps.save_new_text.msg == "Test error message"
         assert info.status == "failed"
         assert info.error == "Test error message"
 
