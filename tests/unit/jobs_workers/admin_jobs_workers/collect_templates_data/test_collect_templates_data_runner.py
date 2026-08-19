@@ -9,8 +9,8 @@ import pytest
 
 from src.main_app.api_services.clients.objects import RawGrapherMetadataResponse
 from src.main_app.database.models import TemplateRecord
-from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import CollectMainFilesWorker
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture

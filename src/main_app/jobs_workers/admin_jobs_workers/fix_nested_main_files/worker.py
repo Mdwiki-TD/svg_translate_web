@@ -226,6 +226,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         elif info.status == "failed":
             self.result.pages_failed.append(info)
 
+
 __all__ = [
     "FixNestedMainFilesWorker",
 ]

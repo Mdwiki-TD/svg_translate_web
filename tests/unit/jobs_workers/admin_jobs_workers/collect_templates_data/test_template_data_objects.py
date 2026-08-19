@@ -25,7 +25,7 @@ class TestLoadTempInfoFromTemplateData:
         info = TemplateInfos.from_template(template)
         assert info.id == 10
         assert info.title == "Template:Test"
-        assert info.status == ""
+        assert info.status == "pending"
 
     def test_preserves_existing_main_file_in_step(self) -> None:
         template = TemplateData(
