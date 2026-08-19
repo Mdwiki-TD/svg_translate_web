@@ -78,7 +78,7 @@ def _start_injects(
         logger.debug(f"Failed to translate {file.name}")
         msg = "Failed to translate"
 
-        if stats_obj.error == "nested_tspan_error" or stats_obj.nested_tspan_error:
+        if stats_obj.error == "nested_tspan_error" or getattr(stats_obj, "nested_tspan_error", None):
             msg = "Nested tspan error"
 
         return InjectResult(result=False, msg=msg)
