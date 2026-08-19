@@ -22,8 +22,7 @@ _INFO_FILE_PREFIX = (
 )
 
 _INFO_IMAGE_PREFIX = (
-    "A file with this name already exists in the shared file repository. "
-    "[[Image:Old_name.png|thumb|Old_name.png]]"
+    "A file with this name already exists in the shared file repository. [[Image:Old_name.png|thumb|Old_name.png]]"
 )
 
 _INFO_NO_WIKILINK = (

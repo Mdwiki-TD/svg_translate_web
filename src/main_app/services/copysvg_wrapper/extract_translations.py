@@ -39,7 +39,7 @@ def _extract_file_translations(
         result_json: dict[str, Any] = extractor.extract_json(source_file)
     except Exception as e:
         logger.error(f"Failed to extract translations from {source_file}: {e}")
-        return ExtractorData()
+        return ExtractorData(error=str(e))
 
     if not result_json:
         return ExtractorData()
