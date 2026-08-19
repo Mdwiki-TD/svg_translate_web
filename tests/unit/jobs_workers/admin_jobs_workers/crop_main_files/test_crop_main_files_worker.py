@@ -148,10 +148,10 @@ def test_crop_main_files_worker_entry_initializes_result(mock_base_worker):
     assert result.completed_at is None
     assert result.cancelled_at is None
     assert result.summary.total == 0
-    assert len(result.pages_processed) == 0
+    assert result.summary.processed == 0
     assert result.summary.cropped == 0
-    assert result.summary.uploaded == 0
-    assert result.summary.failed == 0
+    assert len(result.pages_uploaded) == 0
+    assert len(result.pages_failed) == 0
     assert len(result.pages_skipped) == 0
     assert result.pages_processed == []
 

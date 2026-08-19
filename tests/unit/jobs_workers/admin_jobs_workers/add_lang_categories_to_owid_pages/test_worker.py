@@ -169,9 +169,9 @@ class TestWorkerInit:
 
         assert result.status == "pending"
         assert result.summary.total == 0
-        assert len(result.pages_processed) == 0
-        assert result.summary.success == 0
-        assert result.summary.failed == 0
+        assert result.summary.processed == 0
+        assert len(result.pages_success) == 0
+        assert len(result.pages_failed) == 0
         assert len(result.pages_skipped) == 0
         assert result.summary.no_file == 0
 

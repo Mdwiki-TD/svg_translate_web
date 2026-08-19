@@ -142,11 +142,10 @@ class TestWorkerInit:
         result = _worker.result
         assert result.status == "pending"
         assert result.summary.total == 0
-        assert len(result.pages_processed) == 0
+        assert result.summary.processed == 0
         assert len(result.pages_renamed) == 0
-        assert result.summary.skipped_target_exists == 0
-        assert result.summary.redirected == 0
-        assert result.summary.failed == 0
+        assert len(result.pages_redirected) == 0
+        assert len(result.pages_failed) == 0
         assert result.pages_processed == []
         assert result.started_at is not None
 
