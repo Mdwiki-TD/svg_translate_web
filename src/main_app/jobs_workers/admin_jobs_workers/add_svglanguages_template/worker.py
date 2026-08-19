@@ -13,7 +13,7 @@ from ....database.models import TemplateRecord
 from ....database.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import AddSvgLanguagesWorkerObject, TemplateInfo
+from .objects import AddSvgLanguagesWorkerObject, OneStep, TemplateInfo
 from .utils import RE_SVG_LANG, add_template_to_text, extract_svg_file_name
 
 logger = logging.getLogger(__name__)
@@ -76,10 +76,10 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
 
         match = RE_SVG_LANG.search(file_info._text if file_info._text else "")
         if match:
-            file_info.steps["load_template_text"] = {
-                "result": None,
-                "msg": "Skipped - page content is already has {{SVGLanguages|...}}",
-            }
+            file_info.steps.load_template_text = OneStep(
+                result=None,
+                msg="Skipped - page content is already has {{SVGLanguages|...}}",
+            )
             self.result.pages_skipped.append(file_info.to_dict())
             return False
 
@@ -115,7 +115,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
             self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
             return False
 
-        info.steps["load_template_text"] = {"result": True, "msg": "Loaded template text"}
+        info.steps.load_template_text = OneStep(result=True, msg="Loaded template text")
         info._text = text
         return True
 
@@ -127,7 +127,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
             self._fail(info, "generate_template_text", f"Could not load svgtranslate link for {info.template_title}")
             return False
 
-        info.steps["generate_template_text"] = {"result": True, "msg": "Template wikitext generated"}
+        info.steps.generate_template_text = OneStep(result=True, msg="Template wikitext generated")
 
         info._template_text = f"{{{{SVGLanguages|{translate_link_file_name}}}}}"
 
@@ -138,11 +138,11 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         info._new_text = add_template_to_text(info._text, info._template_text)
 
         if info._text and (info._text.strip() == info._new_text.strip()):
-            info.steps["add_template_text"] = {"result": None, "msg": "Skipped - page content is already identical"}
+            info.steps.add_template_text = OneStep(result=None, msg="Skipped - page content is already identical")
             info.status = "skipped"
             return False
 
-        info.steps["add_template_text"] = {"result": True, "msg": "Wikitext updated"}
+        info.steps.add_template_text = OneStep(result=True, msg="Wikitext updated")
         return True
 
     def _step_save_new_text(self, info: TemplateInfo, page: MwClientPage) -> bool:
@@ -155,11 +155,11 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         )
 
         if update_result["success"]:
-            info.steps["save_new_text"] = {
-                "result": True,
-                "msg": "Template page updated.",
-                "newrevid": update_result.get("newrevid", 0),
-            }
+            info.steps.save_new_text = OneStep(
+                result=True,
+                msg="Template page updated.",
+                newrevid=update_result.get("newrevid", 0),
+            )
             return True
 
         err = update_result.get("error", "Unknown error")
@@ -172,7 +172,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
 
     def _fail(self, file_info: TemplateInfo, step: str, error: str) -> None:
         """Mark a step and the file as failed, and increment the summary counter."""
-        file_info.steps[step] = {"result": False, "msg": error}
+        setattr(file_info.steps, step, OneStep(result=False, msg=error))
         file_info.status = "failed"
         file_info.error = error
 

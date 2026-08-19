@@ -15,7 +15,7 @@ from ....database.services import TemplateService
 from ....utils.wikitext import merge_categories, sort_categories
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import CreateOwidPagesWorkerObject, TemplateProcessingInfo
+from .objects import CreateOwidPagesWorkerObject, OneStep, TemplateProcessingInfo
 from .owid_template_converter import create_new_text
 
 logger = logging.getLogger(__name__)
@@ -201,7 +201,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             self._fail(info, "load_template_text", f"Could not retrieve text for {info.template_title}")
             return False
 
-        info.steps["load_template_text"] = {"result": True, "msg": "Loaded template text"}
+        info.steps.load_template_text = OneStep(result=True, msg="Loaded template text")
         info._template_text = text
         return True
 
@@ -209,7 +209,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         """Generate the new OWID page wikitext. Returns True on success."""
         try:
             new_text = create_new_text(info._template_text, info.template_title)
-            info.steps["create_new_text"] = {"result": True, "msg": "Target wikitext generated"}
+            info.steps.create_new_text = OneStep(result=True, msg="Target wikitext generated")
             info._new_text = new_text
             return True
         except Exception as exc:
@@ -238,7 +238,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         current_text = sort_categories(current_text)
 
         if current_text.strip() == info._new_text.strip():
-            info.steps["update_text"] = {"result": None, "msg": "Skipped - page content is already identical"}
+            info.steps.update_text = OneStep(result=None, msg="Skipped - page content is already identical")
             info.status = "skipped"
             info.new_page_title = new_title
             self.result.summary.skipped += 1
@@ -252,11 +252,11 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
         if res["success"]:
             self.result.summary.updated += 1
-            info.steps["update_text"] = {
-                "result": True,
-                "msg": f"Updated page: {new_title}",
-                "newrevid": res.get("newrevid", 0),
-            }
+            info.steps.update_text = OneStep(
+                result=True,
+                msg=f"Updated page: {new_title}",
+                newrevid=res.get("newrevid", 0),
+            )
             info.new_page_title = new_title
             info.status = "updated"
             return True
@@ -283,11 +283,11 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             return False
 
         self.result.summary.created += 1
-        info.steps["create_new_page"] = {
-            "result": True,
-            "msg": f"Created: {new_title}",
-            "newrevid": res.get("newrevid", 0),
-        }
+        info.steps.create_new_page = OneStep(
+            result=True,
+            msg=f"Created: {new_title}",
+            newrevid=res.get("newrevid", 0),
+        )
         info.new_page_title = new_title
         info.status = "created"
         return True
@@ -304,7 +304,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
     def _fail(self, file_info: TemplateProcessingInfo, step: str, error: str) -> None:
         """Mark a step and the file as failed, and increment the summary counter."""
-        file_info.steps[step] = {"result": False, "msg": error}
+        setattr(file_info.steps, step, OneStep(result=False, msg=error))
         file_info.status = "failed"
         file_info.error = error
         self.result.summary.failed += 1
