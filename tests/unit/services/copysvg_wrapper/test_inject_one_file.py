@@ -19,6 +19,15 @@ def mock_tree():
 
 
 @pytest.fixture
+def mock_write_svg_file(monkeypatch: pytest.MonkeyPatch):
+    mock = MagicMock(return_value=True)
+    monkeypatch.setattr(
+        "src.main_app.services.copysvg_wrapper.inject_one_file.write_svg_file",
+        mock,
+    )
+    return mock
+
+@pytest.fixture
 def mock_inject(monkeypatch: pytest.MonkeyPatch):
     mock = MagicMock()
     monkeypatch.setattr(
@@ -42,7 +51,7 @@ def output_file(tmp_path: Path) -> Path:
     return out
 
 
-class TestStartInjects:
+class TestInjectsWriteSvgFile:
     def test_new_languages(self, mock_inject, mock_tree, svg_file, output_file):
         data = InjectorData(tree=mock_tree)
         data.inject_stats._update(new_languages_count=3, updated_translations=0, error=None)
@@ -59,7 +68,43 @@ class TestStartInjects:
             str(output_file), encoding="utf-8", xml_declaration=True, pretty_print=True
         )
 
-    def test_updated_translations_only(self, mock_inject, mock_tree, svg_file, output_file):
+    def test_tree_write_oserror(self, mock_inject, mock_tree, svg_file, output_file):
+        mock_tree.write.side_effect = OSError("Permission denied")
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(
+            new_languages_count=2,
+            updated_translations=1,
+            error=None,
+        )
+
+        mock_inject.return_value = data
+
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
+
+        assert result.result is False
+        assert result.msg == "Failed to write file"
+        assert result.new_languages_count == 2
+        assert result.updated_translations == 1
+
+    def test_tree_write_generic_exception(self, mock_inject, mock_tree, svg_file, output_file):
+        mock_tree.write.side_effect = RuntimeError("disk full")
+        data = InjectorData(tree=mock_tree)
+        data.inject_stats._update(
+            new_languages_count=2,
+            updated_translations=1,
+            error=None,
+        )
+
+        mock_inject.return_value = data
+
+        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
+
+        assert result.result is False
+        assert result.msg == "Failed to write file"
+
+
+class TestStartInjects:
+    def test_updated_translations_only(self, mock_write_svg_file, mock_inject, mock_tree, svg_file, output_file):
 
         data = InjectorData(tree=mock_tree)
         data.inject_stats._update(new_languages_count=0, updated_translations=5, error=None)
@@ -105,41 +150,7 @@ class TestStartInjects:
         assert result.result is False
         assert result.msg == "Some error occurred"
 
-    def test_tree_write_oserror(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_tree.write.side_effect = OSError("Permission denied")
-        data = InjectorData(tree=mock_tree)
-        data.inject_stats._update(
-            new_languages_count=2,
-            updated_translations=1,
-            error=None,
-        )
-
-        mock_inject.return_value = data
-
-        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
-
-        assert result.result is False
-        assert result.msg == "Failed to write file"
-        assert result.new_languages_count == 2
-        assert result.updated_translations == 1
-
-    def test_tree_write_generic_exception(self, mock_inject, mock_tree, svg_file, output_file):
-        mock_tree.write.side_effect = RuntimeError("disk full")
-        data = InjectorData(tree=mock_tree)
-        data.inject_stats._update(
-            new_languages_count=2,
-            updated_translations=1,
-            error=None,
-        )
-
-        mock_inject.return_value = data
-
-        result = inject_step_one_file(svg_file, {}, output_file, overwrite_translations=False)
-
-        assert result.result is False
-        assert result.msg == "Failed to write file"
-
-    def test_new_and_updated_both_present(self, mock_inject, mock_tree, svg_file, output_file):
+    def test_new_and_updated_both_present(self, mock_write_svg_file, mock_inject, mock_tree, svg_file, output_file):
         data = InjectorData(tree=mock_tree)
         data.inject_stats._update(
             new_languages_count=2,

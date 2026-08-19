@@ -8,6 +8,7 @@ from typing import Any
 
 from CopySVGTranslation import SVGTranslationInjector, TranslationConfig  # type: ignore
 from CopySVGTranslation.exceptions import CopySVGTranslationError  # type: ignore
+from lxml import etree
 
 from .mapping import (
     InjectorData,
@@ -17,6 +18,15 @@ from .mapping import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def write_svg_file(output_file, tree: etree._ElementTree) -> None:
+    try:
+        tree.write(str(output_file), encoding="utf-8", xml_declaration=True, pretty_print=True)
+        return True
+    except (OSError, Exception):
+        logger.error("Failed to write translated SVG: %s", output_file)
+        return False
 
 
 def write_msg(stats: InjectorStats) -> str:
@@ -72,6 +82,37 @@ def start_svg_injection(
     return data
 
 
+def _inject(
+    file_name: str,
+    data: InjectorData,
+) -> InjectResult:
+    """Inject translations into a collection of SVG files and write the results."""
+    stats_obj = data.inject_stats
+    result_error = stats_obj.error or (data.error.code if data.error else None)
+    tree = data.tree
+
+    if not tree:
+        logger.debug(f"Failed to translate {file_name}")
+        msg = "Failed to translate"
+
+        if result_error == "nested_tspan_error":
+            msg = "Nested tspan error"
+
+        return InjectResult(result=False, msg=msg)
+
+    if result_error:
+        logger.debug(f"Failed to translate {file_name}")
+        return InjectResult(result=False, msg=result_error)
+
+    if not stats_obj.has_changes():
+        return InjectResult(result=None, msg="No changes")
+
+    return InjectResult.from_stats(
+        stats=stats_obj,
+        result=True,
+    )
+
+
 def inject_step_one_file(
     file: Path,
     translations: dict[str, Any] | TranslationMapping,
@@ -82,52 +123,31 @@ def inject_step_one_file(
     if isinstance(translations, TranslationMapping):
         translations = translations.to_json()
 
-    data = start_svg_injection(
+    data: InjectorData = start_svg_injection(
         inject_file=file,
         mapping=translations,
         overwrite_translations=overwrite_translations,
     )
 
-    stats_obj = data.inject_stats
-    result_error = stats_obj.error or (data.error.code if data.error else None)
-    tree = data.tree
+    inject_result: InjectResult = _inject(file_name=file.name, data=data)
 
-    if not tree:
-        logger.debug(f"Failed to translate {file.name}")
-        msg = "Failed to translate"
+    if not inject_result.result:
+        return inject_result
 
-        if result_error == "nested_tspan_error":
-            msg = "Nested tspan error"
+    saved = write_svg_file(output_file, data)
 
-        return InjectResult(result=False, msg=msg)
+    if saved:
+        inject_result.msg = write_msg(data.inject_stats)
+        return inject_result
 
-    if result_error:
-        logger.debug(f"Failed to translate {file.name}")
-        return InjectResult(result=False, msg=result_error)
+    logger.error("Failed to write translated SVG: %s", output_file)
 
-    if not stats_obj.has_changes():
-        return InjectResult(result=None, msg="No changes")
+    inject_result.result = False
+    inject_result.msg = "Failed to write file"
 
-    msg = write_msg(stats_obj)
-
-    try:
-        tree.write(str(output_file), encoding="utf-8", xml_declaration=True, pretty_print=True)  # type: ignore
-        return InjectResult.from_stats(
-            stats=stats_obj,
-            result=True,
-            msg=msg,
-        )
-
-    except (OSError, Exception):
-        logger.error("Failed to write translated SVG: %s", output_file)
-        return InjectResult.from_stats(
-            stats=stats_obj,
-            result=False,
-            msg="Failed to write file",
-        )
+    return inject_result
 
 
 __all__ = [
-    "InjectResult",
     "inject_step_one_file",
 ]
