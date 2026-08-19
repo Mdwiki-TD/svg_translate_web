@@ -1,5 +1,3 @@
-"""Unit tests for OAuth mwclient site builder (no network)."""
-
 from __future__ import annotations
 
 from typing import Any
@@ -9,6 +7,7 @@ import pytest
 
 from src.main_app.api_services.clients.wiki_client import (
     coerce_encrypted,
+    get_user_groups,
     get_user_site,
 )
 from src.main_app.services.core.crypto import encrypt_value
@@ -22,7 +21,6 @@ class TestCoerceEncrypted:
         assert coerce_encrypted("string") == b"string"
         assert coerce_encrypted(None) is None
         assert coerce_encrypted(123) is None
-        assert coerce_encrypted(None) is None
 
     def test_coerce_encrypted_bytes(self) -> None:
         result = coerce_encrypted(b"test-bytes")
@@ -100,6 +98,61 @@ class TestGetUserSite:
         site = get_user_site(user)
 
         assert site is None
+
+
+class TestGetUserGroups:
+    def test_returns_casefolded_groups(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        site = MagicMock()
+        site.get.return_value = {
+            "query": {"userinfo": {"groups": ["*", "User", "autopatrolled"]}}
+        }
+        monkeypatch.setattr(
+            "src.main_app.api_services.clients.wiki_client.get_user_site",
+            lambda user: site,
+        )
+
+        groups = get_user_groups({"access_token": b"token", "access_secret": b"secret"})
+
+        assert groups == frozenset({"*", "user", "autopatrolled"})
+        site.get.assert_called_once_with("query", meta="userinfo", uiprop="groups")
+
+    def test_returns_empty_group_set_for_user_without_groups(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        site = MagicMock()
+        site.get.return_value = {"query": {"userinfo": {"groups": []}}}
+        monkeypatch.setattr(
+            "src.main_app.api_services.clients.wiki_client.get_user_site",
+            lambda user: site,
+        )
+
+        assert get_user_groups({"access_token": b"token", "access_secret": b"secret"}) == frozenset()
+
+    def test_returns_none_when_oauth_site_is_unavailable(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(
+            "src.main_app.api_services.clients.wiki_client.get_user_site",
+            lambda user: None,
+        )
+
+        assert get_user_groups({"access_token": b"token", "access_secret": b"secret"}) is None
+
+    def test_returns_none_for_missing_groups_response(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        site = MagicMock()
+        site.get.return_value = {"query": {"userinfo": {}}}
+        monkeypatch.setattr(
+            "src.main_app.api_services.clients.wiki_client.get_user_site",
+            lambda user: site,
+        )
+
+        assert get_user_groups({"access_token": b"token", "access_secret": b"secret"}) is None
+
+    def test_returns_none_when_mediawiki_request_fails(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        site = MagicMock()
+        site.get.side_effect = RuntimeError("MediaWiki unavailable")
+        monkeypatch.setattr(
+            "src.main_app.api_services.clients.wiki_client.get_user_site",
+            lambda user: site,
+        )
+
+        assert get_user_groups({"access_token": b"token", "access_secret": b"secret"}) is None
 
 
 @patch("src.main_app.api_services.clients.wiki_client.settings")

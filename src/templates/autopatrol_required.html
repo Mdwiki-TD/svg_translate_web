@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Autopatrol permission required — {{ tool_title }}{% endblock %}
+
+{% block content_fluid %}
+<main class="container py-5">
+    <section class="card shadow-sm border-warning" aria-labelledby="autopatrol-required-title">
+        <div class="card-body p-4">
+            <h1 id="autopatrol-required-title" class="h3 text-warning-emphasis mb-3">Autopatrol permission required</h1>
+            <p class="mb-3">
+                You cannot use this tool because your Commons account does not have the
+                <strong>Autopatrol</strong> permission.
+            </p>
+            <p class="mb-4" lang="ar" dir="rtl">
+                لا يمكنك استخدام هذه الأداة لأن حسابك في كومنز لا يمتلك صلاحية <strong>Autopatrol</strong>.
+            </p>
+            <a class="btn btn-primary" href="{{ autopatrol_request_url }}" target="_blank" rel="noopener noreferrer">
+                Request Autopatrol permission
+                <span class="visually-hidden">(opens Commons in a new tab)</span>
+            </a>
+            <a class="btn btn-outline-secondary ms-2" href="{{ request.referrer or url_for('main.index') }}">Go back</a>
+        </div>
+    </section>
+</main>
+{% endblock %}

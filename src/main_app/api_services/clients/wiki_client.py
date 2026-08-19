@@ -98,7 +98,35 @@ def get_user_site(user: dict[str, Any] | None) -> Site | None:
     return _get_user_site(user)
 
 
+def get_user_groups(user: dict[str, Any] | None) -> frozenset[str] | None:
+    """Return the authenticated user's groups on the configured wiki.
+
+    ``None`` means the groups could not be verified, while an empty set means
+    that the API responded successfully and the user belongs to no groups.
+    """
+    site = get_user_site(user)
+    if site is None:
+        return None
+
+    try:
+        result = site.get("query", meta="userinfo", uiprop="groups")
+        groups = result.get("query", {}).get("userinfo", {}).get("groups")
+    except requests.exceptions.RequestException:
+        logger.warning("Failed to retrieve authenticated user groups from MediaWiki")
+        return None
+    except Exception:
+        logger.exception("Failed to retrieve authenticated user groups from MediaWiki")
+        return None
+
+    if not isinstance(groups, list):
+        logger.warning("MediaWiki userinfo response did not include a groups list")
+        return None
+
+    return frozenset(str(group).casefold() for group in groups)
+
+
 __all__ = [
+    "get_user_groups",
     "get_user_site",
     "get_cronjob_site",
 ]

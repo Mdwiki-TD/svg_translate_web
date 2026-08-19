@@ -122,7 +122,11 @@ def mock_template_data() -> MagicMock:
 
 
 @pytest.fixture
-def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
+def mock_p_app(
+    mock_jobs_data: dict[str, MagicMock],
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Any,
+) -> Flask:
     templates_dir = tmp_path / "templates"
     templates_dir.mkdir()
     (templates_dir / "test_list.html").write_text("list_{{ template_data.job_type }}_{{ template_data.job_name }}")
@@ -130,6 +134,10 @@ def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
 
     app = Flask(__name__, template_folder=str(templates_dir))
     app.secret_key = "test"
+    monkeypatch.setattr(
+        "src.main_app.public.auth.decorators.get_user_groups",
+        lambda payload: frozenset({"autopatrolled"}),
+    )
 
     module = PublicJobsRoutes(
         bp=Blueprint("public_jobs", __name__, url_prefix="/jobs"),
@@ -550,3 +558,37 @@ class TestJobsPublicRoutesRoutes(TestSetup):
             )
             # Now the expand link or plus icon should NOT be there for expanding, but full table structure should be present
             assert "File_0.svg" in rendered_expanded
+
+
+# =========================================================================
+# Autopatrol route protection
+# =========================================================================
+
+
+class TestPublicJobStartAutopatrol:
+    def test_start_route_blocks_user_without_autopatrol(
+        self,
+        mock_p_client,
+        mock_deps: MockJobRoutesDeps,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        user = MagicMock()
+        user.to_auth_payload.return_value = {"username": "testuser"}
+        monkeypatch.setattr(
+            "src.main_app.public.auth.decorators.get_current_user",
+            lambda: user,
+        )
+        monkeypatch.setattr(
+            "src.main_app.public.auth.decorators.get_user_groups",
+            lambda payload: frozenset({"user", "autoconfirmed"}),
+        )
+        monkeypatch.setattr(
+            "src.main_app.public.auth.decorators.render_template",
+            lambda template_name, **context: f"rendered:{template_name}:{context}",
+        )
+
+        response = mock_p_client.post("/jobs/test_job/start")
+
+        assert response.status_code == 403
+        assert "autopatrol_required.html" in response.get_data(as_text=True)
+        mock_deps.start_job.assert_not_called()

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Permission check unavailable — {{ tool_title }}{% endblock %}
+
+{% block content_fluid %}
+<main class="container py-5">
+    <section class="card shadow-sm border-warning" aria-labelledby="permission-check-title">
+        <div class="card-body p-4">
+            <h1 id="permission-check-title" class="h3 text-warning-emphasis mb-3">Permission check unavailable</h1>
+            <p class="mb-0">
+                The tool could not verify your Commons permissions. Please try again shortly.
+            </p>
+        </div>
+    </section>
+</main>
+{% endblock %}
