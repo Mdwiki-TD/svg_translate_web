@@ -208,8 +208,8 @@ class TestRenameOne:
         self.worker.update_status(info)
 
         assert result is True
-        assert self.worker.result.summary.renamed == 1
-        assert self.worker.result.summary.failed == 0
+        assert len(self.worker.result.pages_renamed) == 1
+        assert len(self.worker.result.pages_failed) == 0
 
     def test_move_failure(self):
 
@@ -222,7 +222,7 @@ class TestRenameOne:
         self.worker.update_status(info)
 
         assert result is False
-        assert self.worker.result.summary.failed == 1
+        assert len(self.worker.result.pages_failed) == 1
 
     def test_move_failure_with_details(self, mock_base_worker, mock_db_services):
 
@@ -239,7 +239,7 @@ class TestRenameOne:
         self.worker.update_status(info)
 
         assert result is False
-        assert self.worker.result.summary.failed == 1
+        assert len(self.worker.result.pages_failed) == 1
 
     # ── branch: new_title exists, is redirect → overwrite_translations via move ───────
 
@@ -254,7 +254,7 @@ class TestRenameOne:
         self.worker.update_status(info)
 
         assert result is True
-        assert self.worker.result.summary.renamed == 1
+        assert len(self.worker.result.pages_renamed) == 1
 
     def test_target_is_redirect_overwrite_fails(self):
 
@@ -267,7 +267,7 @@ class TestRenameOne:
         self.worker.update_status(info)
 
         assert result is False
-        assert self.worker.result.summary.failed == 1
+        assert len(self.worker.result.pages_failed) == 1
 
     # ── branch: new_title exists, old is redirect → skip + DB update ─────
 
@@ -281,7 +281,7 @@ class TestRenameOne:
 
         assert result is False
         assert self.worker.result.summary.skipped_target_exists == 1
-        assert self.worker.result.summary.failed == 0
+        assert len(self.worker.result.pages_failed) == 0
         self.worker._update_template_title.assert_called_once_with("Template:OWID/daily", "Template:OWID/Daily")  # type: ignore
 
     # ── branch: new_title exists, neither is redirect → redirect old ─────
@@ -331,7 +331,7 @@ class TestRedirectOldToNew:
         assert result is True
         assert info.status == "redirected"
         assert len(self.worker.result.pages_redirected) == 1
-        assert self.worker.result.summary.failed == 0
+        assert len(self.worker.result.pages_failed) == 0
         mock_page.edit.assert_called_once_with(
             text="#REDIRECT [[Template:OWID/Daily]]",
             summary="Redirecting to [[Template:OWID/Daily]] (capitalize first letter of OWID subpage)",
@@ -349,7 +349,7 @@ class TestRedirectOldToNew:
 
         assert result is False
         assert info.status == "failed"
-        assert self.worker.result.summary.failed == 1
+        assert len(self.worker.result.pages_failed) == 1
 
     def test_redirect_failure_with_details(self):
         info = RenameInfo(namespace=10, old_title="Template:OWID/daily", new_title="Template:OWID/Daily")
