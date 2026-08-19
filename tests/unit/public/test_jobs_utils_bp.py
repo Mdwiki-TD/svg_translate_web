@@ -45,7 +45,6 @@ class TestServeCropFiles:
     """
 
     def test_original_file_strips_file_prefix(self, monkeypatch):
-        from src.main_app.public.jobs_utils_bp import UtilsJobsBp
 
         jobs_utils_module = UtilsJobsBp(Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils"))
         mock_send = Mock()
@@ -58,7 +57,6 @@ class TestServeCropFiles:
 
     def test_compare_crop_files_renders(self, monkeypatch):
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.render_template", lambda t, **c: c)
-        from src.main_app.public.jobs_utils_bp import UtilsJobsBp
 
         jobs_utils_module = UtilsJobsBp(Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils"))
         bp = jobs_utils_module.bp

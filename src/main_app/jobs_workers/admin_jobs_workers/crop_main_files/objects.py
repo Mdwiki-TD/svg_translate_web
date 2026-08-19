@@ -6,10 +6,10 @@ import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import StandardAdminWorkerObject
+from ...shared_objects import STATUS_LIST, StandardAdminWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +34,6 @@ class CropFileSteps:
     update_template: FileStep = field(default_factory=FileStep)
     update_page: FileStep = field(default_factory=FileStep)
     update_cropped: FileStep = field(default_factory=FileStep)
-
-
-STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "uploaded", "failed"]
 
 
 @dataclass

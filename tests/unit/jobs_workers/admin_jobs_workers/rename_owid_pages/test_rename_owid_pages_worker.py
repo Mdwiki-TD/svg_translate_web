@@ -143,10 +143,9 @@ class TestWorkerInit:
         assert result.status == "pending"
         assert result.summary.total == 0
         assert result.summary.processed == 0
-        assert result.summary.renamed == 0
-        assert result.summary.skipped_target_exists == 0
-        assert result.summary.redirected == 0
-        assert result.summary.failed == 0
+        assert len(result.pages_renamed) == 0
+        assert len(result.pages_redirected) == 0
+        assert len(result.pages_failed) == 0
         assert result.pages_processed == []
         assert result.started_at is not None
 
@@ -163,11 +162,11 @@ class TestProcess:
         assert result.status == "failed"
 
 
-# ── tests: _rename_one ────────────────────────────────────────────────────────
+# ── tests: _process_one_item ────────────────────────────────────────────────────────
 
 
 class TestRenameOne:
-    """Tests for _rename_one covering all branches of the target-exists logic."""
+    """Tests for _process_one_item covering all branches of the target-exists logic."""
 
     # ── helpers ─────────────────────────────────────────────────────────
 
@@ -205,12 +204,12 @@ class TestRenameOne:
         self._mock_old_page.move.return_value = {"success": True, "newrevid": 42}
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
-        result = self.worker._rename_one(info)
-        self.worker.update_rename_statistics(info)
+        result = self.worker._process_one_item(info)
+        self.worker.update_status(info)
 
         assert result is True
-        assert self.worker.result.summary.renamed == 1
-        assert self.worker.result.summary.failed == 0
+        assert len(self.worker.result.pages_renamed) == 1
+        assert len(self.worker.result.pages_failed) == 0
 
     def test_move_failure(self):
 
@@ -219,11 +218,11 @@ class TestRenameOne:
         self._mock_old_page.move.return_value = {"success": False, "error": "permission denied"}
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
-        result = self.worker._rename_one(info)
-        self.worker.update_rename_statistics(info)
+        result = self.worker._process_one_item(info)
+        self.worker.update_status(info)
 
         assert result is False
-        assert self.worker.result.summary.failed == 1
+        assert len(self.worker.result.pages_failed) == 1
 
     def test_move_failure_with_details(self, mock_base_worker, mock_db_services):
 
@@ -236,11 +235,11 @@ class TestRenameOne:
         }
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
-        result = self.worker._rename_one(info)
-        self.worker.update_rename_statistics(info)
+        result = self.worker._process_one_item(info)
+        self.worker.update_status(info)
 
         assert result is False
-        assert self.worker.result.summary.failed == 1
+        assert len(self.worker.result.pages_failed) == 1
 
     # ── branch: new_title exists, is redirect → overwrite_translations via move ───────
 
@@ -251,11 +250,11 @@ class TestRenameOne:
         self._mock_old_page.move.return_value = {"success": True, "newrevid": 99}
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
-        result = self.worker._rename_one(info)
-        self.worker.update_rename_statistics(info)
+        result = self.worker._process_one_item(info)
+        self.worker.update_status(info)
 
         assert result is True
-        assert self.worker.result.summary.renamed == 1
+        assert len(self.worker.result.pages_renamed) == 1
 
     def test_target_is_redirect_overwrite_fails(self):
 
@@ -264,11 +263,11 @@ class TestRenameOne:
         self._mock_old_page.move.return_value = {"success": False, "error": "error"}
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
-        result = self.worker._rename_one(info)
-        self.worker.update_rename_statistics(info)
+        result = self.worker._process_one_item(info)
+        self.worker.update_status(info)
 
         assert result is False
-        assert self.worker.result.summary.failed == 1
+        assert len(self.worker.result.pages_failed) == 1
 
     # ── branch: new_title exists, old is redirect → skip + DB update ─────
 
@@ -277,12 +276,12 @@ class TestRenameOne:
         self._set_pages(new_exists=True, new_is_redirect=False, old_is_redirect=True)
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
-        result = self.worker._rename_one(info)
-        self.worker.update_rename_statistics(info)
+        result = self.worker._process_one_item(info)
+        self.worker.update_status(info)
 
         assert result is False
         assert self.worker.result.summary.skipped_target_exists == 1
-        assert self.worker.result.summary.failed == 0
+        assert len(self.worker.result.pages_failed) == 0
         self.worker._update_template_title.assert_called_once_with("Template:OWID/daily", "Template:OWID/Daily")  # type: ignore
 
     # ── branch: new_title exists, neither is redirect → redirect old ─────
@@ -297,8 +296,8 @@ class TestRenameOne:
             m.setattr(self.worker, "_redirect_old_to_new", mock_redirect)
 
             info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
-            result = self.worker._rename_one(info)
-            self.worker.update_rename_statistics(info)
+            result = self.worker._process_one_item(info)
+            self.worker.update_status(info)
 
             mock_redirect.assert_called_once()
             call_args = mock_redirect.call_args
@@ -327,12 +326,12 @@ class TestRedirectOldToNew:
         mock_page.edit.return_value = {"success": True, "newrevid": 55}
 
         result = self.worker._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
-        self.worker.update_rename_statistics(info)
+        self.worker.update_status(info)
 
         assert result is True
         assert info.status == "redirected"
-        assert self.worker.result.summary.redirected == 1
-        assert self.worker.result.summary.failed == 0
+        assert len(self.worker.result.pages_redirected) == 1
+        assert len(self.worker.result.pages_failed) == 0
         mock_page.edit.assert_called_once_with(
             text="#REDIRECT [[Template:OWID/Daily]]",
             summary="Redirecting to [[Template:OWID/Daily]] (capitalize first letter of OWID subpage)",
@@ -346,11 +345,11 @@ class TestRedirectOldToNew:
         mock_page.edit.return_value = {"success": False, "error": "protected page"}
 
         result = self.worker._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
-        self.worker.update_rename_statistics(info)
+        self.worker.update_status(info)
 
         assert result is False
         assert info.status == "failed"
-        assert self.worker.result.summary.failed == 1
+        assert len(self.worker.result.pages_failed) == 1
 
     def test_redirect_failure_with_details(self):
         info = RenameInfo(namespace=10, old_title="Template:OWID/daily", new_title="Template:OWID/Daily")
@@ -360,7 +359,7 @@ class TestRedirectOldToNew:
         mock_page.edit.return_value = {"success": False, "error": "blocked", "details": "abuse filter"}
 
         result = self.worker._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
-        self.worker.update_rename_statistics(info)
+        self.worker.update_status(info)
 
         assert result is False
         assert info.status == "failed"

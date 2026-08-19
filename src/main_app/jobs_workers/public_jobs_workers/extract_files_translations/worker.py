@@ -183,20 +183,10 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
             self.one_file(title_info)
 
-            self.result.summary.processed += 1
             if title_info.is_mapping_merged:
                 self.result.mapping_mereged += 1
 
-            if title_info.status.lower() in ["pending", "running"]:
-                title_info.status = "completed"
-
-            if title_info.status == "success":
-                self.result.files_success.append(title_info)
-
-            elif title_info.status == "failed":
-                self.result.files_failed.append(title_info)
-            else:
-                self.result.files_processed.append(title_info)
+            self.update_status(title_info)
 
             if self.is_cancelled():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -365,6 +355,20 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self.result.mapping = self.mapping.to_json()
 
         self._save_progress()
+
+    def update_status(self, info: FilesProcessedItem):
+        self.result.summary.processed += 1
+
+        if info.status in ["pending", "running"]:
+            info.status = "completed"
+
+        if info.status == "success":
+            self.result.files_success.append(info)
+
+        elif info.status == "failed":
+            self.result.files_failed.append(info)
+        else:
+            self.result.files_processed.append(info)
 
 
 __all__ = [

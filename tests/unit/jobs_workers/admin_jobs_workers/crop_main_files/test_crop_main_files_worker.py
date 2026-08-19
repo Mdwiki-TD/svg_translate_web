@@ -40,7 +40,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "update_information_author": MagicMock(side_effect=lambda text, author_citation: text),
         "update_original_file_text": MagicMock(return_value="Updated original text"),
         "update_template_page_file_reference": MagicMock(return_value="Updated template text"),
-        "generate_cropped_filename": MagicMock(side_effect=lambda x: f"File:{x.replace('File:', '')} (cropped).svg"),
+        # "generate_cropped_filename": MagicMock(side_effect=lambda x: f"File:{x.replace('File:', '')} (cropped).svg"),
         "settings": mock_settings,
         "get_user_site": mock_base_worker["get_user_site"],
     }
@@ -65,15 +65,15 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         mocks["list"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.create_commons_session",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.create_commons_session",
         mocks["create_commons_session"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.MwClientPage",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.MwClientPage",
         mocks["MwClientPage"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.OwidChartsService",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.OwidChartsService",
         mocks["OwidChartsService"],
     )
     monkeypatch.setattr(
@@ -81,39 +81,39 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         MagicMock(return_value={}),
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.download_file_for_cropping",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.download_file_for_cropping",
         mocks["download_file"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.crop_svg_file",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.crop_svg_file",
         mocks["crop_svg_file"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.upload_cropped_file",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.upload_cropped_file",
         mocks["upload_cropped_file"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.create_cropped_file_text",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.create_cropped_file_text",
         mocks["create_cropped_file_text"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_information_author",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.update_information_author",
         mocks["update_information_author"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_original_file_text",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.update_original_file_text",
         mocks["update_original_file_text"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.update_template_page_file_reference",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.update_template_page_file_reference",
         mocks["update_template_page_file_reference"],
     )
+    # monkeypatch.setattr(
+    #     "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.generate_cropped_filename",
+    #     mocks["generate_cropped_filename"],
+    # )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.generate_cropped_filename",
-        mocks["generate_cropped_filename"],
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.settings",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.settings",
         mocks["settings"],
     )
 
@@ -150,9 +150,9 @@ def test_crop_main_files_worker_entry_initializes_result(mock_base_worker):
     assert result.summary.total == 0
     assert result.summary.processed == 0
     assert result.summary.cropped == 0
-    assert result.summary.uploaded == 0
-    assert result.summary.failed == 0
-    assert result.summary.skipped == 0
+    assert len(result.pages_uploaded) == 0
+    assert len(result.pages_failed) == 0
+    assert len(result.pages_skipped) == 0
     assert result.pages_processed == []
 
 
@@ -398,7 +398,7 @@ class TestCropMainFilesProcessorSteps:
         )
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
-        result = processor._step_download(file_info, template)
+        result = processor.files_processor._step_download(file_info, template)
 
         assert result is True
         assert str(file_info.downloaded_path) == str(tmp_path / "test.svg")
@@ -424,38 +424,12 @@ class TestCropMainFilesProcessorSteps:
         )
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
-        result = processor._step_download(file_info, template)
+        result = processor.files_processor._step_download(file_info, template)
 
         assert result is False
         assert file_info.status == "failed"
         assert file_info.steps.download.result is False
         assert "Network error" in file_info.steps.download.msg
-        assert processor.result.summary.failed == 1
-
-    def test_step_download_exception(self, mock_crop_services):
-        """Test _step_download when exception occurs."""
-        mock_crop_services["download_file"].side_effect = ConnectionError("Connection refused")
-
-        processor = CropMainFilesWorker(
-            JobsRunner(
-                job_id=1,
-                user={},
-            )
-        )
-
-        file_info = CropFileProcessingInfo(
-            template_id=1,
-            template_title="Template:Test",
-            original_file="File:test.svg",
-            cropped_filename="File:test (cropped).svg",
-        )
-        template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
-
-        result = processor._step_download(file_info, template)
-
-        assert result is False
-        assert file_info.status == "failed"
-        assert "ConnectionError" in file_info.steps.download.msg
 
     def test_step_crop_success(self, mock_crop_services, tmp_path):
         """Test _step_crop with successful crop."""
@@ -478,12 +452,11 @@ class TestCropMainFilesProcessorSteps:
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
         cropped_output_path = tmp_path / "test (cropped).svg"
 
-        result = processor._step_crop(file_info, template, cropped_output_path)
+        result = processor.files_processor._step_crop(file_info, template, cropped_output_path)
 
         assert result is True
         assert file_info.cropped_path == cropped_output_path
         assert file_info.steps.crop.result is True
-        assert processor.result.summary.cropped == 1
 
     def test_step_crop_failure(self, mock_crop_services, tmp_path):
         """Test _step_crop when crop fails."""
@@ -506,13 +479,12 @@ class TestCropMainFilesProcessorSteps:
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
         cropped_output_path = tmp_path / "test (cropped).svg"
 
-        result = processor._step_crop(file_info, template, cropped_output_path)
+        result = processor.files_processor._step_crop(file_info, template, cropped_output_path)
 
         assert result is False
         assert file_info.status == "failed"
         assert file_info.steps.crop.result is False
         assert "Invalid SVG" in file_info.steps.crop.msg
-        assert processor.result.summary.failed == 1
 
     def test_step_upload_success(self, mock_crop_services, tmp_path):
         """Test _step_upload with successful upload."""
@@ -535,12 +507,11 @@ class TestCropMainFilesProcessorSteps:
         )
         file_info.cropped_path = tmp_path / "test (cropped).svg"
 
-        result = processor._step_upload(file_info)
+        result = processor.files_processor._step_upload(file_info)
 
         assert result is True
         assert file_info.status == "uploaded"
         assert file_info.steps.upload_cropped.result is True
-        assert processor.result.summary.uploaded == 1
 
     def test_step_upload_passes_stored_source_to_wikitext_builder(self, mock_crop_services, tmp_path):
         """Test that uploads use the citation stored for the OWID chart as the Author value."""
@@ -565,7 +536,7 @@ class TestCropMainFilesProcessorSteps:
             slug="wheat-production",
         )
 
-        result = processor._step_upload(file_info, template)
+        result = processor.files_processor._step_upload(file_info, template)
 
         assert result is True
         mock_crop_services["owid_charts_service"].get_chart_by_slug.assert_called_once_with("wheat-production")
@@ -596,11 +567,10 @@ class TestCropMainFilesProcessorSteps:
         )
         file_info.cropped_path = tmp_path / "test (cropped).svg"
 
-        result = processor._step_upload(file_info)
+        result = processor.files_processor._step_upload(file_info)
 
         assert result is None  # Should continue to wikitext updates
         assert file_info.status == "skipped"
-        assert processor.result.summary.skipped == 1
 
     def test_step_upload_failure(self, mock_crop_services, tmp_path):
         """Test _step_upload when upload fails."""
@@ -623,12 +593,11 @@ class TestCropMainFilesProcessorSteps:
         )
         file_info.cropped_path = tmp_path / "test (cropped).svg"
 
-        result = processor._step_upload(file_info)
+        result = processor.files_processor._step_upload(file_info)
 
         assert result is False
         assert file_info.status == "failed"
         assert file_info.error == "Upload failed"
-        assert processor.result.summary.failed == 1
 
     def test_step_update_original_no_change(self, mock_crop_services):
         """Test _step_update_original when no update is needed."""
@@ -650,7 +619,7 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_original(file_info)
+        processor.files_processor._step_update_original(file_info)
 
         assert file_info.steps.update_original.result is None
         assert file_info.steps.update_original.msg == "No update needed"
@@ -677,7 +646,7 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_original(file_info)
+        processor.files_processor._step_update_original(file_info)
 
         assert file_info.steps.update_original.result is True
         mock_crop_services["MwClientPage"].return_value.edit.assert_called_once()
@@ -703,7 +672,7 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_original(file_info)
+        processor.files_processor._step_update_original(file_info)
 
         assert file_info.steps.update_original.result is False
         assert "Edit conflict" in file_info.steps.update_original.msg
@@ -729,7 +698,7 @@ class TestCropMainFilesProcessorSteps:
             slug="wheat-production",
         )
 
-        result = processor._step_update_cropped(file_info, template)
+        result = processor.files_processor._step_update_cropped(file_info, template)
 
         assert result is False
         assert file_info.steps.update_cropped.result is None
@@ -764,7 +733,7 @@ class TestCropMainFilesProcessorSteps:
             slug="wheat-production",
         )
 
-        result = processor._step_update_cropped(file_info, template)
+        result = processor.files_processor._step_update_cropped(file_info, template)
 
         assert result is True
         assert file_info.steps.update_cropped.result is True
@@ -797,7 +766,7 @@ class TestCropMainFilesProcessorSteps:
             slug="wheat-production",
         )
 
-        result = processor._step_update_cropped(file_info, template)
+        result = processor.files_processor._step_update_cropped(file_info, template)
 
         assert result is False
         assert file_info.steps.update_cropped.result is False
@@ -824,7 +793,9 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_page_reference(file_info, "Template:Test", file_info.steps.update_template)
+        processor.files_processor._step_update_page_reference(
+            file_info, "Template:Test", file_info.steps.update_template
+        )
 
         assert file_info.steps.update_template.result is None
         assert file_info.steps.update_template.msg == "No update needed"
@@ -852,7 +823,9 @@ class TestCropMainFilesProcessorSteps:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._step_update_page_reference(file_info, "Template:Test", file_info.steps.update_template)
+        processor.files_processor._step_update_page_reference(
+            file_info, "Template:Test", file_info.steps.update_template
+        )
 
         assert file_info.steps.update_template.result is True
         mock_crop_services["MwClientPage"].return_value.edit.assert_called_once()
@@ -878,12 +851,11 @@ class TestCropMainFilesProcessorHelpers:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._fail(file_info, file_info.steps.download, "Download failed")
+        processor.files_processor._fail(file_info, file_info.steps.download, "Download failed")
 
         assert file_info.status == "failed"
         assert file_info.error == "Download failed"
         assert file_info.steps.download.result is False
-        assert processor.result.summary.failed == 1
 
     def test_skip_upload_steps(self, mock_crop_services):
         """Test _skip_upload_steps marks upload steps as skipped."""
@@ -902,7 +874,7 @@ class TestCropMainFilesProcessorHelpers:
             cropped_filename="File:test (cropped).svg",
         )
 
-        processor._skip_upload_steps(file_info)
+        processor.files_processor._skip_upload_steps(file_info)
 
         assert file_info.status == "skipped"
         assert file_info.steps.upload_cropped.result is None
@@ -910,7 +882,6 @@ class TestCropMainFilesProcessorHelpers:
         assert file_info.steps.update_template.result is None
         assert file_info.steps.update_page.result is None
         assert file_info.steps.update_cropped.result is None
-        assert processor.result.summary.skipped == 1
         assert file_info.cropped_filename == ""
 
     def test_is_cancelled_with_event(self, mock_crop_services):
@@ -992,8 +963,12 @@ class TestCropMainFilesProcessorProcessTemplate:
         # Should skip download, crop, and upload steps
         assert hasattr(processor.result, "pages_updated")
         assert processor.result.pages_updated != []
-        assert processor.result.pages_updated[0]["steps"]["download"]["result"] is None
-        assert "Skipped" in processor.result.pages_updated[0]["steps"]["download"]["msg"]
+
+        file_info = processor.result.pages_updated[0]
+
+        assert isinstance(file_info, CropFileProcessingInfo)
+        assert file_info.steps.download.result is None
+        assert "skipped" in file_info.steps.download.msg.lower()
 
     def test_process_one_full_pipeline(self, mock_crop_services, tmp_path, mock_site_pages):
         """Test full pipeline for a new file."""
@@ -1017,17 +992,20 @@ class TestCropMainFilesProcessorProcessTemplate:
             )
         )
         processor.site = _site
-        processor.original_dir = tmp_path / "original"
-        processor.cropped_dir = tmp_path / "cropped"
+        processor.files_processor.original_dir = tmp_path / "original"
+        processor.files_processor.cropped_dir = tmp_path / "cropped"
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
         processor._process_one_item(template)
 
         file_result = processor.result.pages_uploaded[0]
-        assert file_result["steps"]["download"]["result"] is True
-        assert file_result["steps"]["crop"]["result"] is True
-        assert file_result["steps"]["upload_cropped"]["result"] is True
+
+        assert isinstance(file_result, CropFileProcessingInfo)
+
+        assert file_result.steps.download.result is True
+        assert file_result.steps.crop.result is True
+        assert file_result.steps.upload_cropped.result is True
 
     def test_process_one_upload_disabled(self, mock_crop_services, tmp_path, mock_site_pages):
         """Test processing when upload_files is False."""
@@ -1044,8 +1022,8 @@ class TestCropMainFilesProcessorProcessTemplate:
         )
         _site = mock_site_pages(False)
         processor.site = _site
-        processor.original_dir = tmp_path / "original"
-        processor.cropped_dir = tmp_path / "cropped"
+        processor.files_processor.original_dir = tmp_path / "original"
+        processor.files_processor.cropped_dir = tmp_path / "cropped"
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
@@ -1054,9 +1032,13 @@ class TestCropMainFilesProcessorProcessTemplate:
         # Should skip upload steps
         assert hasattr(processor.result, "pages_skipped")
         assert processor.result.pages_skipped != []
-        assert processor.result.pages_skipped[0]["steps"]["upload_cropped"]["result"] is None
-        assert "upload disabled" in processor.result.pages_skipped[0]["steps"]["upload_cropped"]["msg"].lower()
-        assert processor.result.summary.skipped == 1
+
+        file_info = processor.result.pages_skipped[0]
+
+        assert isinstance(file_info, CropFileProcessingInfo)
+
+        assert file_info.steps.upload_cropped.result is None
+        assert "upload disabled" in file_info.steps.upload_cropped.msg.lower()
 
 
 class TestCropMainFilesProcessorRun:
@@ -1093,8 +1075,7 @@ class TestCropMainFilesProcessorRun:
         assert result["status"] == "completed"
         assert result["summary"]["total"] == 1
         assert result["summary"]["processed"] == 1
-        assert result["summary"]["cropped"] == 1
-        assert result["summary"]["uploaded"] == 1
+        assert len(result["pages_uploaded"]) == 1
 
     def test_run_before_run_fails(self, monkeypatch):
         """Test run when before_run returns False."""

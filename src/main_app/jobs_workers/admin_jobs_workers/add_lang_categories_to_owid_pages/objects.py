@@ -4,11 +4,21 @@ Objects for add_lang_categories_to_owid_pages worker.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, OneStep, StandardAdminWorkerObject
+
+
+@dataclass
+class InfoSteps:
+    load_page_text: OneStep = field(default_factory=OneStep)
+    extract_file_name: OneStep = field(default_factory=OneStep)
+    get_languages: OneStep = field(default_factory=OneStep)
+    build_categories: OneStep = field(default_factory=OneStep)
+    check_existing: OneStep = field(default_factory=OneStep)
+    save_page: OneStep = field(default_factory=OneStep)
 
 
 @dataclass
@@ -22,16 +32,7 @@ class PageInfo:
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: STATUS_LITERAL = "pending"
     error: str | None = None
-    steps: dict[str, dict[str, Any]] = field(
-        default_factory=lambda: {
-            "load_page_text": {"result": None, "msg": ""},
-            "extract_file_name": {"result": None, "msg": ""},
-            "get_languages": {"result": None, "msg": ""},
-            "build_categories": {"result": None, "msg": ""},
-            "check_existing": {"result": None, "msg": ""},
-            "save_page": {"result": None, "msg": ""},
-        }
-    )
+    steps: InfoSteps = field(default_factory=InfoSteps)
 
     # Internal temporary state
     _text: str | None = None
@@ -46,7 +47,7 @@ class PageInfo:
             "timestamp": self.timestamp,
             "status": self.status,
             "error": self.error,
-            "steps": self.steps,
+            "steps": asdict(self.steps),
         }
 
 

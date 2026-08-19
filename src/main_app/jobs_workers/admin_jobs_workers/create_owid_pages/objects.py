@@ -5,13 +5,20 @@ Objects for create_owid_pages worker.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any
 
-from ...shared_objects import StandardAdminWorkerObject
+from ....database.models import TemplateRecord
+from ...shared_objects import STATUS_LIST, OneStep, StandardAdminWorkerObject
 
-STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "created", "failed"]
+
+@dataclass
+class InfoSteps:
+    load_template_text: OneStep = field(default_factory=OneStep)
+    create_new_text: OneStep = field(default_factory=OneStep)
+    update_text: OneStep = field(default_factory=OneStep)
+    create_new_page: OneStep = field(default_factory=OneStep)
 
 
 @dataclass
@@ -21,17 +28,11 @@ class TemplateProcessingInfo:
     template_id: int
     template_title: str
     new_page_title: str | None = None
+    slug: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     status: STATUS_LIST = "pending"
     error: str | None = None
-    steps: dict[str, dict[str, Any]] = field(
-        default_factory=lambda: {
-            "load_template_text": {"result": None, "msg": ""},
-            "create_new_text": {"result": None, "msg": ""},
-            "update_text": {"result": None, "msg": ""},
-            "create_new_page": {"result": None, "msg": ""},
-        }
-    )
+    steps: InfoSteps = field(default_factory=InfoSteps)
 
     # Internal temporary state
     _template_text: str | None = None
@@ -42,11 +43,20 @@ class TemplateProcessingInfo:
             "template_id": self.template_id,
             "template_title": self.template_title,
             "new_page_title": self.new_page_title,
+            "slug": self.slug,
             "timestamp": self.timestamp,
             "status": self.status,
             "error": self.error,
-            "steps": self.steps,
+            "steps": asdict(self.steps),
         }
+
+    @classmethod
+    def from_template(cls, template: TemplateRecord) -> TemplateProcessingInfo:
+        return cls(
+            template_id=template.id,
+            template_title=template.title,
+            slug=template.slug,
+        )
 
 
 @dataclass

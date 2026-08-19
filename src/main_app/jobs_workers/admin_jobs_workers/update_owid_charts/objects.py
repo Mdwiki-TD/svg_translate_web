@@ -6,12 +6,10 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any
 
 from ....database.models import OwidChartRecord
-from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
-
-STATUS_LIST = Literal["pending", "completed", "skipped", "updated", "created", "failed"]
+from ...shared_objects import STATUS_LIST, STATUS_LITERAL, StandardAdminWorkerObject
 
 
 @dataclass

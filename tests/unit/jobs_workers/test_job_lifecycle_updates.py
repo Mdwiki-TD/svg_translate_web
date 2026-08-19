@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 import pytest
 from flask.app import Flask
 from sqlalchemy import text
@@ -26,8 +24,8 @@ class MockWorker(BaseObjectsJobWorker):
     def get_job_type(self) -> str:
         return self._job_type_name
 
-    def process(self) -> dict[str, Any]:
-        return self.result.to_json()
+    def process(self) -> WorkerMapping:
+        return self.result
 
 
 class TestSetup:

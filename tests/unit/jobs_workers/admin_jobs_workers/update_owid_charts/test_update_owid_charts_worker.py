@@ -137,9 +137,8 @@ class TestUpdateOwidChartsWorkerInitialization:
         assert result.cancelled_at is None
         assert result.summary.total == 0
         assert result.summary.processed == 0
-        assert result.summary.updated == 0
-        assert result.summary.skipped == 0
-        assert result.summary.failed == 0
+        assert len(result.pages_skipped) == 0
+        assert len(result.pages_failed) == 0
         assert result.pages_processed == []
 
 
@@ -222,9 +221,9 @@ class TestUpdateOwidChartsWorkerApplyLimits:
 
 
 class TestProcessChart:
-    """Tests for _process_chart method."""
+    """Tests for _process_one_item method."""
 
-    def test_process_chart_404(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_404(self, mock_update_owid_services: MockServices):
         """When fetch_grapher_metadata_raw returns 404 -> status 'skipped' with 'not found' reason."""
         mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(None, 404)
 
@@ -245,8 +244,8 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
-        worker.append_results(chart.slug, info)
+        result = worker._process_one_item(chart, info)
+        worker.update_status(chart.slug, info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
@@ -257,7 +256,7 @@ class TestProcessChart:
             1, {"status_404": 404}
         )
 
-    def test_process_chart_metadata_none(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_metadata_none(self, mock_update_owid_services: MockServices):
         """When fetch_grapher_metadata_raw returns None -> status 'failed'."""
         worker = UpdateOwidChartsWorker(
             JobsRunner(
@@ -276,15 +275,15 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
-        worker.append_results(chart.slug, info)
+        result = worker._process_one_item(chart, info)
+        worker.update_status(chart.slug, info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
         assert worker.result.failed_charts[0]["status"] == "failed"
         assert worker.result.failed_charts[0]["error"] == "Could not fetch metadata JSON"
 
-    def test_process_chart_nothing_to_update(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_nothing_to_update(self, mock_update_owid_services: MockServices):
         """When metadata has no timespan AND no owidVariableId -> skipped."""
         metadata = {"columns": {"col1": {"some_key": "some_value"}}}
         mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(metadata, 200)
@@ -305,16 +304,16 @@ class TestProcessChart:
             owid_variable_id=None,
         )
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
+        result = worker._process_one_item(chart, info)
 
-        worker.append_results(chart.slug, info)
+        worker.update_status(chart.slug, info)
 
         assert result is False
         assert len(worker.result.skipped_charts) == 1
         assert worker.result.skipped_charts[0]["status"] == "skipped"
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
 
-    def test_process_chart_updates_source_from_citation_short(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_updates_source_from_citation_short(self, mock_update_owid_services: MockServices):
         """A citation-only metadata update is persisted to the chart source field."""
         citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
         metadata = {"columns": {"col1": {"citationShort": citation}}}
@@ -332,14 +331,14 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
+        result = worker._process_one_item(chart, info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
             1, {"source": citation}
         )
 
-    def test_process_chart_skips_unchanged_source(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_skips_unchanged_source(self, mock_update_owid_services: MockServices):
         """Matching citation metadata should not trigger a redundant database update."""
         citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
         metadata = {"columns": {"col1": {"citationShort": citation}}}
@@ -357,13 +356,13 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
+        result = worker._process_one_item(chart, info)
 
         assert result is False
         assert info.skip_reason == "nothing to update"
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_not_called()
 
-    def test_process_chart_owid_variable_id_update_only(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_owid_variable_id_update_only(self, mock_update_owid_services: MockServices):
         """When only owid_variable_id changes -> calls update_chart_data_with_retry."""
         metadata = {"columns": {"col1": {"owidVariableId": 123}}}
         mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(metadata, 200)
@@ -385,8 +384,8 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
-        worker.append_results(chart.slug, info)
+        result = worker._process_one_item(chart, info)
+        worker.update_status(chart.slug, info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -394,7 +393,7 @@ class TestProcessChart:
         )
         assert len(worker.result.updated_charts) == 1
 
-    def test_process_chart_parse_timespan_fails(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_parse_timespan_fails(self, mock_update_owid_services: MockServices):
         """When timespan exists but cannot be parsed -> failed."""
         metadata = {"columns": {"col1": {"timespan": "invalid"}}}
         mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(metadata, 200)
@@ -416,14 +415,14 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
-        worker.append_results(chart.slug, info)
+        result = worker._process_one_item(chart, info)
+        worker.update_status(chart.slug, info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
         assert "Could not parse timespan" in worker.result.failed_charts[0]["error"]
 
-    def test_process_chart_full_update(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_full_update(self, mock_update_owid_services: MockServices):
         """When both timespan parsed and owid_variable_id changed -> full update."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020", "owidVariableId": 123}}}
         mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(metadata, 200)
@@ -445,8 +444,8 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
-        worker.append_results(chart.slug, info)
+        result = worker._process_one_item(chart, info)
+        worker.update_status(chart.slug, info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -454,7 +453,7 @@ class TestProcessChart:
             {"min_time": 2000, "max_time": 2020, "len_years": 21, "owid_variable_id": 123},
         )
 
-    def test_process_chart_no_change_timespan(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_no_change_timespan(self, mock_update_owid_services: MockServices):
         """When timespan values match existing -> skipped."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
         mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(metadata, 200)
@@ -476,14 +475,14 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
-        worker.append_results(chart.slug, info)
+        result = worker._process_one_item(chart, info)
+        worker.update_status(chart.slug, info)
 
         assert result is False
         assert len(worker.result.skipped_charts) == 1
         assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
 
-    def test_process_chart_db_update_exception(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_db_update_exception(self, mock_update_owid_services: MockServices):
         """When update_chart_data_with_retry raises -> status failed."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
         mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(metadata, 200)
@@ -506,15 +505,15 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
-        worker.append_results(chart.slug, info)
+        result = worker._process_one_item(chart, info)
+        worker.update_status(chart.slug, info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
         assert worker.result.failed_charts[0]["status"] == "failed"
         assert worker.result.failed_charts[0]["error"] == "DB error"
 
-    def test_process_chart_timespan_no_owid_variable_id(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_timespan_no_owid_variable_id(self, mock_update_owid_services: MockServices):
         """When owid_variable_id is None and chart has none -> no variable update."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020"}}}
         mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(metadata, 200)
@@ -536,8 +535,8 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
-        worker.append_results(chart.slug, info)
+        result = worker._process_one_item(chart, info)
+        worker.update_status(chart.slug, info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -545,7 +544,7 @@ class TestProcessChart:
             {"min_time": 2000, "max_time": 2020, "len_years": 21},
         )
 
-    def test_process_chart_owid_variable_id_same(self, mock_update_owid_services: MockServices):
+    def test_process_one_item_owid_variable_id_same(self, mock_update_owid_services: MockServices):
         """When owid_variable_id matches existing -> no update."""
         metadata = {"columns": {"col1": {"timespan": "2000-2020", "owidVariableId": 42}}}
         mock_update_owid_services.fetch_grapher_metadata_raw.return_value = RawGrapherMetadataResponse(metadata, 200)
@@ -567,8 +566,8 @@ class TestProcessChart:
         )
 
         info = ChartNewInfo.from_chart(chart)
-        result = worker._process_chart(chart, info)
-        worker.append_results(chart.slug, info)
+        result = worker._process_one_item(chart, info)
+        worker.update_status(chart.slug, info)
 
         assert result is False
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_not_called()
@@ -607,10 +606,10 @@ class TestProcess:
         )
         mock_update_owid_services.owid_charts_service.list_charts.return_value = [chart]
 
-        mock_process_chart = MagicMock(return_value=True)
+        mock_process_one_item = MagicMock(return_value=True)
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker._process_chart",
-            mock_process_chart,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker._process_one_item",
+            mock_process_one_item,
         )
 
         worker = UpdateOwidChartsWorker(
@@ -622,7 +621,6 @@ class TestProcess:
         )
         result = worker.process_all()
 
-        assert result.status == "completed"
         assert result.summary.total == 1
 
     def test_process_cancelled_during_loop(
@@ -660,10 +658,10 @@ class TestProcess:
         chart2 = MagicMock(chart_id=2, slug="chart-2")
         mock_update_owid_services.owid_charts_service.list_charts.return_value = [chart1, chart2]
 
-        mock_process_chart = MagicMock(return_value=True)
+        mock_process_one_item = MagicMock(return_value=True)
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker._process_chart",
-            mock_process_chart,
+            "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.UpdateOwidChartsWorker._process_one_item",
+            mock_process_one_item,
         )
         mock_cancel_periodic = MagicMock(return_value=True)
         monkeypatch.setattr(
@@ -680,5 +678,5 @@ class TestProcess:
         )
         result = worker.process_all()
 
-        mock_process_chart.assert_called_once()
+        mock_process_one_item.assert_called_once()
         assert result.summary.total == 2

@@ -10,6 +10,7 @@ import pytest
 from src.main_app.api_services.clients.objects import RawGrapherMetadataResponse
 from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import CollectMainFilesWorker
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
@@ -124,7 +125,6 @@ class TestRunner:
 
     @pytest.fixture(autouse=True)
     def setup(self, mock_collect_services):
-        from src.main_app.jobs_workers.objects import JobsRunner
 
         def run_wrapper(job_id, user, cancel_event=None, args=None, form_data=None):
             data = JobsRunner(job_id=job_id, user=user, cancel_event=cancel_event, args=args, form_data=form_data)
@@ -225,7 +225,7 @@ class TestRunner:
         # Should save result with failed template
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
-        assert result_dict["summary"]["failed"] == 1
+        assert len(result_dict["pages_failed"]) == 1
         assert len(result_dict["pages_failed"]) == 1
         assert "Could not fetch wikitext" in result_dict["pages_failed"][0]["error"]
 
@@ -247,7 +247,7 @@ class TestRunner:
         # Should save result with failed template
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
-        assert result_dict["summary"]["failed"] == 1
+        assert len(result_dict["pages_failed"]) == 1
         assert len(result_dict["pages_failed"]) == 1
         assert "Could not find (main file or newest world file or source)" in result_dict["pages_failed"][0]["error"]
 
@@ -266,7 +266,7 @@ class TestRunner:
         # Should save result with failed template
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
-        assert result_dict["summary"]["failed"] == 1
+        assert len(result_dict["pages_failed"]) == 1
         assert len(result_dict["pages_failed"]) == 1
         assert "Exception: Network error" in result_dict["pages_failed"][0]["error"]
 
@@ -311,7 +311,7 @@ class TestRunner:
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["total"] == 3
         assert len(result_dict["pages_updated"]) == 2
-        assert result_dict["summary"]["skipped"] == 0
+        assert len(result_dict["pages_skipped"]) == 0
 
     def test_collect_templates_data_adds_new_templates_from_category(self):
         """Test that new templates from category are added to database."""

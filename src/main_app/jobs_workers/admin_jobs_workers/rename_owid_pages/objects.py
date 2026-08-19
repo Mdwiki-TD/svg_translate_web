@@ -6,11 +6,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any
 
-from ...shared_objects import StandardAdminWorkerObject
-
-STATUS_LIST = Literal["pending", "renamed", "skipped_target_exists", "failed", "redirected"]
+from ...shared_objects import STATUS_LIST3, StandardAdminWorkerObject
 
 
 @dataclass
@@ -21,7 +19,7 @@ class RenameInfo:
     old_title: str
     new_title: str | None = None
     newrevid: int | None = None
-    status: STATUS_LIST = "pending"
+    status: STATUS_LIST3 = "pending"
     msg: str = ""
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 

@@ -13,8 +13,10 @@
         </div>
         <div class="card-body">
             <div class="alert alert-info" role="alert">
-                NOTE: Chose template you want to use and click "(translate)" to translate the svg file to language you
-                chose. After uploadimg the translated svg file, click on "start job"
+                <strong>How to use this page:</strong> Choose a template and click <strong>Translate</strong> in the
+                <strong>Translate Main File</strong> column. In the translation tool, select the target language,
+                translate the SVG, and upload the completed file. Then return to this page and click
+                <strong>Start Job</strong> for the same template.
             </div>
             <div class="table-responsive shadow-sm">
                 <table class="table table-hover align-middle mb-0" id="templatesTable">
@@ -22,12 +24,12 @@
                         <tr>
                             <th scope="col" style="width: 5%">#</th>
                             <th scope="col">Template</th>
-                            <th scope="col" class="text-center">files</th>
+                            <th scope="col" class="text-center">Files</th>
                             <th scope="col" class="text-center">Translate Main File</th>
                             <th scope="col" class="text-center">Main File languages</th>
                             <!-- <th scope="col" class="text-center">Newest Year</th> -->
                             <th scope="col" class="text-center">Source</th>
-                            <th scope="col" class="text-center">start job</th>
+                            <th scope="col" class="text-center">Start Job</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -147,9 +149,9 @@
                 },
                 {
                     data: "title",
-                    title: "Start job",
+                    title: "Start Job",
                     render: function (data, type, row) {
-                        return `<a href="/jobs/copy_svg_langs/?title=${data}" target="_blank">start job</a>`;
+                        return `<a href="/jobs/copy_svg_langs/?title=${data}" target="_blank">Start Job</a>`;
                     }
                 },
             ],

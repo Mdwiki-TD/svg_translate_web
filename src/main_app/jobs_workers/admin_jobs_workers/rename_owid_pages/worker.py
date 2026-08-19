@@ -77,6 +77,10 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
     def get_job_type(self) -> str:
         return "rename_owid_pages"
 
+    # ------------------------------------------------------------------
+    # Public entry-point
+    # ------------------------------------------------------------------
+
     def process(self) -> RenameOwidPagesWorkerObject:
         if not self._check_site():
             return self.result
@@ -120,11 +124,9 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
 
             info = RenameInfo(namespace=namespace, old_title=old_title, new_title=new_title)
 
-            self.result.summary.processed += 1
+            changed = self._process_one_item(info)
 
-            changed = self._rename_one(info)
-
-            self.update_rename_statistics(info)
+            self.update_status(info)
 
             if changed and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -133,26 +135,22 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             if n == 1 or n % per_item == 0:
                 self._save_progress()
 
-        if self.result.status in ("pending", "running"):
-            self.result.status = "completed"
-
         return self.result
 
-    def update_rename_statistics(self, info: RenameInfo) -> None:
+    def update_status(self, info: RenameInfo) -> None:
+        self.result.summary.processed += 1
+
         if info.status == "skipped_target_exists":
             self.result.summary.skipped_target_exists += 1
             self.result.pages_skipped.append(info.to_dict())
 
         elif info.status == "redirected":
-            self.result.summary.redirected += 1
             self.result.pages_redirected.append(info.to_dict())
 
         elif info.status == "renamed":
-            self.result.summary.renamed += 1
             self.result.pages_renamed.append(info.to_dict())
 
         elif info.status == "failed":
-            self.result.summary.failed += 1
             self.result.pages_failed.append(info.to_dict())
 
     # ------------------------------------------------------------------
@@ -173,7 +171,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             )
         return []
 
-    def _rename_one(self, info: RenameInfo) -> bool:
+    def _process_one_item(self, info: RenameInfo) -> bool:
         old_title = info.old_title
         new_title = info.new_title
 

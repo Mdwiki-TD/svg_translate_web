@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ...base_worker import WorkerMapping
+from ...shared_objects import STATUS_LITERAL
 
 
 @dataclass
@@ -15,6 +16,14 @@ class StageDetail:
     name: str = ""
     status: str = "pending"
     message: str = ""
+
+    def failed(self, message: str) -> None:
+        self.status = "failed"
+        self.message = message
+
+    def skipped(self, message: str) -> None:
+        self.status = "skipped"
+        self.message = message
 
     def _update(self, status: str, message: str) -> None:
         if status:
@@ -59,7 +68,7 @@ class Stages:
 
 @dataclass
 class FileResult:
-    status: str = "pending"
+    status: STATUS_LITERAL = "pending"
     path: str | None = None
     error: str | None = None
     success: bool | None = None

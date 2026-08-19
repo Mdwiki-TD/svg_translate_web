@@ -137,7 +137,7 @@ def to_json_filter(value: object, indent: int = 2) -> str:
 def is_job_running(job_status: str | None) -> bool:
     if not job_status:
         return False
-    return job_status.lower() in ["running", "pending"]
+    return job_status.lower() in ["pending", "running"]
 
 
 filters = {

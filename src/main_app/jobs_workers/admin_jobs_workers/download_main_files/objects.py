@@ -10,6 +10,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
+from ....database.models import TemplateRecord
 from ...shared_objects import StandardAdminWorkerObject
 
 
@@ -27,6 +28,15 @@ class FileInfo:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)  # pyright: ignore[reportCallIssue]
+
+    @classmethod
+    def from_template(cls, template: TemplateRecord) -> FileInfo:
+        return cls(
+            template_id=template.id,
+            template_title=template.title,
+            filename=template.main_file,
+            timestamp=datetime.now().isoformat(),
+        )
 
 
 @dataclass

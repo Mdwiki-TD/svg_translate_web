@@ -29,7 +29,7 @@
     <div class="col-md-9">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Created', ( pages_created | length ) or result_data.summary.created, "success", "") }}
+                {{ stats_card('Created', pages_created | length , "success", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Updated', ( pages_updated | length ) or result_data.summary.updated, "info", "") }}

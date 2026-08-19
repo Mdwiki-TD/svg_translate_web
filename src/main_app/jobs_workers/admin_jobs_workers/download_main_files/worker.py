@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import logging
 import zipfile
-from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -152,29 +151,11 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
                 logger.info("Job %s: Cancellation detected, stopping.", self.job_id)
                 break
 
-            self.result.summary.processed += 1
-
-            file_info = FileInfo(
-                template_id=template.id,
-                template_title=template.title,
-                filename=template.main_file,
-                timestamp=datetime.now().isoformat(),
-            )
+            file_info = FileInfo.from_template(template)
 
             ok = self._process_one_item(file_info)
 
-            if file_info.status.lower() in ["pending", "running"]:
-                file_info.status = "completed"
-
-            if file_info.status == "downloaded":
-                self.result.files_downloaded.append(file_info)
-                self.result.summary.success += 1
-
-            elif file_info.status == "failed":
-                self.result.files_failed.append(file_info)
-                self.result.summary.failed += 1
-            else:
-                self.result.files_processed.append(file_info)
+            self.update_status(file_info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -200,6 +181,21 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         )
 
         return self.result
+
+    def update_status(self, info: FileInfo):
+        self.result.summary.processed += 1
+
+        if info.status in ["pending", "running"]:
+            info.status = "completed"
+
+        if info.status == "downloaded":
+            self.result.files_downloaded.append(info)
+
+        elif info.status == "failed":
+            self.result.files_failed.append(info)
+
+        else:
+            self.result.files_processed.append(info)
 
 
 __all__ = [
