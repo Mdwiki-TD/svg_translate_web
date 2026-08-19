@@ -225,7 +225,7 @@ class TestRunner:
         # Should save result with failed template
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
-        assert result_dict["summary"]["failed"] == 1
+        assert len(result_dict["pages_failed"]) == 1
         assert len(result_dict["pages_failed"]) == 1
         assert "Could not fetch wikitext" in result_dict["pages_failed"][0]["error"]
 
@@ -247,7 +247,7 @@ class TestRunner:
         # Should save result with failed template
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
-        assert result_dict["summary"]["failed"] == 1
+        assert len(result_dict["pages_failed"]) == 1
         assert len(result_dict["pages_failed"]) == 1
         assert "Could not find (main file or newest world file or source)" in result_dict["pages_failed"][0]["error"]
 
@@ -266,7 +266,7 @@ class TestRunner:
         # Should save result with failed template
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
-        assert result_dict["summary"]["failed"] == 1
+        assert len(result_dict["pages_failed"]) == 1
         assert len(result_dict["pages_failed"]) == 1
         assert "Exception: Network error" in result_dict["pages_failed"][0]["error"]
 
@@ -311,7 +311,7 @@ class TestRunner:
         result_dict = self.services["save_job_result_by_name"].call_args[0][1]
         assert result_dict["summary"]["total"] == 3
         assert len(result_dict["pages_updated"]) == 2
-        assert result_dict["summary"]["skipped"] == 0
+        assert len(result_dict["pages_skipped"]) == 0
 
     def test_collect_templates_data_adds_new_templates_from_category(self):
         """Test that new templates from category are added to database."""

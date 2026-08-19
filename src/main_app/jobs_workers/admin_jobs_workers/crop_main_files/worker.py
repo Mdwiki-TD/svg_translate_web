@@ -140,19 +140,15 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
             info.status = "completed"
 
         if info.status == "updated":
-            self.result.summary.updated += 1
             self.result.pages_updated.append(info)
 
         elif info.status == "uploaded":
-            self.result.summary.uploaded += 1
             self.result.pages_uploaded.append(info)
 
         elif info.status == "skipped":
-            self.result.summary.skipped += 1
             self.result.pages_skipped.append(info)
 
         elif info.status == "failed":
-            self.result.summary.failed += 1
             self.result.pages_failed.append(info)
         else:
             self.result.pages_processed.append(info)

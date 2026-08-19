@@ -133,7 +133,6 @@ def test_download_main_files_downloads_template_with_main_file(
     worker.run()
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
-    assert result_dict["summary"]["success"] == 1
     assert len(result_dict["files_downloaded"]) == 1
     assert result_dict["files_downloaded"][0]["filename"] == "file1.svg"
 
@@ -155,7 +154,6 @@ def test_download_main_files_handles_download_failure(
     worker.run()
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
-    assert result_dict["summary"]["failed"] == 1
     assert len(result_dict["files_failed"]) == 1
     assert result_dict["files_failed"][0]["error"] == "NotFound"
 
@@ -177,7 +175,7 @@ def test_download_main_files_handles_exception(
     worker.run()
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
-    assert result_dict["summary"]["failed"] == 1
+    assert len(result_dict["files_failed"]) == 1
     assert "Fatal error" in result_dict["files_failed"][0]["error"]
 
 
@@ -207,8 +205,8 @@ def test_download_main_files_processes_multiple_templates(
     worker.run()
 
     result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
-    assert result_dict["summary"]["success"] == 1
-    assert result_dict["summary"]["failed"] == 1
+    assert len(result_dict["files_downloaded"]) == 1
+    assert len(result_dict["files_failed"]) == 1
 
 
 def test_download_main_files_respects_cancellation(

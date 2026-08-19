@@ -180,7 +180,7 @@ class TestWorkerInit:
 
 
 class TestStepLoadPageText:
-    def test_success(self, mock_lang_worker):
+    def test_success(self, mock_lang_worker: AddLangCategoriesWorker):
         mock_page = MagicMock()
         mock_page.get_text.return_value = "Some page content"
 
@@ -191,7 +191,7 @@ class TestStepLoadPageText:
         assert info._text == "Some page content"
         assert info.steps.load_page_text.result is True
 
-    def test_failure_on_empty_text(self, mock_lang_worker):
+    def test_failure_on_empty_text(self, mock_lang_worker: AddLangCategoriesWorker):
         mock_page = MagicMock()
         mock_page.get_text.return_value = ""
 
@@ -207,7 +207,7 @@ class TestStepLoadPageText:
 
 
 class TestStepExtractFileName:
-    def test_success(self, mock_lang_worker):
+    def test_success(self, mock_lang_worker: AddLangCategoriesWorker):
         info = PageInfo(page_title="OWID/test")
         info._text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test_chart.svg"
 
@@ -217,7 +217,7 @@ class TestStepExtractFileName:
         assert info.svg_file == "test_chart.svg"
         assert info.steps.extract_file_name.result is True
 
-    def test_failure_no_translate_link(self, mock_lang_worker):
+    def test_failure_no_translate_link(self, mock_lang_worker: AddLangCategoriesWorker):
         info = PageInfo(page_title="OWID/test")
         info._text = "Some content without translate link"
 
@@ -311,7 +311,7 @@ class TestStepGetLanguages:
 
 
 class TestStepBuildCategories:
-    def test_success(self, mock_lang_worker):
+    def test_success(self, mock_lang_worker: AddLangCategoriesWorker):
         info = PageInfo(page_title="OWID/test")
         info.lang_codes = ["en", "ar"]
 
@@ -323,7 +323,7 @@ class TestStepBuildCategories:
         assert "Category:Arabic-language SVG" in info._categories
         assert not any("[[Category:" in c for c in info._categories)
 
-    def test_failure_on_no_recognised_codes(self, mock_lang_worker):
+    def test_failure_on_no_recognised_codes(self, mock_lang_worker: AddLangCategoriesWorker):
         info = PageInfo(page_title="OWID/test")
         info.lang_codes = ["zzz_unknown"]
 
@@ -332,7 +332,7 @@ class TestStepBuildCategories:
         assert result is False
         assert info.status == "failed"
 
-    def test_failure_on_empty_codes(self, mock_lang_worker):
+    def test_failure_on_empty_codes(self, mock_lang_worker: AddLangCategoriesWorker):
         info = PageInfo(page_title="OWID/test")
         info.lang_codes = []
 
@@ -345,7 +345,7 @@ class TestStepBuildCategories:
 
 
 class TestStepCheckExisting:
-    def test_all_categories_are_new_with_existing_cats_on_page(self, mock_lang_worker):
+    def test_all_categories_are_new_with_existing_cats_on_page(self, mock_lang_worker: AddLangCategoriesWorker):
         """Page has categories but none match candidates — all are added via merge_categories_into_text."""
         info = PageInfo(page_title="OWID/test")
         info._text = "Content\n[[Category:Other category]]"
@@ -360,7 +360,7 @@ class TestStepCheckExisting:
         assert "[[Category:English-language SVG]]" in (info._text or "")
         assert "[[Category:Japanese-language SVG]]" in (info._text or "")
 
-    def test_all_categories_are_new_no_existing_cats_fallback(self, mock_lang_worker):
+    def test_all_categories_are_new_no_existing_cats_fallback(self, mock_lang_worker: AddLangCategoriesWorker):
         """Page has no categories — triggers the manual-append fallback."""
         info = PageInfo(page_title="OWID/test")
         info._text = "Some page content without categories"
@@ -373,7 +373,7 @@ class TestStepCheckExisting:
         assert "[[Category:Japanese-language SVG]]" in result
         assert "[[Category:English-language SVG]]" in (info._text or "")
 
-    def test_some_categories_already_exist(self, mock_lang_worker):
+    def test_some_categories_already_exist(self, mock_lang_worker: AddLangCategoriesWorker):
         """Page already has one candidate — only the missing one is returned."""
         info = PageInfo(page_title="OWID/test")
         info._text = "Content\n[[Category:English-language SVG]]"
@@ -386,7 +386,7 @@ class TestStepCheckExisting:
         # English should not be duplicated in merged text
         assert (info._text or "").count("[[Category:English-language SVG]]") == 1
 
-    def test_all_categories_already_exist(self, mock_lang_worker):
+    def test_all_categories_already_exist(self, mock_lang_worker: AddLangCategoriesWorker):
         """All candidates present — returns empty list, marks as skipped."""
         info = PageInfo(page_title="OWID/test")
         info._text = "Content\n[[Category:English-language SVG]]\n[[Category:Japanese-language SVG]]"
@@ -402,7 +402,7 @@ class TestStepCheckExisting:
 
 
 class TestStepSavePage:
-    def test_success(self, mock_lang_worker):
+    def test_success(self, mock_lang_worker: AddLangCategoriesWorker):
         mock_page = MagicMock()
         mock_page.edit.return_value = {"success": True, "newrevid": 12345}
 
@@ -414,14 +414,13 @@ class TestStepSavePage:
         result = mock_lang_worker._step_save_page(info, mock_page, new_cats)
 
         assert result is True
-        assert mock_lang_worker.result.summary.success == 1
         assert info.steps.save_page.result is True
         mock_page.edit.assert_called_once()
         # Verify the merged text was passed to edit
         call_args = mock_page.edit.call_args
         assert call_args[0][0] == "original\n[[Category:English-language SVG]]"
 
-    def test_failure(self, mock_lang_worker):
+    def test_failure(self, mock_lang_worker: AddLangCategoriesWorker):
         mock_page = MagicMock()
         mock_page.edit.return_value = {"success": False, "error": "API error"}
 
@@ -471,7 +470,7 @@ class TestProcessOneItem:
         assert result is True
         assert mock_lang_worker.result.summary.processed == 1
 
-    def test_stops_on_load_failure(self, mock_lang_worker):
+    def test_stops_on_load_failure(self, mock_lang_worker: AddLangCategoriesWorker):
         mock_lang_worker._step_load_page_text = MagicMock(return_value=False)
         mock_lang_worker._step_extract_file_name = MagicMock()
         mock_lang_worker._step_get_languages = MagicMock()
@@ -484,7 +483,7 @@ class TestProcessOneItem:
         mock_lang_worker._step_extract_file_name.assert_not_called()
         mock_lang_worker._step_get_languages.assert_not_called()
 
-    def test_stops_on_extract_failure(self, mock_lang_worker):
+    def test_stops_on_extract_failure(self, mock_lang_worker: AddLangCategoriesWorker):
         def mock_load(info, page):
             info._text = "no translate link"
             return True
@@ -500,7 +499,7 @@ class TestProcessOneItem:
         assert result is False
         mock_lang_worker._step_get_languages.assert_not_called()
 
-    def test_skipped_when_no_new_categories(self, mock_lang_worker):
+    def test_skipped_when_no_new_categories(self, mock_lang_worker: AddLangCategoriesWorker):
         def mock_load(info, page):
             info._text = "text"
             return True

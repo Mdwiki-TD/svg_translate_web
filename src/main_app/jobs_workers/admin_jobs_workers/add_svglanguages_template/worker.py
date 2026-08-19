@@ -229,7 +229,6 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
 
         elif info.status == "failed":
             self.result.pages_failed.append(info)
-            self.result.summary.failed += 1
 
         else:
             self.result.pages_processed.append(info)

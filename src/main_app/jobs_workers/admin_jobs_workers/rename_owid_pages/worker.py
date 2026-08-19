@@ -145,15 +145,12 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
             self.result.pages_skipped.append(info.to_dict())
 
         elif info.status == "redirected":
-            self.result.summary.redirected += 1
             self.result.pages_redirected.append(info.to_dict())
 
         elif info.status == "renamed":
-            self.result.summary.renamed += 1
             self.result.pages_renamed.append(info.to_dict())
 
         elif info.status == "failed":
-            self.result.summary.failed += 1
             self.result.pages_failed.append(info.to_dict())
 
     # ------------------------------------------------------------------

@@ -190,11 +190,10 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
         if info.status == "downloaded":
             self.result.files_downloaded.append(info)
-            self.result.summary.success += 1
 
         elif info.status == "failed":
             self.result.files_failed.append(info)
-            self.result.summary.failed += 1
+
         else:
             self.result.files_processed.append(info)
 

@@ -1039,7 +1039,6 @@ class TestCropMainFilesProcessorProcessTemplate:
 
         assert file_info.steps.upload_cropped.result is None
         assert "upload disabled" in file_info.steps.upload_cropped.msg.lower()
-        assert processor.result.summary.skipped == 1
 
 
 class TestCropMainFilesProcessorRun:
@@ -1076,8 +1075,7 @@ class TestCropMainFilesProcessorRun:
         assert result["status"] == "completed"
         assert result["summary"]["total"] == 1
         assert result["summary"]["processed"] == 1
-        assert result["summary"]["cropped"] == 1
-        assert result["summary"]["uploaded"] == 1
+        assert len(result["pages_uploaded"]) == 1
 
     def test_run_before_run_fails(self, monkeypatch):
         """Test run when before_run returns False."""

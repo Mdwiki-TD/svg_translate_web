@@ -275,7 +275,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
                 msg=f"Saved {info.page_title}",
                 newrevid=res.get("newrevid", 0),
             )
-            self.result.summary.success += 1
+            info.status = "success"
             return True
 
         err = res.get("error", "Unknown error")
@@ -307,7 +307,6 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
         elif info.status == "failed":
             self.result.pages_failed.append(info)
-            self.result.summary.failed += 1
 
         else:
             self.result.pages_processed.append(info)
