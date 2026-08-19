@@ -538,6 +538,7 @@ class TestUploadStep(TestSetup):
         assert proc.result.stages.upload.status == "failed"
         assert proc.result.stages.upload.message == "permission_denied"
 
+
 # ---------------------------------------------------------------------------
 # run() integration-level tests (all workers mocked)
 # ---------------------------------------------------------------------------

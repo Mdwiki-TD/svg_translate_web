@@ -141,7 +141,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         return self.result
 
     def update_status(self, info: RenameInfo) -> None:
-        self.result.summary.processed +=  1
+        self.result.summary.processed += 1
 
         if info.status == "skipped_target_exists":
             self.result.summary.skipped_target_exists += 1

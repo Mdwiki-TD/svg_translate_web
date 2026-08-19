@@ -193,7 +193,9 @@ class TestLoadTemplates:
 class TestProcessTemplate:
     """Tests for _process_one_item method."""
 
-    def test_process_one_success_flow(self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate):
+    def test_process_one_success_flow(
+        self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate
+    ):
         """Test successful processing of a template."""
         template = MagicMock(template_id=1, template_title="Template:OWID/test")
 
@@ -247,7 +249,9 @@ class TestProcessTemplate:
         mock_add_svg_worker._step_add_template.assert_not_called()
         mock_add_svg_worker._step_save_new_text.assert_not_called()
 
-    def test_process_one_generate_step_fails(self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate):
+    def test_process_one_generate_step_fails(
+        self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate
+    ):
         """Test that processing stops when generate step fails."""
         template = MagicMock(template_id=1, template_title="Template:OWID/test")
 
@@ -274,7 +278,9 @@ class TestProcessTemplate:
 class TestStepLoadTemplateText:
     """Tests for _step_load_template_text method."""
 
-    def test_load_template_text_success(self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate):
+    def test_load_template_text_success(
+        self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate
+    ):
         """Test successful loading of template text."""
         mock_page = MagicMock()
         mock_page.get_text.return_value = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
@@ -286,7 +292,9 @@ class TestStepLoadTemplateText:
         assert info._text is not None
         assert info.steps["load_template_text"]["result"] is True
 
-    def test_load_template_text_returns_empty_string(self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate):
+    def test_load_template_text_returns_empty_string(
+        self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate
+    ):
         """Test failure when get_page_text returns empty string."""
         mock_page = MagicMock()
         mock_page.get_text.return_value = ""
@@ -354,7 +362,9 @@ class TestStepGenerateTemplateText:
 class TestStepAddTemplate:
     """Tests for _step_add_template method."""
 
-    def test_add_template_success(self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate):
+    def test_add_template_success(
+        self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate
+    ):
         """Test successful addition of template to text."""
         mock_add_svglanguages_services["add_template_to_text"].return_value = (
             "original text\n*{{SVGLanguages|test.svg}}"
@@ -372,7 +382,9 @@ class TestStepAddTemplate:
             "original text", "{{SVGLanguages|test.svg}}"
         )
 
-    def test_add_template_skips_if_identical(self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate):
+    def test_add_template_skips_if_identical(
+        self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate
+    ):
         """Test that step is skipped if new text is identical to original."""
         mock_add_svglanguages_services["add_template_to_text"].return_value = "original text"
 
@@ -390,7 +402,9 @@ class TestStepAddTemplate:
 class TestStepSaveNewText:
     """Tests for _step_save_new_text method."""
 
-    def test_save_new_text_success(self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate):
+    def test_save_new_text_success(
+        self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate
+    ):
         """Test successful saving of new text."""
         mock_page = MagicMock()
         mock_page.edit.return_value = {"success": True}
@@ -405,7 +419,9 @@ class TestStepSaveNewText:
         assert info.steps["save_new_text"]["result"] is True
         mock_page.edit.assert_called_once()
 
-    def test_save_new_text_failure(self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate):
+    def test_save_new_text_failure(
+        self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate
+    ):
         """Test failure when edit fails."""
         mock_page = MagicMock()
         mock_page.edit.return_value = {"success": False, "error": "API error"}

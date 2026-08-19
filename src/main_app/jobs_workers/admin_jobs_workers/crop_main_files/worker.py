@@ -137,7 +137,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         return ok
 
     def update_status(self, info: CropFileProcessingInfo) -> None:
-        self.result.summary.processed +=  1
+        self.result.summary.processed += 1
 
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"

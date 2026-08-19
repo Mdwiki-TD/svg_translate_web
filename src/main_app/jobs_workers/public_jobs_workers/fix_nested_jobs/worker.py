@@ -25,6 +25,7 @@ from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
 
 logger = logging.getLogger(__name__)
 
+
 class FixNestedJobsProcessor(BaseObjectsJobWorker):
     """
     Orchestrates the pipeline for fixing nested tags in SVG files.
