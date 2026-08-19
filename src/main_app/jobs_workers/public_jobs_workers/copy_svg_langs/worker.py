@@ -57,7 +57,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.titles: list[str] = []
         self.files_service = FilesService()
 
-        self.files_processor = OneFileProcessor(self.config, self.files_service)
+        self.files_processor = OneFileProcessor(self.config, self.files_service, self.site)
 
     def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
         output_dir = self._compute_output_dir(self.title)
@@ -313,6 +313,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         if self.site is None:
             raise ValueError("Site is not set")
 
+        self.files_processor.site = self.site
         self.files_processor.upload_service.site = self.site
 
         if not self.title:
