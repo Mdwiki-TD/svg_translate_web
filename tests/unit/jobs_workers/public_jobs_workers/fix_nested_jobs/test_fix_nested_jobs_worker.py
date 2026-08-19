@@ -461,13 +461,6 @@ class TestVerifyStep(TestSetup):
         proc.result.file_result = FileResult(path=str(path), nested_tags_before=before_count)
         return proc
 
-    def test_skips_when_fix_not_success(self, mock_fix_nested_services: MockFixNestedServices):
-        proc = self.processor
-        proc.result.stages.fix.status = "failed"
-        result = proc._verify_step(self.processor.result.stages.verify)
-        assert result is None
-        mock_fix_nested_services.verify_fix.assert_not_called()
-
     def test_returns_true_when_tags_fixed(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.verify_fix.return_value = VerificationResult(before=0, after=0, fixed=5)
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
@@ -512,13 +505,6 @@ class TestUploadStep(TestSetup):
     def test_skips_when_no_site(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
         proc.site = None
-        result = proc._upload_step(self.processor.result.stages.upload)
-        assert result is None
-        mock_fix_nested_services.upload_svg.assert_not_called()
-
-    def test_skips_when_verify_not_success(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
-        proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
-        proc.result.stages.verify.status = "failed"
         result = proc._upload_step(self.processor.result.stages.upload)
         assert result is None
         mock_fix_nested_services.upload_svg.assert_not_called()

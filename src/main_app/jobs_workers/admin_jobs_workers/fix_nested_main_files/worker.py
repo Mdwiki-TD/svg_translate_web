@@ -50,7 +50,6 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         # Skip if template doesn't have a main_file
         if not template_info.main_file:
             template_info._update("skipped", "No main_file set")
-            self.result.pages_skipped.append(template_info)
             return False
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -65,23 +64,16 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
         if fix_result.get("success"):
             template_info._update("success", "")
-
-            self.result.pages_success.append(template_info)
             logger.info("Job %s: Successfully processed %s", self.job_id, template_info.main_file)
             return True
 
         elif fix_result.get("no_nested_tags", False):
             template_info._update("skipped", "No nested tags found")
-
-            self.result.pages_skipped.append(template_info)
-
             logger.info("Job %s: No nested tags found in %s", self.job_id, template_info.main_file)
             return False
 
         message = fix_result.get("message", "Unknown error")
         template_info._update("failed", message)
-
-        self.result.pages_failed.append(template_info)
         logger.warning("Job %s: Failed to process %s: %s", self.job_id, template_info.main_file, message)
 
         return False
@@ -220,14 +212,19 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         }
 
     def update_status(self, info: TitleInfo) -> None:
-        """
-        TODO: move self.result.<stats>.append() into this method
-        """
         self.result.summary.processed += 1
 
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 
+        elif info.status == "skipped":
+            self.result.pages_skipped.append(info)
+
+        elif info.status == "success":
+            self.result.pages_success.append(info)
+
+        elif info.status == "failed":
+            self.result.pages_failed.append(info)
 
 __all__ = [
     "FixNestedMainFilesWorker",

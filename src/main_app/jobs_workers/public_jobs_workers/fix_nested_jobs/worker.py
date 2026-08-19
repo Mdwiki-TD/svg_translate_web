@@ -165,10 +165,6 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         verify_stage.status = "running"
         self._save_progress()
 
-        if self.result.stages.fix.status != "success":
-            verify_stage.skipped(message="fix failed")
-            return None
-
         before_count = self.result.file_result.nested_tags_before
         verify_result: VerificationResult = verify_fix(self.file_path, before_count)
 
@@ -208,10 +204,6 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         if not self.site:
             upload_stage.failed("Authentication failed")
-            return None
-
-        if self.result.stages.verify.status != "success":
-            upload_stage.skipped(message="Skipped (not fixed)")
             return None
 
         tags_fixed = self.result.file_result.nested_tags_fixed
@@ -258,33 +250,43 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.result.filename = self.filename
 
         # ----------------------------------------------
+        result_stages = self.result.stages
+        # ----------------------------------------------
         # Stage 1: Download SVG files
         self.result.file_result = FileResult()
 
-        if not self._download_step(self.result.stages.download):
-            self.result.stages.analyze._update("skipped", "download step Failed")
+        if not self._download_step(result_stages.download):
+            result_stages.analyze._update("skipped", "download step Failed")
+            result_stages.fix._update("skipped", "download step Failed")
+            result_stages.verify._update("skipped", "download step Failed")
+            result_stages.upload._update("skipped", "download step Failed")
             return self.result
 
         # ----------------------------------------------
         # Stage 2: Analyze nested tags
-        if not self._analyze_step(self.result.stages.analyze):
-            self.result.stages.fix._update("skipped", self.result.stages.analyze.message or "skipped")
+        if not self._analyze_step(result_stages.analyze):
+            result_stages.fix._update("skipped", result_stages.analyze.message or "skipped")
+            result_stages.verify._update("skipped", result_stages.analyze.message or "skipped")
+            result_stages.upload._update("skipped", result_stages.analyze.message or "skipped")
             return self.result
 
         # ----------------------------------------------
         # Stage 3: Fix nested tags
-        if not self._fix_step(self.result.stages.fix):
+        if not self._fix_step(result_stages.fix):
+            result_stages.verify.skipped(message="fix failed")
+            result_stages.upload.skipped(message="fix failed")
             return self.result
 
         # ----------------------------------------------
         # Stage 4: Verify fixes
-        if not self._verify_step(self.result.stages.verify):
+        if not self._verify_step(result_stages.verify):
+            result_stages.upload.skipped(message="Skipped (not fixed)")
             return self.result
 
         # ----------------------------------------------
         # Stage 5: Upload fixed files
 
-        if not self._upload_step(self.result.stages.upload):
+        if not self._upload_step(result_stages.upload):
             return self.result
 
         return self.result
