@@ -201,9 +201,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             return False
 
         if len(langs) == 1 and langs[0] == "en":
-            info.steps.get_languages = OneStep(
-                msg="Skipped — No non-English languages found",
-            )
+            info.steps.get_languages.msg = "Skipped — No non-English languages found"
             info.status = "skipped"
             return False
 
@@ -241,9 +239,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
         new_categories = get_missing_categories_list(candidate_names, original_text)
         if not new_categories:
-            info.steps.check_existing = OneStep(
-                msg="Skipped — all language categories already exist",
-            )
+            info.steps.check_existing.msg = "Skipped — all language categories already exist"
             info.status = "skipped"
             return []
 

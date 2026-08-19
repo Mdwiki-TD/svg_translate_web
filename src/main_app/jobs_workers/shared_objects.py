@@ -9,41 +9,11 @@ from typing import Any, Literal
 
 logger = logging.getLogger(__name__)
 
-STATUS_LITERAL = Literal[
-    "pending",
-    "running",
-    "success",
-    "skipped",
-    "failed",
-    "completed",
-    "cancelled",
-]
+STATUS_LITERAL = Literal["cancelled", "completed", "failed", "pending", "running", "skipped", "success"]
 
-STATUS_LIST = Literal[
-    "pending",
-    "skipped",
-    "updated",
-    "created",
-    "failed",
-    "completed",
-]
+STATUS_LIST = Literal["completed", "created", "failed", "pending", "skipped", "updated", "uploaded"]
 
-STATUS_LIST2 = Literal[
-    "pending",
-    "skipped",
-    "updated",
-    "uploaded",
-    "failed",
-    "completed",
-]
-
-STATUS_LIST3 = Literal[
-    "pending",
-    "renamed",
-    "skipped_target_exists",
-    "failed",
-    "redirected",
-]
+STATUS_LIST3 = Literal["failed", "pending", "redirected", "renamed", "skipped_target_exists"]
 
 
 @dataclass
@@ -51,10 +21,6 @@ class OneStep:
     result: bool | None = None
     msg: str | None = None
     newrevid: int = 0
-
-    def failed(self, message: str) -> None:
-        self.status = "failed"
-        self.message = message
 
 
 @dataclass

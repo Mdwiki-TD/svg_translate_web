@@ -141,13 +141,11 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         # ----------------------------------
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info):
-            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         # ----------------------------------
         # Step 2 - create_new_text
         if not self._step_create_new_text(file_info):
-            self.result.pages_failed.append(file_info.to_dict())
             return False
 
         if file_info._new_text and file_info.slug:
@@ -164,19 +162,12 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             # ----------------------------------
             # Step 3 - compare if text need to be updated
             upd_step = self._step_update(file_info, new_title)
-            if upd_step is False:
-                self.result.pages_failed.append(file_info.to_dict())
-            elif upd_step is None:
-                self.result.pages_skipped.append(file_info.to_dict())
-            else:
-                self.result.pages_updated.append(file_info.to_dict())
 
             return upd_step is True
 
         # Step 4 - create_new_page
         create_step = self._step_create_new_page(file_info)
         if create_step is False:
-            self.result.pages_failed.append(file_info.to_dict())
             return False
         elif create_step is True:
             self.result.pages_created.append(file_info.to_dict())
@@ -209,6 +200,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             info.steps.create_new_text = OneStep(result=True, msg="Target wikitext generated")
             info._new_text = new_text
             return True
+
         except Exception as exc:
             self._fail(info, info.steps.create_new_text, str(exc))
             return False
@@ -235,7 +227,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         current_text = sort_categories(current_text)
 
         if current_text.strip() == info._new_text.strip():
-            info.steps.update_text = OneStep(msg="Skipped - page content is already identical")
+            info.steps.update_text.msg = "Skipped - page content is already identical"
             info.status = "skipped"
             info.new_page_title = new_title
             self.result.summary.skipped += 1
@@ -248,7 +240,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         )
 
         if res["success"]:
-            self.result.summary.updated += 1
             info.steps.update_text = OneStep(
                 result=True,
                 msg=f"Updated page: {new_title}",
@@ -315,9 +306,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 
-        if info.status.lower() in ["pending", "running"]:
-            info.status = "completed"
-
         if info.status == "skipped":
             self.result.pages_skipped.append(info)
 
@@ -327,6 +315,10 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         elif info.status == "failed":
             self.result.pages_failed.append(info)
             self.result.summary.failed += 1
+
+        elif info.status == "updated":
+            self.result.summary.updated += 1
+            self.result.pages_updated.append(info)
 
         else:
             self.result.pages_processed.append(info)

@@ -71,20 +71,17 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         page = MwClientPage(file_info.template_title, self.site)
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info, page):
-            file_info.status = "failed"
             return False
 
         match = RE_SVG_LANG.search(file_info._text if file_info._text else "")
         if match:
-            file_info.steps.load_template_text = OneStep(
-                msg="Skipped - page content is already has {{SVGLanguages|...}}",
-            )
+            file_info.steps.load_template_text.msg = "Skipped - page content is already has {{SVGLanguages|...}}"
+
             file_info.status = "skipped"
             return False
 
         # Step 2 generate_template_text
         if not self._step_generate_template_text(file_info):
-            file_info.status = "failed"
             return False
 
         # Step 3 add_template_text
@@ -135,7 +132,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         info._new_text = add_template_to_text(info._text, info._template_text)
 
         if info._text and (info._text.strip() == info._new_text.strip()):
-            info.steps.add_template_text = OneStep(msg="Skipped - page content is already identical")
+            info.steps.add_template_text.msg = "Skipped - page content is already identical"
             info.status = "skipped"
             return False
 
@@ -222,9 +219,6 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         TODO: move self.result.<stats>.append() into this method
         """
         self.result.summary.processed += 1
-        if info.status.lower() in ["pending", "running"]:
-            info.status = "completed"
-
         if info.status.lower() in ["pending", "running"]:
             info.status = "completed"
 

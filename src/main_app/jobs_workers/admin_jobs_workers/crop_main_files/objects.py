@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LIST2, StandardAdminWorkerObject
+from ...shared_objects import STATUS_LIST, StandardAdminWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class CropFileProcessingInfo:
     original_file: str
     cropped_filename: str
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: STATUS_LIST2 = "pending"
+    status: STATUS_LIST = "pending"
     error: str | None = None
     downloaded_path: Path | None = None
     cropped_path: Path | None = None
