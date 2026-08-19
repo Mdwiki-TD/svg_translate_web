@@ -11,7 +11,7 @@ from typing import Any
 from CopySVGTranslation import SVGTranslationExtractor, TranslationConfig  # type: ignore
 from CopySVGTranslation.exceptions import CopySVGTranslationError
 
-from .mapping import ExtractorData, ExtractResult
+from .mapping import ExtractorData, ExtractResult, TranslationMapping
 
 logger = logging.getLogger(__name__)
 
@@ -39,10 +39,13 @@ def _extract_file_translations(
     file_name = source_file.name if isinstance(source_file, Path) else str(source_file)
 
     try:
-        result_json: dict[str, Any] = extractor.extract_json(source_file)
+        result_json: TranslationMapping = extractor.extract(source_file)
     except CopySVGTranslationError as exc:
-        logger.error(f"CopySVGTranslationError on file:{file_name}. code: {exc.code}")
-        return ExtractorData(error=str(exc))
+        logger.error(f"CopySVGTranslationError on file:{file_name}.")
+        logger.error(f"Error code: {exc.code}")
+        logger.error(f"Error label: {exc.label}")
+
+        return ExtractorData(error=exc.code, message=exc.label)
     except Exception as e:
         logger.error(f"Failed to extract translations from {file_name}: {e}")
         return ExtractorData(error=str(e))
@@ -52,6 +55,7 @@ def _extract_file_translations(
 
     error = result_json.get("error", "")
     meta = result_json.get("meta", {})
+
     if not error and meta:
         error = meta.get("error", "")
 

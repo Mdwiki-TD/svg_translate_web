@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from CopySVGTranslation import SVGTranslationInjector, TranslationConfig, TranslationMapping  # type: ignore
+from CopySVGTranslation.exceptions import CopySVGTranslationError  # type: ignore
+
 
 from .mapping import (
     ExtractorData,
@@ -33,12 +35,29 @@ def start_svg_injection(
         overwrite_translations=overwrite_translations,
         pretty_print=True,
     )
-    injector = SVGTranslationInjector(config=config)
 
-    data: InjectorData | Any = injector.inject(
-        svg_path=inject_file,
-        mapping=mapping,
-    )
+    file_name = inject_file.name if isinstance(inject_file, Path) else str(inject_file)
+
+    injector = SVGTranslationInjector(config=config)
+    try:
+        data: InjectorData | Any = injector.inject(
+            svg_path=inject_file,
+            mapping=mapping,
+        )
+
+    except CopySVGTranslationError as exc:
+        logger.error(f"CopySVGTranslationError on file:{file_name}.")
+        logger.error(f"Error code: {exc.code}")
+        logger.error(f"Error label: {exc.label}")
+        return InjectorData.from_error(exc)
+
+    except Exception as e:
+        logger.error(f"Error injecting translations into {file_name}: {e}")
+        data = None
+
+    if not data:
+        return InjectorData()
+
     if not isinstance(data, InjectorData):
         data = InjectorData(
             tree=getattr(data, "tree", None),

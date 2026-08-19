@@ -5,7 +5,8 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from lxml import etree  # type: ignore
+from CopySVGTranslation import TranslationMapping  # type: ignore
+from CopySVGTranslation.result import InjectorStats, InjectorData  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -17,56 +18,6 @@ class SharedMapToJson:
         Converts the dataclass instance back to its original dictionary format.
         """
         return asdict(self)  # pyright: ignore[reportCallIssue]
-
-
-@dataclass
-class InjectorStats(SharedMapToJson):
-    """
-    {
-        "all_languages_count": 0,
-        "new_languages_count": 0,
-        "languages_before": [],
-        "languages_after": [],
-        "processed_switches": 0,
-        "inserted_translations": 0,
-        "skipped_translations": 0,
-        "updated_translations": 0,
-        "error": "",
-    }"""
-
-    all_languages_count: int = 0
-    new_languages_count: int = 0
-
-    processed_switches: int = 0
-    inserted_translations: int = 0
-    skipped_translations: int = 0
-    updated_translations: int = 0
-
-    languages_before: list[str] = field(default_factory=list)
-    languages_after: list[str] = field(default_factory=list)
-    error: str = ""
-    nested_tspan_error: bool = False
-
-    def _update(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-
-@dataclass
-class InjectorData:
-    """Container for SVG data."""
-
-    tree: etree._ElementTree | None = None
-    inject_stats: InjectorStats = field(default_factory=InjectorStats)
-
-    def to_json(self) -> dict[str, Any]:
-        inject_stats = self.inject_stats.to_json()
-        return {
-            "tree": self.tree,
-            "inject_stats": inject_stats,
-            "error": inject_stats["error"],
-        }
-
 
 @dataclass
 class InjectResult(SharedMapToJson):
@@ -167,11 +118,11 @@ class ExtractorData:
     def all_languages(self) -> set[str]:
         langs: set[str] = set()
         for section in (self.new, self.title_new):
-            for trans in section.values():
-                if isinstance(trans, dict):
-                    langs.update(trans.keys())
+            for translate in section.values():
+                if isinstance(translate, dict):
+                    langs.update(translate.keys())
                 else:
-                    raise TypeError(f"Unexpected type: {type(trans)}: section: {str(section)}")
+                    raise TypeError(f"Unexpected type: {type(translate)}: section: {str(section)}")
 
         return langs
 
@@ -186,6 +137,10 @@ class ExtractorData:
             return {}
 
         return dict(self.new.get(key, {}))
+
+    def entries(self) -> Iterator[TranslationEntry]:
+        for source, trans in self.new.items():
+            yield TranslationEntry(source=source, translations=trans)
 
     # ------------------------------------------------------------------
     # Mutation helpers (used while building the mapping)
@@ -216,7 +171,7 @@ class ExtractorData:
                         self_new[source][lang] = text
 
         if merge_keys is None:
-            merge_keys = ["new", "title_new"]
+            merge_keys = ["new", "title_new", "tspans_by_id"]
 
         other = self.from_any(other)
 
@@ -248,9 +203,10 @@ class ExtractorData:
 
 
 __all__ = [
-    "InjectResult",
+    "TranslationMapping",
     "InjectorStats",
     "InjectorData",
+    "InjectResult",
     "ExtractorData",
     "ExtractResult",
 ]
