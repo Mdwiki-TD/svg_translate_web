@@ -5,6 +5,27 @@ from datetime import datetime
 
 import wikitextparser as wtp
 
+# Pre-compile module-level regexes and constants to avoid repeated compilation and dict allocation in hot paths
+RE_FILENAME = re.compile(r"^File:[\w\-,.()\s_]+\.svg$")
+RE_DATE = re.compile(r"year\s*=\s*([A-Za-z]{3})\s+(\d{1,2}),\s*(\d{4})\s*$")
+RE_YEAR = re.compile(r"year\s*=\s*(\d{4})\s*$")
+RE_YEAR_FIND = re.compile(r"!\s*year\s*=\s*(\d{4})")
+
+MONTH_MAP = {
+    "Jan": 1,
+    "Feb": 2,
+    "Mar": 3,
+    "Apr": 4,
+    "May": 5,
+    "Jun": 6,
+    "Jul": 7,
+    "Aug": 8,
+    "Sep": 9,
+    "Oct": 10,
+    "Nov": 11,
+    "Dec": 12,
+}
+
 
 def match_newest_world_file(text: str) -> str:
     """
@@ -20,21 +41,6 @@ def match_newest_world_file(text: str) -> str:
     Returns:
         "File:youth mortality rate, World, Apr 15, 1953.svg"
     """
-    MONTH_MAP = {
-        "Jan": 1,
-        "Feb": 2,
-        "Mar": 3,
-        "Apr": 4,
-        "May": 5,
-        "Jun": 6,
-        "Jul": 7,
-        "Aug": 8,
-        "Sep": 9,
-        "Oct": 10,
-        "Nov": 11,
-        "Dec": 12,
-    }
-
     lines = text.strip().splitlines()
     latest_date = None
     newest_world_file = ""
@@ -48,12 +54,12 @@ def match_newest_world_file(text: str) -> str:
         year_part = parts[1].strip()
 
         # Validate filename format
-        m = re.match(r"^File:[\w\-,.()\s_]+\.svg$", filename)
+        m = RE_FILENAME.match(filename)
         if not m:
             continue
 
         # Try full date: "year=Apr 15, 1940"
-        date_match = re.match(r"year\s*=\s*([A-Za-z]{3})\s+(\d{1,2}),\s*(\d{4})\s*$", year_part)
+        date_match = RE_DATE.match(year_part)
         if date_match:
             month_str, day_str, year_str = date_match.groups()
             month = MONTH_MAP.get(month_str.capitalize())
@@ -62,7 +68,7 @@ def match_newest_world_file(text: str) -> str:
             date = datetime(int(year_str), month, int(day_str))
         else:
             # Fallback: "year=1953"
-            simple_match = re.match(r"year\s*=\s*(\d{4})\s*$", year_part)
+            simple_match = RE_YEAR.match(year_part)
             if not simple_match:
                 continue
             date = datetime(int(simple_match.group(1)), 1, 1)
@@ -113,7 +119,7 @@ def find_newest_year(text: str) -> int | None:
             continue
         tpl_text = tpl.string
         # match all `!year=2009` in tpl_text then select the biggest year
-        matches = re.findall(r"!\s*year\s*=\s*(\d{4})", tpl_text)
+        matches = RE_YEAR_FIND.findall(tpl_text)
         if matches:
             last_world_year = max(matches)
         # break when match owidslidersrcs template
