@@ -3,12 +3,14 @@ from __future__ import annotations
 import logging
 import time
 from pathlib import Path
+from typing import Any
 
 import mwclient
 import mwclient.errors
 import requests
 from mwclient.client import Site
 
+from .exceptions import SharedFileExistsError
 from .objects import FileData, UploadResult
 
 logger = logging.getLogger(__name__)
@@ -21,10 +23,12 @@ class FileUploader:
         self.site = site
 
     @staticmethod
-    def _err(message: str, error_details: str = "") -> dict[str, object]:
-        return {"success": False, "error": message, "error_details": error_details}
+    def _err(message: str, error_details: str = "", **kwargs) -> dict[str, object]:
+        result = {"success": False, "error": message, "error_details": error_details}
+        result.update(kwargs)
+        return result
 
-    def _site_upload(self, file_data: FileData) -> dict:
+    def _site_upload(self, file_data: FileData) -> dict[str, Any]:
         """
         Upload a file to the site.
 
@@ -71,17 +75,11 @@ class FileUploader:
 
         except mwclient.errors.APIError as exc:
             if exc.code == "fileexists-shared-forbidden":
-                """{
-                    "code": "fileexists-shared-forbidden",
-                    "info": "A file with this name already exists in the shared file repository. If you still want to upload your file, please go back and use a new name. [[File:Share_of_deaths_obesity,_AFG.svg|thumb|center|Share_of_deaths_obesity,_AFG.svg]]",
-                },
-                TODO: write error class to handle this with new name extraction from `[[File:Share_of_deaths_obesity,_AFG.svg|`
-                """
                 logger.debug("Upload result: fileexists-shared-forbidden")
-                raise
+                raise SharedFileExistsError(code=exc.code, info=exc.info) from exc
             raise
 
-    def _check_kwargs(self, file_data: FileData) -> dict:
+    def _check_kwargs(self, file_data: FileData) -> dict[str, Any]:
         """
         Check if the kwargs are valid
         """
@@ -111,7 +109,7 @@ class FileUploader:
 
         return {"success": True, "error": None}
 
-    def _upload_file(self, file_data: FileData) -> dict:
+    def _upload_file(self, file_data: FileData) -> dict[str, Any]:
         """
         Single upload attempt — returns a result dict, never raises.
         """
@@ -143,6 +141,19 @@ class FileUploader:
         except mwclient.errors.FileExists:
             logger.error("File already exists on Wikimedia Commons")
             return self._err("fileexists", "File already exists")
+
+        except SharedFileExistsError as exc:
+            # The file name is already taken in the shared (Commons) repository.
+            # Surface the conflicting name so callers can pick a new one.
+            logger.error(
+                "Upload rejected: file name already exists in shared repository (%s)",
+                exc.existing_file_name,
+            )
+            return self._err(
+                "fileexists-shared-forbidden",
+                exc.info,
+                existing_file_name=exc.existing_file_name,
+            )
 
         except mwclient.errors.MaximumRetriesExceeded:
             # mwclient's internal network retry budget exhausted
@@ -177,7 +188,7 @@ class FileUploader:
             logger.exception("Unexpected error uploading %s", file_data.file_name)
             return self._err("unexpected", str(exc))
 
-    def _upload_with_retry(self, file_data: FileData) -> dict:
+    def _upload_with_retry(self, file_data: FileData) -> dict[str, Any]:
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
             logger.warning(
                 "Rate limited on upload attempt %d/%d for file '%s'. Retrying in %ds...",
@@ -195,7 +206,7 @@ class FileUploader:
 
         return self._err("ratelimited", "Exceeded rate limit after all retry attempts")
 
-    def upload(self, file_data: FileData) -> dict:
+    def upload(self, file_data: FileData) -> dict[str, Any]:
         check = self._check_kwargs(file_data)
         if check["error"]:
             return check

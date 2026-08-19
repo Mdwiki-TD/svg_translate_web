@@ -15,7 +15,7 @@ def _step(result: bool | None, msg: str) -> dict[str, bool | None | str]:
     return {"result": result, "msg": msg}
 
 
-def _cropped_file_result() -> dict:
+def _cropped_file_result() -> dict[str, Any]:
     """Create one uploaded cropped-file result with its final update step."""
     return {
         "template_title": "Template:OWID/Wheat production",
@@ -34,7 +34,7 @@ def _cropped_file_result() -> dict:
     }
 
 
-def _result_data() -> dict:
+def _result_data() -> dict[str, Any]:
     """Create a minimal serialized crop-job result for the details route."""
     return {
         "summary": {"total": 1, "processed": 1, "uploaded": 1, "updated": 0, "skipped": 0, "failed": 0},

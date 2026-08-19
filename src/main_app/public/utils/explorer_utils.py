@@ -29,7 +29,7 @@ def _validate_path_under_base(title: str, sub_dir: str) -> Path:
     return candidate
 
 
-def get_main_data(title, filename: str = "files_stats.json") -> dict:
+def get_main_data(title, filename: str = "files_stats.json") -> dict[str, Any]:
     svg_data_path = load_svg_data_path()
     file_path = svg_data_path / title / (filename or "files_stats.json")
     if not file_path.exists():
@@ -100,7 +100,7 @@ def get_languages(title: str, translations_data: dict | None = None) -> list:
     return sorted(set(languages))
 
 
-def get_informations(title: str) -> dict:
+def get_informations(title: str) -> dict[str, Any]:
     data: dict[str, Any] = {}
     downloaded, title_path = get_files(title, "files")
     translated, _ = get_files(title, "translated")

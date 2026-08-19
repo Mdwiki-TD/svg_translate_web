@@ -21,7 +21,7 @@ def explorer_app():
 
 
 @pytest.fixture
-def patch_templates(monkeypatch: pytest.MonkeyPatch) -> dict:
+def patch_templates(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     captured: dict[str, dict] = {}
 
     def fake_render(template: str, **context):

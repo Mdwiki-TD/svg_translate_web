@@ -46,7 +46,7 @@ def _get_jobs_cancel_event(job_id: int) -> threading.Event | None:
         return JOBS_CANCEL_EVENTS.get(job_id)
 
 
-def _load_job_args(job_args: list[dict[str, str]]) -> dict:
+def _load_job_args(job_args: list[dict[str, str]]) -> dict[str, Any]:
     if not job_args:
         return {}
 
