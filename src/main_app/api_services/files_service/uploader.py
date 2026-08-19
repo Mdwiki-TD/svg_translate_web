@@ -24,6 +24,63 @@ class FileUploader:
     def _err(message: str, error_details: str = "") -> dict[str, object]:
         return {"success": False, "error": message, "error_details": error_details}
 
+    def _site_upload(self, file_data: FileData) -> dict:
+        """
+        Upload a file to the site.
+
+        API doc: https://www.mediawiki.org/wiki/API:Upload
+
+
+        Returns:
+            JSON result from the API.
+
+        Returns Examples:
+            - {"result": "Success", "filename": "Test1x.jpeg", "imageinfo": {...}}
+            - { "upload": { "result": "Warning", "warnings": {...}, "filekey": "x", "sessionkey": "x"}
+
+            warnings Examples:
+            - {"duplicate": ["...jpg"]}
+            - {"badfilename": "..png", "exists": "..png", "nochange": { "timestamp": "..." }}
+
+        Returns Examples with ignore=True:
+        - {"result": "Success", "filename": "...", "warnings": {"exists": "CampaignEvents_edits_registration.png"}}
+
+        Raises:
+            TypeError
+            mwclient.errors.AssertUserFailedError
+            mwclient.errors.UserBlocked
+            mwclient.errors.InsufficientPermission
+            mwclient.errors.FileExists
+            mwclient.errors.MaximumRetriesExceeded
+            mwclient.errors.APIError
+            requests.exceptions.HTTPError
+            requests.exceptions.ConnectionError
+            requests.exceptions.Timeout
+        """
+        try:
+            with open(file_data.file_path, "rb") as f:
+                response = self.site.upload(
+                    file=f,
+                    description=file_data.description,
+                    filename=file_data.file_name,
+                    comment=file_data.summary or "",
+                    ignore=True,  # skip warnings like "file exists"
+                )
+
+            return response
+
+        except mwclient.errors.APIError as exc:
+            if exc.code == "fileexists-shared-forbidden":
+                """{
+                    "code": "fileexists-shared-forbidden",
+                    "info": "A file with this name already exists in the shared file repository. If you still want to upload your file, please go back and use a new name. [[File:Share_of_deaths_obesity,_AFG.svg|thumb|center|Share_of_deaths_obesity,_AFG.svg]]",
+                },
+                TODO: write error class to handle this with new name extraction from `[[File:Share_of_deaths_obesity,_AFG.svg|`
+                """
+                logger.debug("Upload result: fileexists-shared-forbidden")
+                raise
+            raise
+
     def _check_kwargs(self, file_data: FileData) -> dict:
         """
         Check if the kwargs are valid
@@ -120,50 +177,6 @@ class FileUploader:
             logger.exception("Unexpected error uploading %s", file_data.file_name)
             return self._err("unexpected", str(exc))
 
-    def _site_upload(self, file_data: FileData) -> dict:
-        """
-        Upload a file to the site.
-
-        API doc: https://www.mediawiki.org/wiki/API:Upload
-
-
-        Returns:
-            JSON result from the API.
-
-        Returns Examples:
-            - {"result": "Success", "filename": "Test1x.jpeg", "imageinfo": {...}}
-            - { "upload": { "result": "Warning", "warnings": {...}, "filekey": "x", "sessionkey": "x"}
-
-            warnings Examples:
-            - {"duplicate": ["...jpg"]}
-            - {"badfilename": "..png", "exists": "..png", "nochange": { "timestamp": "..." }}
-
-        Returns Examples with ignore=True:
-        - {"result": "Success", "filename": "...", "warnings": {"exists": "CampaignEvents_edits_registration.png"}}
-
-        Raises:
-            TypeError
-            mwclient.errors.AssertUserFailedError
-            mwclient.errors.UserBlocked
-            mwclient.errors.InsufficientPermission
-            mwclient.errors.FileExists
-            mwclient.errors.MaximumRetriesExceeded
-            mwclient.errors.APIError
-            requests.exceptions.HTTPError
-            requests.exceptions.ConnectionError
-            requests.exceptions.Timeout
-        """
-        with open(file_data.file_path, "rb") as f:
-            response = self.site.upload(
-                file=f,
-                description=file_data.description,
-                filename=file_data.file_name,
-                comment=file_data.summary or "",
-                ignore=True,  # skip warnings like "file exists"
-            )
-
-        return response
-
     def _upload_with_retry(self, file_data: FileData) -> dict:
         for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
             logger.warning(
@@ -229,13 +242,6 @@ class FileUploader:
                 msg="File already exists with same content",
                 result=None,
             )
-
-        """
-        "details": {
-            "error": "fileexists-shared-forbidden",
-            "error_details": "A file with this name already exists in the shared file repository. If you still want to upload your file, please go back and use a new name. [[File:Share_of_deaths_obesity,_AFG.svg|thumb|center|Share_of_deaths_obesity,_AFG.svg]]",
-          },
-        """
 
         return UploadResult(
             ok=False,
