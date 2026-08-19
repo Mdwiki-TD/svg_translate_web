@@ -5,11 +5,12 @@
 
 {% block job_info_extra %}
 {% if result_data %}
-{% if result_data.title or result_data.args.title %}
+{% set title = result_data.title or (result_data.args.title if result_data.args else None) %}
+{% if title %}
 <tr>
     <th>Template:</th>
     <td>
-        {{ commons_link(result_data.title or result_data.args.title) }}
+        {{ commons_link(title) }}
     </td>
 </tr>
 {% endif %}
