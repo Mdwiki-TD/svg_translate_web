@@ -226,6 +226,9 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         }
 
     def update_status(self, info: TitleInfo) -> None:
+        """
+        TODO: move self.result.<stats>.append() into this method
+        """
         self.result.summary.processed +=  1
 
         if info.status.lower() in ["pending", "running"]:

@@ -314,6 +314,9 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         self.result.summary.failed += 1
 
     def update_status(self, info: TemplateProcessingInfo) -> None:
+        """
+        TODO: move self.result.<stats>.append() into this method
+        """
         self.result.summary.processed +=  1
 
         if info.status.lower() in ["pending", "running"]:

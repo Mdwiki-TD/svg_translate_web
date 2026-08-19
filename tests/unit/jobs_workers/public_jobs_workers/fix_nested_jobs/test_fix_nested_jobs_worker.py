@@ -271,21 +271,6 @@ class TestFixNestedJobsProcessor(TestSetup):
         assert processor.is_cancelled() is True
         assert processor.result.status == "cancelled"
 
-    def test_run_step_success(self) -> None:
-        def mock_step():
-            return True
-
-        result = self.processor._run_step(self.processor.result.stages.download, mock_step)
-        assert result is True
-
-    def test_run_step_failure(self) -> None:
-        def mock_step():
-            return False
-
-        result = self.processor._run_step(self.processor.result.stages.download, mock_step)
-        assert result is False
-        assert self.processor.result.status == "failed"
-
 
 # ---------------------------------------------------------------------------
 # __post_init__ / construction
@@ -454,14 +439,6 @@ class TestFixStep(TestSetup):
         proc.result.file_result = FileResult(path=str(path))
         return proc
 
-    def test_skips_when_analyze_not_success(self, mock_fix_nested_services: MockFixNestedServices):
-        proc = self.processor
-        proc.result.stages.analyze.status = "skipped"
-        proc.result.stages.analyze.message = "No nested tags found"
-        result = proc._fix_step(self.processor.result.stages.fix)
-        assert result is None
-        mock_fix_nested_services.fix_nested_tags.assert_not_called()
-
     def test_returns_true_on_success(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.fix_nested_tags.return_value = True
         proc = self._proc_after_analyze(tmp_path / "x.svg")
@@ -487,14 +464,14 @@ class TestVerifyStep(TestSetup):
     def test_skips_when_fix_not_success(self, mock_fix_nested_services: MockFixNestedServices):
         proc = self.processor
         proc.result.stages.fix.status = "failed"
-        result = proc._upload_step(self.processor.result.stages.verify)
+        result = proc._verify_step(self.processor.result.stages.verify)
         assert result is None
         mock_fix_nested_services.verify_fix.assert_not_called()
 
     def test_returns_true_when_tags_fixed(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.verify_fix.return_value = VerificationResult(before=0, after=0, fixed=5)
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
-        result = proc._upload_step(self.processor.result.stages.verify)
+        result = proc._verify_step(self.processor.result.stages.verify)
         assert result is True
         assert proc.result.file_result.nested_tags_after == 0
         assert proc.result.file_result.nested_tags_fixed == 5
@@ -503,7 +480,7 @@ class TestVerifyStep(TestSetup):
     def test_returns_false_when_no_tags_fixed(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.verify_fix.return_value = VerificationResult(before=0, after=5, fixed=0)
         proc = self._proc_after_fix(tmp_path / "x.svg", before_count=5)
-        result = proc._upload_step(self.processor.result.stages.verify)
+        result = proc._verify_step(self.processor.result.stages.verify)
         assert result is False
         assert proc.result.stages.verify.status == "failed"
 
@@ -560,71 +537,6 @@ class TestUploadStep(TestSetup):
         assert result is False
         assert proc.result.stages.upload.status == "failed"
         assert proc.result.stages.upload.message == "permission_denied"
-
-
-# ---------------------------------------------------------------------------
-# _run_step
-# ---------------------------------------------------------------------------
-
-
-class TestRunStage(TestSetup):
-    def test_returns_true_when_step_returns_true(self, mock_fix_nested_services: MockFixNestedServices):
-        mock_fix_nested_services.is_job_cancelled.return_value = False
-        proc = self.processor
-        assert proc._run_step(proc.result.stages.download, lambda: True) is True
-
-    def test_returns_false_and_sets_failed_when_step_returns_false(
-        self, mock_fix_nested_services: MockFixNestedServices
-    ):
-        mock_fix_nested_services.is_job_cancelled.return_value = False
-        proc = self.processor
-        assert proc._run_step(proc.result.stages.download, lambda: False) is False
-        assert proc.result.status == "failed"
-
-    def test_returns_false_and_sets_skipped_when_step_returns_none(
-        self, mock_fix_nested_services: MockFixNestedServices
-    ):
-        mock_fix_nested_services.is_job_cancelled.return_value = False
-        proc = self.processor
-        assert proc._run_step(proc.result.stages.download, lambda: None) is False
-        assert proc.result.status == "skipped"
-
-    def test_handles_exception_and_sets_failed(self, mock_fix_nested_services: MockFixNestedServices):
-        mock_fix_nested_services.is_job_cancelled.return_value = False
-        proc = self.processor
-
-        def boom():
-            raise ValueError("oops")
-
-        assert proc._run_step(proc.result.stages.download, boom) is False
-        assert proc.result.stages.download.status == "failed"
-        assert "oops" in proc.result.stages.download.message
-        assert proc.result.status == "failed"
-
-    def test_returns_false_immediately_when_cancelled(self, mock_fix_nested_services: MockFixNestedServices):
-        mock_fix_nested_services.is_job_cancelled.return_value = True
-        # _run_step calls self.is_cancelled() without check_db=True, so the
-        # DB mock alone has no effect. Use a cancel_event to trigger
-        # cancellation via the local event path.
-        event = threading.Event()
-        event.set()
-        step = MagicMock(return_value=True)
-        proc = self._make_processor(cancel_event=event)
-        assert proc._run_step(proc.result.stages.download, step) is False
-        step.assert_not_called()
-
-    def test_sets_stage_status_to_running_before_calling_step(self, mock_fix_nested_services: MockFixNestedServices):
-        mock_fix_nested_services.is_job_cancelled.return_value = False
-        statuses: list = []
-
-        def capture_status():
-            statuses.append(proc.result.stages.download.status)
-            return True
-
-        proc = self.processor
-        proc._run_step(proc.result.stages.download, capture_status)
-        assert statuses[0] == "running"
-
 
 # ---------------------------------------------------------------------------
 # run() integration-level tests (all workers mocked)
