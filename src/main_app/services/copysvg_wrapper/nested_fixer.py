@@ -5,6 +5,11 @@ from pathlib import Path
 
 from CopySVGTranslation import SVGTranslationService, TranslationConfig  # type: ignore
 from CopySVGTranslation.nested.objects import RepairResult  # type: ignore
+from lxml import etree
+
+SVG_NS = "http://www.w3.org/2000/svg"
+SVG_TSPAN = f"{{{SVG_NS}}}tspan"
+SVG_A = f"{{{SVG_NS}}}a"
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +30,34 @@ class NestedStructureService:
         self.service = SVGTranslationService(config=config)
 
     def analyze_file(self, svg_path: Path | str) -> list[str]:
+        """Return nested structures that the configured flatten strategy can repair.
+
+        The upstream detector reports every ``<a>`` or ``<tspan>`` with element
+        children.  A valid title link, for example, normally has the structure
+        ``<a><text><tspan>…</tspan></text></a>``.  The flattener intentionally
+        does not alter that link, so treating it as a nested-tag error causes a
+        false failure.  Only nested ``<tspan>`` or ``<a>`` descendants of a
+        ``<tspan>`` are repairable by the flatten strategy.
+        """
         result = self.service.analyze_nested(svg_path)
-        if result.success and result.data is not None:
-            return result.data
-        return []
+        if not result.success or result.data is None:
+            return []
+
+        try:
+            parser = etree.XMLParser(resolve_entities=False, no_network=True)
+            root = etree.parse(str(svg_path), parser).getroot()
+        except (etree.XMLSyntaxError, OSError) as exc:
+            logger.error("Failed to parse SVG file %s while filtering nested structures: %s", svg_path, exc)
+            return []
+
+        repairable = []
+        for tspan in root.findall(f".//{SVG_TSPAN}"):
+            nested_tspans = tspan.findall(f".//{SVG_TSPAN}")
+            nested_links = tspan.findall(f".//{SVG_A}")
+            if nested_tspans or nested_links:
+                repairable.append(etree.tostring(tspan, pretty_print=False).decode("utf-8"))
+
+        return repairable
 
     def repair_file(
         self,
