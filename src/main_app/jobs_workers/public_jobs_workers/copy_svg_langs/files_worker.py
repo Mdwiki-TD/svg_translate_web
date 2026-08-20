@@ -23,7 +23,6 @@ from ....services.copysvg_wrapper import (
 )
 from ....services.fix_nested import (
     DetectionResult,
-    VerificationResult,
 )
 from .objects import (
     FilesProcessedItem,
@@ -67,23 +66,28 @@ class OneFileProcessor:
             return 0, False
 
         # Verify after fix
-        verify: VerificationResult = self.nested_processer.verify_after_fix(file_path, detect_before.count)
+        verify = {
+            "before": fixed.len_tags_before_fix,
+            "after": fixed.len_tags_after_fix,
+            "fixed": fixed.len_tags_fixed,
+        }
 
-        if verify.fixed == 0:
+        if fixed.len_tags_fixed == 0:
             nested_step._update(
                 result=False,
                 msg="No nested tags were fixed",
-                details=verify.to_json(),
+                details=verify,
             )
+
             # no nested tags fixed, break the file process
             return 0, False
 
-        verify_fixed = verify.fixed
+        verify_fixed = fixed.len_tags_fixed
 
         nested_step._update(
             result=True,
-            msg=f"Fixed {verify.fixed} nested tag(s)",
-            details=verify.to_json(),
+            msg=f"Fixed {fixed.len_tags_fixed} nested tag(s)",
+            details=verify,
         )
 
         # no nested tags remaining in the file, process to inject translations step

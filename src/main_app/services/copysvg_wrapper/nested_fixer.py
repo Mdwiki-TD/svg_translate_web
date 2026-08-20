@@ -6,7 +6,7 @@ from pathlib import Path
 from CopySVGTranslation import NestedTspanDetector, NestedTspanFlattener  # type: ignore
 from lxml import etree
 
-from ..fix_nested.objects import DetectionResult, NestedStrategy, RepairResult, VerificationResult
+from ..fix_nested.objects import DetectionResult, NestedStrategy, RepairResult
 
 logger = logging.getLogger(__name__)
 
@@ -42,20 +42,6 @@ class MatchFixNestedTags:
         except (etree.XMLSyntaxError, OSError) as exc:
             logger.error(f"Failed to parse SVG file {path}: {exc}")
             return None
-
-    def verify_after_fix(
-        self,
-        source_file: Path | str,
-        len_tags_before_fix: int,
-    ) -> VerificationResult:
-        """Verify nested tags count after fix."""
-        after = self.match_nested(source_file)
-        after_count = len(after)
-        return VerificationResult(
-            before=len_tags_before_fix,
-            after=after_count,
-            fixed=max(0, len_tags_before_fix - after_count),
-        )
 
     def match_nested(self, source_file: Path | str) -> list[str]:
         root = self._get_root(source_file)

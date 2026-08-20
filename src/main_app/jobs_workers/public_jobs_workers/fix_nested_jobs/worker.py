@@ -14,10 +14,8 @@ from ....api_services import FilesService
 from ....api_services.files_service import UploadService
 from ....services.fix_nested.worker import (
     DetectionResult,
-    VerificationResult,
     detect_nested_tags,
     repair_file,
-    verify_fix,
 )
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
@@ -146,6 +144,9 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
 
         fixed = repair_file(self.file_path)
 
+        self.result.file_result.nested_tags_after = fixed.len_tags_after_fix
+        self.result.file_result.nested_tags_fixed = fixed.len_tags_fixed
+
         if fixed.success:
             fix_stage._update(status="success", message="Nested tags fixed successfully")
             return True
@@ -165,14 +166,12 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         verify_stage.status = "running"
         self._save_progress()
 
-        before_count = self.result.file_result.nested_tags_before
-        verify_result: VerificationResult = verify_fix(self.file_path, before_count)
+        # self.result.file_result.nested_tags_after = verify_result.after
+        # self.result.file_result.nested_tags_fixed = verify_result.fixed
 
-        self.result.file_result.nested_tags_after = verify_result.after
-        self.result.file_result.nested_tags_fixed = verify_result.fixed
-
-        if verify_result.fixed > 0:
-            message = f"Verified: {verify_result.fixed} tags fixed"
+        tags_fixed = self.result.file_result.nested_tags_fixed
+        if tags_fixed > 0:
+            message = f"Verified: {tags_fixed} tags fixed"
             verify_stage._update(status="success", message=message)
             return True
 

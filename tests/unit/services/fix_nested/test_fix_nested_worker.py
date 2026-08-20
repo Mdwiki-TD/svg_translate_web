@@ -7,5 +7,4 @@ from __future__ import annotations
 
 from src.main_app.services.fix_nested.worker import (
     detect_nested_tags,
-    verify_fix,
 )

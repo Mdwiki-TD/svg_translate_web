@@ -15,10 +15,8 @@ from ....api_services import FilesService, UploadService
 from ....database.services import TemplateService
 from ....services.fix_nested.worker import (
     DetectionResult,
-    VerificationResult,
     detect_nested_tags,
     repair_file,
-    verify_fix,
 )
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
@@ -179,16 +177,20 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 "details": {"nested_count": detect_before.count},
             }
 
-        verify: VerificationResult = verify_fix(file_path, detect_before.count)
+        verify = verify = {
+            "before": fixed.len_tags_before_fix,
+            "after": fixed.len_tags_after_fix,
+            "fixed": fixed.len_tags_fixed,
+        }
 
-        if verify.fixed == 0:
+        if fixed.len_tags_fixed == 0:
             return {
                 "success": False,
                 "message": f"No nested tags were fixed in {filename}",
-                "details": verify.to_json(),
+                "details": verify,
             }
 
-        summary = f"Fixed {verify.fixed} nested tag(s)"
+        summary = f"Fixed {fixed.len_tags_fixed} nested tag(s)"
 
         upload = self.upload_service.upload_svg(
             filename,
@@ -199,15 +201,15 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         if not upload.ok:
             return {
                 "success": False,
-                "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
-                "details": {**verify.to_json(), **upload.to_json()},
+                "message": f"Fixed {fixed.len_tags_fixed} nested tag(s), but upload failed.",
+                "details": {**verify, **upload.to_json()},
             }
 
         return {
             "success": True,
-            "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
+            "message": f"Successfully fixed {fixed.len_tags_fixed} nested tag(s) and uploaded {filename}.",
             "details": {
-                **verify.to_json(),
+                **verify,
                 "upload_result": upload.result,
             },
         }
