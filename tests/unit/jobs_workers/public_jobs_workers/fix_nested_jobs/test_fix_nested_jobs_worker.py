@@ -16,9 +16,8 @@ from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
-from src.main_app.services.fix_nested.objects import RepairResult
-from src.main_app.services.fix_nested.worker import (
-    DetectionResult,
+from src.main_app.services.fix_nested.objects import (
+    RepairResult,
 )
 
 # ── jobs_workers fixtures ───────────────────────────────────────────────────────────────────
@@ -31,7 +30,7 @@ _WORKER = "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker"
 class MockFixNestedServices:
     save_job_result_by_name: MagicMock
     download_and_save: MagicMock
-    detect_nested_tags: MagicMock
+    analyze_file: MagicMock
     repair_file: MagicMock
     upload_svg: MagicMock
     is_job_cancelled: MagicMock
@@ -43,22 +42,22 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker) 
 
     save_job_result_by_name = MagicMock()
     download_and_save = MagicMock()
-    detect_nested_tags = MagicMock()
+    analyze_file = MagicMock()
     repair_file = MagicMock()
     upload_svg = MagicMock()
     is_job_cancelled = MagicMock()
 
     monkeypatch.setattr(f"{_BASE}.save_job_result_by_name", save_job_result_by_name)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download_and_save)
-    monkeypatch.setattr(f"{_WORKER}.detect_nested_tags", detect_nested_tags)
-    monkeypatch.setattr(f"{_WORKER}.repair_file", repair_file)
+    monkeypatch.setattr(f"{_WORKER}.MatchFixNestedTags.analyze_file", analyze_file)
+    monkeypatch.setattr(f"{_WORKER}.MatchFixNestedTags.repair_file", repair_file)
     monkeypatch.setattr(f"{_WORKER}.UploadService.upload_svg", upload_svg)
     monkeypatch.setattr(f"{_BASE}.JobsService.is_job_cancelled", is_job_cancelled)
 
     return MockFixNestedServices(
         save_job_result_by_name=save_job_result_by_name,
         download_and_save=download_and_save,
-        detect_nested_tags=detect_nested_tags,
+        analyze_file=analyze_file,
         repair_file=repair_file,
         upload_svg=upload_svg,
         is_job_cancelled=is_job_cancelled,
@@ -86,7 +85,7 @@ def run_mocks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mock_base_worker,
     is_job_cancelled_file = MagicMock(return_value=False)
     get_site = MagicMock(return_value=MagicMock())
     download = MagicMock(return_value=DownloadAndSaveData(result="success", path=svg))
-    detect = MagicMock(return_value=DetectionResult(count=2, tags=["g", "g"]))
+    detect = MagicMock(return_value=["g", "g"])
     fix = MagicMock(return_value=RepairResult(success=True, len_tags_before_fix=2, len_tags_after_fix=0))
     upload = MagicMock(return_value=UploadResult(ok=True, result={}))
 
@@ -94,8 +93,8 @@ def run_mocks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mock_base_worker,
     monkeypatch.setattr(f"{_BASE}.is_job_cancelled_file_exist", is_job_cancelled_file)
     monkeypatch.setattr(f"{_BASE}.get_user_site", get_site)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download)
-    monkeypatch.setattr(f"{_WORKER}.detect_nested_tags", detect)
-    monkeypatch.setattr(f"{_WORKER}.repair_file", fix)
+    monkeypatch.setattr(f"{_WORKER}.MatchFixNestedTags.analyze_file", detect)
+    monkeypatch.setattr(f"{_WORKER}.MatchFixNestedTags.repair_file", fix)
     monkeypatch.setattr(f"{_WORKER}.UploadService.upload_svg", upload)
 
     return MockRunDeps(
@@ -378,31 +377,31 @@ class TestAnalyzeStep(TestSetup):
         proc.result.stages.download.status = "failed"
         result = proc._analyze_step(self.processor.result.stages.analyze)
         assert result is None
-        mock_fix_nested_services.detect_nested_tags.assert_not_called()
+        mock_fix_nested_services.analyze_file.assert_not_called()
 
     def test_returns_false_when_file_missing(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         proc = self._proc_with_download_success(tmp_path / "missing.svg")
         result = proc._analyze_step(self.processor.result.stages.analyze)
         assert result is False
-        mock_fix_nested_services.detect_nested_tags.assert_not_called()
+        mock_fix_nested_services.analyze_file.assert_not_called()
 
     def test_returns_none_when_no_nested_tags(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         svg = tmp_path / "a.svg"
         svg.touch()
 
-        mock_fix_nested_services.detect_nested_tags.return_value = DetectionResult(count=0, tags=[])
+        mock_fix_nested_services.analyze_file.return_value = []
         proc = self._proc_with_download_success(svg)
 
         result = proc._analyze_step(self.processor.result.stages.analyze)
         assert result is None
         assert proc.result.stages.analyze.status == "skipped"
-        mock_fix_nested_services.detect_nested_tags.assert_called_once()
+        mock_fix_nested_services.analyze_file.assert_called_once()
 
     def test_returns_true_when_nested_tags_found(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         svg = tmp_path / "b.svg"
         svg.touch()
 
-        mock_fix_nested_services.detect_nested_tags.return_value = DetectionResult(count=3, tags=["g", "g", "svg"])
+        mock_fix_nested_services.analyze_file.return_value = ["g", "g", "svg"]
         proc = self._proc_with_download_success(svg)
 
         result = proc._analyze_step(self.processor.result.stages.analyze)
@@ -463,7 +462,6 @@ class TestUploadStep(TestSetup):
             error=None,
             success=None,
             nested_tags_before=0,
-            nested_tags=[],
             nested_tags_after=0,
             nested_tags_fixed=tags_fixed,
         )

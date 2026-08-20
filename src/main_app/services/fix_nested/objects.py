@@ -25,16 +25,6 @@ class RepairResult:
     def __post_init__(self):
         self.len_tags_fixed = max(0, self.len_tags_before_fix - self.len_tags_after_fix)
 
-
-@dataclass
-class DetectionResult:
-    count: int
-    tags: list[str] = field(default_factory=list)
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)  # pyright: ignore[reportCallIssue]
-
-
 @dataclass
 class VerificationResult:
     before: int
@@ -46,6 +36,5 @@ class VerificationResult:
 
 
 __all__ = [
-    "DetectionResult",
     "VerificationResult",
 ]

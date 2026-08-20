@@ -6,7 +6,7 @@ from pathlib import Path
 from CopySVGTranslation import NestedTspanDetector, NestedTspanFlattener  # type: ignore
 from lxml import etree
 
-from ..fix_nested.objects import DetectionResult, NestedStrategy, RepairResult
+from ..fix_nested.objects import NestedStrategy, RepairResult
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,36 @@ class MatchFixNestedTags:
         self.detector = NestedTspanDetector()
         self.flattener = NestedTspanFlattener(strategy=strategy, also_fix_a=also_fix_a)
 
-    def _get_root(
+    def analyze_file(
+        self,
+        source: Path | str,
+    ) -> list[str]:
+        """
+        Detect nested tspan/a structures. Read-only.
+        Returns a list of XML strings representing the nested elements found.
+        """
+        path = Path(source)
+        if not path.exists():
+            logger.error("File does not exist: %s", path)
+            return []
+
+        tree = self._get_tree(path, remove_blank_text=True)
+        if tree is None:
+            return []
+
+        try:
+            root = tree.getroot()
+
+            if root is None:
+                return []
+
+            return self.detector.find_in_tree_return_list(root)
+        except (etree.XMLSyntaxError, OSError) as exc:
+            logger.error("Failed to parse %s: %s", path, exc)
+            return []
+
+
+    def _get_tree(
         self,
         path: Path | str,
         remove_blank_text: bool = False,
@@ -38,28 +67,10 @@ class MatchFixNestedTags:
         )
         try:
             tree = etree.parse(str(path), parser)
-            return tree.getroot()
+            return tree
         except (etree.XMLSyntaxError, OSError) as exc:
             logger.error(f"Failed to parse SVG file {path}: {exc}")
             return None
-
-    def match_nested(self, source_file: Path | str) -> list[str]:
-        root = self._get_root(source_file)
-        if root is None:
-            return []
-
-        return self.detector.find_in_tree_return_list(root)
-
-    def detect_nested_tags(
-        self,
-        source_file: Path | str,
-    ) -> DetectionResult:
-        """Detect nested tags in SVG file."""
-        nested = self.match_nested(source_file)
-        return DetectionResult(
-            count=len(nested),
-            tags=nested,
-        )
 
     def repair_file(
         self,
@@ -84,7 +95,15 @@ class MatchFixNestedTags:
 
         try:
             # Parse source file
-            root = self._get_root(src_path)
+            tree = self._get_tree(src_path)
+            if tree is None:
+                return RepairResult(
+                    success=False,
+                    len_tags_before_fix=0,
+                    len_tags_after_fix=0,
+                    warnings=[f"Failed to parse source file: {src_path}"],
+                )
+            root = tree.getroot()
 
             if root is None:
                 return RepairResult(

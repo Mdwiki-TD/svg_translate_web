@@ -21,9 +21,6 @@ from ....services.copysvg_wrapper import (
     extract_from_path,
     inject_step_one_file,
 )
-from ....services.fix_nested import (
-    DetectionResult,
-)
 from .objects import (
     FilesProcessedItem,
     StepResult,
@@ -48,8 +45,8 @@ class OneFileProcessor:
 
     def handle_nested_tag_repair_step(self, nested_step: StepResult, file_path: Path) -> tuple[int, bool]:
 
-        detect_before: DetectionResult = self.nested_processer.detect_nested_tags(file_path)
-        if detect_before.count == 0:
+        detect_before = self.nested_processer.analyze_file(file_path)
+        if len(detect_before) == 0:
             nested_step._update(msg="No nested tags found")
             # no nested tags, process to inject translations step
             return 0, True
@@ -60,7 +57,7 @@ class OneFileProcessor:
             nested_step._update(
                 result=False,
                 msg="Failed to fix nested tags",
-                details=detect_before.to_dict(),
+                # details=detect_before,
             )
             # no nested tags fixed, break the file process
             return 0, False

@@ -12,11 +12,7 @@ from mwclient.client import Site
 
 from ....api_services import FilesService
 from ....api_services.files_service import UploadService
-from ....services.fix_nested.worker import (
-    DetectionResult,
-    detect_nested_tags,
-    repair_file,
-)
+from ....services.copysvg_wrapper import MatchFixNestedTags
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
@@ -45,6 +41,9 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.file_path: Path | None = None
         self.files_service = FilesService()
         self.upload_service = UploadService(self.site)
+        self.fix_nested_processer = MatchFixNestedTags(
+            strategy="flatten",
+        )
 
     # ------------------------------------------------------------------
     # BaseObjectsJobWorker hooks
@@ -118,16 +117,16 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             analyze_stage.failed("File not found")
             return False
 
-        detect_result: DetectionResult = detect_nested_tags(self.file_path)
+        detect_result = self.fix_nested_processer.analyze_file(self.file_path)
+        count_detect = len(detect_result)
 
-        self.result.file_result.nested_tags_before = detect_result.count
-        self.result.file_result.nested_tags = detect_result.tags
+        self.result.file_result.nested_tags_before = count_detect
 
-        if detect_result.count == 0:
+        if count_detect == 0:
             analyze_stage.skipped(message="No nested tags found")
             return None
 
-        analyze_message = f"Found {detect_result.count} nested tags"
+        analyze_message = f"Found {count_detect} nested tags"
         analyze_stage._update(status="success", message=analyze_message)
 
         return True
@@ -142,7 +141,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         fix_stage.status = "running"
         self._save_progress()
 
-        fixed = repair_file(self.file_path)
+        fixed = self.fix_nested_processer.repair_file(self.file_path)
 
         self.result.file_result.nested_tags_after = fixed.len_tags_after_fix
         self.result.file_result.nested_tags_fixed = fixed.len_tags_fixed

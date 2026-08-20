@@ -73,7 +73,6 @@ class FileResult:
     error: str | None = None
     success: bool | None = None
     nested_tags_before: int = 0
-    nested_tags: list[str] = field(default_factory=list)
     nested_tags_after: int = 0
     nested_tags_fixed: int = 0
 

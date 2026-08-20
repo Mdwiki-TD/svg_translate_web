@@ -13,11 +13,7 @@ from mwclient.client import Site
 
 from ....api_services import FilesService, UploadService
 from ....database.services import TemplateService
-from ....services.fix_nested.worker import (
-    DetectionResult,
-    detect_nested_tags,
-    repair_file,
-)
+from ....services.copysvg_wrapper import MatchFixNestedTags
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import FixNestedMainFilesWorkerObject, TitleInfo
@@ -39,6 +35,9 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         self.site: Site | None = None
         self.files_service = FilesService()
         self.upload_service = UploadService(self.site)
+        self.fix_nested_processer = MatchFixNestedTags(
+            strategy="flatten",
+        )
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -160,21 +159,21 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
         file_path = download.path
 
-        detect_before: DetectionResult = detect_nested_tags(file_path)
+        detect_before = self.fix_nested_processer.analyze_file(file_path)
 
-        if detect_before.count == 0:
+        if len(detect_before) == 0:
             return {
                 "success": False,
                 "message": f"No nested tags found in {filename}",
                 "details": {"nested_count": 0},
                 "no_nested_tags": True,
             }
-        fixed = repair_file(file_path)
+        fixed = self.fix_nested_processer.repair_file(file_path)
         if not fixed.success:
             return {
                 "success": False,
                 "message": f"Failed to fix nested tags in {filename}",
-                "details": {"nested_count": detect_before.count},
+                "details": {"nested_count": len(detect_before)},
             }
 
         verify = verify = {
