@@ -70,7 +70,7 @@ def test_repair_nested_svg_tags_success(mock_fix_nested_admin_services, tmp_path
     mock_fix_nested_admin_services["download_and_save"].return_value = DownloadAndSaveData(
         result="success", path=Path("tmp/path.svg")
     )
-    mock_fix_nested_admin_services["analyze_file"].return_value = [1,2,3,4,5]
+    mock_fix_nested_admin_services["analyze_file"].return_value = [1, 2, 3, 4, 5]
     mock_fix_nested_admin_services["repair_file"].return_value = RepairResult(
         success=True, len_tags_before_fix=5, len_tags_after_fix=0
     )
@@ -89,7 +89,7 @@ def test_repair_nested_svg_tags_no_tags(mock_fix_nested_admin_services, tmp_path
     mock_fix_nested_admin_services["download_and_save"].return_value = DownloadAndSaveData(
         result="success", path=Path("tmp/path.svg")
     )
-    mock_fix_nested_admin_services["analyze_file"].return_value = [1,2,3,4,5]
+    mock_fix_nested_admin_services["analyze_file"].return_value = [1, 2, 3, 4, 5]
 
     data = JobsRunner(job_id=0, user={})
     result = worker.FixNestedMainFilesWorker(data).repair_nested_svg_tags("Clean.svg", tmp_path)

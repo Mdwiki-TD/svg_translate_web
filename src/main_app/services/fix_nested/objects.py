@@ -25,6 +25,7 @@ class RepairResult:
     def __post_init__(self):
         self.len_tags_fixed = max(0, self.len_tags_before_fix - self.len_tags_after_fix)
 
+
 @dataclass
 class VerificationResult:
     before: int

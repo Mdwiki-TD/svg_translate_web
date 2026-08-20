@@ -54,7 +54,6 @@ class MatchFixNestedTags:
             logger.error("Failed to parse %s: %s", path, exc)
             return []
 
-
     def _get_tree(
         self,
         path: Path | str,
