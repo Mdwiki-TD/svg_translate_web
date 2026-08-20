@@ -16,11 +16,7 @@ def detect_nested_tags(file_path: Path) -> DetectionResult:
         source_file=file_path,
         new_path=file_path,
     )
-    nested = processer.match_nested()
-    return DetectionResult(
-        count=len(nested),
-        tags=nested,
-    )
+    return processer.detect_nested_tags()
 
 
 def fix_nested_tags(file_path: Path) -> bool:
