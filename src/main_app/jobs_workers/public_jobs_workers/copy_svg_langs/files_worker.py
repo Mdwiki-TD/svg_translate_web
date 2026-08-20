@@ -43,22 +43,20 @@ class OneFileProcessor:
         self.upload_service = UploadService(self.site)
         self.mapping: TranslationMapping | None = None
         self.upload_done = 0
-        self.nested_processer: MatchFixNestedTags
-
-    def handle_nested_tag_repair_step(self, nested_step: StepResult, file_path: Path) -> tuple[int, bool]:
-        nested_processer = MatchFixNestedTags(
-            source_file=file_path,
-            new_path=file_path,
+        self.nested_processer = MatchFixNestedTags(
+            strategy="flatten",
         )
 
-        detect_before: DetectionResult = nested_processer.detect_nested_tags()
+    def handle_nested_tag_repair_step(self, nested_step: StepResult, file_path: Path) -> tuple[int, bool]:
+
+        detect_before: DetectionResult = self.nested_processer.detect_nested_tags(file_path)
         if detect_before.count == 0:
             nested_step._update(msg="No nested tags found")
             # no nested tags, process to inject translations step
             return 0, True
 
         # Try to fix nested tags
-        if not nested_processer.fix_file():
+        if not self.nested_processer.fix_file(file_path):
             nested_step._update(
                 result=False,
                 msg="Failed to fix nested tags",
@@ -68,7 +66,7 @@ class OneFileProcessor:
             return 0, False
 
         # Verify after fix
-        verify: VerificationResult = nested_processer.verify_after_fix(detect_before.count)
+        verify: VerificationResult = self.nested_processer.verify_after_fix(file_path, detect_before.count)
 
         if verify.fixed == 0:
             nested_step._update(

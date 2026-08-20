@@ -12,33 +12,27 @@ logger = logging.getLogger(__name__)
 def detect_nested_tags(file_path: Path) -> DetectionResult:
     """Detect nested tags in SVG file."""
     processer = MatchFixNestedTags(
-        pretty_print=True,
-        source_file=file_path,
-        new_path=file_path,
+        strategy="flatten",
     )
-    return processer.detect_nested_tags()
+    return processer.detect_nested_tags(file_path)
 
 
 def fix_nested_tags(file_path: Path) -> bool:
     """Fix nested tags in-place."""
     logger.info("Fixing nested tags in: %s", file_path.name)
     processer = MatchFixNestedTags(
-        pretty_print=True,
-        source_file=file_path,
-        new_path=file_path,
+        strategy="flatten",
     )
-    return processer.fix_file()
+    return processer.fix_file(file_path)
 
 
 def verify_fix(file_path: Path, before_count: int) -> VerificationResult:
     """Verify nested tags count after fix."""
     processer = MatchFixNestedTags(
-        pretty_print=True,
-        source_file=file_path,
-        new_path=file_path,
+        strategy="flatten",
     )
 
-    return processer.verify_after_fix(before_count)
+    return processer.verify_after_fix(file_path, before_count)
 
 
 __all__ = [

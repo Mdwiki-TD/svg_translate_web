@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, Literal
 
 logger = logging.getLogger(__name__)
+
+
+NestedStrategy = Literal["split_nested_tspans", "preserve_style", "flatten", "raise"]
 
 
 @dataclass
