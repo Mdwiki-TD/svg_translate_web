@@ -20,7 +20,7 @@ from .mapping import (
 logger = logging.getLogger(__name__)
 
 
-def write_svg_file(output_file, tree: etree._ElementTree) -> None:
+def write_svg_file(output_file, tree: etree._ElementTree) -> bool:
     try:
         tree.write(str(output_file), encoding="utf-8", xml_declaration=True, pretty_print=True)
         return True
@@ -88,12 +88,12 @@ def _inject(
 ) -> InjectResult:
     """Inject translations into a collection of SVG files and write the results."""
     stats_obj = data.inject_stats
-    result_error = stats_obj.error or (data.error.code if data.error else None)
+    result_error = (data.error.code or data.error.label) if data.error else None
     tree = data.tree
 
     if not tree:
         logger.debug(f"Failed to translate {file_name}")
-        msg = "Failed to translate"
+        msg = (data.error.label if data.error else None) or "Failed to translate"
 
         if result_error == "nested_tspan_error":
             msg = "Nested tspan error"
@@ -134,7 +134,7 @@ def inject_step_one_file(
     if not inject_result.result:
         return inject_result
 
-    saved = write_svg_file(output_file, data)
+    saved = write_svg_file(output_file, data.tree)
 
     if saved:
         inject_result.msg = write_msg(data.inject_stats)

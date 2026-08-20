@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -9,6 +10,12 @@ from src.main_app.services.copysvg_wrapper.inject_one_file import (
     inject_step_one_file,
 )
 from src.main_app.services.copysvg_wrapper.mapping import InjectorData
+
+
+@dataclass
+class Error:
+    code: str | None = None
+    label: str | None = None
 
 
 @pytest.fixture
@@ -26,6 +33,7 @@ def mock_write_svg_file(monkeypatch: pytest.MonkeyPatch):
         mock,
     )
     return mock
+
 
 @pytest.fixture
 def mock_inject(monkeypatch: pytest.MonkeyPatch):
@@ -54,7 +62,7 @@ def output_file(tmp_path: Path) -> Path:
 class TestInjectsWriteSvgFile:
     def test_new_languages(self, mock_inject, mock_tree, svg_file, output_file):
         data = InjectorData(tree=mock_tree)
-        data.inject_stats._update(new_languages_count=3, updated_translations=0, error=None)
+        data.inject_stats._update(new_languages_count=3, updated_translations=0)
 
         mock_inject.return_value = data
 
@@ -74,7 +82,6 @@ class TestInjectsWriteSvgFile:
         data.inject_stats._update(
             new_languages_count=2,
             updated_translations=1,
-            error=None,
         )
 
         mock_inject.return_value = data
@@ -92,7 +99,6 @@ class TestInjectsWriteSvgFile:
         data.inject_stats._update(
             new_languages_count=2,
             updated_translations=1,
-            error=None,
         )
 
         mock_inject.return_value = data
@@ -107,7 +113,7 @@ class TestStartInjects:
     def test_updated_translations_only(self, mock_write_svg_file, mock_inject, mock_tree, svg_file, output_file):
 
         data = InjectorData(tree=mock_tree)
-        data.inject_stats._update(new_languages_count=0, updated_translations=5, error=None)
+        data.inject_stats._update(new_languages_count=0, updated_translations=5)
 
         mock_inject.return_value = data
 
@@ -120,7 +126,7 @@ class TestStartInjects:
 
     def test_no_changes(self, mock_inject, mock_tree, svg_file, output_file):
         data = InjectorData(tree=mock_tree)
-        data.inject_stats._update(new_languages_count=0, updated_translations=0, error=None)
+        data.inject_stats._update(new_languages_count=0, updated_translations=0)
 
         mock_inject.return_value = data
 
@@ -141,7 +147,8 @@ class TestStartInjects:
 
     def test_stats_error(self, mock_inject, mock_tree, svg_file, output_file):
         data = InjectorData(tree=mock_tree)
-        data.inject_stats._update(new_languages_count=0, updated_translations=0, error="Some error occurred")
+        data.inject_stats._update(new_languages_count=0, updated_translations=0)
+        data.error = Error(label="Some error occurred")  # type: ignore
 
         mock_inject.return_value = data
 
@@ -155,7 +162,6 @@ class TestStartInjects:
         data.inject_stats._update(
             new_languages_count=2,
             updated_translations=3,
-            error=None,
         )
 
         mock_inject.return_value = data
@@ -172,7 +178,7 @@ class TestInjectStepOneFileNestedError:
     def test_nested_tspan_error(self, mock_inject, mock_tree, svg_file, output_file):
 
         data = InjectorData(tree=None)
-        data.inject_stats._update(error="nested_tspan_error")
+        data.error.from_error(Error(code="nested_tspan_error"))
 
         mock_inject.return_value = data
 
@@ -184,7 +190,7 @@ class TestInjectStepOneFileNestedError:
     def test_nested_tspan_error_new(self, mock_inject, mock_tree, svg_file, output_file):
 
         data = InjectorData(tree=None)
-        data.inject_stats._update(error="nested_tspan_error")
+        data.error.from_error(Error(code="nested_tspan_error"))
 
         mock_inject.return_value = data
 
