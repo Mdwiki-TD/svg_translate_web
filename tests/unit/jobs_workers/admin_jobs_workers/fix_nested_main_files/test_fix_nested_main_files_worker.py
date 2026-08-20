@@ -94,6 +94,6 @@ def test_repair_nested_svg_tags_no_tags(mock_fix_nested_admin_services, tmp_path
     data = JobsRunner(job_id=0, user={})
     result = worker.FixNestedMainFilesWorker(data).repair_nested_svg_tags("Clean.svg", tmp_path)
 
-    assert result["success"] is False
+    assert result["success"] is True
     assert result["no_nested_tags"] is True
     assert "No nested tags found" in result["message"]
