@@ -71,9 +71,20 @@ def extract_from_path(main_title_path: Path, fast_return_false: bool = True) -> 
 
     new_translations_count = len(mapping.new)
 
+    # If there's an error in extraction, return unsuccessful result regardless of fast_return_false
+    if mapping.error:
+        logger.debug(f"Extraction error: {mapping.error}")
+        return ExtractResult(
+            success=False,
+            message="Extraction failed",
+            error=mapping.error,
+            translations={},
+            mapping=mapping,
+        )
+
     if fast_return_false:
         if new_translations_count == 0:
-            error = mapping.error or "No translations found in main file"
+            error = "No translations found in main file"
             logger.debug(error)
             return ExtractResult(
                 success=False,

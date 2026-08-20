@@ -189,6 +189,13 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 "details": verify,
             }
 
+        if fixed.len_tags_after_fix != 0:
+            return {
+                "success": False,
+                "message": f"Fixed {fixed.len_tags_fixed} nested tag(s), but {fixed.len_tags_after_fix} nested tag(s) remain",
+                "details": verify,
+            }
+
         summary = f"Fixed {fixed.len_tags_fixed} nested tag(s)"
 
         upload = self.upload_service.upload_svg(

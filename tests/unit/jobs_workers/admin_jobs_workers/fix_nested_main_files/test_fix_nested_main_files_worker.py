@@ -87,10 +87,10 @@ def test_repair_nested_svg_tags_no_tags(mock_fix_nested_admin_services, tmp_path
     mock_fix_nested_admin_services["download_and_save"].return_value = DownloadAndSaveData(
         result="success", path=Path("tmp/path.svg")
     )
-    mock_fix_nested_admin_services["analyze_file"].return_value = [1, 2, 3, 4, 5]
+    mock_fix_nested_admin_services["analyze_file"].return_value = []
 
     data = JobsRunner(job_id=0, user={})
     result = worker.FixNestedMainFilesWorker(data).repair_nested_svg_tags("Clean.svg", tmp_path)
 
-    assert result["success"] is True
-    assert "No nested tags found" in result["message"]
+    assert result["success"] is False
+    assert result.get("no_nested_tags") is True
