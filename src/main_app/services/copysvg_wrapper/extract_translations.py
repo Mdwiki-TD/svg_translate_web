@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from CopySVGTranslation import SVGTranslationExtractor, TranslationConfig  # type: ignore
+from CopySVGTranslation import SVGTranslationService, TranslationConfig  # type: ignore
 from CopySVGTranslation.exceptions import CopySVGTranslationError
 
 from .mapping import ExtractResult, TranslationMapping
@@ -19,13 +19,11 @@ def _extract_file_translations(
     source_file: str | Path,
 ) -> TranslationMapping:
     """
-    Legacy function-style wrapper around SVGTranslationExtractor, kept for
+    Function-style wrapper around SVGTranslationService.extract, kept for
     backward compatibility with existing callers.
 
     Parameters:
         source_file (str | Path): Path to the SVG file to process.
-        case_insensitive (bool): If true, treat default text keys
-            case-insensitively by lowercasing them.
     """
     config = TranslationConfig(
         case_insensitive=True,
@@ -33,12 +31,17 @@ def _extract_file_translations(
     if hasattr(config, "prepare_before_extraction"):
         config.prepare_before_extraction = True
 
-    extractor = SVGTranslationExtractor(config=config)
+    service = SVGTranslationService(config=config)
 
     file_name = source_file.name if isinstance(source_file, Path) else str(source_file)
 
     try:
-        result: TranslationMapping = extractor.extract(source_file)
+        res = service.extract(source_file)
+        if res.success and res.data is not None:
+            return res.data
+        else:
+            error_code = res.error_code or res.error or "extraction_failed"
+            return TranslationMapping(error=error_code)
     except CopySVGTranslationError as exc:
         logger.error(f"CopySVGTranslationError on file:{file_name}.")
         logger.error(f"Error code: {exc.code}")
@@ -48,11 +51,6 @@ def _extract_file_translations(
     except Exception as e:
         logger.error(f"Failed to extract translations from {file_name}: {e}")
         return TranslationMapping(error=str(e))
-
-    if not result:
-        return TranslationMapping()
-
-    return result
 
 
 def extract_from_path(main_title_path: Path, fast_return_false: bool = True) -> ExtractResult:

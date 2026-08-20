@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from CopySVGTranslation import SVGTranslationInjector, TranslationConfig  # type: ignore
+from CopySVGTranslation import SVGTranslationService, TranslationConfig  # type: ignore
 from CopySVGTranslation.exceptions import CopySVGTranslationError  # type: ignore
 from lxml import etree
 
@@ -50,7 +50,7 @@ def start_svg_injection(
     overwrite_translations: bool = False,
 ) -> InjectorData:
     """
-    Legacy function-style wrapper around SVGTranslationInjector, kept for
+    Function-style wrapper around SVGTranslationService.inject, kept for
     backward compatibility with existing callers.
     """
     config = TranslationConfig(
@@ -61,13 +61,20 @@ def start_svg_injection(
 
     file_name = inject_file.name if isinstance(inject_file, Path) else str(inject_file)
 
-    injector = SVGTranslationInjector(config=config)
+    service = SVGTranslationService(config=config)
 
     try:
-        data: InjectorData = injector.inject(
+        op_result = service.inject(
             svg_path=inject_file,
             mapping=mapping,
         )
+
+        if op_result.data is not None:
+            return op_result.data
+        else:
+            err_code = op_result.error_code or "injection_failed"
+            err_exc = CopySVGTranslationError(op_result.error or "", code=err_code)
+            return InjectorData.from_error(err_exc)
 
     except CopySVGTranslationError as exc:
         logger.error(f"CopySVGTranslationError on file:{file_name}.")
@@ -78,8 +85,6 @@ def start_svg_injection(
     except Exception as exc:
         logger.error(f"Error injecting translations into {file_name}: {exc}")
         return InjectorData.from_error(exc)
-
-    return data
 
 
 def _inject(
