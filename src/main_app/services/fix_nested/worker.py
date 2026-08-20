@@ -41,8 +41,8 @@ def verify_fix(file_path: Path, before_count: int) -> VerificationResult:
         source_file=file_path,
         new_path=file_path,
     )
-    processer.len_tags_before_fix = before_count
-    return processer.verify_after_fix()
+
+    return processer.verify_after_fix(before_count)
 
 
 __all__ = [

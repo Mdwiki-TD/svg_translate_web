@@ -67,7 +67,8 @@ class OneFileProcessor:
             # no nested tags fixed, break the file process
             return 0, False
 
-        verify: VerificationResult = nested_processer.verify_after_fix()
+        # Verify after fix
+        verify: VerificationResult = nested_processer.verify_after_fix(detect_before.count)
 
         if verify.fixed == 0:
             nested_step._update(
