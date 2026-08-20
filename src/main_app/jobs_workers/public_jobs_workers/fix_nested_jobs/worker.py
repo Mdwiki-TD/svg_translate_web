@@ -169,16 +169,23 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         # self.result.file_result.nested_tags_fixed = verify_result.fixed
 
         tags_fixed = self.result.file_result.nested_tags_fixed
-        if tags_fixed > 0:
-            message = f"Verified: {tags_fixed} tags fixed"
-            verify_stage._update(status="success", message=message)
-            return True
+        tags_after = self.result.file_result.nested_tags_after
 
-        message = "No tags were fixed"
-        verify_stage.failed(message)
+        if tags_fixed == 0:
+            message = "No tags were fixed"
+            verify_stage.failed(message)
+            self.result.status = "failed"
+            return False
 
-        self.result.status = "failed"
-        return False
+        if tags_after != 0:
+            message = f"Fixed {tags_fixed} tag(s), but {tags_after} nested tag(s) remain"
+            verify_stage.failed(message)
+            self.result.status = "failed"
+            return False
+
+        message = f"Verified: {tags_fixed} tags fixed, no nested tags remain"
+        verify_stage._update(status="success", message=message)
+        return True
 
     def _upload_step(self, upload_stage: StageDetail) -> bool | None:
         """Upload fixed files to Commons."""
