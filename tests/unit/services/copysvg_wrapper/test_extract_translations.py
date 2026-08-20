@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from src.main_app.services.copysvg_wrapper.extract_translations import extract_from_path
-from src.main_app.services.copysvg_wrapper.mapping import ExtractorData
+from src.main_app.services.copysvg_wrapper.mapping import TranslationMapping
 
 
 class TestExtractFromPath:
@@ -24,7 +24,7 @@ class TestExtractFromPath:
 
         def fake_extract(path):
             assert Path(path) == fake_svg_path
-            return ExtractorData.from_any(extract_return)
+            return TranslationMapping.from_any(extract_return)
 
         monkeypatch.setattr(
             "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",
@@ -70,7 +70,7 @@ class TestExtractFromPath:
         fake_svg_path.write_text("<svg></svg>")
 
         def fake_extract(path):
-            return ExtractorData(new={"en": {"text": "Hello"}, "fr": {"text": "Bonjour"}})
+            return TranslationMapping(new={"en": {"text": "Hello"}, "fr": {"text": "Bonjour"}})
 
         monkeypatch.setattr(
             "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",

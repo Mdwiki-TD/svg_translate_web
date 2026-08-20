@@ -74,7 +74,6 @@ class TestGetUserSite:
                 self.username = "username"
                 self.rights = ["edit"]
 
-
         monkeypatch.setattr("src.main_app.api_services.clients.wiki_client.Site", DummySite)
 
         user = {

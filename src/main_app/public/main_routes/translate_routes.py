@@ -22,7 +22,7 @@ from ...api_services import FilesService, UploadService, get_user_site
 from ...config import settings
 from ...public.auth import oauth_required
 from ...services.copysvg_wrapper import extract_from_path, inject_step_one_file
-from ...services.copysvg_wrapper.mapping import ExtractorData
+from ...services.copysvg_wrapper.mapping import TranslationMapping
 from ..utils.routes_utils import load_auth_payload
 
 logger = logging.getLogger(__name__)
@@ -201,7 +201,7 @@ class TranslateRoutes:
         lang = session_data.get("lang")
         mapping_dict = session_data.get("mapping", {})
 
-        mapping = ExtractorData.from_any(mapping_dict)
+        mapping = TranslationMapping.from_any(mapping_dict)
 
         # Update mapping with submitted translations, IGNORE empty translations
         for orig, trans in zip(originals, translations, strict=False):
