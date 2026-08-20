@@ -71,13 +71,13 @@ class OneFileProcessor:
 
         if fixed.len_tags_fixed == 0:
             nested_step._update(
-                result=False,
+                result=None,
                 msg="No nested tags were fixed",
                 details=verify,
             )
 
-            # no nested tags fixed, break the file process
-            return 0, False
+            # no nested tags fixed, process to inject translations step
+            return 0, True
 
         verify_fixed = fixed.len_tags_fixed
 
