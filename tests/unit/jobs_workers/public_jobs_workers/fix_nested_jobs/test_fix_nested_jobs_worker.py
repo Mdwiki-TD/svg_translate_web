@@ -16,6 +16,7 @@ from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
+from src.main_app.services.fix_nested.objects import RepairResult
 from src.main_app.services.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
@@ -92,7 +93,7 @@ def run_mocks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mock_base_worker,
     get_site = MagicMock(return_value=MagicMock())
     download = MagicMock(return_value=DownloadAndSaveData(result="success", path=svg))
     detect = MagicMock(return_value=DetectionResult(count=2, tags=["g", "g"]))
-    fix = MagicMock(return_value=True)
+    fix = MagicMock(return_value=RepairResult(success=True, len_tags_before_fix=2, len_tags_after_fix=0))
     verify = MagicMock(return_value=VerificationResult(before=2, after=0, fixed=2))
     upload = MagicMock(return_value=UploadResult(ok=True, result={}))
 
@@ -440,14 +441,18 @@ class TestFixStep(TestSetup):
         return proc
 
     def test_returns_true_on_success(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
-        mock_fix_nested_services.repair_file.return_value = True
+        mock_fix_nested_services.repair_file.return_value = RepairResult(
+            success=True, len_tags_before_fix=2, len_tags_after_fix=0
+        )
         proc = self._proc_after_analyze(tmp_path / "x.svg")
         result = proc._fix_step(self.processor.result.stages.fix)
         assert result is True
         assert proc.result.stages.fix.status == "success"
 
     def test_returns_false_on_failure(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
-        mock_fix_nested_services.repair_file.return_value = False
+        mock_fix_nested_services.repair_file.return_value = RepairResult(
+            success=False, len_tags_before_fix=2, len_tags_after_fix=2
+        )
         proc = self._proc_after_analyze(tmp_path / "x.svg")
         result = proc._fix_step(self.processor.result.stages.fix)
         assert result is False

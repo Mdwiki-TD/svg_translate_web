@@ -25,6 +25,7 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import 
     CopySvgLangsWorker,
 )
 from src.main_app.services.copysvg_wrapper import InjectResult
+from src.main_app.services.fix_nested.objects import RepairResult
 
 
 @dataclass
@@ -151,7 +152,9 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
         mock_files_services.detect.return_value = MagicMock(count=2)
-        mock_files_services.fix.return_value = False
+        mock_files_services.fix.return_value = RepairResult(
+            success=False, len_tags_before_fix=2, len_tags_after_fix=2
+        )
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_worker._process_one_item(title_info, "")
@@ -167,7 +170,9 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
         mock_files_services.detect.return_value = MagicMock(count=2)
-        mock_files_services.fix.return_value = True
+        mock_files_services.fix.return_value = RepairResult(
+            success=True, len_tags_before_fix=2, len_tags_after_fix=2
+        )
         mock_files_services.verify.return_value = MagicMock(fixed=0)
         title_info = FilesProcessedItem(title="File:Test.svg")
 
@@ -230,7 +235,9 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
         mock_files_services.detect.return_value = MagicMock(count=2)
-        mock_files_services.fix.return_value = True
+        mock_files_services.fix.return_value = RepairResult(
+            success=True, len_tags_before_fix=2, len_tags_after_fix=0
+        )
         mock_files_services.verify.return_value = MagicMock(fixed=2)
         mock_files_services.inject.return_value = InjectResult(result=False, msg="Failed")
         mock_files_services.upload_svg.return_value = UploadResult(ok=True, msg="uploaded", error="")

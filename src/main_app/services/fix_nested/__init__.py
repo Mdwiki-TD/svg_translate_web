@@ -1,6 +1,7 @@
-from .objects import DetectionResult, VerificationResult
+from .objects import DetectionResult, RepairResult, VerificationResult
 
 __all__ = [
     "DetectionResult",
+    "RepairResult",
     "VerificationResult",
 ]
