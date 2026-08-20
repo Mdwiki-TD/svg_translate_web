@@ -32,7 +32,7 @@ class MockFixNestedServices:
     save_job_result_by_name: MagicMock
     download_and_save: MagicMock
     detect_nested_tags: MagicMock
-    fix_nested_tags: MagicMock
+    repair_file: MagicMock
     verify_fix: MagicMock
     upload_svg: MagicMock
     is_job_cancelled: MagicMock
@@ -45,7 +45,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker) 
     save_job_result_by_name = MagicMock()
     download_and_save = MagicMock()
     detect_nested_tags = MagicMock()
-    fix_nested_tags = MagicMock()
+    repair_file = MagicMock()
     verify_fix = MagicMock()
     upload_svg = MagicMock()
     is_job_cancelled = MagicMock()
@@ -53,7 +53,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker) 
     monkeypatch.setattr(f"{_BASE}.save_job_result_by_name", save_job_result_by_name)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download_and_save)
     monkeypatch.setattr(f"{_WORKER}.detect_nested_tags", detect_nested_tags)
-    monkeypatch.setattr(f"{_WORKER}.fix_nested_tags", fix_nested_tags)
+    monkeypatch.setattr(f"{_WORKER}.repair_file", repair_file)
     monkeypatch.setattr(f"{_WORKER}.verify_fix", verify_fix)
     monkeypatch.setattr(f"{_WORKER}.UploadService.upload_svg", upload_svg)
     monkeypatch.setattr(f"{_BASE}.JobsService.is_job_cancelled", is_job_cancelled)
@@ -62,7 +62,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker) 
         save_job_result_by_name=save_job_result_by_name,
         download_and_save=download_and_save,
         detect_nested_tags=detect_nested_tags,
-        fix_nested_tags=fix_nested_tags,
+        repair_file=repair_file,
         verify_fix=verify_fix,
         upload_svg=upload_svg,
         is_job_cancelled=is_job_cancelled,
@@ -101,7 +101,7 @@ def run_mocks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mock_base_worker,
     monkeypatch.setattr(f"{_BASE}.get_user_site", get_site)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download)
     monkeypatch.setattr(f"{_WORKER}.detect_nested_tags", detect)
-    monkeypatch.setattr(f"{_WORKER}.fix_nested_tags", fix)
+    monkeypatch.setattr(f"{_WORKER}.repair_file", fix)
     monkeypatch.setattr(f"{_WORKER}.verify_fix", verify)
     monkeypatch.setattr(f"{_WORKER}.UploadService.upload_svg", upload)
 
@@ -440,14 +440,14 @@ class TestFixStep(TestSetup):
         return proc
 
     def test_returns_true_on_success(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
-        mock_fix_nested_services.fix_nested_tags.return_value = True
+        mock_fix_nested_services.repair_file.return_value = True
         proc = self._proc_after_analyze(tmp_path / "x.svg")
         result = proc._fix_step(self.processor.result.stages.fix)
         assert result is True
         assert proc.result.stages.fix.status == "success"
 
     def test_returns_false_on_failure(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
-        mock_fix_nested_services.fix_nested_tags.return_value = False
+        mock_fix_nested_services.repair_file.return_value = False
         proc = self._proc_after_analyze(tmp_path / "x.svg")
         result = proc._fix_step(self.processor.result.stages.fix)
         assert result is False

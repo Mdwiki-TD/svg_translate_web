@@ -27,7 +27,7 @@ def mock_fix_nested_admin_services(mock_before_run, monkeypatch: pytest.MonkeyPa
         "save_job_result_by_name": MagicMock(),
         "download_and_save": MagicMock(),
         "detect_nested_tags": MagicMock(),
-        "fix_nested_tags": MagicMock(),
+        "repair_file": MagicMock(),
         "verify_fix": MagicMock(),
         "upload_svg": MagicMock(),
         "get_user_site": mock_base_worker["get_user_site"],
@@ -58,8 +58,8 @@ def mock_fix_nested_admin_services(mock_before_run, monkeypatch: pytest.MonkeyPa
         mocks["detect_nested_tags"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.fix_nested_tags",
-        mocks["fix_nested_tags"],
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.repair_file",
+        mocks["repair_file"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.verify_fix",
@@ -78,7 +78,7 @@ def test_repair_nested_svg_tags_success(mock_fix_nested_admin_services, tmp_path
         result="success", path=Path("tmp/path.svg")
     )
     mock_fix_nested_admin_services["detect_nested_tags"].return_value = DetectionResult(count=5)
-    mock_fix_nested_admin_services["fix_nested_tags"].return_value = True
+    mock_fix_nested_admin_services["repair_file"].return_value = True
     mock_fix_nested_admin_services["verify_fix"].return_value = VerificationResult(before=5, after=0, fixed=5)
     mock_fix_nested_admin_services["upload_svg"].return_value = UploadResult(ok=True, result={"newrevid": 123})
 

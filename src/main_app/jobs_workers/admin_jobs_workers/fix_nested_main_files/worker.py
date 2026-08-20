@@ -17,7 +17,7 @@ from ....services.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
     detect_nested_tags,
-    fix_nested_tags,
+    repair_file,
     verify_fix,
 )
 from ...base_worker import BaseObjectsJobWorker
@@ -172,7 +172,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 "no_nested_tags": True,
             }
 
-        if not fix_nested_tags(file_path):
+        if not repair_file(file_path):
             return {
                 "success": False,
                 "message": f"Failed to fix nested tags in {filename}",

@@ -17,13 +17,13 @@ def detect_nested_tags(file_path: Path) -> DetectionResult:
     return processer.detect_nested_tags(file_path)
 
 
-def fix_nested_tags(file_path: Path) -> bool:
+def repair_file(file_path: Path) -> bool:
     """Fix nested tags in-place."""
     logger.info("Fixing nested tags in: %s", file_path.name)
     processer = MatchFixNestedTags(
         strategy="flatten",
     )
-    return processer.fix_file(file_path)
+    return processer.repair_file(file_path)
 
 
 def verify_fix(file_path: Path, before_count: int) -> VerificationResult:
@@ -37,6 +37,6 @@ def verify_fix(file_path: Path, before_count: int) -> VerificationResult:
 
 __all__ = [
     "detect_nested_tags",
-    "fix_nested_tags",
+    "repair_file",
     "verify_fix",
 ]

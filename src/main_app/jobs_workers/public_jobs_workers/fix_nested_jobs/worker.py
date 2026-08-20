@@ -16,7 +16,7 @@ from ....services.fix_nested.worker import (
     DetectionResult,
     VerificationResult,
     detect_nested_tags,
-    fix_nested_tags,
+    repair_file,
     verify_fix,
 )
 from ...base_worker import BaseObjectsJobWorker
@@ -144,7 +144,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         fix_stage.status = "running"
         self._save_progress()
 
-        fix_success = fix_nested_tags(self.file_path)
+        fix_success = repair_file(self.file_path)
 
         if fix_success:
             fix_stage._update(status="success", message="Nested tags fixed successfully")

@@ -56,7 +56,7 @@ class OneFileProcessor:
             return 0, True
 
         # Try to fix nested tags
-        if not self.nested_processer.fix_file(file_path):
+        if not self.nested_processer.repair_file(file_path):
             nested_step._update(
                 result=False,
                 msg="Failed to fix nested tags",

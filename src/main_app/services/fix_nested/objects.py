@@ -10,6 +10,18 @@ logger = logging.getLogger(__name__)
 NestedStrategy = Literal["split_nested_tspans", "preserve_style", "flatten", "raise"]
 
 
+@dataclass(slots=True)
+class RepairResult:
+    """
+    Statistics and results of a nested structure repair operation.
+    """
+
+    success: bool
+    len_tags_before_fix: int
+    len_tags_after_fix: int
+    warnings: list[str] = field(default_factory=list)
+
+
 @dataclass
 class DetectionResult:
     count: int
