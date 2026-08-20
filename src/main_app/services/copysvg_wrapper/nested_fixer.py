@@ -43,30 +43,6 @@ class MatchFixNestedTags:
             logger.error(f"Failed to parse SVG file {path}: {exc}")
             return None
 
-    def repair_file(
-        self,
-        source: Path | str,
-        output: Path | str | None = None,
-        strategy: NestedStrategy | None = None,
-    ) -> bool:
-        """
-        Repair nested tags in a file and write the result to another file.
-        """
-        root = self._get_root(source)
-        if root is None:
-            return False
-
-        root = self.flattener.process(root)
-
-        save_path = output or source
-        try:
-            self._save_file(root, save_path)
-            return True
-        except Exception:
-            logger.error(f"Failed to write fixed svg file to: {str(save_path)}")
-
-        return False
-
     def verify_after_fix(
         self,
         source_file: Path | str,
@@ -98,6 +74,30 @@ class MatchFixNestedTags:
             count=len(nested),
             tags=nested,
         )
+
+    def repair_file(
+        self,
+        source: Path | str,
+        output: Path | str | None = None,
+        strategy: NestedStrategy | None = None,
+    ) -> bool:
+        """
+        Repair nested tags in a file and write the result to another file.
+        """
+        root = self._get_root(source)
+        if root is None:
+            return False
+
+        root = self.flattener.process(root)
+
+        save_path = output or source
+        try:
+            self._save_file(root, save_path)
+            return True
+        except Exception:
+            logger.error(f"Failed to write fixed svg file to: {str(save_path)}")
+
+        return False
 
     def _save_file(
         self,
