@@ -16,7 +16,6 @@ from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
-
 from src.main_app.services.copysvg_wrapper.mapping import RepairResult
 
 # ── jobs_workers fixtures ───────────────────────────────────────────────────────────────────
