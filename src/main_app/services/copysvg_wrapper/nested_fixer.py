@@ -6,7 +6,7 @@ from pathlib import Path
 from CopySVGTranslation import NestedTspanDetector, NestedTspanFlattener  # type: ignore
 from lxml import etree
 
-from ..fix_nested.objects import DetectionResult, NestedStrategy, VerificationResult
+from ..fix_nested.objects import DetectionResult, NestedStrategy, RepairResult, VerificationResult
 
 logger = logging.getLogger(__name__)
 
@@ -80,24 +80,67 @@ class MatchFixNestedTags:
         source: Path | str,
         output: Path | str | None = None,
         strategy: NestedStrategy | None = None,
-    ) -> bool:
+    ) -> RepairResult:
         """
         Repair nested tags in a file and write the result to another file.
         """
-        root = self._get_root(source)
-        if root is None:
-            return False
+        src_path = Path(source)
+        out_path = Path(output) if output else src_path
+        warnings: list[str] = []
 
-        root = self.flattener.process(root)
+        if not src_path.exists():
+            return RepairResult(
+                success=False,
+                len_tags_before_fix=0,
+                len_tags_after_fix=0,
+                warnings=[f"Source file does not exist: {src_path}"],
+            )
 
-        save_path = output or source
         try:
-            self._save_file(root, save_path)
-            return True
-        except Exception:
-            logger.error(f"Failed to write fixed svg file to: {str(save_path)}")
+            # Parse source file
+            root = self._get_root(src_path)
 
-        return False
+            if root is None:
+                return RepairResult(
+                    success=False,
+                    len_tags_before_fix=0,
+                    len_tags_after_fix=0,
+                    warnings=["Empty SVG root"],
+                )
+
+            # Count before fix
+            len_before = len(self.detector.find_in_tree(root))
+
+            # Apply repair
+            chosen_strategy = strategy or self.strategy
+
+            flattener = self.flattener
+            if chosen_strategy != self.strategy:
+                flattener = NestedTspanFlattener(strategy=chosen_strategy, also_fix_a=self.also_fix_a)
+
+            root = flattener.process(root)
+
+            # Count after fix
+            len_after = len(self.detector.find_in_tree(root))
+
+            # Write out
+            self._save_file(root, out_path)
+
+            return RepairResult(
+                success=True,
+                len_tags_before_fix=len_before,
+                len_tags_after_fix=len_after,
+                warnings=warnings,
+            )
+
+        except Exception as exc:
+            logger.error("Failed to repair file %s: %s", src_path, exc)
+            return RepairResult(
+                success=False,
+                len_tags_before_fix=0,
+                len_tags_after_fix=0,
+                warnings=[str(exc)],
+            )
 
     def _save_file(
         self,

@@ -144,9 +144,9 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         fix_stage.status = "running"
         self._save_progress()
 
-        fix_success = repair_file(self.file_path)
+        fixed = repair_file(self.file_path)
 
-        if fix_success:
+        if fixed.success:
             fix_stage._update(status="success", message="Nested tags fixed successfully")
             return True
 

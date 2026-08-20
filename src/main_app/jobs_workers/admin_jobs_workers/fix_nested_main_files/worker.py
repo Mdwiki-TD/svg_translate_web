@@ -171,8 +171,8 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
                 "details": {"nested_count": 0},
                 "no_nested_tags": True,
             }
-
-        if not repair_file(file_path):
+        fixed = repair_file(file_path)
+        if not fixed.success:
             return {
                 "success": False,
                 "message": f"Failed to fix nested tags in {filename}",

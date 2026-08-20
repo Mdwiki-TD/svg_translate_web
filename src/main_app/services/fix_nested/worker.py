@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 
 from ..copysvg_wrapper import MatchFixNestedTags
-from .objects import DetectionResult, VerificationResult
+from .objects import DetectionResult, RepairResult, VerificationResult
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ def detect_nested_tags(file_path: Path) -> DetectionResult:
     return processer.detect_nested_tags(file_path)
 
 
-def repair_file(file_path: Path) -> bool:
+def repair_file(file_path: Path) -> RepairResult:
     """Fix nested tags in-place."""
     logger.info("Fixing nested tags in: %s", file_path.name)
     processer = MatchFixNestedTags(
