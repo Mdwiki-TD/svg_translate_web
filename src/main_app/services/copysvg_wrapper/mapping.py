@@ -4,7 +4,7 @@ import logging
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from CopySVGTranslation import TranslationMapping  # type: ignore
+from CopySVGTranslation import TranslationMapping, RepairResult  # type: ignore
 from CopySVGTranslation.core.mapping import InjectorData, InjectorStats  # type: ignore
 
 logger = logging.getLogger(__name__)
@@ -80,6 +80,7 @@ class ExtractResult(SharedMapToJson):
 
 
 __all__ = [
+    "RepairResult",
     "TranslationMapping",
     "InjectorStats",
     "InjectorData",

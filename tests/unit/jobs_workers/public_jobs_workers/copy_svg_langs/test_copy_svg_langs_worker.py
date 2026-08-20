@@ -90,7 +90,7 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
     mock_detect = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.MatchFixNestedTags.analyze_file",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.NestedStructureService.analyze_file",
         mock_detect,
     )
 

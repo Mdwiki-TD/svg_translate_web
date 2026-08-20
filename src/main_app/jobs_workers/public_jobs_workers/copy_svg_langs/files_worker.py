@@ -16,7 +16,7 @@ from ....api_services.files_service.downloader import DownloadAndSaveData
 from ....services.copysvg_wrapper import (
     ExtractResult,
     InjectResult,
-    MatchFixNestedTags,
+    NestedStructureService,
     TranslationMapping,
     extract_from_path,
     inject_step_one_file,
@@ -39,7 +39,7 @@ class OneFileProcessor:
         self.upload_service = UploadService(self.site)
         self.mapping: TranslationMapping | None = None
         self.upload_done = 0
-        self.nested_processer = MatchFixNestedTags(
+        self.nested_processer = NestedStructureService(
             strategy="flatten",
         )
 

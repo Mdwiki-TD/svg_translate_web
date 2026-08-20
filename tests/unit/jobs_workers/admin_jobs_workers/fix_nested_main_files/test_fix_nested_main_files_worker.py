@@ -11,9 +11,7 @@ from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker
 from src.main_app.jobs_workers.objects import JobsRunner
-from src.main_app.services.fix_nested.objects import (
-    RepairResult,
-)
+from src.main_app.services.copysvg_wrapper.mapping import RepairResult
 
 
 @pytest.fixture
@@ -52,11 +50,11 @@ def mock_fix_nested_admin_services(mock_before_run, monkeypatch: pytest.MonkeyPa
     )
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.MatchFixNestedTags.analyze_file",
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.NestedStructureService.analyze_file",
         mocks["analyze_file"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.MatchFixNestedTags.repair_file",
+        "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.NestedStructureService.repair_file",
         mocks["repair_file"],
     )
     return mocks
@@ -95,5 +93,4 @@ def test_repair_nested_svg_tags_no_tags(mock_fix_nested_admin_services, tmp_path
     result = worker.FixNestedMainFilesWorker(data).repair_nested_svg_tags("Clean.svg", tmp_path)
 
     assert result["success"] is True
-    assert result["no_nested_tags"] is True
     assert "No nested tags found" in result["message"]

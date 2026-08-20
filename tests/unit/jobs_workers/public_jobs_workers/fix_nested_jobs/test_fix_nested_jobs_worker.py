@@ -16,9 +16,8 @@ from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.objects import FileResult
 from src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker import FixNestedJobsProcessor
-from src.main_app.services.fix_nested.objects import (
-    RepairResult,
-)
+
+from src.main_app.services.copysvg_wrapper.mapping import RepairResult
 
 # ── jobs_workers fixtures ───────────────────────────────────────────────────────────────────
 
@@ -49,8 +48,8 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker) 
 
     monkeypatch.setattr(f"{_BASE}.save_job_result_by_name", save_job_result_by_name)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download_and_save)
-    monkeypatch.setattr(f"{_WORKER}.MatchFixNestedTags.analyze_file", analyze_file)
-    monkeypatch.setattr(f"{_WORKER}.MatchFixNestedTags.repair_file", repair_file)
+    monkeypatch.setattr(f"{_WORKER}.NestedStructureService.analyze_file", analyze_file)
+    monkeypatch.setattr(f"{_WORKER}.NestedStructureService.repair_file", repair_file)
     monkeypatch.setattr(f"{_WORKER}.UploadService.upload_svg", upload_svg)
     monkeypatch.setattr(f"{_BASE}.JobsService.is_job_cancelled", is_job_cancelled)
 
@@ -93,8 +92,8 @@ def run_mocks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mock_base_worker,
     monkeypatch.setattr(f"{_BASE}.is_job_cancelled_file_exist", is_job_cancelled_file)
     monkeypatch.setattr(f"{_BASE}.get_user_site", get_site)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download)
-    monkeypatch.setattr(f"{_WORKER}.MatchFixNestedTags.analyze_file", detect)
-    monkeypatch.setattr(f"{_WORKER}.MatchFixNestedTags.repair_file", fix)
+    monkeypatch.setattr(f"{_WORKER}.NestedStructureService.analyze_file", detect)
+    monkeypatch.setattr(f"{_WORKER}.NestedStructureService.repair_file", fix)
     monkeypatch.setattr(f"{_WORKER}.UploadService.upload_svg", upload)
 
     return MockRunDeps(

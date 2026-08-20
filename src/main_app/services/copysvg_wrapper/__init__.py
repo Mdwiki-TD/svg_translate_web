@@ -9,10 +9,10 @@ from .mapping import (
     InjectResult,
     TranslationMapping,
 )
-from .nested_fixer import MatchFixNestedTags
+from .nested_fixer import NestedStructureService
 
 __all__ = [
-    "MatchFixNestedTags",
+    "NestedStructureService",
     "extract_from_path",
     "inject_step_one_file",
     "InjectResult",

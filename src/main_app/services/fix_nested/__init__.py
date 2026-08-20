@@ -1,6 +1,5 @@
-from .objects import RepairResult, VerificationResult
+from .objects import VerificationResult
 
 __all__ = [
-    "RepairResult",
     "VerificationResult",
 ]

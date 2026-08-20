@@ -19,7 +19,7 @@ from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import 
     CopySvgLangsWorker,
 )
 from src.main_app.services.copysvg_wrapper import InjectResult
-from src.main_app.services.fix_nested.objects import RepairResult
+from src.main_app.services.copysvg_wrapper.mapping import RepairResult
 
 
 @dataclass
@@ -48,13 +48,13 @@ def mock_files_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
     mock_detect = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.MatchFixNestedTags.analyze_file",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.NestedStructureService.analyze_file",
         mock_detect,
     )
 
     mock_fix = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.MatchFixNestedTags.repair_file",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.NestedStructureService.repair_file",
         mock_fix,
     )
 

@@ -12,7 +12,7 @@ from mwclient.client import Site
 
 from ....api_services import FilesService
 from ....api_services.files_service import UploadService
-from ....services.copysvg_wrapper import MatchFixNestedTags
+from ....services.copysvg_wrapper import NestedStructureService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
@@ -41,7 +41,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.file_path: Path | None = None
         self.files_service = FilesService()
         self.upload_service = UploadService(self.site)
-        self.fix_nested_processer = MatchFixNestedTags(
+        self.fix_nested_processer = NestedStructureService(
             strategy="flatten",
         )
 
