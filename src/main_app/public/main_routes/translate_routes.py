@@ -21,7 +21,7 @@ from flask import (
 from ...api_services import FilesService, UploadService, get_user_site
 from ...config import settings
 from ...public.auth import oauth_required
-from ...services.copysvg_wrapper import extract_from_path, inject_step_one_file
+from ...services.copysvg_wrapper import InjectResult, extract_from_path, inject_step_one_file
 from ...services.copysvg_wrapper.mapping import TranslationMapping
 from ..utils.routes_utils import load_auth_payload
 
@@ -215,12 +215,20 @@ class TranslateRoutes:
         # Inject into a new temporary file inside the session folder
         output_file = session_dir / f"translated_{filename}"
 
-        inject_result = inject_step_one_file(
-            file_path=svg_path,
-            translations=mapping,
-            output_file=output_file,
-            overwrite_translations=True,
-        )
+        try:
+            inject_result: InjectResult = inject_step_one_file(
+                file=svg_path,
+                translations=mapping,
+                output_file=output_file,
+                overwrite_translations=True,
+            )
+        except Exception:
+            logger.exception("Failed during SVG translation injection")
+            inject_result = InjectResult(
+                result=False,
+                msg="Failed during SVG translation injection",
+                new_languages_count=None,
+            )
 
         if not inject_result.result:
             flash(f"Translation injection failed: {inject_result.msg}", "danger")

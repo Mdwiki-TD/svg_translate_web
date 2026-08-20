@@ -16,14 +16,10 @@ from ....api_services.files_service.downloader import DownloadAndSaveData
 from ....services.copysvg_wrapper import (
     ExtractResult,
     InjectResult,
-    MatchFixNestedTags,
+    NestedStructureService,
     TranslationMapping,
     extract_from_path,
     inject_step_one_file,
-)
-from ....services.fix_nested import (
-    DetectionResult,
-    VerificationResult,
 )
 from .objects import (
     FilesProcessedItem,
@@ -43,47 +39,52 @@ class OneFileProcessor:
         self.upload_service = UploadService(self.site)
         self.mapping: TranslationMapping | None = None
         self.upload_done = 0
-        self.nested_processer: MatchFixNestedTags
-
-    def handle_nested_tag_repair_step(self, nested_step: StepResult, file_path: Path) -> tuple[int, bool]:
-        nested_processer = MatchFixNestedTags(
-            source_file=file_path,
-            new_path=file_path,
+        self.nested_processer = NestedStructureService(
+            strategy="flatten",
         )
 
-        detect_before: DetectionResult = nested_processer.detect_nested_tags()
-        if detect_before.count == 0:
+    def handle_nested_tag_repair_step(self, nested_step: StepResult, file_path: Path) -> tuple[int, bool]:
+
+        detect_before = self.nested_processer.analyze_file(file_path)
+        if len(detect_before) == 0:
             nested_step._update(msg="No nested tags found")
             # no nested tags, process to inject translations step
             return 0, True
 
         # Try to fix nested tags
-        if not nested_processer.fix_file():
+        fixed = self.nested_processer.repair_file(file_path)
+        if not fixed.success:
             nested_step._update(
                 result=False,
                 msg="Failed to fix nested tags",
-                details=detect_before.to_dict(),
+                # details=detect_before,
             )
             # no nested tags fixed, break the file process
             return 0, False
 
-        verify: VerificationResult = nested_processer.verify_after_fix()
+        # Verify after fix
+        verify = {
+            "before": fixed.len_tags_before_fix,
+            "after": fixed.len_tags_after_fix,
+            "fixed": fixed.len_tags_fixed,
+        }
 
-        if verify.fixed == 0:
+        if fixed.len_tags_fixed == 0:
             nested_step._update(
                 result=False,
                 msg="No nested tags were fixed",
-                details=verify.to_json(),
+                details=verify,
             )
+
             # no nested tags fixed, break the file process
             return 0, False
 
-        verify_fixed = verify.fixed
+        verify_fixed = fixed.len_tags_fixed
 
         nested_step._update(
             result=True,
-            msg=f"Fixed {verify.fixed} nested tag(s)",
-            details=verify.to_json(),
+            msg=f"Fixed {fixed.len_tags_fixed} nested tag(s)",
+            details=verify,
         )
 
         # no nested tags remaining in the file, process to inject translations step
@@ -97,12 +98,20 @@ class OneFileProcessor:
         file_path = Path(file_path)
         output_file = self.config.output_dir / "translated" / file_path.name
 
-        inject_result: InjectResult = inject_step_one_file(
-            file_path=file_path,
-            translations=self.mapping,
-            output_file=output_file,
-            overwrite_translations=self.config.overwrite_translations,
-        )
+        try:
+            inject_result: InjectResult = inject_step_one_file(
+                file=file_path,
+                translations=self.mapping,
+                output_file=output_file,
+                overwrite_translations=self.config.overwrite_translations,
+            )
+        except Exception:
+            logger.exception("Failed during SVG translation injection")
+            inject_result = InjectResult(
+                result=False,
+                msg="Failed during SVG translation injection",
+                new_languages_count=None,
+            )
 
         if inject_result.result is None:
             if inject_result.msg == "No changes":

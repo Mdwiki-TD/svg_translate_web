@@ -12,13 +12,7 @@ from mwclient.client import Site
 
 from ....api_services import FilesService
 from ....api_services.files_service import UploadService
-from ....services.fix_nested.worker import (
-    DetectionResult,
-    VerificationResult,
-    detect_nested_tags,
-    fix_nested_tags,
-    verify_fix,
-)
+from ....services.copysvg_wrapper import NestedStructureService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
@@ -47,6 +41,9 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.file_path: Path | None = None
         self.files_service = FilesService()
         self.upload_service = UploadService(self.site)
+        self.fix_nested_processer = NestedStructureService(
+            strategy="flatten",
+        )
 
     # ------------------------------------------------------------------
     # BaseObjectsJobWorker hooks
@@ -120,16 +117,16 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             analyze_stage.failed("File not found")
             return False
 
-        detect_result: DetectionResult = detect_nested_tags(self.file_path)
+        detect_result = self.fix_nested_processer.analyze_file(self.file_path)
+        count_detect = len(detect_result)
 
-        self.result.file_result.nested_tags_before = detect_result.count
-        self.result.file_result.nested_tags = detect_result.tags
+        self.result.file_result.nested_tags_before = count_detect
 
-        if detect_result.count == 0:
+        if count_detect == 0:
             analyze_stage.skipped(message="No nested tags found")
             return None
 
-        analyze_message = f"Found {detect_result.count} nested tags"
+        analyze_message = f"Found {count_detect} nested tags"
         analyze_stage._update(status="success", message=analyze_message)
 
         return True
@@ -144,9 +141,12 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         fix_stage.status = "running"
         self._save_progress()
 
-        fix_success = fix_nested_tags(self.file_path)
+        fixed = self.fix_nested_processer.repair_file(self.file_path)
 
-        if fix_success:
+        self.result.file_result.nested_tags_after = fixed.len_tags_after_fix
+        self.result.file_result.nested_tags_fixed = fixed.len_tags_fixed
+
+        if fixed.success:
             fix_stage._update(status="success", message="Nested tags fixed successfully")
             return True
 
@@ -165,22 +165,27 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         verify_stage.status = "running"
         self._save_progress()
 
-        before_count = self.result.file_result.nested_tags_before
-        verify_result: VerificationResult = verify_fix(self.file_path, before_count)
+        # self.result.file_result.nested_tags_after = verify_result.after
+        # self.result.file_result.nested_tags_fixed = verify_result.fixed
 
-        self.result.file_result.nested_tags_after = verify_result.after
-        self.result.file_result.nested_tags_fixed = verify_result.fixed
+        tags_fixed = self.result.file_result.nested_tags_fixed
+        tags_after = self.result.file_result.nested_tags_after
 
-        if verify_result.fixed > 0:
-            message = f"Verified: {verify_result.fixed} tags fixed"
-            verify_stage._update(status="success", message=message)
-            return True
+        if tags_fixed == 0:
+            message = "No tags were fixed"
+            verify_stage.failed(message)
+            self.result.status = "failed"
+            return False
 
-        message = "No tags were fixed"
-        verify_stage.failed(message)
+        if tags_after != 0:
+            message = f"Fixed {tags_fixed} tag(s), but {tags_after} nested tag(s) remain"
+            verify_stage.failed(message)
+            self.result.status = "failed"
+            return False
 
-        self.result.status = "failed"
-        return False
+        message = f"Verified: {tags_fixed} tags fixed, no nested tags remain"
+        verify_stage._update(status="success", message=message)
+        return True
 
     def _upload_step(self, upload_stage: StageDetail) -> bool | None:
         """Upload fixed files to Commons."""

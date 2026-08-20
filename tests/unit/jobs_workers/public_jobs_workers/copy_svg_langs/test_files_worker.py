@@ -1,10 +1,7 @@
-# ruff: noqa: F401
 """
 Unit tests for files_worker module.
 
 classes to test: OneFileProcessor
-
-TODO: write tests
 """
 
 from __future__ import annotations
@@ -17,14 +14,12 @@ import pytest
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker import (
-    OneFileProcessor,
-)
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
     CopySvgLangsWorker,
 )
 from src.main_app.services.copysvg_wrapper import InjectResult
+from src.main_app.services.copysvg_wrapper.mapping import RepairResult
 
 
 @dataclass
@@ -32,7 +27,6 @@ class MockServices:
     download_and_save: MagicMock
     detect: MagicMock
     fix: MagicMock
-    verify: MagicMock
     inject: MagicMock
     upload_svg: MagicMock
 
@@ -54,20 +48,14 @@ def mock_files_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
     mock_detect = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.MatchFixNestedTags.detect_nested_tags",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.NestedStructureService.analyze_file",
         mock_detect,
     )
 
     mock_fix = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.MatchFixNestedTags.fix_file",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.NestedStructureService.repair_file",
         mock_fix,
-    )
-
-    mock_verify = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.MatchFixNestedTags.verify_after_fix",
-        mock_verify,
     )
 
     mock_inject = MagicMock()
@@ -79,7 +67,6 @@ def mock_files_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
         download_and_save=mock_download,
         detect=mock_detect,
         fix=mock_fix,
-        verify=mock_verify,
         inject=mock_inject,
         upload_svg=mock_upload,
     )
@@ -136,7 +123,7 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
-        mock_files_services.detect.return_value = MagicMock(count=0)
+        mock_files_services.detect.return_value = []
         mock_files_services.inject.return_value = InjectResult(result=None, msg="No changes")
 
         title_info = FilesProcessedItem(title="File:Test.svg")
@@ -150,8 +137,8 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
-        mock_files_services.detect.return_value = MagicMock(count=2)
-        mock_files_services.fix.return_value = False
+        mock_files_services.detect.return_value = [1, 2]
+        mock_files_services.fix.return_value = RepairResult(success=False, len_tags_before_fix=2, len_tags_after_fix=2)
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_worker._process_one_item(title_info, "")
@@ -166,9 +153,8 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
-        mock_files_services.detect.return_value = MagicMock(count=2)
-        mock_files_services.fix.return_value = True
-        mock_files_services.verify.return_value = MagicMock(fixed=0)
+        mock_files_services.detect.return_value = [1, 2]
+        mock_files_services.fix.return_value = RepairResult(success=True, len_tags_before_fix=2, len_tags_after_fix=2)
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_worker._process_one_item(title_info, "")
@@ -181,7 +167,7 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
-        mock_files_services.detect.return_value = MagicMock(count=0)
+        mock_files_services.detect.return_value = []
         mock_files_services.inject.return_value = InjectResult(
             result=True, msg="ok", new_languages_count=1, updated_translations=0
         )
@@ -201,7 +187,7 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
-        mock_files_services.detect.return_value = MagicMock(count=0)
+        mock_files_services.detect.return_value = []
         mock_files_services.inject.return_value = InjectResult(result=None, msg="No changes")
         title_info = FilesProcessedItem(title="File:Test.svg")
 
@@ -215,7 +201,7 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
-        mock_files_services.detect.return_value = MagicMock(count=0)
+        mock_files_services.detect.return_value = []
         mock_files_services.inject.return_value = InjectResult(result=False, msg="Failed")
         title_info = FilesProcessedItem(title="File:Test.svg", steps=MagicMock(inject=MagicMock(result=False)))
 
@@ -229,9 +215,8 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
-        mock_files_services.detect.return_value = MagicMock(count=2)
-        mock_files_services.fix.return_value = True
-        mock_files_services.verify.return_value = MagicMock(fixed=2)
+        mock_files_services.detect.return_value = [1, 2]
+        mock_files_services.fix.return_value = RepairResult(success=True, len_tags_before_fix=2, len_tags_after_fix=0)
         mock_files_services.inject.return_value = InjectResult(result=False, msg="Failed")
         mock_files_services.upload_svg.return_value = UploadResult(ok=True, msg="uploaded", error="")
 
@@ -254,7 +239,7 @@ class TestCopySvgLangsWorkerProcessOne:
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
         mock_files_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
-        mock_files_services.detect.return_value = MagicMock(count=0)
+        mock_files_services.detect.return_value = []
         mock_files_services.inject.return_value = InjectResult(
             result=True, msg="ok", new_languages_count=1, updated_translations=0
         )

@@ -47,7 +47,10 @@ def get_max_y_of_element(element) -> float:
 
 
 def remove_footer_and_adjust_height(
-    input_path: Path, cropped_path: Path, footer_id: str = "footer", padding: float = 10.0
+    input_path: Path,
+    cropped_path: Path,
+    footer_id: str = "footer",
+    padding: float = 10.0,
 ) -> bool:
     # 1. Register the SVG namespace to avoid modifying/corrupting the tags
     namespace = "http://www.w3.org/2000/svg"

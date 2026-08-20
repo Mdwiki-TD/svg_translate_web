@@ -90,7 +90,7 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
     mock_detect = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.MatchFixNestedTags.detect_nested_tags",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.NestedStructureService.analyze_file",
         mock_detect,
     )
 
@@ -258,7 +258,7 @@ class TestCopySvgLangsWorkerProcess:
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
         mock_copylangs_services.download_and_save.return_value = DownloadAndSaveData(result="success", path="path.svg")
-        mock_copylangs_services.detect.return_value = MagicMock(count=0)
+        mock_copylangs_services.detect.return_value = []
         mock_copylangs_services.inject.return_value = InjectResult(
             result=True, msg="ok", new_languages_count=1, updated_translations=0
         )
@@ -535,7 +535,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
 
         mock_copylangs_services.is_cancelled.side_effect = [False, False, True]
 
-        mock_copylangs_services.detect.return_value = MagicMock(count=0)
+        mock_copylangs_services.detect.return_value = []
         result = mock_worker.process()
 
         assert result.stages.processfiles.status == "cancelled"
@@ -561,7 +561,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
         mock_copylangs_services.download_and_save.return_value = DownloadAndSaveData(result="success", path="path.svg")
-        mock_copylangs_services.detect.return_value = MagicMock(count=0)
+        mock_copylangs_services.detect.return_value = []
 
         mock_copylangs_services.is_cancelled.return_value = False
 
@@ -598,7 +598,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
         mock_copylangs_services.download_and_save.return_value = DownloadAndSaveData(result="success", path="path.svg")
-        mock_copylangs_services.detect.return_value = MagicMock(count=0)
+        mock_copylangs_services.detect.return_value = []
         mock_copylangs_services.is_cancelled.return_value = False
         mock_copylangs_services.inject.return_value = InjectResult(result=None, msg="No changes")
         mock_copylangs_services.check_cancel_db_periodic.return_value = False
@@ -624,7 +624,7 @@ class TestCopySvgLangsWorkerProcessAdvanced:
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
         mock_copylangs_services.download_and_save.return_value = DownloadAndSaveData(result="success", path="path.svg")
-        mock_copylangs_services.detect.return_value = MagicMock(count=0)
+        mock_copylangs_services.detect.return_value = []
         mock_copylangs_services.is_cancelled.return_value = False
         mock_copylangs_services.inject.return_value = InjectResult(result=None, msg="No changes")
         mock_copylangs_services.check_cancel_db_periodic.return_value = False

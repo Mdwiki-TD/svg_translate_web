@@ -161,17 +161,9 @@ class TestExtractRender:
         def mock_download(*args, **kwargs):
             return DownloadAndSaveData(result="success", path=str(tmp_path / "test.svg"))
 
-        def mock_extract(*args, **kwargs):
-            raise ValueError("Invalid SVG format")
-
         monkeypatch.setattr(
             "src.main_app.public.main_routes.extract_routes.FilesService.download_and_save", mock_download
         )
-        monkeypatch.setattr(
-            "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",
-            mock_extract,
-        )
-
         response = mock_client.post(
             "/extract/",
             data={"filename": "Test.svg"},
@@ -220,4 +212,3 @@ class TestExtractRender:
         assert response.data.decode() == "rendered:extract/result.html"
         assert ("Translations extracted successfully", "success") in mock_flash
         assert patch_render["context"]["translations"]["new"] == sample_translations["new"]
-        # assert ('Translations extracted successfully', 'success') in [('Failed to parse main SVG', 'danger')]

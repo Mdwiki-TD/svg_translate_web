@@ -6,9 +6,9 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
 
 from CopySVGTranslation import SVGTranslationExtractor, TranslationConfig  # type: ignore
+from CopySVGTranslation.exceptions import CopySVGTranslationError
 
 from .mapping import ExtractResult, TranslationMapping
 
@@ -35,24 +35,22 @@ def _extract_file_translations(
 
     extractor = SVGTranslationExtractor(config=config)
 
+    file_name = source_file.name if isinstance(source_file, Path) else str(source_file)
+
     try:
-        result_json: dict[str, Any] = extractor.extract_json(source_file)
+        result: TranslationMapping = extractor.extract(source_file)
+    except CopySVGTranslationError as exc:
+        logger.error(f"CopySVGTranslationError on file:{file_name}.")
+        logger.error(f"Error code: {exc.code}")
+        logger.error(f"Error label: {exc.label}")
+
+        return TranslationMapping(error=exc.code)  # , message=exc.label)
     except Exception as e:
-        logger.error(f"Failed to extract translations from {source_file}: {e}")
+        logger.error(f"Failed to extract translations from {file_name}: {e}")
+        return TranslationMapping(error=str(e))
+
+    if not result:
         return TranslationMapping()
-
-    if not result_json:
-        return TranslationMapping()
-
-    error = result_json.get("error", "")
-    meta = result_json.get("meta", {})
-    if not error and meta:
-        error = meta.get("error", "")
-
-    result = TranslationMapping.from_any(result_json)
-
-    if error and not result.error:
-        result.error = error
 
     return result
 
@@ -69,20 +67,20 @@ def extract_from_path(main_title_path: Path, fast_return_false: bool = True) -> 
         dict with keys: success (bool), translations (dict), error (str|None)
     """
 
-    try:
-        mapping = _extract_file_translations(main_title_path)
-    except Exception:
-        logger.exception("Failed to extract translations from main SVG")
+    mapping = _extract_file_translations(main_title_path)
+
+    new_translations_count = len(mapping.new)
+
+    # If there's an error in extraction, return unsuccessful result regardless of fast_return_false
+    if mapping.error:
+        logger.debug(f"Extraction error: {mapping.error}")
         return ExtractResult(
             success=False,
-            message="",
-            error="Failed to parse main SVG",
+            message="Extraction failed",
+            error=mapping.error,
             translations={},
-            mapping=TranslationMapping(),
+            mapping=mapping,
         )
-
-    new_translations = mapping.new
-    new_translations_count = len(new_translations)
 
     if fast_return_false:
         if new_translations_count == 0:
@@ -90,19 +88,21 @@ def extract_from_path(main_title_path: Path, fast_return_false: bool = True) -> 
             logger.debug(error)
             return ExtractResult(
                 success=False,
-                message="",
-                error="No translations found in main file",
+                message="No translations found in main file",
+                error=error,
                 translations={},
                 mapping=mapping,
             )
 
     # Sort new data: alphabetical keys first, numeric keys last
-    mapping.new = dict(
-        sorted(
-            new_translations.items(),
-            key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
+    new_translations = mapping.new
+    if new_translations:
+        mapping.new = dict(
+            sorted(
+                new_translations.items(),
+                key=lambda item: (isinstance(item[0], str) and item[0].isdigit(), item[0]),
+            )
         )
-    )
     message = f"Loaded {new_translations_count} translations from main file"
 
     return ExtractResult(

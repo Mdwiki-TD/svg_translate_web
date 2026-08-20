@@ -169,7 +169,7 @@ class TestTranslateRoutes:
         mock_inject = InjectResult(result=True)
         monkeypatch.setattr(
             "src.main_app.public.main_routes.translate_routes.inject_step_one_file",
-            lambda file_path, translations, output_file, overwrite_translations: mock_inject,
+            lambda file, translations, output_file, overwrite_translations: mock_inject,
         )
 
         # Mock get_user_site
@@ -226,7 +226,7 @@ class TestTranslateRoutes:
         json_path.write_text(json.dumps(session_data), encoding="utf-8")
 
         # Mock inject_step_one_file to write a mock translated file
-        def fake_inject(file_path, translations, output_file, overwrite_translations):
+        def fake_inject(file, translations, output_file, overwrite_translations):
             output_file.write_text("<svg>Translated content</svg>", encoding="utf-8")
             return InjectResult(result=True)
 

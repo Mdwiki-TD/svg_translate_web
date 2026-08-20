@@ -13,13 +13,7 @@ from mwclient.client import Site
 
 from ....api_services import FilesService, UploadService
 from ....database.services import TemplateService
-from ....services.fix_nested.worker import (
-    DetectionResult,
-    VerificationResult,
-    detect_nested_tags,
-    fix_nested_tags,
-    verify_fix,
-)
+from ....services.copysvg_wrapper import NestedStructureService
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import FixNestedMainFilesWorkerObject, TitleInfo
@@ -41,6 +35,9 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         self.site: Site | None = None
         self.files_service = FilesService()
         self.upload_service = UploadService(self.site)
+        self.fix_nested_processer = NestedStructureService(
+            strategy="flatten",
+        )
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -162,33 +159,44 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
         file_path = download.path
 
-        detect_before: DetectionResult = detect_nested_tags(file_path)
+        detect_before = self.fix_nested_processer.analyze_file(file_path)
 
-        if detect_before.count == 0:
+        if len(detect_before) == 0:
             return {
                 "success": False,
                 "message": f"No nested tags found in {filename}",
                 "details": {"nested_count": 0},
                 "no_nested_tags": True,
             }
-
-        if not fix_nested_tags(file_path):
+        fixed = self.fix_nested_processer.repair_file(file_path)
+        if not fixed.success:
             return {
                 "success": False,
                 "message": f"Failed to fix nested tags in {filename}",
-                "details": {"nested_count": detect_before.count},
+                "details": {"nested_count": len(detect_before)},
             }
 
-        verify: VerificationResult = verify_fix(file_path, detect_before.count)
+        verify = verify = {
+            "before": fixed.len_tags_before_fix,
+            "after": fixed.len_tags_after_fix,
+            "fixed": fixed.len_tags_fixed,
+        }
 
-        if verify.fixed == 0:
+        if fixed.len_tags_fixed == 0:
             return {
                 "success": False,
                 "message": f"No nested tags were fixed in {filename}",
-                "details": verify.to_json(),
+                "details": verify,
             }
 
-        summary = f"Fixed {verify.fixed} nested tag(s)"
+        if fixed.len_tags_after_fix != 0:
+            return {
+                "success": False,
+                "message": f"Fixed {fixed.len_tags_fixed} nested tag(s), but {fixed.len_tags_after_fix} nested tag(s) remain",
+                "details": verify,
+            }
+
+        summary = f"Fixed {fixed.len_tags_fixed} nested tag(s)"
 
         upload = self.upload_service.upload_svg(
             filename,
@@ -199,15 +207,15 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         if not upload.ok:
             return {
                 "success": False,
-                "message": f"Fixed {verify.fixed} nested tag(s), but upload failed.",
-                "details": {**verify.to_json(), **upload.to_json()},
+                "message": f"Fixed {fixed.len_tags_fixed} nested tag(s), but upload failed.",
+                "details": {**verify, **upload.to_json()},
             }
 
         return {
             "success": True,
-            "message": f"Successfully fixed {verify.fixed} nested tag(s) and uploaded {filename}.",
+            "message": f"Successfully fixed {fixed.len_tags_fixed} nested tag(s) and uploaded {filename}.",
             "details": {
-                **verify.to_json(),
+                **verify,
                 "upload_result": upload.result,
             },
         }

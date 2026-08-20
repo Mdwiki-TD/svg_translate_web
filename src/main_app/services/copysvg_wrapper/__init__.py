@@ -1,6 +1,5 @@
 from .extract_translations import extract_from_path
 from .inject_one_file import (
-    _start_injects,
     inject_step_one_file,
 )
 from .mapping import (
@@ -10,12 +9,11 @@ from .mapping import (
     InjectResult,
     TranslationMapping,
 )
-from .nested_fixer import MatchFixNestedTags
+from .nested_fixer import NestedStructureService
 
 __all__ = [
-    "MatchFixNestedTags",
+    "NestedStructureService",
     "extract_from_path",
-    "_start_injects",
     "inject_step_one_file",
     "InjectResult",
     "InjectorStats",
