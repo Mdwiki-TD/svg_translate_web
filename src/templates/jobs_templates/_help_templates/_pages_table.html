@@ -9,7 +9,7 @@
     bp_name,
     show_download=False,
     show_nested=True,
-    err_colmn=False,
+    err_colmn=False
 ) %}
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, template_data.job_type, bp_name) }}

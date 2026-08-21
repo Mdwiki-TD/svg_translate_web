@@ -27,6 +27,7 @@ class JobData:
     start_confirm_message: str | None = None
     load_settings: bool = False
     form_class: Callable | None = None
+    used_ajax_table: bool = False
 
 
 __all__ = [

@@ -39,7 +39,7 @@
 {% macro pages_table(
     data,
     table_title,
-    job_type,
+    job_type
 ) %}
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, job_type) }}
