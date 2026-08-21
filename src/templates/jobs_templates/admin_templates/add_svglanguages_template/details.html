@@ -25,6 +25,14 @@
 {% endblock %}
 
 {% macro pages_processed_table(data, table_title, job_type) %}
+
+{% set step_keys = [
+    'load_template_text',
+    'generate_template_text',
+    'add_template_text',
+    'save_new_text',
+] %}
+
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, job_type) }}
 {% else %}
@@ -55,7 +63,6 @@
                                 {{ item.template_title }}
                             </a>
                         </td>
-                        {% set step_keys = [ 'load_template_text', 'generate_template_text', 'add_template_text', 'save_new_text' ] %}
                         {% for step_key in step_keys %}
                         <td>
                             {% set step = item.steps.get(step_key) if item.steps else None %}

@@ -2,7 +2,8 @@
     table_title,
     job_id,
     job_type,
-    list_name="files_skipped"
+    list_name,
+    columns,
 ) %}
 <div class="card mb-3">
     <div class="card-header">
@@ -27,16 +28,9 @@
                 ) }}">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>File</th>
-                        <th>Status</th>
-                        <th>Download</th>
-                        <th>Nested tags</th>
-                        <th>Translations Inserted</th>
-                        <th>Translations Updated</th>
-                        <th>Inject</th>
-                        <th>Upload</th>
-                        <th>Error</th>
+                        {% for header in table_headers %}
+                        <th>{{ header }}</th>
+                        {% endfor %}
                     </tr>
                 </thead>
             </table>

@@ -90,7 +90,18 @@
 </div>
 {% endif %}
 {% endblock %}
-
+{% set columns = [
+    "#",
+    "File",
+    "Status",
+    "Download",
+    "Nested tags",
+    "Translations Inserted",
+    "Translations Updated",
+    "Inject",
+    "Upload",
+    "Error",
+]}
 {% block job_details %}
 
 {% if result_data.files_success %}
@@ -99,6 +110,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_success",
+    columns=columns,
 ) }}
 {% endif %}
 
@@ -108,6 +120,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_processed",
+    columns=columns,
 ) }}
 {% endif %}
 
@@ -118,6 +131,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_skipped",
+    columns=columns,
 ) }}
 {% endif %}
 
@@ -127,6 +141,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_failed",
+    columns=columns,
 ) }}
 {% endif %}
 

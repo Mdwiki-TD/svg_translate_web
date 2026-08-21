@@ -27,6 +27,15 @@
 </div>
 {% endblock %}
 
+{% set step_keys = [
+    'load_page_text',
+    'extract_file_name',
+    'get_languages',
+    'build_categories',
+    'check_existing',
+    'save_page'
+] %}
+
 {% macro pages_result_table(data, table_title, job_type) %}
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, job_type) }}
@@ -88,7 +97,6 @@
                             -
                             {% endif %}
                         </td>
-                        {% set step_keys = [ 'load_page_text', 'extract_file_name', 'get_languages', 'build_categories', 'check_existing', 'save_page' ] %}
                         {% for step_key in step_keys %}
                         <td>
                             {% set step = item.steps.get(step_key) if item.steps else None %}

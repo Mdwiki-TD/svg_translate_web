@@ -73,7 +73,11 @@
 {% endif %}
 {% endblock %}
 
-{% macro pages_table(data, table_title, err_colmn=False) %}
+{% macro pages_table(
+    data,
+    table_title,
+    err_colmn=False,
+) %}
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, template_data.job_type, bp_name) }}
 {% else %}
