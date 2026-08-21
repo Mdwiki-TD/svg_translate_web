@@ -16,7 +16,7 @@ jobs_data_public: dict[str, JobData] = {
     "copy_svg_langs": JobData(
         job_type="copy_svg_langs",
         job_name="Copy SVG Translation",
-        job_details_template="jobs_templates/public/copy_svg_langs/details.html",
+        job_details_template="jobs_templates/public/copy_svg_langs/details_new.html",
         job_list_template="jobs_templates/public/copy_svg_langs/list.html",
         job_class=CopySvgLangsWorker,
         job_args=[

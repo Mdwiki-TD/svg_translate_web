@@ -366,7 +366,7 @@ class JobsBp(ABC):
         file_number: int,
         job_type: str,
         list_name: str = "files_failed",
-        draw: int = 0,
+        draw: int = 1,
         limit: int = 10,
     ) -> ResponseReturnValue:
         """
