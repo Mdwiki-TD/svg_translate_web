@@ -35,23 +35,22 @@ class PublicJobsRoutes(JobsBp):
             ("/<string:job_type>", "GET", self.jobs_list),
             ("/<string:job_type>/<int:job_id>", "GET", self.job_detail),
             ("/<string:job_type>/<int:job_id>/expand", "GET", self.job_detail_expand),
+
             ("/job-file/<string:result_file>/<string:job_type>", "GET", oauth_required(self.read_job_result_file)),
+
             ("/<string:job_type>/<int:job_id>/cancel", "POST", oauth_required(self.cancel_job)),
             ("/<string:job_type>/start", "POST", oauth_required(self.start_job)),
             ("/<string:job_type>/<int:job_id>/delete", "POST", admin_required(self.delete_job)),
             ("/<string:job_type>/<int:job_id>/mark_as_completed", "POST", admin_required(self.mark_as_completed)),
+
+            ("/<string:job_type>/file/<int:file_number>/<string:list_name>/<int:draw>/<int:limit>", "GET", self.read_result_file),
         ]
+
         for rule, method, target in routes:
             self.bp.route(rule, methods=[method])(target)
 
         self.bp.add_url_rule(
             "/<string:job_type>/file/<int:file_number>/<string:list_name>/<int:draw>",
-            # endpoint="read_result_file",
-            view_func=self.read_result_file,
-        )
-        self.bp.add_url_rule(
-            "/<string:job_type>/file/<int:file_number>/<string:list_name>/<int:draw>/<int:limit>",
-            # endpoint="read_result_file",
             view_func=self.read_result_file,
         )
 

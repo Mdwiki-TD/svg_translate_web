@@ -384,6 +384,8 @@ class JobsBp(ABC):
 
         if list_data:
             result = list_data
+            if len(result) > limit:
+                result = result[:limit]
 
         return jsonify(result)
 

@@ -30,7 +30,6 @@ class AdminJobsRoutes(JobsBp):
         super().__init__(jobs_data_infos, bp_name)
 
     def _setup_routes(self) -> None:
-
         routes = [
             ("/<string:job_type>", "GET", self.jobs_list),
             ("/<string:job_type>/<int:job_id>", "GET", self.job_detail),
@@ -42,11 +41,17 @@ class AdminJobsRoutes(JobsBp):
             ("/<string:job_type>/start", "POST", self.start_job),
             ("/<string:job_type>/<int:job_id>/delete", "POST", self.delete_job),
             ("/<string:job_type>/<int:job_id>/mark_as_completed", "POST", self.mark_as_completed),
+
+            ("/<string:job_type>/file/<int:file_number>/<string:list_name>/<int:draw>/<int:limit>", "GET", self.read_result_file),
         ]
 
         for rule, method, target in routes:
             self.bp.route(rule, methods=[method])(admin_required(target))
 
+        self.bp.add_url_rule(
+            "/<string:job_type>/file/<int:file_number>/<string:list_name>/<int:draw>",
+            view_func=self.read_result_file,
+        )
 
 __all__ = [
     "AdminJobsRoutes",
