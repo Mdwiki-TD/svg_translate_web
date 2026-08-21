@@ -45,7 +45,7 @@ class TestExtractFromPath:
         assert result.success is False
         assert result.translations == {}
         # assert "No translations found in main file" == result.message
-        assert result.message == "Extraction failed" 
+        assert result.message == "Extraction failed"
         assert "io-error" == result.error
 
     def test_extract_translations_success(self, monkeypatch, tmp_path):

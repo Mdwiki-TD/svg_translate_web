@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 from src.main_app.services.copysvg_wrapper.nested_fixer import NestedStructureService
@@ -8,9 +7,7 @@ from src.main_app.services.copysvg_wrapper.nested_fixer import NestedStructureSe
 
 def test_nested_structure_service_analyze_and_repair(tmp_path: Path):
     svg_file = tmp_path / "test_nested.svg"
-    svg_file.write_text(
-        '<svg xmlns="http://www.w3.org/2000/svg"><text><tspan>A<tspan>B</tspan></tspan></text></svg>'
-    )
+    svg_file.write_text('<svg xmlns="http://www.w3.org/2000/svg"><text><tspan>A<tspan>B</tspan></tspan></text></svg>')
 
     nested_service = NestedStructureService(strategy="flatten")
 
@@ -44,9 +41,9 @@ def test_nested_structure_service_ignores_valid_link_wrapping_text(tmp_path: Pat
     """A normal clickable SVG title must not be reported as a nested-tag error."""
     svg_file = tmp_path / "linked_title.svg"
     svg_file.write_text(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\">"
-        "<a href=\"https://example.org/chart\" id=\"title\">"
-        "<text><tspan id=\"trsvg1\">Chart title</tspan></text>"
+        '<svg xmlns="http://www.w3.org/2000/svg">'
+        '<a href="https://example.org/chart" id="title">'
+        '<text><tspan id="trsvg1">Chart title</tspan></text>'
         "</a></svg>"
     )
 
@@ -59,9 +56,9 @@ def test_nested_structure_service_detects_repairable_nesting_inside_link(tmp_pat
     """A link wrapper does not hide a genuinely nested tspan from repair."""
     svg_file = tmp_path / "linked_nested_tspan.svg"
     svg_file.write_text(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\">"
-        "<a href=\"https://example.org/chart\" id=\"title\">"
-        "<text><tspan id=\"outer\">Before <tspan id=\"inner\">nested</tspan></tspan></text>"
+        '<svg xmlns="http://www.w3.org/2000/svg">'
+        '<a href="https://example.org/chart" id="title">'
+        '<text><tspan id="outer">Before <tspan id="inner">nested</tspan></tspan></text>'
         "</a></svg>"
     )
 
@@ -69,7 +66,7 @@ def test_nested_structure_service_detects_repairable_nesting_inside_link(tmp_pat
     findings = nested_service.analyze_file(svg_file)
 
     assert len(findings) == 1
-    assert 'id=\"outer\"' in findings[0]
+    assert 'id="outer"' in findings[0]
 
     repair_result = nested_service.repair_file(svg_file)
 
