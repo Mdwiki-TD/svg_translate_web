@@ -1,0 +1,64 @@
+{% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link, render_step, commons_link %}
+{% from '_macros/svg_macros.html' import render_extract_details, render_json %}
+
+
+{% macro new_pages_table(data, table_title) %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>File</th>
+                        <th>Status</th>
+                        <th>Download</th>
+                        <th>Nested tags</th>
+                        <th>Translations Inserted</th>
+                        <th>Translations Updated</th>
+                        <th>Inject</th>
+                        <th>Upload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data %}
+                    <tr>
+                        <td> {{ loop.index }} </td>
+                        <td>
+                            {{ commons_file_link(item.title, label=item.title) }}
+                        </td>
+                        <td>
+                            {{ status_icon(item.status) }}
+                        </td>
+                        <td>
+                            {{ render_step(item.steps.download) }}
+                        </td>
+                        <td>
+                            {{ render_step(item.steps.nested) }}
+                        </td>
+                        {% set inject_step = item.steps.get('inject') if item.steps else {} %}
+                        {% set translations_step_details = item.steps.get('translations', {}).get('details', {}) %}
+
+                        <td>
+                            {{ translations_step_details.inserted or inject_step.details.inserted_translations }}
+                        </td>
+                        <td>
+                            {{ translations_step_details.updated or inject_step.details.updated_translations }}
+                        </td>
+                        <td>
+                            {{ render_step(item.steps.inject) }}
+                        </td>
+                        <td>
+                            {{ render_step(item.steps.upload) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{%- endmacro -%}

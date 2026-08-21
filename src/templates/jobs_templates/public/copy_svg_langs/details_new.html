@@ -1,6 +1,7 @@
 {% extends "jobs_templates/base_details_public.html" %}
 {% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link, render_step, commons_link %}
 {% from '_macros/svg_macros.html' import render_extract_details, render_json %}
+{% from 'jobs_templates/public/copy_svg_langs/_ajax_table.html' import new_pages_table %}
 
 {% block job_info_extra %}
 {% if result_data %}
@@ -194,7 +195,7 @@
     limit=100,
 ) }}
 #}
-{{ pages_table(result_data.files_skipped, "Skipped", show_download=True) }}
+{{ new_pages_table(result_data.files_skipped, "Skipped") }}
 {% endif %}
 
 {% if result_data.files_failed %}
