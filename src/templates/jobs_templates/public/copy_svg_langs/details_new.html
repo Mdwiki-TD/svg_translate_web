@@ -1,7 +1,7 @@
 {% extends "jobs_templates/base_details_public.html" %}
 {% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link, render_step, commons_link %}
 {% from '_macros/svg_macros.html' import render_extract_details, render_json %}
-{% from 'jobs_templates/public/copy_svg_langs/_ajax_table.html' import new_pages_table %}
+{% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
 
 {% block job_info_extra %}
 {% if result_data %}
@@ -100,8 +100,8 @@
     "Translations Updated",
     "Inject",
     "Upload",
-    "Error",
-]}
+    "Error"
+] %}
 {% block job_details %}
 
 {% if result_data.files_success %}
@@ -110,7 +110,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_success",
-    columns=columns,
+    table_headers=columns,
 ) }}
 {% endif %}
 
@@ -120,7 +120,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_processed",
-    columns=columns,
+    table_headers=columns,
 ) }}
 {% endif %}
 
@@ -131,7 +131,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_skipped",
-    columns=columns,
+    table_headers=columns,
 ) }}
 {% endif %}
 
@@ -141,7 +141,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_failed",
-    columns=columns,
+    table_headers=columns,
 ) }}
 {% endif %}
 
@@ -153,7 +153,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/ajax_table.js') }}"></script>
 <script>
     $(document).ready(function () {
         initServerTable('table-files_success');
