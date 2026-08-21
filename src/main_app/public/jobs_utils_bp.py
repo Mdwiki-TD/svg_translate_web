@@ -14,7 +14,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
-from werkzeug.wrappers.response import Response
+from flask.wrappers import Response
 
 from ..admin.decorators import admin_required
 from ..config import settings

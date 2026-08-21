@@ -18,7 +18,6 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from flask.wrappers import Response
 from flask_wtf import FlaskForm
-from werkzeug.wrappers.response import Response
 
 from ..database.exceptions import DuplicateRecordError
 from ..database.services import JobsService, SettingsService
@@ -412,10 +411,7 @@ class JobsBp(ABC):
 
         # --- search/filter ---
         if search_value:
-            filtered = [
-                item for item in list_data
-                if self._row_matches_search(item, search_value)
-            ]
+            filtered = [item for item in list_data if self._row_matches_search(item, search_value)]
         else:
             filtered = list_data
 
@@ -426,7 +422,7 @@ class JobsBp(ABC):
             # DataTables sends length=-1 for "show all"
             page = filtered[start:]
         else:
-            page = filtered[start:start + length]
+            page = filtered[start : start + length]
 
         return {
             "draw": draw,

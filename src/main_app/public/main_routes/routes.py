@@ -12,7 +12,7 @@ from flask import (
     render_template,
     send_from_directory,
 )
-from werkzeug.wrappers.response import Response
+from flask.wrappers import Response
 
 from ...jobs_workers.public_jobs_workers.copy_svg_langs import setup_svg_langs_form
 
