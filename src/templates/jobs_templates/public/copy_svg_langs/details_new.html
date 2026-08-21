@@ -184,18 +184,14 @@
 {% endif %}
 
 {% if result_data.files_skipped %}
-{#
-    JSON link for result to use in DataTable ajax
-{{ url_for(
-    'adminpanel.jobs.read_result_file',
+
+{{ new_pages_table(
+    data=result_data.files_skipped,
+    table_title="Skipped",
+    job_id=job.id,
     job_type=template_data.job_type,
-    file_number=job.id,
     list_name="files_skipped",
-    draw=1,
-    limit=100,
 ) }}
-#}
-{{ new_pages_table(result_data.files_skipped, "Skipped") }}
 {% endif %}
 
 {% if result_data.files_failed %}

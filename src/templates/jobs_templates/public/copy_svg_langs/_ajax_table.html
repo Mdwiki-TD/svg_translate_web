@@ -1,11 +1,81 @@
-{% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link, render_step, commons_link %}
-{% from '_macros/svg_macros.html' import render_extract_details, render_json %}
+{# status icon #}
+{% macro status_icon(status) %}
+<small
+    class="d-inline-flex px-2 py-1 fw-semibold text-{{ status | get_status_class }}-emphasis bg-{{ status | get_status_class }}-subtle border border-{{ status | get_status_class }}-subtle rounded-2">
+    {{ status | title }}
+</small>
+{%- endmacro -%}
+
+{%- macro commons_file_link(filename, label="") -%}
+{% if filename %}
+{% set striped_name = filename | replace('File:', '') %}
+<a href="https://commons.wikimedia.org/wiki/File:{{ striped_name | replace(' ', '_') | urlencode }}" target="_blank"
+    rel="noopener noreferrer">
+    {% if label %}
+    {{ label }}
+    {% else %}
+    File:{{ striped_name }}
+    {% endif %}
+</a>
+{% endif %}
+{%- endmacro -%}
 
 
-{% macro new_pages_table(data, table_title) %}
+{%- macro render_step(step) -%}
+{% if step %}
+{% if step.result == true or step.result == "updated" %}
+{% if step.newrevid and step.newrevid != 0 %}
+<a href="https://commons.wikimedia.org/w/index.php?diff={{ step.newrevid }}" target="_blank">
+    <span class="badge bg-success" title="{{ step.msg or step.message or step.new_value }}">
+        <i class="bi bi-check-lg"></i> Diff
+    </span>
+</a>
+{% else %}
+<span class="badge bg-success" title="{{ step.msg or step.message or step.new_value }}">
+    <i class="bi bi-check-lg"></i>
+</span>
+{% endif %}
+{% elif step.result == false or step.result == "failed" %}
+<span class="badge bg-danger" title="{{ step.msg or step.message }}">
+    <i class="bi bi-x-lg"></i>
+</span>
+{% elif step.result is none or step.result == "skipped" %}
+<span class="badge bg-secondary" title="{{ step.msg or step.message or step.value }}">
+    <i class="bi bi-dash"></i>
+</span>
+{% else %}
+<span class="text-muted" title="{{ step.msg or step.message or step.value }}">-</span>
+{% endif %}
+{% else %}
+<span class="text-muted">-</span>
+{% endif %}
+{%- endmacro -%}
+
+{% macro new_pages_table(data, table_title, job_id, job_type, list_name="files_skipped") %}
+{#
+    JSON link for result to use in DataTable ajax
+{{ url_for(
+    'adminpanel.jobs.read_result_file',
+    job_type=job_type,
+    file_number=job_id,
+    list_name=list_name,
+    draw=1,
+    limit=100,
+) }}
+#}
 <div class="card mb-3">
     <div class="card-header">
-        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
+        <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+            <h5 class="mb-0">
+                {{ table_title ~ " (" ~ data|length ~ ")" }}
+            </h5>
+            <div class="card-tools">
+                <button type="button" class="btn-tool" data-card-widget="collapse" aria-label="Toggle card">
+
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
     </div>
     <div class="card-body">
         <div class="table-responsive">
