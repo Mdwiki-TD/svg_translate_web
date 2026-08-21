@@ -44,6 +44,16 @@ class PublicJobsRoutes(JobsBp):
         for rule, method, target in routes:
             self.bp.route(rule, methods=[method])(target)
 
+        self.bp.add_url_rule(
+            "/<string:job_type>/file/<int:file_number>/<string:list_name>/<int:draw>",
+            # endpoint="read_result_file",
+            view_func=self.read_result_file,
+        )
+        self.bp.add_url_rule(
+            "/<string:job_type>/file/<int:file_number>/<string:list_name>/<int:draw>/<int:limit>",
+            # endpoint="read_result_file",
+            view_func=self.read_result_file,
+        )
 
 __all__ = [
     "PublicJobsRoutes",

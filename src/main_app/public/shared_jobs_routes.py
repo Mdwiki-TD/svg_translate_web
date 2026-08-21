@@ -309,13 +309,6 @@ class JobsBp(ABC):
 
         return self._redirect_to_job_list(job_type)
 
-    def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
-        if job_type not in self.jobs_data_infos:
-            abort(404)
-
-        result_data = load_job_result(result_file)
-        return jsonify(result_data)
-
     def start_job(self, job_type: str) -> ResponseReturnValue:
         template_data: JobData | None = self.jobs_data_infos.get(job_type)
         if not template_data:
@@ -360,6 +353,39 @@ class JobsBp(ABC):
         self.shared_service.mark_as_completed_handler(job_id, job_type)
 
         return self._redirect_to_job_detail(job_type, job_id)
+
+    def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
+        if job_type not in self.jobs_data_infos:
+            abort(404)
+
+        result_data = load_job_result(result_file)
+        return jsonify(result_data)
+
+    def read_result_file(
+        self,
+        file_number: int,
+        job_type: str,
+        list_name: str = "files_failed",
+        draw: int = 0,
+        limit: int = 100,
+    ) -> ResponseReturnValue:
+        """
+        http://127.0.0.1:5000/jobs/copy_svg_langs/file/439/files_failed/1
+        """
+        if job_type not in self.jobs_data_infos:
+            abort(404)
+
+        # copy_svg_langs_job_439.json
+        result_file = f"{job_type}_job_{file_number}.json"
+        result = []
+
+        result_data = load_job_result(result_file)
+        list_data = result_data.get(list_name) if result_data else {}
+
+        if list_data:
+            result = list_data
+
+        return jsonify(result)
 
 
 __all__ = [
