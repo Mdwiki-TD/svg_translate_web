@@ -367,7 +367,7 @@ class JobsBp(ABC):
         job_type: str,
         list_name: str = "files_failed",
         draw: int = 0,
-        limit: int = 100,
+        limit: int = 10,
     ) -> ResponseReturnValue:
         """
         http://127.0.0.1:5000/jobs/copy_svg_langs/file/439/files_failed/1
