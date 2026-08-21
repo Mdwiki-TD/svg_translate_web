@@ -154,23 +154,97 @@
 
 {% block extra_js %}
 <script>
+    function createTableColumns(
+        show_download = false,
+        show_nested = true,
+        err_colmn = false,
+        show_status = false,
+    ) {
+        return [
+            {
+                data: null,
+                // @ts-ignore
+                render: function (data, type, row, meta) {
+                    return meta.row + 1;
+                },
+            },
+            {
+                data: 'title', render: renderCommonsLink
+            },
+            {
+                data: 'status',
+                render: renderStatus,
+                visible: show_status
+            },
+            {
+                data: 'steps.download', render: renderStep, orderable: false,
+                visible: show_download
+            },
+            {
+                data: 'steps.nested', render: renderStep, orderable: false,
+                visible: show_nested
+            },
+            {
+                data: null,
+                orderable: false,
+                // @ts-ignore
+                render: (row) => row.steps?.translations?.details?.inserted ??
+                    row.steps?.inject?.details?.inserted_translations ?? ''
+            },
+            {
+                data: null,
+                orderable: false,
+                // @ts-ignore
+                render: (row) => row.steps?.translations?.details?.updated ??
+                    row.steps?.inject?.details?.updated_translations ?? ''
+            },
+            {
+                data: 'steps.inject',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'steps.upload',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'error',
+                render: undefined,
+                visible: err_colmn
+            }
+        ];
+    }
+
     $(document).ready(function () {
-        initServerTable('table-files_success');
-        initServerTable('table-files_processed',
-            show_download = false,
-            show_nested = true,
-            err_colmn = false,
-            show_status = true,
+        initServerTable(
+            'table-files_success',
+            createTableColumns(),
         );
-        initServerTable('table-files_skipped',
-            show_download = true,
-            show_nested = true,
-            err_colmn = false,
+        initServerTable(
+            'table-files_processed',
+            createTableColumns(
+                show_download = false,
+                show_nested = true,
+                err_colmn = false,
+                show_status = true,
+            )
         );
-        initServerTable('table-files_failed',
-            show_download = true,
-            show_nested = true,
-            err_colmn = true,
+        initServerTable(
+            'table-files_skipped',
+            createTableColumns(
+                show_download = true,
+                show_nested = true,
+                err_colmn = false,
+            )
+        );
+        initServerTable(
+            'table-files_failed',
+            createTableColumns(
+                show_download = true,
+                show_nested = true,
+                err_colmn = true,
+            )
         );
     });
 </script>
