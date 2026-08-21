@@ -250,6 +250,28 @@
         const baseUrl = $table.data('ajax-url');
         const listName = tableId.replace(/^table-/, ''); // "table-files_skipped" -> "files_skipped"
 
+        const columns = [
+            { data: null, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
+            { data: 'title', render: renderCommonsLink },
+            { data: 'status', render: renderStatus },
+            { data: 'steps.download', render: renderStep },
+            { data: 'steps.nested', render: renderStep },
+            {
+                data: null,
+                render: (row) =>
+                    row.steps?.translations?.details?.inserted ??
+                    row.steps?.inject?.details?.inserted_translations ?? ''
+            },
+            {
+                data: null,
+                render: (row) =>
+                    row.steps?.translations?.details?.updated ??
+                    row.steps?.inject?.details?.updated_translations ?? ''
+            },
+            { data: 'steps.inject', render: renderStep },
+            { data: 'steps.upload', render: renderStep }
+        ];
+
         $table.DataTable({
             responsive: true,
             serverSide: true,
@@ -265,27 +287,7 @@
                     d.page = Math.floor(d.start / d.length) + 1;
                 }
             },
-            columns: [
-                { data: null, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
-                { data: 'title', render: renderCommonsLink },
-                { data: 'status', render: renderStatus },
-                { data: 'steps.download', render: renderStep },
-                { data: 'steps.nested', render: renderStep },
-                {
-                    data: null,
-                    render: (row) =>
-                        row.steps?.translations?.details?.inserted ??
-                        row.steps?.inject?.details?.inserted_translations ?? ''
-                },
-                {
-                    data: null,
-                    render: (row) =>
-                        row.steps?.translations?.details?.updated ??
-                        row.steps?.inject?.details?.updated_translations ?? ''
-                },
-                { data: 'steps.inject', render: renderStep },
-                { data: 'steps.upload', render: renderStep }
-            ],
+            columns: columns,
             drawCallback: function (settings) {
                 const total = settings.json?.recordsTotal ?? 0;
                 $(`#${listName}-title-total`).text(`(${total})`);
