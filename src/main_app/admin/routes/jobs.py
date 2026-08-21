@@ -6,7 +6,6 @@ import logging
 
 from flask import (
     Blueprint,
-    request,
 )
 
 from ...jobs_workers.objects import JobData

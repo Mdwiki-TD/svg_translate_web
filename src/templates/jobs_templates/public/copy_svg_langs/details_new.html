@@ -186,7 +186,6 @@
 {% if result_data.files_skipped %}
 
 {{ new_pages_table(
-    data=result_data.files_skipped,
     table_title="Skipped",
     job_id=job.id,
     job_type=template_data.job_type,
@@ -203,4 +202,98 @@
 {{ render_json(result_data.translations, title='Extracted Translations', card_class='mb-4') }}
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function statusClass(status) {
+        // mirrors your `get_status_class` Jinja filter — inline the same logic here
+        const map = { success: 'success', failed: 'danger', pending: 'secondary' };
+        return map[status] || 'secondary';
+    }
+
+    function renderStatus(status) {
+        if (!status) return '-';
+        const cls = statusClass(status);
+        const label = status.charAt(0).toUpperCase() + status.slice(1);
+        return `<small class="d-inline-flex px-2 py-1 fw-semibold text-${cls}-emphasis bg-${cls}-subtle border border-${cls}-subtle rounded-2">${label}</small>`;
+    }
+
+    function renderCommonsLink(title) {
+        if (!title) return '-';
+        const striped = title.replace('File:', '');
+        const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">File:${striped}</a>`;
+    }
+
+    function renderStep(step) {
+        if (!step) return '<span class="text-muted">-</span>';
+        const title = step.msg || step.message || step.new_value || step.value || '';
+        if (step.result === true || step.result === 'updated') {
+            if (step.newrevid && step.newrevid !== 0) {
+                const diffUrl = `https://commons.wikimedia.org/w/index.php?diff=${step.newrevid}`;
+                return `<a href="${diffUrl}" target="_blank"><span class="badge bg-success" title="${title}"><i class="bi bi-check-lg"></i> Diff</span></a>`;
+            }
+            return `<span class="badge bg-success" title="${title}"><i class="bi bi-check-lg"></i></span>`;
+        }
+        if (step.result === false || step.result === 'failed') {
+            return `<span class="badge bg-danger" title="${title}"><i class="bi bi-x-lg"></i></span>`;
+        }
+        if (step.result === null || step.result === undefined || step.result === 'skipped') {
+            return `<span class="badge bg-secondary" title="${title}"><i class="bi bi-dash"></i></span>`;
+        }
+        return `<span class="text-muted" title="${title}">-</span>`;
+    }
+
+    function initServerTable(tableId) {
+        const $table = $(`#${tableId}`);
+        const baseUrl = $table.data('ajax-url');
+
+        $table.DataTable({
+            responsive: true,
+            serverSide: true,
+            processing: true,
+            ajax: {
+                url: baseUrl,
+                type: 'GET',
+                dataSrc: 'data', // Expects JSON response object containing a "data" array
+                data: function (d) {
+                    // Remap DataTables' param names to your endpoint's names.
+                    // Drop this if you update the Flask view to accept start/length natively.
+                    d.limit = d.length;
+                    d.page = Math.floor(d.start / d.length) + 1;
+                }
+            },
+            columns: [
+                { data: null, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
+                { data: 'title', render: renderCommonsLink },
+                { data: 'status', render: renderStatus },
+                { data: 'steps.download', render: renderStep },
+                { data: 'steps.nested', render: renderStep },
+                {
+                    data: null,
+                    render: (row) =>
+                        row.steps?.translations?.details?.inserted ??
+                        row.steps?.inject?.details?.inserted_translations ?? ''
+                },
+                {
+                    data: null,
+                    render: (row) =>
+                        row.steps?.translations?.details?.updated ??
+                        row.steps?.inject?.details?.updated_translations ?? ''
+                },
+                { data: 'steps.inject', render: renderStep },
+                { data: 'steps.upload', render: renderStep }
+            ],
+            drawCallback: function (settings) {
+                const total = settings.json?.recordsTotal ?? 0;
+                $(`#${tableId}-total`).text(`(${total})`);
+            },
+        });
+    }
+
+    $(document).ready(function () {
+        initServerTable('table-files_skipped');
+    });
+</script>
 {% endblock %}

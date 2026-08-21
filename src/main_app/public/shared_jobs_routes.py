@@ -16,6 +16,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from flask.wrappers import Response
 from flask_wtf import FlaskForm
 from werkzeug.wrappers.response import Response
 
@@ -366,13 +367,17 @@ class JobsBp(ABC):
         file_number: int,
         job_type: str,
         list_name: str = "files_failed",
-    ):
+    ) -> Response:
+        if job_type not in self.jobs_data_infos:
+            abort(404)
+
         # DataTables' default GET param names
         draw = request.args.get("draw", 1, type=int)
         start = request.args.get("start", 0, type=int)
         length = request.args.get("length", 10, type=int)
         search_value = request.args.get("search[value]", "", type=str).strip().lower()
-        return self.read_result_file(
+
+        data = self.read_result_file(
             file_number=file_number,
             job_type=job_type,
             list_name=list_name,
@@ -381,6 +386,8 @@ class JobsBp(ABC):
             length=length,
             search_value=search_value,
         )
+
+        return jsonify(data)
 
     def read_result_file(
         self,
@@ -395,29 +402,48 @@ class JobsBp(ABC):
         """
         http://127.0.0.1:5000/jobs/copy_svg_langs/file/439/files_failed
         """
-        if job_type not in self.jobs_data_infos:
-            abort(404)
-
         # copy_svg_langs_job_439.json
         result_file = f"{job_type}_job_{file_number}.json"
-        result = []
 
         result_data = load_job_result(result_file)
-        list_data = result_data.get(list_name) if result_data else {}
+        list_data = result_data.get(list_name, []) if result_data else []
 
-        if list_data:
-            result = list_data
-            if len(result) > limit:
-                result = result[:limit]
+        records_total = len(list_data)
 
-        data = {
+        # --- search/filter ---
+        if search_value:
+            filtered = [
+                item for item in list_data
+                if self._row_matches_search(item, search_value)
+            ]
+        else:
+            filtered = list_data
+
+        records_filtered = len(filtered)
+
+        # --- pagination ---
+        if length == -1:
+            # DataTables sends length=-1 for "show all"
+            page = filtered[start:]
+        else:
+            page = filtered[start:start + length]
+
+        return {
             "draw": draw,
-            "recordsTotal": len(list_data),
-            "recordsFiltered": len(result),
-            "data": result,
+            "recordsTotal": records_total,
+            "recordsFiltered": records_filtered,
+            "data": page,
         }
 
-        return jsonify(data)
+    @staticmethod
+    def _row_matches_search(item: dict, search_value: str) -> bool:
+        """
+        Basic substring search across the fields that matter for this table.
+        Extend this list if you want status/step messages searchable too.
+        """
+        title = str(item.get("title", "")).lower()
+        status = str(item.get("status", "")).lower()
+        return search_value in title or search_value in status
 
 
 __all__ = [
