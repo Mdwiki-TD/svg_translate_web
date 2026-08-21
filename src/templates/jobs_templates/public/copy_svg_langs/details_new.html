@@ -248,6 +248,7 @@
     function initServerTable(tableId) {
         const $table = $(`#${tableId}`);
         const baseUrl = $table.data('ajax-url');
+        const listName = tableId.replace(/^table-/, ''); // "table-files_skipped" -> "files_skipped"
 
         $table.DataTable({
             responsive: true,
@@ -256,7 +257,7 @@
             ajax: {
                 url: baseUrl,
                 type: 'GET',
-                dataSrc: 'data', // Expects JSON response object containing a "data" array
+                dataSrc: 'data',
                 data: function (d) {
                     // Remap DataTables' param names to your endpoint's names.
                     // Drop this if you update the Flask view to accept start/length natively.
@@ -287,7 +288,7 @@
             ],
             drawCallback: function (settings) {
                 const total = settings.json?.recordsTotal ?? 0;
-                $(`#${tableId}-total`).text(`(${total})`);
+                $(`#${listName}-title-total`).text(`(${total})`);
             },
         });
     }
