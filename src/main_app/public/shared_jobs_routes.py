@@ -361,16 +361,39 @@ class JobsBp(ABC):
         result_data = load_job_result(result_file)
         return jsonify(result_data)
 
+    def draw_result_file(
+        self,
+        file_number: int,
+        job_type: str,
+        list_name: str = "files_failed",
+    ):
+        # DataTables' default GET param names
+        draw = request.args.get("draw", 1, type=int)
+        start = request.args.get("start", 0, type=int)
+        length = request.args.get("length", 10, type=int)
+        search_value = request.args.get("search[value]", "", type=str).strip().lower()
+        return self.read_result_file(
+            file_number=file_number,
+            job_type=job_type,
+            list_name=list_name,
+            draw=draw,
+            start=start,
+            length=length,
+            search_value=search_value,
+        )
+
     def read_result_file(
         self,
         file_number: int,
         job_type: str,
         list_name: str = "files_failed",
         draw: int = 1,
-        limit: int = 10,
+        start: int = 0,
+        length: int = 10,
+        search_value: str = "",
     ) -> ResponseReturnValue:
         """
-        http://127.0.0.1:5000/jobs/copy_svg_langs/file/439/files_failed/1
+        http://127.0.0.1:5000/jobs/copy_svg_langs/file/439/files_failed
         """
         if job_type not in self.jobs_data_infos:
             abort(404)

@@ -6,6 +6,7 @@ import logging
 
 from flask import (
     Blueprint,
+    request,
 )
 
 from ...jobs_workers.objects import JobData
@@ -42,17 +43,11 @@ class AdminJobsRoutes(JobsBp):
             ("/<string:job_type>/<int:job_id>/delete", "POST", self.delete_job),
             ("/<string:job_type>/<int:job_id>/mark_as_completed", "POST", self.mark_as_completed),
 
-            ("/<string:job_type>/file/<int:file_number>/<string:list_name>/<int:draw>/<int:limit>", "GET", self.read_result_file),
+            ("/<string:job_type>/file/<int:file_number>/<string:list_name>", "GET", self.draw_result_file),
         ]
 
         for rule, method, target in routes:
             self.bp.route(rule, methods=[method])(admin_required(target))
-
-        self.bp.add_url_rule(
-            "/<string:job_type>/file/<int:file_number>/<string:list_name>/<int:draw>",
-            view_func=admin_required(self.read_result_file),
-            endpoint="read_result_file_default_limit",
-        )
 
 __all__ = [
     "AdminJobsRoutes",
