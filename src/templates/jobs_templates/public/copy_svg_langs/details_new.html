@@ -91,96 +91,24 @@
 {% endif %}
 {% endblock %}
 
-{% macro pages_table(data, table_title, show_download=False, show_nested=True, err_colmn=False) %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>File</th>
-                        <th>Status</th>
-                        {% if show_download %}
-                        <th>Download</th>
-                        {% endif %}
-                        {% if show_nested %}
-                        <th>Nested tags</th>
-                        {% endif %}
-                        {# <th>New Languages</th> #}
-                        <th>Translations Inserted</th>
-                        <th>Translations Updated</th>
-                        <th>Inject</th>
-                        <th>Upload</th>
-                        {% if err_colmn %}
-                        <th>Error</th>
-                        {% endif %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in data %}
-                    <tr>
-                        <td> {{ loop.index }} </td>
-                        <td>
-                            {{ commons_file_link(item.title, label=item.title) }}
-                        </td>
-                        <td>
-                            {{ status_icon(item.status) }}
-                        </td>
-                        {% if show_download %}
-                        <td> {{ render_step(item.steps.download) }} </td>
-                        {% endif %}
-                        {% if show_nested %}
-                        <td>
-                            {{ render_step(item.steps.nested) }}
-                        </td>
-                        {% endif %}
-                        {% set inject_step = item.steps.get('inject') if item.steps else {} %}
-                        {% set translations_step_details = item.steps.get('translations', {}).get('details', {}) %}
-
-                        {#
-                        <td>
-                            {{ translations_step_details.new or inject_step.details.new_languages_count}}
-                        </td>
-                        #}
-
-                        <td>
-                            {{ translations_step_details.inserted or inject_step.details.inserted_translations }}
-                        </td>
-                        <td>
-                            {{ translations_step_details.updated or inject_step.details.updated_translations }}
-                        </td>
-                        <td>
-                            {{ render_step(item.steps.inject) }}
-                        </td>
-                        <td>
-                            {{ render_step(item.steps.upload) }}
-                        </td>
-                        {% if err_colmn %}
-                        <td>
-                            {{ item.error }}
-                        </td>
-                        {% endif %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{%- endmacro -%}
-
 {% block job_details %}
 
 {% if result_data.files_success %}
-{{ pages_table(result_data.files_success, "Success") }}
+{{ new_pages_table(
+    table_title="Success",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="files_success",
+) }}
 {% endif %}
 
 {% if result_data.files_processed %}
-{{ pages_table(result_data.files_processed, "Processed") }}
+{{ new_pages_table(
+    table_title="Processed",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="files_processed",
+) }}
 {% endif %}
 
 {% if result_data.files_skipped %}
@@ -194,7 +122,12 @@
 {% endif %}
 
 {% if result_data.files_failed %}
-{{ pages_table(result_data.files_failed, "Failed", show_download=True, err_colmn=True) }}
+{{ new_pages_table(
+    table_title="Failed",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="files_failed",
+) }}
 {% endif %}
 
 <!-- Translations -->
@@ -205,98 +138,26 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/ajax_table.js') }}"></script>
 <script>
-    function statusClass(status) {
-        // mirrors your `get_status_class` Jinja filter — inline the same logic here
-        const map = { success: 'success', failed: 'danger', pending: 'secondary' };
-        return map[status] || 'secondary';
-    }
-
-    function renderStatus(status) {
-        if (!status) return '-';
-        const cls = statusClass(status);
-        const label = status.charAt(0).toUpperCase() + status.slice(1);
-        return `<small class="d-inline-flex px-2 py-1 fw-semibold text-${cls}-emphasis bg-${cls}-subtle border border-${cls}-subtle rounded-2">${label}</small>`;
-    }
-
-    function renderCommonsLink(title) {
-        if (!title) return '-';
-        const striped = title.replace('File:', '');
-        const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">File:${striped}</a>`;
-    }
-
-    function renderStep(step) {
-        if (!step) return '<span class="text-muted">-</span>';
-        const title = step.msg || step.message || step.new_value || step.value || '';
-        if (step.result === true || step.result === 'updated') {
-            if (step.newrevid && step.newrevid !== 0) {
-                const diffUrl = `https://commons.wikimedia.org/w/index.php?diff=${step.newrevid}`;
-                return `<a href="${diffUrl}" target="_blank"><span class="badge bg-success" title="${title}"><i class="bi bi-check-lg"></i> Diff</span></a>`;
-            }
-            return `<span class="badge bg-success" title="${title}"><i class="bi bi-check-lg"></i></span>`;
-        }
-        if (step.result === false || step.result === 'failed') {
-            return `<span class="badge bg-danger" title="${title}"><i class="bi bi-x-lg"></i></span>`;
-        }
-        if (step.result === null || step.result === undefined || step.result === 'skipped') {
-            return `<span class="badge bg-secondary" title="${title}"><i class="bi bi-dash"></i></span>`;
-        }
-        return `<span class="text-muted" title="${title}">-</span>`;
-    }
-
-    function initServerTable(tableId) {
-        const $table = $(`#${tableId}`);
-        const baseUrl = $table.data('ajax-url');
-        const listName = tableId.replace(/^table-/, ''); // "table-files_skipped" -> "files_skipped"
-
-        const columns = [
-            { data: null, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
-            { data: 'title', render: renderCommonsLink },
-            { data: 'status', render: renderStatus },
-            { data: 'steps.download', render: renderStep },
-            { data: 'steps.nested', render: renderStep },
-            {
-                data: null,
-                render: (row) =>
-                    row.steps?.translations?.details?.inserted ??
-                    row.steps?.inject?.details?.inserted_translations ?? ''
-            },
-            {
-                data: null,
-                render: (row) =>
-                    row.steps?.translations?.details?.updated ??
-                    row.steps?.inject?.details?.updated_translations ?? ''
-            },
-            { data: 'steps.inject', render: renderStep },
-            { data: 'steps.upload', render: renderStep }
-        ];
-
-        $table.DataTable({
-            responsive: true,
-            serverSide: true,
-            processing: true,
-            ajax: {
-                url: baseUrl,
-                type: 'GET',
-                dataSrc: 'data',
-                data: function (d) {
-                    // Remap DataTables' param names to your endpoint's names.
-                    // Drop this if you update the Flask view to accept start/length natively.
-                    d.limit = d.length;
-                    d.page = Math.floor(d.start / d.length) + 1;
-                }
-            },
-            columns: columns,
-            drawCallback: function (settings) {
-                const total = settings.json?.recordsTotal ?? 0;
-                $(`#${listName}-title-total`).text(`(${total})`);
-            },
-        });
-    }
-
     $(document).ready(function () {
-        initServerTable('table-files_skipped');
+        initServerTable('table-files_success');
+        initServerTable('table-files_processed',
+            show_download = false,
+            show_nested = true,
+            err_colmn = false,
+            show_status = true,
+        );
+        initServerTable('table-files_skipped',
+            show_download = true,
+            show_nested = true,
+            err_colmn = false,
+        );
+        initServerTable('table-files_failed',
+            show_download = true,
+            show_nested = true,
+            err_colmn = true,
+        );
     });
 </script>
 {% endblock %}
