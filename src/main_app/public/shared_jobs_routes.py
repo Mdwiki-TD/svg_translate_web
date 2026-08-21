@@ -387,7 +387,14 @@ class JobsBp(ABC):
             if len(result) > limit:
                 result = result[:limit]
 
-        return jsonify(result)
+        data = {
+            "draw": draw,
+            "recordsTotal": len(list_data),
+            "recordsFiltered": len(result),
+            "data": result,
+        }
+
+        return jsonify(data)
 
 
 __all__ = [

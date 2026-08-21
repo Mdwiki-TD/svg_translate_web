@@ -52,6 +52,7 @@ class PublicJobsRoutes(JobsBp):
         self.bp.add_url_rule(
             "/<string:job_type>/file/<int:file_number>/<string:list_name>/<int:draw>",
             view_func=self.read_result_file,
+            endpoint="read_result_file_default_limit",
         )
 
 __all__ = [
