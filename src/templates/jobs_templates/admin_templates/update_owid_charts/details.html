@@ -110,7 +110,7 @@
                     const val = (row.min_time && row.min_time.after != null)
                         ? row.min_time.after
                         : row.new_min_time;
-                    return `<strong>${val || '-'}</strong>`;
+                    return `<strong>${val != null && val !== '' ? val : '-'}</strong>`;
                 },
             },
             {
@@ -124,7 +124,7 @@
                     const val = (row.max_time && row.max_time.after != null)
                         ? row.max_time.after
                         : row.new_max_time;
-                    return `<strong>${val || '-'}</strong>`;
+                    return `<strong>${val != null && val !== '' ? val : '-'}</strong>`;
                 },
             },
             {
@@ -138,7 +138,7 @@
                     const val = (row.len_years && row.len_years.after != null)
                         ? row.len_years.after
                         : row.new_len_years;
-                    return `<strong>${val || '-'}</strong>`;
+                    return `<strong>${val != null && val !== '' ? val : '-'}</strong>`;
                 },
             },
             {

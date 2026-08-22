@@ -143,7 +143,7 @@
                 // @ts-ignore
                 render: function (row) {
                     if (row.cropped_filename && (row.status === 'uploaded' || row.status === 'skipped')) {
-                        return renderCommonsFileLink(row.cropped_filename, "Cropped");
+                        return renderCommonsFileLinkShort(row.cropped_filename);
                     }
                     return '';
                 },
