@@ -41,7 +41,7 @@ class TestJobsData:
         for key, val in jobs_data_public.items():
             assert val.job_type == key, f"Mismatch: key={key!r}, job_type={val.job_type!r}"
 
-    def test_all_have_callable(self):
+    def test_all_have_class(self):
         for key, val in jobs_data_public.items():
             assert callable(val.job_class), f"jobs_data_public[{key!r}].job_class not callable"
 
