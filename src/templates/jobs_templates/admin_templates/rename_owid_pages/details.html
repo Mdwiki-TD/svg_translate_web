@@ -1,7 +1,7 @@
 {% extends "jobs_templates/admin_templates/base_details_admin.html" %}
 {% from "_macros.html" import card_header, stats_card %}
 {% from "_macros.html" import commons_link %}
-{% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
+
 
 {% set pages_renamed = result_data.pages_renamed %}
 {% set pages_skipped = result_data.pages_skipped %}
@@ -41,9 +41,7 @@
     table_title,
     job_type
 ) %}
-{% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, table_title, job.id, job_type) }}
-{% else %}
+
 <div class="card mb-3">
     <div class="card-header bg-opacity-10">
         {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
@@ -90,7 +88,6 @@
         </div>
     </div>
 </div>
-{% endif %}
 {% endmacro %}
 
 <!-- Renamed -->

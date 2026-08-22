@@ -203,7 +203,6 @@ class SharedJobRoutes:
         self,
         job_id: int,
         template_data: JobData,
-        expand_all: bool = False,
     ) -> Response | str:
         """Render the job detail page for any job type."""
         job_type = template_data.job_type
@@ -226,7 +225,6 @@ class SharedJobRoutes:
             template_data=template_data,
             job=job,
             result_data=result_data,
-            expand_all=expand_all,
             bp_name=self.bp_name,
         )
 
@@ -296,8 +294,7 @@ class JobsBp(ABC):
         if not template_data:
             abort(404)
 
-        # return self.job_details(template_data, job_id, expand_all=True)
-        return self.shared_service.job_detail_handler(job_id, template_data, expand_all=True)
+        return self.shared_service.job_detail_handler(job_id, template_data)
 
     def delete_job(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:

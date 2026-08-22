@@ -1,5 +1,5 @@
 {% from "_macros.html" import card_header, status_icon, commons_file_link, render_step %}
-{% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
+
 
 {% macro pages_table(
     data,
@@ -11,9 +11,7 @@
     show_nested=True,
     err_colmn=False
 ) %}
-{% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, table_title, job.id, template_data.job_type, bp_name) }}
-{% else %}
+
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
@@ -93,5 +91,4 @@
         </div>
     </div>
 </div>
-{% endif %}
 {%- endmacro -%}

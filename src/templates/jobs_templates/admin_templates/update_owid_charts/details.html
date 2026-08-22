@@ -1,6 +1,6 @@
 {% extends "jobs_templates/admin_templates/base_details_admin.html" %}
 {% from "_macros.html" import card_header, stats_card %}
-{% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
+
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -29,9 +29,7 @@
 {# Updated charts - with old/new comparison                           #}
 {# ------------------------------------------------------------------ #}
 {% if result_data.updated_charts %}
-{% if result_data.updated_charts|length > 100 and not expand_all %}
-{{ table_header_to_expand(result_data.updated_charts, 'Updated Charts', job.id, template_data.job_type) }}
-{% else %}
+
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header("Updated Charts (" ~ result_data.updated_charts | length ~ ")") }}
@@ -98,17 +96,14 @@
             </table>
         </div>
     </div>
-</div>
-{% endif %}
+</div>s
 {% endif %}
 
 {# ------------------------------------------------------------------ #}
 {# Failed charts                                                      #}
 {# ------------------------------------------------------------------ #}
 {% if result_data.failed_charts %}
-{% if result_data.failed_charts|length > 100 and not expand_all %}
-{{ table_header_to_expand(result_data.failed_charts, 'Failed Charts', job.id, template_data.job_type) }}
-{% else %}
+
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header("Failed Charts (" ~ result_data.failed_charts | length ~ ")") }}
@@ -142,16 +137,13 @@
     </div>
 </div>
 {% endif %}
-{% endif %}
 
 {# ------------------------------------------------------------------ #}
 {# Skipped charts                                                     #}
 {# ------------------------------------------------------------------ #}
 
 {% if result_data.skipped_charts %}
-{% if result_data.skipped_charts|length > 100 and not expand_all %}
-{{ table_header_to_expand(result_data.skipped_charts, 'Skipped Charts', job.id, template_data.job_type) }}
-{% else %}
+
 <div class="card mb-3">
     <div class="card-header">
         {{ card_header("Skipped Charts (" ~ result_data.skipped_charts | length ~ ")") }}
@@ -186,7 +178,6 @@
         </div>
     </div>
 </div>
-{% endif %}
 {% endif %}
 
 {% endblock %}
