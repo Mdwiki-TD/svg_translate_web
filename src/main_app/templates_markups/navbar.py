@@ -114,7 +114,7 @@ class NavDropdown:
         if not items:
             return Markup("")
 
-        items_html = Markup("").join(self._wrap_li(item.render()) for item in items if not item.disabled)
+        items_html = Markup("").join(self._wrap_li(item.render()) for item in items)
 
         return Markup(
             '<li class="dropdown {cls}">'
