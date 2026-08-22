@@ -42,6 +42,14 @@ function renderCommonsFileLink(title) {
     const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
     return `<a href="${url}" target="_blank" rel="noopener noreferrer">File:${striped}</a>`;
 }
+/**
+ * @param {string} title
+ */
+function renderCommonsLink(title) {
+    if (!title) return '-';
+    const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`;
+}
 
 /**
  * @param {{

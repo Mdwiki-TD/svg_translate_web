@@ -1,7 +1,7 @@
 {% extends "jobs_templates/admin_templates/base_details_admin.html" %}
 {% from "_macros.html" import card_header, stats_card, render_step %}
-{% from "jobs_templates/_help_templates/_skipped_table.html" import pages_skipped_table %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
+{% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -94,7 +94,14 @@
 
 <!-- Skipped Templates -->
 {% if result_data.pages_skipped %}
-{{ pages_skipped_table(wiki_domain, result_data.pages_skipped, "Skipped Templates", job.id, job_type, expand_all) }}
+{{ new_pages_table(
+    table_title="Skipped Templates",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_skipped",
+    table_headers=["#", "Title", "Reason"],
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
 <!-- Failed Templates -->
@@ -103,4 +110,34 @@
 {% endif %}
 
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function () {
+        initServerTable('table-pages_skipped', [
+            {
+                data: null,
+                title: "#",
+                // @ts-ignore
+                render: function (data, type, row, meta) {
+                    return meta.row + 1;
+                },
+            },
+            {
+                data: 'title',
+                title: 'Title',
+                render: renderCommonsLink,
+            },
+            {
+                data: null,
+                title: 'Reason',
+                // @ts-ignore
+                render: function (row) {
+                    return row.reason || row.error || row.msg || '-';
+                }
+            },
+        ]);
+    });
+</script>
 {% endblock %}

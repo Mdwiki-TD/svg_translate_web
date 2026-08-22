@@ -80,9 +80,21 @@ Start here because the data shape is the simplest across all templates that use 
 ```js
 function createSkippedColumns() {
     return [
-        { data: null, render: (data, type, row, meta) => meta.row + 1 },
-        { data: "title", render: renderCommonsLink },
-        { data: "reason", render: (data) => data || "-" },
+        {
+            data: null,
+            title: "#",
+            render: (data, type, row, meta) => meta.row + 1,
+        },
+        {
+            data: "title",
+            title: "Title",
+            render: renderCommonsLink,
+        },
+        {
+            data: "reason",
+            title: "Reason",
+            render: (data) => data || "-",
+        },
     ];
 }
 ```
