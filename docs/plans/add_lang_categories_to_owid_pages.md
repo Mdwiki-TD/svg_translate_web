@@ -32,8 +32,8 @@ Plus 2 template files:
 
 | #   | File                                                                                          | Purpose                                                 |
 | --- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| 6   | `src/templates/jobs_templates/admin_templates/add_lang_categories_to_owid_pages/list.html`    | Extends `base_list.html` with job description           |
-| 7   | `src/templates/jobs_templates/admin_templates/add_lang_categories_to_owid_pages/details.html` | Extends `base_details.html` with per-page results table |
+| 6   | `src/templates/jobs_templates/admin_templates/add_lang_categories_to_owid_pages/list.html`    | Extends `base_list_admin.html` with job description           |
+| 7   | `src/templates/jobs_templates/admin_templates/add_lang_categories_to_owid_pages/details.html` | Extends `base_details_admin.html` with per-page results table |
 
 ## Files to Modify (2 existing files)
 
@@ -167,8 +167,8 @@ For this job to be useful, this needs to be expanded to cover all Wikimedia lang
 
 ## Templates (minimal)
 
--   **`list.html`**: Extends `base_list.html`, adds a description block.
--   **`details.html`**: Extends `base_details.html`, shows summary cards (Processed/Success/Skipped/Failed) and a table with columns: `#`, `OWID Page`, `SVG File`, `Languages Found`, `Categories Added`, `Status`.
+-   **`list.html`**: Extends `base_list_admin.html`, adds a description block.
+-   **`details.html`**: Extends `base_details_admin.html`, shows summary cards (Processed/Success/Skipped/Failed) and a table with columns: `#`, `OWID Page`, `SVG File`, `Languages Found`, `Categories Added`, `Status`.
 
 ---
 

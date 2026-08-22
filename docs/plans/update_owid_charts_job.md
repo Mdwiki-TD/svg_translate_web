@@ -222,12 +222,12 @@ __all__ = ["update_owid_charts_for_templates"]
 
 ### 5.1 `list.html`
 
-Follows the exact pattern of other list templates — extend `base_list.html`,
+Follows the exact pattern of other list templates — extend `base_list_admin.html`,
 set `job_type`, override title/headline/confirm message.
 
 ### 5.2 `details.html`
 
-Extends `base_details.html`. Has two blocks:
+Extends `base_details_admin.html`. Has two blocks:
 
 #### `job_summary`
 
