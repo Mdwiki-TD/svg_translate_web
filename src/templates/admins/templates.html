@@ -109,17 +109,11 @@
                 },
                 {
                     data: "main_file",
-                    render: function (data, type, row) {
-                        if (!data) return "";
-                        return `<a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">File:${data}</a>`;
-                    }
+                    render: renderCommonsFileLink,
                 },
                 {
                     data: "last_world_file",
-                    render: function (data, type, row) {
-                        if (!data) return "";
-                        return `<a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">File:${data}</a>`;
-                    }
+                    render: renderCommonsFileLink,
                 },
                 {
                     data: "last_world_year",

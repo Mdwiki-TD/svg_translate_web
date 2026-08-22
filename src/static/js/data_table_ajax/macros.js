@@ -35,17 +35,39 @@ function renderStatus(status) {
 
 /**
  * @param {string} title
+ * @param {any} _type
+ * @param {any} _row
+ * @return {string}
  */
-function renderCommonsFileLink(title) {
+function renderCommonsFileLinkShort(title, _type, _row) {
     if (!title) return '-';
     const striped = title.replace('File:', '');
+
     const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer">File:${striped}</a>`;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">File</a>`;
 }
 /**
  * @param {string} title
+ * @param {any} _type
+ * @param {any} _row
+ * @return {string}
  */
-function renderCommonsLink(title) {
+function renderCommonsFileLink(title, _type, _row) {
+    if (!title) return '-';
+    const striped = title.replace('File:', '');
+
+    let display_label = `File:${striped}`
+
+    const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${display_label}</a>`;
+}
+/**
+ * @param {string} title
+ * @param {any} _type
+ * @param {any} _row
+ * @return {string}
+ */
+function renderCommonsLink(title, _type, _row) {
     if (!title) return '-';
     const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
     return `<a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`;

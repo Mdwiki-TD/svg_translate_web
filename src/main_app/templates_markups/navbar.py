@@ -14,11 +14,15 @@ Both methods return a safe Markup object (no need for the |safe filter,
 though adding it doesn't hurt).
 """
 
+import logging
 import random
 from dataclasses import dataclass, field
+from urllib.parse import quote
 
 from flask import request, url_for
 from markupsafe import Markup, escape
+
+logger = logging.getLogger(__name__)
 
 NAV_ITEM_CLASS = "nav-item col-lg-auto col-md-4 col-sm-6 col-6"
 
@@ -47,6 +51,10 @@ class NavLink:
     def get_url(self) -> str:
         if self.static_url:
             return self.static_url
+
+        if not self.url_endpoint:
+            return self.path
+
         return url_for(self.url_endpoint, **self.url_kwargs)
 
     def is_active(self) -> bool:
@@ -167,7 +175,8 @@ class Navbar:
         parts = []
         if current_username:
             profile_url = url_for("profile.dashboard", user_name=current_username)
-            active = bool(request and request.path == profile_url)
+            active = bool(request and quote(request.path) == profile_url)
+            logger.debug(f"render_user_links: {profile_url=} {request.path=}")
             active_class = " active" if active else ""
 
             profile_html = Markup(

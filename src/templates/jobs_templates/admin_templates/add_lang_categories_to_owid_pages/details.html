@@ -1,7 +1,6 @@
 {% extends "jobs_templates/admin_templates/base_details_admin.html" %}
-{% from "_macros.html" import card_header, stats_card, render_step %}
-{% from "jobs_templates/_help_templates/_skipped_table.html" import pages_skipped_table %}
-{% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
+{% from "_macros.html" import stats_card %}
+{% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -27,118 +26,144 @@
 </div>
 {% endblock %}
 
-{% set step_keys = [
-    'load_page_text',
-    'extract_file_name',
-    'get_languages',
-    'build_categories',
-    'check_existing',
-    'save_page'
+{% set result_columns = [
+    "#",
+    "OWID Page",
+    "SVG File",
+    "Languages",
+    "Categories Added",
+    "Load Text",
+    "Extract SVG",
+    "Get Langs",
+    "Build Cats",
+    "Check Exist",
+    "Save Page",
+    "Status"
 ] %}
-
-{% macro pages_result_table(data, table_title, job_type) %}
-{% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, table_title, job.id, job_type) }}
-{% else %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>OWID Page</th>
-                        <th>SVG File</th>
-                        <th>Languages</th>
-                        <th>Categories Added</th>
-                        <th>Load Text</th>
-                        <th>Extract SVG</th>
-                        <th>Get Langs</th>
-                        <th>Build Cats</th>
-                        <th>Check Exist</th>
-                        <th>Save Page</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in data %}
-                    <tr>
-                        <td> {{ loop.index }} </td>
-                        <td>
-                            <a href="https://commons.wikimedia.org/wiki/{{ item.page_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.page_title }}
-                            </a>
-                        </td>
-                        <td>
-                            {% if item.svg_file %}
-                            <a href="https://commons.wikimedia.org/wiki/File:{{ item.svg_file }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.svg_file }}
-                            </a>
-                            {% else %}
-                            -
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if item.lang_codes %}
-                            {{ item.lang_codes | join(', ') }}
-                            {% else %}
-                            -
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if item.categories_added %}
-                            {{ item.categories_added | join(', ') }}
-                            {% else %}
-                            -
-                            {% endif %}
-                        </td>
-                        {% for step_key in step_keys %}
-                        <td>
-                            {% set step = item.steps.get(step_key) if item.steps else None %}
-                            {{ render_step(step) }}
-                        </td>
-                        {% endfor %}
-                        <td>
-                            {% if item.status == 'completed' %}
-                            <span class="badge bg-success">Updated</span>
-                            {% elif item.status == 'skipped' %}
-                            <span class="badge bg-secondary">Skipped</span>
-                            {% elif item.status == 'failed' %}
-                            <span class="badge bg-danger" title="{{ item.error or '' }}">Failed</span>
-                            {% else %}
-                            <span class="badge bg-light text-dark">{{ item.status }}</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
-{%- endmacro -%}
 
 {% block job_details %}
 
-<!-- Pages Updated -->
 {% if result_data.pages_success %}
-{{ pages_result_table(result_data.pages_success, 'Updated', template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Updated",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_success",
+    table_headers=result_columns,
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-<!-- Skipped Pages -->
 {% if result_data.pages_skipped %}
-{{ pages_result_table(result_data.pages_skipped, "Skipped", template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Skipped",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_skipped",
+    table_headers=result_columns,
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-<!-- Failed Pages -->
 {% if result_data.pages_failed %}
-{{ pages_result_table(result_data.pages_failed, 'Failed', template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Failed",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_failed",
+    table_headers=result_columns,
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * Columns: #, OWID Page, SVG File, Languages, Categories Added,
+     *          Load Text, Extract SVG, Get Langs, Build Cats, Check Exist,
+     *          Save Page, Status
+     */
+    function createColumns() {
+        return [
+            {
+                data: null,
+                title: '#',
+                // @ts-ignore
+                render: function (data, type, row, meta) { return meta.row + 1; },
+            },
+            {
+                // OWID Page — commons_link (page link, not file link)
+                data: 'page_title',
+                title: 'OWID Page',
+                render: renderCommonsLink,
+            },
+            {
+                // SVG File — conditional File: link
+                data: 'svg_file',
+                title: 'SVG File',
+                render: renderCommonsFileLinkShort,
+            },
+            {
+                // Languages — join array
+                data: 'lang_codes',
+                title: 'Languages',
+                render: function (langs) {
+                    return (langs && langs.length) ? langs.join(', ') : '-';
+                },
+            },
+            {
+                // Categories Added — join array
+                data: 'categories_added',
+                title: 'Categories Added',
+                render: function (cats) {
+                    return (cats && cats.length) ? cats.join(', ') : '-';
+                },
+            },
+            {
+                data: 'steps.load_page_text', title: 'Load Text',
+                orderable: false,
+                render: renderStep,
+            },
+            {
+                data: 'steps.extract_file_name', title: 'Extract SVG',
+                orderable: false,
+                render: renderStep,
+            },
+            {
+                data: 'steps.get_languages', title: 'Get Langs',
+                orderable: false,
+                render: renderStep,
+            },
+            {
+                data: 'steps.build_categories', title: 'Build Cats',
+                orderable: false,
+                render: renderStep,
+            },
+            {
+                data: 'steps.check_existing', title: 'Check Exist',
+                orderable: false,
+                render: renderStep,
+            },
+            {
+                data: 'steps.save_page',
+                title: 'Save Page',
+                orderable: false,
+                render: renderStep,
+            },
+            {
+                data: 'status',
+                title: 'Status',
+                render: renderStatus,
+            },
+        ];
+    }
+
+    $(document).ready(function () {
+        initServerTable('table-pages_success', createColumns());
+        initServerTable('table-pages_skipped', createColumns());
+        initServerTable('table-pages_failed', createColumns());
+    });
+</script>
 {% endblock %}

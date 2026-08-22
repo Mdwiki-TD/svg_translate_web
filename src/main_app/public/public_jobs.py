@@ -34,7 +34,6 @@ class PublicJobsRoutes(JobsBp):
         routes = [
             ("/<string:job_type>", "GET", self.jobs_list),
             ("/<string:job_type>/<int:job_id>", "GET", self.job_detail),
-            ("/<string:job_type>/<int:job_id>/expand", "GET", self.job_detail_expand),
             ("/job-file/<string:result_file>/<string:job_type>", "GET", oauth_required(self.read_job_result_file)),
             ("/<string:job_type>/<int:job_id>/cancel", "POST", oauth_required(self.cancel_job)),
             ("/<string:job_type>/start", "POST", oauth_required(self.start_job)),

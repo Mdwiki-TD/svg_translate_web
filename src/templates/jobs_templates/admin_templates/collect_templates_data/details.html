@@ -1,6 +1,6 @@
 {% extends "jobs_templates/admin_templates/base_details_admin.html" %}
-{% from "_macros.html" import card_header, stats_card, render_step, commons_file_link %}
-{% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
+{% from "_macros.html" import stats_card %}
+{% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
 
 {% block job_info_extra %}
 {% if result_data and result_data.args %}
@@ -51,158 +51,202 @@
 {% endblock %}
 
 {% block job_details %}
-<!-- Added Templates -->
+
 {% if result_data.pages_added %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header("Added Templates (" ~ result_data.pages_added|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Title</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for template in result_data.pages_added %}
-                    <tr>
-                        <td> {{ loop.index }} </td>
-                        <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.title }}
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+{{ new_pages_table(
+    table_title="Added Templates",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_added",
+    table_headers=["#", "Title"],
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-
-
-{% macro pages_updated_table(data, table_title, job_type) %}
-{% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, table_title, job.id, job_type) }}
-{% else %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Title</th>
-                        <th><i class="bi bi-pencil me-3"></i></th>
-                        <th>Oldest File</th>
-                        <th>Newest File</th>
-                        <th>Template year</th>
-                        <th>Source</th>
-                        <th>Slug</th>
-                        <th>Files</th>
-                        <th>Msg</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for template in data %}
-                    <tr>
-                        <td> {{ loop.index }} </td>
-                        <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.title | replace("Template:OWID/", "", 1) }}
-                            </a>
-                        </td>
-                        <td>
-                            <a type="button" class="btn-outline-primary btn-sm"
-                                pup-target="{{ url_for('adminpanel.templates.edit_by_title', template_title=template.title) }}"
-                                onclick="pup_window_new(this, 600, 600)">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                        </td>
-                        <td>
-                            {% if template.steps %}
-                            {{ render_step(template.steps.main_file) }}
-                            {% elif template and template.new_main_file %}
-                            {{ commons_file_link(template.new_main_file) }}
-                            {% else %}
-                            <code>-</code>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if template.steps %}
-                            {{ render_step(template.steps.last_world_file) }}
-                            {% elif template and template.last_world_file %}
-                            {{ commons_file_link(template.last_world_file) }}
-                            {% else %}
-                            <code>-</code>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if template.steps %}
-                            {{ render_step(template.steps.newest_year) }}
-                            {% else %}
-                            <code>{{ template.newest_year or "-" }}</code>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if template.steps %}
-                            {{ render_step(template.steps.source) }}
-                            {% else %}
-                            <code>{{ template.source or "-"}}</code>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if template.steps %}
-                            {{ render_step(template.steps.slug) }}
-                            {% else %}
-                            <code>-</code>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if template.steps and template.steps.files %}
-                            {{ render_step(template.steps.files) }}
-                            {% else %}
-                            <code>-</code>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <code>{{ template.msg or template.error or template.reason }}</code>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
-{%- endmacro -%}
-
-<!-- Updated Templates -->
 {% if result_data.pages_updated %}
-{{ pages_updated_table(result_data.pages_updated, 'Updated Templates', template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Updated Templates",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_updated",
+    table_headers=["#", "Title", "Edit", "Oldest File", "Newest File", "Template year", "Source", "Slug", "Files", "Msg"],
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-<!-- Skipped Templates -->
 {% if result_data.pages_skipped %}
-{{ pages_updated_table(result_data.pages_skipped, 'Skipped Templates', template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Skipped Templates",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_skipped",
+    table_headers=["#", "Title", "Edit", "Oldest File", "Newest File", "Template year", "Source", "Slug", "Files", "Msg"],
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-<!-- Failed Templates -->
 {% if result_data.pages_failed %}
-{{ pages_updated_table(result_data.pages_failed, 'Failed Templates', template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Failed Templates",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_failed",
+    table_headers=["#", "Title", "Edit", "Oldest File", "Newest File", "Template year", "Source", "Slug", "Files", "Msg"],
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
 {% endblock %}
 
-{% block extra_js %}{% endblock %}
+{% block extra_js %}
+<script>
+    const EDIT_TEMPLATE_BASE = "{{ url_for('adminpanel.templates.edit_by_title', template_title='__TITLE__') }}";
+
+    /**
+     * Render template title, stripping "Template:OWID/" prefix.
+     * @param {string} title
+     */
+    function renderOwidTitle(title) {
+        if (!title) return '-';
+        const display = title.replace(/^Template:OWID\//, '');
+        const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${display}</a>`;
+    }
+
+    /**
+     * Columns for pages_added: #, Title
+     */
+    function createAddedColumns() {
+        return [
+            {
+                data: null,
+                title: '#',
+                // @ts-ignore
+                render: function (data, type, row, meta) { return meta.row + 1; },
+            },
+            {
+                data: 'title',
+                title: 'Title',
+                render: renderCommonsLink,
+            },
+        ];
+    }
+
+    /**
+     * Columns for pages_updated/skipped/failed:
+     * #, Title, Edit, Oldest File, Newest File, Template year, Source, Slug, Files, Msg
+     */
+    function createUpdatedColumns() {
+        return [
+            {
+                data: null,
+                title: '#',
+                // @ts-ignore
+                render: function (data, type, row, meta) { return meta.row + 1; },
+            },
+            {
+                data: 'title',
+                title: 'Title',
+                render: renderOwidTitle,
+            },
+            {
+                // Edit button — pup_window_new popup
+                data: null,
+                title: '<i class="bi bi-pencil me-3"></i>',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    if (!row.title) return '-';
+                    const editUrl = EDIT_TEMPLATE_BASE.replace('__TITLE__', encodeURIComponent(row.title));
+                    return `<a type="button" class="btn-outline-primary btn-sm" pup-target="${editUrl}" onclick="pup_window_new(this, 600, 600)"><i class="bi bi-pencil"></i></a>`;
+                },
+            },
+            {
+                // Oldest File: steps.main_file or new_main_file
+                data: null,
+                title: 'Oldest File',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    if (row.steps && row.steps.main_file) return renderStep(row.steps.main_file);
+                    if (row.new_main_file) return renderCommonsFileLink(row.new_main_file);
+                    return '<code>-</code>';
+                },
+            },
+            {
+                // Newest File: steps.last_world_file or last_world_file
+                data: null,
+                title: 'Newest File',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    if (row.steps && row.steps.last_world_file) return renderStep(row.steps.last_world_file);
+                    if (row.last_world_file) return renderCommonsFileLink(row.last_world_file);
+                    return '<code>-</code>';
+                },
+            },
+            {
+                // Template year: steps.newest_year or newest_year
+                data: null,
+                title: 'Template year',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    if (row.steps && row.steps.newest_year) return renderStep(row.steps.newest_year);
+                    return `<code>${row.newest_year || '-'}</code>`;
+                },
+            },
+            {
+                // Source: steps.source or source
+                data: null,
+                title: 'Source',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    if (row.steps && row.steps.source) return renderStep(row.steps.source);
+                    return `<code>${row.source || '-'}</code>`;
+                },
+            },
+            {
+                // Slug: steps.slug
+                data: null,
+                title: 'Slug',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    if (row.steps && row.steps.slug) return renderStep(row.steps.slug);
+                    return '<code>-</code>';
+                },
+            },
+            {
+                // Files: steps.files
+                data: null,
+                title: 'Files',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    if (row.steps && row.steps.files) return renderStep(row.steps.files);
+                    return '<code>-</code>';
+                },
+            },
+            {
+                // Msg: msg or error or reason
+                data: null,
+                title: 'Msg',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    return `<code>${row.msg || row.error || row.reason || ''}</code>`;
+                },
+            },
+        ];
+    }
+
+    $(document).ready(function () {
+        initServerTable('table-pages_added', createAddedColumns());
+        initServerTable('table-pages_updated', createUpdatedColumns());
+        initServerTable('table-pages_skipped', createUpdatedColumns());
+        initServerTable('table-pages_failed', createUpdatedColumns());
+    });
+</script>
+{% endblock %}
