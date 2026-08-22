@@ -43,7 +43,7 @@ class NavLink:
         return url_for(self.url_endpoint, **self.url_kwargs)
 
     def is_active(self) -> bool:
-        if self.link_target:
+        if self.disabled or self.link_target:
             return False
 
         return bool(request and request.path and request.path.startswith(self.path))
