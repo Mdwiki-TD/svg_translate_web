@@ -16,6 +16,7 @@ class OtherConfig:
     user_agent: str
     wiki_domain: str
     static_server: str
+    tool_title: str
 
 
 @dataclass(frozen=True)
