@@ -287,15 +287,6 @@ class JobsBp(ABC):
         # return self.job_details(template_data, job_id)
         return self.shared_service.job_detail_handler(job_id, template_data)
 
-    def job_detail_expand(self, job_type: str, job_id: int) -> Response | str:
-        # Load template data
-        template_data: JobData | None = self.jobs_data_infos.get(job_type)
-
-        if not template_data:
-            abort(404)
-
-        return self.shared_service.job_detail_handler(job_id, template_data)
-
     def delete_job(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             abort(404)

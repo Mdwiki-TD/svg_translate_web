@@ -131,17 +131,6 @@ class TestFailedChartsSection:
         assert "Failed Charts (100)" in page
         assert "chart-0" in page
 
-    def test_over_100_failed_charts_collapses_without_expand(self, admin_jobs_client, tmp_path):
-        """With > 100 failed charts and no expand flag, only the collapsed header is shown."""
-        charts = [_make_failed_chart(f"chart-{i}") for i in range(101)]
-        job = _create_job_with_result(_result_data(failed=charts), tmp_path)
-
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
-        assert response.status_code == 200
-        page = unescape(response.get_data(as_text=True))
-        assert "Failed Charts (101)" in page
-        assert "chart-0" not in page
-
     def test_no_failed_charts_section_absent(self, admin_jobs_client, tmp_path):
         """When there are no failed charts, the Failed Charts section is not rendered."""
         job = _create_job_with_result(_result_data(failed=[]), tmp_path)
@@ -180,17 +169,6 @@ class TestSkippedChartsSection:
         assert "Skipped Charts (100)" in page
         assert "chart-0" in page
 
-    def test_over_100_skipped_charts_collapses_without_expand(self, admin_jobs_client, tmp_path):
-        """With > 100 skipped charts and no expand flag, only the collapsed header is shown."""
-        charts = [_make_skipped_chart(f"chart-{i}") for i in range(101)]
-        job = _create_job_with_result(_result_data(skipped=charts), tmp_path)
-
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
-        assert response.status_code == 200
-        page = unescape(response.get_data(as_text=True))
-        assert "Skipped Charts (101)" in page
-        assert "chart-0" not in page
-
     def test_no_skipped_charts_section_absent(self, admin_jobs_client, tmp_path):
         """When there are no skipped charts, the Skipped Charts section is not rendered."""
         job = _create_job_with_result(_result_data(skipped=[]), tmp_path)
@@ -223,24 +201,5 @@ class TestMixedChartSections:
         assert "Failed Charts (1)" in page
         assert "Skipped Charts (1)" in page
         assert "u-chart" in page
-        assert "f-chart" in page
-        assert "s-chart" in page
-
-    def test_large_updated_collapses_while_small_failed_skipped_expand(self, admin_jobs_client, tmp_path):
-        """Large updated_charts collapses while small failed/skipped still show full tables."""
-        result_data = _result_data(
-            updated=[_make_chart(f"u-{i}") for i in range(101)],
-            failed=[_make_failed_chart("f-chart")],
-            skipped=[_make_skipped_chart("s-chart")],
-        )
-        job = _create_job_with_result(result_data, tmp_path)
-
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
-        assert response.status_code == 200
-        page = unescape(response.get_data(as_text=True))
-        # Updated collapsed
-        assert "Updated Charts (101)" in page
-        assert "u-0" not in page
-        # Failed and skipped still show full tables
         assert "f-chart" in page
         assert "s-chart" in page

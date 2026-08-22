@@ -33,7 +33,6 @@ class AdminJobsRoutes(JobsBp):
         routes = [
             ("/<string:job_type>", "GET", self.jobs_list),
             ("/<string:job_type>/<int:job_id>", "GET", self.job_detail),
-            ("/<string:job_type>/<int:job_id>/expand", "GET", self.job_detail_expand),
             ("/job-file/<string:result_file>/<string:job_type>", "GET", self.read_job_result_file),
             ("/<string:job_type>/<int:job_id>/cancel", "POST", self.cancel_job),
             ("/<string:job_type>/start", "POST", self.start_job),

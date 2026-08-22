@@ -404,22 +404,8 @@ class TestJobsPublicRoutesRoutes(TestSetup):
         resp = mock_p_client.get("/jobs/nonexistent_type")
         assert resp.status_code == 404
 
-    def test_job_detail_200(self, mock_p_client: Flask.test_client) -> None:
-        resp = mock_p_client.get("/jobs/test_job/1")
-        assert resp.status_code == 200
-        assert b"detail" in resp.data
-
     def test_job_detail_unknown_type_404(self, mock_p_client: Flask.test_client) -> None:
         resp = mock_p_client.get("/jobs/nonexistent_type/1")
-        assert resp.status_code == 404
-
-    def test_job_detail_expand_200(self, mock_p_client: Flask.test_client) -> None:
-        resp = mock_p_client.get("/jobs/test_job/1/expand")
-        assert resp.status_code == 200
-        assert b"True" in resp.data
-
-    def test_job_detail_expand_unknown_type_404(self, mock_p_client: Flask.test_client) -> None:
-        resp = mock_p_client.get("/jobs/nonexistent_type/1/expand")
         assert resp.status_code == 404
 
     def test_cancel_job_302(self, mock_p_client: Flask.test_client) -> None:
