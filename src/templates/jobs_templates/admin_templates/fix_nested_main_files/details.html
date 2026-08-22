@@ -1,5 +1,6 @@
 {% extends "jobs_templates/admin_templates/base_details_admin.html" %}
-{% from "_macros.html" import card_header, stats_card, commons_file_link %}
+{% from "_macros.html" import stats_card %}
+{% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -23,96 +24,115 @@
 {% endblock %}
 
 {% block job_details %}
-<!-- Successful Files -->
+
 {% if result_data.pages_success %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header("Successful Files (" ~ result_data.pages_success|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Oldest File</th>
-                        <th>Result</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for template in result_data.pages_success %}
-                    <tr>
-                        <td>{{ template.id }}</td>
-                        <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.title }}
-                            </a>
-                        </td>
-                        <td>
-                            {% if template.main_file %}
-                            {{ commons_file_link(template.main_file) }}
-                            {% endif %}
-                        </td>
-                        <td>{{ template.fix_result.message }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+{{ new_pages_table(
+    table_title="Successful Files",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_success",
+    table_headers=["#", "Title", "Oldest File", "Result"],
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-{%- macro result_table(table_title, data) -%}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Oldest File</th>
-                        <th>Reason</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for template in data %}
-                    <tr>
-                        <td>{{ template.id }}</td>
-                        <td>
-                            <a href='https://commons.wikimedia.org/wiki/{{ template.title }}' target='_blank'
-                                rel='noopener noreferrer'>
-                                {{ template.title }}
-                            </a>
-                        </td>
-                        <td>
-                            {% if template.main_file %}
-                            {{ commons_file_link(template.main_file) }}
-                            {% endif %}
-                        </td>
-                        <td>{{ template.reason or template.error or template.message }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endmacro -%}
-
-<!-- Failed Files -->
 {% if result_data.pages_failed %}
-{{ result_table('Failed Files', result_data.pages_failed) }}
+{{ new_pages_table(
+    table_title="Failed Files",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_failed",
+    table_headers=["#", "Title", "Oldest File", "Reason"],
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-<!-- Skipped Files -->
 {% if result_data.pages_skipped %}
-{{ result_table('Skipped Files', result_data.pages_skipped) }}
+{{ new_pages_table(
+    table_title="Skipped Files",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_skipped",
+    table_headers=["#", "Title", "Oldest File", "Reason"],
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * Columns: #, Title, Oldest File, Result
+     */
+    function createSuccessColumns() {
+        return [
+            {
+                data: null,
+                title: '#',
+                // @ts-ignore
+                render: function (data, type, row, meta) { return meta.row + 1; },
+            },
+            {
+                data: 'title',
+                title: 'Title',
+                render: renderCommonsLink,
+            },
+            {
+                data: 'main_file',
+                title: 'Oldest File',
+                render: renderCommonsFileLinkShort,
+            },
+            {
+                data: null,
+                title: 'Result',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    return row.fix_result?.message || '-';
+                },
+            },
+        ];
+    }
+
+    /**
+     * Columns: #, Title, Oldest File, Reason
+     */
+    function createReasonColumns() {
+        return [
+            {
+                data: null,
+                title: '#',
+                // @ts-ignore
+                render: function (data, type, row, meta) { return meta.row + 1; },
+            },
+            {
+                data: 'title',
+                title: 'Title',
+                render: renderCommonsLink,
+            },
+            {
+                data: 'main_file',
+                title: 'Oldest File',
+                // render: renderCommonsFileLink,
+                render: renderCommonsFileLinkShort,
+            },
+            {
+                data: null,
+                title: 'Reason',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    return row.reason || row.error || row.message || '-';
+                },
+            },
+        ];
+    }
+
+    $(document).ready(function () {
+        initServerTable('table-pages_success', createSuccessColumns());
+        initServerTable('table-pages_failed', createReasonColumns());
+        initServerTable('table-pages_skipped', createReasonColumns());
+    });
+</script>
 {% endblock %}
