@@ -35,9 +35,11 @@ function renderStatus(status) {
 
 /**
  * @param {string} title
+ * @param {any} _type
+ * @param {any} _row
  * @return {string}
  */
-function renderCommonsFileLinkShort(title) {
+function renderCommonsFileLinkShort(title, _type, _row) {
     if (!title) return '-';
     const striped = title.replace('File:', '');
 
@@ -46,9 +48,11 @@ function renderCommonsFileLinkShort(title) {
 }
 /**
  * @param {string} title
+ * @param {any} _type
+ * @param {any} _row
  * @return {string}
  */
-function renderCommonsFileLink(title) {
+function renderCommonsFileLink(title, _type, _row) {
     if (!title) return '-';
     const striped = title.replace('File:', '');
 
@@ -59,8 +63,11 @@ function renderCommonsFileLink(title) {
 }
 /**
  * @param {string} title
+ * @param {any} _type
+ * @param {any} _row
+ * @return {string}
  */
-function renderCommonsLink(title) {
+function renderCommonsLink(title, _type, _row) {
     if (!title) return '-';
     const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
     return `<a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`;
