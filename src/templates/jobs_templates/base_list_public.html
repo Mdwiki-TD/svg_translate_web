@@ -1,97 +1,12 @@
 {% extends "base.html" %}
 {% from "_macros.html" import status_icon %}
 {% from "_macros/forms.html" import form_start_job %}
-{% from "jobs_templates/_help_templates/_public_jobs_actions.html" import public_jobs_actions %}
+{% from "jobs_templates/_help_templates/_jobs_actions.html" import jobs_actions %}
 
 {% block title %} {{ template_data.job_name }} · {{ tool_title }}{% endblock %}
 
 {% block content_not_fluid %}
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="headline mb-0">
-            {{ template_data.job_name }} Jobs
-        </h3>
-        <div class="d-flex gap-2">
-            {% block header_actions %}{% endblock %}
-            {% if not hide_start_button %}
-            {{ form_start_job(
-                url_for(
-                    bp_name ~ '.start_job',
-                    job_type=template_data.job_type
-                ),
-                template_data.start_confirm_message,
-            ) }}
-            {% endif %}
-        </div>
-    </div>
-    <div class="card-body">
-        {% block list_info %}{% endblock %}
-        <div class="table-responsive shadow-sm">
-            <table class="table table-striped table-hover align-middle mb-0 DataTable table_text_left">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">ID</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">User</th>
-                        <th scope="col">Created</th>
-                        <th scope="col">Started</th>
-                        <th scope="col">Completed</th>
-                        <th scope="col">Details</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <td>0</td>
-                    <td>1</td>
-                    <td>{{ status_icon("running") }}</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td class="text-center">
-                        <div class="btn-group">
-                            {{ public_jobs_actions(
-                                job_id=1,
-                                job_type="copy_svg_langs",
-                                job_status="running",
-                                job_username="Mr. Ibrahem",
-                                bp_name=bp_name,
-                                is_admin=is_admin,
-                                current_username=current_username,
-                            )}}
-                        </div>
-                    </td>
-                    {% for job in jobs %}
-                    <tr>
-                        <td> {{ loop.index }} </td>
-                        <td>{{ job.id }}</td>
-                        <td>
-                            {# {{ job.status }} #}
-                            {{ status_icon(job.status) }}
-                        </td>
-                        <td>{{ job.username if job.username else '-' }}</td>
-                        <td>{{ job.created_at | format_long_date("-") }}</td>
-                        <td>{{ job.started_at | format_short_date("-") }}</td>
-                        <td>{{ job.completed_at | format_short_date("-") }}</td>
-                        <td class="text-center">
-                            <div class="d-flex gap-2">
-                                {{ public_jobs_actions(
-                                    job_id=job.id,
-                                    job_type=template_data.job_type,
-                                    job_status=job.status,
-                                    job_username=job.username,
-                                    bp_name=bp_name,
-                                    is_admin=is_admin,
-                                    current_username=current_username,
-                                )}}
-                                {% block table_extra_actions %}{% endblock %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+
+{% include "templates/jobs_templates/_list_table.html" %}
+
 {% endblock %}

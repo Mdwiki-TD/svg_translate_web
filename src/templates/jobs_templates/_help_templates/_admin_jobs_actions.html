@@ -23,7 +23,7 @@
         )
     }}
 </div>
-{% if is_admin and (job_status | is_job_running) %}
+{% if (is_admin or current_username == job_username) and (job_status | is_job_running) %}
 <div class="ms-2 nowrap-text">
     {{
     form_cancel_job(
