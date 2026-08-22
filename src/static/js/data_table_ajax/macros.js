@@ -35,12 +35,18 @@ function renderStatus(status) {
 
 /**
  * @param {string} title
+ * @param {any} label
+ * @return {string}
  */
-function renderCommonsFileLink(title) {
+function renderCommonsFileLink(title, label) {
     if (!title) return '-';
     const striped = title.replace('File:', '');
+
+    let display_label = `File:${striped}`
+    if (label && label != "display") display_label = label;
+
     const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer">File:${striped}</a>`;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${display_label}</a>`;
 }
 /**
  * @param {string} title
