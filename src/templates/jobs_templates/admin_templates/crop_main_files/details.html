@@ -1,6 +1,6 @@
 {% extends "jobs_templates/admin_templates/base_details_admin.html" %}
-{% from "_macros.html" import card_header, stats_card, render_step, commons_file_link %}
-{% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
+{% from "_macros.html" import stats_card %}
+{% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
 
 {# Filter pages by their specific statuses #}
 {% set pages_skipped = result_data.pages_skipped %}
@@ -33,114 +33,161 @@
 </div>
 {% endblock %}
 
-{% block job_details %}
-
-{% macro pages_table(
-    data,
-    table_title,
-    job_type
-) %}
-{% set step_keys = [
-    'download',
-    'crop',
-    'upload_cropped',
-    'update_original',
-    'update_template',
-    'update_page',
-    'update_cropped'
+{% set crop_columns = [
+    "#", "Template", "File", "Cropped", "Compare",
+    "Download", "Crop", "Upload", "Update File",
+    "Update Template", "Update Page", "Update Cropped"
 ] %}
 
-{% if data|length > 100 and not expand_all %}
-{{ table_header_to_expand(data, table_title, job.id, job_type) }}
-{% else %}
-<div class="card mb-3">
-    <div class="card-header">
-        {{ card_header(table_title ~ " (" ~ data|length ~ ")") }}
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Template</th>
-                        <th>File</th>
-                        <th>Cropped</th>
-                        <th>Compare</th>
-                        <th>Download</th>
-                        <th>Crop</th>
-                        <th>Upload</th>
-                        <th title="Add Template:Image extracted to original file">
-                            Update File
-                        </th>
-                        <th>Update Template</th>
-                        <th>Update Page</th>
-                        <th title="Update the cropped file description and Author field">Update Cropped</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for file in data %}
-                    <tr>
-                        <td> {{ loop.index }} </td>
-                        <td style="width: 30%;">
-                            <a href="https://commons.wikimedia.org/wiki/{{ file.template_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ file.template_title.split('/', 1)[1] if '/' in file.template_title else file.template_title }}
-                            </a>
-                        </td>
-                        <td>
-                            {{ commons_file_link(file.original_file, label="File") }}
-                        </td>
-                        <td>
-                            {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
-                            {{ commons_file_link(file.cropped_filename, label="Cropped") }}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if file.cropped_filename and (file.status == 'uploaded' or file.status == 'skipped') %}
-                            <a href="{{ url_for('jobs_utils.compare_crop_files', original=file.original_file, cropped=file.cropped_filename) }}"
-                                target="_blank" class="btn btn-sm btn-outline-primary">Compare</a>
-                            {% endif %}
-                        </td>
-                        {% for step_key in step_keys %}
-                        <td>
-                            {% set step = file.steps.get(step_key) if file.steps else None %}
-                            {{ render_step(step) }}
-                        </td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
-{%- endmacro -%}
+{% block job_details %}
 
-<!-- Uploaded -->
 {% if pages_uploaded %}
-{{ pages_table(pages_uploaded, 'Uploaded', template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Uploaded",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_uploaded",
+    table_headers=crop_columns,
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-<!-- Updated -->
 {% if pages_updated %}
-{{ pages_table(pages_updated, 'Updated', template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Updated",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_updated",
+    table_headers=crop_columns,
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-<!-- Processed -->
 {% if files_processed %}
-{{ pages_table(files_processed, 'Processed', template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Processed",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="files_processed",
+    table_headers=crop_columns,
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-<!-- Skipped -->
 {% if pages_skipped %}
-{{ pages_table(pages_skipped, 'Skipped', template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Skipped",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_skipped",
+    table_headers=crop_columns,
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
-<!-- Failed -->
 {% if pages_failed %}
-{{ pages_table(pages_failed, 'Failed', template_data.job_type) }}
+{{ new_pages_table(
+    table_title="Failed",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_failed",
+    table_headers=crop_columns,
+    bp_name='adminpanel.jobs'
+) }}
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const COMPARE_BASE = "{{ url_for('jobs_utils.compare_crop_files', original='__ORIG__', cropped='__CROP__') }}";
+
+    /**
+     * Render template title, stripping prefix before first "/".
+     * @param {string} title
+     */
+    function renderCropTemplate(title) {
+        if (!title) return '-';
+        const display = title.includes('/') ? title.split('/').slice(1).join('/') : title;
+        const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="word-break:break-all;">${display}</a>`;
+    }
+
+    /**
+     * Render File link with label "File".
+     * @param {string} filename
+     */
+    function renderFileLabel(filename) {
+        if (!filename) return '-';
+        const striped = filename.replace('File:', '');
+        const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">File</a>`;
+    }
+
+    /**
+     * All 5 lists share the same columns.
+     */
+    function createColumns() {
+        return [
+            {
+                data: null,
+                // @ts-ignore
+                render: function (data, type, row, meta) { return meta.row + 1; },
+            },
+            {
+                data: 'template_title',
+                render: renderCropTemplate,
+                width: '20%',
+            },
+            {
+                data: 'original_file',
+                render: renderFileLabel,
+            },
+            {
+                // Cropped — conditional on cropped_filename + status
+                data: null,
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    if (row.cropped_filename && (row.status === 'uploaded' || row.status === 'skipped')) {
+                        const striped = row.cropped_filename.replace('File:', '');
+                        const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
+                        return `<a href="${url}" target="_blank" rel="noopener noreferrer">Cropped</a>`;
+                    }
+                    return '';
+                },
+            },
+            {
+                // Compare — conditional link
+                data: null,
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    if (row.cropped_filename && (row.status === 'uploaded' || row.status === 'skipped')) {
+                        const url = COMPARE_BASE
+                            .replace('__ORIG__', encodeURIComponent(row.original_file))
+                            .replace('__CROP__', encodeURIComponent(row.cropped_filename));
+                        return `<a href="${url}" target="_blank" class="btn btn-sm btn-outline-primary">Compare</a>`;
+                    }
+                    return '';
+                },
+            },
+            { data: 'steps.download', orderable: false, render: renderStep },
+            { data: 'steps.crop', orderable: false, render: renderStep },
+            { data: 'steps.upload_cropped', orderable: false, render: renderStep },
+            { data: 'steps.update_original', orderable: false, render: renderStep },
+            { data: 'steps.update_template', orderable: false, render: renderStep },
+            { data: 'steps.update_page', orderable: false, render: renderStep },
+            { data: 'steps.update_cropped', orderable: false, render: renderStep },
+        ];
+    }
+
+    $(document).ready(function () {
+        initServerTable('table-pages_uploaded', createColumns());
+        initServerTable('table-pages_updated', createColumns());
+        initServerTable('table-files_processed', createColumns());
+        initServerTable('table-pages_skipped', createColumns());
+        initServerTable('table-pages_failed', createColumns());
+    });
+</script>
 {% endblock %}

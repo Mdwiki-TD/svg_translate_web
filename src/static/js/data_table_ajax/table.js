@@ -27,8 +27,8 @@ function initServerTable(
             data: function (d) {
                 // Remap DataTables' param names to your endpoint's names.
                 // Drop this if you update the Flask view to accept start/length natively.
-                d.limit = d.length;
-                d.page = Math.floor(d.start / d.length) + 1;
+                delete d.columns; // Erases extensive column definitions from the string
+                delete d.order; // Erases extensive column definitions from the string
             }
         },
         columns: columns,
