@@ -1,14 +1,14 @@
 ---
 name: wikitextparser-api-reference
 description: >
-  Complete API reference for all wikitextparser classes, methods, properties,
-  and edge-case behaviors. Load this file when a sub-skill points you here
-  for exact method signatures, return types, or obscure parameter details.
+    Complete API reference for all wikitextparser classes, methods, properties,
+    and edge-case behaviors. Load this file when a sub-skill points you here
+    for exact method signatures, return types, or obscure parameter details.
 applies_to:
-  - "API"
-  - "method signature"
-  - "full reference"
-  - "all classes"
+    - "API"
+    - "method signature"
+    - "full reference"
+    - "all classes"
 ---
 
 # wikitextparser — Full API Reference
@@ -231,13 +231,13 @@ other parser functions and magic words that use `:` as the first separator.
 
 ### Properties
 
-| Property           | Type                    | Description                                                             |
-| ------------------ | ----------------------- | ----------------------------------------------------------------------- |
-| `name`             | `str`                   | Function name (e.g. `'#if'`, `'#switch'`, `'lc'`). Supports get/set.   |
-| `arguments`        | `list[Argument]`        | All arguments (first one is the condition/expression). Same as Template.|
-| `nesting_level`    | `int`                   | 0 = top-level; +1 per enclosing template/parser function.               |
-| `templates`        | `list[Template]`        | Templates nested inside this parser function.                            |
-| `parser_functions` | `list[ParserFunction]`  | Parser functions nested inside (excludes self).                          |
+| Property           | Type                   | Description                                                              |
+| ------------------ | ---------------------- | ------------------------------------------------------------------------ |
+| `name`             | `str`                  | Function name (e.g. `'#if'`, `'#switch'`, `'lc'`). Supports get/set.     |
+| `arguments`        | `list[Argument]`       | All arguments (first one is the condition/expression). Same as Template. |
+| `nesting_level`    | `int`                  | 0 = top-level; +1 per enclosing template/parser function.                |
+| `templates`        | `list[Template]`       | Templates nested inside this parser function.                            |
+| `parser_functions` | `list[ParserFunction]` | Parser functions nested inside (excludes self).                          |
 
 ### Methods
 
@@ -261,15 +261,15 @@ Returns WikiList objects across all arguments.
 
 ### Argument layout for common parser functions
 
-| Function      | `arguments[0]`         | `arguments[1]`  | `arguments[2]`   |
-| ------------- | ---------------------- | --------------- | ----------------- |
-| `#if`         | condition expression   | then-branch     | else-branch       |
-| `#ifeq`       | value A                | value B         | then / else       |
-| `#switch`     | expression             | `key=value` pairs (keyword args) | `#default=...` |
-| `#ifexist`    | page title             | then-branch     | else-branch       |
-| `#expr`       | math expression        | —               | —                 |
-| `lc` / `uc`   | text to transform      | —               | —                 |
-| `ucfirst`     | text to transform      | —               | —                 |
+| Function    | `arguments[0]`       | `arguments[1]`                   | `arguments[2]` |
+| ----------- | -------------------- | -------------------------------- | -------------- |
+| `#if`       | condition expression | then-branch                      | else-branch    |
+| `#ifeq`     | value A              | value B                          | then / else    |
+| `#switch`   | expression           | `key=value` pairs (keyword args) | `#default=...` |
+| `#ifexist`  | page title           | then-branch                      | else-branch    |
+| `#expr`     | math expression      | —                                | —              |
+| `lc` / `uc` | text to transform    | —                                | —              |
+| `ucfirst`   | text to transform    | —                                | —              |
 
 ### Disambiguation from Template
 
@@ -280,9 +280,9 @@ args or if the colon is part of a known namespace prefix.
 
 ### Key difference from Template
 
-- `pf.name` often starts with `#` (e.g. `'#if'`, `'#switch'`).
-- Magic words (`lc`, `uc`, `ucfirst`, `formatnum`, etc.) do **not** start with `#`.
-- The library does **not** evaluate parser functions — it only exposes the structure.
+-   `pf.name` often starts with `#` (e.g. `'#if'`, `'#switch'`).
+-   Magic words (`lc`, `uc`, `ucfirst`, `formatnum`, etc.) do **not** start with `#`.
+-   The library does **not** evaluate parser functions — it only exposes the structure.
 
 ---
 
@@ -473,11 +473,11 @@ str(parsed)            # "This is '''critical''' text"
 
 ### Additional notes
 
-- **`Bold`** and **`Italic`** inherit from `SubWikiText` and share the root buffer.
-- `del b[:]` removes the bold/italic span (including the quote tokens) from the buffer.
-- `b[:] = 'replacement'` replaces the entire span (including quotes) with arbitrary text.
-- **Italic-specific:** `__init__` accepts `end_token=True/False` to handle cases where the italic doesn't end with `''` (unclosed italic at end-of-line).
-- **Bold-italic (`'''''text'''''`)** may appear as either Bold or Italic depending on parsing context. Use `get_bolds_and_italics()` to capture both.
+-   **`Bold`** and **`Italic`** inherit from `SubWikiText` and share the root buffer.
+-   `del b[:]` removes the bold/italic span (including the quote tokens) from the buffer.
+-   `b[:] = 'replacement'` replaces the entire span (including quotes) with arbitrary text.
+-   **Italic-specific:** `__init__` accepts `end_token=True/False` to handle cases where the italic doesn't end with `''` (unclosed italic at end-of-line).
+-   **Bold-italic (`'''''text'''''`)** may appear as either Bold or Italic depending on parsing context. Use `get_bolds_and_italics()` to capture both.
 
 ---
 
