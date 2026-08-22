@@ -1,4 +1,4 @@
-{% from "_macros/forms.html" import form_cancel_job %}
+{% from "_macros/forms.html" import form_cancel_job, form_delete_job, job_detail_link %}
 
 {# Jobs action macro #}
 {% macro admin_jobs_actions(
@@ -10,27 +10,47 @@
     is_admin,
     current_username
 ) %}
-<div class="btn-group d-inline nowrap-text">
-    <a href="{{ url_for(
-        bp_name ~ '.job_detail',
-        job_type=job_type,
-        job_id=job_id
-    ) }}" class="btn btn-outline-primary btn-sm nowrap-text">
-        <i class="bi bi-eye"></i> Details
-    </a>
-</div>
-<div class="btn-group d-inline nowrap-text">
-    {% if is_admin and (job_status | is_job_running) %}
+<div class="ms-2 nowrap-text">
     {{
-        form_cancel_job(url_for(
-        bp_name ~ '.cancel_job',
-        job_type=job_type,
-        job_id=job_id
-        ),
-        btn_class='btn btn-warning btn-sm',
+        job_detail_link(
+            url_for(
+                bp_name ~ '.job_detail',
+                job_type=job_type,
+                job_id=job_id
+            ),
+            title="Details",
+            short=True,
         )
-
     }}
-    {% endif %}
 </div>
+{% if is_admin and (job_status | is_job_running) %}
+<div class="ms-2 nowrap-text">
+    {{
+    form_cancel_job(
+        url_for(
+            bp_name ~ '.cancel_job',
+            job_type=job_type,
+            job_id=job_id
+        ),
+        btn_class="btn btn-outline-warning text-muted btn-sm",
+        short=True,
+    )
+}}
+</div>
+{% endif %}
+
+{% if is_admin %}
+<div class="ms-2 nowrap-text">
+    {{
+    form_delete_job(
+        url_for(
+            bp_name ~ '.delete_job',
+            job_type=job_type,
+            job_id=job_id,
+        ),
+        short=True,
+    )
+}}
+</div>
+{% endif %}
 {% endmacro %}

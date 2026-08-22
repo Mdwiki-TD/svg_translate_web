@@ -9,12 +9,18 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="headline mb-0">
-            {{ template_data.job_name }}
+            {{ template_data.job_name }} Jobs
         </h3>
         <div class="d-flex gap-2">
             {% block header_actions %}{% endblock %}
             {% if not hide_start_button %}
-            {{ form_start_job(url_for(bp_name ~ '.start_job', job_type=template_data.job_type), template_data.start_confirm_message) }}
+            {{ form_start_job(
+                url_for(
+                    bp_name ~ '.start_job',
+                    job_type=template_data.job_type
+                ),
+                template_data.start_confirm_message,
+            ) }}
             {% endif %}
         </div>
     </div>
@@ -68,7 +74,7 @@
                         <td>{{ job.started_at | format_short_date("-") }}</td>
                         <td>{{ job.completed_at | format_short_date("-") }}</td>
                         <td class="text-center">
-                            <div class="btn-group">
+                            <div class="d-flex gap-2">
                                 {{ public_jobs_actions(
                                     job_id=job.id,
                                     job_type=template_data.job_type,

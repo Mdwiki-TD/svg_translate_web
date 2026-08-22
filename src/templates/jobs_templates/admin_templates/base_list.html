@@ -14,7 +14,13 @@
         <div class="d-flex gap-2">
             {% block header_actions %}{% endblock %}
             {% if not hide_start_button %}
-            {{ form_start_job(url_for(bp_name ~ '.start_job', job_type=template_data.job_type), template_data.start_confirm_message) }}
+            {{ form_start_job(
+                url_for(
+                    bp_name ~ '.start_job',
+                    job_type=template_data.job_type
+                ),
+                template_data.start_confirm_message,
+            ) }}
             {% endif %}
         </div>
     </div>
