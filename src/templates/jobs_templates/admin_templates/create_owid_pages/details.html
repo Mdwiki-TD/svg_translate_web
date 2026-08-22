@@ -1,4 +1,4 @@
-{% extends "jobs_templates/admin_templates/base_details.html" %}
+{% extends "jobs_templates/admin_templates/base_details_admin.html" %}
 {% from "_macros.html" import card_header, stats_card, render_step %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
@@ -47,7 +47,19 @@
 
 {% block job_details %}
 
-{% macro pages_table(data, table_title, job_type) %}
+{% macro pages_table(
+    data,
+    table_title,
+    job_type
+) %}
+
+{% set step_keys = [
+    'load_template_text',
+    'create_new_text',
+    'update_text',
+    'create_new_page',
+] %}
+
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, job_type) }}
 {% else %}
@@ -87,7 +99,6 @@
                             </a>
                             {% else %} - {% endif %}
                         </td>
-                        {% set step_keys = [ 'load_template_text', 'create_new_text', 'update_text', 'create_new_page' ] %}
                         {% for step_key in step_keys %}
                         <td>
                             {% set step = item.steps.get(step_key) if item.steps else None %}

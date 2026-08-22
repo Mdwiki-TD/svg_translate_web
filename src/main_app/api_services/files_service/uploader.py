@@ -225,9 +225,6 @@ class FileUploader:
             return UploadResult(
                 ok=False,
                 error="No site provided",
-                error_details="",
-                msg=None,
-                result=None,
             )
 
         upload_result = self.upload(file_data)
@@ -239,9 +236,7 @@ class FileUploader:
         if result_status.lower() == "success":
             return UploadResult(
                 ok=True,
-                error=None,
                 error_details=error_details,
-                msg=None,
                 result=upload_result,
             )
 
@@ -251,7 +246,6 @@ class FileUploader:
                 error="skipped",
                 error_details=error_details,
                 msg="File already exists with same content",
-                result=None,
             )
 
         if result_error == "fileexists-shared-forbidden":
@@ -262,15 +256,12 @@ class FileUploader:
                 error_details=error_details,
                 msg=f"Another file already exists with same content, {existing_file_name}",
                 existing_file_name=existing_file_name,
-                result=None,
             )
 
         return UploadResult(
             ok=False,
             error=result_error,
             error_details=error_details,
-            msg=None,
-            result=None,
         )
 
 

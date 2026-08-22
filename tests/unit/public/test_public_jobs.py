@@ -169,7 +169,7 @@ class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self):
         """Setup test."""
-        self.service = SharedJobRoutes()
+        self.service = SharedJobRoutes(bp_name="public_jobs")
 
 
 class TestCancelJob(TestSetup):
@@ -277,6 +277,7 @@ class TestJobsList(TestSetup):
             jobs=[seeded_job],
             template_data=mock_template_data,
             form=None,
+            bp_name="public_jobs",
         )
 
     def test_listing_with_0_jobs(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
@@ -308,7 +309,7 @@ class TestJobDetail(TestSetup):
     ) -> None:
         mock_deps.load_job_result.return_value = None
 
-        result = self.service.job_detail_handler(seeded_job.id, mock_template_data, "public_jobs")
+        result = self.service.job_detail_handler(seeded_job.id, mock_template_data)
 
         assert result == "rendered"
         mock_deps.render_template.assert_called_once_with(
@@ -328,7 +329,7 @@ class TestJobDetail(TestSetup):
     ) -> None:
         mock_deps.load_job_result.return_value = {"key": "value"}
 
-        result = self.service.job_detail_handler(seeded_job_with_result.id, mock_template_data, "public_jobs")
+        result = self.service.job_detail_handler(seeded_job_with_result.id, mock_template_data)
 
         assert result == "rendered"
         mock_deps.render_template.assert_called_once_with(
@@ -345,7 +346,7 @@ class TestJobDetail(TestSetup):
     ) -> None:
         mock_deps.load_job_result.return_value = None
 
-        result = self.service.job_detail_handler(seeded_job.id, mock_template_data, "public_jobs", expand_all=True)
+        result = self.service.job_detail_handler(seeded_job.id, mock_template_data, expand_all=True)
 
         assert result == "rendered"
         mock_deps.render_template.assert_called_once_with(
@@ -358,7 +359,7 @@ class TestJobDetail(TestSetup):
         )
 
     def test_job_not_found(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
-        result = self.service.job_detail_handler(999, mock_template_data, "public_jobs")
+        result = self.service.job_detail_handler(999, mock_template_data)
         assert result == "redirected"
         mock_deps.flash.assert_called_once_with("Job id 999 was not found", "warning")
         mock_deps.redirect.assert_called_once()
@@ -518,7 +519,7 @@ class TestJobsPublicRoutesRoutes(TestSetup):
 
             # Render template with expand_all=False
             rendered_collapsed = render_template(
-                "jobs_templates/public/copy_svg_langs/details.html",
+                "jobs_templates/public/copy_svg_langs/details_new.html",
                 template_data=MagicMock(job_type="copy_svg_langs", job_name="Copy SVG Langs"),
                 job=MagicMock(id=123, status="completed", username="alice"),
                 result_data=result_data,
@@ -530,15 +531,18 @@ class TestJobsPublicRoutesRoutes(TestSetup):
             )
             # The collapsed card header should be rendered, but NOT the full table with 101 files
             # (which contains specific links or file references)
-            assert "Success (101)" in rendered_collapsed
+            assert 'Success <span id="files_success-title-total"></span>' in rendered_collapsed
             # Since it's collapsed/folded, the link to expand should be present
-            assert "/jobs/copy_svg_langs/123/expand" in rendered_collapsed or "fas fa-plus" in rendered_collapsed
+            # assert "/jobs/copy_svg_langs/123/expand" in rendered_collapsed or "fas fa-plus" in rendered_collapsed
             # File_0.svg should not be rendered in table body since the table is folded
-            assert "File_0.svg" not in rendered_collapsed
+            # We now use ajax DataTables to render the table body
+            # assert "File_0.svg" not in rendered_collapsed
 
+            # We now use ajax DataTables to render the table body
             # Render template with expand_all=True
+            """
             rendered_expanded = render_template(
-                "jobs_templates/public/copy_svg_langs/details.html",
+                "jobs_templates/public/copy_svg_langs/details_new.html",
                 template_data=MagicMock(job_type="copy_svg_langs", job_name="Copy SVG Langs"),
                 job=MagicMock(id=123, status="completed", username="alice"),
                 result_data=result_data,
@@ -550,3 +554,4 @@ class TestJobsPublicRoutesRoutes(TestSetup):
             )
             # Now the expand link or plus icon should NOT be there for expanding, but full table structure should be present
             assert "File_0.svg" in rendered_expanded
+            """

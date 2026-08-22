@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+{% extends "admins/base1.html" %}
 {% from "_macros.html" import status_icon %}
 {% from "_macros/forms.html" import form_start_job %}
 {% from "jobs_templates/_help_templates/_jobs_actions.html" import jobs_actions %}
 
 {% block title %} {{ template_data.job_name }} · {{ tool_title }}{% endblock %}
 
-{% block content_not_fluid %}
+{% block admin_contents %}
 
 {% include "jobs_templates/_list_table.html" %}
 

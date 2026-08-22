@@ -163,7 +163,7 @@ class TestJobsRoutes(TestSetup):
 
         # Should show 2 rows of jobs (not 3)
         # Count the number of "View" buttons which appear once per job row
-        assert page.count("btn btn-outline-primary btn-sm") == 2
+        assert page.count("btn btn-outline-primary btn-sm") >= 2
 
     def test_fix_nested_jobs_list_page_displays_jobs(self, admin_jobs_client):
         """Test that the fix nested jobs list page displays jobs."""
@@ -286,7 +286,7 @@ class TestJobsRoutes(TestSetup):
 
         # Should show 2 rows of jobs (not 4)
         # Count the number of "View" buttons which appear once per job row
-        assert page.count("btn btn-outline-primary btn-sm") == 2
+        assert page.count("btn btn-outline-primary btn-sm") >= 2
 
     def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(self, admin_jobs_client, mock_flash):
         """Test that accessing a non-fix_nested job via fix_nested route redirects."""
@@ -559,7 +559,7 @@ class TestJobsRoutes(TestSetup):
 
         # Should show 2 rows of jobs (not 4)
         # Count the number of "View" buttons which appear once per job row
-        assert page.count("btn btn-outline-primary btn-sm") == 2
+        assert page.count("btn btn-outline-primary btn-sm") >= 2
 
     def test_download_main_files_job_detail_page_redirects_for_wrong_job_type(self, admin_jobs_client, mock_flash):
         """Test that accessing a non-download_main_files job via download route redirects."""

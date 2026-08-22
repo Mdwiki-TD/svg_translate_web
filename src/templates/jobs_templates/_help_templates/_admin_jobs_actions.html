@@ -1,0 +1,56 @@
+{% from "_macros/forms.html" import form_cancel_job, form_delete_job, job_detail_link %}
+
+{# Jobs action macro #}
+{% macro admin_jobs_actions(
+    job_id,
+    job_type,
+    job_status,
+    job_username,
+    bp_name,
+    is_admin,
+    current_username
+) %}
+<div class="ms-2 nowrap-text">
+    {{
+        job_detail_link(
+            url_for(
+                bp_name ~ '.job_detail',
+                job_type=job_type,
+                job_id=job_id
+            ),
+            title="Details",
+            short=True,
+        )
+    }}
+</div>
+{% if (is_admin or current_username == job_username) and (job_status | is_job_running) %}
+<div class="ms-2 nowrap-text">
+    {{
+    form_cancel_job(
+        url_for(
+            bp_name ~ '.cancel_job',
+            job_type=job_type,
+            job_id=job_id
+        ),
+        btn_class="btn btn-outline-warning text-muted btn-sm",
+        short=True,
+    )
+}}
+</div>
+{% endif %}
+
+{% if is_admin %}
+<div class="ms-2 nowrap-text">
+    {{
+    form_delete_job(
+        url_for(
+            bp_name ~ '.delete_job',
+            job_type=job_type,
+            job_id=job_id,
+        ),
+        short=True,
+    )
+}}
+</div>
+{% endif %}
+{% endmacro %}

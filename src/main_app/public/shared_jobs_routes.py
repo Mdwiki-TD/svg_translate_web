@@ -16,8 +16,8 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from flask.wrappers import Response
 from flask_wtf import FlaskForm
-from werkzeug.wrappers.response import Response
 
 from ..database.exceptions import DuplicateRecordError
 from ..database.services import JobsService, SettingsService
@@ -34,7 +34,8 @@ logger = logging.getLogger(__name__)
 
 
 class SharedJobRoutes:
-    def __init__(self) -> None:
+    def __init__(self, bp_name: str) -> None:
+        self.bp_name = bp_name
         self.job_service = JobsService()
         self.settings_service = SettingsService()
 
@@ -195,13 +196,13 @@ class SharedJobRoutes:
             template_data=template_data,
             form=form,
             jobs=jobs,
+            bp_name=self.bp_name,
         )
 
     def job_detail_handler(
         self,
         job_id: int,
         template_data: JobData,
-        bp_name: str,
         expand_all: bool = False,
     ) -> Response | str:
         """Render the job detail page for any job type."""
@@ -212,7 +213,7 @@ class SharedJobRoutes:
         except LookupError:
             logger.error("Job not found: id=%s, type=%s", job_id, job_type)
             flash(f"Job id {job_id} was not found", "warning")
-            return redirect(url_for(f"{bp_name}.jobs_list", job_type=job_type))
+            return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
 
         # Load job result if available
         result_data = None
@@ -226,7 +227,7 @@ class SharedJobRoutes:
             job=job,
             result_data=result_data,
             expand_all=expand_all,
-            bp_name=bp_name,
+            bp_name=self.bp_name,
         )
 
 
@@ -240,7 +241,7 @@ class JobsBp(ABC):
     ) -> None:
         self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self.bp_name = bp_name
-        self.shared_service = SharedJobRoutes()
+        self.shared_service = SharedJobRoutes(bp_name)
         self.settings_service = self.shared_service.settings_service
         self._setup_routes()
 
@@ -286,7 +287,7 @@ class JobsBp(ABC):
             abort(404)
 
         # return self.job_details(template_data, job_id)
-        return self.shared_service.job_detail_handler(job_id, template_data, bp_name=self.bp_name)
+        return self.shared_service.job_detail_handler(job_id, template_data)
 
     def job_detail_expand(self, job_type: str, job_id: int) -> Response | str:
         # Load template data
@@ -296,7 +297,7 @@ class JobsBp(ABC):
             abort(404)
 
         # return self.job_details(template_data, job_id, expand_all=True)
-        return self.shared_service.job_detail_handler(job_id, template_data, bp_name=self.bp_name, expand_all=True)
+        return self.shared_service.job_detail_handler(job_id, template_data, expand_all=True)
 
     def delete_job(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
@@ -308,13 +309,6 @@ class JobsBp(ABC):
             return self._redirect_to_job_detail(job_type, job_id)
 
         return self._redirect_to_job_list(job_type)
-
-    def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
-        if job_type not in self.jobs_data_infos:
-            abort(404)
-
-        result_data = load_job_result(result_file)
-        return jsonify(result_data)
 
     def start_job(self, job_type: str) -> ResponseReturnValue:
         template_data: JobData | None = self.jobs_data_infos.get(job_type)
@@ -360,6 +354,93 @@ class JobsBp(ABC):
         self.shared_service.mark_as_completed_handler(job_id, job_type)
 
         return self._redirect_to_job_detail(job_type, job_id)
+
+    def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
+        if job_type not in self.jobs_data_infos:
+            abort(404)
+
+        result_data = load_job_result(result_file)
+        return jsonify(result_data)
+
+    def draw_result_file(
+        self,
+        file_number: int,
+        job_type: str,
+        list_name: str = "files_failed",
+    ) -> Response:
+        if job_type not in self.jobs_data_infos:
+            abort(404)
+
+        # DataTables' default GET param names
+        draw = request.args.get("draw", 1, type=int)
+        start = request.args.get("start", 0, type=int)
+        length = request.args.get("length", 10, type=int)
+        search_value = request.args.get("search[value]", "", type=str).strip().lower()
+
+        data = self.read_result_file(
+            file_number=file_number,
+            job_type=job_type,
+            list_name=list_name,
+            draw=draw,
+            start=start,
+            length=length,
+            search_value=search_value,
+        )
+
+        return jsonify(data)
+
+    def read_result_file(
+        self,
+        file_number: int,
+        job_type: str,
+        list_name: str = "files_failed",
+        draw: int = 1,
+        start: int = 0,
+        length: int = 10,
+        search_value: str = "",
+    ) -> ResponseReturnValue:
+        """
+        http://127.0.0.1:5000/jobs/copy_svg_langs/file/439/files_failed
+        """
+        # copy_svg_langs_job_439.json
+        result_file = f"{job_type}_job_{file_number}.json"
+
+        result_data = load_job_result(result_file)
+        list_data = result_data.get(list_name, []) if result_data else []
+
+        records_total = len(list_data)
+
+        # --- search/filter ---
+        if search_value:
+            filtered = [item for item in list_data if self._row_matches_search(item, search_value)]
+        else:
+            filtered = list_data
+
+        records_filtered = len(filtered)
+
+        # --- pagination ---
+        if length == -1:
+            # DataTables sends length=-1 for "show all"
+            page = filtered[start:]
+        else:
+            page = filtered[start : start + length]
+
+        return {
+            "draw": draw,
+            "recordsTotal": records_total,
+            "recordsFiltered": records_filtered,
+            "data": page,
+        }
+
+    @staticmethod
+    def _row_matches_search(item: dict, search_value: str) -> bool:
+        """
+        Basic substring search across the fields that matter for this table.
+        Extend this list if you want status/step messages searchable too.
+        """
+        title = str(item.get("title", "")).lower()
+        status = str(item.get("status", "")).lower()
+        return search_value in title or search_value in status
 
 
 __all__ = [

@@ -1,5 +1,6 @@
-{% extends "jobs_templates/admin_templates/base_details.html" %}
+{% extends "jobs_templates/admin_templates/base_details_admin.html" %}
 {% from "_macros.html" import card_header, stats_card %}
+{% from "_macros.html" import commons_link %}
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
 {% set pages_renamed = result_data.pages_renamed %}
@@ -35,7 +36,11 @@
 {% endblock %}
 
 {% block job_details %}
-{% macro pages_table(data, table_title, job_type) %}
+{% macro pages_table(
+    data,
+    table_title,
+    job_type
+) %}
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, job_type) }}
 {% else %}
@@ -70,17 +75,11 @@
                     <tr>
                         <td> {{ loop.index }} </td>
                         <td>
-                            <a href="https://commons.wikimedia.org/wiki/{{ item.old_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.old_title }}
-                            </a>
+                            {{ commons_link(item.old_title) }}
                         </td>
                         <td>
                             {% if item.new_title %}
-                            <a href="https://commons.wikimedia.org/wiki/{{ item.new_title }}" target="_blank"
-                                rel="noopener noreferrer">
-                                {{ item.new_title }}
-                            </a>
+                            {{ commons_link(item.new_title) }}
                             {% else %} - {% endif %}
                         </td>
                         <td><small class="text-muted">{{ item.msg }}</small></td>

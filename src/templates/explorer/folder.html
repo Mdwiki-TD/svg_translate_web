@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_macros.html" import commons_file_link %}
 
-{% block title %}{{ result.title }} - SVG Explorer{% endblock %}
+{% block title %} {{ result.title }} - SVG Explorer{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -127,10 +127,4 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-    $(document).ready(function () {
-        // Add any interactive functionality here if needed
-    });
-</script>
-{% endblock %}
+{% block extra_js %}{% endblock %}

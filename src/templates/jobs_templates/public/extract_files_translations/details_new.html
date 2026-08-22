@@ -1,0 +1,225 @@
+{% extends "jobs_templates/base_details_public.html" %}
+{% from "_macros.html" import stats_card, status_icon, commons_file_link, commons_link %}
+{% from '_macros/svg_macros.html' import render_json %}
+{% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
+
+{% block job_info_extra %}
+{% if result_data %}
+{% set title = result_data.title or (result_data.args.title if result_data.args else None) %}
+{% if title %}
+<tr>
+    <th>Template:</th>
+    <td>
+        {{ commons_link(title) }}
+    </td>
+</tr>
+{% endif %}
+{% if result_data.main_title %}
+<tr>
+    <th>File:</th>
+    <td>
+        {{ commons_file_link(result_data.main_title) }}
+    </td>
+</tr>
+{% endif %}
+{% endif %}
+{% endblock %}
+
+{% block job_summary %}
+
+<!-- Pipeline Stages -->
+{% if result_data.stages %}
+{% set stage_order = ['text', 'titles', 'processfiles'] %}
+<div class="table-responsive mb-3">
+    <table class="table table-striped table-sm mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Stage</th>
+                <th>Status</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stage_key in stage_order %}
+            {% set stage = result_data.stages.get(stage_key) %}
+            {% if stage %}
+            <tr>
+                <td> {{ loop.index }} </td>
+                <td>{{ stage_key|title }}</td>
+                <td>
+                    {{ status_icon(stage.status) }}
+                </td>
+                <td><small>{{ stage.message }}</small></td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('skipped', result_data.files_skipped | length, "secondary", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Failed', result_data.files_failed | length, "danger", "") }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% set columns = [
+    "#",
+    "File",
+    "Status",
+    "Download",
+    "Translations",
+    "Languages",
+    "Error"
+] %}
+
+{% block job_details %}
+
+{% if result_data.files_success %}
+{{ new_pages_table(
+    table_title="Success",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="files_success",
+    table_headers=columns,
+) }}
+{% endif %}
+
+{% if result_data.files_processed %}
+{{ new_pages_table(
+    table_title="Processed",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="files_processed",
+    table_headers=columns,
+) }}
+{% endif %}
+
+{% if result_data.files_failed %}
+{{ new_pages_table(
+    table_title="Failed",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="files_failed",
+    table_headers=columns,
+) }}
+{% endif %}
+
+<!-- Translations -->
+{% if result_data.mapping %}
+{{ render_json(result_data.mapping, title='Extracted Translations', card_class='mb-4') }}
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function createTableColumns(
+        show_download = false,
+        show_nested = true,
+        err_colmn = false,
+        show_status = false,
+    ) {
+        return [
+            {
+                data: null,
+                title: "#",
+                // @ts-ignore
+                render: function (data, type, row, meta) {
+                    return meta.row + 1;
+                },
+            },
+            {
+                data: 'title',
+                title: 'File',
+                render: renderCommonsFileLink,
+            },
+            {
+                data: 'status',
+                title: 'Status',
+                render: renderStatus,
+                visible: show_status,
+            },
+            {
+                data: 'steps.download',
+                title: 'Download',
+                render: renderStep,
+                orderable: false,
+                visible: show_download,
+            },
+            {
+                data: null,
+                title: 'Translations',
+                orderable: false,
+                // @ts-ignore
+                render: (row) => row.steps?.load_mapping?.details?.new ?? ''
+            },
+            {
+                data: null,
+                title: 'Languages',
+                orderable: false,
+                // @ts-ignore
+                render: (row) => {
+                    let langs = row.steps?.languages?.details?.languages ?? [];
+                    return langs.join(', ');
+                }
+            },
+            {
+                data: 'error',
+                title: 'Error',
+                render: undefined,
+                visible: err_colmn
+            }
+        ];
+    }
+
+    $(document).ready(function () {
+        initServerTable(
+            'table-files_success',
+            createTableColumns(
+                show_download = true,
+            ),
+        );
+        initServerTable(
+            'table-files_processed',
+            createTableColumns(
+                show_download = false,
+                show_nested = true,
+                err_colmn = false,
+                show_status = true,
+            )
+        );
+        /*
+        initServerTable(
+            'table-files_skipped',
+            createTableColumns(
+                show_download = true,
+                show_nested = true,
+                err_colmn = false,
+            )
+        );
+        */
+        initServerTable(
+            'table-files_failed',
+            createTableColumns(
+                show_download = true,
+                show_nested = true,
+                err_colmn = true,
+            )
+        );
+    });
+</script>
+{% endblock %}

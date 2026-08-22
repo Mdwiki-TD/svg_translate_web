@@ -4,11 +4,13 @@
 {% from "jobs_templates/_help_templates/_skipped_table.html" import table_header_to_expand %}
 
 {% block job_info_extra %}
-{% if result_data and result_data.title %}
+{% if result_data %}
+{% set title = result_data.title or (result_data.args.title if result_data.args else None) %}
+{% if title %}
 <tr>
     <th>Template:</th>
     <td>
-        {{ commons_link(result_data.title) }}
+        {{ commons_link(title) }}
     </td>
 </tr>
 {% endif %}
@@ -20,12 +22,14 @@
     </td>
 </tr>
 {% endif %}
+{% endif %}
 {% endblock %}
 
 {% block job_summary %}
 
 <!-- Pipeline Stages -->
 {% if result_data.stages %}
+{% set stage_order = ['text', 'titles', 'processfiles'] %}
 <div class="table-responsive mb-3">
     <table class="table table-striped table-sm mb-0">
         <thead>
@@ -37,7 +41,6 @@
             </tr>
         </thead>
         <tbody>
-            {% set stage_order = ['text', 'titles', 'processfiles'] %}
             {% for stage_key in stage_order %}
             {% set stage = result_data.stages.get(stage_key) %}
             {% if stage %}
@@ -73,7 +76,11 @@
 {% endif %}
 {% endblock %}
 
-{% macro pages_table(data, table_title, err_colmn=False) %}
+{% macro pages_table(
+    data,
+    table_title,
+    err_colmn=False
+) %}
 {% if data|length > 100 and not expand_all %}
 {{ table_header_to_expand(data, table_title, job.id, template_data.job_type, bp_name) }}
 {% else %}

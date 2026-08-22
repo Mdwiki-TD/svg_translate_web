@@ -29,6 +29,9 @@
     {% endblock %}
     {{ flash_messages() }}
     {% block content_fluid %}{% endblock %}
+    <div class="container">
+        {% block content_not_fluid %}{% endblock %}
+    </div>
     <script src='{{ static_server }}/ajax/libs/jquery/3.7.1/jquery.min.js'></script>
     <script src='{{ static_server }}/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js'></script>
     <script src='{{ static_server }}/ajax/libs/popper.js/2.11.8/umd/popper.min.js'></script>
@@ -46,6 +49,8 @@
     <footer class='app-footer'>
     </footer>
     <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/data_table_ajax/macros.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/data_table_ajax/table.js') }}"></script>
     {% block extra_js %}{% endblock %}
     <script>
         $(document).ready(function () {
