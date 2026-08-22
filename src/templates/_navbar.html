@@ -23,7 +23,12 @@
                 </ul>
                 <hr class="d-lg-none text-dark-subtle text-50">
                 <ul class="d-flex align-items-center navbar-nav flex-row flex-wrap bd-navbar-nav">
-                    {{ navbar.render_user_links(current_username=current_username) }}
+                    {{
+                        navbar.render_user_links(
+                            profile_url = url_for("profile.dashboard", user_name=current_username),
+                            current_username = current_username,
+                        )
+                    }}
                 </ul>
             </div>
         </div>
