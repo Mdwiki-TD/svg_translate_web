@@ -7,7 +7,7 @@ from flask import url_for
 
 from ...jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ...services.auth.utils import get_current_user
-from ...templates_markups import navbar
+from ...templates_markups import main_navbar
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ def context_data(
     username = user.username if user else None
 
     return {
-        "navbar": navbar,
+        "main_navbar": main_navbar,
         "is_authenticated": user is not None,
         "current_username": username,
         "is_admin": _is_admin(user),
