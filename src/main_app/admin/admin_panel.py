@@ -33,15 +33,16 @@ class AdminPanel:
 
     def _setup_routes(self) -> None:
 
+        self.bp.app_context_processor(self.inject_sidebar)
+
         routes = [
             ("/", "GET", self.admin_dashboard),
         ]
         for rule, method, target in routes:
             self.bp.route(rule, methods=[method])(admin_required(target))
 
-        @self.bp.app_context_processor
-        def inject_sidebar() -> dict[str, Any]:
-            return {"create_side": create_side}
+    def inject_sidebar(self) -> dict[str, Any]:
+        return {"create_side": create_side}
 
     def admin_dashboard(self) -> str:
         jobs = JobsService().list_jobs(limit=100)

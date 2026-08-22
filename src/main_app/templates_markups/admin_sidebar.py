@@ -1,7 +1,7 @@
 """
 <div class="div_menu navbar-collapse">
     {% if create_side %}
-    {{ create_side(request.path) | safe }}
+    {{ create_side(request.path, is_admin) | safe }}
     {% endif %}
 </div>
 """
