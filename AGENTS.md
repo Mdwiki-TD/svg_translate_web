@@ -181,11 +181,12 @@ _works_files/            # Offline CLI tools (not part of Flask app)
 ### MwClientPage Pattern
 
 All mwclient operations go through `MwClientPage` which provides:
-- `load_page()` — load page object, cache it
-- `check_exists()` — check page existence
-- `is_redirect()` — check if page is redirect using `page.redirects_to()`
-- `edit_page(text, summary)` — edit with rate-limit retry
-- `move_page(new_title, reason, ...)` — move/rename with rate-limit retry
+
+-   `load_page()` — load page object, cache it
+-   `check_exists()` — check page existence
+-   `is_redirect()` — check if page is redirect using `page.redirects_to()`
+-   `edit_page(text, summary)` — edit with rate-limit retry
+-   `move_page(new_title, reason, ...)` — move/rename with rate-limit retry
 
 Rate-limit retry: on `ratelimited` error, retries after 5s, 15s, 30s delays.
 
