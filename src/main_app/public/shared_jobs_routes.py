@@ -397,7 +397,9 @@ class JobsBp(ABC):
         list_data = result_data.get(list_name, []) if result_data else []
 
         if list_data and not isinstance(list_data, list):
-            logger.warning("Expected list for '%s' in result file '%s', got %s", list_name, result_file, type(list_data))
+            logger.warning(
+                "Expected list for '%s' in result file '%s', got %s", list_name, result_file, type(list_data)
+            )
             list_data = []
 
         if list_data and isinstance(list_data[0], str):
@@ -449,6 +451,7 @@ class JobsBp(ABC):
             return [{"title": item, "msg": "", "status": "skipped"} for item in list_data]
 
         return list_data
+
 
 __all__ = [
     "SharedJobRoutes",

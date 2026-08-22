@@ -65,7 +65,6 @@ class Paths:
         return cls(
             log_dir=data.get("log_dir", ""),
             jobs_path=data.get("jobs_path", ""),
-
             main_files_path=data.get("main_files_path", ""),
             svg_data=data.get("svg_data", ""),
             svg_data_thumb=data.get("svg_data_thumb", ""),
