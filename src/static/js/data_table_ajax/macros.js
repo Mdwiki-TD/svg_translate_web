@@ -36,7 +36,7 @@ function renderStatus(status) {
 /**
  * @param {string} title
  */
-function renderCommonsLink(title) {
+function renderCommonsFileLink(title) {
     if (!title) return '-';
     const striped = title.replace('File:', '');
     const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
