@@ -57,7 +57,7 @@ def _load_security_config() -> SecurityConfig:
     """
     Load security configuration (Flask 3.1+ features)
     """
-    # MAX_CONTENT_LENGTH: Maximum request size (default 100MB for SVG uploads)
+    # MAX_CONTENT_LENGTH: Maximum request size (default 100MB)
     max_content_length = _env_int("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
 
     # MAX_FORM_MEMORY_SIZE: Maximum form data in memory (default 16MB)
