@@ -1,17 +1,9 @@
 {% extends "base.html" %}
-{% from "_macros.html" import status_icon, csrf %}
-{% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job %}
+{% from "_macros.html" import status_icon %}
+{% from "_macros/forms.html" import form_start_job %}
+{% from "jobs_templates/_help_templates/_public_jobs_actions.html" import public_jobs_actions %}
 
 {% block title %} {{ template_data.job_name }} · {{ tool_title }}{% endblock %}
-
-{# Jobs action macro #}
-{% macro job_actions(
-    job_id,
-    job_type,
-    job_status
-) %}
-
-{% endmacro %}
 
 {% block content_not_fluid %}
 <div class="card">
@@ -43,6 +35,26 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>{{ status_icon("running") }}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td class="text-center">
+                        <div class="btn-group">
+                            {{ public_jobs_actions(
+                                job_id=1,
+                                job_type="copy_svg_langs",
+                                job_status="running",
+                                job_username="Mr. Ibrahem",
+                                bp_name='public_jobs',
+                                is_admin=is_admin,
+                                current_username=current_username,
+                            )}}
+                        </div>
+                    </td>
                     {% for job in jobs %}
                     <tr>
                         <td> {{ loop.index }} </td>
@@ -57,34 +69,15 @@
                         <td>{{ job.completed_at | format_short_date("-") }}</td>
                         <td class="text-center">
                             <div class="btn-group">
-                                {{ job_actions(
+                                {{ public_jobs_actions(
                                     job_id=job.id,
                                     job_type=template_data.job_type,
                                     job_status=job.status,
+                                    job_username=job.username,
+                                    bp_name='public_jobs',
+                                    is_admin=is_admin,
+                                    current_username=current_username,
                                 )}}
-                                <a href="{{ url_for(
-                                        'public_jobs.job_detail',
-                                        job_type=template_data.job_type,
-                                        job_id=job.id
-                                        ) }}" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-eye"></i> Details
-                                </a>
-                                {% if (is_admin or current_username == job.username) and (job.status | is_job_running) %}
-                                {{
-                                    form_cancel_job(
-                                        url_for('public_jobs.cancel_job', job_type=template_data.job_type, job_id=job.id),
-                                        btn_class="btn btn-outline-warning text-muted btn-sm",
-                                    )
-                                }}
-                                {% endif %}
-
-                                {% if is_admin %}
-                                {{
-                                    form_delete_job(
-                                        url_for('public_jobs.delete_job', job_type=template_data.job_type, job_id=job.id)
-                                    )
-                                }}
-                                {% endif %}
                                 {% block table_extra_actions %}{% endblock %}
                             </div>
                         </td>
