@@ -396,6 +396,13 @@ class JobsBp(ABC):
         result_data = load_job_result(result_file)
         list_data = result_data.get(list_name, []) if result_data else []
 
+        if list_data and not isinstance(list_data, list):
+            logger.warning("Expected list for '%s' in result file '%s', got %s", list_name, result_file, type(list_data))
+            list_data = []
+
+        if list_data and isinstance(list_data[0], str):
+            list_data = self.convert_str_list_to_dict(list_data, list_name)
+
         records_total = len(list_data)
 
         # --- search/filter ---
@@ -430,6 +437,18 @@ class JobsBp(ABC):
         status = str(item.get("status", "")).lower()
         return search_value in title or search_value in status
 
+    def convert_str_list_to_dict(self, list_data: list[str], list_name: str) -> list[dict[str, Any] | str]:
+        """
+        Convert a list of strings into a list of dictionaries with a single key
+        """
+        list_with_titles = {
+            "pages_missing",
+        }
+
+        if list_name in list_with_titles:
+            return [{"title": item, "msg": "", "status": "skipped"} for item in list_data]
+
+        return list_data
 
 __all__ = [
     "SharedJobRoutes",
