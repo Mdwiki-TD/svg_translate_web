@@ -34,7 +34,8 @@ logger = logging.getLogger(__name__)
 
 
 class SharedJobRoutes:
-    def __init__(self) -> None:
+    def __init__(self, bp_name: str) -> None:
+        self.bp_name = bp_name
         self.job_service = JobsService()
         self.settings_service = SettingsService()
 
@@ -195,13 +196,13 @@ class SharedJobRoutes:
             template_data=template_data,
             form=form,
             jobs=jobs,
+            bp_name=self.bp_name,
         )
 
     def job_detail_handler(
         self,
         job_id: int,
         template_data: JobData,
-        bp_name: str,
         expand_all: bool = False,
     ) -> Response | str:
         """Render the job detail page for any job type."""
@@ -212,7 +213,7 @@ class SharedJobRoutes:
         except LookupError:
             logger.error("Job not found: id=%s, type=%s", job_id, job_type)
             flash(f"Job id {job_id} was not found", "warning")
-            return redirect(url_for(f"{bp_name}.jobs_list", job_type=job_type))
+            return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
 
         # Load job result if available
         result_data = None
@@ -226,7 +227,7 @@ class SharedJobRoutes:
             job=job,
             result_data=result_data,
             expand_all=expand_all,
-            bp_name=bp_name,
+            bp_name=self.bp_name,
         )
 
 
@@ -240,7 +241,7 @@ class JobsBp(ABC):
     ) -> None:
         self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self.bp_name = bp_name
-        self.shared_service = SharedJobRoutes()
+        self.shared_service = SharedJobRoutes(bp_name)
         self.settings_service = self.shared_service.settings_service
         self._setup_routes()
 
@@ -286,7 +287,7 @@ class JobsBp(ABC):
             abort(404)
 
         # return self.job_details(template_data, job_id)
-        return self.shared_service.job_detail_handler(job_id, template_data, bp_name=self.bp_name)
+        return self.shared_service.job_detail_handler(job_id, template_data)
 
     def job_detail_expand(self, job_type: str, job_id: int) -> Response | str:
         # Load template data
@@ -296,7 +297,7 @@ class JobsBp(ABC):
             abort(404)
 
         # return self.job_details(template_data, job_id, expand_all=True)
-        return self.shared_service.job_detail_handler(job_id, template_data, bp_name=self.bp_name, expand_all=True)
+        return self.shared_service.job_detail_handler(job_id, template_data, expand_all=True)
 
     def delete_job(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:

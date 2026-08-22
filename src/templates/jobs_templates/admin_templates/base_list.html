@@ -14,7 +14,7 @@
         <div class="d-flex gap-2">
             {% block header_actions %}{% endblock %}
             {% if not hide_start_button %}
-            {{ form_start_job(url_for('adminpanel.jobs.start_job', job_type=template_data.job_type), template_data.start_confirm_message) }}
+            {{ form_start_job(url_for(bp_name ~ '.start_job', job_type=template_data.job_type), template_data.start_confirm_message) }}
             {% endif %}
         </div>
     </div>
@@ -49,7 +49,7 @@
                                 job_type="copy_svg_langs",
                                 job_status="running",
                                 job_username="Mr. Ibrahem",
-                                bp_name='adminpanel.jobs',
+                                bp_name=bp_name,
                                 is_admin=is_admin,
                                 current_username=current_username,
                             )}}
@@ -74,7 +74,7 @@
                                     job_type=template_data.job_type,
                                     job_status=job.status,
                                     job_username=job.username,
-                                    bp_name='adminpanel.jobs',
+                                    bp_name=bp_name,
                                     is_admin=is_admin,
                                     current_username=current_username,
                                 )}}
