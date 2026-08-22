@@ -89,6 +89,7 @@
 </div>
 {% endif %}
 {% endblock %}
+
 {% set columns = [
     "#",
     "File",
@@ -101,6 +102,7 @@
     "Upload",
     "Error"
 ] %}
+
 {% block job_details %}
 
 {% if result_data.files_success %}
@@ -162,22 +164,29 @@
         return [
             {
                 data: null,
+                title: "#",
                 // @ts-ignore
                 render: function (data, type, row, meta) {
                     return meta.row + 1;
                 },
             },
             {
-                data: 'title', render: renderCommonsFileLink
+                data: 'title',
+                title: 'File',
+                render: renderCommonsFileLink,
             },
             {
                 data: 'status',
+                title: 'Status',
                 render: renderStatus,
-                visible: show_status
+                visible: show_status,
             },
             {
-                data: 'steps.download', render: renderStep, orderable: false,
-                visible: show_download
+                data: 'steps.download',
+                title: 'Download',
+                render: renderStep,
+                orderable: false,
+                visible: show_download,
             },
             {
                 data: 'steps.nested', render: renderStep, orderable: false,
@@ -209,6 +218,7 @@
             },
             {
                 data: 'error',
+                title: 'Error',
                 render: undefined,
                 visible: err_colmn
             }
