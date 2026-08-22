@@ -26,6 +26,21 @@
 </div>
 {% endblock %}
 
+{% set result_columns = [
+    "#",
+    "OWID Page",
+    "SVG File",
+    "Languages",
+    "Categories Added",
+    "Load Text",
+    "Extract SVG",
+    "Get Langs",
+    "Build Cats",
+    "Check Exist",
+    "Save Page",
+    "Status"
+] %}
+
 {% set step_keys = [
     'load_page_text',
     'extract_file_name',
