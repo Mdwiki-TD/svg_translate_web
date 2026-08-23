@@ -13,7 +13,7 @@
                 {{ stats_card('Updated', ( result_data.updated_charts | length ) or result_data.summary.updated, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', ( result_data.skipped_charts | length ) or result_data.summary.skipped, "secondary", "") }}
+                {{ stats_card('Skipped', ( result_data.skipped_charts | length ) or result_data.summary.skipped, "secondary", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Failed', ( result_data.failed_charts | length ) or result_data.summary.failed, "danger", "") }}
@@ -31,7 +31,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="updated_charts",
-    table_headers=["#", "Slug", "Min time", "Max time", "Years", "Variable id", "Source"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -42,7 +41,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="failed_charts",
-    table_headers=["#", "Slug", "Error"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -53,7 +51,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="skipped_charts",
-    table_headers=["#", "Slug", "Reason"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}

@@ -10,10 +10,10 @@
                 {{ stats_card('Changed', result_data.pages_changed|length, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', result_data.pages_skipped|length, "secondary", "") }}
+                {{ stats_card('Skipped', result_data.pages_skipped|length, "secondary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('missing', result_data.pages_missing|length, "warning", "") }}
+                {{ stats_card('Missing', result_data.pages_missing|length, "warning", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Errors', result_data.pages_errors|length, "danger", "") }}

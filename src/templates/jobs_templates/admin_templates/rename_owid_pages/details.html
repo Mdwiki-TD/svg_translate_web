@@ -42,7 +42,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_renamed",
-    table_headers=["#", "Old title", "New title", "Message"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -53,24 +52,27 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_skipped",
-    table_headers=["#", "Old title", "New title", "Message"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
 
 {% if pages_redirected %}
+{% set note = "
 <div class="alert alert-info mb-3">
     <i class="bi bi-arrow-right-circle"></i>
     Both the old and new page titles existed as real pages. The old (lowercase) page
     was turned into a redirect pointing to the new (capitalized) page.
 </div>
+" %}
+
 {{ new_pages_table(
     table_title="Redirected",
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_redirected",
     table_headers=["#", "Old title (now redirect)", "New title (target)", "Message"],
-    bp_name='adminpanel.jobs'
+    bp_name='adminpanel.jobs',
+    note=note,
 ) }}
 {% endif %}
 
@@ -80,7 +82,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_failed",
-    table_headers=["#", "Old title", "New title", "Message"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -93,7 +94,10 @@
      * All 4 lists share the same column shape:
      * #, Old title, New title, Message
      */
-    function createColumns() {
+    function createColumns(
+        old_title_label = "Old title",
+        new_title_label = "New title",
+    ) {
         return [
             {
                 data: null,
@@ -103,12 +107,12 @@
             },
             {
                 data: 'old_title',
-                title: 'Old title',
+                title: old_title_label,
                 render: renderCommonsLink,
             },
             {
                 data: 'new_title',
-                title: 'New title',
+                title: new_title_label,
                 render: function (title) {
                     if (!title) return '-';
                     return renderCommonsLink(title);
@@ -125,10 +129,17 @@
     }
 
     $(document).ready(function () {
-        initServerTable('table-pages_renamed', createColumns());
-        initServerTable('table-pages_skipped', createColumns());
-        initServerTable('table-pages_redirected', createColumns());
-        initServerTable('table-pages_failed', createColumns());
+        let columns = createColumns();
+        initServerTable('table-pages_renamed', columns);
+        initServerTable('table-pages_skipped', columns);
+        initServerTable(
+            'table-pages_redirected',
+            createColumns(
+                old_title_label = "Old title (now redirect)",
+                new_title_label = "New title (target)",
+            )
+        );
+        initServerTable('table-pages_failed', columns);
     });
 </script>
 {% endblock %}

@@ -13,7 +13,7 @@
                 {{ stats_card('Success', ( result_data.pages_success | length ) or result_data.summary.success, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', ( result_data.pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
+                {{ stats_card('Skipped', ( result_data.pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Failed', ( result_data.pages_failed | length ) or result_data.summary.failed, "danger", "") }}

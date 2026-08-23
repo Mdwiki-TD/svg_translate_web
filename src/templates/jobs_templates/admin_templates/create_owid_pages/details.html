@@ -34,7 +34,7 @@
                 {{ stats_card('Updated', ( pages_updated | length ) or result_data.summary.updated, "info", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', ( pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
+                {{ stats_card('Skipped', ( pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Failed', ( pages_failed | length ) or result_data.summary.failed, "danger", "") }}
@@ -151,11 +151,12 @@
     }
 
     $(document).ready(function () {
-        initServerTable('table-pages_created', createColumns());
-        initServerTable('table-pages_updated', createColumns());
-        initServerTable('table-pages_processed', createColumns());
-        initServerTable('table-pages_skipped', createColumns());
-        initServerTable('table-pages_failed', createColumns());
+        let columns = createColumns();
+        initServerTable('table-pages_created', columns);
+        initServerTable('table-pages_updated', columns);
+        initServerTable('table-pages_processed', columns);
+        initServerTable('table-pages_skipped', columns);
+        initServerTable('table-pages_failed', columns);
     });
 </script>
 {% endblock %}

@@ -65,7 +65,7 @@
                 {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', result_data.files_skipped | length, "secondary", "") }}
+                {{ stats_card('Skipped', result_data.files_skipped | length, "secondary", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Failed', result_data.files_failed | length, "danger", "") }}
@@ -76,16 +76,6 @@
 {% endif %}
 {% endblock %}
 
-{% set columns = [
-    "#",
-    "File",
-    "Status",
-    "Download",
-    "Translations",
-    "Languages",
-    "Error"
-] %}
-
 {% block job_details %}
 
 {% if result_data.files_success %}
@@ -94,7 +84,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_success",
-    table_headers=columns,
 ) }}
 {% endif %}
 
@@ -104,7 +93,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_processed",
-    table_headers=columns,
 ) }}
 {% endif %}
 
@@ -114,7 +102,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_failed",
-    table_headers=columns,
 ) }}
 {% endif %}
 
