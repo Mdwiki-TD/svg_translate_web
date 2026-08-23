@@ -42,6 +42,7 @@
 {% endblock %}
 {% block extra_js %}
 <script>
+    const WIKIDOMAIN = "{{ wiki_domain }}";
     function getLanguages(button) {
         const file = button.data('file');
         const span = button.parent();
@@ -98,9 +99,7 @@
                 },
                 {
                     data: "title",
-                    render: function (data, type, row) {
-                        return `<a href="https://commons.wikimedia.org/wiki/${data}" target="_blank" rel="noopener noreferrer">${data}</a>`;
-                    }
+                    render: (title) => renderWikiLink(WIKIDOMAIN, title),
                 },
                 {
                     data: "files",
@@ -109,12 +108,6 @@
                     data: "main_file",
                     render: function (data, type, row) {
                         if (!data) return "";
-                        var link = `
-                        <a href="https://commons.wikimedia.org/wiki/File:${data}" target="_blank" rel="noopener noreferrer">
-                            File:${data}
-                        </a>
-                        (<a href="https://svgtranslate.toolforge.org/File:${data}" target="_blank" rel="noopener noreferrer">translate</a>)
-                        `;
                         return `
                         <a href="https://svgtranslate.toolforge.org/File:${data}" target="_blank" rel="noopener noreferrer">Translate</a>
                         `;

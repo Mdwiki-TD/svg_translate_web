@@ -38,7 +38,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_downloaded",
-    table_headers=["#", "Filename", "View", "Size"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -49,7 +48,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_skipped",
-    table_headers=["#", "Template Title", "Filename", "Reason"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -60,7 +58,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_failed",
-    table_headers=["#", "Template Title", "Filename", "Reason"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}

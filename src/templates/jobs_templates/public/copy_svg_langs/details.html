@@ -79,7 +79,7 @@
             </div>
             #}
             <div class="col">
-                {{ stats_card('skipped', result_data.files_skipped | length, "secondary", "") }}
+                {{ stats_card('Skipped', result_data.files_skipped | length, "secondary", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Failed', result_data.files_failed | length, "danger", "") }}
@@ -90,19 +90,6 @@
 {% endif %}
 {% endblock %}
 
-{% set columns = [
-    "#",
-    "File",
-    "Status",
-    "Download",
-    "Nested tags",
-    "Translations Inserted",
-    "Translations Updated",
-    "Inject",
-    "Upload",
-    "Error"
-] %}
-
 {% block job_details %}
 
 {% if result_data.files_success %}
@@ -111,7 +98,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_success",
-    table_headers=columns,
 ) }}
 {% endif %}
 
@@ -121,7 +107,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_processed",
-    table_headers=columns,
 ) }}
 {% endif %}
 
@@ -132,7 +117,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_skipped",
-    table_headers=columns,
 ) }}
 {% endif %}
 
@@ -142,7 +126,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_failed",
-    table_headers=columns,
 ) }}
 {% endif %}
 
@@ -189,12 +172,16 @@
                 visible: show_download,
             },
             {
-                data: 'steps.nested', render: renderStep, orderable: false,
+                data: 'steps.nested',
+                title: "Nested tags",
+                render: renderStep,
+                orderable: false,
                 visible: show_nested
             },
             {
                 data: null,
                 orderable: false,
+                title: "Translations Inserted",
                 // @ts-ignore
                 render: (row) => row.steps?.translations?.details?.inserted ??
                     row.steps?.inject?.details?.inserted_translations ?? ''
@@ -202,17 +189,20 @@
             {
                 data: null,
                 orderable: false,
+                title: "Translations Updated",
                 // @ts-ignore
                 render: (row) => row.steps?.translations?.details?.updated ??
                     row.steps?.inject?.details?.updated_translations ?? ''
             },
             {
                 data: 'steps.inject',
+                title: 'Inject',
                 orderable: false,
                 render: renderStep
             },
             {
                 data: 'steps.upload',
+                title: 'Upload',
                 orderable: false,
                 render: renderStep
             },

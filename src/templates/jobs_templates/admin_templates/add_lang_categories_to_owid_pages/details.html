@@ -26,21 +26,6 @@
 </div>
 {% endblock %}
 
-{% set result_columns = [
-    "#",
-    "OWID Page",
-    "SVG File",
-    "Languages",
-    "Categories Added",
-    "Load Text",
-    "Extract SVG",
-    "Get Langs",
-    "Build Cats",
-    "Check Exist",
-    "Save Page",
-    "Status"
-] %}
-
 {% block job_details %}
 
 {% if result_data.pages_success %}
@@ -49,7 +34,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_success",
-    table_headers=result_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -60,7 +44,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_skipped",
-    table_headers=result_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -71,7 +54,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_failed",
-    table_headers=result_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -122,27 +104,32 @@
                 },
             },
             {
-                data: 'steps.load_page_text', title: 'Load Text',
+                data: 'steps.load_page_text',
+                title: 'Load Text',
                 orderable: false,
                 render: renderStep,
             },
             {
-                data: 'steps.extract_file_name', title: 'Extract SVG',
+                data: 'steps.extract_file_name',
+                title: 'Extract SVG',
                 orderable: false,
                 render: renderStep,
             },
             {
-                data: 'steps.get_languages', title: 'Get Langs',
+                data: 'steps.get_languages',
+                title: 'Get Langs',
                 orderable: false,
                 render: renderStep,
             },
             {
-                data: 'steps.build_categories', title: 'Build Cats',
+                data: 'steps.build_categories',
+                title: 'Build Cats',
                 orderable: false,
                 render: renderStep,
             },
             {
-                data: 'steps.check_existing', title: 'Check Exist',
+                data: 'steps.check_existing',
+                title: 'Check Exist',
                 orderable: false,
                 render: renderStep,
             },
@@ -161,9 +148,10 @@
     }
 
     $(document).ready(function () {
-        initServerTable('table-pages_success', createColumns());
-        initServerTable('table-pages_skipped', createColumns());
-        initServerTable('table-pages_failed', createColumns());
+        let columns = createColumns();
+        initServerTable('table-pages_success', columns);
+        initServerTable('table-pages_skipped', columns);
+        initServerTable('table-pages_failed', columns);
     });
 </script>
 {% endblock %}

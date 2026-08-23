@@ -34,7 +34,7 @@
                 {{ stats_card('Updated', ( pages_updated | length ) or result_data.summary.updated, "info", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', ( pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
+                {{ stats_card('Skipped', ( pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Failed', ( pages_failed | length ) or result_data.summary.failed, "danger", "") }}
@@ -44,8 +44,6 @@
 </div>
 {% endblock %}
 
-{% set page_columns = ["#", "Template", "New Page", "Load Text", "Generate Text", "Update Page", "Create Page"] %}
-
 {% block job_details %}
 
 {% if pages_created %}
@@ -54,7 +52,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_created",
-    table_headers=page_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -65,7 +62,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_updated",
-    table_headers=page_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -76,7 +72,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_processed",
-    table_headers=page_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -87,7 +82,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_skipped",
-    table_headers=page_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -98,7 +92,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_failed",
-    table_headers=page_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -107,6 +100,7 @@
 
 {% block extra_js %}
 <script>
+    const WIKIDOMAIN = "{{ wiki_domain }}";
     /**
      * Render template title, stripping "Template:OWID/" prefix.
      * @param {string} title
@@ -114,8 +108,7 @@
     function renderOwidTemplate(title) {
         if (!title) return '-';
         const display = title.replace(/^Template:OWID\//, '');
-        const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${display}</a>`;
+        return renderWikiLink(WIKIDOMAIN, title, display);
     }
 
     /**
@@ -140,23 +133,43 @@
                 title: 'New Page',
                 render: function (title) {
                     if (!title) return '-';
-                    const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
-                    return `<a href="${url}" target="_blank" rel="noopener noreferrer">OWID Page</a>`;
+                    return renderWikiLink(WIKIDOMAIN, title, "OWID Page");
                 },
             },
-            { data: 'steps.load_template_text', title: 'Load Text', orderable: false, render: renderStep },
-            { data: 'steps.create_new_text', title: 'Generate Text', orderable: false, render: renderStep },
-            { data: 'steps.update_text', title: 'Update Page', orderable: false, render: renderStep },
-            { data: 'steps.create_new_page', title: 'Create Page', orderable: false, render: renderStep },
+            {
+                data: 'steps.load_template_text',
+                title: 'Load Text',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'steps.create_new_text',
+                title: 'Generate Text',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'steps.update_text',
+                title: 'Update Page',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'steps.create_new_page',
+                title: 'Create Page',
+                orderable: false,
+                render: renderStep
+            },
         ];
     }
 
     $(document).ready(function () {
-        initServerTable('table-pages_created', createColumns());
-        initServerTable('table-pages_updated', createColumns());
-        initServerTable('table-pages_processed', createColumns());
-        initServerTable('table-pages_skipped', createColumns());
-        initServerTable('table-pages_failed', createColumns());
+        let columns = createColumns();
+        initServerTable('table-pages_created', columns);
+        initServerTable('table-pages_updated', columns);
+        initServerTable('table-pages_processed', columns);
+        initServerTable('table-pages_skipped', columns);
+        initServerTable('table-pages_failed', columns);
     });
 </script>
 {% endblock %}

@@ -16,8 +16,8 @@ client-side DataTables powered by the existing AJAX infrastructure:
 
 ### Reference examples (already migrated)
 
--   `src/templates/jobs_templates/public/copy_svg_langs/details_new.html`
--   `src/templates/jobs_templates/public/extract_files_translations/details_new.html`
+-   `src/templates/jobs_templates/public/copy_svg_langs/details.html`
+-   `src/templates/jobs_templates/public/extract_files_translations/details.html`
 
 ### Target files (9 templates)
 

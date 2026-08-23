@@ -39,7 +39,7 @@
                 {{ stats_card('Updated', result_data.summary.updated or ( result_data.pages_updated|length ), "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', total_skipped, "secondary", "") }}
+                {{ stats_card('Skipped', total_skipped, "secondary", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Failed', result_data.summary.failed or ( result_data.pages_failed|length ), "danger", "") }}
@@ -58,7 +58,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_added",
-    table_headers=["#", "Title"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -69,7 +68,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_updated",
-    table_headers=["#", "Title", "Edit", "Oldest File", "Newest File", "Template year", "Source", "Slug", "Files", "Msg"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -80,7 +78,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_skipped",
-    table_headers=["#", "Title", "Edit", "Oldest File", "Newest File", "Template year", "Source", "Slug", "Files", "Msg"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -91,7 +88,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_failed",
-    table_headers=["#", "Title", "Edit", "Oldest File", "Newest File", "Template year", "Source", "Slug", "Files", "Msg"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -100,6 +96,7 @@
 
 {% block extra_js %}
 <script>
+    const WIKIDOMAIN = "{{ wiki_domain }}";
     const EDIT_TEMPLATE_BASE = "{{ url_for('adminpanel.templates.edit_by_title', template_title='__TITLE__') }}";
 
     /**
@@ -109,8 +106,7 @@
     function renderOwidTitle(title) {
         if (!title) return '-';
         const display = title.replace(/^Template:OWID\//, '');
-        const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${display}</a>`;
+        return renderWikiLink(WIKIDOMAIN, title, display);
     }
 
     /**

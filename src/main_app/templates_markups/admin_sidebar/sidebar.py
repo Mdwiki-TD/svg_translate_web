@@ -74,9 +74,12 @@ class Sidebar:
                 if (path and href and path.startswith(href)) or active_route == item.id:
                     return group.id, item.id
 
-        # Default to the first group if no match is found
-        active_group = self.menu[0].id if self.menu else ""
-        return active_group, ""
+        # Default to the first group (with items) if no match is found
+        for g in self.menu:
+            if g.items and not g.disabled:
+                return g.id, ""
+
+        return "", ""
 
     def render(self, path: str, is_admin: bool = True) -> str:
         """Generate sidebar HTML structure based on menu definitions.
@@ -98,10 +101,13 @@ class Sidebar:
         def build_sub_items(items: list[SidebarItem], active_id: str) -> str:
             """Build the <li> HTML for every visible item in a group."""
             sub_items: list[str] = []
+            if not items:
+                return ""
 
             for item in items:
                 if item.disabled:
                     continue
+
                 if item.requires_admin and not is_admin:
                     continue
 

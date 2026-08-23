@@ -13,7 +13,7 @@
                 {{ stats_card('Success', ( result_data.pages_success | length ) or result_data.summary.success, "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('skipped', ( result_data.pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
+                {{ stats_card('Skipped', ( result_data.pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
             </div>
             <div class="col">
                 {{ stats_card('Failed', ( result_data.pages_failed | length ) or result_data.summary.failed, "danger", "") }}
@@ -31,7 +31,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_success",
-    table_headers=["#", "Title", "Oldest File", "Result"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -42,7 +41,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_failed",
-    table_headers=["#", "Title", "Oldest File", "Reason"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -53,7 +51,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_skipped",
-    table_headers=["#", "Title", "Oldest File", "Reason"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -62,43 +59,10 @@
 
 {% block extra_js %}
 <script>
-    /**
-     * Columns: #, Title, Oldest File, Result
-     */
-    function createSuccessColumns() {
-        return [
-            {
-                data: null,
-                title: '#',
-                // @ts-ignore
-                render: function (data, type, row, meta) { return meta.row + 1; },
-            },
-            {
-                data: 'title',
-                title: 'Title',
-                render: renderCommonsLink,
-            },
-            {
-                data: 'main_file',
-                title: 'Oldest File',
-                render: renderCommonsFileLinkShort,
-            },
-            {
-                data: null,
-                title: 'Result',
-                orderable: false,
-                // @ts-ignore
-                render: function (row) {
-                    return row.fix_result?.message || '-';
-                },
-            },
-        ];
-    }
-
-    /**
-     * Columns: #, Title, Oldest File, Reason
-     */
-    function createReasonColumns() {
+    function createTableColumns(
+        show_reason = false,
+        show_result = false,
+    ) {
         return [
             {
                 data: null,
@@ -119,20 +83,49 @@
             },
             {
                 data: null,
+                title: 'Result',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    return row.fix_result?.message || '-';
+                },
+                visible: show_result,
+            },
+            {
+                data: null,
                 title: 'Reason',
                 orderable: false,
                 // @ts-ignore
                 render: function (row) {
                     return row.reason || row.error || row.message || '-';
                 },
+                visible: show_reason,
             },
         ];
     }
 
     $(document).ready(function () {
-        initServerTable('table-pages_success', createSuccessColumns());
-        initServerTable('table-pages_failed', createReasonColumns());
-        initServerTable('table-pages_skipped', createReasonColumns());
+        initServerTable(
+            'table-pages_success',
+            createTableColumns(
+                show_reason = false,
+                show_result = true,
+            )
+        );
+        initServerTable(
+            'table-pages_failed',
+            createTableColumns(
+                show_reason = true,
+                show_result = false,
+            )
+        );
+        initServerTable(
+            'table-pages_skipped',
+            createTableColumns(
+                show_reason = true,
+                show_result = false,
+            )
+        );
     });
 </script>
 {% endblock %}
