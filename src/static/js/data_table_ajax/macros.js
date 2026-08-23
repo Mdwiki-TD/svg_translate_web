@@ -48,15 +48,13 @@ function renderCommonsFileLinkShort(title, _type, _row) {
 }
 /**
  * @param {string} title
- * @param {any} _type
- * @param {any} _row
- * @param {object|string} metaOrLabel DataTables passes a metadata object; direct callers may pass a label.
+ * @param {string} label
  * @return {string}
  */
-function renderCommonsFileLink(title, _type, _row, metaOrLabel) {
+function renderCommonsFileLink(title, label = '') {
     if (!title) return '-';
     const striped = title.replace('File:', '');
-    const displayLabel = typeof metaOrLabel === 'string' ? metaOrLabel : `File:${striped}`;
+    const displayLabel = label || `File:${striped}`;
 
     const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
     return `<a href="${url}" target="_blank" rel="noopener noreferrer">${displayLabel}</a>`;
