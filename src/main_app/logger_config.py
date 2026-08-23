@@ -77,6 +77,7 @@ def setup_logging(
         return
 
     numeric_level = getattr(logging, level.upper(), logging.INFO) if isinstance(level, str) else level
+
     project_logger.setLevel(numeric_level)
     project_logger.propagate = False
 
@@ -162,10 +163,7 @@ def configure_logging(
         log_dir = get_log_dir()
     except OSError as exc:
         setup_logging(level=level, name=name, use_colorlog=use_colorlog)
-        logging.getLogger(name).warning(
-            "Falling back to console logging; could not create log directory %s",
-            exc,
-        )
+        logging.getLogger(name).warning("Falling back to console logging; could not create log directory %s", exc)
         return
 
     # Define paths
