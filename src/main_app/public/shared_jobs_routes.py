@@ -394,7 +394,7 @@ class JobsBp(ABC):
         result_file = f"{job_type}_job_{file_number}.json"
 
         result_data = load_job_result(result_file)
-        list_data = result_data.get(list_name, []) if result_data else []
+        list_data = (result_data.get(list_name) or []) if result_data else []
 
         if list_data and not isinstance(list_data, list):
             logger.warning(

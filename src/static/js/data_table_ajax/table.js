@@ -12,7 +12,7 @@ function initServerTable(
     const baseUrl = $table.data('ajax-url');
     const listName = tableId.replace(/^table-/, ''); // "table-files_skipped" -> "files_skipped"
     // log to console if table not found
-    if (!$table) {
+    if (!$table.length) {
         console.error(`Table with id ${tableId} not found`);
         return;
     }
