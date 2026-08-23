@@ -50,7 +50,7 @@
 | 6   | `admin/update_owid_charts/details.html`<br>`createUpdatedColumns()`                                                          | 7           | updated_charts                                                              | فروقات حقول رسم OWID البياني                                |
 | 7   | `admin/update_owid_charts/details.html`<br>`createFailedColumns()`                                                           | 3           | failed_charts                                                               | `#`، Slug، Error                                            |
 | 8   | `admin/update_owid_charts/details.html`<br>`createSkippedColumns()`                                                          | 3           | skipped_charts                                                              | `#`، Slug، Reason (`skip_reason`)                           |
-| 9   | `admin/collect_templates_data/details.html`<br>`createAddedColumns()`                                                        | 2           | pages_added                                                                 | `#`، Title (عبر `renderOwidTitle`)                          |
+| 9   | `admin/collect_templates_data/details.html`<br>`createAddedColumns()`                                                        | 2           | pages_added                                                                 | `#`، Title (عبر `renderOwidTemplate`)                       |
 | 10  | `admin/collect_templates_data/details.html`<br>`createUpdatedColumns()`                                                      | 10          | pages_updated، pages_skipped، pages_failed                                  | حقول ملف/سنة/مصدر القالب                                    |
 | 11  | `admin/rename_owid_pages/details.html`<br>`createColumns(old_title_label, new_title_label)`                                  | 4           | pages_renamed، pages_skipped، pages_redirected، pages_failed                | الدالة الوحيدة المُعامَلة (parameterized)                   |
 | 12  | `admin/create_owid_pages/details.html`<br>`createColumns()`                                                                  | 7           | pages_created، pages_updated، pages_processed، pages_skipped، pages_failed  | تستخدم `renderOwidTemplate` المحلية                         |
@@ -64,11 +64,6 @@
 ---
 
 ## 3. الأنماط المكررة / الفائضة
-
-### 3.1 `renderOwidTitle` ↔ `renderOwidTemplate` — تكرار تام (ثقة عالية)
-
-جسمان متطابقان حرفيًا في `collect_templates_data` و`create_owid_pages`. **يجب دمجهما في دالة مساعدة
-مشتركة واحدة** (`renderOwidTitle`) داخل `macros.js`، وحذف النسختين المحليتين.
 
 ### 3.2 عمود ترقيم الصف `#` — مكرر في 14 من أصل 16 دالة (ثقة عالية)
 
@@ -165,7 +160,6 @@ Translations). **استخراج `baseFileColumns(opts)`**، مع إضافة كل
 -   `messageColumn(title, dataKey)` — خلية سبب/خطأ احتياطية (البند 3.3)
 -   `slugColumn()` — خلية رابط slug في OWID (البند 3.9)
 -   `templateColumn(dataKey, label)` — خلية عنوان قالب OWID، تحل محل `renderOwidTemplate`/
-    `renderOwidTitle` (البند 3.1)
 
 **وحدة مشتركة جديدة `src/static/js/data_table_ajax/column_helpers.js`** (تُحمَّل في `base.html`
 بجانب `table.js`/`macros.js`) — إضافة:
@@ -199,7 +193,6 @@ Translations). **استخراج `baseFileColumns(opts)`**، مع إضافة كل
 | `crop_main_files/details.html`                   | `createColumns` ← `indexColumn` + دوال مشتركة؛ إعادة تسمية الدالة                                                                        |
 | `add_svglanguages_template/details.html`         | `createProcessedColumns`/`createSkippedColumns` ← دوال مشتركة                                                                            |
 | `update_owid_charts/details.html`                | 3 دوال ← `indexColumn` + `slugColumn` + `messageColumn`                                                                                  |
-| `collect_templates_data/details.html`            | دالتان ← دوال مشتركة؛ حذف `renderOwidTitle` المحلية                                                                                      |
 | `rename_owid_pages/details.html`                 | `createColumns` ← `indexColumn` + `titleColumn`؛ إعادة تسمية الدالة                                                                      |
 | `create_owid_pages/details.html`                 | `createColumns` ← دوال قالب مشتركة؛ حذف `renderOwidTemplate` المحلية؛ إعادة تسمية الدالة                                                 |
 | `download_main_files/details.html`               | دالتان ← `titleColumn`/`messageColumn`، مع الإبقاء على ترقيم `template_id`                                                               |
@@ -219,7 +212,6 @@ Translations). **استخراج `baseFileColumns(opts)`**، مع إضافة كل
 | كتل عمود السبب/رسالة الخطأ                                                                            | 5             | ← دالة مشتركة واحدة `messageColumn()`  |
 | عمود العنوان عبر `renderCommonsLink`                                                                  | 6             | ← دالة مشتركة واحدة `titleColumn()`    |
 | كتل عمود رابط الملف                                                                                   | 4             | ← دالة مشتركة واحدة `fileLinkColumn()` |
-| `renderOwidTemplate` ≡ `renderOwidTitle`                                                              | 2 (تكرار تام) | ← دالة واحدة                           |
 | `renderCommonsFileLink` / `renderCommonsFileLinkShort`                                                | 2             | ← دالة عرض موحدة واحدة                 |
 | أعمدة الأساس في `extract` مقابل `copy`                                                                | 2             | ← دالة مشتركة `baseFileColumns()`      |
 | ثلاثية Template/Load Text/Generate Text                                                               | 2             | ← دالة مشتركة `templateStepColumns()`  |

@@ -19,9 +19,6 @@ Both audits agree on the following core findings:
 -   Because each template renders a separate page, functions with the _same name_ (`createColumns`,
     `createTableColumns`, `createUpdatedColumns`, `createSkippedColumns`) do not collide at runtime —
     but they are still duplicated _logic_ and a maintainability hazard.
--   **One exact, byte-identical duplicate**: `renderOwidTitle` (`collect_templates_data`) and
-    `renderOwidTemplate` (`create_owid_pages`) have identical bodies and should be merged into a single
-    shared helper.
 -   The **`#` row-index column** (`{ data: null, render: (d,t,r,meta) => meta.row + 1 }`) is the single
     biggest source of repetition, copy-pasted across nearly every column function except the two
     `download_main_files` functions, which intentionally use `data: 'template_id'` (a stable DB id, not
@@ -54,7 +51,7 @@ rather than substantive disagreements.
 | 6   | `admin/update_owid_charts/details.html`<br>`createUpdatedColumns()`                                                          | 7    | updated_charts                                                              | OWID chart field diffs                                      |
 | 7   | `admin/update_owid_charts/details.html`<br>`createFailedColumns()`                                                           | 3    | failed_charts                                                               | `#`, Slug, Error                                            |
 | 8   | `admin/update_owid_charts/details.html`<br>`createSkippedColumns()`                                                          | 3    | skipped_charts                                                              | `#`, Slug, Reason (`skip_reason`)                           |
-| 9   | `admin/collect_templates_data/details.html`<br>`createAddedColumns()`                                                        | 2    | pages_added                                                                 | `#`, Title (via `renderOwidTitle`)                          |
+| 9   | `admin/collect_templates_data/details.html`<br>`createAddedColumns()`                                                        | 2    | pages_added                                                                 | `#`, Title (via `renderOwidTemplate`)                       |
 | 10  | `admin/collect_templates_data/details.html`<br>`createUpdatedColumns()`                                                      | 10   | pages_updated, pages_skipped, pages_failed                                  | Template file/year/source fields                            |
 | 11  | `admin/rename_owid_pages/details.html`<br>`createColumns(old_title_label, new_title_label)`                                  | 4    | pages_renamed, pages_skipped, pages_redirected, pages_failed                | Only parameterized function                                 |
 | 12  | `admin/create_owid_pages/details.html`<br>`createColumns()`                                                                  | 7    | pages_created, pages_updated, pages_processed, pages_skipped, pages_failed  | Uses local `renderOwidTemplate`                             |
@@ -68,11 +65,6 @@ rather than substantive disagreements.
 ---
 
 ## 3. Duplicate / Redundant Patterns
-
-### 3.1 `renderOwidTitle` ↔ `renderOwidTemplate` — exact duplicate (High confidence)
-
-Byte-identical bodies in `collect_templates_data` and `create_owid_pages`. **Merge into one
-shared helper** (`renderOwidTitle`) in `macros.js`; delete both local copies.
 
 ### 3.2 `#` row-index column — repeated in 14 of 16 functions (High confidence)
 
@@ -172,7 +164,6 @@ since it removes more duplication, while keeping the simpler grouping from
 -   `messageColumn(title, dataKey)` — reason/error fallback cell (§3.3)
 -   `slugColumn()` — OWID slug link cell (§3.9)
 -   `templateColumn(dataKey, label)` — OWID template-title cell, replacing `renderOwidTemplate`/
-    `renderOwidTitle` (§3.1)
 
 **New shared module `src/static/js/data_table_ajax/column_helpers.js`** (loaded in `base.html`
 alongside `table.js`/`macros.js`) — add:
@@ -205,7 +196,6 @@ and removes name collisions without merging behaviorally distinct tables.
 | `crop_main_files/details.html`                   | `createColumns` → `indexColumn` + shared renderers; rename function                                                                           |
 | `add_svglanguages_template/details.html`         | `createProcessedColumns`/`createSkippedColumns` → shared builders                                                                             |
 | `update_owid_charts/details.html`                | 3 functions → `indexColumn` + `slugColumn` + `messageColumn`                                                                                  |
-| `collect_templates_data/details.html`            | 2 functions → shared builders; drop local `renderOwidTitle`                                                                                   |
 | `rename_owid_pages/details.html`                 | `createColumns` → `indexColumn` + `titleColumn`; rename function                                                                              |
 | `create_owid_pages/details.html`                 | `createColumns` → shared template builders; drop local `renderOwidTemplate`; rename function                                                  |
 | `download_main_files/details.html`               | 2 functions → `titleColumn`/`messageColumn`, keep `template_id` index                                                                         |
@@ -225,7 +215,6 @@ counts stay the same; only the column-function bodies are refactored.
 | Reason/error message column bodies                                                                      | 5              | → 1 shared `messageColumn()`            |
 | Title column via `renderCommonsLink`                                                                    | 6              | → 1 shared `titleColumn()`              |
 | File link column bodies                                                                                 | 4              | → 1 shared `fileLinkColumn()`           |
-| `renderOwidTemplate` ≡ `renderOwidTitle`                                                                | 2 (exact dup)  | → 1 function                            |
 | `renderCommonsFileLink` / `renderCommonsFileLinkShort`                                                  | 2              | → 1 unified renderer                    |
 | `extract` vs. `copy` base columns                                                                       | 2              | → shared `baseFileColumns()`            |
 | Template/Load Text/Generate Text trio                                                                   | 2              | → shared `templateStepColumns()`        |
