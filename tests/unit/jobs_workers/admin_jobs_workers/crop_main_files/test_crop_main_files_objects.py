@@ -41,7 +41,7 @@ def test_crop_file_processing_info_to_dict(tmp_path):
     info.steps.download.result = True
     info.steps.download.msg = "Downloaded"
 
-    d = info.to_dict()
+    d = info.to_json()
 
     assert d["template_id"] == 1
     assert d["downloaded_path"] == str(tmp_path / "download.svg")

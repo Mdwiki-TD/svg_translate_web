@@ -322,7 +322,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
                     }
                 )
             else:
-                self.result.failed_charts.append(info.to_dict())
+                self.result.failed_charts.append(info.to_json())
         elif info.status == "skipped":
             self.result.skipped_charts.append(
                 {
@@ -332,7 +332,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
                 }
             )
         elif info.status == "updated":
-            self.result.updated_charts.append(info.to_dict())
+            self.result.updated_charts.append(info.to_json())
 
 
 __all__ = [

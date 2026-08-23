@@ -92,7 +92,7 @@ class TestTemplateProcessingInfo:
         assert hasattr(info.steps, "create_new_page")
 
     def test_to_dict(self):
-        """Test to_dict serialization."""
+        """Test to_json serialization."""
         info = TemplateProcessingInfo(
             template_id=1,
             template_title="Template:OWID/Test",
@@ -102,7 +102,7 @@ class TestTemplateProcessingInfo:
         )
         info.steps.load_template_text = OneStep(result=True, msg="Loaded")
 
-        result = info.to_dict()
+        result = info.to_json()
 
         assert result["template_id"] == 1
         assert result["template_title"] == "Template:OWID/Test"

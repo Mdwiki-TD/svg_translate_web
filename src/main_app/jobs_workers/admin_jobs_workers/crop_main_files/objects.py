@@ -51,7 +51,7 @@ class CropFileProcessingInfo:
     cropped_path: Path | None = None
     steps: CropFileSteps = field(default_factory=CropFileSteps)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         data = asdict(self)
         for x, v in data.items():
             if isinstance(v, Path):

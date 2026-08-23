@@ -109,7 +109,7 @@ class TestRenameInfo:
 
     def test_to_dict(self):
         info = RenameInfo(namespace=10, old_title="Old", new_title="New", status="renamed", msg="ok")
-        d = info.to_dict()
+        d = info.to_json()
         assert d["namespace"] == 10
         assert d["old_title"] == "Old"
         assert d["new_title"] == "New"

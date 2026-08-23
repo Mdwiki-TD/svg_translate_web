@@ -43,7 +43,7 @@ class ChartNewInfo:
 
     # —————————————————————————
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod

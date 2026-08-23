@@ -23,7 +23,7 @@ class RenameInfo:
     msg: str = ""
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         return {
             "namespace": self.namespace,
             "old_title": self.old_title,

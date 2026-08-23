@@ -36,7 +36,7 @@ class TemplateInfo:
     _template_text: str | None = None
     _new_text: str | None = None
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         return {
             "template_id": self.template_id,
             "template_title": self.template_title,

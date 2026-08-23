@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class BaseModel(Model):
-    """Base model providing a generic to_dict() for all records."""
+    """Base model providing a generic to_json() for all records."""
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         data: dict[str, Any] = {}
         for column in self.__table__.columns:  # type: ignore
             value = getattr(self, column.name)  # type: ignore

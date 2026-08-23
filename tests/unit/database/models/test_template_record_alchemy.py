@@ -90,7 +90,7 @@ def test_template_record_to_dict():
         updated_at="2023-01-02",
     )
 
-    result = rec.to_dict()
+    result = rec.to_json()
 
     expected = {
         "id": 1,
@@ -122,7 +122,7 @@ def test_template_record_to_dict_with_none_values():
         updated_at=None,
     )
 
-    result = rec.to_dict()
+    result = rec.to_json()
 
     expected = {
         "id": 1,
