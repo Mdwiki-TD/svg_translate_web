@@ -134,8 +134,8 @@
                     data: "id",
                     render: function (data, type, row) {
                         // const edit_url = `/adminpanel/templates/${data}/edit`;
-                        const base_url = "{{ url_for('adminpanel.templates.edit_template', template_id='__TITLE__') }}";
-                        const edit_url = base_url.replace('__TITLE__', data);
+                        const base_url = "{{ url_for('adminpanel.templates.edit_template', template_id='0123456789') }}";
+                        const edit_url = base_url.replace('0123456789', data);
                         return `<button type="button" class="btn btn-outline-primary btn-sm" pup-target="${edit_url}" onclick="pup_window_new(this, 700, 600)"><i class="bi bi-pencil"></i> Edit</button>`;
                     },
                 }
