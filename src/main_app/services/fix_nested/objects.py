@@ -14,7 +14,7 @@ class VerificationResult:
     fixed: int
 
     def to_json(self) -> dict[str, Any]:
-        return asdict(self)  # pyright: ignore[reportCallIssue]
+        return asdict(self)
 
 
 __all__ = [
