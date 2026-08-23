@@ -52,6 +52,7 @@ class SidebarGroup:
     title: str
     icon: str
     items: list[SidebarItem]
+    disabled: bool = False
 
 
 __all__ = [
