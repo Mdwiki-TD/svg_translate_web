@@ -6,9 +6,9 @@ import logging
 import time
 from typing import Any
 
+import requests
 from mwclient.client import Site
 from mwclient.errors import APIError, MwClientError
-from requests.exceptions import RequestException
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +30,8 @@ def get_template_pages(
     }
     try:
         result = site.get("query", titles=title, **params)
-    except (MwClientError, RequestException):
-        logger.exception("get_template_pages failed")
+    except (MwClientError, requests.exceptions.RequestException):
+        logger.error(f"get_template_pages failed: {title=}")
         return []
 
     query_data = result.get("query", {})
@@ -48,16 +48,24 @@ def get_template_pages(
 def is_pages_exists(
     titles: list[str],
     site: Site,
-) -> dict[str, bool] | None:
+) -> dict[str, bool]:
+    """Check which of *titles* exist on *site*.
+
+    Note: if a batch fails, its titles are simply omitted from the result
+    (not marked as missing). Callers relying on this for a fast-path filter
+    (e.g. skipping a per-title existence check) must still verify
+    individually before creating a page - see filter_created() /
+    _process_one_item() in CreateOwidPagesWorker, which already does this.
+    """
     result: dict[str, Any] = {}
 
     for i in range(0, len(titles), 50):
         group = titles[i : i + 50]
         try:
             json1 = site.get("query", titles="|".join(group))
-        except (MwClientError, RequestException):
-            logger.exception("is_pages_exists failed")
-            return None
+        except (MwClientError, requests.exceptions.RequestException):
+            logger.error(f"is_pages_exists failed for batch starting at index {i}")
+            continue
 
         query_data = json1.get("query", {})
 
@@ -93,8 +101,8 @@ def resolve_redirects(
 
         try:
             data = site.get("query", titles="|".join(group), **params)
-        except (MwClientError, RequestException):
-            logger.exception("resolve_redirects failed")
+        except (MwClientError, requests.exceptions.RequestException):
+            logger.error("resolve_redirects failed")
             continue
 
         query = data.get("query", {}) or {}
@@ -137,8 +145,8 @@ def search_pages(
     }
     try:
         data = site.get("query", **params)
-    except (MwClientError, RequestException):
-        logger.exception("search_pages failed")
+    except (MwClientError, requests.exceptions.RequestException):
+        logger.error("search_pages failed")
         return []
 
     if not data:
@@ -193,8 +201,8 @@ def get_double_redirects(site: Site) -> list[dict[str, str]]:
     }
     try:
         data = site.get("query", **params)
-    except (MwClientError, RequestException):
-        logger.exception("get_double_redirects failed")
+    except (MwClientError, requests.exceptions.RequestException):
+        logger.error("Error querying redirects")
         return []
 
     if not data:
@@ -222,8 +230,8 @@ def get_page_links(
     }
     try:
         data = site.get("query", **params)
-    except (MwClientError, RequestException):
-        logger.exception("get_page_links failed")
+    except (MwClientError, requests.exceptions.RequestException):
+        logger.error("get_page_links failed")
         return {}
 
     out: dict[str, Any] = {"links": {}, "normalized": [], "redirects": []}
@@ -308,7 +316,7 @@ def get_category_members_titles(
                 break
 
         except Exception:
-            logger.exception("API request failed")
+            logger.error("API request failed")
             if delay < max_delay:
                 delay = min(delay * 2, max_delay)
                 time.sleep(delay)
@@ -338,7 +346,7 @@ def import_page_from_wiki(
         result = site.post(**params)
         return result or {}
     except Exception as exc:
-        logger.exception("import_page_from_wiki failed for %s", title)
+        logger.error("import_page_from_wiki failed for %s", title)
         return {"error": str(exc)}
 
 
