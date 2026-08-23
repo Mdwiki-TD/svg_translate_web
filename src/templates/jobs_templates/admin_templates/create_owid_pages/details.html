@@ -101,15 +101,6 @@
 {% block extra_js %}
 <script>
     const WIKIDOMAIN = "{{ wiki_domain }}";
-    /**
-     * Render template title, stripping "Template:OWID/" prefix.
-     * @param {string} title
-     */
-    function renderOwidTemplate(title) {
-        if (!title) return '-';
-        const display = title.replace(/^Template:OWID\//, '');
-        return renderWikiLink(WIKIDOMAIN, title, display);
-    }
 
     /**
      * All 5 lists share the same columns:
@@ -126,7 +117,7 @@
             {
                 data: 'template_title',
                 title: 'Template',
-                render: renderOwidTemplate,
+                render: (template_title) => renderOwidTitle(WIKIDOMAIN, template_title),
             },
             {
                 data: 'new_page_title',

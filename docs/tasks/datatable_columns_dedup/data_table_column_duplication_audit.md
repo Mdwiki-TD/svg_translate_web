@@ -1,308 +1,262 @@
-# DataTable Column Duplication Audit
+# DataTable Column-Generation Duplication — Unified Report
 
-> Static analysis of column-generation code behind every `initServerTable(` call in the repository.
-> Scope: all `.html` templates under `src/templates/`. Shared JS helpers live in
-> `src/static/js/data_table_ajax/table.js` (`initServerTable`) and `macros.js` (render helpers).
-> No source files were modified — this is an analysis/report only.
-
-## Executive Summary
-
--   **Matching HTML files (callers of `initServerTable(`):** 11
--   **Discovered column-generation functions (definition sites):** 16
-    -   16 inline `<script>` functions declared inside `{% block extra_js %}` of the 11 templates.
-    -   These are page-scoped globals (each template renders a separate document), so identical names
-        such as `createColumns` / `createTableColumns` / `createUpdatedColumns` do **not** collide at
-        runtime. They are, however, duplicated _logic_ that should be consolidated.
--   **Exact duplicates:** 1 pair of render helpers (`renderOwidTitle` ≡ `renderOwidTemplate`).
--   **Likely duplicates / strong overlap:** 3 areas — the `#` index column (17 repetitions), the two
-    `createTableColumns` (extract vs copy), and the two `createSkippedColumns` (svglang vs charts).
--   **Recommended merges:** 4 (1 exact helper merge + 3 refactors into shared helpers).
--   **Recommended removals:** 0 functions can be fully _deleted_ today beyond folding into a shared
-    helper during the refactors above. After consolidation, several per-page wrappers become thin
-    callers of shared helpers (candidates for eventual removal, but kept during migration).
--   **Functions recommended for removal (post-migration):** the per-page duplicate wrappers once the
-    shared helpers exist; tracked in the cleanup section.
-
-Note: `initServerTable(...)` itself is already centralized and shared (one definition in
-`src/static/js/data_table_ajax/table.js`). All duplication is in the _column_ definitions, not in the
-table wiring.
-
-## HTML Usage Inventory
-
-| HTML File                                        |                                                                      `initServerTable` Call(s) | Column Function(s)                                                                              |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------: | ----------------------------------------------------------------------------------------------- |
-| `extract_files_translations/details.html`        |                        4 (success, processed, skipped[commented], failed) @L177,L183,L193,L202 | `createTableColumns(...)` (L117)                                                                |
-| `copy_svg_langs/details.html`                    |                                   4 (success, processed, skipped, failed) @L219,L223,L232,L240 | `createTableColumns(...)` (L141)                                                                |
-| zcrop_main_files/details.html`                   |     5 (pages_uploaded, pages_updated, files_processed, pages_skipped, pages_failed) @L207–L211 | `createColumns()` (L108)                                                                        |
-| `add_svglanguages_template/details.html`         |                     4 (pages_processed, pages_success, pages_failed, pages_skipped) @L155–L159 | `createProcessedColumns()` (L82), `createSkippedColumns()` (L128)                               |
-| `update_owid_charts/details.html`                |                                   3 (updated_charts, failed_charts, skipped_charts) @L223–L225 | `createUpdatedColumns()` (L85), `createFailedColumns()` (L175), `createSkippedColumns()` (L201) |
-| `collect_templates_data/details.html`            |                         4 (pages_added, pages_updated, pages_skipped, pages_failed) @L242–L245 | `createAddedColumns()` (L115), `createUpdatedColumns()` (L135)                                  |
-| `rename_owid_pages/details.html`                 | 4 (pages_renamed, pages_skipped, pages_redirected[variant], pages_failed) @L132,L133,L134,L141 | `createColumns(...)` (L96)                                                                      |
-| `create_owid_pages/details.html`                 |      5 (pages_created, pages_updated, pages_processed, pages_skipped, pages_failed) @L168–L172 | `createColumns()` (L118)                                                                        |
-| `download_main_files/details.html`               |                                   3 (files_downloaded, files_skipped, files_failed) @L138–L140 | `createDownloadedColumns()` (L74), `createResultColumns()` (L107)                               |
-| `add_lang_categories_to_owid_pages/details.html` |                                      3 (pages_success, pages_skipped, pages_failed) @L152–L154 | `createColumns()` (L70)                                                                         |
-| `fix_nested_main_files/details.html`             |                                 3 (pages_success, pages_failed, pages_skipped) @L108,L115,L122 | `createTableColumns(...)` (L62)                                                                 |
-
-## Column Function Inventory
-
-| Function / File                                                                                                                  | Used By (tables)                                                            | Columns Produced                                                                                                                     | Notes                                                                    |
-| -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| `public/extract_files_translations/details.html:117`<br>`createTableColumns(show_download, show_nested, err_colmn, show_status)` | files_success, files_processed, files_failed (+skipped commented)           | `#`, File, Status, Download, Translations, Languages, Error                                                                          | Conditional/visible flags; params toggling column visibility.            |
-| `public/copy_svg_langs/details.html:141`<br>`createTableColumns(show_download, show_nested, err_colmn, show_status)`             | files_success, files_processed, files_skipped, files_failed                 | `#`, File, Status, Download, Nested tags, Translations Inserted, Translations Updated, Inject, Upload, Error                         | Same signature/leading+trailing as extract, different middle columns.    |
-| `admin_templates/crop_main_files/details.html:108`<br>`createColumns()`                                                          | pages_uploaded, pages_updated, files_processed, pages_skipped, pages_failed | `#`, Template, File, Cropped, Compare, Download, Crop, Upload, Update File, Update Template, Update Page, Update Cropped             | Uses page-local `renderCropTemplate`; conditional Cropped/Compare links. |
-| `admin_templates/add_svglanguages_template/details.html:82`<br>`createProcessedColumns()`                                        | pages_processed, pages_success, pages_failed                                | `#`, Template, Load Text, Generate Text, Add Text, Save Page                                                                         | Uses page-local `renderWikiLink`/`WIKIDOMAIN`.                           |
-| `admin_templates/add_svglanguages_template/details.html:128`<br>`createSkippedColumns()`                                         | pages_skipped                                                               | `#`, Title, Reason                                                                                                                   | Link via `renderCommonsLink`; reason = `reason\|\|error\|\|msg`.         |
-| `admin_templates/update_owid_charts/details.html:85`<br>`createUpdatedColumns()`                                                 | updated_charts                                                              | `#`, Slug, Min time, Max time, Years, Variable id, Source                                                                            | OWID chart-field diff rendering (`*.after`/`new_*`).                     |
-| `admin_templates/update_owid_charts/details.html:175`<br>`createFailedColumns()`                                                 | failed_charts                                                               | `#`, Slug, Error                                                                                                                     | Slug link via `renderOwidSlug`.                                          |
-| `admin_templates/update_owid_charts/details.html:201`<br>`createSkippedColumns()`                                                | skipped_charts                                                              | `#`, Slug, Reason                                                                                                                    | Slug link via `renderOwidSlug`; reason = `skip_reason`.                  |
-| `admin_templates/collect_templates_data/details.html:115`<br>`createAddedColumns()`                                              | pages_added                                                                 | `#`, Title                                                                                                                           | Link via `renderOwidTitle`.                                              |
-| `admin_templates/collect_templates_data/details.html:135`<br>`createUpdatedColumns()`                                            | pages_updated, pages_skipped, pages_failed                                  | `#`, Title, Edit, Oldest File, Newest File, Template year, Source, Slug, Files, Msg                                                  | OWID _template_ fields; Edit popup button.                               |
-| `admin_templates/rename_owid_pages/details.html:96`<br>`createColumns(old_title_label, new_title_label)`                         | pages_renamed, pages_skipped, pages_redirected(variant), pages_failed       | `#`, Old title, New title, Message                                                                                                   | Parameterized labels used for 1 variant; links via `renderCommonsLink`.  |
-| `admin_templates/create_owid_pages/details.html:118`<br>`createColumns()`                                                        | pages_created, pages_updated, pages_processed, pages_skipped, pages_failed  | `#`, Template, New Page, Load Text, Generate Text, Update Page, Create Page                                                          | Uses page-local `renderOwidTemplate`.                                    |
-| `admin_templates/download_main_files/details.html:74`<br>`createDownloadedColumns()`                                             | files_downloaded                                                            | `#`(=`template_id`), Filename, View, Size                                                                                            | Index is `data:'template_id'` (NOT meta.row). View popup link.           |
-| `admin_templates/download_main_files/details.html:107`<br>`createResultColumns()`                                                | files_skipped, files_failed                                                 | `#`(=`template_id`), Template Title, Filename, Reason                                                                                | Index is `data:'template_id'`. Reason = `reason\|\|error`.               |
-| `admin_templates/add_lang_categories_to_owid_pages/details.html:70`<br>`createColumns()`                                         | pages_success, pages_skipped, pages_failed                                  | `#`, OWID Page, SVG File, Languages, Categories Added, Load Text, Extract SVG, Get Langs, Build Cats, Check Exist, Save Page, Status | Uses `renderStatus` + `renderCommonsFileLinkShort`.                      |
-| `admin_templates/fix_nested_main_files/details.html:62`<br>`createTableColumns(show_reason, show_result)`                        | pages_success, pages_failed, pages_skipped                                  | `#`, Title, Oldest File, Result, Reason                                                                                              | Conditional Result/Reason via `visible:` flags.                          |
-
-**Shared render helpers** (already centralized in `src/static/js/data_table_ajax/macros.js`):
-`renderStatus`, `renderWikiLink`, `renderCommonsFileLink`, `renderCommonsLink`,
-`renderCommonsFileLinkShort`, `renderStep`, `diffLink`. These are reused by the functions above and
-are correctly DRY.
-
-**Page-local render helpers** (declared inside individual templates):
-`renderCropTemplate` (crop_main_files:99), `renderOwidSlug` (update_owid_charts:66),
-`renderOwidVariableLink` (update_owid_charts:76), `renderOwidTitle` (collect_templates_data:106),
-`renderOwidTemplate` (create_owid_pages:108).
-
-## Duplicate / Merge Candidates
-
-### `renderOwidTitle` ↔ `renderOwidTemplate`
-
--   **Confidence:** High
--   **Files:**
-    -   `src/templates/jobs_templates/admin_templates/collect_templates_data/details.html:106`
-    -   `src/templates/jobs_templates/admin_templates/create_owid_pages/details.html:108`
--   **HTML consumers:** `createAddedColumns()` (collect) and `createColumns()` (create_owid) — each
-    is used in the respective detail page's DataTable columns.
--   **Similarity:** **Exact duplicate.** Both have identical bodies:
-    ```js
-    function renderOwidTitle(title) {
-        function renderOwidTemplate(title) {
-            if (!title) return "-";
-            if (!title) return "-";
-            const display = title.replace(/^Template:OWID\//, "");
-            return renderWikiLink(WIKIDOMAIN, title, display);
-        }
-    }
-    ```
--   **Differences:** None (function name only; behavior identical).
--   **Recommendation:** Merge into a single shared helper in `macros.js` (e.g. `renderOwidTitle`),
-    and have both pages call it. Page-local `WIKIDOMAIN` is already available on both pages, and
-    `macros.js` is loaded globally via `src/templates/base.html:52`.
--   **Required call-site changes:**
-    -   Remove the local definitions from both templates.
-    -   In `create_owid_pages/details.html`, replace `render: renderOwidTemplate` with
-        `render: renderOwidTitle` (or alias).
--   **Removal candidate:** Yes (both local copies).
+> This report merges two independent audits of the column-generation code used by every
+> `initServerTable(...)` call in the repository (`data_table_column_duplication_audit.md` and
+> `datatable_columns_dedup_report.md`). Both audits scanned the same 11 `details.html` templates
+> under `src/templates/jobs_templates/` and the shared JS in `src/static/js/data_table_ajax/`.
+> No source files were modified in either audit — this is analysis only.
 
 ---
 
-### `#` index column (`meta.row + 1`) — repeated configuration block
+## 1. Scope & Agreed Facts
 
--   **Confidence:** High
--   **Files:** Repeated in 17 of the 16 column functions (download uses `data:'template_id'` instead).
-    Definition sites include every `createTableColumns`/`createColumns`/`createProcessedColumns`/
-    `createSkippedColumns`/`createAddedColumns`/`createUpdatedColumns`/`createFailedColumns` function
-    listed above except `createDownloadedColumns`/`createResultColumns` (which use `template_id`).
--   **HTML consumers:** All 11 HTML files.
--   **Similarity:** Exact repeated block:
-    ```js
-    { data: null, title: '#',
-      render: function (data, type, row, meta) { return meta.row + 1; } }
-    ```
-    (Some copies use a one-line arrow variant for the render; functionally identical.)
--   **Differences:** None behaviorally. The two download functions use `data: 'template_id'` for the
-    `#` column instead — semantically different (stable DB id vs. row index) and should **not** be
-    force-merged with the meta.row variant; see "Functions That Should Not Be Merged".
--   **Recommendation:** Refactor into a shared helper `indexColumn()` (returning the object above) in
-    `macros.js`, and have each column function start with `indexColumn(),` as its first element.
--   **Required call-site changes:** Replace the inline `#` block with `indexColumn()` in 14 functions
-    (15 occurrences: extract, copy, crop, add_svglang processed, add_svglang skipped, update updated,
-    update failed, update skipped, collect added, collect updated, rename, create_owid, add_lang,
-    fix_nested).
--   **Removal candidate:** N/A (it is a config block, not a named function).
+Both audits agree on the following core findings:
 
----
+-   **11 HTML templates** call `initServerTable(...)` — `initServerTable` itself is already centralized
+    (single definition in `src/static/js/data_table_ajax/table.js`) and is **not** duplicated.
+-   **16 distinct column-generation functions** are defined, one inline `<script>` per template inside
+    `{% block extra_js %}`. None live in a shared module today.
+-   Because each template renders a separate page, functions with the _same name_ (`createColumns`,
+    `createTableColumns`, `createUpdatedColumns`, `createSkippedColumns`) do not collide at runtime —
+    but they are still duplicated _logic_ and a maintainability hazard.
+-   **One exact, byte-identical duplicate**: `renderOwidTitle` (`collect_templates_data`) and
+    `renderOwidTemplate` (`create_owid_pages`) have identical bodies and should be merged into a single
+    shared helper.
+-   The **`#` row-index column** (`{ data: null, render: (d,t,r,meta) => meta.row + 1 }`) is the single
+    biggest source of repetition, copy-pasted across nearly every column function except the two
+    `download_main_files` functions, which intentionally use `data: 'template_id'` (a stable DB id, not
+    a row index) and must **not** be folded into the same helper.
+-   Shared render helpers already exist and are correctly reused (not duplicated):
+    `renderStatus`, `renderWikiLink`, `renderCommonsLink`, `renderCommonsFileLink` /
+    `renderCommonsFileLinkShort`, `renderStep`, `diffLink`.
 
-### `createTableColumns` (extract) ↔ `createTableColumns` (copy)
+### Note on count discrepancies between the two source audits
 
--   **Confidence:** Medium
--   **Files:**
-    -   `src/templates/jobs_templates/public/extract_files_translations/details.html:117`
-    -   `src/templates/jobs_templates/public/copy_svg_langs/details.html:141`
--   **HTML consumers:** the two public job detail pages (4 tables each).
--   **Similarity:** Identical signature `(show_download, show_nested, err_colmn, show_status)` and
-    identical leading group (`#`, File, Status, Download) and trailing group (`Error`). Both toggle
-    column visibility via the boolean params.
--   **Differences:**
-    -   extract middle: `Translations` (row.steps.load_mapping.details.new), `Languages` (array join).
-    -   copy middle: `Nested tags` (renderStep on steps.nested), `Translations Inserted`,
-        `Translations Updated`, `Inject`, `Upload` (all renderStep-based).
-    -   extract's "Translations"/"Languages" are _not_ step-based; copy's middle is entirely
-        step-based with `orderable:false`. Different data sources → not behaviorally identical.
--   **Recommendation:** Refactor into a shared base builder, e.g.
-    `buildFileTableColumns(extraMiddleCols, opts)` that emits the common `#/File/Status/Download/Error`
-    scaffold and accepts a page-specific middle-column array. Extract and copy become thin callers.
-    Do **not** collapse into a single unconditional function (the middle columns are genuinely
-    different).
--   **Required call-site changes:** Keep the four `initServerTable` calls in each file; only change
-    the function bodies to delegate to the shared base. The currently-commented skipped call in
-    extract can be left as-is.
--   **Removal candidate:** No (become thin wrappers).
+The two audits count the repeated `#` index block slightly differently (one says "17 of 16"
+occurrences — an internal inconsistency in that document — the other says "9 of 10" in a section
+header but then lists it across 11 functions elsewhere). Reconciled against both functions
+inventories: **14 of the 16 functions** contain the `meta.row + 1` index block (all except the two
+`download_main_files` functions, which use `template_id`). Treat "14" as the reliable number for
+planning; the "17" and "10" figures in the source documents appear to be counting/labeling slips
+rather than substantive disagreements.
 
 ---
 
-### `createSkippedColumns` (add_svglanguages) ↔ `createSkippedColumns` (update_owid_charts)
+## 2. Full Inventory (merged)
 
--   **Confidence:** Medium
--   **Files:**
-    -   `src/templates/jobs_templates/admin_templates/add_svglanguages_template/details.html:128`
-    -   `src/templates/jobs_templates/admin_templates/update_owid_charts/details.html:201`
--   **HTML consumers:** `pages_skipped` (svglang) and `skipped_charts` (charts).
--   **Similarity:** Same shape: `#`, a wiki/slug link column, and a Reason column.
--   **Differences:**
-    -   Link column: svglang uses `data:'title'` + `renderCommonsLink`; charts uses `data:'slug'` +
-        `renderOwidSlug`. Different entities (Commons page vs OWID grapher slug).
-    -   Reason: svglang `row.reason || row.error || row.msg`; charts `row.skip_reason`. Different field
-        name.
--   **Recommendation:** Parameterize into a shared helper `skippedColumns({linkData, linkRender,
-reasonData})` (or accept a renderer that reads the right field). The two pages supply different
-    data keys/renderers. Keeps behavior identical while removing duplication.
--   **Required call-site changes:** Replace both local definitions with calls to the shared helper,
-    passing the appropriate data key + renderer. No `initServerTable` call sites change.
--   **Removal candidate:** No (become thin callers).
+| #   | File / Function                                                                                                              | Cols | Tables Used By                                                              | Notes                                                       |
+| --- | ---------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| 1   | `public/extract_files_translations/details.html`<br>`createTableColumns(show_download, show_nested, err_colmn, show_status)` | 7    | files_success, files_processed, files_failed (+skipped, commented out)      | `#`, File, Status, Download, Translations, Languages, Error |
+| 2   | `public/copy_svg_langs/details.html`<br>`createTableColumns(show_download, show_nested, err_colmn, show_status)`             | 10   | files_success, files_processed, files_skipped, files_failed                 | Same signature as #1, step-based middle columns             |
+| 3   | `admin/crop_main_files/details.html`<br>`createColumns()`                                                                    | 12   | pages_uploaded, pages_updated, files_processed, pages_skipped, pages_failed | Uses local `renderCropTemplate`                             |
+| 4   | `admin/add_svglanguages_template/details.html`<br>`createProcessedColumns()`                                                 | 6    | pages_processed, pages_success, pages_failed                                | Template + text/save steps                                  |
+| 5   | `admin/add_svglanguages_template/details.html`<br>`createSkippedColumns()`                                                   | 3    | pages_skipped                                                               | `#`, Title, Reason (`reason\|\|error\|\|msg`)               |
+| 6   | `admin/update_owid_charts/details.html`<br>`createUpdatedColumns()`                                                          | 7    | updated_charts                                                              | OWID chart field diffs                                      |
+| 7   | `admin/update_owid_charts/details.html`<br>`createFailedColumns()`                                                           | 3    | failed_charts                                                               | `#`, Slug, Error                                            |
+| 8   | `admin/update_owid_charts/details.html`<br>`createSkippedColumns()`                                                          | 3    | skipped_charts                                                              | `#`, Slug, Reason (`skip_reason`)                           |
+| 9   | `admin/collect_templates_data/details.html`<br>`createAddedColumns()`                                                        | 2    | pages_added                                                                 | `#`, Title (via `renderOwidTitle`)                          |
+| 10  | `admin/collect_templates_data/details.html`<br>`createUpdatedColumns()`                                                      | 10   | pages_updated, pages_skipped, pages_failed                                  | Template file/year/source fields                            |
+| 11  | `admin/rename_owid_pages/details.html`<br>`createColumns(old_title_label, new_title_label)`                                  | 4    | pages_renamed, pages_skipped, pages_redirected, pages_failed                | Only parameterized function                                 |
+| 12  | `admin/create_owid_pages/details.html`<br>`createColumns()`                                                                  | 7    | pages_created, pages_updated, pages_processed, pages_skipped, pages_failed  | Uses local `renderOwidTemplate`                             |
+| 13  | `admin/download_main_files/details.html`<br>`createDownloadedColumns()`                                                      | 4    | files_downloaded                                                            | `#` = `template_id` (not row index)                         |
+| 14  | `admin/download_main_files/details.html`<br>`createResultColumns()`                                                          | 4    | files_skipped, files_failed                                                 | `#` = `template_id`; Reason (`reason\|\|error`)             |
+| 15  | `admin/add_lang_categories_to_owid_pages/details.html`<br>`createColumns()`                                                  | 12   | pages_success, pages_skipped, pages_failed                                  | Language/category step chain                                |
+| 16  | `admin/fix_nested_main_files/details.html`<br>`createTableColumns(show_reason, show_result)`                                 | 5    | pages_success, pages_failed, pages_skipped                                  | Conditional Result/Reason columns                           |
+
+**Total: 16 functions across 11 files.**
 
 ---
 
-### Naming collisions: same function name, different behavior
+## 3. Duplicate / Redundant Patterns
 
--   **Confidence:** Low (naming, not logic)
--   **Files / names:**
-    -   `createColumns` defined in **four** files: crop_main_files:108, rename_owid_pages:96,
-        create_owid_pages:118, add_lang_categories_to_owid_pages:70 — each with a **different** column
-        set (only rename's is parameterized).
-    -   `createUpdatedColumns` defined in update_owid_charts:85 and collect_templates_data:135 — totally
-        different columns (charts vs templates).
-    -   `createTableColumns` defined in extract:117, copy:141, fix_nested:62 — different columns/signature.
--   **HTML consumers:** their respective pages.
--   **Similarity:** Names only.
--   **Differences:** Column contents differ entirely (documented in the Column Function Inventory).
--   **Recommendation:** **Do not merge.** Rename each to a page-specific, descriptive name to remove
-    reader confusion (e.g. `cropColumns()`, `renameColumns()`, `createOwidPagesColumns()`,
-    `collectTemplateUpdatedColumns()`, `fixNestedColumns()`). This is a clarity/refactor action, not a
-    logic merge.
--   **Required call-site changes:** Rename within each template's `$(document).ready` block
-    (1–5 calls each).
--   **Removal candidate:** No.
+### 3.1 `renderOwidTitle` ↔ `renderOwidTemplate` — exact duplicate (High confidence)
 
-## Recommended Consolidation
+Byte-identical bodies in `collect_templates_data` and `create_owid_pages`. **Merge into one
+shared helper** (`renderOwidTitle`) in `macros.js`; delete both local copies.
 
-| Priority | Current Functions                                                         | Canonical Function                                          | Action                                    | Confidence |
-| -------- | ------------------------------------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------- | ---------- |
-| 1        | `renderOwidTitle` (collect:106), `renderOwidTemplate` (create_owid:108)   | `renderOwidTitle` in `macros.js`                            | Merge / Remove both locals                | High       |
-| 2        | `#` index column block in 14 functions                                    | `indexColumn()` in `macros.js`                              | Refactor into shared helper               | High       |
-| 3        | `createSkippedColumns` (svglang:128), `createSkippedColumns` (charts:201) | `skippedColumns({...})` in a shared `data_tables.js` helper | Refactor / parameterize                   | Medium     |
-| 4        | `createTableColumns` (extract:117), `createTableColumns` (copy:141)       | `buildFileTableColumns(extra, opts)` in shared helper       | Refactor into shared base + thin wrappers | Medium     |
-| 5        | `createColumns` ×4, `createUpdatedColumns` ×2, `createTableColumns` ×3    | Keep separate, rename to page-specific names                | Refactor (rename) for clarity             | Low        |
+### 3.2 `#` row-index column — repeated in 14 of 16 functions (High confidence)
 
-Legend: **Merge** = fold duplicate into one; **Remove** = delete the duplicate copy;
-**Keep separate** = do not combine; **Refactor into shared helper** = extract common logic;
-**Needs manual review** = review before acting (Medium/Low items).
+Exact same object literal (`{ data: null, title: '#', render: (d,t,r,meta) => meta.row + 1 }`,
+sometimes as a named function instead of an arrow). **Extract to `indexColumn()`** in `macros.js`.
+The two `download_main_files` functions must keep `data: 'template_id'` — do not merge these.
 
-## Functions That Should Not Be Merged
+### 3.3 "Reason / error message" column — duplicated 5× with 4 slightly different fallback chains (Medium)
 
-1. **`createColumns` (crop_main_files) vs `createColumns` (create_owid_pages) vs
-   `createColumns` (add_lang_categories_to_owid_pages) vs `createColumns` (rename_owid_pages).**
-   Despite sharing a name, their columns are materially different (crop: Cropped/Compare/step chain;
-   create_owid: New Page/Create Page; add_lang: SVG File/Languages/Categories/Status; rename:
-   Old/New title). Merging would destroy page-specific behavior. Action = rename only.
+Appears in `add_svglanguages_template` (skipped), `update_owid_charts` (skipped), `download_main_files`
+(result), `fix_nested_main_files`, and `collect_templates_data` ("Msg"), each reading a different
+combination of `reason || error || msg || message`. **Extract a parameterized `messageColumn(title,
+dataKey)`** that checks all four fields in a stable order.
 
-2. **`createUpdatedColumns` (update_owid_charts:85) vs `createUpdatedColumns`
-   (collect_templates_data:135).** Same name, completely different domains: OWID _chart_ time/years/
-   variable diffs vs OWID _template_ file/year/source/msg. Must remain separate; rename the
-   collect one (e.g. `collectTemplateUpdatedColumns`).
+### 3.4 "Title" column via `renderCommonsLink` — duplicated 6× (Medium)
 
-3. **`createSkippedColumns` (svglang) vs `createSkippedColumns` (charts).** Not identical — different
-   link entity (Commons title vs OWID slug) and different reason field (`reason||error||msg` vs
-   `skip_reason`). Parameterize rather than merge verbatim.
+Same render function, only `data` key and `title` label differ, across `add_svglanguages_template`,
+`collect_templates_data`, `rename_owid_pages` (×2), `download_main_files`, `add_lang_categories`, and
+`fix_nested_main_files`. **Extract `titleColumn(dataKey, label)`.**
 
-4. **`createDownloadedColumns` / `createResultColumns` `#` column.** These intentionally use
-   `data: 'template_id'` as the `#` value (stable file id), unlike the 14 functions that use
-   `meta.row + 1` (row index). Merging them into the `indexColumn()` meta.row helper would change
-   semantics. Keep them as-is (or add a separate `idIndexColumn('template_id')` helper if desired).
+### 3.5 "File" link column — near-duplicate 4× (Medium)
 
-5. **`createTableColumns` (fix_nested:62) vs extract/copy.** fix_nested uses a different signature
-   `(show_reason, show_result)` and different columns (Oldest File via `renderCommonsFileLinkShort`,
-   Result via `row.fix_result?.message`). Not a merge candidate; refactor into shared name/skeleton
-   only if desired (Low).
+`renderCommonsFileLink` and `renderCommonsFileLinkShort` differ only in default label and are used
+across `extract`, `copy`, `crop`, `download`, and `fix_nested`. **Unify into one renderer with a
+`label` parameter**, then extract `fileLinkColumn(dataKey, label)`.
 
-## Proposed Target Structure
+### 3.6 `createTableColumns` (extract) ↔ `createTableColumns` (copy) — high structural overlap (Medium)
 
-Recommended end-state for DataTable column definitions:
+Identical signature and an identical leading/trailing scaffold (`#`, File, Status, Download, Error);
+only the middle columns differ (extract: Translations/Languages; copy: step-based Nested/Inject/
+Upload/Translations). **Extract `baseFileColumns(opts)`**, with each page appending its own middle
+columns. Do not collapse into a single unconditional function — the middle columns are genuinely
+different.
 
--   **`src/static/js/data_table_ajax/macros.js`** (shared, already global):
-    -   Keep all existing render helpers (`renderStatus`, `renderWikiLink`, `renderCommonsLink`,
-        `renderCommonsFileLink`, `renderCommonsFileLinkShort`, `renderStep`, `diffLink`).
-    -   **Add** `renderOwidTitle` (canonical, from the merge) and `indexColumn()`.
--   **New shared module** `src/static/js/data_table_ajax/column_helpers.js` (loaded in
-    `base.html` alongside `table.js`/`macros.js`):
-    -   `skippedColumns({ linkData, linkRender, reasonData })` — covers svglang & charts skipped tables.
-    -   `buildFileTableColumns(middleCols, { show_download, show_nested, err_colmn, show_status })`
-        — common `#/File/Status/Download/Error` scaffold for extract & copy.
-    -   Optional: `idIndexColumn(dataKey)` for download's `template_id` index variant.
--   **Per-page templates:** keep only thin callers that pass page-specific data keys/renderers to the
-    shared helpers; rename the generic `createColumns`/`createTableColumns`/`createUpdatedColumns`
-    duplicates to page-specific names for clarity. Page-local render helpers that are genuinely
-    unique (`renderCropTemplate`, `renderOwidSlug`, `renderOwidVariableLink`) stay local.
+### 3.7 `createSkippedColumns` (svglang) ↔ `createSkippedColumns` (charts) — same shape, different data (Medium)
 
-This keeps `initServerTable` as the single wiring point, centralizes shared column _shape_ and
-_renderers_, and removes name collisions while preserving behaviorally distinct tables.
+Both are `#` + link column + Reason, but the link entity (Commons title vs. OWID slug) and the reason
+field (`reason||error||msg` vs. `skip_reason`) differ. **Parameterize into a shared
+`skippedColumns({ linkData, linkRender, reasonData })`.**
 
-## Cleanup Impact
+### 3.8 `add_svglanguages_template::createProcessedColumns` ↔ `create_owid_pages::createColumns` — partial overlap (Medium)
 
--   **Functions that can be deleted:** the two local copies of `renderOwidTitle`/`renderOwidTemplate`
-    (exact duplicate). The inline `#` index block is removed from 14 functions (folded into
-    `indexColumn()`).
--   **Functions that can be consolidated:** `createSkippedColumns` ×2 → `skippedColumns({...})`;
-    `createTableColumns` (extract/copy) → `buildFileTableColumns(...)`. The 14 wrappers using
-    `indexColumn()` shrink by ~4 lines each.
--   **Files affected:**
-    -   `src/static/js/data_table_ajax/macros.js` (add `renderOwidTitle`, `indexColumn`)
-    -   New `src/static/js/data_table_ajax/column_helpers.js` (add `skippedColumns`,
-        `buildFileTableColumns`)
-    -   `src/templates/base.html` (add `<script>` for `column_helpers.js`)
-    -   11 template detail pages (slim down column functions; rename generic-named ones)
--   **HTML call sites affected:** all 11 `initServerTable(` consumers are touched only indirectly
-    (function bodies change); the table-id arguments and call count stay the same. `initServerTable`
-    calls themselves do not change.
--   **Estimated reduction in duplicated column-definition logic:** ~17 occurrences of the 4-line `#`
-    index block removed (~68 LOC) + 1 exact render-duplicate removed (~6 LOC) + two ~10-line skipped
-    builders collapsed to one parameterized helper (~10+ LOC). Net removal of ~85–100 LOC of duplicated
-    configuration, plus elimination of 3 sets of colliding names improving maintainability.
+Both share a Template + "Load Text" + "Generate Text" trio that becomes structurally identical once
+3.1 is fixed. **Extract `templateStepColumns()`** for the shared trio; each page appends its
+remaining steps.
 
-## Verification Checklist
+### 3.9 `update_owid_charts`'s three functions share a Slug column (Medium)
 
--   [ ] Every `initServerTable(` consumer has been accounted for (11 HTML files listed above).
--   [ ] Every column-generation function has been accounted for (16 definition sites inventoried).
--   [ ] Duplicate implementations have been reviewed (`renderOwidTitle`/`renderOwidTemplate`; the `#`
-        block; `createSkippedColumns` ×2; `createTableColumns` extract/copy).
--   [ ] Call sites have been identified before removal (per-page `$(document).ready` blocks; no
-        `initServerTable` argument changes required).
--   [ ] Behaviorally different functions have not been incorrectly merged (`createColumns` ×4,
-        `createUpdatedColumns` ×2, download's `template_id` index, fix_nested).
--   [ ] No unused column-generation functions remain after consolidation (confirm each renamed/thin
-        wrapper is still referenced by at least one `initServerTable` call).
--   [ ] Shared helpers added to `macros.js` / `column_helpers.js` load correctly via `base.html`
-        before any template that uses them.
--   [ ] Visual/behavioral regression check on each of the 11 job detail pages after refactor (column
-        order, visibility flags, and row-index vs template_id `#` values preserved).
+`createUpdatedColumns`, `createFailedColumns`, and `createSkippedColumns` in the same file all start
+with `#` + `Slug → renderOwidSlug`. **Extract `slugColumn()`**; each function keeps only its
+differing tail columns.
+
+### 3.10 Name collisions — same identifier, different columns (Low confidence — naming only, not a logic merge)
+
+-   `createColumns()` defined in 4 files (`crop_main_files`, `rename_owid_pages`, `create_owid_pages`,
+    `add_lang_categories_to_owid_pages`) — all materially different column sets.
+-   `createUpdatedColumns()` defined in `update_owid_charts` and `collect_templates_data` — chart data
+    vs. template data, unrelated.
+-   `createTableColumns()` defined in `extract`, `copy`, and `fix_nested` — different signatures/columns.
+-   `createSkippedColumns()` defined in `add_svglanguages_template` and `update_owid_charts` — see 3.7.
+
+**Recommendation: rename, do not merge.** e.g. `cropColumns()`, `renameColumns()`,
+`createOwidPagesColumns()`, `collectTemplateUpdatedColumns()`, `fixNestedColumns()`.
+
+---
+
+## 4. Functions That Should NOT Be Merged
+
+1. The four `createColumns()` implementations — despite the shared name, their column sets are
+   materially different (crop/compare steps vs. new/create page vs. SVG/language/category steps vs.
+   old/new title). Rename only.
+2. `createUpdatedColumns` (charts) vs. `createUpdatedColumns` (templates) — unrelated domains
+   (chart time/variable diffs vs. template file/year/source data).
+3. `createSkippedColumns` (svglang) vs. `createSkippedColumns` (charts) — different link entity and
+   reason field; parameterize, don't force into one literal body.
+4. `download_main_files`'s `#` column (`template_id`) — a stable database id, not a row index; keep
+   separate from `indexColumn()`, or add an explicit `idIndexColumn('template_id')` variant if wanted.
+5. `createTableColumns` (fix_nested) vs. extract/copy — different signature and column set; refactor
+   into a shared naming/skeleton convention only if useful, not a direct merge.
+
+---
+
+## 5. Proposed Target Structure
+
+Both source audits converge on the same underlying idea — centralize repeated column _shapes_ and
+renderers into shared modules — but propose different levels of granularity. This unified
+recommendation adopts the more granular breakdown (closer to `datatable_columns_dedup_report.md`)
+since it removes more duplication, while keeping the simpler grouping from
+`data_table_column_duplication_audit.md` as an acceptable lighter-weight alternative.
+
+**`src/static/js/data_table_ajax/macros.js`** (already shared/global) — add:
+
+-   `indexColumn(title = '#')` — the row-index cell (§3.2)
+-   `titleColumn(dataKey, label)` — Commons-link title cell (§3.4)
+-   `fileLinkColumn(dataKey, label)` — unified file-link cell, replacing the
+    `renderCommonsFileLink`/`renderCommonsFileLinkShort` split (§3.5)
+-   `messageColumn(title, dataKey)` — reason/error fallback cell (§3.3)
+-   `slugColumn()` — OWID slug link cell (§3.9)
+-   `templateColumn(dataKey, label)` — OWID template-title cell, replacing `renderOwidTemplate`/
+    `renderOwidTitle` (§3.1)
+
+**New shared module `src/static/js/data_table_ajax/column_helpers.js`** (loaded in `base.html`
+alongside `table.js`/`macros.js`) — add:
+
+-   `baseFileColumns(opts)` — the common `#`/File/Status/Download/Error scaffold for extract & copy (§3.6)
+-   `templateStepColumns(opts)` — the shared Template/Load Text/Generate Text trio (§3.8)
+-   `skippedColumns({ linkData, linkRender, reasonData })` — covers svglang & charts skipped tables (§3.7)
+-   Optional: `idIndexColumn(dataKey)` for `download_main_files`'s `template_id` index variant
+
+**Per-page templates:** keep only thin callers that pass page-specific data keys/renderers to the
+shared helpers. Rename the generic, colliding names (`createColumns`, `createTableColumns`,
+`createUpdatedColumns`, `createSkippedColumns`) to page-specific names for clarity (§3.10). Genuinely
+unique page-local renderers (`renderCropTemplate`, `renderOwidSlug`, `renderOwidVariableLink`) stay
+local.
+
+This keeps `initServerTable` as the single wiring point, centralizes shared column shape/renderers,
+and removes name collisions without merging behaviorally distinct tables.
+
+---
+
+## 6. Migration Impact
+
+| File                                             | Action                                                                                                                                        |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `macros.js`                                      | Add `indexColumn`, `titleColumn`, `fileLinkColumn`, `messageColumn`, `slugColumn`, `templateColumn`; unify file-link and OWID-title renderers |
+| New `column_helpers.js`                          | Add `baseFileColumns`, `templateStepColumns`, `skippedColumns`                                                                                |
+| `base.html`                                      | Add `<script>` tag loading `column_helpers.js` before templates that use it                                                                   |
+| `extract_files_translations/details.html`        | Replace `createTableColumns` with `baseFileColumns` + extras                                                                                  |
+| `copy_svg_langs/details.html`                    | Replace `createTableColumns` with `baseFileColumns` + extras                                                                                  |
+| `crop_main_files/details.html`                   | `createColumns` → `indexColumn` + shared renderers; rename function                                                                           |
+| `add_svglanguages_template/details.html`         | `createProcessedColumns`/`createSkippedColumns` → shared builders                                                                             |
+| `update_owid_charts/details.html`                | 3 functions → `indexColumn` + `slugColumn` + `messageColumn`                                                                                  |
+| `collect_templates_data/details.html`            | 2 functions → shared builders; drop local `renderOwidTitle`                                                                                   |
+| `rename_owid_pages/details.html`                 | `createColumns` → `indexColumn` + `titleColumn`; rename function                                                                              |
+| `create_owid_pages/details.html`                 | `createColumns` → shared template builders; drop local `renderOwidTemplate`; rename function                                                  |
+| `download_main_files/details.html`               | 2 functions → `titleColumn`/`messageColumn`, keep `template_id` index                                                                         |
+| `add_lang_categories_to_owid_pages/details.html` | `createColumns` → `indexColumn` + `titleColumn` + shared file/step columns; rename function                                                   |
+| `fix_nested_main_files/details.html`             | `createTableColumns` → `indexColumn` + `titleColumn` + `fileLinkColumn` + `messageColumn`; rename function                                    |
+
+**None of the 11 `initServerTable(...)` call sites themselves need to change** — table IDs and call
+counts stay the same; only the column-function bodies are refactored.
+
+---
+
+## 7. Summary of Removals / Merges
+
+| Category                                                                                                | Occurrences    | Action                                  |
+| ------------------------------------------------------------------------------------------------------- | -------------- | --------------------------------------- |
+| Row-`#` index column bodies                                                                             | 14             | → 1 shared `indexColumn()`              |
+| Reason/error message column bodies                                                                      | 5              | → 1 shared `messageColumn()`            |
+| Title column via `renderCommonsLink`                                                                    | 6              | → 1 shared `titleColumn()`              |
+| File link column bodies                                                                                 | 4              | → 1 shared `fileLinkColumn()`           |
+| `renderOwidTemplate` ≡ `renderOwidTitle`                                                                | 2 (exact dup)  | → 1 function                            |
+| `renderCommonsFileLink` / `renderCommonsFileLinkShort`                                                  | 2              | → 1 unified renderer                    |
+| `extract` vs. `copy` base columns                                                                       | 2              | → shared `baseFileColumns()`            |
+| Template/Load Text/Generate Text trio                                                                   | 2              | → shared `templateStepColumns()`        |
+| `createSkippedColumns` ×2                                                                               | 2              | → shared `skippedColumns()`             |
+| Name collisions (`createColumns`, `createTableColumns`, `createUpdatedColumns`, `createSkippedColumns`) | 11 definitions | Rename to unique, domain-specific names |
+
+**Estimated net effect:** roughly 30 near-identical inline column blocks collapse into ~8–9 reusable
+shared builders, removing on the order of 85–100+ lines of duplicated configuration and eliminating
+all 4 sets of colliding function names — without altering any table's visible behavior.
+
+---
+
+## 8. Verification Checklist
+
+-   [ ] All 11 `initServerTable(` consumers accounted for.
+-   [ ] All 16 column-generation functions accounted for.
+-   [ ] Every duplicate/near-duplicate above reviewed against real behavior before merging.
+-   [ ] Call sites identified before removal — no `initServerTable` argument changes required.
+-   [ ] Behaviorally distinct functions (§4) are **not** incorrectly merged.
+-   [ ] `download_main_files`'s `template_id` index is preserved, not folded into `indexColumn()`.
+-   [ ] New shared helpers load correctly via `base.html` before any template that uses them.
+-   [ ] Visual/behavioral regression check on all 11 job detail pages after refactor (column order,
+        visibility flags, and `#`/index values preserved).
+
+---
+
+## 9. Conclusion
+
+Both source audits reach the same conclusion by different routes: the 16 column-generation functions
+across 11 templates contain a large amount of copy-pasted (not just similarly-named) logic — most
+notably one exact-duplicate helper and a row-index block repeated 14 times — that can be consolidated
+into 6 shared cell builders in `macros.js` plus 3 shared table-shape builders in a new
+`column_helpers.js`, with zero required changes to `initServerTable` call sites and zero risk to the
+four groups of functions that only share a _name_, not behavior.

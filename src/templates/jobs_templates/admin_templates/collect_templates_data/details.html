@@ -99,15 +99,6 @@
     const WIKIDOMAIN = "{{ wiki_domain }}";
     const EDIT_TEMPLATE_BASE = "{{ url_for('adminpanel.templates.edit_by_title', template_title='__TITLE__') }}";
 
-    /**
-     * Render template title, stripping "Template:OWID/" prefix.
-     * @param {string} title
-     */
-    function renderOwidTitle(title) {
-        if (!title) return '-';
-        const display = title.replace(/^Template:OWID\//, '');
-        return renderWikiLink(WIKIDOMAIN, title, display);
-    }
 
     /**
      * Columns for pages_added: #, Title
@@ -143,7 +134,7 @@
             {
                 data: 'title',
                 title: 'Title',
-                render: renderOwidTitle,
+                render: (title) => renderOwidTitle(WIKIDOMAIN, title),
             },
             {
                 // Edit button — pup_window_new popup

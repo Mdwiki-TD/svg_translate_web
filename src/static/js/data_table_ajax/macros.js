@@ -40,7 +40,7 @@ function renderStatus(status) {
  * @return {string}
  */
 
-function renderWikiLink(wiki_domain, title, label=null) {
+function renderWikiLink(wiki_domain, title, label = null) {
     if (!title) return '-';
 
     let display_label = label || title;
@@ -127,4 +127,15 @@ function diffLink(wiki_domain, newrevid, title = null) {
         `;
     }
     return `<span class="text-muted">-</span>`;
+}
+
+/**
+ * Render template title, stripping "Template:OWID/" prefix.
+ * @param {string} wiki_domain
+ * @param {string} title
+ */
+function renderOwidTitle(wiki_domain, title) {
+    if (!title) return '-';
+    const display = title.replace(/^Template:OWID\//, '');
+    return renderWikiLink(wiki_domain, title, display);
 }
