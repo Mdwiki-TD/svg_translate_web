@@ -57,13 +57,13 @@
 {% endif %}
 
 {% if pages_redirected %}
-{% set note = "
+{% set note -%}
 <div class="alert alert-info mb-3">
     <i class="bi bi-arrow-right-circle"></i>
     Both the old and new page titles existed as real pages. The old (lowercase) page
     was turned into a redirect pointing to the new (capitalized) page.
 </div>
-" %}
+{%- endset %}
 
 {{ new_pages_table(
     table_title="Redirected",
