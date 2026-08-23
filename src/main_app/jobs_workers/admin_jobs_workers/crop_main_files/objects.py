@@ -109,12 +109,12 @@ class CropMainFilesWorkerObject(StandardAdminWorkerObject):
 
     summary: CropMainFilesSummary = field(default_factory=CropMainFilesSummary)
     pages_to_work: list[str] = field(default_factory=list)
-    pages_processed: list[dict[str, Any]] = field(default_factory=list)
-    pages_uploaded: list[dict[str, Any]] = field(default_factory=list)
-    pages_updated: list[dict[str, Any]] = field(default_factory=list)
-    pages_skipped: list[dict[str, Any]] = field(default_factory=list)
-    pages_failed: list[dict[str, Any]] = field(default_factory=list)
-    pages_errors: list[dict[str, Any]] = field(default_factory=list)
+    pages_processed: list[CropFileProcessingInfo] = field(default_factory=list)
+    pages_uploaded: list[CropFileProcessingInfo] = field(default_factory=list)
+    pages_updated: list[CropFileProcessingInfo] = field(default_factory=list)
+    pages_skipped: list[CropFileProcessingInfo] = field(default_factory=list)
+    pages_failed: list[CropFileProcessingInfo] = field(default_factory=list)
+    pages_errors: list[CropFileProcessingInfo] = field(default_factory=list)
 
 
 __all__ = [
