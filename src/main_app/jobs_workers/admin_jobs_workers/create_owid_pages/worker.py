@@ -61,6 +61,12 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
         if not self.update_all:
             templates = self.filter_created(templates)
+            if templates is None:
+                self.result.status = "failed"
+                self.result.note = "Unable to verify whether OWID pages already exist; no pages were created."
+                logger.error("Job %s: %s", self.job_id, self.result.note)
+                return self.result
+
             if not templates:
                 self.result.summary.skipped = len_all
                 self.result.status = "skipped"
@@ -97,13 +103,16 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
     # Initialisation helpers
     # ------------------------------------------------------------------
 
-    def filter_created(self, templates) -> list[TemplateRecord]:
+    def filter_created(self, templates) -> list[TemplateRecord] | None:
         owid_pages = [t.title.removeprefix("Template:") for t in templates]
         pages_created = is_pages_exists(owid_pages, self.site)
+        if pages_created is None:
+            logger.error("Could not verify whether OWID pages already exist")
+            return None
+
         already_created = [x for x, v in pages_created.items() if v is True]
 
         if not already_created:
-            logger.warning("filter_created failed returning all templates")
             return templates
 
         logger.debug("len of OWID already created pages: %s", len(already_created))

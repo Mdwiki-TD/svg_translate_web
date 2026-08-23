@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+import logging
+
+import pytest
+from mwclient.errors import MwClientError
+from requests.exceptions import RequestException
+
 from src.main_app.api_services.query_api import (
     get_category_members_titles,
     get_double_redirects,
@@ -79,6 +85,36 @@ class TestIsPagesExists:
         result = is_pages_exists(titles, mock_site)
         assert mock_site.get.call_count == 2
         assert len(result) == 55
+
+
+class TestIsPagesExistsFailures:
+    @pytest.mark.parametrize("client_error", [MwClientError("client failure"), RequestException("request failure")])
+    def test_returns_none_and_logs_client_failure(self, mock_site, caplog, client_error):
+        caplog.set_level(logging.ERROR, logger="src.main_app.api_services.query_api")
+        mock_site.get.side_effect = client_error
+
+        result = is_pages_exists(["Page A"], mock_site)
+
+        assert result is None
+        assert any(record.exc_info for record in caplog.records)
+
+    def test_does_not_return_partial_results_after_batch_failure(self, mock_site):
+        first_batch = {"1": {"pageid": 1, "ns": 0, "title": "Page0"}}
+        mock_site.get.side_effect = [
+            {"query": {"pages": first_batch}},
+            RequestException("request failure"),
+        ]
+
+        result = is_pages_exists([f"Page{i}" for i in range(51)], mock_site)
+
+        assert result is None
+        assert mock_site.get.call_count == 2
+
+    def test_propagates_unexpected_errors(self, mock_site):
+        mock_site.get.side_effect = RuntimeError("application failure")
+
+        with pytest.raises(RuntimeError, match="application failure"):
+            is_pages_exists(["Page A"], mock_site)
 
 
 class TestResolveRedirects:
@@ -197,6 +233,27 @@ class TestGetDoubleRedirects:
         mock_site.get.return_value = {}
         result = get_double_redirects(mock_site)
         assert result == []
+
+
+class TestQueryApiClientFailures:
+    @pytest.mark.parametrize(
+        ("query_function", "expected"),
+        [
+            (lambda site: get_template_pages("Template:Test", site), []),
+            (lambda site: resolve_redirects(["Page A"], site), {"normalized": {}, "from_to": {}}),
+            (lambda site: search_pages("test", site), []),
+            (lambda site: get_double_redirects(site), []),
+            (lambda site: get_page_links("Page A", site), {}),
+        ],
+        ids=["template_pages", "redirects", "search", "double_redirects", "page_links"],
+    )
+    @pytest.mark.parametrize("client_error", [MwClientError("client failure"), RequestException("request failure")])
+    def test_returns_existing_fallback_and_logs_client_failure(self, mock_site, caplog, query_function, expected, client_error):
+        caplog.set_level(logging.ERROR, logger="src.main_app.api_services.query_api")
+        mock_site.get.side_effect = client_error
+
+        assert query_function(mock_site) == expected
+        assert any(record.exc_info for record in caplog.records)
 
 
 class TestGetCategoryMembersTitles:

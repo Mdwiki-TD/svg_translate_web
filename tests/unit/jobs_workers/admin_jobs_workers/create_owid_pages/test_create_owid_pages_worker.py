@@ -713,3 +713,33 @@ class TestCreateOwidPagesWorkerProcess:
 
         # Should stop early due to cancellation
         assert result.status == "cancelled"
+
+
+class TestCreateOwidPagesWorkerExistingPageCheck:
+    def test_filter_created_uses_complete_lookup_result(self, mock_owid_pages_services):
+        templates = [
+            TemplateRecord(id=1, title="Template:OWID/Existing", main_file="existing.svg", last_world_file=None),
+            TemplateRecord(id=2, title="Template:OWID/New", main_file="new.svg", last_world_file=None),
+        ]
+        mock_owid_pages_services["is_pages_exists"].return_value = {
+            "OWID/Existing": True,
+            "OWID/New": False,
+        }
+        worker = CreateOwidPagesWorker(JobsRunner(job_id=1, user={}, cancel_event=None))
+
+        filtered = worker.filter_created(templates)
+
+        assert [template.title for template in filtered] == ["Template:OWID/New"]
+
+    def test_process_stops_before_page_creation_when_lookup_fails(self, mock_owid_pages_services):
+        mock_owid_pages_services["list"].return_value = [
+            TemplateRecord(id=1, title="Template:OWID/Test", main_file="test.svg", last_world_file=None)
+        ]
+        mock_owid_pages_services["is_pages_exists"].return_value = None
+        worker = CreateOwidPagesWorker(JobsRunner(job_id=1, user={}, cancel_event=None))
+
+        result = worker.process()
+
+        assert result.status == "failed"
+        assert result.note == "Unable to verify whether OWID pages already exist; no pages were created."
+        mock_owid_pages_services["MwClientPage"].assert_not_called()

@@ -7,7 +7,8 @@ import time
 from typing import Any
 
 from mwclient.client import Site
-from mwclient.errors import APIError
+from mwclient.errors import APIError, MwClientError
+from requests.exceptions import RequestException
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +30,8 @@ def get_template_pages(
     }
     try:
         result = site.get("query", titles=title, **params)
-    except Exception as e:
-        logger.error(f"get_template_pages failed: {e=}")
+    except (MwClientError, RequestException):
+        logger.exception("get_template_pages failed")
         return []
 
     query_data = result.get("query", {})
@@ -47,16 +48,16 @@ def get_template_pages(
 def is_pages_exists(
     titles: list[str],
     site: Site,
-) -> dict[str, bool]:
+) -> dict[str, bool] | None:
     result: dict[str, Any] = {}
 
     for i in range(0, len(titles), 50):
         group = titles[i : i + 50]
         try:
             json1 = site.get("query", titles="|".join(group))
-        except Exception as e:
-            logger.error(f"is_pages_exists failed: {e=}")
-            continue
+        except (MwClientError, RequestException):
+            logger.exception("is_pages_exists failed")
+            return None
 
         query_data = json1.get("query", {})
 
@@ -92,8 +93,8 @@ def resolve_redirects(
 
         try:
             data = site.get("query", titles="|".join(group), **params)
-        except Exception as e:
-            logger.error(f"resolve_redirects failed: {e=}")
+        except (MwClientError, RequestException):
+            logger.exception("resolve_redirects failed")
             continue
 
         query = data.get("query", {}) or {}
@@ -136,8 +137,8 @@ def search_pages(
     }
     try:
         data = site.get("query", **params)
-    except Exception as e:
-        logger.info(e)
+    except (MwClientError, RequestException):
+        logger.exception("search_pages failed")
         return []
 
     if not data:
@@ -192,8 +193,8 @@ def get_double_redirects(site: Site) -> list[dict[str, str]]:
     }
     try:
         data = site.get("query", **params)
-    except Exception as e:
-        logger.error("Error querying redirects: %s", str(e))
+    except (MwClientError, RequestException):
+        logger.exception("get_double_redirects failed")
         return []
 
     if not data:
@@ -221,8 +222,8 @@ def get_page_links(
     }
     try:
         data = site.get("query", **params)
-    except Exception as e:
-        logger.info(f"Error: {e}")
+    except (MwClientError, RequestException):
+        logger.exception("get_page_links failed")
         return {}
 
     out: dict[str, Any] = {"links": {}, "normalized": [], "redirects": []}

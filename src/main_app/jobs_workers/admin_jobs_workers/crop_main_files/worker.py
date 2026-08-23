@@ -70,7 +70,11 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         self.result.summary.total = len(templates)
         logger.info("Job %s: Found %d templates with main files", self.job_id, len(templates))
 
-        self._check_exists(templates)
+        if not self._check_exists(templates):
+            self.result.status = "failed"
+            self.result.note = "Unable to verify whether cropped files already exist; no files were processed."
+            logger.error("Job %s: %s", self.job_id, self.result.note)
+            return self.result
 
         per_item = self.get_priority(len(templates))
 
@@ -95,9 +99,12 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     # Initialisation helpers
     # ------------------------------------------------------------------
 
-    def _check_exists(self, templates) -> None:
+    def _check_exists(self, templates) -> bool:
         cropped_filenames = [generate_cropped_filename(template.last_world_file) for template in templates]
         exists_files = is_pages_exists(cropped_filenames, self.site)
+        if exists_files is None:
+            logger.error("Could not verify whether cropped files already exist")
+            return False
 
         for file in exists_files:
             self.exists[file.removeprefix("File:")] = exists_files[file]
@@ -105,6 +112,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         logger.info("self.exists: %d", len(self.exists))
 
         self.files_processor.exists = self.exists
+        return True
 
     def _load_templates(self) -> list[TemplateRecord]:
         templates = self.template_service.list()

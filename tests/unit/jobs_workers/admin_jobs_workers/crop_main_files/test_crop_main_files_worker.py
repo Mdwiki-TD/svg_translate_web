@@ -1107,3 +1107,21 @@ class TestCropMainFilesProcessorRun:
 
         # Should return early with original result (before after_run modifies it)
         assert result["status"] == "pending"
+
+
+class TestCropMainFilesWorkerExistingFileCheck:
+    def test_process_stops_before_file_processing_when_lookup_fails(self, mock_crop_services, monkeypatch):
+        mock_crop_services["list"].return_value = [
+            TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
+        ]
+        monkeypatch.setattr(
+            "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.is_pages_exists",
+            MagicMock(return_value=None),
+        )
+        worker = CropMainFilesWorker(JobsRunner(job_id=1, user={}, args={}))
+
+        result = worker.process()
+
+        assert result.status == "failed"
+        assert result.note == "Unable to verify whether cropped files already exist; no files were processed."
+        mock_crop_services["download_file"].assert_not_called()
