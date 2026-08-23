@@ -100,6 +100,7 @@
 
 {% block extra_js %}
 <script>
+    const WIKIDOMAIN = "{{ wiki_domain }}";
     const EDIT_TEMPLATE_BASE = "{{ url_for('adminpanel.templates.edit_by_title', template_title='__TITLE__') }}";
 
     /**
@@ -109,8 +110,7 @@
     function renderOwidTitle(title) {
         if (!title) return '-';
         const display = title.replace(/^Template:OWID\//, '');
-        const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${display}</a>`;
+        return renderWikiLink(WIKIDOMAIN, title, display);
     }
 
     /**

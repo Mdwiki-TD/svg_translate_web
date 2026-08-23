@@ -80,6 +80,7 @@
 
 {% block extra_js %}
 <script>
+    const WIKIDOMAIN = "{{ wiki_domain }}";
     /**
      * Column definitions for processed/success/failed tables.
      * Columns: #, Template, Load Text, Generate Text, Add text, Save Page
@@ -97,11 +98,7 @@
             {
                 data: 'template_title',
                 title: 'Template',
-                render: function (title) {
-                    if (!title) return '-';
-                    const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
-                    return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + title + '</a>';
-                }
+                render: (title) => renderWikiLink(WIKIDOMAIN, title),
             },
             {
                 data: 'steps.load_template_text',

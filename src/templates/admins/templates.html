@@ -75,6 +75,7 @@
 {% endblock %}
 {% block extra_js %}
 <script>
+    const WIKIDOMAIN = "{{ wiki_domain }}";
     $(document).ready(function () {
         // get `/api/templates-mismatched-years`, count data, set #mismatched_year = count
         $.get('/api/templates-mismatched-years', function (result) {
@@ -103,9 +104,7 @@
                 },
                 {
                     data: "title",
-                    render: function (data, type, row) {
-                        return `<a href="https://commons.wikimedia.org/wiki/${data}" target="_blank" rel="noopener noreferrer">${data}</a>`;
-                    }
+                    render: (title) => renderWikiLink(WIKIDOMAIN, title),
                 },
                 {
                     data: "main_file",
@@ -135,8 +134,8 @@
                     data: "id",
                     render: function (data, type, row) {
                         // const edit_url = `/adminpanel/templates/${data}/edit`;
-                        const base_url = "{{ url_for('adminpanel.templates.edit_template', template_id='550000000055') }}";
-                        const edit_url = base_url.replace('550000000055', data);
+                        const base_url = "{{ url_for('adminpanel.templates.edit_template', template_id='__TITLE__') }}";
+                        const edit_url = base_url.replace('__TITLE__', data);
                         return `<button type="button" class="btn btn-outline-primary btn-sm" pup-target="${edit_url}" onclick="pup_window_new(this, 700, 600)"><i class="bi bi-pencil"></i> Edit</button>`;
                     },
                 }

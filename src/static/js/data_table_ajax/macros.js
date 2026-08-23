@@ -34,6 +34,22 @@ function renderStatus(status) {
 }
 
 /**
+ * @param {string} wiki_domain
+ * @param {string} title
+ * @param {string | null} label
+ * @return {string}
+ */
+
+function renderWikiLink(wiki_domain, title, label=null) {
+    if (!title) return '-';
+
+    let display_label = label || title;
+
+    const url = `https://${wiki_domain}/wiki/` + encodeURIComponent(title.replace(/ /g, '_'));
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${display_label}</a>`;
+}
+
+/**
  * @param {string} title
  * @param {any} _type
  * @param {any} _row
@@ -42,9 +58,7 @@ function renderStatus(status) {
 function renderCommonsFileLinkShort(title, _type, _row) {
     if (!title) return '-';
     const striped = title.replace('File:', '');
-
-    const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer">File</a>`;
+    return renderWikiLink("commons.wikimedia.org", `File:${striped}`, "File");
 }
 /**
  * @param {string} title
@@ -56,8 +70,7 @@ function renderCommonsFileLink(title, label = '') {
     const striped = title.replace('File:', '');
     const displayLabel = label || `File:${striped}`;
 
-    const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${displayLabel}</a>`;
+    return renderWikiLink("commons.wikimedia.org", `File:${striped}`, displayLabel);
 }
 /**
  * @param {string} title
@@ -66,9 +79,7 @@ function renderCommonsFileLink(title, label = '') {
  * @return {string}
  */
 function renderCommonsLink(title, _type, _row) {
-    if (!title) return '-';
-    const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`;
+    return renderWikiLink("commons.wikimedia.org", title);
 }
 
 /**
@@ -86,8 +97,7 @@ function renderStep(step) {
     const title = step.msg || step.message || step.new_value || step.value || '';
     if (step.result === true || step.result === 'updated') {
         if (step.newrevid && step.newrevid !== 0) {
-            const diffUrl = `https://commons.wikimedia.org/w/index.php?diff=${step.newrevid}`;
-            return `<a href="${diffUrl}" target="_blank"><span class="badge bg-success" title="${title}"><i class="bi bi-check-lg"></i> Diff</span></a>`;
+            return diffLink("commons.wikimedia.org", step.newrevid, title);
         }
         return `<span class="badge bg-success" title="${title}"><i class="bi bi-check-lg"></i></span>`;
     }
@@ -98,4 +108,23 @@ function renderStep(step) {
         return `<span class="badge bg-secondary" title="${title}"><i class="bi bi-dash"></i></span>`;
     }
     return `<span class="text-muted" title="${title}">-</span>`;
+}
+
+/**
+ * @param {string} wiki_domain
+ * @param {number} newrevid
+ * @param {string | null} title
+ */
+function diffLink(wiki_domain, newrevid, title = null) {
+    if (newrevid && newrevid !== 0) {
+        const diffUrl = `https://${wiki_domain}/w/index.php?diff=${newrevid}`;
+        const title_attr = title ? `title="${title}"` : '';
+        return `<a href="${diffUrl}" target="_blank">
+                    <span class="badge bg-success" ${title_attr}>
+                        <i class="bi bi-check-lg"></i> Diff
+                    </span>
+                </a>
+        `;
+    }
+    return `<span class="text-muted">-</span>`;
 }

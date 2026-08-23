@@ -107,6 +107,7 @@
 
 {% block extra_js %}
 <script>
+    const WIKIDOMAIN = "{{ wiki_domain }}";
     /**
      * Render template title, stripping "Template:OWID/" prefix.
      * @param {string} title
@@ -114,8 +115,7 @@
     function renderOwidTemplate(title) {
         if (!title) return '-';
         const display = title.replace(/^Template:OWID\//, '');
-        const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${display}</a>`;
+        return renderWikiLink(WIKIDOMAIN, title, display);
     }
 
     /**
@@ -140,8 +140,7 @@
                 title: 'New Page',
                 render: function (title) {
                     if (!title) return '-';
-                    const url = 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
-                    return `<a href="${url}" target="_blank" rel="noopener noreferrer">OWID Page</a>`;
+                    return renderWikiLink(WIKIDOMAIN, title, "OWID Page");
                 },
             },
             { data: 'steps.load_template_text', title: 'Load Text', orderable: false, render: renderStep },
