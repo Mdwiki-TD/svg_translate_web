@@ -20,8 +20,8 @@ src/static/js/data_table_ajax/macros.js
 أمثلة:
 
 ```
-src/templates/jobs_templates/public/copy_svg_langs/details_new.html
-src/templates/jobs_templates/public/extract_files_translations/details_new.html
+src/templates/jobs_templates/public/copy_svg_langs/details.html
+src/templates/jobs_templates/public/extract_files_translations/details.html
 ```
 
 لنبدأ مثلًا بـ pages_skipped_table
