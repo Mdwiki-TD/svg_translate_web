@@ -19,26 +19,26 @@ from src.main_app.jobs_workers.shared_objects import (
 
 class TestUpdaterOutcome:
     def test_create_with_defaults(self):
-        o = UpdaterOutcome(kind="skipped")
-        assert o.kind == "skipped"
+        o = UpdaterOutcome(status="skipped")
+        assert o.status == "skipped"
         assert o.newrevid == 0
         assert o.msg == ""
 
     def test_frozen(self):
-        o = UpdaterOutcome(kind="changed")
+        o = UpdaterOutcome(status="changed")
         with pytest.raises(AttributeError):
-            o.kind = "error"  # type: ignore
+            o.status = "error"  # type: ignore
 
     def test_to_json(self):
-        o = UpdaterOutcome(kind="missing", msg="not found")
+        o = UpdaterOutcome(status="missing", msg="not found")
         d = o.to_json()
-        assert d["kind"] == "missing"
+        assert d["status"] == "missing"
         assert d["msg"] == "not found"
 
     def test_all_kind_values(self):
-        for kind in ("missing", "skipped", "changed", "error"):
-            o = UpdaterOutcome(kind=kind)
-            assert o.kind == kind
+        for status in ("missing", "skipped", "changed", "error"):
+            o = UpdaterOutcome(status=status)
+            assert o.status == status
 
 
 class TestSummary:

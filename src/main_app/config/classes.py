@@ -16,6 +16,7 @@ class OtherConfig:
     user_agent: str
     wiki_domain: str
     static_server: str
+    tool_title: str
 
 
 @dataclass(frozen=True)
@@ -47,6 +48,7 @@ class DbConfig:
 class Paths:
     log_dir: str
     jobs_path: str
+
     main_files_path: str
     svg_data: str
     svg_data_thumb: str
@@ -60,6 +62,7 @@ class Paths:
     def from_any(cls, data: dict[str, Any] | Paths) -> Paths:
         if isinstance(data, Paths):
             return data
+
         return cls(
             log_dir=data.get("log_dir", ""),
             jobs_path=data.get("jobs_path", ""),

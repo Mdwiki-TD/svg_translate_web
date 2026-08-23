@@ -286,6 +286,30 @@ def get_category_members_titles(
     return all_files
 
 
+def import_page_from_wiki(
+    site: Site,
+    title: str,
+    family: str = "wikipedia",
+) -> dict:
+    """Import revision history of *title* from another wiki family.
+
+    Uses the MediaWiki ``action=import`` API (interwiki import).
+    Returns the API response dict.
+    """
+    params = {
+        "action": "import",
+        "title": title,
+        "interwikisource": family,
+        "fullhistory": 1,
+    }
+    try:
+        result = site.post(**params)
+        return result or {}
+    except Exception as exc:
+        logger.exception("import_page_from_wiki failed for %s", title)
+        return {"error": str(exc)}
+
+
 __all__ = [
     "get_template_pages",
     "get_page_links",
@@ -294,4 +318,5 @@ __all__ = [
     "search_pages",
     "get_double_redirects",
     "get_category_members_titles",
+    "import_page_from_wiki",
 ]

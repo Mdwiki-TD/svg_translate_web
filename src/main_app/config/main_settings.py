@@ -57,7 +57,7 @@ def _load_security_config() -> SecurityConfig:
     """
     Load security configuration (Flask 3.1+ features)
     """
-    # MAX_CONTENT_LENGTH: Maximum request size (default 100MB for SVG uploads)
+    # MAX_CONTENT_LENGTH: Maximum request size (default 100MB)
     max_content_length = _env_int("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
 
     # MAX_FORM_MEMORY_SIZE: Maximum form data in memory (default 16MB)
@@ -71,9 +71,10 @@ def _load_security_config() -> SecurityConfig:
     secret_key_fallbacks = tuple(key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip())
 
     secret_key = os.getenv("FLASK_SECRET_KEY", "")
+    secret_salt = os.getenv("SECRET_SALT", "svg-translate")
 
     security_config = SecurityConfig(
-        salt="svg-translate",
+        salt=secret_salt,
         secret_key=secret_key,
         max_content_length=max_content_length,
         max_form_memory_size=max_form_memory_size,
@@ -179,11 +180,14 @@ def load_other_config() -> OtherConfig:
         "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
     )
 
+    tool_title = os.getenv("TOOL_TITLE") or "Copy SVG Translations"
+
     _config = OtherConfig(
         csrf_time_limit=csrf_time_limit,
         user_agent=user_agent,
         wiki_domain=wiki_domain,
         static_server=static_server,
+        tool_title=tool_title,
     )
 
     return _config

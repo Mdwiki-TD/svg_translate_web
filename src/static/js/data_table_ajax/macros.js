@@ -50,13 +50,14 @@ function renderCommonsFileLinkShort(title, _type, _row) {
  * @param {string} title
  * @param {any} _type
  * @param {any} _row
+ * @param {string} label
  * @return {string}
  */
-function renderCommonsFileLink(title, _type, _row) {
+function renderCommonsFileLink(title, _type, _row, label) {
     if (!title) return '-';
     const striped = title.replace('File:', '');
 
-    let display_label = `File:${striped}`
+    let display_label = label || `File:${striped}`
 
     const url = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(striped.replace(/ /g, '_'));
     return `<a href="${url}" target="_blank" rel="noopener noreferrer">${display_label}</a>`;

@@ -36,7 +36,7 @@ class SharedMapToJson:
 class UpdaterOutcome:
     """Result of running the updater on one page."""
 
-    kind: Literal["missing", "changed", "error", "skipped"]
+    status: Literal["missing", "changed", "error", "skipped"]
     newrevid: int = 0
     msg: str = ""
 

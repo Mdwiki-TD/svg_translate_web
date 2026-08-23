@@ -120,7 +120,7 @@ class AppFactory:
             return context_data(
                 settings.other.wiki_domain,
                 settings.other.static_server,
-                tool_title="Copy SVG Translations",
+                tool_title=settings.other.tool_title,
             )
 
 

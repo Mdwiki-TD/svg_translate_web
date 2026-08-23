@@ -116,6 +116,7 @@ def test_settings():
         csrf_time_limit=3600,
         static_server="static_server",
         wiki_domain="upload.example.com",
+        tool_title="tool_title",
     )
 
     settings = Settings(

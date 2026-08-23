@@ -1,9 +1,9 @@
 """Utility modules for the main application."""
 
 from .admin_sidebar import create_side
-from .navbar import navbar
+from .navbar import main_navbar
 
 __all__ = [
-    "navbar",
+    "main_navbar",
     "create_side",
 ]
