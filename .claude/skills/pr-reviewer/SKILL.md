@@ -1,6 +1,6 @@
 ---
 name: pr-reviewer
-description: Perform a real, published code review on a GitHub pull request using the gh CLI — not just a console summary. Use this skill whenever the user explicitly asks to review a pull request / PR on GitHub (e.g. "review this PR", "راجع هذا الـ PR", "do a code review on PR #123", "check this pull request and leave comments"). The skill fetches the PR diff and metadata, analyzes correctness, security, performance, style, and test coverage, reviews whether the PR title is accurate/clear and matches the repo's naming convention (suggesting alternatives if not), then PUBLISHES the review directly to GitHub as inline comments plus a submitted review (APPROVE / REQUEST_CHANGES / COMMENT) via `gh api` — it does not just print findings to the console. After publishing, it offers (never assumes) to auto-fix the flagged issues by opening a separate follow-up PR targeting the original PR's branch. Requires the gh CLI to be installed and authenticated (gh auth status) with a token that has repo write / pull-request write scope. Do not trigger this skill just because a PR link or number is mentioned in passing (e.g. "PR #123 depends on the other one") — only trigger on an explicit request to review, audit, or leave feedback on a PR.
+description: Perform a real, published code review on a GitHub PR using the gh CLI — not just a console summary. Trigger only on an explicit request to review/audit a PR (e.g. "review this PR", "راجع هذا الـ PR", "do a code review on PR #123") — not on a passing mention of a PR link/number. Fetches diff and metadata; analyzes correctness, security, performance, style, and test coverage; checks if the PR title is accurate and matches repo convention (suggests alternatives if not); fills in the PR description via `gh pr edit` if empty/unfilled template. Then PUBLISHES the review to GitHub as inline comments plus a submitted review (APPROVE/REQUEST_CHANGES/COMMENT) via `gh api` — never just prints findings. After publishing, offers (never assumes) to auto-fix flagged issues via a separate follow-up PR targeting the original branch. Requires gh CLI installed and authenticated with repo write / PR write scope.
 ---
 
 # PR Reviewer (GitHub, live-publishing)
@@ -82,6 +82,35 @@ Evaluate the PR title (fetched in Step 1 via `title`) against these criteria:
 If the title is already accurate, clear, and follows the repo's convention, say so briefly and move on — don't manufacture a suggestion for a title that's already fine.
 
 If it needs improvement, propose 2-3 concrete alternative titles (not just "consider making this clearer") that follow the detected convention, and include this as its own subsection in the summary body (see updated format below). Do not rename the PR yourself — title changes go in the review as a suggestion for the author to apply, the same way inline code suggestions aren't auto-applied.
+
+## Step 3.6 — Fill in the PR description if empty
+
+Check the `body` field fetched in Step 1. If it's empty, whitespace-only, or just an unmodified template placeholder (e.g. a checklist with nothing filled in, or boilerplate like "Describe your changes here"), draft a real description from the diff and metadata you already gathered — don't ask the user to write one.
+
+Generate a description covering, in this order:
+
+```markdown
+## Summary
+
+<1-3 sentences: what this PR does and why, inferred from the diff and any linked issue/commit messages>
+
+## Changes
+
+-   <bullet per meaningful change, grouped by file/area if there are many>
+
+## Testing
+
+<Note any tests added/modified in the diff. If none, say "No tests included" plainly — don't invent testing that wasn't done.>
+```
+
+-   Base this only on what's actually in the diff and commit messages — don't guess at business context you can't see. If the "why" isn't inferable, keep the Summary to what the diff does and skip speculating about motivation.
+-   Check commit messages for hints (`gh pr view <PR_NUMBER> --repo <owner/repo> --json commits`) — they often state intent better than the diff alone.
+-   This is a separate, standalone action from the review — it edits the PR body directly, it does not go inside the review comment:
+    ```bash
+    gh pr edit <PR_NUMBER> --repo <owner/repo> --body "<generated description>"
+    ```
+-   Mention in your reply to the user that you filled in the empty description, so it's not a silent change.
+-   If the body already has real content (even if brief), leave it alone — this step only fires on genuinely empty/placeholder descriptions, not on descriptions you merely think could be more detailed.
 
 ## Step 4 — Decide the review verdict
 
@@ -250,3 +279,5 @@ Give the user the new PR's URL, a short list of what was fixed vs. skipped, and 
 -   Don't apply fixes without an explicit "yes" from the user after the review is published — Step 7 is opt-in, never automatic.
 -   Don't push fixes directly to the original PR's branch — always use a new branch/PR targeting the original PR's branch.
 -   Don't fix issues that weren't part of the published review, and don't silently guess at ambiguous intent — list those as needing author input instead.
+-   Don't overwrite an existing PR description that already has real content, even if it seems thin — only fill in genuinely empty/placeholder descriptions.
+-   Don't invent business motivation or context for the description that isn't inferable from the diff/commits — describe what changed, not a guessed-at "why" you can't support.
