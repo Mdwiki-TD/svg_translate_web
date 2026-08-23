@@ -27,8 +27,12 @@ def get_template_pages(
         "gtilimit": "max",
         "formatversion": "2",
     }
+    try:
+        result = site.get("query", titles=title, **params)
+    except Exception as e:
+        logger.error(f"get_template_pages failed: {e=}")
+        return []
 
-    result = site.get("query", titles=title, **params)
     query_data = result.get("query", {})
     query_pages = query_data.get("pages", {})
 
@@ -48,8 +52,11 @@ def is_pages_exists(
 
     for i in range(0, len(titles), 50):
         group = titles[i : i + 50]
-
-        json1 = site.get("query", titles="|".join(group))
+        try:
+            json1 = site.get("query", titles="|".join(group))
+        except Exception as e:
+            logger.error(f"is_pages_exists failed: {e=}")
+            continue
 
         query_data = json1.get("query", {})
 
@@ -82,7 +89,13 @@ def resolve_redirects(
 
     for i in range(0, len(titles), 50):
         group = titles[i : i + 50]
-        data = site.get("query", titles="|".join(group), **params)
+
+        try:
+            data = site.get("query", titles="|".join(group), **params)
+        except Exception as e:
+            logger.error(f"resolve_redirects failed: {e=}")
+            continue
+
         query = data.get("query", {}) or {}
 
         for nor in query.get("normalized", []) or []:
@@ -113,7 +126,6 @@ def search_pages(
     limit: int | str = "max",
 ) -> list[str]:
     """Return page titles matching *query* via the MediaWiki search API."""
-    titles: list[str] = []
     params = {
         "list": "search",
         "srsearch": query,
@@ -122,10 +134,16 @@ def search_pages(
         "srwhat": "text",
         "srsort": "just_match",
     }
-    data = site.get("query", **params)
-    if not data:
-        return titles
+    try:
+        data = site.get("query", **params)
+    except Exception as e:
+        logger.info(e)
+        return []
 
+    if not data:
+        return []
+
+    titles: list[str] = []
     query_data = data.get("query") or {}
     for item in query_data.get("search") or []:
         titles.append(item["title"])
@@ -172,7 +190,11 @@ def get_double_redirects(site: Site) -> list[dict[str, str]]:
         "gqplimit": "max",
         # "gqpoffset": "",
     }
-    data = site.get("query", **params)
+    try:
+        data = site.get("query", **params)
+    except Exception as e:
+        logger.error("Error querying redirects: %s", str(e))
+        return []
 
     if not data:
         return []
@@ -197,17 +219,26 @@ def get_page_links(
         "pllimit": "max",
         "converttitles": 1,
     }
-    data = site.get("query", **params)
+    try:
+        data = site.get("query", **params)
+    except Exception as e:
+        logger.info(f"Error: {e}")
+        return {}
+
     out: dict[str, Any] = {"links": {}, "normalized": [], "redirects": []}
+
     if not data:
         return out
 
     query = data.get("query", {}) or {}
+
     out["normalized"] = query.get("normalized", []) or []
     out["redirects"] = query.get("redirects", []) or []
+
     for page in (query.get("pages", {}) or {}).values():
         for link in page.get("links", []) or []:
             out["links"][link["title"]] = {"ns": link["ns"], "title": link["title"]}
+
     return out
 
 
