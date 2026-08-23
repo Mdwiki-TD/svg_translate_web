@@ -33,12 +33,6 @@
 </div>
 {% endblock %}
 
-{% set crop_columns = [
-    "#", "Template", "File", "Cropped", "Compare",
-    "Download", "Crop", "Upload", "Update File",
-    "Update Template", "Update Page", "Update Cropped"
-] %}
-
 {% block job_details %}
 
 {% if pages_uploaded %}
@@ -47,7 +41,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_uploaded",
-    table_headers=crop_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -58,7 +51,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_updated",
-    table_headers=crop_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -69,7 +61,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="files_processed",
-    table_headers=crop_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -80,7 +71,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_skipped",
-    table_headers=crop_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -91,7 +81,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_failed",
-    table_headers=crop_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -164,11 +153,36 @@
                     return '';
                 },
             },
-            { data: 'steps.download', title: 'Download', orderable: false, render: renderStep },
-            { data: 'steps.crop', title: 'Crop', orderable: false, render: renderStep },
-            { data: 'steps.upload_cropped', title: 'Upload', orderable: false, render: renderStep },
-            { data: 'steps.update_original', title: 'Update File', orderable: false, render: renderStep },
-            { data: 'steps.update_template', title: 'Update Template', orderable: false, render: renderStep },
+            {
+                data: 'steps.download',
+                title: 'Download',
+                orderable: false,
+                render: renderStep,
+            },
+            {
+                data: 'steps.crop',
+                title: 'Crop',
+                orderable: false,
+                render: renderStep,
+            },
+            {
+                data: 'steps.upload_cropped',
+                title: 'Upload',
+                orderable: false,
+                render: renderStep,
+            },
+            {
+                data: 'steps.update_original',
+                title: 'Update File',
+                orderable: false,
+                render: renderStep,
+            },
+            {
+                data: 'steps.update_template',
+                title: 'Update Template',
+                orderable: false,
+                render: renderStep,
+            },
             {
                 data: 'steps',
                 title: 'Update Page',

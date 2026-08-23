@@ -58,7 +58,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_added",
-    table_headers=["#", "Title"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -69,7 +68,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_updated",
-    table_headers=["#", "Title", "Edit", "Oldest File", "Newest File", "Template year", "Source", "Slug", "Files", "Msg"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -80,7 +78,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_skipped",
-    table_headers=["#", "Title", "Edit", "Oldest File", "Newest File", "Template year", "Source", "Slug", "Files", "Msg"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -91,7 +88,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_failed",
-    table_headers=["#", "Title", "Edit", "Oldest File", "Newest File", "Template year", "Source", "Slug", "Files", "Msg"],
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}

@@ -3,7 +3,6 @@
     job_id,
     job_type,
     list_name,
-    table_headers=[],
     bp_name='public_jobs',
     note=""
 ) %}
@@ -31,9 +30,6 @@
                 ) }}">
                 <thead>
                     <tr>
-                        {% for header in table_headers %}
-                        <th>{{ header }}</th>
-                        {% endfor %}
                     </tr>
                 </thead>
             </table>

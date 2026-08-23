@@ -44,8 +44,6 @@
 </div>
 {% endblock %}
 
-{% set page_columns = ["#", "Template", "New Page", "Load Text", "Generate Text", "Update Page", "Create Page"] %}
-
 {% block job_details %}
 
 {% if pages_created %}
@@ -54,7 +52,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_created",
-    table_headers=page_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -65,7 +62,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_updated",
-    table_headers=page_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -76,7 +72,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_processed",
-    table_headers=page_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -87,7 +82,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_skipped",
-    table_headers=page_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -98,7 +92,6 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_failed",
-    table_headers=page_columns,
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -143,10 +136,30 @@
                     return renderWikiLink(WIKIDOMAIN, title, "OWID Page");
                 },
             },
-            { data: 'steps.load_template_text', title: 'Load Text', orderable: false, render: renderStep },
-            { data: 'steps.create_new_text', title: 'Generate Text', orderable: false, render: renderStep },
-            { data: 'steps.update_text', title: 'Update Page', orderable: false, render: renderStep },
-            { data: 'steps.create_new_page', title: 'Create Page', orderable: false, render: renderStep },
+            {
+                data: 'steps.load_template_text',
+                title: 'Load Text',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'steps.create_new_text',
+                title: 'Generate Text',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'steps.update_text',
+                title: 'Update Page',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'steps.create_new_page',
+                title: 'Create Page',
+                orderable: false,
+                render: renderStep
+            },
         ];
     }
 
