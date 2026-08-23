@@ -57,7 +57,7 @@ class TemplateNeedUpdateView(db.Model):
             if hasattr(self, key):
                 setattr(self, key, value)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         difference = 0
         if self.max_time and self.last_world_year:
             difference = (self.max_time or 0) - (self.last_world_year or 0)

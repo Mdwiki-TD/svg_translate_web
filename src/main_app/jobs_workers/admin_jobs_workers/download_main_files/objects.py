@@ -26,8 +26,8 @@ class FileInfo:
     path: None | str = None
     size_bytes: None | int = None
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)  # pyright: ignore[reportCallIssue]
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
 
     @classmethod
     def from_template(cls, template: TemplateRecord) -> FileInfo:

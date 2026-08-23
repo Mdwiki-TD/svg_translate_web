@@ -56,7 +56,7 @@ class ApiRoutes:
 
         # Single-pass loop to build data and summary
         for t in templates:
-            data.append(t.to_dict())
+            data.append(t.to_json())
 
             if t.main_file:
                 with_main_file += 1
@@ -84,7 +84,7 @@ class ApiRoutes:
     def templates_mismatched_years_list(self):
         try:
             templates = self.templates_service.list_templates_mismatched_years()
-            data = [t.to_dict() for t in templates]
+            data = [t.to_json() for t in templates]
         except Exception as e:
             logger.exception(e)
             return jsonify({"error": str(e)}), 500
@@ -94,7 +94,7 @@ class ApiRoutes:
     def templates_need_update_list(self):
         templates = self.views_service.list_templates_need_update()
 
-        data = [t.to_dict() for t in templates]
+        data = [t.to_json() for t in templates]
 
         return jsonify({"data": data})
 

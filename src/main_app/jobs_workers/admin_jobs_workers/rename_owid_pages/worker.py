@@ -142,16 +142,16 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
 
         if info.status == "skipped_target_exists":
             self.result.summary.skipped_target_exists += 1
-            self.result.pages_skipped.append(info.to_dict())
+            self.result.pages_skipped.append(info.to_json())
 
         elif info.status == "redirected":
-            self.result.pages_redirected.append(info.to_dict())
+            self.result.pages_redirected.append(info.to_json())
 
         elif info.status == "renamed":
-            self.result.pages_renamed.append(info.to_dict())
+            self.result.pages_renamed.append(info.to_json())
 
         elif info.status == "failed":
-            self.result.pages_failed.append(info.to_dict())
+            self.result.pages_failed.append(info.to_json())
 
     # ------------------------------------------------------------------
     # Internal helpers

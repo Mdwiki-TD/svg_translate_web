@@ -99,8 +99,8 @@ class FilesProcessedItem:
     steps: FileSteps = field(default_factory=lambda: FileSteps())
     is_mapping_merged: bool = False
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)  # pyright: ignore[reportCallIssue]
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass
@@ -127,7 +127,7 @@ class CopySvgLangsWorkerObject(WorkerMapping):
         Converts the dataclass instance back to its original dictionary format.
         """
 
-        return asdict(self)  # pyright: ignore[reportCallIssue]
+        return asdict(self)
 
 
 __all__ = [

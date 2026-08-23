@@ -85,14 +85,14 @@ class TestTemplateInfo:
             assert step.msg is None
 
     def test_template_info_to_dict(self):
-        """Test TemplateInfo.to_dict() returns correct structure."""
+        """Test TemplateInfo.to_json() returns correct structure."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info.status = "completed"
         from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.objects import OneStep
 
         info.steps.load_template_text = OneStep(result=True, msg="Loaded")
 
-        result = info.to_dict()
+        result = info.to_json()
 
         assert result["template_id"] == 1
         assert result["template_title"] == "Template:OWID/test"

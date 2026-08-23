@@ -17,7 +17,7 @@ def test_template_record_slug_generation():
     # Slug should be generated from source
     rec = ensure_template_data_record(rec)
 
-    assert rec.to_dict()["slug"] == "health-expenditure"
+    assert rec.to_json()["slug"] == "health-expenditure"
 
 
 def test_template_record_slug_generation_with_query_params():
@@ -33,7 +33,7 @@ def test_template_record_slug_generation_with_query_params():
     # Slug should exclude query parameters
     rec = ensure_template_data_record(rec)
 
-    assert rec.to_dict()["slug"] == "health-expenditure"
+    assert rec.to_json()["slug"] == "health-expenditure"
 
 
 def test_template_record_last_world_year_from_cropped_file():
@@ -47,7 +47,7 @@ def test_template_record_last_world_year_from_cropped_file():
 
     rec = ensure_template_data_record(rec)
     # Year should be extracted from filename
-    assert rec.to_dict()["last_world_year"] == 2022
+    assert rec.to_json()["last_world_year"] == 2022
 
 
 def test_template_record_last_world_year_from_file():
@@ -62,4 +62,4 @@ def test_template_record_last_world_year_from_file():
     # Year should be extracted from filename
     rec = ensure_template_data_record(rec)
 
-    assert rec.to_dict()["last_world_year"] == 2022
+    assert rec.to_json()["last_world_year"] == 2022

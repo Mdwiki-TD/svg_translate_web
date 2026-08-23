@@ -96,7 +96,7 @@ def ensure_template_data(template_data: dict[str, Any]) -> dict[str, Any]:
 
 
 def ensure_template_data_record(record: TemplateRecord) -> TemplateRecord:
-    template_data = ensure_template_data(record.to_dict())
+    template_data = ensure_template_data(record.to_json())
     for key, value in template_data.items():
         if hasattr(record, key):
             setattr(record, key, value)

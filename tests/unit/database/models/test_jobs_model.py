@@ -50,7 +50,7 @@ def test_job_record_with_all_fields() -> None:
 
 
 def test_job_record_to_dict() -> None:
-    """Test to_dict returns all expected keys with correct values."""
+    """Test to_json returns all expected keys with correct values."""
     dt = datetime(2025, 6, 1, 10, 30, 0)
     rec = JobRecord(
         id=5,
@@ -65,7 +65,7 @@ def test_job_record_to_dict() -> None:
         is_running=1,
     )
 
-    result = rec.to_dict()
+    result = rec.to_json()
 
     assert result["id"] == 5
     assert result["job_type"] == "copy_svg"
@@ -80,7 +80,7 @@ def test_job_record_to_dict() -> None:
 
 
 def test_job_record_to_dict_handles_none() -> None:
-    """Test to_dict correctly serializes None values."""
+    """Test to_json correctly serializes None values."""
     rec = JobRecord(
         id=1,
         job_type="test",
@@ -92,7 +92,7 @@ def test_job_record_to_dict_handles_none() -> None:
         is_running=None,
     )
 
-    result = rec.to_dict()
+    result = rec.to_json()
 
     assert result["started_at"] is None
     assert result["completed_at"] is None

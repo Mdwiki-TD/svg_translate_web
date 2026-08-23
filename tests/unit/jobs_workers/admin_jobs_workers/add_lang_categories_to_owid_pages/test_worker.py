@@ -87,7 +87,7 @@ class TestPageInfo:
         info.lang_codes = ["en", "ar"]
         info.categories_added = ["[[Category:English-language SVG]]"]
 
-        result = info.to_dict()
+        result = info.to_json()
 
         assert result["page_title"] == "OWID/test_page"
         assert result["svg_file"] == "test.svg"

@@ -222,7 +222,7 @@ class TestFileProcessingInfo:
         assert hasattr(info.steps, "update_cropped")
 
     def test_to_dict(self, tmp_path):
-        """Test to_dict serialization."""
+        """Test to_json serialization."""
         info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
@@ -236,7 +236,7 @@ class TestFileProcessingInfo:
         info.steps.download.result = True
         info.steps.download.msg = "Downloaded"
 
-        result = info.to_dict()
+        result = info.to_json()
 
         assert result["template_id"] == 1
         assert result["template_title"] == "Template:Test"
@@ -246,7 +246,7 @@ class TestFileProcessingInfo:
         assert result["cropped_path"] == str(Path(tmp_path / "test_cropped.svg"))
 
     def test_to_dict_with_none_paths(self):
-        """Test to_dict with None paths."""
+        """Test to_json with None paths."""
         info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Test",
@@ -254,7 +254,7 @@ class TestFileProcessingInfo:
             cropped_filename="File:test (cropped).svg",
         )
 
-        result = info.to_dict()
+        result = info.to_json()
 
         assert result["downloaded_path"] is None
         assert result["cropped_path"] is None

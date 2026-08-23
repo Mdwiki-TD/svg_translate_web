@@ -40,7 +40,7 @@ def test_coordinator_record_to_dict():
     """Test conversion to dictionary."""
     rec = AdminUserRecord(id=1, username="testuser", is_active=True, created_at="2023-01-01", updated_at="2023-01-02")
 
-    result = rec.to_dict()
+    result = rec.to_json()
 
     expected = {
         "id": 1,
@@ -57,7 +57,7 @@ def test_coordinator_record_to_dict_with_none_values():
     """Test conversion to dictionary with None values."""
     rec = AdminUserRecord(id=1, username="testuser", is_active=True, created_at=None, updated_at=None)
 
-    result = rec.to_dict()
+    result = rec.to_json()
 
     expected = {"id": 1, "username": "testuser", "is_active": True, "created_at": None, "updated_at": None}
 

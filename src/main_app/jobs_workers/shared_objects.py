@@ -29,7 +29,7 @@ class SharedMapToJson:
         """
         Converts the dataclass instance back to its original dictionary format.
         """
-        return asdict(self)  # pyright: ignore[reportCallIssue]
+        return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -44,7 +44,7 @@ class UpdaterOutcome:
         """
         Converts the dataclass instance back to its original dictionary format.
         """
-        return asdict(self)  # pyright: ignore[reportCallIssue]
+        return asdict(self)
 
 
 @dataclass

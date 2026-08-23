@@ -38,7 +38,7 @@ class PageInfo:
     _text: str | None = None
     _categories: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         return {
             "page_title": self.page_title,
             "svg_file": self.svg_file,

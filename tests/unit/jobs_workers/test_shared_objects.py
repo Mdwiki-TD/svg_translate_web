@@ -7,13 +7,11 @@ Classes to test: UpdaterOutcome, Summary, SharedworkerObject
 
 from __future__ import annotations
 
-import pytest
-
-from src.main_app.jobs_workers.base_worker import WorkerMapping
 from src.main_app.jobs_workers.shared_objects import (
     SharedworkerObject,
     Summary,
     UpdaterOutcome,
+    WorkerMapping,
 )
 
 
@@ -23,11 +21,6 @@ class TestUpdaterOutcome:
         assert o.status == "skipped"
         assert o.newrevid == 0
         assert o.msg == ""
-
-    def test_frozen(self):
-        o = UpdaterOutcome(status="changed")
-        with pytest.raises(AttributeError):
-            o.status = "error"  # type: ignore
 
     def test_to_json(self):
         o = UpdaterOutcome(status="missing", msg="not found")

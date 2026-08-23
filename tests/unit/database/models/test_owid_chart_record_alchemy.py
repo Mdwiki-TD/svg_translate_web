@@ -102,7 +102,7 @@ def test_owid_chart_record_stores_source_citation():
     )
 
     assert rec.source == source
-    assert rec.to_dict()["source"] == source
+    assert rec.to_json()["source"] == source
 
 
 def test_owid_chart_record_to_dict():
@@ -123,7 +123,7 @@ def test_owid_chart_record_to_dict():
         updated_at="2023-01-02",
     )
 
-    result = rec.to_dict()
+    result = rec.to_json()
 
     expected = {
         "chart_id": 1,
@@ -165,7 +165,7 @@ def test_owid_chart_record_to_dict_with_none_values():
         updated_at=None,
     )
 
-    result = rec.to_dict()
+    result = rec.to_json()
 
     expected = {
         "chart_id": 1,

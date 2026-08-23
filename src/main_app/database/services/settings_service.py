@@ -63,7 +63,7 @@ class SettingsService(CRUDService[SettingRecord]):
 
     def get_all_settings_raw(self) -> list[dict[str, Any]]:
         """Fetch a setting by key."""
-        return [x.to_dict() for x in self.list_settings()]
+        return [x.to_json() for x in self.list_settings()]
 
     def get_all_settings_ready(self) -> dict[str, Any]:
         """Fetch all settings parsed into their respective Python types."""

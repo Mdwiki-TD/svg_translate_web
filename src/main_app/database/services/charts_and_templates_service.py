@@ -18,16 +18,16 @@ class ChartAndTemplate:
     template_id: int | None
     template_title: str | None
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         return {
-            "chart": self.chart.to_dict(),
+            "chart": self.chart.to_json(),
             "template_id": self.template_id,
             "template_title": self.template_title,
         }
 
     def to_dict_joined(self, template_filter: str = "") -> dict[str, Any]:
         data = {
-            **self.chart.to_dict(),
+            **self.chart.to_json(),
             "template_id": self.template_id,
             "template_title": self.template_title,
         }

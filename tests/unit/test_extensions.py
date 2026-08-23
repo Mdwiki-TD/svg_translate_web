@@ -38,14 +38,14 @@ def test_base_model_to_dict(mock_app: Flask) -> None:
         now = datetime(2025, 1, 1, 12, 0, 0)
         obj = MockModel(id=1, name="test", created_at=now)
 
-        data = obj.to_dict()  # type: ignore
+        data = obj.to_json()  # type: ignore
         assert data["id"] == 1
         assert data["name"] == "test"
         assert data["created_at"] == "2025-01-01T12:00:00"
 
 
 def test_base_model_to_dict2():
-    """Test that to_dict serializes column values to a dictionary."""
+    """Test that to_json serializes column values to a dictionary."""
     model = BaseModel()
     model.foo = "value1"  # type: ignore
     model.bar = "value2"  # type: ignore
@@ -59,13 +59,13 @@ def test_base_model_to_dict2():
     table_mock.columns = [col1, col2]
 
     with patch.object(BaseModel, "__table__", table_mock, create=True):
-        result = model.to_dict()
+        result = model.to_json()
 
     assert result == {"foo": "value1", "bar": "value2"}
 
 
 def test_base_model_to_dict_isoformat():
-    """Test that datetime values are converted to ISO format in to_dict."""
+    """Test that datetime values are converted to ISO format in to_json."""
     model = BaseModel()
     dt = datetime(2025, 10, 27, 4, 41, 7)
     model.created_at = dt  # type: ignore
@@ -77,7 +77,7 @@ def test_base_model_to_dict_isoformat():
     table_mock.columns = [col]
 
     with patch.object(BaseModel, "__table__", table_mock, create=True):
-        result = model.to_dict()
+        result = model.to_json()
 
     assert result == {"created_at": "2025-10-27T04:41:07"}
 
