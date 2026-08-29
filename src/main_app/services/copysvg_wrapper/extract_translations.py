@@ -27,6 +27,7 @@ def _extract_file_translations(
     """
     config = TranslationConfig(
         case_insensitive=True,
+        sort_switches=True,
     )
     if hasattr(config, "prepare_before_extraction"):
         config.prepare_before_extraction = True
