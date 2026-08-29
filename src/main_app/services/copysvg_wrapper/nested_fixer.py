@@ -21,6 +21,7 @@ class NestedStructureService:
         self.also_fix_a = also_fix_a
         config = TranslationConfig(
             nested_strategy=strategy,
+            sort_switches=True,
         )
         self.service = SVGTranslationService(config=config)
 

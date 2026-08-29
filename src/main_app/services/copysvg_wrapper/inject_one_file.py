@@ -57,6 +57,7 @@ def start_svg_injection(
         case_insensitive=True,
         overwrite_translations=overwrite_translations,
         pretty_print=True,
+        sort_switches=True,
     )
 
     file_name = inject_file.name if isinstance(inject_file, Path) else str(inject_file)
