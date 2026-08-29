@@ -92,7 +92,10 @@ class ExplorerRoutes:
         # title = get_temp_title(title_dir)
         title = title_dir
 
-        not_translated = [x for x in downloaded if x not in set(translated)]
+        # Bolt performance optimization: Instantiating `set(translated)` outside the list comprehension
+        # reduces lookup complexity from O(N * M) to O(N + M).
+        translated_set = set(translated)
+        not_translated = [x for x in downloaded if x not in translated_set]
 
         return render_template(
             "explorer/explore_files.html",
