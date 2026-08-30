@@ -301,6 +301,31 @@ class TestCreateOwidPagesWorkerLoadTemplates:
 
         assert len(result) == 1
 
+    def test_filter_created_removes_already_created_templates(self, mock_owid_pages_services):
+        """Test filter_created filters out templates whose corresponding OWID page already exists."""
+        templates = [
+            TemplateRecord(id=1, title="Template:OWID/Test1", main_file="test1.svg", last_world_file=None),
+            TemplateRecord(id=2, title="Template:OWID/Test2", main_file="test2.svg", last_world_file=None),
+        ]
+
+        # Simulate OWID/Test1 already existing on Commons
+        mock_owid_pages_services["is_pages_exists"].return_value = {
+            "OWID/Test1": True,
+            "OWID/Test2": False,
+        }
+
+        worker = CreateOwidPagesWorker(
+            JobsRunner(
+                job_id=1,
+                user={},
+                cancel_event=None,
+            )
+        )
+        filtered = worker.filter_created(templates)
+
+        assert len(filtered) == 1
+        assert filtered[0].title == "Template:OWID/Test2"
+
 
 class TestCreateOwidPagesWorkerSteps:
     """Tests for individual pipeline steps."""
