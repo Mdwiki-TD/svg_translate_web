@@ -7,6 +7,17 @@
 
 {% block admin_contents %}
 
-{% include "jobs_templates/_list_table.html" %}
+{% set _list_info %}
+{% block list_info %}{% endblock %}
+{% endset %}
 
+{% set _header_actions %}
+{% block header_actions %}{% endblock %}
+{% endset %}
+
+{% set _table_extra_actions %}
+{% block table_extra_actions %}{% endblock %}
+{% endset %}
+
+{% include "jobs_templates/_list_table.html" %}
 {% endblock %}

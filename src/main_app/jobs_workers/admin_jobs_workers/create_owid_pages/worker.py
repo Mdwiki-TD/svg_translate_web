@@ -100,7 +100,9 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
     def filter_created(self, templates) -> list[TemplateRecord]:
         owid_pages = [t.title.removeprefix("Template:") for t in templates]
         pages_created = is_pages_exists(owid_pages, self.site)
-        already_created = [x for x, v in pages_created.items() if v is True]
+
+        # Optimize: use set for O(1) membership lookups instead of list scan (O(N*M) -> O(N+M))
+        already_created = {x for x, v in pages_created.items() if v is True}
 
         if not already_created:
             logger.warning("filter_created failed returning all templates")

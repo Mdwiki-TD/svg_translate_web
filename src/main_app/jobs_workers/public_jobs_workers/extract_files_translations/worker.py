@@ -221,7 +221,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
         data = {
             "new": len(mapping.new),
-            "title_new": len(mapping.title_new),
+            "title_new": len({x for x in mapping.title_new.values() if x}),
         }
 
         mapping_step._update(result=True, msg="extract translations success", details=data)
