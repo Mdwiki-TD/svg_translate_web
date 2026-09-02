@@ -9,7 +9,6 @@ from typing import Any
 
 # --- Helper Functions ---
 
-
 def _env_bool(name: str, default: bool = False) -> bool:
     """Convert environment variable to boolean."""
     value = os.getenv(name)
@@ -32,11 +31,11 @@ def _env_int(name: str, default: int, safe: bool = False) -> int:
             return default
 
 
-def resolve_path(_path) -> Path:
+def resolve_path(_path: str) -> Path:
     """Expand environment variables and user home directory in paths."""
     _path = os.path.expandvars(str(_path))
-    _path = Path(_path).expanduser()
-    return _path
+    path = Path(_path).expanduser()
+    return path
 
 
 # --- Data Classes for Configuration Sections ---
@@ -70,15 +69,13 @@ class OtherConfig:
 
         tool_title = os.getenv("TOOL_TITLE") or "Copy SVG Translations"
 
-        _config = OtherConfig(
+        return OtherConfig(
             csrf_time_limit=csrf_time_limit,
             user_agent=user_agent,
             wiki_domain=wiki_domain,
             static_server=static_server,
             tool_title=tool_title,
         )
-
-        return _config
 
 
 @dataclass(frozen=True)
@@ -205,6 +202,16 @@ class Paths:
         }
         return Paths.from_any(_dirs)
 
+    def all_paths(self) -> list[str]:
+        return [
+            self.log_dir,
+            self.jobs_path,
+            self.main_files_path,
+            self.svg_data,
+            self.svg_data_thumb,
+            self.fix_nested_data,
+            self.crop_main_files_path,
+        ]
 
 @dataclass(frozen=True)
 class CookieConfig:
@@ -380,14 +387,14 @@ class Settings:
         """
         return Settings(
             security=SecurityConfig.load(),
-            database_data=DbConfig.load(),
             paths=Paths.load(),
+            database_data=DbConfig.load(),
             cookie=CookieConfig.load(),
-            sessions=SessionConfig.load(),
             oauth=OAuthConfig.load(),
+            sessions=SessionConfig.load(),
             other=OtherConfig.load(),
-            # cors=CorsConfig.load(),
             jobs=JobsConfig.load(),
+            # cors=CorsConfig.load(),
         )
 
 
