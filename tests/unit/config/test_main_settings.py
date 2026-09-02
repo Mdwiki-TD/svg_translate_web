@@ -9,15 +9,10 @@ from src.main_app.config.classes import (
     OAuthConfig,
     Paths,
     Settings,
-)
-from src.main_app.config.main_settings import (
     _env_bool,
     _env_int,
-    _get_paths,
-    _load_database_config,
-    _load_oauth_config,
-    get_settings,
 )
+from src.main_app.config.main_settings import get_settings
 
 
 @patch.dict(
@@ -34,7 +29,7 @@ from src.main_app.config.main_settings import (
 def test_load_database_config(mock_exists):
     """Test _load_database_config function."""
     mock_exists.return_value = True
-    result = _load_database_config()
+    result = DbConfig.load()
 
     assert isinstance(result, DbConfig)
     assert result.db_name == "test_db"
@@ -47,7 +42,7 @@ def test_get_paths(tmp_path):
     """Test _get_paths function."""
     main_dir = str(tmp_path / "main")
     with patch.dict(os.environ, {"MAIN_DIR": main_dir}):
-        result = _get_paths()
+        result = Paths.load()
 
         assert isinstance(result, Paths)
         assert Path(result.log_dir) == Path(f"{main_dir}/logs")
@@ -108,8 +103,8 @@ def test_env_int():
     },
 )
 def test_load_oauth_config():
-    """Test _load_oauth_config function."""
-    result = _load_oauth_config()
+    """Test OAuthConfig.load function."""
+    result = OAuthConfig.load()
 
     assert isinstance(result, OAuthConfig)
     assert result.mw_uri == "https://example.com"
@@ -162,8 +157,8 @@ def test_get_settings_missing_secret_key():
 
 @patch.dict(os.environ, {"TOOL_TOOLSDB_DBNAME": "", "TOOL_TOOLSDB_HOST": ""}, clear=True)
 def test_load_database_config_empty_values():
-    """Test _load_database_config with empty environment variables."""
-    result = _load_database_config()
+    """Test DbConfig.load with empty environment variables."""
+    result = DbConfig.load()
     assert result.db_name == ""
     assert result.db_host == ""
     assert result.db_user is None
@@ -198,8 +193,8 @@ def test_env_int_edge_cases():
     os.environ, {"OAUTH_MWURI": "https://example.com", "OAUTH_CONSUMER_KEY": "key", "OAUTH_CONSUMER_SECRET": "secret"}
 )
 def test_load_oauth_config_with_defaults():
-    """Test _load_oauth_config uses default values when optional vars missing."""
-    result = _load_oauth_config()
+    """Test OAuthConfig.load uses default values when optional vars missing."""
+    result = OAuthConfig.load()
 
     assert result is not None
     assert result.mw_uri == "https://example.com"
