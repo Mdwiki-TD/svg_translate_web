@@ -379,12 +379,12 @@ class Settings:
             RuntimeError: If the OAuth configuration (OAUTH_MWURI, OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET) is incomplete.
         """
         return Settings(
+            security=SecurityConfig.load(),
             database_data=DbConfig.load(),
             paths=Paths.load(),
             cookie=CookieConfig.load(),
             sessions=SessionConfig.load(),
             oauth=OAuthConfig.load(),
-            security=SecurityConfig.load(),
             other=OtherConfig.load(),
             # cors=CorsConfig.load(),
             jobs=JobsConfig.load(),
