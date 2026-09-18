@@ -2,8 +2,7 @@ from pathlib import Path
 
 from directory_tree import DisplayTree
 
-work_path = Path(__file__).parent.parent / "src"
-tree_save_path = Path(__file__).parent / "tree.md"
+main_project_path = Path(__file__).parent.parent
 
 skip_list = [
     "__pycache__",
@@ -14,38 +13,24 @@ skip_list = [
     "*.php",
 ]
 
-tree: str = DisplayTree(
-    dirPath=str(work_path),
-    stringRep=True,
-    header=False,
-    maxDepth=float("inf"),
-    showHidden=False,
-    ignoreList=skip_list,
-    onlyFiles=False,
-    onlyDirs=False,
-    sortBy=2,
-    raiseException=False,
-    printErrorTraceback=False,
-)
+paths = [
+    (main_project_path / "src", Path(__file__).parent / "tree.md"),
+    (main_project_path / "tests", Path(__file__).parent / "test_tree.md"),
+]
 
-tree_save_path.write_text(f"```\n{tree}\n```", encoding="utf-8")
+for work_path, save_path in paths:
+    tree: str = DisplayTree(
+        dirPath=str(work_path),
+        stringRep=True,
+        header=False,
+        maxDepth=float("inf"),
+        showHidden=False,
+        ignoreList=skip_list,
+        onlyFiles=False,
+        onlyDirs=False,
+        sortBy=2,
+        raiseException=False,
+        printErrorTraceback=False,
+    )
 
-# ---
-
-test_tree_save_path = Path(__file__).parent / "test_tree.md"
-
-test_tree: str = DisplayTree(
-    dirPath=str(Path(__file__).parent.parent / "tests"),
-    stringRep=True,
-    header=False,
-    maxDepth=float("inf"),
-    showHidden=False,
-    ignoreList=skip_list,
-    onlyFiles=False,
-    onlyDirs=False,
-    sortBy=2,
-    raiseException=False,
-    printErrorTraceback=False,
-)
-
-test_tree_save_path.write_text(f"```\n{test_tree}\n```", encoding="utf-8")
+    save_path.write_text(f"```\n{tree}\n```", encoding="utf-8")
