@@ -13,8 +13,9 @@ from src.main_app.public.jobs_utils_bp import UtilsJobsBp
 
 class TestUtilsJobsBp:
     def test_init_creates_blueprint(self):
-        module = UtilsJobsBp(Blueprint("test_utils", __name__, url_prefix="/jobs_utils"))
-        assert module.bp.name == "test_utils"
+        bp = Blueprint("test_utils", __name__, url_prefix="/jobs_utils")
+        UtilsJobsBp().register(bp)
+        assert bp.name == "test_utils"
 
 
 @pytest.mark.usefixtures("mock_app")
@@ -46,20 +47,20 @@ class TestServeCropFiles:
 
     def test_original_file_strips_file_prefix(self, monkeypatch):
 
-        jobs_utils_module = UtilsJobsBp(Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils"))
+        bp = Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
+        UtilsJobsBp().register(bp)
         mock_send = Mock()
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.send_from_directory", mock_send)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.Path", lambda p: Path(p))
 
-        bp = jobs_utils_module.bp
         for _rule in bp.deferred_functions:
             pass
 
     def test_compare_crop_files_renders(self, monkeypatch):
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.render_template", lambda t, **c: c)
 
-        jobs_utils_module = UtilsJobsBp(Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils"))
-        bp = jobs_utils_module.bp
+        bp = Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
+        UtilsJobsBp().register(bp)
         for _rule in bp.deferred_functions:
             pass
 

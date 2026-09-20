@@ -14,7 +14,8 @@ def app_main_mock():
         static_folder="../static",
     )
     bp_main = Blueprint("main", __name__)
-    app.register_blueprint(MainRoutes(bp_main).bp)
+    MainRoutes().register(bp_main)
+    app.register_blueprint(bp_main)
     app.secret_key = "test"
     return app
 

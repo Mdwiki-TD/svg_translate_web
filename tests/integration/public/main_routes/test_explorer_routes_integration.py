@@ -16,7 +16,7 @@ from src.main_app.public.main_routes.explorer_routes import ExplorerRoutes
 def explorer_app():
     app = Flask(__name__)
     bp = Blueprint("explorer", __name__, url_prefix="/explorer")
-    ExplorerRoutes(bp)
+    ExplorerRoutes().register(bp)
     app.register_blueprint(bp)
     return app
 
