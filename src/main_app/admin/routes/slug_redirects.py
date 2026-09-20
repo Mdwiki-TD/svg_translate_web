@@ -106,12 +106,11 @@ class SlugFuncs:
 
 
 class SlugRedirectsRoutes(SlugFuncs):
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
-        super().__init__()
-        self._setup_routes()
+    def __init__(self) -> None:
 
-    def _setup_routes(self) -> None:
+        super().__init__()
+
+    def register(self, bp: Blueprint) -> None:
 
         routes = [
             ("/", "GET", self.dashboard),
@@ -121,7 +120,7 @@ class SlugRedirectsRoutes(SlugFuncs):
             ("/bulk_action", "POST", self.bulk_action),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(admin_required(target))
+            bp.route(rule, methods=[method])(admin_required(target))
 
 
 __all__ = [

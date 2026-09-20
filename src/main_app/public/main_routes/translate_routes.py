@@ -37,12 +37,10 @@ def get_session_dir(session_id: str) -> Path:
 
 
 class TranslateRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
+    def __init__(self) -> None:
         self.files_service = FilesService()
-        self._setup_routes()
 
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         routes = [
             ("/", "GET", oauth_required(self.dashboard)),
             ("/select", "POST", oauth_required(self.select_post)),
@@ -50,7 +48,7 @@ class TranslateRoutes:
             ("/save", "POST", oauth_required(self.save_post)),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(target)
+            bp.route(rule, methods=[method])(target)
 
     def dashboard(self) -> str:
         """Display select form with filename and language fields."""

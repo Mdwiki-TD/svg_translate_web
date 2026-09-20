@@ -20,19 +20,17 @@ EXTRACT_FILENAME_KEY = "extract_filename"
 
 
 class ExtractRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
+    def __init__(self) -> None:
         self.files_service = FilesService()
-        self._setup_routes()
 
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         routes = [
             ("/", "GET", self.dashboard),
             ("/<string:file_name>", "GET", self.extract_get),
             ("/", "POST", self.extract_post),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(target)
+            bp.route(rule, methods=[method])(target)
 
     def extract_post(self) -> str:
         filename = request.form.get("filename", "").strip()

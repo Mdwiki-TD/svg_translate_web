@@ -141,17 +141,13 @@ class LogoutView(MethodView):
 
 
 class AuthRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
-        self._setup_routes()
-
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         # Automatically load the user before any route is processed.
-        self.bp.before_app_request(set_logged_in_user)
+        bp.before_app_request(set_logged_in_user)
 
-        self.bp.add_url_rule("/login", view_func=LoginView.as_view("login"))
-        self.bp.add_url_rule("/callback", view_func=OAuthCallbackView.as_view("callback"))
-        self.bp.add_url_rule("/logout", view_func=LogoutView.as_view("logout"))
+        bp.add_url_rule("/login", view_func=LoginView.as_view("login"))
+        bp.add_url_rule("/callback", view_func=OAuthCallbackView.as_view("callback"))
+        bp.add_url_rule("/logout", view_func=LogoutView.as_view("logout"))
 
 
 __all__ = [

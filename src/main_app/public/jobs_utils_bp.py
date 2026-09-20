@@ -26,11 +26,7 @@ logger = logging.getLogger(__name__)
 class UtilsJobsBp:
     """Jobs utils routes."""
 
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
-        self._setup_routes()
-
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         routes = [
             ("/download_main_files/file/<string:filename>", "GET", self.serve_download_main_file),
             ("/download_main_files/download-all", "GET", self.download_all_main_files),
@@ -39,7 +35,7 @@ class UtilsJobsBp:
             ("/crop-main-files/compare/<string:original>/<string:cropped>", "GET", self.compare_crop_files),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(admin_required(target))
+            bp.route(rule, methods=[method])(admin_required(target))
 
     def serve_download_main_file(self, filename: str) -> Response:
         """

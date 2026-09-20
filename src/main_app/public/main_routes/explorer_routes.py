@@ -33,11 +33,7 @@ def load_svg_data_path() -> Path:
 
 
 class ExplorerRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
-        self._setup_routes()
-
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
 
         routes = [
             ("/", "GET", self.main),
@@ -50,7 +46,7 @@ class ExplorerRoutes:
             ("/compare/<title_dir>/<string:filename>", "GET", self.compare),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(target)
+            bp.route(rule, methods=[method])(target)
 
     def by_title_downloaded(self, title_dir: str) -> str:
         files, title_path = get_files(title_dir, "files")

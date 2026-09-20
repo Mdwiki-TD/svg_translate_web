@@ -43,6 +43,7 @@ ADMIN_ROUTE_MODULES: list[AdminRouteModule] = [
     AdminRouteModule(route_cls=CheckErrorsRoutes, name="errors", url_prefix="/errors"),
 ]
 
+
 def register_admin_blueprints(bp_admin: Blueprint) -> None:
     for module in ADMIN_ROUTE_MODULES:
         bp = Blueprint(module.name, __name__, url_prefix=module.url_prefix)

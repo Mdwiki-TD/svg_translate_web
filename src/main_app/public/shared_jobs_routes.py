@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from flask import (
+    Blueprint,
     abort,
     flash,
     jsonify,
@@ -241,10 +242,9 @@ class JobsBp(ABC):
         self.bp_name = bp_name
         self.shared_service = SharedJobRoutes(bp_name)
         self.settings_service = self.shared_service.settings_service
-        self._setup_routes()
 
     @abstractmethod
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         raise NotImplementedError("This method must be implemented in the subclass")
 
     def _redirect_to_job_list(self, job_type):

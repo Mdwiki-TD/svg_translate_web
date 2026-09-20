@@ -12,14 +12,12 @@ logger = logging.getLogger(__name__)
 
 
 class ProfileRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
+    def __init__(self) -> None:
         self.jobs_service = JobsService()
-        self._setup_routes()
 
-    def _setup_routes(self) -> None:
-        @self.bp.route("/", methods=["GET"])
-        @self.bp.route("/<string:user_name>", methods=["GET"])
+    def register(self, bp: Blueprint) -> None:
+        @bp.route("/", methods=["GET"])
+        @bp.route("/<string:user_name>", methods=["GET"])
         def dashboard(user_name: str = "") -> str:
             user = get_current_user()
 

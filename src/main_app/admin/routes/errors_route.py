@@ -20,18 +20,14 @@ def get_log_dir() -> Path:
 
 
 class CheckErrorsRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
-        self._setup_routes()
-
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
 
         routes = [
             ("/", "GET", self.dashboard),
             ("/<string:file_name>", "GET", self.app_log),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(admin_required(target))
+            bp.route(rule, methods=[method])(admin_required(target))
 
     @staticmethod
     def _list_log_files(log_dir: Path) -> list[str]:

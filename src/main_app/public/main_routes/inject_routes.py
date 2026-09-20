@@ -57,12 +57,10 @@ def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
 
 
 class InjectRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
+    def __init__(self) -> None:
         self.files_service = FilesService()
-        self._setup_routes()
 
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         routes = [
             ("/", "GET", self.dashboard),
             ("/", "POST", self.inject_post),
@@ -70,7 +68,7 @@ class InjectRoutes:
             ("/demo", "GET", self.inject_demo),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(target)
+            bp.route(rule, methods=[method])(target)
 
     def dashboard(self) -> str:
         """Display the inject form."""
