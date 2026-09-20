@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .objects import SidebarGroup, SidebarItem
+from .mapping import SidebarGroup, SidebarItem
 from .sidebar import create_side, generate_list_item
 
 __all__ = [

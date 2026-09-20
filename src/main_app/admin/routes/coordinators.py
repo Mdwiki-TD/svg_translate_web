@@ -1,4 +1,6 @@
-""" """
+"""
+Coordinators Management Views.
+"""
 
 from __future__ import annotations
 
