@@ -15,6 +15,7 @@ from flask import (
     request,
     url_for,
 )
+from flask.views import MethodView
 
 from ...api_services.files_service import FilesService
 from ...services.copysvg_wrapper import (
@@ -56,15 +57,17 @@ def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
     return file_translations
 
 
-class InjectRoutes:
+class InjectDashboardView(MethodView):
+    """View to handle the main inject dashboard and form submission."""
+
     def __init__(self) -> None:
         self.files_service = FilesService()
 
-    def dashboard(self) -> str:
+    def get(self) -> str:
         """Display the inject form."""
         return render_template("inject/form.html")
 
-    def inject(self) -> str:
+    def post(self) -> str:
         """Validate form inputs and redirect to the GET endpoint."""
         source = request.form.get("source_filename", "").strip()
         target = request.form.get("target_filename", "").strip()
@@ -78,9 +81,16 @@ class InjectRoutes:
             )
         _source = source.replace(" ", "_")
         _target = target.replace(" ", "_")
-        return redirect(url_for("inject.inject_get", source=_source, target=_target))
+        return redirect(url_for("inject.inject", source=_source, target=_target))
 
-    def inject_get(self, source: str, target: str) -> str:
+
+class InjectProcessView(MethodView):
+    """View to process SVG injection workflow and render the result."""
+
+    def __init__(self) -> None:
+        self.files_service = FilesService()
+
+    def get(self, source: str, target: str) -> str:
         """Execute the inject workflow and render the result."""
         source_clean, source_display = self._format_source_path(source)
         target_clean, target_display = self._format_source_path(target)
@@ -236,10 +246,13 @@ class InjectRoutes:
             return None
 
         file_path = Path(result.path)
-
         return _extract_from_path(file_path)
 
-    def inject_demo(self) -> str:
+
+class InjectDemoView(MethodView):
+    """View to serve static demo page for injection visualization."""
+
+    def get(self) -> str:
         """Render demonstration result page using fixture data."""
         dir_path = Path(__file__).parent.parent.parent.parent
         file_path = dir_path / "templates" / "inject" / "example.json"
@@ -259,18 +272,21 @@ class InjectRoutes:
             data=file_data,
         )
 
-    def register(self, bp: Blueprint) -> None:
+
+class InjectRoutes:
+    """Registrar class to bind inject MethodViews to Blueprint."""
+
+    @staticmethod
+    def register(bp: Blueprint) -> None:
         """Register all inject endpoints on the provided blueprint."""
-        routes = [
-            ("/", "GET", self.dashboard),
-            ("/", "POST", self.inject),
-            ("/<string:source>/<string:target>", "GET", self.inject_get),
-            ("/demo", "GET", self.inject_demo),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(target)
+        bp.add_url_rule("/", view_func=InjectDashboardView.as_view("dashboard"))
+        bp.add_url_rule("/<string:source>/<string:target>", view_func=InjectProcessView.as_view("inject"))
+        bp.add_url_rule("/demo", view_func=InjectDemoView.as_view("inject_demo"))
 
 
 __all__ = [
+    "InjectDashboardView",
+    "InjectProcessView",
+    "InjectDemoView",
     "InjectRoutes",
 ]
