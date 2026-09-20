@@ -36,7 +36,7 @@ def get_session_dir(session_id: str) -> Path:
     return session_dir
 
 
-class TranslateRoutes:
+class TranslateView:
     def __init__(self) -> None:
         self.files_service = FilesService()
 
@@ -268,14 +268,18 @@ class TranslateRoutes:
             return redirect(url_for("translate.dashboard"))
         else:
             flash(
-                f"Failed to upload file: {upload_res.error or 'unknown'} - {upload_res.error_details or ''}", "danger"
+                f"Failed to upload file: {upload_res.error or 'unknown'} - {upload_res.error_details or ''}",
+                "danger",
             )
             return redirect(url_for("translate.dashboard"))
 
     def register(self, bp: Blueprint) -> None:
+        """
+        Register all translate URL rules on the provided blueprint.
+        """
         routes = [
             ("/", "GET", oauth_required(self.dashboard)),
-            ("/select", "POST", oauth_required(self.post)),
+            ("/post", "POST", oauth_required(self.post)),
             ("/edit", "GET", oauth_required(self.edit)),
             ("/save", "POST", oauth_required(self.save)),
         ]
@@ -284,5 +288,5 @@ class TranslateRoutes:
 
 
 __all__ = [
-    "TranslateRoutes",
+    "TranslateView",
 ]

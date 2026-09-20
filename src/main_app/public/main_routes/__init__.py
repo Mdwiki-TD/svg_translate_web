@@ -10,7 +10,7 @@ from .inject_routes import InjectView
 from .owid_charts_routes import OwidChartsRoutes
 from .routes import MainRoutes
 from .templates import TemplatesView
-from .translate_routes import TranslateRoutes
+from .translate_routes import TranslateView
 
 __all__ = [
     "MainRoutes",
@@ -18,6 +18,6 @@ __all__ = [
     "ExtractView",
     "InjectView",
     "OwidChartsRoutes",
-    "TranslateRoutes",
+    "TranslateView",
     "TemplatesView",
 ]

@@ -16,7 +16,7 @@ from .main_routes import (
     MainRoutes,
     OwidChartsRoutes,
     TemplatesView,
-    TranslateRoutes,
+    TranslateView,
 )
 from .profile import ProfileView
 from .public_jobs import PublicJobsRoutes
@@ -37,7 +37,7 @@ PUBLIC_ROUTE_MODULES: list[PublicRouteModule] = [
     PublicRouteModule(ExplorerRoutes, "explorer", "/explorer"),
     PublicRouteModule(ExtractView, "extract", "/extract"),
     PublicRouteModule(InjectView, "inject", "/inject"),
-    PublicRouteModule(TranslateRoutes, "translate", "/translate"),
+    PublicRouteModule(TranslateView, "translate", "/translate"),
     PublicRouteModule(ApiRoutes, "api", "/api"),
     PublicRouteModule(OwidChartsRoutes, "owid_charts", "/owidcharts"),
     PublicRouteModule(UtilsJobsBp, "jobs_utils", "/jobs_utils"),
