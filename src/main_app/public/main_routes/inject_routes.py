@@ -60,23 +60,13 @@ class InjectRoutes:
     def __init__(self) -> None:
         self.files_service = FilesService()
 
-    def register(self, bp: Blueprint) -> None:
-        routes = [
-            ("/", "GET", self.dashboard),
-            ("/", "POST", self.inject_post),
-            ("/<string:source>/<string:target>", "GET", self.inject_get),
-            ("/demo", "GET", self.inject_demo),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(target)
-
     def dashboard(self) -> str:
         """Display the inject form."""
         return render_template(
             "inject/form.html",
         )
 
-    def inject_post(self) -> str:
+    def inject(self) -> str:
         """Validate form inputs and redirect to the GET endpoint."""
         source = request.form.get("source_filename", "").strip()
         target = request.form.get("target_filename", "").strip()
@@ -275,6 +265,17 @@ class InjectRoutes:
 
         return _extract_from_path(file_path)
 
+
+    def register(self, bp: Blueprint) -> None:
+        """Register all inject endpoints on the provided blueprint."""
+        routes = [
+            ("/", "GET", self.dashboard),
+            ("/", "POST", self.inject),
+            ("/<string:source>/<string:target>", "GET", self.inject_get),
+            ("/demo", "GET", self.inject_demo),
+        ]
+        for rule, method, target in routes:
+            bp.route(rule, methods=[method])(target)
 
 __all__ = [
     "InjectRoutes",
