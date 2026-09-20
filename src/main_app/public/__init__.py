@@ -18,7 +18,7 @@ from .main_routes import (
     TemplatesView,
     TranslateRoutes,
 )
-from .profile import ProfileRoutes
+from .profile import ProfileView
 from .public_jobs import PublicJobsRoutes
 
 
@@ -33,7 +33,7 @@ class PublicRouteModule:
 PUBLIC_ROUTE_MODULES: list[PublicRouteModule] = [
     PublicRouteModule(MainRoutes, "main", ""),
     PublicRouteModule(AuthRoutes, "auth", ""),  # "/auth"
-    PublicRouteModule(ProfileRoutes, "profile", "/profile"),
+    PublicRouteModule(ProfileView, "profile", "/profile"),
     PublicRouteModule(ExplorerRoutes, "explorer", "/explorer"),
     PublicRouteModule(ExtractRoutes, "extract", "/extract"),
     PublicRouteModule(InjectRoutes, "inject", "/inject"),
