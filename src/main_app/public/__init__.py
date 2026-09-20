@@ -11,7 +11,7 @@ from .auth.routes import AuthRoutes
 from .jobs_utils_bp import UtilsJobsBp
 from .main_routes import (
     ExplorerRoutes,
-    ExtractRoutes,
+    ExtractView,
     InjectView,
     MainRoutes,
     OwidChartsRoutes,
@@ -35,7 +35,7 @@ PUBLIC_ROUTE_MODULES: list[PublicRouteModule] = [
     PublicRouteModule(AuthRoutes, "auth", ""),  # "/auth"
     PublicRouteModule(ProfileView, "profile", "/profile"),
     PublicRouteModule(ExplorerRoutes, "explorer", "/explorer"),
-    PublicRouteModule(ExtractRoutes, "extract", "/extract"),
+    PublicRouteModule(ExtractView, "extract", "/extract"),
     PublicRouteModule(InjectView, "inject", "/inject"),
     PublicRouteModule(TranslateRoutes, "translate", "/translate"),
     PublicRouteModule(ApiRoutes, "api", "/api"),

@@ -40,23 +40,13 @@ class TranslateRoutes:
     def __init__(self) -> None:
         self.files_service = FilesService()
 
-    def register(self, bp: Blueprint) -> None:
-        routes = [
-            ("/", "GET", oauth_required(self.dashboard)),
-            ("/select", "POST", oauth_required(self.select_post)),
-            ("/edit", "GET", oauth_required(self.edit_get)),
-            ("/save", "POST", oauth_required(self.save_post)),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(target)
-
     def dashboard(self) -> str:
         """Display select form with filename and language fields."""
         return render_template("translate/form.html")
 
-    def select_post(self) -> Any:
+    def post(self) -> Any:
         """Process selection form and redirect to edit view with a unique session_id."""
-        filename = request.form.get("filename", "").strip()
+        filename = (request.form.get("filename", "") or request.form.get("file_name", "")).strip()
         lang = request.form.get("lang", "").strip().lower()
 
         if not filename or not lang:
@@ -114,9 +104,9 @@ class TranslateRoutes:
         json_path = session_dir / "session.json"
         json_path.write_text(json.dumps(session_data, ensure_ascii=False, indent=2), encoding="utf-8")
 
-        return redirect(url_for("translate.edit_get", session_id=session_id))
+        return redirect(url_for("translate.edit", session_id=session_id))
 
-    def edit_get(self) -> Any:
+    def edit(self) -> Any:
         """Display English text segments with parallel translation inputs for editing."""
         session_id = request.args.get("session_id", "").strip()
         if not session_id:
@@ -166,7 +156,7 @@ class TranslateRoutes:
             texts_with_translations=texts_with_translations,
         )
 
-    def save_post(self) -> Any:
+    def save(self) -> Any:
         """Inject translations and download or upload to Commons."""
         session_id = request.form.get("session_id", "").strip()
         action = request.form.get("action", "upload").strip()  # "upload" or "download"
@@ -179,7 +169,7 @@ class TranslateRoutes:
 
         if len(originals) != len(translations):
             flash("Form submission error: field count mismatch", "danger")
-            return redirect(url_for("translate.edit_get", session_id=session_id))
+            return redirect(url_for("translate.edit", session_id=session_id))
 
         session_dir = get_session_dir(session_id)
         json_path = session_dir / "session.json"
@@ -230,13 +220,13 @@ class TranslateRoutes:
 
         if not inject_result.result:
             flash(f"Translation injection failed: {inject_result.msg}", "danger")
-            return redirect(url_for("translate.edit_get", session_id=session_id))
+            return redirect(url_for("translate.edit", session_id=session_id))
 
         # Handle Action: Download
         if action == "download":
             if not output_file.exists():
                 flash("Translated file not found", "danger")
-                return redirect(url_for("translate.edit_get", session_id=session_id))
+                return redirect(url_for("translate.edit", session_id=session_id))
 
             # Stream the modified SVG directly to the user
             response = send_file(
@@ -282,6 +272,17 @@ class TranslateRoutes:
             )
             return redirect(url_for("translate.dashboard"))
 
+
+    def register(self, bp: Blueprint) -> None:
+        routes = [
+            ("/", "GET", oauth_required(self.dashboard)),
+            ("/select", "POST", oauth_required(self.post)),
+
+            ("/edit", "GET", oauth_required(self.edit)),
+            ("/save", "POST", oauth_required(self.save)),
+        ]
+        for rule, method, target in routes:
+            bp.route(rule, methods=[method])(target)
 
 __all__ = [
     "TranslateRoutes",

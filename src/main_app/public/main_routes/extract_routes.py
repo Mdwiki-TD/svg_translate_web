@@ -5,7 +5,16 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+from flask.views import MethodView
 
 from ...api_services import FilesService
 from ...services.copysvg_wrapper import (
@@ -19,37 +28,35 @@ logger = logging.getLogger(__name__)
 EXTRACT_FILENAME_KEY = "extract_filename"
 
 
-class ExtractRoutes:
-    def __init__(self) -> None:
-        self.files_service = FilesService()
+class ExtractDashboardView(MethodView):
+    """View to handle the extract form dashboard and form submissions."""
 
-    def register(self, bp: Blueprint) -> None:
-        routes = [
-            ("/", "GET", self.dashboard),
-            ("/<string:file_name>", "GET", self.extract_get),
-            ("/", "POST", self.extract_post),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(target)
-
-    def extract_post(self) -> str:
-        filename = request.form.get("filename", "").strip()
-        if not filename:
-            flash("Please provide a file name", "danger")
-            return render_template("extract/form.html", filename=filename)
-
-        # redirect to extract_get to update browser URL
-        return redirect(url_for("extract.extract_get", file_name=filename))
-
-    def dashboard(self) -> str:
+    def get(self) -> str:
         """Display form to extract translations from an SVG file."""
         # Restore filename from session if available (e.g., after OAuth redirect)
         filename = session.pop(EXTRACT_FILENAME_KEY, "")
         return render_template("extract/form.html", filename=filename)
 
-    def extract_get(self, filename: str) -> str:
+    def post(self) -> str:
+        """Validate form input and redirect to the GET extract view."""
+        filename = (request.form.get("filename", "") or request.form.get("file_name", "")).strip()
+        if not filename:
+            flash("Please provide a file name", "danger")
+            return render_template("extract/form.html", filename=filename)
+
+        # Redirect to extract_get to update browser URL
+        return redirect(url_for("extract.extract_get", file_name=filename))
+
+
+class ExtractProcessView(MethodView):
+    """View to handle processing and extracting translations from an SVG file."""
+
+    def __init__(self) -> None:
+        self.files_service = FilesService()
+
+    def get(self, file_name: str) -> str:
         """Process SVG file and extract translations."""
-        filename = str(filename).strip()
+        filename = str(file_name).strip()
 
         # Remove "File:" prefix if present (keep original for display)
         if filename.lower().startswith("file:"):
@@ -97,7 +104,7 @@ class ExtractRoutes:
         )
 
     def work_file(self, filename: str) -> ExtractResult | None:
-
+        """Download file and perform translation extraction."""
         logger.info("Starting extract translations for file: %s", filename)
 
         # Reject invalid filesystem filenames before calling download_and_save()
@@ -122,7 +129,6 @@ class ExtractRoutes:
             file_path = Path(download_result.path)
 
             extract_result: ExtractResult = extract_from_path(file_path, fast_return_false=False)
-
             return extract_result
 
         finally:
@@ -131,6 +137,18 @@ class ExtractRoutes:
                 shutil.rmtree(temp_dir)
 
 
+class ExtractView:
+    """Registrar class to bind extract MethodViews to a Blueprint."""
+
+    @staticmethod
+    def register(bp: Blueprint) -> None:
+        """Register extract URL rules on the provided blueprint."""
+        bp.add_url_rule("/", view_func=ExtractDashboardView.as_view("dashboard"))
+        bp.add_url_rule("/<string:file_name>", view_func=ExtractProcessView.as_view("extract_get"))
+
+
 __all__ = [
-    "ExtractRoutes",
+    "ExtractDashboardView",
+    "ExtractProcessView",
+    "ExtractView",
 ]
