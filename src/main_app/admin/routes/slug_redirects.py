@@ -107,7 +107,6 @@ class SlugFuncs:
 
 class SlugRedirectsRoutes(SlugFuncs):
     def __init__(self) -> None:
-
         super().__init__()
 
     def register(self, bp: Blueprint) -> None:

@@ -110,7 +110,6 @@ class SettingsFuncs:
 
 class SettingsRoutes(SettingsFuncs):
     def __init__(self) -> None:
-
         super().__init__()
 
     def register(self, bp: Blueprint) -> None:

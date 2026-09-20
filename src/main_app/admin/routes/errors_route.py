@@ -21,7 +21,6 @@ def get_log_dir() -> Path:
 
 class CheckErrorsRoutes:
     def register(self, bp: Blueprint) -> None:
-
         routes = [
             ("/", "GET", self.dashboard),
             ("/<string:file_name>", "GET", self.app_log),

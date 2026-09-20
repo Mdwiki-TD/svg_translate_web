@@ -6,7 +6,7 @@ from typing import Any
 from flask import Blueprint
 
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
-from .coordinators import CoordinatorsRoutes
+from .coordinators import CoordinatorView
 from .errors_route import CheckErrorsRoutes
 from .jobs import AdminJobsRoutes
 from .owid_charts import OwidChartsRoutes
@@ -25,7 +25,7 @@ class AdminRouteModule:
 
 
 ADMIN_ROUTE_MODULES: list[AdminRouteModule] = [
-    AdminRouteModule(route_cls=CoordinatorsRoutes, name="coordinators", url_prefix="/coordinators"),
+    AdminRouteModule(route_cls=CoordinatorView, name="coordinators", url_prefix="/coordinators"),
     AdminRouteModule(route_cls=UsersRoutes, name="users", url_prefix="/users"),
     AdminRouteModule(route_cls=SettingsRoutes, name="settings", url_prefix="/settings"),
     AdminRouteModule(route_cls=TemplatesRoutes, name="templates", url_prefix="/templates"),

@@ -137,7 +137,7 @@ class TestAuthService:
         )
 
         with pytest.raises(auth_service.OAuthIdentityError) as excinfo:
-            self.service.identify("token")
+            self.service.identify("token")  # pyright: ignore[reportArgumentType]
 
         assert "MediaWiki" in str(excinfo.value)
         assert isinstance(excinfo.value.original_exception, ValueError)
