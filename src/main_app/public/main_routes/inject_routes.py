@@ -62,9 +62,7 @@ class InjectRoutes:
 
     def dashboard(self) -> str:
         """Display the inject form."""
-        return render_template(
-            "inject/form.html",
-        )
+        return render_template("inject/form.html")
 
     def inject(self) -> str:
         """Validate form inputs and redirect to the GET endpoint."""
@@ -84,24 +82,23 @@ class InjectRoutes:
 
     def inject_get(self, source: str, target: str) -> str:
         """Execute the inject workflow and render the result."""
-
-        source, source_display = self._format_source_path(source)
-        target, target_display = self._format_source_path(target)
+        source_clean, source_display = self._format_source_path(source)
+        target_clean, target_display = self._format_source_path(target)
 
         # Validate filenames
-        if not source or not target:
+        if not source_clean or not target_clean:
             flash("Please provide both source and target file names", "danger")
             return render_template("inject/form.html")
 
-        for name, label in [(source, "Source"), (target, "Target")]:
+        for name, label in [(source_clean, "Source"), (target_clean, "Target")]:
             if name != Path(name).name or name in {".", ".."}:
                 flash(f"Invalid {label.lower()} file name: {name}", "danger")
                 return render_template("inject/form.html")
 
         # Check files exist on Commons
-        source_info = self.files_service.get_file_info(f"File:{source}")
+        source_info = self.files_service.get_file_info(f"File:{source_clean}")
         if not source_info.exists:
-            flash(f"Source file File:{source} does not exist", "danger")
+            flash(f"Source file File:{source_clean} does not exist", "danger")
             logger.error("Source file info: %s", source_info.to_json())
             return render_template(
                 "inject/form.html",
@@ -109,9 +106,9 @@ class InjectRoutes:
                 target_filename=target_display,
             )
 
-        target_info = self.files_service.get_file_info(f"File:{target}")
+        target_info = self.files_service.get_file_info(f"File:{target_clean}")
         if not target_info.exists:
-            flash(f"Target file File:{target} does not exist", "danger")
+            flash(f"Target file File:{target_clean} does not exist", "danger")
             logger.error("Target file info: %s", target_info.to_json())
             return render_template(
                 "inject/form.html",
@@ -122,7 +119,7 @@ class InjectRoutes:
         temp_dir = Path(tempfile.mkdtemp())
         try:
             # Step 1: Download and extract from source
-            source_translations = self._download_and_extract(source, temp_dir)
+            source_translations = self._download_and_extract(source_clean, temp_dir)
             if source_translations is None:
                 return render_template(
                     "inject/form.html",
@@ -131,7 +128,7 @@ class InjectRoutes:
                 )
 
             # Step 2: Download and extract from target (before inject)
-            target_before = self._download_and_extract(target, temp_dir)
+            target_before = self._download_and_extract(target_clean, temp_dir)
             if target_before is None:
                 return render_template(
                     "inject/form.html",
@@ -139,7 +136,7 @@ class InjectRoutes:
                     target_filename=target_display,
                 )
 
-            data = self.load_data(source, target, temp_dir, source_translations, target_before)
+            data = self.load_data(source_clean, target_clean, temp_dir, source_translations, target_before)
 
             return render_template(
                 "inject/result.html",
@@ -165,8 +162,15 @@ class InjectRoutes:
 
         return source, source_display
 
-    def load_data(self, source, target, temp_dir, source_translations, target_before):
-        data = {}
+    def load_data(
+        self,
+        source: str,
+        target: str,
+        temp_dir: Path,
+        source_translations: dict[str, Any],
+        target_before: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Process translation data and compute diff between original and updated targets."""
         # Extract unique languages from source_translations['new']
         src_langs_sorted = self.extract_sorted_languages(source_translations.get("new") or {})
 
@@ -204,7 +208,7 @@ class InjectRoutes:
 
         diff.target_changed = target_changed
 
-        data = {
+        return {
             "source_translations": source_translations,
             "src_langs_sorted": src_langs_sorted,
             "target_before": target_before,
@@ -213,48 +217,18 @@ class InjectRoutes:
             "diff": diff.to_json(),
         }
 
-        return data
-
-    def extract_sorted_languages(self, new_translations) -> list[str]:
-        src_langs_sorted = []
+    def extract_sorted_languages(self, new_translations: dict[str, Any]) -> list[str]:
+        """Extract a sorted list of unique languages from translation entries."""
         src_langs = set()
 
         for entry in new_translations.values():
             if isinstance(entry, dict):
                 src_langs.update(entry.keys())
 
-        src_langs_sorted = sorted(src_langs)
-        return src_langs_sorted
-
-    def inject_demo(self) -> str:
-        dir = Path(__file__).parent.parent.parent.parent
-        file_path = Path(f"{dir}/templates/inject/example.json")
-        file_data = {}
-        if file_path.exists():
-            try:
-                file_data = json.loads(file_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
-                logger.exception(f"Failed to read demo data from {file_path}")
-        else:
-            logger.error(f"File {file_path} not found")
-
-        return render_template(
-            "inject/result.html",
-            source_filename="File:parkinsons-disease-prevalence-ihme,World,1990.svg",
-            target_filename="File:Parkinsons-disease-prevalence-ihme,_1990_to_2021,_BMU.svg",
-            data=file_data,
-        )
+        return sorted(src_langs)
 
     def _download_and_extract(self, filename: str, temp_dir: Path) -> dict[str, Any] | None:
-        """Download a file from Commons and extract translations.
-
-        Args:
-            filename: The file name (without "File:" prefix).
-            temp_dir: Directory to download into.
-
-        Returns:
-            Translations dict or None on failure (with flash message).
-        """
+        """Download a file from Commons and extract translations."""
         result = self.files_service.download_and_save(title=filename, out_dir=temp_dir, overwrite_download=True)
 
         if result.result != "success" or not result.path:
@@ -265,6 +239,25 @@ class InjectRoutes:
 
         return _extract_from_path(file_path)
 
+    def inject_demo(self) -> str:
+        """Render demonstration result page using fixture data."""
+        dir_path = Path(__file__).parent.parent.parent.parent
+        file_path = dir_path / "templates" / "inject" / "example.json"
+        file_data = {}
+        if file_path.exists():
+            try:
+                file_data = json.loads(file_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                logger.exception("Failed to read demo data from %s", file_path)
+        else:
+            logger.error("File %s not found", file_path)
+
+        return render_template(
+            "inject/result.html",
+            source_filename="File:parkinsons-disease-prevalence-ihme,World,1990.svg",
+            target_filename="File:Parkinsons-disease-prevalence-ihme,_1990_to_2021,_BMU.svg",
+            data=file_data,
+        )
 
     def register(self, bp: Blueprint) -> None:
         """Register all inject endpoints on the provided blueprint."""
@@ -276,6 +269,7 @@ class InjectRoutes:
         ]
         for rule, method, target in routes:
             bp.route(rule, methods=[method])(target)
+
 
 __all__ = [
     "InjectRoutes",
