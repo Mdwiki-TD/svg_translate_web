@@ -272,17 +272,16 @@ class TranslateRoutes:
             )
             return redirect(url_for("translate.dashboard"))
 
-
     def register(self, bp: Blueprint) -> None:
         routes = [
             ("/", "GET", oauth_required(self.dashboard)),
             ("/select", "POST", oauth_required(self.post)),
-
             ("/edit", "GET", oauth_required(self.edit)),
             ("/save", "POST", oauth_required(self.save)),
         ]
         for rule, method, target in routes:
             bp.route(rule, methods=[method])(target)
+
 
 __all__ = [
     "TranslateRoutes",
