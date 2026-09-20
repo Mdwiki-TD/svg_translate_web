@@ -41,16 +41,13 @@ class ExtractRoutes:
         # redirect to extract_get to update browser URL
         return redirect(url_for("extract.extract_get", file_name=filename))
 
-    def extract_get(self, file_name: str) -> str:
-        return self.show_result(file_name.strip())
-
     def dashboard(self) -> str:
         """Display form to extract translations from an SVG file."""
         # Restore filename from session if available (e.g., after OAuth redirect)
         filename = session.pop(EXTRACT_FILENAME_KEY, "")
         return render_template("extract/form.html", filename=filename)
 
-    def show_result(self, filename: str) -> str:
+    def extract_get(self, filename: str) -> str:
         """Process SVG file and extract translations."""
         filename = str(filename).strip()
 

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from .explorer_routes import ExplorerRoutes
 from .extract_routes import ExtractRoutes
-from .inject_routes import InjectRoutes
+from .inject_routes import InjectView
 from .owid_charts_routes import OwidChartsRoutes
 from .routes import MainRoutes
 from .templates import TemplatesView
@@ -16,7 +16,7 @@ __all__ = [
     "MainRoutes",
     "ExplorerRoutes",
     "ExtractRoutes",
-    "InjectRoutes",
+    "InjectView",
     "OwidChartsRoutes",
     "TranslateRoutes",
     "TemplatesView",

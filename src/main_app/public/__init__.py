@@ -12,7 +12,7 @@ from .jobs_utils_bp import UtilsJobsBp
 from .main_routes import (
     ExplorerRoutes,
     ExtractRoutes,
-    InjectRoutes,
+    InjectView,
     MainRoutes,
     OwidChartsRoutes,
     TemplatesView,
@@ -36,7 +36,7 @@ PUBLIC_ROUTE_MODULES: list[PublicRouteModule] = [
     PublicRouteModule(ProfileView, "profile", "/profile"),
     PublicRouteModule(ExplorerRoutes, "explorer", "/explorer"),
     PublicRouteModule(ExtractRoutes, "extract", "/extract"),
-    PublicRouteModule(InjectRoutes, "inject", "/inject"),
+    PublicRouteModule(InjectView, "inject", "/inject"),
     PublicRouteModule(TranslateRoutes, "translate", "/translate"),
     PublicRouteModule(ApiRoutes, "api", "/api"),
     PublicRouteModule(OwidChartsRoutes, "owid_charts", "/owidcharts"),

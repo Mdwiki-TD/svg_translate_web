@@ -273,7 +273,7 @@ class InjectDemoView(MethodView):
         )
 
 
-class InjectRoutes:
+class InjectView:
     """Registrar class to bind inject MethodViews to Blueprint."""
 
     @staticmethod
@@ -288,5 +288,5 @@ __all__ = [
     "InjectDashboardView",
     "InjectProcessView",
     "InjectDemoView",
-    "InjectRoutes",
+    "InjectView",
 ]
