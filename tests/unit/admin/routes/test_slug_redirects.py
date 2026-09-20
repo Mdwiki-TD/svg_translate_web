@@ -5,12 +5,8 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from flask import Blueprint
 from werkzeug.datastructures import MultiDict
 
-from src.main_app.admin.routes.slug_redirects import (  # SlugFuncs,
-    SlugRedirectsRoutes,
-)
 from src.main_app.database.services import OwidSlugRedirectsService
 from src.main_app.extensions import db as _db
 
@@ -52,6 +48,7 @@ class TestEditSlugRedirect:
         assert resp.status_code == 200
         html = resp.data.decode()
         assert "Redirect record not found" in html
+
 
 class TestSlugRedirectsRoutes:
     """Route-level tests using mock_app's test client with real DB/services."""

@@ -7,11 +7,10 @@ Only the ``admin_required`` auth decorator is bypassed.
 from __future__ import annotations
 
 import pytest
-from flask import Blueprint, Flask
+from flask import Flask
 
 from src.main_app.admin.routes.settings import (
     SettingsFuncs,
-    SettingsRoutes,
     _parse_setting_value,
 )
 from src.main_app.database.services import SettingsService
@@ -26,6 +25,7 @@ class TestSetup:
     def setup(self) -> None:
         self.func_service = SettingsFuncs()
         self.service = SettingsService()
+
 
 # ---------------------------------------------------------------------------
 # Route-level tests (real DB, admin_required bypassed via unwrap)
