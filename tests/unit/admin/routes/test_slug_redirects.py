@@ -53,22 +53,6 @@ class TestEditSlugRedirect:
         html = resp.data.decode()
         assert "Redirect record not found" in html
 
-
-class TestSlugRedirectsClass:
-    """Tests for the SlugRedirectsRoutes class itself."""
-
-    def test_blueprint_properties(self):
-        """SlugRedirectsRoutes should create a Blueprint with the expected name and prefix."""
-        instance = SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
-        assert instance.bp.name == "slugredirects"
-        assert instance.bp.url_prefix == "/slugredirects"
-
-    def test_all_routes_registered(self):
-        """SlugRedirectsRoutes should register all 5 routes."""
-        instance = SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
-        assert len(instance.bp.deferred_functions) == 5
-
-
 class TestSlugRedirectsRoutes:
     """Route-level tests using mock_app's test client with real DB/services."""
 

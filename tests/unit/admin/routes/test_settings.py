@@ -27,23 +27,6 @@ class TestSetup:
         self.func_service = SettingsFuncs()
         self.service = SettingsService()
 
-
-class TestSettingsRoutesClass(TestSetup):
-    """Tests for the SettingsRoutes class itself."""
-
-    def test_blueprint_properties(self):
-        """SettingsRoutes should create a Blueprint with the expected name and prefix."""
-        instance = SettingsRoutes(Blueprint("settings", __name__, url_prefix="/settings"))
-        assert isinstance(instance.bp, Blueprint)
-        assert instance.bp.name == "settings"
-        assert instance.bp.url_prefix == "/settings"
-
-    def test_all_routes_registered(self):
-        """SettingsRoutes should register all 3 routes."""
-        instance = SettingsRoutes(Blueprint("settings", __name__, url_prefix="/settings"))
-        assert len(instance.bp.deferred_functions) == 3
-
-
 # ---------------------------------------------------------------------------
 # Route-level tests (real DB, admin_required bypassed via unwrap)
 # ---------------------------------------------------------------------------

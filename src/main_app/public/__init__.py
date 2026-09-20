@@ -61,8 +61,8 @@ class RouteRegistrar:
     def register(app: Flask):
         for module in PUBLIC_ROUTE_MODULES:
             bp = Blueprint(module.name, __name__, url_prefix=module.url_prefix)
-            route_instance = module.route_cls(bp=bp, **module.extra_kwargs)
-            app.register_blueprint(route_instance.bp)
+            module.route_cls(**module.extra_kwargs).register(bp)
+            app.register_blueprint(bp)
 
 
 __all__ = [

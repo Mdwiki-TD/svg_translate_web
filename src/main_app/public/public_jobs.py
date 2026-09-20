@@ -21,11 +21,9 @@ class PublicJobsRoutes(JobsBp):
 
     def __init__(
         self,
-        bp: Blueprint,
         jobs_data_infos: dict[str, JobData],
         bp_name: str,
     ) -> None:
-        self.bp = bp
         self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self.bp_name = bp_name
         super().__init__(jobs_data_infos, bp_name)
