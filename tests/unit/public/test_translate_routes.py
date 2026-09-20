@@ -84,7 +84,7 @@ class TestTranslateRoutes:
         )
 
         resp = mock_client.post(
-            "/translate/post",
+            "/translate",
             data={
                 "filename": "Example.svg",
                 "lang": "ar",
@@ -96,7 +96,7 @@ class TestTranslateRoutes:
     def test_select_post_missing_fields(self, mock_client: FlaskClient) -> None:
         """Posting without required fields redirects to dashboard."""
         resp = mock_client.post(
-            "/translate/post",
+            "/translate",
             data={
                 "filename": "",
                 "lang": "ar",
