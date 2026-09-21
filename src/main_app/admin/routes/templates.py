@@ -1,4 +1,4 @@
-""" """
+"""Admin templates management routes rendered as MethodView classes."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from flask.views import MethodView
 from werkzeug.datastructures import ImmutableMultiDict
 
 from ...database.exceptions import DuplicateRecordError
@@ -29,19 +30,10 @@ logger = logging.getLogger(__name__)
 
 
 class TemplatesRoutesFuncs:
+    """Shared helpers used by the admin templates MethodViews."""
+
     def __init__(self) -> None:
         self.service = TemplateService()
-
-    def dashboard(self):
-        return render_template(
-            "admins/templates.html",
-        )
-
-    def templates_need_update(self) -> ResponseReturnValue:
-        """Show templates that need year update based on OWID charts."""
-        return render_template(
-            "admins/templates_need_update.html",
-        )
 
     def _add_template(self, request_form: dict[str, Any] | ImmutableMultiDict) -> ResponseReturnValue:
         """Create a new template from the submitted title."""
@@ -146,50 +138,6 @@ class TemplatesRoutesFuncs:
             return render_template("admins/popup_action.html")
         return redirect(url_for("adminpanel.templates.dashboard"))
 
-    def edit_template(self, template_id: int) -> ResponseReturnValue:
-        """Render the edit template popup page."""
-        template = self.service.get_template(template_id)
-        if not template:
-            return render_template(
-                "admins/template_edit.html",
-                error="Template not found",
-                template=None,
-            )
-
-        return render_template(
-            "admins/template_edit.html",
-            template=template,
-            error=None,
-        )
-
-    def edit_by_title(self, template_title: str) -> ResponseReturnValue:
-        """Render the edit template popup page."""
-        template = self.service.get_template_by_title(template_title)
-        if not template:
-            return render_template(
-                "admins/template_edit.html",
-                error="Template not found",
-                template=None,
-            )
-
-        return render_template(
-            "admins/template_edit.html",
-            template=template,
-            error=None,
-        )
-
-    def download_templates_json(self) -> ResponseReturnValue:
-        """Download all templates as a json file."""
-
-        response, status_code = create_json_file()
-
-        # If the response is an error message (not a file), flash it and redirect
-        if status_code != 200:
-            flash(response, "warning" if status_code == 404 else "danger")
-            return redirect(url_for("adminpanel.templates.dashboard"))
-
-        return response
-
     def create_json_file(self) -> tuple[Any, int]:
         """Create a JSON file containing all templates data.
 
@@ -234,37 +182,154 @@ class TemplatesRoutesFuncs:
             return f"Failed to create JSON file: {exc}", 500
 
 
-class TemplatesRoutes(TemplatesRoutesFuncs):
-    def __init__(self) -> None:
-        super().__init__()
+class TemplatesDashboardView(TemplatesRoutesFuncs, MethodView):
+    """View to render the admin templates dashboard."""
 
-    def register(self, bp: Blueprint) -> None:
-        routes = [
-            ("/", "GET", self.dashboard),
-            ("/add", "POST", self.add_template),
-            ("/update", "POST", self.update_template),
-            ("/<int:template_id>/delete", "POST", self.delete_template),
-            ("/templates-need-update", "GET", self.templates_need_update),
-            ("/<int:template_id>/edit", "GET", self.edit_template),
-            ("/<path:template_title>/edit_by_title", "GET", self.edit_by_title),
-            ("/download-json", "GET", self.download_templates_json),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(admin_required(target))
+    decorators = [admin_required]
 
-    def update_template(self) -> ResponseReturnValue:
-        return self._update_template(request.form)
+    def get(self) -> str:
+        """Render the admin templates dashboard page."""
+        return render_template(
+            "admins/templates.html",
+        )
 
-    def add_template(self) -> ResponseReturnValue:
+
+class TemplatesNeedUpdateView(TemplatesRoutesFuncs, MethodView):
+    """View to render the templates that need a year update."""
+
+    decorators = [admin_required]
+
+    def get(self) -> str:
+        """Show templates that need year update based on OWID charts."""
+        return render_template(
+            "admins/templates_need_update.html",
+        )
+
+
+class AddTemplateView(TemplatesRoutesFuncs, MethodView):
+    """View to add a single template from the dashboard form."""
+
+    decorators = [admin_required]
+
+    def post(self) -> ResponseReturnValue:
+        """Create a new template from the submitted form."""
         return self._add_template(request.form)
 
-    def delete_template(self, template_id: int) -> ResponseReturnValue:
-        """Remove a template entirely."""
+
+class UpdateTemplateView(TemplatesRoutesFuncs, MethodView):
+    """View to apply a template update submitted from the edit form."""
+
+    decorators = [admin_required]
+
+    def post(self) -> ResponseReturnValue:
+        """Update the template identified by the submitted form id."""
+        return self._update_template(request.form)
+
+
+class DeleteTemplateView(TemplatesRoutesFuncs, MethodView):
+    """View to delete a single template."""
+
+    decorators = [admin_required]
+
+    def post(self, template_id: int) -> ResponseReturnValue:
+        """Remove the template with the given id."""
         from_popup = request.form.get("from_popup") == "1"
         return self._delete_template(template_id, from_popup)
 
 
+class EditTemplateView(TemplatesRoutesFuncs, MethodView):
+    """View to render the edit template popup page by id."""
+
+    decorators = [admin_required]
+
+    def get(self, template_id: int) -> ResponseReturnValue:
+        """Render the edit template popup page for the given id."""
+        template = self.service.get_template(template_id)
+        if not template:
+            return render_template(
+                "admins/template_edit.html",
+                error="Template not found",
+                template=None,
+            )
+
+        return render_template(
+            "admins/template_edit.html",
+            template=template,
+            error=None,
+        )
+
+
+class EditTemplateByTitleView(TemplatesRoutesFuncs, MethodView):
+    """View to render the edit template popup page by title."""
+
+    decorators = [admin_required]
+
+    def get(self, template_title: str) -> ResponseReturnValue:
+        """Render the edit template popup page for the given title."""
+        template = self.service.get_template_by_title(template_title)
+        if not template:
+            return render_template(
+                "admins/template_edit.html",
+                error="Template not found",
+                template=None,
+            )
+
+        return render_template(
+            "admins/template_edit.html",
+            template=template,
+            error=None,
+        )
+
+
+class DownloadTemplatesJsonView(TemplatesRoutesFuncs, MethodView):
+    """View to download all templates as a JSON file."""
+
+    decorators = [admin_required]
+
+    def get(self) -> ResponseReturnValue:
+        """Download all templates as a json file."""
+        response, status_code = create_json_file()
+
+        # If the response is an error message (not a file), flash it and redirect
+        if status_code != 200:
+            flash(response, "warning" if status_code == 404 else "danger")
+            return redirect(url_for("adminpanel.templates.dashboard"))
+
+        return response
+
+
+class TemplatesRoutes(TemplatesRoutesFuncs):
+    """Registrar class to bind admin templates MethodViews to a Blueprint."""
+
+    def register(self, bp: Blueprint) -> None:
+        """Register admin templates URL rules on the provided blueprint with admin protection."""
+        bp.add_url_rule("/", view_func=TemplatesDashboardView.as_view("dashboard"))
+        bp.add_url_rule("/add", view_func=AddTemplateView.as_view("add_template"))
+        bp.add_url_rule("/update", view_func=UpdateTemplateView.as_view("update_template"))
+        bp.add_url_rule(
+            "/<int:template_id>/delete",
+            view_func=DeleteTemplateView.as_view("delete_template"),
+        )
+        bp.add_url_rule(
+            "/templates-need-update",
+            view_func=TemplatesNeedUpdateView.as_view("templates_need_update"),
+        )
+        bp.add_url_rule(
+            "/<int:template_id>/edit",
+            view_func=EditTemplateView.as_view("edit_template"),
+        )
+        bp.add_url_rule(
+            "/<path:template_title>/edit_by_title",
+            view_func=EditTemplateByTitleView.as_view("edit_by_title"),
+        )
+        bp.add_url_rule(
+            "/download-json",
+            view_func=DownloadTemplatesJsonView.as_view("download_templates_json"),
+        )
+
+
 def create_json_file():
+    """Module-level entry point kept for backward compatibility."""
     return TemplatesRoutesFuncs().create_json_file()
 
 
