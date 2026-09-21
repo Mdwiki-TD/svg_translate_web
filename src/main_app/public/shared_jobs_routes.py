@@ -19,7 +19,6 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from flask.wrappers import Response
 from flask_wtf import FlaskForm
-from werkzeug.wrappers.response import Response
 
 from ..database.exceptions import DuplicateRecordError
 from ..database.services import JobsService, SettingsService
