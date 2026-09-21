@@ -1,4 +1,4 @@
-"""Public routes for managing background jobs."""
+"""Public routes for managing background jobs using MethodViews."""
 
 from __future__ import annotations
 
@@ -22,11 +22,12 @@ class PublicJobsRoutes(JobsBp):
         jobs_data_infos: dict[str, JobData],
         bp_name: str,
     ) -> None:
-        self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
+        self.jobs_data_infos = jobs_data_infos
         self.bp_name = bp_name
         super().__init__(jobs_data_infos, bp_name)
 
     def register(self, bp: Blueprint) -> None:
+        """Register public job rules on the provided blueprint with specific route decorators."""
         routes = [
             ("/<string:job_type>", "GET", self.jobs_list),
             ("/<string:job_type>/<int:job_id>", "GET", self.job_detail),
