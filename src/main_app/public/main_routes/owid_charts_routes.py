@@ -8,6 +8,7 @@ from flask import (
     Blueprint,
     render_template,
 )
+from flask.views import MethodView
 
 from ...database.services import ChartsAndTemplatesService  # , OwidChartsService
 from ...database.services.charts_and_templates_service import ChartAndTemplate
@@ -15,21 +16,15 @@ from ...database.services.charts_and_templates_service import ChartAndTemplate
 logger = logging.getLogger(__name__)
 
 
-class OwidChartsRoutes:
+class OwidChartsIndexView(MethodView):
+    """View to display a list of all published OWID charts."""
+
     def __init__(self) -> None:
         # self.owid_charts_service = OwidChartsService()
         self.charts_and_tmps_service = ChartsAndTemplatesService()
 
-    def register(self, bp: Blueprint) -> None:
-        routes = [
-            ("/", "GET", self.index),
-            ("/all", "GET", self.all_charts),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(target)
-
-    def index(self) -> str:
-        """Display a list of all published OWID charts."""
+    def get(self) -> str:
+        """Render the published charts page."""
         # charts = self.owid_charts_service.list_published_charts()
         charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
         charts = [x.to_dict_joined() for x in charts_with_templates if x.chart.is_published]
@@ -41,8 +36,16 @@ class OwidChartsRoutes:
             charts=charts,
         )
 
-    def all_charts(self) -> str:
-        """Display ALL charts (including unpublished) for debugging."""
+
+class OwidChartsAllView(MethodView):
+    """View to display ALL charts (including unpublished) for debugging."""
+
+    def __init__(self) -> None:
+        # self.owid_charts_service = OwidChartsService()
+        self.charts_and_tmps_service = ChartsAndTemplatesService()
+
+    def get(self) -> str:
+        """Render the all charts page."""
         # charts = self.owid_charts_service.list_charts()
         charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
         charts = [x.to_dict_joined() for x in charts_with_templates]
@@ -51,6 +54,16 @@ class OwidChartsRoutes:
             "owid_charts/all_charts.html",
             charts=charts,
         )
+
+
+class OwidChartsRoutes:
+    """Registrar class to bind public OWID charts MethodViews to a Blueprint."""
+
+    @staticmethod
+    def register(bp: Blueprint) -> None:
+        """Register public OWID charts URL rules on the provided blueprint."""
+        bp.add_url_rule("/", view_func=OwidChartsIndexView.as_view("index"))
+        bp.add_url_rule("/all", view_func=OwidChartsAllView.as_view("all_charts"))
 
 
 __all__ = [
