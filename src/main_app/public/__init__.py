@@ -7,13 +7,13 @@ from flask import Blueprint, Flask
 
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from .api_routes import ApiRoutes
-from .auth.routes import AuthRoutes
-from .jobs_utils_bp import UtilsJobsBp
+from .auth.routes import AuthView
+from .jobs_utils_bp import UtilsJobsBpRoutes
 from .main_routes import (
-    ExplorerRoutes,
+    ExplorerView,
     ExtractView,
     InjectView,
-    MainRoutes,
+    MainView,
     OwidChartsRoutes,
     TemplatesView,
     TranslateView,
@@ -31,21 +31,21 @@ class PublicRouteModule:
 
 
 PUBLIC_ROUTE_MODULES: list[PublicRouteModule] = [
-    PublicRouteModule(MainRoutes, "main", ""),
-    PublicRouteModule(AuthRoutes, "auth", ""),  # "/auth"
-    PublicRouteModule(ProfileView, "profile", "/profile"),
-    PublicRouteModule(ExplorerRoutes, "explorer", "/explorer"),
-    PublicRouteModule(ExtractView, "extract", "/extract"),
-    PublicRouteModule(InjectView, "inject", "/inject"),
-    PublicRouteModule(TranslateView, "translate", "/translate"),
-    PublicRouteModule(ApiRoutes, "api", "/api"),
-    PublicRouteModule(OwidChartsRoutes, "owid_charts", "/owidcharts"),
-    PublicRouteModule(UtilsJobsBp, "jobs_utils", "/jobs_utils"),
-    PublicRouteModule(TemplatesView, "templates", "/templates"),
+    PublicRouteModule(route_cls=MainView, name="main", url_prefix=""),
+    PublicRouteModule(route_cls=AuthView, name="auth", url_prefix=""),  # "/auth"
+    PublicRouteModule(route_cls=ProfileView, name="profile", url_prefix="/profile"),
+    PublicRouteModule(route_cls=ExplorerView, name="explorer", url_prefix="/explorer"),
+    PublicRouteModule(route_cls=ExtractView, name="extract", url_prefix="/extract"),
+    PublicRouteModule(route_cls=InjectView, name="inject", url_prefix="/inject"),
+    PublicRouteModule(route_cls=TranslateView, name="translate", url_prefix="/translate"),
+    PublicRouteModule(route_cls=ApiRoutes, name="api", url_prefix="/api"),
+    PublicRouteModule(route_cls=OwidChartsRoutes, name="owid_charts", url_prefix="/owidcharts"),
+    PublicRouteModule(route_cls=UtilsJobsBpRoutes, name="jobs_utils", url_prefix="/jobs_utils"),
+    PublicRouteModule(route_cls=TemplatesView, name="templates", url_prefix="/templates"),
     PublicRouteModule(
-        PublicJobsRoutes,
-        "public_jobs",
-        "/jobs",
+        route_cls=PublicJobsRoutes,
+        name="public_jobs",
+        url_prefix="/jobs",
         extra_kwargs={
             "jobs_data_infos": jobs_data_public,
             "bp_name": "public_jobs",

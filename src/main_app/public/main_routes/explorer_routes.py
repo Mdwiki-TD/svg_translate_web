@@ -1,4 +1,4 @@
-"""Svg viewer"""
+"""Svg viewer view definitions using Flask MethodViews."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from flask import (
     render_template,
     send_from_directory,
 )
+from flask.views import MethodView
 from flask.wrappers import Response
 
 from ...config import app_settings
@@ -25,30 +26,39 @@ logger = logging.getLogger(__name__)
 
 
 def load_thumb_path() -> Path:
+    """Return configured path for thumbnail storage."""
     return Path(app_settings.paths.svg_data_thumb)
 
 
 def load_svg_data_path() -> Path:
+    """Return configured path for SVG data storage."""
     return Path(app_settings.paths.svg_data)
 
 
-class ExplorerRoutes:
-    def register(self, bp: Blueprint) -> None:
+class ExplorerMainView(MethodView):
+    """View to handle the main explorer overview dashboard."""
 
-        routes = [
-            ("/", "GET", self.main),
-            ("/<title_dir>/downloads", "GET", self.by_title_downloaded),
-            ("/<title_dir>/translated", "GET", self.by_title_translated),
-            ("/<title_dir>/not_translated", "GET", self.by_title_not_translated),
-            ("/<title>", "GET", self.by_title),
-            ("/media/<title_dir>/<subdir>/<string:filename>", "GET", self.serve_media),
-            ("/media_thumb/<title_dir>/<subdir>/<string:filename>", "GET", self.serve_thumb),
-            ("/compare/<title_dir>/<string:filename>", "GET", self.compare),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(target)
+    def get(self) -> str:
+        """Render main explorer index showing summary statistics per title directory."""
+        svg_data_path = load_svg_data_path()
+        titles = [x.name for x in svg_data_path.iterdir() if x.is_dir()]
+        data: dict[str, Any] = {}
+        for title in titles:
+            downloaded, _ = get_files(title, "files")
+            translated, _ = get_files(title, "translated")
+            data[title] = {
+                "downloaded": len(downloaded),
+                "translated": len(translated),
+                "not_translated": len(set(downloaded).difference(translated)),
+            }
+        return render_template("explorer/index.html", data=data)
 
-    def by_title_downloaded(self, title_dir: str) -> str:
+
+class ExplorerDownloadedView(MethodView):
+    """View to list downloaded SVG files for a given title directory."""
+
+    def get(self, title_dir: str) -> str:
+        """Render list of downloaded files for a directory."""
         files, title_path = get_files(title_dir, "files")
 
         # title = get_temp_title(title_dir)
@@ -64,7 +74,12 @@ class ExplorerRoutes:
             files=files,
         )
 
-    def by_title_translated(self, title_dir: str) -> str:
+
+class ExplorerTranslatedView(MethodView):
+    """View to list translated SVG files for a given title directory."""
+
+    def get(self, title_dir: str) -> str:
+        """Render list of translated files for a directory."""
         files, title_path = get_files(title_dir, "translated")
 
         # title = get_temp_title(title_dir)
@@ -81,15 +96,19 @@ class ExplorerRoutes:
             compare_link=True,
         )
 
-    def by_title_not_translated(self, title_dir: str) -> str:
+
+class ExplorerNotTranslatedView(MethodView):
+    """View to list files that have not yet been translated."""
+
+    def get(self, title_dir: str) -> str:
+        """Render list of non-translated files for a directory."""
         downloaded, title_path = get_files(title_dir, "files")
         translated, _ = get_files(title_dir, "translated")
 
         # title = get_temp_title(title_dir)
         title = title_dir
 
-        # Bolt performance optimization: Instantiating `set(translated)` outside the list comprehension
-        # reduces lookup complexity from O(N * M) to O(N + M).
+        # Instantiating set(translated) outside the list comprehension reduces lookup complexity to O(N + M)
         translated_set = set(translated)
         not_translated = [x for x in downloaded if x not in translated_set]
 
@@ -103,7 +122,12 @@ class ExplorerRoutes:
             files=not_translated,
         )
 
-    def by_title(self, title: str) -> str:
+
+class ExplorerByTitleView(MethodView):
+    """View to display detailed directory folder information."""
+
+    def get(self, title: str) -> str:
+        """Render folder information for a title."""
         infos = get_informations(title)
 
         return render_template(
@@ -111,24 +135,12 @@ class ExplorerRoutes:
             result=infos,
         )
 
-    def main(self) -> str:
-        svg_data_path = load_svg_data_path()
-        titles = [x.name for x in svg_data_path.iterdir() if x.is_dir()]
-        data: dict[str, Any] = {}
-        for title in titles:
-            downloaded, _ = get_files(title, "files")
-            translated, _ = get_files(title, "translated")
-            data[title] = {
-                "downloaded": len(downloaded),
-                "translated": len(translated),
-                "not_translated": len(set(downloaded).difference(translated)),
-            }
-        return render_template("explorer/index.html", data=data)
 
-    def serve_media(self, title_dir: str, subdir: str, filename: str) -> Response:
-        """
-        Serve SVG files
-        """
+class ExplorerServeMediaView(MethodView):
+    """View to securely serve static SVG files."""
+
+    def get(self, title_dir: str, subdir: str, filename: str) -> Response | tuple[str, int]:
+        """Serve requested SVG file with security headers applied."""
         svg_data_path = load_svg_data_path().resolve()
         dir_path = (svg_data_path / title_dir / subdir).resolve()
 
@@ -140,18 +152,26 @@ class ExplorerRoutes:
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
-    def serve_thumb(self, title_dir: str, subdir: str, filename: str) -> Response:
 
+class ExplorerServeThumbView(MethodView):
+    """View to generate and serve cached thumbnail images for SVGs."""
+
+    def get(self, title_dir: str, subdir: str, filename: str) -> Response | tuple[str, int]:
+        """Generate thumbnail if missing and serve image with security headers."""
         svg_data_path = load_svg_data_path().resolve()
         thumb_base_path = load_thumb_path().resolve()
         dir_path = (svg_data_path / title_dir / subdir).resolve()
         thumb_path = (thumb_base_path / title_dir / subdir).resolve()
+
         if not dir_path.is_relative_to(svg_data_path) or not thumb_path.is_relative_to(thumb_base_path):
             return "Access Denied", 403
+
         file_path = dir_path / filename
         file_thumb_path = thumb_path / filename
+
         if not file_thumb_path.exists():
             save_thumb(file_path, file_thumb_path)
+
         if file_thumb_path.exists():
             response = send_from_directory(str(thumb_path), filename)
         else:
@@ -161,17 +181,19 @@ class ExplorerRoutes:
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
-    def compare(self, title_dir: str, filename: str) -> str:
-        """Compare SVG files"""
-        # ---
+
+class ExplorerCompareView(MethodView):
+    """View to compare downloaded and translated versions of an SVG."""
+
+    def get(self, title_dir: str, filename: str) -> str:
+        """Analyze original and translated files and render comparison view."""
         svg_data_path = load_svg_data_path()
-        # ---
         file_path = svg_data_path / title_dir / "files" / filename
         translated_path = svg_data_path / title_dir / "translated" / filename
-        # ---
+
         file1_result = analyze_file(file_path)
         file2_result = analyze_file(translated_path)
-        # ---
+
         return render_template(
             "explorer/compare.html",
             file=filename,
@@ -181,6 +203,34 @@ class ExplorerRoutes:
         )
 
 
+class ExplorerView:
+    """Registrar class to bind explorer MethodViews to a Blueprint."""
+
+    @staticmethod
+    def register(bp: Blueprint) -> None:
+        """Register all explorer URL rules on the provided blueprint."""
+        bp.add_url_rule("/", view_func=ExplorerMainView.as_view("main"))
+
+        bp.add_url_rule("/<title_dir>/downloads", view_func=ExplorerDownloadedView.as_view("by_title_downloaded"))
+        bp.add_url_rule("/<title_dir>/translated", view_func=ExplorerTranslatedView.as_view("by_title_translated"))
+        bp.add_url_rule(
+            "/<title_dir>/not_translated", view_func=ExplorerNotTranslatedView.as_view("by_title_not_translated")
+        )
+
+        bp.add_url_rule("/<title>", view_func=ExplorerByTitleView.as_view("by_title"))
+
+        bp.add_url_rule(
+            "/media/<title_dir>/<subdir>/<string:filename>",
+            view_func=ExplorerServeMediaView.as_view("serve_media"),
+        )
+        bp.add_url_rule(
+            "/media_thumb/<title_dir>/<subdir>/<string:filename>",
+            view_func=ExplorerServeThumbView.as_view("serve_thumb"),
+        )
+
+        bp.add_url_rule("/compare/<title_dir>/<string:filename>", view_func=ExplorerCompareView.as_view("compare"))
+
+
 __all__ = [
-    "ExplorerRoutes",
+    "ExplorerView",
 ]

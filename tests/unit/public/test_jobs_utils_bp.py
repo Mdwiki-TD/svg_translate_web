@@ -8,13 +8,13 @@ from unittest.mock import MagicMock, Mock
 import pytest
 from flask import Blueprint
 
-from src.main_app.public.jobs_utils_bp import UtilsJobsBp
+from src.main_app.public.jobs_utils_bp import UtilsJobsBpRoutes
 
 
-class TestUtilsJobsBp:
+class TestUtilsJobsBpRoutes:
     def test_init_creates_blueprint(self):
         bp = Blueprint("test_utils", __name__, url_prefix="/jobs_utils")
-        UtilsJobsBp().register(bp)
+        UtilsJobsBpRoutes().register(bp)
         assert bp.name == "test_utils"
 
 
@@ -48,7 +48,7 @@ class TestServeCropFiles:
     def test_original_file_strips_file_prefix(self, monkeypatch):
 
         bp = Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
-        UtilsJobsBp().register(bp)
+        UtilsJobsBpRoutes().register(bp)
         mock_send = Mock()
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.send_from_directory", mock_send)
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.Path", lambda p: Path(p))
@@ -60,7 +60,7 @@ class TestServeCropFiles:
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.render_template", lambda t, **c: c)
 
         bp = Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
-        UtilsJobsBp().register(bp)
+        UtilsJobsBpRoutes().register(bp)
         for _rule in bp.deferred_functions:
             pass
 

@@ -23,7 +23,7 @@ from ..jobs_workers.admin_jobs_workers.download_main_files.zip_utils import crea
 logger = logging.getLogger(__name__)
 
 
-class UtilsJobsBp:
+class UtilsJobsBpRoutes:
     """Jobs utils routes."""
 
     def register(self, bp: Blueprint) -> None:
@@ -91,5 +91,5 @@ class UtilsJobsBp:
 
 
 __all__ = [
-    "UtilsJobsBp",
+    "UtilsJobsBpRoutes",
 ]

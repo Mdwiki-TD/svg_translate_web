@@ -306,6 +306,7 @@ class TranslateView:
         bp.add_url_rule("/edit", view_func=TranslateEditView.as_view("edit"))
         bp.add_url_rule("/save", view_func=TranslateSaveView.as_view("save"))
 
+
 __all__ = [
     "TranslateDashboardView",
     "TranslateEditView",
