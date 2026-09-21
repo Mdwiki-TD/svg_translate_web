@@ -65,8 +65,9 @@ class AdminPanel:
     def register(cls, bp: Blueprint) -> None:
         """Register the dashboard view and the sidebar context processor."""
         # Expose the sidebar markup to every template rendered by this blueprint.
+        # Access control for the whole admin area is handled by the blueprint-level
+        # admin_guard before_request registered in main_app.admin.
         bp.app_context_processor(cls.inject_sidebar)
-        # TODO: put a before_request guard on the admin blueprint. use admin_required decorators
 
         bp.add_url_rule(
             "/",
