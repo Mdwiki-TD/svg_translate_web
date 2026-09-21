@@ -5,7 +5,16 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask.typing import ResponseReturnValue
+from flask.views import MethodView
 from werkzeug.datastructures import ImmutableMultiDict
 
 from ...database.services import SettingsService
@@ -26,52 +35,13 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
 
 
 class SettingsFuncs:
+    """Shared settings helpers used by the settings MethodViews."""
+
     def __init__(self) -> None:
         self.service = SettingsService()
 
-    def dashboard(self):
-        settings_list = self.service.get_all_settings_raw()
-        return render_template(
-            "admins/settings.html",
-            settings_list=settings_list,
-        )
-
-    def create(self):
-        key = request.form.get("key", "").strip()
-        title = request.form.get("title", "").strip()
-        value_type = request.form.get("value_type", "boolean").strip()
-
-        if not re.fullmatch(r"[a-z][a-z0-9_]{0,189}", key):
-            flash(
-                "Key must start with a lowercase letter and contain only lowercase letters, digits, and underscores.",
-                "danger",
-            )
-            return redirect(url_for("adminpanel.settings.dashboard"))
-
-        if key and title:
-            success = self.service.create_setting(key, title, value_type)
-            if success:
-                flash("Setting created successfully.", "success")
-            else:
-                flash("Setting could not be created or already exists.", "danger")
-        else:
-            flash("Key and Title are required.", "danger")
-
-        return redirect(url_for("adminpanel.settings.dashboard"))
-
-    def update(self):
-        failed_keys, deleted_keys = self.settings_update_form(request.form)
-        # Invalidate runtime cache only if all updates succeeded
-        if not failed_keys:
-            if deleted_keys:
-                flash(f"Deleted settings: {', '.join(deleted_keys)}. ", "success")
-
-            flash("Settings updated successfully.", "success")
-        else:
-            flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")
-        return redirect(url_for("adminpanel.settings.dashboard"))
-
     def settings_update_form(self, request_form: ImmutableMultiDict) -> tuple[list[str], list[str]]:
+        """Apply the submitted settings form and return (failed_keys, deleted_keys)."""
         all_settings = self.service.get_all_settings_raw()
         failed_keys: list[str] = []
         deleted_keys: list[str] = []
@@ -108,18 +78,77 @@ class SettingsFuncs:
         return failed_keys, deleted_keys
 
 
+class SettingsDashboardView(SettingsFuncs, MethodView):
+    """View to render the settings dashboard."""
+
+    decorators = [admin_required]
+
+    def get(self) -> str:
+        """Render the settings dashboard with all stored settings."""
+        settings_list = self.service.get_all_settings_raw()
+        return render_template(
+            "admins/settings.html",
+            settings_list=settings_list,
+        )
+
+
+class SettingsCreateView(SettingsFuncs, MethodView):
+    """View to create a single setting from the dashboard form."""
+
+    decorators = [admin_required]
+
+    def post(self) -> ResponseReturnValue:
+        """Create a new setting, validating the key format first."""
+        key = request.form.get("key", "").strip()
+        title = request.form.get("title", "").strip()
+        value_type = request.form.get("value_type", "boolean").strip()
+
+        if not re.fullmatch(r"[a-z][a-z0-9_]{0,189}", key):
+            flash(
+                "Key must start with a lowercase letter and contain only lowercase letters, digits, and underscores.",
+                "danger",
+            )
+            return redirect(url_for("adminpanel.settings.dashboard"))
+
+        if key and title:
+            success = self.service.create_setting(key, title, value_type)
+            if success:
+                flash("Setting created successfully.", "success")
+            else:
+                flash("Setting could not be created or already exists.", "danger")
+        else:
+            flash("Key and Title are required.", "danger")
+
+        return redirect(url_for("adminpanel.settings.dashboard"))
+
+
+class SettingsUpdateView(SettingsFuncs, MethodView):
+    """View to apply bulk settings updates submitted from the dashboard."""
+
+    decorators = [admin_required]
+
+    def post(self) -> ResponseReturnValue:
+        """Apply the settings form and flash the outcome."""
+        failed_keys, deleted_keys = self.settings_update_form(request.form)
+        # Invalidate runtime cache only if all updates succeeded
+        if not failed_keys:
+            if deleted_keys:
+                flash(f"Deleted settings: {', '.join(deleted_keys)}. ", "success")
+
+            flash("Settings updated successfully.", "success")
+        else:
+            flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")
+        return redirect(url_for("adminpanel.settings.dashboard"))
+
+
 class SettingsRoutes(SettingsFuncs):
-    def __init__(self) -> None:
-        super().__init__()
+    """Registrar class to bind admin settings MethodViews to a Blueprint."""
 
     def register(self, bp: Blueprint) -> None:
-        routes = [
-            ("/", "GET", self.dashboard),
-            ("/create", "POST", self.create),
-            ("/update", "POST", self.update),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(admin_required(target))
+        """Register admin settings URL rules on the provided blueprint with admin protection."""
+        bp.add_url_rule("/", view_func=SettingsDashboardView.as_view("dashboard"))
+        bp.add_url_rule("/create", view_func=SettingsCreateView.as_view("create"))
+        bp.add_url_rule("/update", view_func=SettingsUpdateView.as_view("update"))
 
 
 __all__ = [
