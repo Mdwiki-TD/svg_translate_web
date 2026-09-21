@@ -1,4 +1,4 @@
-"""OWID Charts administration routes."""
+"""OWID Charts administration routes rendered as MethodView classes."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from flask.views import MethodView
 from sqlalchemy.exc import IntegrityError
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -27,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 class OwidCharts:
+    """Shared helpers used by the admin OWID charts MethodViews."""
+
     def __init__(self) -> None:
         self.owid_charts_service = OwidChartsService()
         self.charts_and_tmps_service = ChartsAndTemplatesService()
@@ -62,6 +65,23 @@ class OwidCharts:
         except Exception:
             logger.exception("Failed to create JSON file.")
             return "Failed to create JSON file.", 500
+
+    def dashboard(self, template_filter: str = "") -> str:
+        """Render the admin charts list, optionally filtered by template."""
+        # Optimize: use single-query list_all() with fallback
+        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
+
+        summary = make_charts_summary(charts_with_templates)
+
+        charts_data: list[dict[str, Any]] = [x.to_dict_joined(template_filter) for x in charts_with_templates]
+        rows = [x for x in charts_data if x]
+        return render_template(
+            "admins/owid_charts/list.html",
+            selected_template=template_filter,
+            summary=summary,
+            rows=rows,
+            show_map_and_timeline=False,
+        )
 
     def _add_chart(self, request_form: dict[str, Any] | ImmutableMultiDict) -> ResponseReturnValue:
         """Create a new chart from the submitted form data."""
@@ -228,52 +248,53 @@ class OwidCharts:
         )
 
 
-class OwidChartsRoutes(OwidCharts):
-    def __init__(self) -> None:
-        self.name = "owidcharts"
-        super().__init__()
+class OwidChartsDashboardView(OwidCharts, MethodView):
+    """View to render the admin OWID charts list, with or without a template filter."""
 
-    def register(self, bp: Blueprint) -> None:
-        routes = [
-            ("/", "GET", self.dashboard),
-            ("/<string:template_filter>", "GET", self.dashboard_with_filter),
-            ("/add", "GET", self.add_chart_popup),
-            ("/<int:chart_id>/edit", "GET", self.edit_chart),
-            ("/download-json", "GET", self.download_owid_charts_json),
-            ("/add", "POST", self.add_chart),
-            ("/update", "POST", self.update_chart),
-            ("/<int:chart_id>/delete", "POST", self.delete_chart),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(admin_required(target))
+    decorators = [admin_required]
 
-    def dashboard(self, template_filter: str = "") -> str:
-        # Optimize: use single-query list_all() with fallback
-        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
-
-        summary = make_charts_summary(charts_with_templates)
-
-        charts_data: list[dict[str, Any]] = [x.to_dict_joined(template_filter) for x in charts_with_templates]
-        rows = [x for x in charts_data if x]
-        return render_template(
-            "admins/owid_charts/list.html",
-            selected_template=template_filter,
-            summary=summary,
-            rows=rows,
-            show_map_and_timeline=False,
-        )
-
-    def dashboard_with_filter(self, template_filter: str = "") -> str:
+    def get(self, template_filter: str = "") -> str:
+        """Render the charts list filtered by the optional template."""
         return self.dashboard(template_filter)
 
-    def add_chart_popup(self) -> ResponseReturnValue:
+
+class AddChartPopupView(OwidCharts, MethodView):
+    """View to render the add chart popup form."""
+
+    decorators = [admin_required]
+
+    def get(self) -> ResponseReturnValue:
         """Render the add chart popup form."""
         return render_template("admins/owid_charts/add.html")
 
-    def add_chart(self) -> ResponseReturnValue:
+
+class AddChartView(OwidCharts, MethodView):
+    """View to create a chart from the add popup form."""
+
+    decorators = [admin_required]
+
+    def post(self) -> ResponseReturnValue:
+        """Create a new chart from the submitted form data."""
         return self._add_chart(request.form)
 
-    def update_chart(self) -> ResponseReturnValue:
+
+class EditChartView(OwidCharts, MethodView):
+    """View to render the edit chart popup page by id."""
+
+    decorators = [admin_required]
+
+    def get(self, chart_id: int) -> ResponseReturnValue:
+        """Render the edit chart popup page for the given id."""
+        return self._edit_chart(chart_id)
+
+
+class UpdateChartView(OwidCharts, MethodView):
+    """View to apply a chart update submitted from the edit form."""
+
+    decorators = [admin_required]
+
+    def post(self) -> ResponseReturnValue:
+        """Update the chart identified by the submitted form chart_id."""
         chart_id = request.form.get("chart_id", default=0, type=int)
         from_popup = request.form.get("from_popup") == "1"
 
@@ -285,15 +306,25 @@ class OwidChartsRoutes(OwidCharts):
 
         return self._update_chart(request.form)
 
-    def delete_chart(self, chart_id: int) -> ResponseReturnValue:
+
+class DeleteChartView(OwidCharts, MethodView):
+    """View to delete a single chart."""
+
+    decorators = [admin_required]
+
+    def post(self, chart_id: int) -> ResponseReturnValue:
+        """Remove the chart with the given id."""
         from_popup = request.form.get("from_popup") == "1"
         return self._delete_chart(chart_id, from_popup)
 
-    def edit_chart(self, chart_id: int) -> ResponseReturnValue:
-        return self._edit_chart(chart_id)
 
-    def download_owid_charts_json(self) -> ResponseReturnValue:
-        """Download all charts as a JSON file."""
+class DownloadOwidChartsJsonView(OwidCharts, MethodView):
+    """View to download all charts as a JSON file."""
+
+    decorators = [admin_required]
+
+    def get(self) -> ResponseReturnValue:
+        """Download all charts as a json file."""
         response, status_code = self.create_json_file()
 
         if status_code != 200:
@@ -301,6 +332,44 @@ class OwidChartsRoutes(OwidCharts):
             return redirect(url_for("adminpanel.owidcharts.dashboard"))
 
         return response
+
+
+class OwidChartsRoutes(OwidCharts):
+    """Registrar class to bind admin OWID charts MethodViews to a Blueprint."""
+
+    def __init__(self) -> None:
+        self.name = "owidcharts"
+        super().__init__()
+
+    def register(self, bp: Blueprint) -> None:
+        """Register admin OWID charts URL rules on the provided blueprint with admin protection."""
+        # One view serves both the unfiltered list and the filtered list, which
+        # keeps a distinct endpoint name for url_for(..., template_filter=...)
+        dashboard_view = OwidChartsDashboardView.as_view("dashboard")
+        bp.add_url_rule("/", view_func=dashboard_view)
+        bp.add_url_rule(
+            "/<string:template_filter>",
+            endpoint="dashboard_with_filter",
+            view_func=dashboard_view,
+        )
+
+        # GET renders the popup form, POST persists the new chart
+        bp.add_url_rule("/add", view_func=AddChartPopupView.as_view("add_chart_popup"), methods=["GET"])
+        bp.add_url_rule("/add", view_func=AddChartView.as_view("add_chart"), methods=["POST"])
+
+        bp.add_url_rule(
+            "/<int:chart_id>/edit",
+            view_func=EditChartView.as_view("edit_chart"),
+        )
+        bp.add_url_rule(
+            "/download-json",
+            view_func=DownloadOwidChartsJsonView.as_view("download_owid_charts_json"),
+        )
+        bp.add_url_rule("/update", view_func=UpdateChartView.as_view("update_chart"))
+        bp.add_url_rule(
+            "/<int:chart_id>/delete",
+            view_func=DeleteChartView.as_view("delete_chart"),
+        )
 
 
 __all__ = [

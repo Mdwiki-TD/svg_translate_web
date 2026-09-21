@@ -6,6 +6,8 @@ Only the ``admin_required`` auth decorator is bypassed.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 from flask import Flask
 
@@ -35,31 +37,16 @@ class TestSetup:
 class TestSettingsRoutesRoutes(TestSetup):
     """Route-level tests using the session-scoped app with a real SQLite database.
 
-    The ``admin_required`` decorator is applied at app-factory time, so we
-    unwrap the view functions per-test, then restore them afterwards.
+    Access control for the admin area is enforced by the blueprint-level
+    ``admin_guard`` before_request, so we authenticate as a fake admin user
+    rather than trying to bypass the decorator on each view.
     """
 
-    SETTINGS_ENDPOINTS = [
-        "adminpanel.settings.dashboard",
-        "adminpanel.settings.create",
-        "adminpanel.settings.update",
-    ]
-
     @pytest.fixture(autouse=True)
-    def _unwrap_admin_required(self, mock_app: Flask):
-        """Unwrap admin_required on settings endpoints for the duration of each test."""
-        originals = {}
-        for endpoint in self.SETTINGS_ENDPOINTS:
-            fn = mock_app.view_functions.get(endpoint)
-            if fn is not None:
-                unwrapped = fn
-                while hasattr(unwrapped, "__wrapped__"):
-                    unwrapped = unwrapped.__wrapped__
-                originals[endpoint] = fn
-                mock_app.view_functions[endpoint] = unwrapped
-        yield
-        for endpoint, fn in originals.items():
-            mock_app.view_functions[endpoint] = fn
+    def _fake_admin_user(self, monkeypatch: pytest.MonkeyPatch):
+        """Fake an authenticated admin user for all route tests in this class."""
+        admin_user = SimpleNamespace(username="test_admin", is_active_admin=True)
+        monkeypatch.setattr("src.main_app.admin.decorators.get_current_user", lambda: admin_user)
 
     # ── dashboard (GET /) ────────────────────────────────────────────────
 

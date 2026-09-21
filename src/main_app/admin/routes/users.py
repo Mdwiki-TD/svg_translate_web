@@ -1,4 +1,4 @@
-""" """
+"""Admin-only routes for managing user permissions, built on MethodView."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from flask.views import MethodView
 
 from ...database.services import UsersService
 from ..decorators import admin_required
@@ -21,28 +22,20 @@ from ..decorators import admin_required
 logger = logging.getLogger(__name__)
 
 
-class UsersRoutes:
-    """Jobs management routes."""
+class UsersDashboardView(MethodView):
+    """View rendering the user management dashboard."""
+
+    decorators = [admin_required]
 
     def __init__(self) -> None:
         self.user_service = UsersService()
 
-    def register(self, bp: Blueprint) -> None:
-
-        routes = [
-            ("/", "GET", self.dashboard),
-            ("/<int:user_id>/can_run_jobs", "POST", self.update_can_run_jobs),
-            ("/<int:user_id>/can_run_bg_jobs", "POST", self.update_can_run_bg_jobs),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(admin_required(target))
-
-    def dashboard(self) -> str:
-        """Render the user management dashboard."""
+    def get(self) -> str:
+        """List every user along with their permission flags."""
         try:
             users = self.user_service.list_users()
         except Exception as e:  # pragma: no cover - defensive guard
-            logger.error(f"Error listing users: {e}")
+            logger.error("Error listing users: %s", e)
             flash("Error listing users", "error")
             users: list[Any] = []
 
@@ -54,7 +47,16 @@ class UsersRoutes:
             total_users=total,
         )
 
-    def update_can_run_jobs(self, user_id: int) -> ResponseReturnValue:
+
+class UpdateCanRunJobsView(MethodView):
+    """View to toggle the can_run_jobs column for a user."""
+
+    decorators = [admin_required]
+
+    def __init__(self) -> None:
+        self.user_service = UsersService()
+
+    def post(self, user_id: int) -> ResponseReturnValue:
         """Toggle the can_run_jobs column for a user."""
         desired = 1 if request.form.get("can_run_jobs", "0") == "1" else 0
         try:
@@ -74,7 +76,16 @@ class UsersRoutes:
 
         return redirect(url_for("adminpanel.users.dashboard"))
 
-    def update_can_run_bg_jobs(self, user_id: int) -> ResponseReturnValue:
+
+class UpdateCanRunBgJobsView(MethodView):
+    """View to toggle the can_run_bg_jobs column for a user."""
+
+    decorators = [admin_required]
+
+    def __init__(self) -> None:
+        self.user_service = UsersService()
+
+    def post(self, user_id: int) -> ResponseReturnValue:
         """Toggle the can_run_bg_jobs column for a user."""
         desired = 1 if request.form.get("can_run_bg_jobs", "0") == "1" else 0
 
@@ -94,6 +105,47 @@ class UsersRoutes:
                 logger.info(f"User '{record.username}' [can_run_bg_jobs]={desired} updated.")
 
         return redirect(url_for("adminpanel.users.dashboard"))
+
+
+class UsersRoutes:
+    """User management routes registrar using class-based views."""
+
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
+        """Register the dashboard and the two permission-toggle endpoints."""
+        bp.add_url_rule(
+            "/",
+            view_func=UsersDashboardView.as_view("dashboard"),
+            methods=["GET"],
+        )
+        bp.add_url_rule(
+            "/<int:user_id>/can_run_jobs",
+            view_func=UpdateCanRunJobsView.as_view("update_can_run_jobs"),
+            methods=["POST"],
+        )
+        bp.add_url_rule(
+            "/<int:user_id>/can_run_bg_jobs",
+            view_func=UpdateCanRunBgJobsView.as_view("update_can_run_bg_jobs"),
+            methods=["POST"],
+        )
+
+    # ----------------------------------------------------------------------
+    # TODO: Backward Compatibility
+    # Legacy handler methods kept so callers/tests that invoked them
+    # directly on the registrar still work. Remove once all consumers
+    # use the MethodView classes above.
+    # ----------------------------------------------------------------------
+    def dashboard(self) -> str:
+        """Render the user management dashboard."""
+        return UsersDashboardView().get()
+
+    def update_can_run_jobs(self, user_id: int) -> ResponseReturnValue:
+        """Toggle the can_run_jobs column for a user."""
+        return UpdateCanRunJobsView().post(user_id)
+
+    def update_can_run_bg_jobs(self, user_id: int) -> ResponseReturnValue:
+        """Toggle the can_run_bg_jobs column for a user."""
+        return UpdateCanRunBgJobsView().post(user_id)
 
 
 __all__ = [

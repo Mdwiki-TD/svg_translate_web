@@ -1,4 +1,4 @@
-"""Admin-only routes for managing coordinator access."""
+"""Admin-only routes for the admin dashboard, built on MethodView."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from flask import (
     Blueprint,
     render_template,
 )
+from flask.views import MethodView
 
 from ..database.services import JobsService
 from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
@@ -20,26 +21,18 @@ logger = logging.getLogger(__name__)
 
 
 def _get_display_name(job_type: str) -> str:
+    """Return the human-friendly name registered for a job type."""
     job_data = jobs_data_admins.get(job_type)
     return job_data.job_name if job_data else job_type
 
 
-class AdminPanel:
-    """admin panel routes."""
+class AdminDashboardView(MethodView):
+    """View rendering the main admin dashboard."""
 
-    def register(self, bp: Blueprint) -> None:
-        bp.app_context_processor(self.inject_sidebar)
+    decorators = [admin_required]
 
-        routes = [
-            ("/", "GET", self.admin_dashboard),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(admin_required(target))
-
-    def inject_sidebar(self) -> dict[str, Any]:
-        return {"create_side": create_side}
-
-    def admin_dashboard(self) -> str:
+    def get(self) -> str:
+        """List the most recent jobs with display names and detail URLs."""
         jobs = JobsService().list_jobs(limit=100)
 
         # Enhance jobs with display names and detail URLs
@@ -63,6 +56,29 @@ class AdminPanel:
             "admins/admin.html",
             jobs=enhanced_jobs,
         )
+
+
+class AdminPanel:
+    """Admin panel routes registrar using class-based views."""
+
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
+        """Register the dashboard view and the sidebar context processor."""
+        # Expose the sidebar markup to every template rendered by this blueprint.
+        # Access control for the whole admin area is handled by the blueprint-level
+        # admin_guard before_request registered in main_app.admin.
+        bp.app_context_processor(cls.inject_sidebar)
+
+        bp.add_url_rule(
+            "/",
+            view_func=AdminDashboardView.as_view("dashboard"),
+            methods=["GET"],
+        )
+
+    @staticmethod
+    def inject_sidebar() -> dict[str, Any]:
+        """Provide the admin sidebar markup as a template global."""
+        return {"create_side": create_side}
 
 
 __all__ = [

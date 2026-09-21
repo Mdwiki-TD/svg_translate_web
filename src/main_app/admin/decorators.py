@@ -38,6 +38,23 @@ def admin_required(view: FuncType) -> FuncType:  # noqa: UP047
     return cast(FuncType, wrapped)
 
 
+def admin_guard() -> ResponseReturnValue | None:
+    """Blueprint-level guard rejecting any non-admin request to the admin area.
+
+    Applies the same checks as :func:`admin_required` but as a ``before_request``
+    hook, so it covers every endpoint registered under the admin blueprint —
+    including the nested sub-blueprints — even when a view forgets the decorator.
+    """
+    user: CurrentUser | None = get_current_user()
+    if not user:
+        return redirect(url_for("auth.login"))
+    if not user.is_active_admin:
+        logger.warning("User %s tried to access admin-only route", user.username)
+        abort(403)
+    return None
+
+
 __all__ = [
+    "admin_guard",
     "admin_required",
 ]

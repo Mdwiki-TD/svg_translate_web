@@ -14,6 +14,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from flask.views import MethodView
 from flask.wrappers import Response
 
 from ..admin.decorators import admin_required
@@ -23,32 +24,26 @@ from ..jobs_workers.admin_jobs_workers.download_main_files.zip_utils import crea
 logger = logging.getLogger(__name__)
 
 
-class UtilsJobsBpRoutes:
-    """Jobs utils routes."""
+class ServeDownloadMainFileView(MethodView):
+    """View to serve a downloaded main file from the main_files_path directory."""
 
-    def register(self, bp: Blueprint) -> None:
-        routes = [
-            ("/download_main_files/file/<string:filename>", "GET", self.serve_download_main_file),
-            ("/download_main_files/download-all", "GET", self.download_all_main_files),
-            ("/crop-main-files/original/<string:filename>", "GET", self.serve_crop_original_file),
-            ("/crop-main-files/cropped/<string:filename>", "GET", self.serve_crop_cropped_file),
-            ("/crop-main-files/compare/<string:original>/<string:cropped>", "GET", self.compare_crop_files),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(admin_required(target))
+    decorators = [admin_required]
 
-    def serve_download_main_file(self, filename: str) -> Response:
-        """
-        Serve a downloaded main file from the main_files_path directory.
-        """
+    def get(self, filename: str) -> Response:
+        """Serve a downloaded main file from the main_files_path directory."""
         response = send_from_directory(app_settings.paths.main_files_path, filename)
         response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
-    def download_all_main_files(self) -> ResponseReturnValue:
-        """Download all main files as a zip archive."""
 
+class DownloadAllMainFilesView(MethodView):
+    """View to download all main files as a zip archive."""
+
+    decorators = [admin_required]
+
+    def get(self) -> ResponseReturnValue:
+        """Download all main files as a zip archive."""
         response, status_code = create_main_files_zip()
 
         # If the response is an error message (not a file), flash it and redirect
@@ -58,35 +53,76 @@ class UtilsJobsBpRoutes:
 
         return response
 
-    def serve_crop_original_file(self, filename: str) -> Response:
-        """
-        Serve an original file from the crop_main_files_path/original directory.
-        """
+
+class ServeCropOriginalFileView(MethodView):
+    """View to serve an original file from the crop_main_files_path/original directory."""
+
+    decorators = [admin_required]
+
+    def get(self, filename: str) -> Response:
+        """Serve an original file from the crop_main_files_path/original directory."""
         filename = filename.removeprefix("File:")
         response = send_from_directory(Path(app_settings.paths.crop_main_files_path) / "original", filename)
         response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
-    def serve_crop_cropped_file(self, filename: str) -> Response:
-        """
-        Serve a cropped file from the crop_main_files_path/cropped directory.
-        """
+
+class ServeCropCroppedFileView(MethodView):
+    """View to serve a cropped file from the crop_main_files_path/cropped directory."""
+
+    decorators = [admin_required]
+
+    def get(self, filename: str) -> Response:
+        """Serve a cropped file from the crop_main_files_path/cropped directory."""
         filename = filename.removeprefix("File:")
         response = send_from_directory(Path(app_settings.paths.crop_main_files_path) / "cropped", filename)
         response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
-    def compare_crop_files(self, original: str, cropped: str) -> ResponseReturnValue:
-        """Compare crop files"""
 
+class CompareCropFilesView(MethodView):
+    """View to compare original and cropped files side by side."""
+
+    decorators = [admin_required]
+
+    def get(self, original: str, cropped: str) -> ResponseReturnValue:
+        """Compare crop files."""
         original = original.removeprefix("File:")
         cropped = cropped.removeprefix("File:")
         return render_template(
             "admins/compare_crop_files.html",
             file_original=original,
             file_cropped=cropped,
+        )
+
+
+class UtilsJobsBpRoutes:
+    """Registrar class to bind jobs utils MethodViews to a Blueprint."""
+
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
+        """Register jobs utils URL rules on the provided blueprint with admin protection."""
+        bp.add_url_rule(
+            "/download_main_files/file/<string:filename>",
+            view_func=ServeDownloadMainFileView.as_view("serve_download_main_file"),
+        )
+        bp.add_url_rule(
+            "/download_main_files/download-all",
+            view_func=DownloadAllMainFilesView.as_view("download_all_main_files"),
+        )
+        bp.add_url_rule(
+            "/crop-main-files/original/<string:filename>",
+            view_func=ServeCropOriginalFileView.as_view("serve_crop_original_file"),
+        )
+        bp.add_url_rule(
+            "/crop-main-files/cropped/<string:filename>",
+            view_func=ServeCropCroppedFileView.as_view("serve_crop_cropped_file"),
+        )
+        bp.add_url_rule(
+            "/crop-main-files/compare/<string:original>/<string:cropped>",
+            view_func=CompareCropFilesView.as_view("compare_crop_files"),
         )
 
 

@@ -74,7 +74,7 @@ class ErrorDashboardView(MethodView):
         )
 
 
-class CheckErrorsdView:
+class CheckErrorsView:
     """Registrar class to bind error checking MethodViews to a Blueprint."""
 
     @staticmethod
@@ -89,5 +89,5 @@ class CheckErrorsdView:
 
 __all__ = [
     "ErrorDashboardView",
-    "CheckErrorsdView",
+    "CheckErrorsView",
 ]
