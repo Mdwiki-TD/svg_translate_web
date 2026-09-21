@@ -77,7 +77,7 @@ nav_list = [
     NavLink(
         text="Admins",
         icon="bi-people-fill",
-        url_endpoint="adminpanel.admin_dashboard",
+        url_endpoint="adminpanel.dashboard",
         path="/adminpanel",
         for_admin=True,
     ),
