@@ -35,7 +35,7 @@ class UsersDashboardView(MethodView):
         try:
             users = self.user_service.list_users()
         except Exception as e:  # pragma: no cover - defensive guard
-            logger.error(f"Error listing users: {e}")
+            logger.error("Error listing users: %s", e)
             flash("Error listing users", "error")
             users: list[Any] = []
 
@@ -112,15 +112,21 @@ class UsersRoutes:
 
     @classmethod
     def register(cls, bp: Blueprint) -> None:
-        """Register admin users URL rules on the provided blueprint with admin protection."""
-        bp.add_url_rule("/", view_func=UsersDashboardView.as_view("dashboard"))
+        """Register the dashboard and the two permission-toggle endpoints."""
+        bp.add_url_rule(
+            "/",
+            view_func=UsersDashboardView.as_view("dashboard"),
+            methods=["GET"],
+        )
         bp.add_url_rule(
             "/<int:user_id>/can_run_jobs",
             view_func=UpdateCanRunJobsView.as_view("update_can_run_jobs"),
+            methods=["POST"],
         )
         bp.add_url_rule(
             "/<int:user_id>/can_run_bg_jobs",
             view_func=UpdateCanRunBgJobsView.as_view("update_can_run_bg_jobs"),
+            methods=["POST"],
         )
 
     # ----------------------------------------------------------------------

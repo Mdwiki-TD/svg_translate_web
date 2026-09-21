@@ -1,7 +1,8 @@
-"""Admin-only routes for managing application settings."""
+"""Admin-only routes for managing application settings, built on MethodView."""
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Any
 
@@ -20,9 +21,11 @@ from werkzeug.datastructures import ImmutableMultiDict
 from ...database.services import SettingsService
 from ..decorators import admin_required
 
+logger = logging.getLogger(__name__)
+
 
 def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
-    """Returns (value, success)"""
+    """Coerce a submitted form value, returning ``(value, success)``."""
     if v_type == "boolean":
         return raw_val == "on", True
     elif v_type == "integer":
@@ -35,13 +38,13 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
 
 
 class SettingsFuncs:
-    """Shared settings helpers used by the settings MethodViews."""
+    """Shared service access and form-processing logic for the settings views."""
 
     def __init__(self) -> None:
         self.service = SettingsService()
 
     def settings_update_form(self, request_form: ImmutableMultiDict) -> tuple[list[str], list[str]]:
-        """Apply the submitted settings form and return (failed_keys, deleted_keys)."""
+        """Apply the submitted settings form, returning ``(failed_keys, deleted_keys)``."""
         all_settings = self.service.get_all_settings_raw()
         failed_keys: list[str] = []
         deleted_keys: list[str] = []
@@ -79,12 +82,12 @@ class SettingsFuncs:
 
 
 class SettingsDashboardView(SettingsFuncs, MethodView):
-    """View to render the settings dashboard."""
+    """View rendering the settings dashboard."""
 
     decorators = [admin_required]
 
     def get(self) -> str:
-        """Render the settings dashboard with all stored settings."""
+        """List every stored setting as a raw table."""
         settings_list = self.service.get_all_settings_raw()
         return render_template(
             "admins/settings.html",
@@ -93,12 +96,12 @@ class SettingsDashboardView(SettingsFuncs, MethodView):
 
 
 class SettingsCreateView(SettingsFuncs, MethodView):
-    """View to create a single setting from the dashboard form."""
+    """View creating a single new setting from the submitted form."""
 
     decorators = [admin_required]
 
     def post(self) -> ResponseReturnValue:
-        """Create a new setting, validating the key format first."""
+        """Validate the key and store the setting, then redirect to the dashboard."""
         key = request.form.get("key", "").strip()
         title = request.form.get("title", "").strip()
         value_type = request.form.get("value_type", "boolean").strip()
@@ -123,12 +126,12 @@ class SettingsCreateView(SettingsFuncs, MethodView):
 
 
 class SettingsUpdateView(SettingsFuncs, MethodView):
-    """View to apply bulk settings updates submitted from the dashboard."""
+    """View applying the bulk settings update form."""
 
     decorators = [admin_required]
 
     def post(self) -> ResponseReturnValue:
-        """Apply the settings form and flash the outcome."""
+        """Apply every changed setting, then redirect to the dashboard."""
         failed_keys, deleted_keys = self.settings_update_form(request.form)
         # Invalidate runtime cache only if all updates succeeded
         if not failed_keys:
@@ -141,15 +144,27 @@ class SettingsUpdateView(SettingsFuncs, MethodView):
         return redirect(url_for("adminpanel.settings.dashboard"))
 
 
-class SettingsRoutes(SettingsFuncs):
-    """Registrar class to bind admin settings MethodViews to a Blueprint."""
+class SettingsRoutes:
+    """Settings routes registrar using class-based views."""
 
     @classmethod
     def register(cls, bp: Blueprint) -> None:
-        """Register admin settings URL rules on the provided blueprint with admin protection."""
-        bp.add_url_rule("/", view_func=SettingsDashboardView.as_view("dashboard"))
-        bp.add_url_rule("/create", view_func=SettingsCreateView.as_view("create"))
-        bp.add_url_rule("/update", view_func=SettingsUpdateView.as_view("update"))
+        """Register the dashboard, create and update endpoints."""
+        bp.add_url_rule(
+            "/",
+            view_func=SettingsDashboardView.as_view("dashboard"),
+            methods=["GET"],
+        )
+        bp.add_url_rule(
+            "/create",
+            view_func=SettingsCreateView.as_view("create"),
+            methods=["POST"],
+        )
+        bp.add_url_rule(
+            "/update",
+            view_func=SettingsUpdateView.as_view("update"),
+            methods=["POST"],
+        )
 
 
 __all__ = [
