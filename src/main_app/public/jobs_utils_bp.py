@@ -105,23 +105,23 @@ class UtilsJobsBpRoutes:
         """Register jobs utils URL rules on the provided blueprint with admin protection."""
         bp.add_url_rule(
             "/download_main_files/file/<string:filename>",
-            view_func=admin_required(ServeDownloadMainFileView.as_view("serve_download_main_file")),
+            view_func=ServeDownloadMainFileView.as_view("serve_download_main_file"),
         )
         bp.add_url_rule(
             "/download_main_files/download-all",
-            view_func=admin_required(DownloadAllMainFilesView.as_view("download_all_main_files")),
+            view_func=DownloadAllMainFilesView.as_view("download_all_main_files"),
         )
         bp.add_url_rule(
             "/crop-main-files/original/<string:filename>",
-            view_func=admin_required(ServeCropOriginalFileView.as_view("serve_crop_original_file")),
+            view_func=ServeCropOriginalFileView.as_view("serve_crop_original_file"),
         )
         bp.add_url_rule(
             "/crop-main-files/cropped/<string:filename>",
-            view_func=admin_required(ServeCropCroppedFileView.as_view("serve_crop_cropped_file")),
+            view_func=ServeCropCroppedFileView.as_view("serve_crop_cropped_file"),
         )
         bp.add_url_rule(
             "/crop-main-files/compare/<string:original>/<string:cropped>",
-            view_func=admin_required(CompareCropFilesView.as_view("compare_crop_files")),
+            view_func=CompareCropFilesView.as_view("compare_crop_files"),
         )
 
 

@@ -25,6 +25,8 @@ logger = logging.getLogger(__name__)
 class AdminJobsRoutes:
     """Registrar class for binding Admin Job MethodViews to a Blueprint."""
 
+    decorators = [admin_required]
+
     def __init__(
         self,
         jobs_data_infos: dict[str, JobData],
@@ -39,42 +41,42 @@ class AdminJobsRoutes:
 
         bp.add_url_rule(
             "/<string:job_type>",
-            view_func=admin_required(JobsListView.as_view("jobs_list", *view_args)),
+            view_func=JobsListView.as_view("jobs_list", *view_args),
         )
 
         bp.add_url_rule(
             "/<string:job_type>/<int:job_id>",
-            view_func=admin_required(JobDetailView.as_view("job_detail", *view_args)),
+            view_func=JobDetailView.as_view("job_detail", *view_args),
         )
 
         bp.add_url_rule(
             "/job-file/<string:result_file>/<string:job_type>",
-            view_func=admin_required(ReadJobResultFileView.as_view("read_job_result_file", *view_args)),
+            view_func=ReadJobResultFileView.as_view("read_job_result_file", *view_args),
         )
 
         bp.add_url_rule(
             "/<string:job_type>/<int:job_id>/cancel",
-            view_func=admin_required(CancelJobView.as_view("cancel_job", *view_args)),
+            view_func=CancelJobView.as_view("cancel_job", *view_args),
         )
 
         bp.add_url_rule(
             "/<string:job_type>/start",
-            view_func=admin_required(StartJobView.as_view("start_job", *view_args)),
+            view_func=StartJobView.as_view("start_job", *view_args),
         )
 
         bp.add_url_rule(
             "/<string:job_type>/<int:job_id>/delete",
-            view_func=admin_required(DeleteJobView.as_view("delete_job", *view_args)),
+            view_func=DeleteJobView.as_view("delete_job", *view_args),
         )
 
         bp.add_url_rule(
             "/<string:job_type>/<int:job_id>/mark_as_completed",
-            view_func=admin_required(MarkJobCompletedView.as_view("mark_as_completed", *view_args)),
+            view_func=MarkJobCompletedView.as_view("mark_as_completed", *view_args),
         )
 
         bp.add_url_rule(
             "/<string:job_type>/file/<int:file_number>/<string:list_name>",
-            view_func=admin_required(DrawResultFileView.as_view("draw_result_file", *view_args)),
+            view_func=DrawResultFileView.as_view("draw_result_file", *view_args),
         )
 
 
