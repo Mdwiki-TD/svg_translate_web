@@ -1,4 +1,4 @@
-"""Admin-only routes for managing coordinator access."""
+"""Admin-only routes for the admin dashboard, built on MethodView."""
 
 from __future__ import annotations
 
@@ -21,17 +21,18 @@ logger = logging.getLogger(__name__)
 
 
 def _get_display_name(job_type: str) -> str:
+    """Return the human-friendly name registered for a job type."""
     job_data = jobs_data_admins.get(job_type)
     return job_data.job_name if job_data else job_type
 
 
 class AdminDashboardView(MethodView):
-    """View to render the main admin panel dashboard."""
+    """View rendering the main admin dashboard."""
 
     decorators = [admin_required]
 
     def get(self) -> str:
-        """Render the admin dashboard with the most recent jobs."""
+        """List the most recent jobs with display names and detail URLs."""
         jobs = JobsService().list_jobs(limit=100)
 
         # Enhance jobs with display names and detail URLs
@@ -58,14 +59,24 @@ class AdminDashboardView(MethodView):
 
 
 class AdminPanel:
-    """admin panel routes."""
+    """Admin panel routes registrar using class-based views."""
 
-    def register(self, bp: Blueprint) -> None:
-        bp.app_context_processor(self.inject_sidebar)
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
+        """Register the dashboard view and the sidebar context processor."""
+        # Expose the sidebar markup to every template rendered by this blueprint.
+        bp.app_context_processor(cls.inject_sidebar)
         # TODO: put a before_request guard on the admin blueprint. use admin_required decorators
-        bp.add_url_rule("/", view_func=AdminDashboardView.as_view("dashboard"))
 
-    def inject_sidebar(self) -> dict[str, Any]:
+        bp.add_url_rule(
+            "/",
+            view_func=AdminDashboardView.as_view("dashboard"),
+            methods=["GET"],
+        )
+
+    @staticmethod
+    def inject_sidebar() -> dict[str, Any]:
+        """Provide the admin sidebar markup as a template global."""
         return {"create_side": create_side}
 
 
