@@ -1,9 +1,12 @@
+"""Public JSON API routes exposed as MethodView classes."""
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
 from flask import Blueprint, jsonify
+from flask.views import MethodView
 
 from ..api_services.files_service.file_langs import get_file_languages
 from ..database.models import TemplateRecord
@@ -19,28 +22,14 @@ from ..services.owid_charts_utils import make_charts_summary
 logger = logging.getLogger(__name__)
 
 
-class ApiRoutes:
+class TemplatesListView(MethodView):
+    """View to list templates with an aggregate summary as JSON."""
+
     def __init__(self) -> None:
-        self.owid_charts_service = OwidChartsService()
-        self.views_service = ViewsService()
         self.templates_service = TemplateService()
-        self.charts_and_tmps_service = ChartsAndTemplatesService()
 
-    def register(self, bp: Blueprint) -> None:
-
-        routes = [
-            ("/templates", "GET", self.templates_list),
-            ("/templates/<string:filter>", "GET", self.templates_list),
-            ("/templates-mismatched-years", "GET", self.templates_mismatched_years_list),
-            ("/templates-need-update", "GET", self.templates_need_update_list),
-            ("/owidcharts/", "GET", self.owid_charts_list),
-            ("/owidcharts/<string:template_filter>", "GET", self.owid_charts_list),
-            ("/languages/<path:file_name>", "GET", self.file_languages),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(target)
-
-    def templates_list(self, filter: str = ""):
+    def get(self, filter: str = "") -> str:
+        """Return templates and summary counts as JSON."""
         templates: list[TemplateRecord] = self.templates_service.list()
 
         data: list[dict[str, Any]] = []
@@ -79,7 +68,15 @@ class ApiRoutes:
 
         return jsonify({"summary": summary, "data": data})
 
-    def templates_mismatched_years_list(self):
+
+class TemplatesMismatchedYearsView(MethodView):
+    """View to list templates whose years mismatch their charts."""
+
+    def __init__(self) -> None:
+        self.templates_service = TemplateService()
+
+    def get(self) -> str:
+        """Return mismatched-year templates as JSON."""
         try:
             templates = self.templates_service.list_templates_mismatched_years()
             data = [t.to_json() for t in templates]
@@ -89,14 +86,27 @@ class ApiRoutes:
 
         return jsonify({"data": data})
 
-    def templates_need_update_list(self):
+
+class TemplatesNeedUpdateListView(MethodView):
+    """View to list templates that need a year update."""
+
+    def __init__(self) -> None:
+        self.views_service = ViewsService()
+
+    def get(self) -> str:
+        """Return templates needing an update as JSON."""
         templates = self.views_service.list_templates_need_update()
 
         data = [t.to_json() for t in templates]
 
         return jsonify({"data": data})
 
-    def file_languages(self, file_name: str):
+
+class FileLanguagesView(MethodView):
+    """View to return the languages available for a single file."""
+
+    def get(self, file_name: str) -> str:
+        """Return the language list for ``file_name`` as JSON."""
         result = get_file_languages(file_name)
         error = result.error
         langs = result.langs or []
@@ -104,7 +114,16 @@ class ApiRoutes:
             return jsonify({"error": error or "No languages found"}), 404
         return jsonify(langs)
 
-    def owid_charts_list(self, template_filter: str = ""):
+
+class OwidChartsListView(MethodView):
+    """View to list OWID charts, optionally filtered by template."""
+
+    def __init__(self) -> None:
+        self.owid_charts_service = OwidChartsService()
+        self.charts_and_tmps_service = ChartsAndTemplatesService()
+
+    def get(self, template_filter: str = "") -> str:
+        """Return charts and summary counts as JSON."""
         # Optimize: use single-query list_all() with fallback
         charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
 
@@ -118,6 +137,31 @@ class ApiRoutes:
             "data": data,
         }
         return jsonify(results)
+
+
+class ApiRoutes:
+    """Registrar class to bind public API MethodViews to a Blueprint."""
+
+    def register(self, bp: Blueprint) -> None:
+        """Register public API URL rules on the provided blueprint."""
+        templates_view = TemplatesListView.as_view("templates_list")
+        bp.add_url_rule("/templates", view_func=templates_view)
+        bp.add_url_rule("/templates/<string:filter>", view_func=templates_view)
+
+        bp.add_url_rule(
+            "/templates-mismatched-years",
+            view_func=TemplatesMismatchedYearsView.as_view("templates_mismatched_years_list"),
+        )
+        bp.add_url_rule(
+            "/templates-need-update",
+            view_func=TemplatesNeedUpdateListView.as_view("templates_need_update_list"),
+        )
+
+        owid_view = OwidChartsListView.as_view("owid_charts_list")
+        bp.add_url_rule("/owidcharts/", view_func=owid_view)
+        bp.add_url_rule("/owidcharts/<string:template_filter>", view_func=owid_view)
+
+        bp.add_url_rule("/languages/<path:file_name>", view_func=FileLanguagesView.as_view("file_languages"))
 
 
 __all__ = [
