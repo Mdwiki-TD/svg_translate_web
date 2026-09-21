@@ -17,8 +17,7 @@
                         Enter an SVG file name from Wikimedia Commons and select a language code to begin translating
                         interactively.
                     </p>
-
-                    <form method="POST" action="{{ url_for('translate.select_post') }}">
+                    <form method="POST" action="{{ url_for('translate.dashboard') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
                         <div class="mb-3">

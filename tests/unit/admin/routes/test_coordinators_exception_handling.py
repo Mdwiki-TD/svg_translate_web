@@ -7,13 +7,13 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.main_app.admin.routes.coordinators import CoordinatorsFuncs
+from src.main_app.admin.routes.coordinators import AddCoordinatorView
 
 
 class TestAddCoordinatorExceptionHandling:
     @pytest.fixture(autouse=True)
     def setup(self):
-        self.service = CoordinatorsFuncs()
+        self.service = AddCoordinatorView()
 
     def test_catches_both_lookup_and_value_errors(self, monkeypatch, caplog):
         """Test that add catches both LookupError and ValueError in single except clause."""
@@ -37,7 +37,7 @@ class TestAddCoordinatorExceptionHandling:
         mock_add_coordinator.side_effect = ValueError("Username invalid")
 
         with caplog.at_level(logging.ERROR):
-            self.service.add()
+            self.service.post()
 
         # Verify exception was logged
         assert "Unable to Add coordinator" in caplog.text
@@ -53,6 +53,6 @@ class TestAddCoordinatorExceptionHandling:
         mock_add_coordinator.side_effect = LookupError("User not found")
 
         with caplog.at_level(logging.ERROR):
-            self.service.add()
+            self.service.post()
 
         mock_flash.assert_called_once_with("Unable to add 'test_user' as coordinator", "warning")

@@ -60,7 +60,7 @@ class TestTranslateRoutes:
         assert b"Language Code" in resp.data
 
     def test_select_post_redirects_to_edit(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Posting to select endpoint downloads, extracts, and redirects to edit with session_id."""
+        """Posting to post endpoint downloads, extracts, and redirects to edit with session_id."""
         # Mock get_file_info
         mock_file_info = FileInfo(exists=True)
         monkeypatch.setattr(
@@ -84,7 +84,7 @@ class TestTranslateRoutes:
         )
 
         resp = mock_client.post(
-            "/translate/select",
+            "/translate",
             data={
                 "filename": "Example.svg",
                 "lang": "ar",
@@ -96,7 +96,7 @@ class TestTranslateRoutes:
     def test_select_post_missing_fields(self, mock_client: FlaskClient) -> None:
         """Posting without required fields redirects to dashboard."""
         resp = mock_client.post(
-            "/translate/select",
+            "/translate",
             data={
                 "filename": "",
                 "lang": "ar",

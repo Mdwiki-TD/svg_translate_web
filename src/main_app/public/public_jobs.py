@@ -21,16 +21,14 @@ class PublicJobsRoutes(JobsBp):
 
     def __init__(
         self,
-        bp: Blueprint,
         jobs_data_infos: dict[str, JobData],
         bp_name: str,
     ) -> None:
-        self.bp = bp
         self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
         self.bp_name = bp_name
         super().__init__(jobs_data_infos, bp_name)
 
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         routes = [
             ("/<string:job_type>", "GET", self.jobs_list),
             ("/<string:job_type>/<int:job_id>", "GET", self.job_detail),
@@ -43,7 +41,7 @@ class PublicJobsRoutes(JobsBp):
         ]
 
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(target)
+            bp.route(rule, methods=[method])(target)
 
 
 __all__ = [

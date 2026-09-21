@@ -7,11 +7,10 @@ Only the ``admin_required`` auth decorator is bypassed.
 from __future__ import annotations
 
 import pytest
-from flask import Blueprint, Flask
+from flask import Flask
 
 from src.main_app.admin.routes.settings import (
     SettingsFuncs,
-    SettingsRoutes,
     _parse_setting_value,
 )
 from src.main_app.database.services import SettingsService
@@ -26,22 +25,6 @@ class TestSetup:
     def setup(self) -> None:
         self.func_service = SettingsFuncs()
         self.service = SettingsService()
-
-
-class TestSettingsRoutesClass(TestSetup):
-    """Tests for the SettingsRoutes class itself."""
-
-    def test_blueprint_properties(self):
-        """SettingsRoutes should create a Blueprint with the expected name and prefix."""
-        instance = SettingsRoutes(Blueprint("settings", __name__, url_prefix="/settings"))
-        assert isinstance(instance.bp, Blueprint)
-        assert instance.bp.name == "settings"
-        assert instance.bp.url_prefix == "/settings"
-
-    def test_all_routes_registered(self):
-        """SettingsRoutes should register all 3 routes."""
-        instance = SettingsRoutes(Blueprint("settings", __name__, url_prefix="/settings"))
-        assert len(instance.bp.deferred_functions) == 3
 
 
 # ---------------------------------------------------------------------------

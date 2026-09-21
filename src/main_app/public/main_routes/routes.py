@@ -12,6 +12,7 @@ from flask import (
     render_template,
     send_from_directory,
 )
+from flask.views import MethodView
 from flask.wrappers import Response
 
 from ...jobs_workers.public_jobs_workers.copy_svg_langs import (
@@ -21,20 +22,11 @@ from ...jobs_workers.public_jobs_workers.copy_svg_langs import (
 logger = logging.getLogger(__name__)
 
 
-class MainRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
-        self._setup_routes()
+class IndexView(MethodView):
+    """View to handle requests for the main application landing page."""
 
-    def _setup_routes(self) -> None:
-        routes = [
-            ("/", "GET", self.index),
-            ("/favicon.ico", "GET", self.favicon),
-        ]
-        for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(target)
-
-    def index(self) -> str:
+    def get(self) -> str:
+        """Render index page with SVG language setup form."""
         form = setup_svg_langs_form()
 
         return render_template(
@@ -42,10 +34,31 @@ class MainRoutes:
             form=form,
         )
 
-    def favicon(self) -> Response:
-        return send_from_directory(current_app.static_folder, "favicon.ico", mimetype="image/x-icon")
+
+class FaviconView(MethodView):
+    """View to serve the application favicon."""
+
+    def get(self) -> Response:
+        """Serve the favicon icon from the static assets directory."""
+        return send_from_directory(
+            current_app.static_folder,
+            "favicon.ico",
+            mimetype="image/x-icon",
+        )
+
+
+class MainView:
+    """Registrar class to bind main MethodViews to a Blueprint."""
+
+    @staticmethod
+    def register(bp: Blueprint) -> None:
+        """Register main URL rules on the provided blueprint."""
+        bp.add_url_rule("/", view_func=IndexView.as_view("index"))
+        bp.add_url_rule("/favicon.ico", view_func=FaviconView.as_view("favicon"))
 
 
 __all__ = [
-    "MainRoutes",
+    "IndexView",
+    "FaviconView",
+    "MainView",
 ]

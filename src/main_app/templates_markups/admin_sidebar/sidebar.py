@@ -12,7 +12,7 @@ import logging
 
 from markupsafe import Markup, escape
 
-from .objects import SidebarGroup, SidebarItem
+from .mapping import SidebarGroup, SidebarItem
 from .sidebar_list import load_groups_menu
 
 logger = logging.getLogger(__name__)

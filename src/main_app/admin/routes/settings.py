@@ -109,19 +109,17 @@ class SettingsFuncs:
 
 
 class SettingsRoutes(SettingsFuncs):
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
+    def __init__(self) -> None:
         super().__init__()
-        self._setup_routes()
 
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         routes = [
             ("/", "GET", self.dashboard),
             ("/create", "POST", self.create),
             ("/update", "POST", self.update),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(admin_required(target))
+            bp.route(rule, methods=[method])(admin_required(target))
 
 
 __all__ = [

@@ -17,6 +17,7 @@ from flask import (
     send_file,
     url_for,
 )
+from flask.views import MethodView
 
 from ...api_services import FilesService, UploadService, get_user_site
 from ...config import app_settings
@@ -36,29 +37,21 @@ def get_session_dir(session_id: str) -> Path:
     return session_dir
 
 
-class TranslateRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
+class TranslateDashboardView(MethodView):
+    """View to handle the main translate selection form and submission."""
+
+    decorators = [oauth_required]
+
+    def __init__(self) -> None:
         self.files_service = FilesService()
-        self._setup_routes()
 
-    def _setup_routes(self) -> None:
-        routes = [
-            ("/", "GET", oauth_required(self.dashboard)),
-            ("/select", "POST", oauth_required(self.select_post)),
-            ("/edit", "GET", oauth_required(self.edit_get)),
-            ("/save", "POST", oauth_required(self.save_post)),
-        ]
-        for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(target)
-
-    def dashboard(self) -> str:
+    def get(self) -> str:
         """Display select form with filename and language fields."""
         return render_template("translate/form.html")
 
-    def select_post(self) -> Any:
+    def post(self) -> Any:
         """Process selection form and redirect to edit view with a unique session_id."""
-        filename = request.form.get("filename", "").strip()
+        filename = (request.form.get("filename", "") or request.form.get("file_name", "")).strip()
         lang = request.form.get("lang", "").strip().lower()
 
         if not filename or not lang:
@@ -116,10 +109,16 @@ class TranslateRoutes:
         json_path = session_dir / "session.json"
         json_path.write_text(json.dumps(session_data, ensure_ascii=False, indent=2), encoding="utf-8")
 
-        return redirect(url_for("translate.edit_get", session_id=session_id))
+        return redirect(url_for("translate.edit", session_id=session_id))
 
-    def edit_get(self) -> Any:
-        """Display English text segments with parallel translation inputs for editing."""
+
+class TranslateEditView(MethodView):
+    """View to display English text segments with parallel translation inputs for editing."""
+
+    decorators = [oauth_required]
+
+    def get(self) -> Any:
+        """Render the translation editor page for the current session."""
         session_id = request.args.get("session_id", "").strip()
         if not session_id:
             flash("Missing session ID", "danger")
@@ -168,8 +167,14 @@ class TranslateRoutes:
             texts_with_translations=texts_with_translations,
         )
 
-    def save_post(self) -> Any:
-        """Inject translations and download or upload to Commons."""
+
+class TranslateSaveView(MethodView):
+    """View to process translation injection and handle download or upload actions."""
+
+    decorators = [oauth_required]
+
+    def post(self) -> Any:
+        """Inject translations into SVG and execute download or upload to Commons."""
         session_id = request.form.get("session_id", "").strip()
         action = request.form.get("action", "upload").strip()  # "upload" or "download"
         originals = request.form.getlist("originals")
@@ -181,7 +186,7 @@ class TranslateRoutes:
 
         if len(originals) != len(translations):
             flash("Form submission error: field count mismatch", "danger")
-            return redirect(url_for("translate.edit_get", session_id=session_id))
+            return redirect(url_for("translate.edit", session_id=session_id))
 
         session_dir = get_session_dir(session_id)
         json_path = session_dir / "session.json"
@@ -232,13 +237,13 @@ class TranslateRoutes:
 
         if not inject_result.result:
             flash(f"Translation injection failed: {inject_result.msg}", "danger")
-            return redirect(url_for("translate.edit_get", session_id=session_id))
+            return redirect(url_for("translate.edit", session_id=session_id))
 
         # Handle Action: Download
         if action == "download":
             if not output_file.exists():
                 flash("Translated file not found", "danger")
-                return redirect(url_for("translate.edit_get", session_id=session_id))
+                return redirect(url_for("translate.edit", session_id=session_id))
 
             # Stream the modified SVG directly to the user
             response = send_file(
@@ -280,11 +285,31 @@ class TranslateRoutes:
             return redirect(url_for("translate.dashboard"))
         else:
             flash(
-                f"Failed to upload file: {upload_res.error or 'unknown'} - {upload_res.error_details or ''}", "danger"
+                f"Failed to upload file: {upload_res.error or 'unknown'} - {upload_res.error_details or ''}",
+                "danger",
             )
             return redirect(url_for("translate.dashboard"))
 
 
+class TranslateView:
+    """Registrar class to bind translate MethodViews to a Blueprint."""
+
+    @staticmethod
+    def register(bp: Blueprint) -> None:
+        """
+        Register all translate URL rules on the provided blueprint.
+        """
+        # ------------------------------------------------------------------
+        # Active MethodView Routes
+        # ------------------------------------------------------------------
+        bp.add_url_rule("/", view_func=TranslateDashboardView.as_view("dashboard"))
+        bp.add_url_rule("/edit", view_func=TranslateEditView.as_view("edit"))
+        bp.add_url_rule("/save", view_func=TranslateSaveView.as_view("save"))
+
+
 __all__ = [
-    "TranslateRoutes",
+    "TranslateDashboardView",
+    "TranslateEditView",
+    "TranslateSaveView",
+    "TranslateView",
 ]

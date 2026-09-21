@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import functools
 
-from .objects import (
+from .mapping import (
     SidebarGroup,
     SidebarItem,
 )

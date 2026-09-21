@@ -57,4 +57,4 @@ def test_settingsroutes_init_registers_routes():
     """Test SettingsRoutes registers all required routes."""
     # mock_bp = MagicMock()
     bp_settings = Blueprint("settings", __name__, url_prefix="/settings")
-    settings.SettingsRoutes(bp_settings)
+    settings.SettingsRoutes().register(bp_settings)

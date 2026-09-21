@@ -1,4 +1,6 @@
-""" """
+"""
+Coordinators Management Views.
+"""
 
 from __future__ import annotations
 
@@ -14,6 +16,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from flask.views import MethodView
 
 from ...database.exceptions import DuplicateRecordError, UserNotFoundError
 from ...database.services import AdminService
@@ -22,17 +25,20 @@ from ..decorators import admin_required
 logger = logging.getLogger(__name__)
 
 
-class CoordinatorsFuncs:
+class CoordinatorDashboardView(MethodView):
+    """View to handle listing and rendering the coordinator management dashboard."""
+
+    decorators = [admin_required]
+
     def __init__(self) -> None:
         self.admin_service = AdminService()
 
-    def dashboard(self) -> str:
+    def get(self) -> str:
         """Render the coordinator management dashboard."""
         try:
-
             coordinators = self.admin_service.list_coordinators()
         except Exception as e:  # pragma: no cover - defensive guard
-            logger.error(f"Unable to list coordinators: {e}")
+            logger.error("Unable to list coordinators: %s", e)
             flash("Unable to list coordinators.", "danger")
             coordinators: list[Any] = []
 
@@ -47,22 +53,29 @@ class CoordinatorsFuncs:
             inactive_coordinators=total - total_active,
         )
 
-    def add(self) -> ResponseReturnValue:
-        """Create a new coordinator from the submitted username."""
 
+class AddCoordinatorView(MethodView):
+    """View to handle adding a new coordinator."""
+
+    decorators = [admin_required]
+
+    def __init__(self) -> None:
+        self.admin_service = AdminService()
+
+    def post(self) -> ResponseReturnValue:
+        """Create a new coordinator from the submitted username."""
         username = request.form.get("username", "").strip()
         if not username:
             flash("Username is required to add a coordinator.", "danger")
             return redirect(url_for("adminpanel.coordinators.dashboard"))
 
         try:
-
             record = self.admin_service.add_coordinator(username)
         except UserNotFoundError as exc:
             logger.error("UserNotFoundError: %s", exc)
             flash(f"User '{username}' does not exist", "warning")
         except DuplicateRecordError:
-            logger.error(f"Coordinator '{username}' already exists")
+            logger.error("Coordinator '%s' already exists", username)
             flash(f"Coordinator '{username}' already exists", "warning")
         except (LookupError, ValueError):
             logger.exception("Unable to Add coordinator.")
@@ -75,31 +88,14 @@ class CoordinatorsFuncs:
 
         return redirect(url_for("adminpanel.coordinators.dashboard"))
 
-    def activate(self, coordinator_id: int) -> ResponseReturnValue:
-        return self._set_record_active_status(coordinator_id, True)
 
-    def deactivate(self, coordinator_id: int) -> ResponseReturnValue:
-        return self._set_record_active_status(coordinator_id, False)
+class CoordinatorStatusView(MethodView):
+    """Base class for managing coordinator status updates."""
 
-    def delete(self, coordinator_id: int) -> ResponseReturnValue:
-        """Remove a coordinator entirely."""
+    decorators = [admin_required]
 
-        try:
-
-            record = self.admin_service.get_coordinator_by_id(coordinator_id)
-            if record is None:
-                raise LookupError(f"Coordinator with id {coordinator_id} not found")
-            self.admin_service.delete(coordinator_id)
-        except LookupError:
-            logger.exception("Unable to delete coordinator.")
-            flash(f"Coordinator id {coordinator_id} was not found", "warning")
-        except Exception:  # pragma: no cover - defensive guard
-            logger.exception("Unable to delete coordinator.")
-            flash("Unable to delete coordinator. Please try again.", "danger")
-        else:
-            flash(f"Coordinator '{coordinator_id}' removed.", "success")
-
-        return redirect(url_for("adminpanel.coordinators.dashboard"))
+    def __init__(self) -> None:
+        self.admin_service = AdminService()
 
     def _set_record_active_status(self, coordinator_id: int, is_active: bool) -> ResponseReturnValue:
         """Shared helper to update coordinator is_active status."""
@@ -120,27 +116,74 @@ class CoordinatorsFuncs:
         return redirect(url_for("adminpanel.coordinators.dashboard"))
 
 
-class CoordinatorsRoutes(CoordinatorsFuncs):
-    """Jobs management routes."""
+class ActivateCoordinatorView(CoordinatorStatusView):
+    """View to activate a coordinator."""
 
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
-        super().__init__()
-        self._setup_routes()
+    def post(self, coordinator_id: int) -> ResponseReturnValue:
+        return self._set_record_active_status(coordinator_id, True)
 
-    def _setup_routes(self) -> None:
 
-        routes = [
-            ("/", "GET", self.dashboard),
-            ("/add", "POST", self.add),
-            ("/<int:coordinator_id>/activate", "POST", self.activate),
-            ("/<int:coordinator_id>/deactivate", "POST", self.deactivate),
-            ("/<int:coordinator_id>/delete", "POST", self.delete),
-        ]
-        for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(admin_required(target))
+class DeactivateCoordinatorView(CoordinatorStatusView):
+    """View to deactivate a coordinator."""
+
+    def post(self, coordinator_id: int) -> ResponseReturnValue:
+        return self._set_record_active_status(coordinator_id, False)
+
+
+class DeleteCoordinatorView(MethodView):
+    """View to remove a coordinator entirely."""
+
+    decorators = [admin_required]
+
+    def __init__(self) -> None:
+        self.admin_service = AdminService()
+
+    def post(self, coordinator_id: int) -> ResponseReturnValue:
+        """Remove a coordinator entirely."""
+        try:
+            record = self.admin_service.get_coordinator_by_id(coordinator_id)
+            if record is None:
+                raise LookupError(f"Coordinator with id {coordinator_id} not found")
+            self.admin_service.delete(coordinator_id)
+        except LookupError:
+            logger.exception("Unable to delete coordinator.")
+            flash(f"Coordinator id {coordinator_id} was not found", "warning")
+        except Exception:  # pragma: no cover - defensive guard
+            logger.exception("Unable to delete coordinator.")
+            flash("Unable to delete coordinator. Please try again.", "danger")
+        else:
+            flash(f"Coordinator '{coordinator_id}' removed.", "success")
+
+        return redirect(url_for("adminpanel.coordinators.dashboard"))
+
+
+class CoordinatorView:
+    """Coordinator management routes registrar using Class-Based Views."""
+
+    def register(self, bp: Blueprint) -> None:
+        # Register views on the Blueprint using as_view
+        bp.add_url_rule(
+            "/",
+            view_func=CoordinatorDashboardView.as_view("dashboard"),
+        )
+        bp.add_url_rule(
+            "/add",
+            view_func=AddCoordinatorView.as_view("add"),
+        )
+        bp.add_url_rule(
+            "/<int:coordinator_id>/activate",
+            view_func=ActivateCoordinatorView.as_view("activate"),
+        )
+        bp.add_url_rule(
+            "/<int:coordinator_id>/deactivate",
+            view_func=DeactivateCoordinatorView.as_view("deactivate"),
+        )
+        bp.add_url_rule(
+            "/<int:coordinator_id>/delete",
+            view_func=DeleteCoordinatorView.as_view("delete"),
+        )
 
 
 __all__ = [
-    "CoordinatorsRoutes",
+    "CoordinatorView",
 ]

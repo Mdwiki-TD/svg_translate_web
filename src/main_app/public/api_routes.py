@@ -20,15 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 class ApiRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
+    def __init__(self) -> None:
         self.owid_charts_service = OwidChartsService()
         self.views_service = ViewsService()
         self.templates_service = TemplateService()
         self.charts_and_tmps_service = ChartsAndTemplatesService()
-        self._setup_routes()
 
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
 
         routes = [
             ("/templates", "GET", self.templates_list),
@@ -40,7 +38,7 @@ class ApiRoutes:
             ("/languages/<path:file_name>", "GET", self.file_languages),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(target)
+            bp.route(rule, methods=[method])(target)
 
     def templates_list(self, filter: str = ""):
         templates: list[TemplateRecord] = self.templates_service.list()

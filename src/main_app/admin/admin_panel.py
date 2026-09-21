@@ -27,19 +27,14 @@ def _get_display_name(job_type: str) -> str:
 class AdminPanel:
     """admin panel routes."""
 
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
-        self._setup_routes()
-
-    def _setup_routes(self) -> None:
-
-        self.bp.app_context_processor(self.inject_sidebar)
+    def register(self, bp: Blueprint) -> None:
+        bp.app_context_processor(self.inject_sidebar)
 
         routes = [
             ("/", "GET", self.admin_dashboard),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(admin_required(target))
+            bp.route(rule, methods=[method])(admin_required(target))
 
     def inject_sidebar(self) -> dict[str, Any]:
         return {"create_side": create_side}

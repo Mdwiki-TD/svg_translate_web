@@ -44,12 +44,15 @@ def users_service() -> UsersService:
 def seeded_users(users_service: UsersService) -> list[int]:
     alice = users_service.create_user("alice")
     bob = users_service.create_user("bob")
+    assert alice is not None
+    assert bob is not None
     return [alice.user_id, bob.user_id]
 
 
 class TestDashboard:
     def test_with_users(self, mock_deps: MockUsersDeps, seeded_users) -> None:
-        routes = UsersRoutes(Blueprint("test", __name__))
+        routes = UsersRoutes()
+        routes.register(Blueprint("test", __name__))
         result = routes.dashboard()
 
         mock_deps.render_template.assert_called_once()
@@ -59,7 +62,8 @@ class TestDashboard:
         assert result == "rendered"
 
     def test_with_0_users(self, mock_deps: MockUsersDeps) -> None:
-        routes = UsersRoutes(Blueprint("test", __name__))
+        routes = UsersRoutes()
+        routes.register(Blueprint("test", __name__))
         result = routes.dashboard()
 
         mock_deps.render_template.assert_called_once()
@@ -84,7 +88,8 @@ class TestUpdatePermissions:
     def test_update_can_run_jobs_enable(self, mock_deps, mock_app, seeded_users, users_service) -> None:
         user_id = seeded_users[0]
         with mock_app.test_request_context(method="POST", data={"can_run_jobs": "1"}):
-            routes = UsersRoutes(Blueprint("test", __name__))
+            routes = UsersRoutes()
+            routes.register(Blueprint("test", __name__))
             result = routes.update_can_run_jobs(user_id)
 
         mock_deps.flash.assert_called_once()
@@ -99,7 +104,8 @@ class TestUpdatePermissions:
     def test_update_can_run_jobs_disable(self, mock_deps, mock_app, seeded_users, users_service) -> None:
         user_id = seeded_users[0]
         with mock_app.test_request_context(method="POST", data={"can_run_jobs": "0"}):
-            routes = UsersRoutes(Blueprint("test", __name__))
+            routes = UsersRoutes()
+            routes.register(Blueprint("test", __name__))
             result = routes.update_can_run_jobs(user_id)
 
         mock_deps.flash.assert_called_once()
@@ -112,7 +118,8 @@ class TestUpdatePermissions:
     def test_update_can_run_jobs_default_disable(self, mock_deps, mock_app, seeded_users, users_service) -> None:
         user_id = seeded_users[0]
         with mock_app.test_request_context(method="POST", data={}):
-            routes = UsersRoutes(Blueprint("test", __name__))
+            routes = UsersRoutes()
+            routes.register(Blueprint("test", __name__))
             result = routes.update_can_run_jobs(user_id)
 
         mock_deps.flash.assert_called_once()
@@ -124,7 +131,8 @@ class TestUpdatePermissions:
 
     def test_update_can_run_jobs_lookup_error(self, mock_deps, mock_app) -> None:
         with mock_app.test_request_context(method="POST", data={}):
-            routes = UsersRoutes(Blueprint("test", __name__))
+            routes = UsersRoutes()
+            routes.register(Blueprint("test", __name__))
             result = routes.update_can_run_jobs(999)
 
         mock_deps.flash.assert_called_once_with("User with id 999 was not found", "warning")
@@ -135,7 +143,8 @@ class TestUpdatePermissions:
     def test_update_can_run_bg_jobs_enable(self, mock_deps, mock_app, seeded_users, users_service) -> None:
         user_id = seeded_users[0]
         with mock_app.test_request_context(method="POST", data={"can_run_bg_jobs": "1"}):
-            routes = UsersRoutes(Blueprint("test", __name__))
+            routes = UsersRoutes()
+            routes.register(Blueprint("test", __name__))
             result = routes.update_can_run_bg_jobs(user_id)
 
         mock_deps.flash.assert_called_once()
@@ -147,22 +156,11 @@ class TestUpdatePermissions:
 
     def test_update_can_run_bg_jobs_lookup_error(self, mock_deps, mock_app) -> None:
         with mock_app.test_request_context(method="POST", data={}):
-            routes = UsersRoutes(Blueprint("test", __name__))
+            routes = UsersRoutes()
+            routes.register(Blueprint("test", __name__))
             result = routes.update_can_run_bg_jobs(999)
 
         mock_deps.flash.assert_called_once_with("User with id 999 was not found", "warning")
         mock_deps.url_for.assert_called_once_with("adminpanel.users.dashboard")
         mock_deps.redirect.assert_called_once_with("/adminpanel/users/")
         assert result == "redirect_response"
-
-
-class TestUsersRoutesClass:
-    def test_blueprint_properties(self) -> None:
-        instance = UsersRoutes(Blueprint("users", __name__, url_prefix="/users"))
-        assert isinstance(instance.bp, Blueprint)
-        assert instance.bp.name == "users"
-        assert instance.bp.url_prefix == "/users"
-
-    def test_all_routes_registered(self) -> None:
-        instance = UsersRoutes(Blueprint("users", __name__, url_prefix="/users"))
-        assert len(instance.bp.deferred_functions) == 3

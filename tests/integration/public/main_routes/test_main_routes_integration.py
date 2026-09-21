@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from flask import Blueprint, Flask
 
-from src.main_app.public.main_routes.routes import MainRoutes
+from src.main_app.public.main_routes.routes import MainView
 
 
 @pytest.fixture
@@ -14,7 +14,8 @@ def app_main_mock():
         static_folder="../static",
     )
     bp_main = Blueprint("main", __name__)
-    app.register_blueprint(MainRoutes(bp_main).bp)
+    MainView().register(bp_main)
+    app.register_blueprint(bp_main)
     app.secret_key = "test"
     return app
 

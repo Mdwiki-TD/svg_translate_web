@@ -229,13 +229,11 @@ class OwidCharts:
 
 
 class OwidChartsRoutes(OwidCharts):
-    def __init__(self, bp: Blueprint) -> None:
+    def __init__(self) -> None:
         self.name = "owidcharts"
-        self.bp = bp
         super().__init__()
-        self._setup_routes()
 
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         routes = [
             ("/", "GET", self.dashboard),
             ("/<string:template_filter>", "GET", self.dashboard_with_filter),
@@ -247,7 +245,7 @@ class OwidChartsRoutes(OwidCharts):
             ("/<int:chart_id>/delete", "POST", self.delete_chart),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(admin_required(target))
+            bp.route(rule, methods=[method])(admin_required(target))
 
     def dashboard(self, template_filter: str = "") -> str:
         # Optimize: use single-query list_all() with fallback

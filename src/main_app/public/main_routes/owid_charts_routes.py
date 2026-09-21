@@ -16,19 +16,17 @@ logger = logging.getLogger(__name__)
 
 
 class OwidChartsRoutes:
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
+    def __init__(self) -> None:
         # self.owid_charts_service = OwidChartsService()
         self.charts_and_tmps_service = ChartsAndTemplatesService()
-        self._setup_routes()
 
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         routes = [
             ("/", "GET", self.index),
             ("/all", "GET", self.all_charts),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(target)
+            bp.route(rule, methods=[method])(target)
 
     def index(self) -> str:
         """Display a list of all published OWID charts."""

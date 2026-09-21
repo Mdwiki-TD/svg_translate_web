@@ -34,7 +34,7 @@
                         Below is a list of English text segments extracted from the SVG. Edit or add the translations in the right column. Empty translation fields will be ignored.
                     </p>
 
-                    <form method="POST" action="{{ url_for('translate.save_post') }}">
+                    <form method="POST" action="{{ url_for('translate.save') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         <input type="hidden" name="session_id" value="{{ session_id }}" />
 

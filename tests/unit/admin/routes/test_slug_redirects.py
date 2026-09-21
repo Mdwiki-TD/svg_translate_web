@@ -5,12 +5,8 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from flask import Blueprint
 from werkzeug.datastructures import MultiDict
 
-from src.main_app.admin.routes.slug_redirects import (  # SlugFuncs,
-    SlugRedirectsRoutes,
-)
 from src.main_app.database.services import OwidSlugRedirectsService
 from src.main_app.extensions import db as _db
 
@@ -52,21 +48,6 @@ class TestEditSlugRedirect:
         assert resp.status_code == 200
         html = resp.data.decode()
         assert "Redirect record not found" in html
-
-
-class TestSlugRedirectsClass:
-    """Tests for the SlugRedirectsRoutes class itself."""
-
-    def test_blueprint_properties(self):
-        """SlugRedirectsRoutes should create a Blueprint with the expected name and prefix."""
-        instance = SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
-        assert instance.bp.name == "slugredirects"
-        assert instance.bp.url_prefix == "/slugredirects"
-
-    def test_all_routes_registered(self):
-        """SlugRedirectsRoutes should register all 5 routes."""
-        instance = SlugRedirectsRoutes(Blueprint("slugredirects", __name__, url_prefix="/slugredirects"))
-        assert len(instance.bp.deferred_functions) == 5
 
 
 class TestSlugRedirectsRoutes:

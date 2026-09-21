@@ -15,23 +15,29 @@ src/
 │   │   ├── __init__.py
 │   │   ├── admin_panel.py
 │   │   ├── decorators.py
-│   │   └── sidebar.py
+│   │   ├── flask_admin_panel.py
+│   │   └── flask_admin_panel_models.py
 │   ├── api_services/
 │   │   ├── clients/
 │   │   │   ├── __init__.py
 │   │   │   ├── commons_client.py
+│   │   │   ├── objects.py
 │   │   │   ├── owid_client.py
 │   │   │   └── wiki_client.py
 │   │   ├── files_service/
 │   │   │   ├── __init__.py
-│   │   │   ├── download_file_utils.py
+│   │   │   ├── downloader.py
+│   │   │   ├── exceptions.py
+│   │   │   ├── file_langs.py
 │   │   │   ├── files_helpers.py
-│   │   │   └── upload_bot.py
+│   │   │   ├── objects.py
+│   │   │   ├── save_file.py
+│   │   │   ├── service.py
+│   │   │   └── uploader.py
 │   │   ├── mwclient_page/
 │   │   │   ├── __init__.py
 │   │   │   ├── mwclient_error.py
 │   │   │   └── mwclient_wraper.py
-│   │   ├── utils/
 │   │   ├── __init__.py
 │   │   ├── category.py
 │   │   ├── query_api.py
@@ -46,9 +52,10 @@ src/
 │   │   ├── owid_charts.csv
 │   │   ├── templates_slugs_topics.json
 │   │   └── topics_categories.json
-│   ├── db/
+│   ├── database/
 │   │   ├── models/
 │   │   │   ├── __init__.py
+│   │   │   ├── base.py
 │   │   │   ├── jobs.py
 │   │   │   ├── owid_charts.py
 │   │   │   ├── owid_slug_redirects.py
@@ -80,30 +87,29 @@ src/
 │   │   ├── __init__.py
 │   │   ├── _csrf.py
 │   │   └── data_base.py
+│   ├── io/
+│   │   ├── __init__.py
+│   │   └── jobs_files_service.py
 │   ├── jobs_workers/
 │   │   ├── admin_jobs_workers/
 │   │   │   ├── add_lang_categories_to_owid_pages/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── objects.py
-│   │   │   │   ├── runner.py
 │   │   │   │   ├── utils.py
 │   │   │   │   └── worker.py
 │   │   │   ├── add_svglanguages_template/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── objects.py
-│   │   │   │   ├── runner.py
 │   │   │   │   ├── utils.py
 │   │   │   │   └── worker.py
 │   │   │   ├── collect_templates_data/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── objects.py
-│   │   │   │   ├── runner.py
 │   │   │   │   └── worker.py
 │   │   │   ├── create_owid_pages/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── objects.py
 │   │   │   │   ├── owid_template_converter.py
-│   │   │   │   ├── runner.py
 │   │   │   │   └── worker.py
 │   │   │   ├── crop_main_files/
 │   │   │   │   ├── steps/
@@ -113,29 +119,25 @@ src/
 │   │   │   │   │   ├── download.py
 │   │   │   │   │   └── upload.py
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── files_processor.py
 │   │   │   │   ├── objects.py
-│   │   │   │   ├── runner.py
 │   │   │   │   └── worker.py
 │   │   │   ├── download_main_files/
 │   │   │   │   ├── __init__.py
-│   │   │   │   ├── download_helper.py
 │   │   │   │   ├── objects.py
-│   │   │   │   ├── runner.py
-│   │   │   │   └── worker.py
+│   │   │   │   ├── worker.py
+│   │   │   │   └── zip_utils.py
 │   │   │   ├── fix_nested_main_files/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── objects.py
-│   │   │   │   ├── runner.py
 │   │   │   │   └── worker.py
 │   │   │   ├── rename_owid_pages/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── objects.py
-│   │   │   │   ├── runner.py
 │   │   │   │   └── worker.py
 │   │   │   ├── update_owid_charts/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── objects.py
-│   │   │   │   ├── runner.py
 │   │   │   │   └── worker.py
 │   │   │   ├── __init__.py
 │   │   │   ├── slugs_helpers.py
@@ -145,17 +147,19 @@ src/
 │   │   │   │   ├── steps/
 │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   ├── extract_text.py
-│   │   │   │   │   ├── extract_titles.py
-│   │   │   │   │   ├── extract_translations.py
-│   │   │   │   │   └── inject_one_file.py
+│   │   │   │   │   └── extract_titles.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── files_worker.py
+│   │   │   │   ├── forms.py
+│   │   │   │   ├── objects.py
+│   │   │   │   └── worker.py
+│   │   │   ├── extract_files_translations/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── objects.py
-│   │   │   │   ├── runner.py
 │   │   │   │   └── worker.py
 │   │   │   ├── fix_nested_jobs/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── objects.py
-│   │   │   │   ├── runner.py
 │   │   │   │   └── worker.py
 │   │   │   ├── __init__.py
 │   │   │   └── workers_list_public.py
@@ -170,15 +174,19 @@ src/
 │   ├── public/
 │   │   ├── auth/
 │   │   │   ├── __init__.py
+│   │   │   ├── decorators.py
 │   │   │   ├── rate_limit.py
-│   │   │   ├── routes.py
-│   │   │   └── utils.py
+│   │   │   └── routes.py
 │   │   ├── main_routes/
 │   │   │   ├── __init__.py
 │   │   │   ├── explorer_routes.py
 │   │   │   ├── extract_routes.py
+│   │   │   ├── inject_routes.py
+│   │   │   ├── mapping.py
 │   │   │   ├── owid_charts_routes.py
-│   │   │   └── routes.py
+│   │   │   ├── routes.py
+│   │   │   ├── templates.py
+│   │   │   └── translate_routes.py
 │   │   ├── utils/
 │   │   │   ├── __init__.py
 │   │   │   ├── compare.py
@@ -187,17 +195,25 @@ src/
 │   │   │   └── thumbnail_utils.py
 │   │   ├── __init__.py
 │   │   ├── api_routes.py
-│   │   ├── shared_jobs_routes.py
 │   │   ├── jobs_utils_bp.py
 │   │   ├── profile.py
-│   │   └── public_jobs.py
+│   │   ├── public_jobs.py
+│   │   └── shared_jobs_routes.py
 │   ├── services/
 │   │   ├── auth/
 │   │   │   ├── __init__.py
+│   │   │   ├── auth_exceptions.py
 │   │   │   ├── auth_service.py
-│   │   │   ├── auth_users_service.py
 │   │   │   ├── current_user.py
-│   │   │   └── mwoauth_handshake.py
+│   │   │   ├── flow.py
+│   │   │   ├── token_manager.py
+│   │   │   └── utils.py
+│   │   ├── copysvg_wrapper/
+│   │   │   ├── __init__.py
+│   │   │   ├── extract_translations.py
+│   │   │   ├── inject_one_file.py
+│   │   │   ├── mapping.py
+│   │   │   └── nested_fixer.py
 │   │   ├── core/
 │   │   │   ├── cookies/
 │   │   │   │   ├── __init__.py
@@ -208,15 +224,30 @@ src/
 │   │   │   └── jinja_filters.py
 │   │   ├── fix_nested/
 │   │   │   ├── __init__.py
-│   │   │   └── worker.py
+│   │   │   └── objects.py
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+│   │   │   └── decode_bytes.py
 │   │   ├── __init__.py
-│   │   ├── decode_bytes.py
 │   │   └── owid_charts_utils.py
-│   ├── io/
-│   │   ├── __init__.py
-│   │   └── jobs_files_service.py
+│   ├── templates_markups/
+│   │   ├── admin_sidebar/
+│   │   │   ├── __init__.py
+│   │   │   ├── objects.py
+│   │   │   ├── sidebar.py
+│   │   │   └── sidebar_list.py
+│   │   ├── navbar/
+│   │   │   ├── __init__.py
+│   │   │   ├── nav_bar.py
+│   │   │   ├── navbar_list.py
+│   │   │   └── objects.py
+│   │   └── __init__.py
 │   ├── utils/
 │   │   ├── wikitext/
+│   │   │   ├── cropped_file_text/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── other_versions.py
+│   │   │   │   └── utils.py
 │   │   │   ├── owid_sliders_rcs/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── main_file.py
@@ -225,14 +256,15 @@ src/
 │   │   │   ├── before_methods.py
 │   │   │   ├── categories_utils.py
 │   │   │   ├── files_text.py
-│   │   │   ├── other_versions.py
 │   │   │   ├── temp_source.py
 │   │   │   ├── template_page.py
 │   │   │   └── temps_bot.py
 │   │   ├── __init__.py
-│   │   ├── file_langs.py
+│   │   ├── categories.py
 │   │   └── verify.py
-│   └── __init__.py
+│   ├── __init__.py
+│   ├── error_pages.py
+│   └── logger_config.py
 ├── offline/
 │   ├── error.txt
 │   └── sitemap.py
@@ -244,6 +276,9 @@ src/
 │   │   └── style.css
 │   ├── images/
 │   ├── js/
+│   │   ├── data_table_ajax/
+│   │   │   ├── macros.js
+│   │   │   └── table.js
 │   │   ├── auto-refresh.js
 │   │   ├── autocomplete.js
 │   │   ├── card-tools.js
@@ -254,7 +289,7 @@ src/
 ├── templates/
 │   ├── _macros/
 │   ├── admin/
-│   │   └── admin/
+│   │   └── bs4_admin/
 │   │       ├── file/
 │   │       │   └── modals/
 │   │       ├── model/
@@ -265,7 +300,10 @@ src/
 │   │   └── slug_redirects/
 │   ├── explorer/
 │   ├── extract/
+│   ├── inject/
+│   │   └── example.json
 │   ├── jobs_templates/
+│   │   ├── _ajax_templates/
 │   │   ├── _help_templates/
 │   │   ├── admin_templates/
 │   │   │   ├── add_lang_categories_to_owid_pages/
@@ -279,12 +317,13 @@ src/
 │   │   │   └── update_owid_charts/
 │   │   └── public/
 │   │       ├── copy_svg_langs/
+│   │       ├── extract_files_translations/
 │   │       └── fix_nested_jobs/
-│   └── owid_charts/
+│   ├── owid_charts/
+│   └── translate/
 ├── __init__.py
 ├── app.py
 ├── import_owid_charts.py
-├── logger_config.py
 └── uwsgi.ini
 
 ```

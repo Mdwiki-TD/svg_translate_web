@@ -19,7 +19,7 @@
                         The result shows a before/after diff of the target's translations.
                     </p>
 
-                    <form method="POST" action="{{ url_for('inject.inject_post') }}">
+                    <form method="POST" action="{{ url_for('inject.inject') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
                         <div class="mb-3">

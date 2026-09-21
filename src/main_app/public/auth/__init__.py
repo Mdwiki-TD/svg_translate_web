@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from .decorators import oauth_required
-from .routes import AuthRoutes
+from .routes import AuthView
 
 __all__ = [
     "oauth_required",
-    "AuthRoutes",
+    "AuthView",
 ]

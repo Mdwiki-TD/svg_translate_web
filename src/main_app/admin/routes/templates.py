@@ -235,12 +235,10 @@ class TemplatesRoutesFuncs:
 
 
 class TemplatesRoutes(TemplatesRoutesFuncs):
-    def __init__(self, bp: Blueprint) -> None:
-        self.bp = bp
+    def __init__(self) -> None:
         super().__init__()
-        self._setup_routes()
 
-    def _setup_routes(self) -> None:
+    def register(self, bp: Blueprint) -> None:
         routes = [
             ("/", "GET", self.dashboard),
             ("/add", "POST", self.add_template),
@@ -252,7 +250,7 @@ class TemplatesRoutes(TemplatesRoutesFuncs):
             ("/download-json", "GET", self.download_templates_json),
         ]
         for rule, method, target in routes:
-            self.bp.route(rule, methods=[method])(admin_required(target))
+            bp.route(rule, methods=[method])(admin_required(target))
 
     def update_template(self) -> ResponseReturnValue:
         return self._update_template(request.form)
