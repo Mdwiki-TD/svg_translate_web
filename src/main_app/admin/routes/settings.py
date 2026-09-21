@@ -40,6 +40,8 @@ def _parse_setting_value(v_type: str, raw_val: str) -> tuple[Any, bool]:
 class SettingsFuncs:
     """Shared service access and form-processing logic for the settings views."""
 
+    decorators = [admin_required]
+
     def __init__(self) -> None:
         self.service = SettingsService()
 

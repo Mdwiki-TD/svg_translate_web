@@ -1,4 +1,4 @@
-"""Admin user management routes rendered as MethodView classes."""
+"""Admin-only routes for managing user permissions, built on MethodView."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class UsersDashboardView(MethodView):
-    """View to render the user management dashboard."""
+    """View rendering the user management dashboard."""
 
     decorators = [admin_required]
 
@@ -31,7 +31,7 @@ class UsersDashboardView(MethodView):
         self.user_service = UsersService()
 
     def get(self) -> str:
-        """Render the user management dashboard."""
+        """List every user along with their permission flags."""
         try:
             users = self.user_service.list_users()
         except Exception as e:  # pragma: no cover - defensive guard
@@ -108,7 +108,7 @@ class UpdateCanRunBgJobsView(MethodView):
 
 
 class UsersRoutes:
-    """Registrar class to bind admin users MethodViews to a Blueprint."""
+    """User management routes registrar using class-based views."""
 
     @classmethod
     def register(cls, bp: Blueprint) -> None:
