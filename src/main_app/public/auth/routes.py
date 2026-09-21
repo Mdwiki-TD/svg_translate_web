@@ -141,7 +141,9 @@ class LogoutView(MethodView):
 
 
 class AuthView:
-    def register(self, bp: Blueprint) -> None:
+
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
         # Automatically load the user before any route is processed.
         bp.before_app_request(set_logged_in_user)
         bp.add_url_rule("/login", view_func=LoginView.as_view("login"))

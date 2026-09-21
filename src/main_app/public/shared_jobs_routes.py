@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import logging
-from abc import ABC, abstractmethod
 from typing import Any
 
 from flask import (
-    Blueprint,
     abort,
     flash,
     jsonify,
@@ -17,6 +15,7 @@ from flask import (
     url_for,
 )
 from flask.typing import ResponseReturnValue
+from flask.views import MethodView
 from flask.wrappers import Response
 from flask_wtf import FlaskForm
 
@@ -228,22 +227,18 @@ class SharedJobRoutes:
         )
 
 
-class JobsBp(ABC):
-    """Jobs management routes."""
+class BaseJobView(MethodView):
+    """Base MethodView providing access to job data configuration and helper methods."""
 
     def __init__(
         self,
         jobs_data_infos: dict[str, JobData],
         bp_name: str,
     ) -> None:
-        self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
+        self.jobs_data_infos = jobs_data_infos
         self.bp_name = bp_name
         self.shared_service = SharedJobRoutes(bp_name)
         self.settings_service = self.shared_service.settings_service
-
-    @abstractmethod
-    def register(self, bp: Blueprint) -> None:
-        raise NotImplementedError("This method must be implemented in the subclass")
 
     def _redirect_to_job_list(self, job_type: str) -> Response:
         return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
@@ -259,11 +254,11 @@ class JobsBp(ABC):
 
         return template_data.form_class(all_settings=all_settings, request_args=request.args)
 
-    # -----------------------
-    # Routes entry points
-    # -----------------------
 
-    def jobs_list(self, job_type: str) -> str:
+class JobsListView(BaseJobView):
+    """View to list background jobs for a given type."""
+
+    def get(self, job_type: str) -> str:
         template_data: JobData | None = self.jobs_data_infos.get(job_type)
         if not template_data:
             abort(404)
@@ -274,7 +269,11 @@ class JobsBp(ABC):
 
         return self.shared_service.jobs_list_handler(template_data, form)
 
-    def job_detail(self, job_type: str, job_id: int) -> Response | str:
+
+class JobDetailView(BaseJobView):
+    """View to show details of a specific job."""
+
+    def get(self, job_type: str, job_id: int) -> Response | str:
         # Load template data
         template_data: JobData | None = self.jobs_data_infos.get(job_type)
         if not template_data:
@@ -283,7 +282,11 @@ class JobsBp(ABC):
         # return self.job_details(template_data, job_id)
         return self.shared_service.job_detail_handler(job_id, template_data)
 
-    def start_job(self, job_type: str) -> ResponseReturnValue:
+
+class StartJobView(BaseJobView):
+    """View to trigger and start a new job."""
+
+    def post(self, job_type: str) -> ResponseReturnValue:
         template_data: JobData | None = self.jobs_data_infos.get(job_type)
         if not template_data:
             abort(404)
@@ -306,7 +309,11 @@ class JobsBp(ABC):
 
         return self._redirect_to_job_detail(job_type, job_id)
 
-    def cancel_job(self, job_type: str, job_id: int) -> Response:
+
+class CancelJobView(BaseJobView):
+    """View to cancel a running job."""
+
+    def post(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             flash("Job type not found.", "warning")
             abort(404)
@@ -318,7 +325,11 @@ class JobsBp(ABC):
 
         return self._redirect_to_job_list(job_type)
 
-    def delete_job(self, job_type: str, job_id: int) -> Response:
+
+class DeleteJobView(BaseJobView):
+    """View to delete a job."""
+
+    def post(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             abort(404)
 
@@ -329,7 +340,11 @@ class JobsBp(ABC):
 
         return self._redirect_to_job_list(job_type)
 
-    def mark_as_completed(self, job_type: str, job_id: int) -> Response:
+
+class MarkJobCompletedView(BaseJobView):
+    """View to mark a job as completed."""
+
+    def post(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             abort(404)
 
@@ -337,14 +352,22 @@ class JobsBp(ABC):
 
         return self._redirect_to_job_detail(job_type, job_id)
 
-    def read_job_result_file(self, result_file: str, job_type: str) -> ResponseReturnValue:
+
+class ReadJobResultFileView(BaseJobView):
+    """View to retrieve raw job result JSON data."""
+
+    def get(self, result_file: str, job_type: str) -> ResponseReturnValue:
         if job_type not in self.jobs_data_infos:
             abort(404)
 
         result_data = load_job_result(result_file)
         return jsonify(result_data)
 
-    def draw_result_file(
+
+class DrawResultFileView(BaseJobView):
+    """View to fetch paginated/filtered result entries for DataTables."""
+
+    def get(
         self,
         file_number: int,
         job_type: str,
@@ -448,6 +471,14 @@ class JobsBp(ABC):
 
 
 __all__ = [
+    "BaseJobView",
+    "CancelJobView",
+    "DeleteJobView",
+    "DrawResultFileView",
+    "JobDetailView",
+    "JobsListView",
+    "MarkJobCompletedView",
+    "ReadJobResultFileView",
     "SharedJobRoutes",
-    "JobsBp",
+    "StartJobView",
 ]

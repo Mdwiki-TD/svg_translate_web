@@ -1,46 +1,81 @@
-"""Admin routes for managing background jobs."""
+"""Admin routes for managing background jobs using MethodViews."""
 
 from __future__ import annotations
 
 import logging
 
-from flask import (
-    Blueprint,
-)
+from flask import Blueprint
 
 from ...jobs_workers.objects import JobData
-from ...public.shared_jobs_routes import JobsBp
+from ...public.shared_jobs_routes import (
+    CancelJobView,
+    DeleteJobView,
+    DrawResultFileView,
+    JobDetailView,
+    JobsListView,
+    MarkJobCompletedView,
+    ReadJobResultFileView,
+    StartJobView,
+)
 from ..decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
 
-class AdminJobsRoutes(JobsBp):
-    """Jobs management routes."""
+class AdminJobsRoutes:
+    """Registrar class for binding Admin Job MethodViews to a Blueprint."""
 
     def __init__(
         self,
         jobs_data_infos: dict[str, JobData],
         bp_name: str,
     ) -> None:
-        self.jobs_data_infos: dict[str, JobData] = jobs_data_infos
+        self.jobs_data_infos = jobs_data_infos
         self.bp_name = bp_name
-        super().__init__(jobs_data_infos, bp_name)
 
     def register(self, bp: Blueprint) -> None:
-        routes = [
-            ("/<string:job_type>", "GET", self.jobs_list),
-            ("/<string:job_type>/<int:job_id>", "GET", self.job_detail),
-            ("/job-file/<string:result_file>/<string:job_type>", "GET", self.read_job_result_file),
-            ("/<string:job_type>/<int:job_id>/cancel", "POST", self.cancel_job),
-            ("/<string:job_type>/start", "POST", self.start_job),
-            ("/<string:job_type>/<int:job_id>/delete", "POST", self.delete_job),
-            ("/<string:job_type>/<int:job_id>/mark_as_completed", "POST", self.mark_as_completed),
-            ("/<string:job_type>/file/<int:file_number>/<string:list_name>", "GET", self.draw_result_file),
-        ]
+        """Register admin job rules on the provided blueprint with admin_required applied."""
+        view_args = (self.jobs_data_infos, self.bp_name)
 
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(admin_required(target))
+        bp.add_url_rule(
+            "/<string:job_type>",
+            view_func=admin_required(JobsListView.as_view("jobs_list", *view_args)),
+        )
+
+        bp.add_url_rule(
+            "/<string:job_type>/<int:job_id>",
+            view_func=admin_required(JobDetailView.as_view("job_detail", *view_args)),
+        )
+
+        bp.add_url_rule(
+            "/job-file/<string:result_file>/<string:job_type>",
+            view_func=admin_required(ReadJobResultFileView.as_view("read_job_result_file", *view_args)),
+        )
+
+        bp.add_url_rule(
+            "/<string:job_type>/<int:job_id>/cancel",
+            view_func=admin_required(CancelJobView.as_view("cancel_job", *view_args)),
+        )
+
+        bp.add_url_rule(
+            "/<string:job_type>/start",
+            view_func=admin_required(StartJobView.as_view("start_job", *view_args)),
+        )
+
+        bp.add_url_rule(
+            "/<string:job_type>/<int:job_id>/delete",
+            view_func=admin_required(DeleteJobView.as_view("delete_job", *view_args)),
+        )
+
+        bp.add_url_rule(
+            "/<string:job_type>/<int:job_id>/mark_as_completed",
+            view_func=admin_required(MarkJobCompletedView.as_view("mark_as_completed", *view_args)),
+        )
+
+        bp.add_url_rule(
+            "/<string:job_type>/file/<int:file_number>/<string:list_name>",
+            view_func=admin_required(DrawResultFileView.as_view("draw_result_file", *view_args)),
+        )
 
 
 __all__ = [
