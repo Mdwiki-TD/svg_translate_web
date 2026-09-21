@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from flask import (
-    Blueprint,
-)
+from flask import Blueprint
 
 from ...jobs_workers.objects import JobData
 from ...public.shared_jobs_routes import JobsBp

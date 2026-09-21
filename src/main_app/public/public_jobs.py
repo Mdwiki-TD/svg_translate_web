@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from flask import (
-    Blueprint,
-)
+from flask import Blueprint
 
 from ..admin.decorators import admin_required
 from ..jobs_workers.objects import JobData
