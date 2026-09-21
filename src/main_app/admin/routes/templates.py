@@ -138,6 +138,49 @@ class TemplatesRoutesFuncs:
             return render_template("admins/popup_action.html")
         return redirect(url_for("adminpanel.templates.dashboard"))
 
+    def edit_template(self, template_id: int) -> ResponseReturnValue:
+        """Render the edit template popup page by id."""
+        template = self.service.get_template(template_id)
+        if not template:
+            return render_template(
+                "admins/template_edit.html",
+                error="Template not found",
+                template=None,
+            )
+
+        return render_template(
+            "admins/template_edit.html",
+            template=template,
+            error=None,
+        )
+
+    def edit_by_title(self, template_title: str) -> ResponseReturnValue:
+        """Render the edit template popup page by title."""
+        template = self.service.get_template_by_title(template_title)
+        if not template:
+            return render_template(
+                "admins/template_edit.html",
+                error="Template not found",
+                template=None,
+            )
+
+        return render_template(
+            "admins/template_edit.html",
+            template=template,
+            error=None,
+        )
+
+    def download_templates_json(self) -> ResponseReturnValue:
+        """Download all templates as a json file."""
+        response, status_code = create_json_file()
+
+        # If the response is an error message (not a file), flash it and redirect
+        if status_code != 200:
+            flash(response, "warning" if status_code == 404 else "danger")
+            return redirect(url_for("adminpanel.templates.dashboard"))
+
+        return response
+
     def create_json_file(self) -> tuple[Any, int]:
         """Create a JSON file containing all templates data.
 
@@ -244,19 +287,7 @@ class EditTemplateView(TemplatesRoutesFuncs, MethodView):
 
     def get(self, template_id: int) -> ResponseReturnValue:
         """Render the edit template popup page for the given id."""
-        template = self.service.get_template(template_id)
-        if not template:
-            return render_template(
-                "admins/template_edit.html",
-                error="Template not found",
-                template=None,
-            )
-
-        return render_template(
-            "admins/template_edit.html",
-            template=template,
-            error=None,
-        )
+        return self.edit_template(template_id)
 
 
 class EditTemplateByTitleView(TemplatesRoutesFuncs, MethodView):
@@ -266,19 +297,7 @@ class EditTemplateByTitleView(TemplatesRoutesFuncs, MethodView):
 
     def get(self, template_title: str) -> ResponseReturnValue:
         """Render the edit template popup page for the given title."""
-        template = self.service.get_template_by_title(template_title)
-        if not template:
-            return render_template(
-                "admins/template_edit.html",
-                error="Template not found",
-                template=None,
-            )
-
-        return render_template(
-            "admins/template_edit.html",
-            template=template,
-            error=None,
-        )
+        return self.edit_by_title(template_title)
 
 
 class DownloadTemplatesJsonView(TemplatesRoutesFuncs, MethodView):
@@ -288,14 +307,7 @@ class DownloadTemplatesJsonView(TemplatesRoutesFuncs, MethodView):
 
     def get(self) -> ResponseReturnValue:
         """Download all templates as a json file."""
-        response, status_code = create_json_file()
-
-        # If the response is an error message (not a file), flash it and redirect
-        if status_code != 200:
-            flash(response, "warning" if status_code == 404 else "danger")
-            return redirect(url_for("adminpanel.templates.dashboard"))
-
-        return response
+        return self.download_templates_json()
 
 
 class TemplatesRoutes(TemplatesRoutesFuncs):
