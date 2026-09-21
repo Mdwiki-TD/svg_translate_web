@@ -142,7 +142,8 @@ class OwidChartsListView(MethodView):
 class ApiRoutes:
     """Registrar class to bind public API MethodViews to a Blueprint."""
 
-    def register(self, bp: Blueprint) -> None:
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
         """Register public API URL rules on the provided blueprint."""
         templates_view = TemplatesListView.as_view("templates_list")
         bp.add_url_rule("/templates", view_func=templates_view)

@@ -101,7 +101,8 @@ class CompareCropFilesView(MethodView):
 class UtilsJobsBpRoutes:
     """Registrar class to bind jobs utils MethodViews to a Blueprint."""
 
-    def register(self, bp: Blueprint) -> None:
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
         """Register jobs utils URL rules on the provided blueprint with admin protection."""
         bp.add_url_rule(
             "/download_main_files/file/<string:filename>",

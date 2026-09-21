@@ -160,7 +160,8 @@ class DeleteCoordinatorView(MethodView):
 class CoordinatorView:
     """Coordinator management routes registrar using Class-Based Views."""
 
-    def register(self, bp: Blueprint) -> None:
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
         # Register views on the Blueprint using as_view
         bp.add_url_rule(
             "/",

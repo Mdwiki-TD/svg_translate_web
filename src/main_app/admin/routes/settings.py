@@ -144,7 +144,8 @@ class SettingsUpdateView(SettingsFuncs, MethodView):
 class SettingsRoutes(SettingsFuncs):
     """Registrar class to bind admin settings MethodViews to a Blueprint."""
 
-    def register(self, bp: Blueprint) -> None:
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
         """Register admin settings URL rules on the provided blueprint with admin protection."""
         bp.add_url_rule("/", view_func=SettingsDashboardView.as_view("dashboard"))
         bp.add_url_rule("/create", view_func=SettingsCreateView.as_view("create"))

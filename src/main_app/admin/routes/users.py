@@ -110,7 +110,8 @@ class UpdateCanRunBgJobsView(MethodView):
 class UsersRoutes:
     """Registrar class to bind admin users MethodViews to a Blueprint."""
 
-    def register(self, bp: Blueprint) -> None:
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
         """Register admin users URL rules on the provided blueprint with admin protection."""
         bp.add_url_rule("/", view_func=UsersDashboardView.as_view("dashboard"))
         bp.add_url_rule(
