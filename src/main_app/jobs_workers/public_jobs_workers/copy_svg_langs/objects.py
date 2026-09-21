@@ -34,6 +34,9 @@ class StageDetail:
     message: str = ""
     data: Any = None
 
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
+
 
 @dataclass
 class Stages:
@@ -61,6 +64,9 @@ class Stages:
             message="process Files",
         )
     )
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass
