@@ -35,4 +35,4 @@ errors.log
 /src/templates/admin/bs4_admin
 src/templates/inject/example.json
 *.isorted
-urlmap_dump.txt
+url_maps.txt
