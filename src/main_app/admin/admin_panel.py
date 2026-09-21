@@ -9,6 +9,7 @@ from flask import (
     Blueprint,
     render_template,
 )
+from flask.views import MethodView
 
 from ..database.services import JobsService
 from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
@@ -24,23 +25,13 @@ def _get_display_name(job_type: str) -> str:
     return job_data.job_name if job_data else job_type
 
 
-class AdminPanel:
-    """admin panel routes."""
+class AdminDashboardView(MethodView):
+    """View to render the main admin panel dashboard."""
 
-    def register(self, bp: Blueprint) -> None:
-        bp.app_context_processor(self.inject_sidebar)
-        # TODO: put a before_request guard on the admin blueprint. use admin_required decorators
+    decorators = [admin_required]
 
-        routes = [
-            ("/", "GET", self.admin_dashboard),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(admin_required(target))
-
-    def inject_sidebar(self) -> dict[str, Any]:
-        return {"create_side": create_side}
-
-    def admin_dashboard(self) -> str:
+    def get(self) -> str:
+        """Render the admin dashboard with the most recent jobs."""
         jobs = JobsService().list_jobs(limit=100)
 
         # Enhance jobs with display names and detail URLs
@@ -64,6 +55,18 @@ class AdminPanel:
             "admins/admin.html",
             jobs=enhanced_jobs,
         )
+
+
+class AdminPanel:
+    """admin panel routes."""
+
+    def register(self, bp: Blueprint) -> None:
+        bp.app_context_processor(self.inject_sidebar)
+        # TODO: put a before_request guard on the admin blueprint. use admin_required decorators
+        bp.add_url_rule("/", view_func=AdminDashboardView.as_view("dashboard"))
+
+    def inject_sidebar(self) -> dict[str, Any]:
+        return {"create_side": create_side}
 
 
 __all__ = [
