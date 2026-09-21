@@ -22,7 +22,6 @@ from .shared_jobs_routes import (
 
 logger = logging.getLogger(__name__)
 
-
 class PublicJobsRoutes:
     """Registrar class for binding Public Job MethodViews to a Blueprint."""
 
