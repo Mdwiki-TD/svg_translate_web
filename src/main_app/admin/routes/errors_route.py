@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 
 from flask import Blueprint, flash, render_template, request
+from flask.views import MethodView
 
 from ...config import app_settings
 from ..decorators import admin_required
@@ -16,32 +17,42 @@ logger = logging.getLogger(__name__)
 
 
 def get_log_dir() -> Path:
+    """Return configured log directory path."""
     return Path(app_settings.paths.log_dir)
 
 
-class CheckErrorsRoutes:
-    def register(self, bp: Blueprint) -> None:
-        routes = [
-            ("/", "GET", self.dashboard),
-            ("/<string:file_name>", "GET", self.app_log),
-        ]
-        for rule, method, target in routes:
-            bp.route(rule, methods=[method])(admin_required(target))
+class ErrorDashboardView(MethodView):
+    """View to display log files and render selected file content."""
+
+    decorators = [admin_required]
 
     @staticmethod
     def _list_log_files(log_dir: Path) -> list[str]:
+        """List all .log files in the specified directory."""
         if not log_dir.is_dir():
             return []
         return sorted(f.name for f in log_dir.iterdir() if f.is_file() and f.suffix == ".log")
 
-    def dashboard(self):
-        file_name = request.args.get("log_file", "errors.log")
-        return self.render_result(file_name)
+    @staticmethod
+    def _read_text(error_file: Path) -> str:
+        """Safely read content of a log file."""
+        if not error_file.exists():
+            logger.info("File not found: %s", error_file)
+            return "No error log found."
 
-    def app_log(self, file_name: str = ""):
-        return self.render_result(file_name)
+        try:
+            text = error_file.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            logger.exception("Error reading error log: %s", error_file)
+            text = ""
 
-    def render_result(self, selected_file: str = "errors.log"):
+        logger.info("File content length: %s bytes", f"{len(text):,}")
+        return text
+
+    def get(self, file_name: str | None = None) -> str:
+        """Render log viewer dashboard with selected or requested log file."""
+        selected_file = file_name or request.args.get("log_file", "errors.log")
+
         logger.info("Read file: %s", selected_file)
 
         logs_dir = get_log_dir()
@@ -53,7 +64,7 @@ class CheckErrorsRoutes:
             logger.info("Changed file to: %s", selected_file)
 
         error_file = logs_dir / selected_file
-        file_content = self.read_text(error_file)
+        file_content = self._read_text(error_file)
 
         return render_template(
             "admins/errors.html",
@@ -62,19 +73,21 @@ class CheckErrorsRoutes:
             file_content=file_content,
         )
 
-    def read_text(self, error_file: Path) -> str:
 
-        if not error_file.exists():
-            return "No error log found."
+class CheckErrorsdView:
+    """Registrar class to bind error checking MethodViews to a Blueprint."""
 
-        try:
-            text = error_file.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
-            logger.exception("Error reading error log: %s", error_file)
-            text = ""
-        return text
+    @staticmethod
+    def register(bp: Blueprint) -> None:
+        """Register error checking URL rules on the provided blueprint."""
+        view = ErrorDashboardView.as_view("dashboard")
+
+        # Primary route handling optional log filename parameter
+        bp.add_url_rule("/", defaults={"file_name": None}, view_func=view)
+        bp.add_url_rule("/<string:file_name>", view_func=view)
 
 
 __all__ = [
-    "CheckErrorsRoutes",
+    "ErrorDashboardView",
+    "CheckErrorsdView",
 ]
