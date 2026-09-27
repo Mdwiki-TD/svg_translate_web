@@ -171,4 +171,4 @@ Automated via GitHub Actions on `main` branch push to Wikimedia Toolforge Kubern
 -   Templates: `src/templates/`
 -   Static assets: `src/static/`
 -   Config files: `0/` (flake8, pylint, mypy)
--   Deployment scripts: `toolforge/shs/`
+-   Deployment scripts: `toolforge/deploy_scripts/`

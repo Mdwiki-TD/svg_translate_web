@@ -232,11 +232,12 @@ $HOME/
 │   └── crop_main_files/         # Cropped file cache
 │       ├── original/
 │       └── cropped/
-├── shs/                         # Shell scripts (symlinked or copied)
-│   ├── deploy_repo.sh
-│   ├── update.sh
-│   ├── pip.sh
-│   ├── venv.sh
+├── toolforge/
+│   └── deploy_scripts           # Shell scripts (symlinked or copied)
+│       ├── deploy_repo.sh
+│       ├── update.sh
+│       ├── pip.sh
+│       ├── venv.sh
 │   └── run_job.sh
 ├── old_repos/                   # Archived deployments (rollback target)
 └── service.template             # Webservice config (symlinked or copied)
