@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# This file should run from the main toolforge user. not from tool.
+# This file can not be executed directly, it is called from .github/workflows/deploy.yaml script
 
 # Full path to the uploaded repository passed from GitHub Actions
 FULL_PATH="${1:-}"
