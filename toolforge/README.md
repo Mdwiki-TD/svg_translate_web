@@ -12,10 +12,9 @@ bash "/home/ibrahemqasim/svg_tr_repo_tmp/toolforge/deploy.sh" "/home/ibrahemqasi
 
 ```
 
-# steps
+# Deployment Steps
 
-1.  Github action [`deploy.yaml`](../.github/workflows/deploy.yaml) execute [`deploy.sh`](deploy.sh) script
-2.  `deploy.sh` will:
-    -   Execute [`tool-deploy.sh`](tool-deploy.sh):
-        -   `tool-deploy.sh` will execute [`update_local.sh`](update_local.sh)
-    -   Execute `toolforge-webservice` commands (status/stop/start)
+1. On every push to `main`, the GitHub Action [`deploy.yaml`](../.github/workflows/deploy.yaml) runs [`deploy.sh`](deploy.sh) on the server.
+2. `deploy.sh` performs the following, in order:
+    - Runs [`tool-deploy.sh`](tool-deploy.sh), which in turn runs [`shs/update_local.sh`](shs/update_local.sh) to update the tool's local copy (copying files, updating dependencies, etc.).
+    - Once the update finishes, it runs `toolforge-webservice` (`status`, then `stop`, then `start`) to restart the service with the new version.
