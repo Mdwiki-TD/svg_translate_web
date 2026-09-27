@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# This file should run from the main toolforge user. not from tool.
 set -euo pipefail
+# This file should run from the main toolforge user. not from tool.
 
 # Full path to the uploaded repository passed from GitHub Actions
 FULL_PATH="${1:-}"
@@ -31,4 +31,15 @@ chmod +x $TOOL_PATH/tool-deploy.sh -v;
 $TOOL_PATH/tool-deploy.sh \"$FULL_PATH\"
 "
 
+# Run toolforge-webservice commands
+become $TOOL_NAME sh -c "
+echo \">>> Checking webservice status...\"
+toolforge-webservice python3.13 status
+
+echo \">>> Stopping webservice...\"
+toolforge-webservice python3.13 stop
+
+echo \">>> Starting webservice...\"
+toolforge-webservice python3.13 start
+"
 echo ">>> '$TOOL_NAME' repository update completed successfully."

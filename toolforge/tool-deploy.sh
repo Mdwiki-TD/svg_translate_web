@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# this file can not be executed directly, it is called from toolforge/deploy.sh script
+# This file can not be executed directly, it is called from toolforge/deploy.sh script
 
 # called via: become "$TOOL_NAME" bash -lc "deploy.sh <FULL_PATH>"
 FULL_PATH="$1"
@@ -26,12 +26,3 @@ $TOOL_PATH/shs/update_local.sh
 echo ">>> executing file: $TOOL_PATH/shs/pip.sh"
 # toolforge-jobs run pipup --image python3.13 --command $TOOL_PATH/shs/pip.sh --wait
 $TOOL_PATH/shs/pip.sh
-
-echo ">>> Checking webservice status..."
-toolforge-webservice python3.13 status
-
-echo ">>> Stopping webservice..."
-toolforge-webservice python3.13 stop
-
-echo ">>> Starting webservice..."
-toolforge-webservice python3.13 start
