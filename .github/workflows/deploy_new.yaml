@@ -16,7 +16,7 @@ jobs:
 
             - name: Test workspace
               run: |
-                  echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE" # /home/runner/work/svg_translate_web/svg_translate_web # ls -al
+                  echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
 
             - name: Copy files to server
               uses: appleboy/scp-action@v1.0.0
@@ -69,8 +69,3 @@ jobs:
 
                       echo ">>> Cleaning up temporary repository..."
                       rm -rf "$FULL_PATH"
-
-                      # ====================
-                      # ====================
-
-                      become "$TOOL_NAME" sh -c "cp -rf \"$FULL_PATH/toolforge/deploy_scripts\" $TOOL_PATH -v; chmod +x $TOOL_PATH/deploy_scripts/*.sh -v; $TOOL_PATH/deploy_scripts/update_pop_local.sh \"$FULL_PATH\""
