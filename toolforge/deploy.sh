@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # Full path to the uploaded repository passed from GitHub Actions
-FULL_PATH=$1
+FULL_PATH="${1:-}"
 
 if [ -z "$FULL_PATH" ]; then
     echo "Error: Missing full repository path argument." >&2
