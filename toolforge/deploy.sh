@@ -33,13 +33,13 @@ $TOOL_PATH/tool-deploy.sh \"$FULL_PATH\"
 
 # Run toolforge-webservice commands
 become $TOOL_NAME sh -c "
-echo \">>> Checking webservice status...\"
-toolforge-webservice python3.13 status
+echo \">>> Checking webservice status...\";
+toolforge-webservice python3.13 status;
 
-echo \">>> Stopping webservice...\"
-toolforge-webservice python3.13 stop
+echo \">>> Stopping webservice...\";
+toolforge-webservice python3.13 stop;
 
-echo \">>> Starting webservice...\"
-toolforge-webservice python3.13 start
+echo \">>> Starting webservice...\";
+toolforge-webservice python3.13 start;
 "
 echo ">>> '$TOOL_NAME' repository update completed successfully."
