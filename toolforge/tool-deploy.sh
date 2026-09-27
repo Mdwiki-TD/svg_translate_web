@@ -21,7 +21,7 @@ echo ">>> Making scripts executable..."
 chmod +x $TOOL_PATH/shs/*.sh $TOOL_PATH/deploy_scripts/*.sh
 
 echo ">>> executing file: $TOOL_PATH/shs/update_local.sh"
-$TOOL_PATH/shs/update_local.sh
+$TOOL_PATH/shs/update_local.sh "$FULL_PATH"
 
 echo ">>> executing file: $TOOL_PATH/shs/pip.sh"
 # toolforge-jobs run pipup --image python3.13 --command $TOOL_PATH/shs/pip.sh --wait
