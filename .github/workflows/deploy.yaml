@@ -39,25 +39,14 @@ jobs:
                   script_stop: true
                   key: ${{ secrets.KEY }}
                   script: |
-                      TOOL_NAME="copy-svg-langs"
-
-                      # Define the full source path of the uploaded repository
-                      FULL_PATH="/home/${{ secrets.USERNAME }}/svg_tr_repo_tmp"
-
-                      # Define tool temporary path
-                      TEMP_PATH="/data/project/$TOOL_NAME/tmp_repo"
-
-                      echo ">>> Fixing Windows line endings (CRLF to LF)..."
-                      find "$FULL_PATH" -type f -name "*.sh" -exec sed -i 's/\r$//' {} +
-
-                      echo ">>> Updating '$TOOL_NAME' tool core repository..."
-                      become "$TOOL_NAME" bash -lc "
-                        rm -rf \"$TEMP_PATH\" &&
-                        cp -r \"$FULL_PATH\" \"$TEMP_PATH\" &&
-                        cp -r ~/tmp_repo/toolforge/shs/* ~/shs &&
+                      become copy-svg-langs bash -lc "
+                        rm -rf ~/tmp_repo &&
+                        cp -r /mnt/nfs/labstore-secondary-tools-home/${{ secrets.USERNAME }}/svg_tr_repo_tmp ~/tmp_repo &&
+                        cp -r ~/tmp_repo/toolforge_tool/shs/* ~/shs &&
+                        sed -i 's/\r$//' ~/shs/*.sh &&
                         chmod +x ~/shs/*.sh &&
                         toolforge-jobs run update-repo --image python3.13 --command ~/shs/update.sh --wait &&
-                        rm -rf \"$TEMP_PATH\" &&
+                        rm -rf ~/tmp_repo &&
                         toolforge-jobs run pipup --image python3.13 --command ~/shs/pip.sh --wait &&
                         toolforge-webservice python3.13 status &&
                         toolforge-webservice python3.13 stop &&
@@ -65,11 +54,3 @@ jobs:
                         echo ''
                       "
                       rm -rf svg_tr_repo_tmp
-
-                      # ====================
-                      # ====================
-
-                      become "$TOOL_NAME" sh -c "cp -rf \"$FULL_PATH/toolforge/deploy_scripts\" /data/project/$TOOL_NAME -v; chmod +x /data/project/$TOOL_NAME/deploy_scripts/*.sh -v; /data/project/$TOOL_NAME/deploy_scripts/update_pop_local.sh \"$FULL_PATH\""
-
-                      echo ">>> Cleaning up temporary repository..."
-                      rm -rf "$FULL_PATH"
