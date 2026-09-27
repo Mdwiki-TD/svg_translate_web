@@ -75,8 +75,8 @@ Translation tasks run through a sequential pipeline defined in `src/main_app/job
 
 ### Key Route Blueprints
 
-| Blueprint       | Prefix        | Location                 |
-| --------------- | ------------- | ------------------------ |
+| Blueprint       | Prefix        | Location             |
+| --------------- | ------------- | -------------------- |
 | `bp_main`       | `/`           | `public/main/`       |
 | `bp_auth`       | `/auth`       | `public/auth/`       |
 | `bp_tasks`      | `/tasks`      | `public/tasks/`      |
@@ -171,4 +171,4 @@ Automated via GitHub Actions on `main` branch push to Wikimedia Toolforge Kubern
 -   Templates: `src/templates/`
 -   Static assets: `src/static/`
 -   Config files: `0/` (flake8, pylint, mypy)
--   Deployment scripts: `toolforge_tool/shs/`
+-   Deployment scripts: `toolforge/deploy_scripts/`
