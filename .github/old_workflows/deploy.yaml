@@ -39,12 +39,34 @@ jobs:
                   script_stop: true
                   key: ${{ secrets.KEY }}
                   script: |
+                      TOOL_NAME="copy-svg-langs"
+
                       # Define the full source path of the uploaded repository
                       FULL_PATH="/home/${{ secrets.USERNAME }}/svg_tr_repo_tmp"
 
-                      # Execute updater script
-                      chmod +x "$FULL_PATH/toolforge/deploy.sh"
-                      bash "$FULL_PATH/toolforge/deploy.sh" "$FULL_PATH"
+                      # Define tool home path
+                      TOOL_PATH="/data/project/$TOOL_NAME"
+
+                      echo ">>> Fixing Windows line endings (CRLF to LF)..."
+                      find "$FULL_PATH" -type f -name "*.sh" -exec sed -i 's/\r$//' {} +
+
+                      echo ">>> Updating '$TOOL_NAME' tool core repository..."
+                      become "$TOOL_NAME" bash -lc "
+
+                        cp -r \"$FULL_PATH\"/toolforge/shs/* \"$TOOL_PATH\"/shs &&
+                        cp -r \"$FULL_PATH\"/toolforge/deploy_scripts/* \"$TOOL_PATH\"/deploy_scripts &&
+
+                        chmod +x \"$TOOL_PATH\"/shs/*.sh \"$TOOL_PATH\"/deploy_scripts/*.sh &&
+
+                        toolforge-jobs run update-repo --image python3.13 --command \"$TOOL_PATH\"/shs/update.sh --wait &&
+
+                        toolforge-jobs run pipup --image python3.13 --command \"$TOOL_PATH\"/shs/pip.sh --wait &&
+
+                        toolforge-webservice python3.13 status &&
+                        toolforge-webservice python3.13 stop &&
+                        toolforge-webservice python3.13 start &&
+                        echo ''
+                      "
 
                       echo ">>> Cleaning up temporary repository..."
                       rm -rf "$FULL_PATH"
