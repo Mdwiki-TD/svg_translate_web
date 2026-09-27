@@ -1,6 +1,8 @@
 # test
 
 ```bash
+rm -rf svg_tr_repo_tmp
+
 git clone https://github.com/Mdwiki-TD/svg_translate_web.git svg_tr_repo_tmp -b z
 
 # Execute updater script
