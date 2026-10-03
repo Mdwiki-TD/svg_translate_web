@@ -46,10 +46,12 @@ class ExplorerMainView(MethodView):
         for title in titles:
             downloaded, _ = get_files(title, "files")
             translated, _ = get_files(title, "translated")
+            # Instantiating set(translated) once avoids redundant conversions during set operations
+            translated_set = set(translated)
             data[title] = {
                 "downloaded": len(downloaded),
                 "translated": len(translated),
-                "not_translated": len(set(downloaded).difference(translated)),
+                "not_translated": len(set(downloaded) - translated_set),
             }
         return render_template("explorer/index.html", data=data)
 
