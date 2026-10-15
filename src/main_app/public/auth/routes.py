@@ -141,7 +141,6 @@ class LogoutView(MethodView):
 
 
 class AuthView:
-
     @classmethod
     def register(cls, bp: Blueprint) -> None:
         # Automatically load the user before any route is processed.

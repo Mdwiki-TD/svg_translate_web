@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 
 
 class OneFileProcessor:
-
     def __init__(self, config: SvgLangsConfig, files_service: FilesService, site: Site) -> None:
         self.config = config
         self.files_service = files_service

@@ -41,7 +41,6 @@ class StubMWOAuth(SimpleNamespace):
 
 
 class TestAuthService:
-
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
         self.service = OAuthService(

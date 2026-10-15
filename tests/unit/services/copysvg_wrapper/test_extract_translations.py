@@ -7,7 +7,6 @@ from src.main_app.services.copysvg_wrapper.mapping import TranslationMapping
 
 
 class TestExtractFromPath:
-
     @pytest.mark.parametrize(
         "extract_return, expected_message",
         [

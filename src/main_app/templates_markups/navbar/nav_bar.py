@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 
 
 class NavigationBar:
-
     def __init__(self, links=None) -> None:
         # A single ordered list holds NavLink and NavDropdown entries
         # (regular, admin-only, or grouped); order in this list is render order.

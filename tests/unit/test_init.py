@@ -66,7 +66,6 @@ class TestCreateApp:
 
 
 class TestErrorHandlers:
-
     def test_error_handlers_400_returns_html(self, app):
         with app.test_client() as client:
             resp = client.get("/test?malformed")
@@ -96,7 +95,6 @@ class TestErrorHandlers:
 
 
 class TestInitAppAndDb:
-
     @patch("src.main_app.init_db")
     def test_init_app_and_db_success(self, mock_init_db, mock_environ):
         mock_db = MagicMock()

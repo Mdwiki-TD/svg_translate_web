@@ -122,7 +122,6 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
 
 
 class TestRunner:
-
     @pytest.fixture(autouse=True)
     def setup(self, mock_collect_services):
 

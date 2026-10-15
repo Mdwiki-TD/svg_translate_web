@@ -33,7 +33,6 @@ logger = logging.getLogger(__name__)
 
 
 class OneFileProcessor:
-
     def __init__(self, job_id: int, site: Site, args: dict[str, Any]) -> None:
         self.job_id = job_id
         self.site = site

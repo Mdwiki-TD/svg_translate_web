@@ -312,7 +312,6 @@ class TestRenameOne:
 
 
 class TestRedirectOldToNew:
-
     @pytest.fixture(autouse=True)
     def setup(self, monkeypatch, mock_base_worker, mock_db_services):
         self.worker = _make_worker()

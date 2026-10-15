@@ -106,7 +106,9 @@ def test_admin_required_not_admin():
     # Mock user who is not in the admin list
     mock_user = MockUser(username="testuser", is_active_admin=False)
 
-    with (patch("src.main_app.admin.decorators.get_current_user", return_value=mock_user),):
+    with (
+        patch("src.main_app.admin.decorators.get_current_user", return_value=mock_user),
+    ):
         # Expect a Forbidden (403) exception to be raised
         with pytest.raises(Forbidden):
             dummy_view()
@@ -125,7 +127,9 @@ def test_admin_required_is_admin():
     # Mock user who is in the admin list
     mock_user = MockUser(username="adminuser", is_active_admin=True)
 
-    with (patch("src.main_app.admin.decorators.get_current_user", return_value=mock_user),):
+    with (
+        patch("src.main_app.admin.decorators.get_current_user", return_value=mock_user),
+    ):
         # The view should be executed and return its value
         response = dummy_view()
         assert response == "success"

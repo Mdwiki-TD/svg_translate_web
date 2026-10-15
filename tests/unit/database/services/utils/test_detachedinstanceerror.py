@@ -30,7 +30,6 @@ def make_operational_error(message="some error", connection_invalidated=False):
 
 
 class TestRetryOnDbDisconnectRemove:
-
     @pytest.fixture(autouse=True)
     def setup(self, monkeypatch):
         """Replace the module-level `db` with a mock so we can assert on

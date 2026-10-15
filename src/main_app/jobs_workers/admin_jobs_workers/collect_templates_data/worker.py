@@ -64,7 +64,6 @@ def slugify_title(title: str) -> str:
 
 
 class OneFileProcessor:
-
     def __init__(self, job_id: int, site: Site, template_service: TemplateService) -> None:
         self.job_id = job_id
         self.site = site

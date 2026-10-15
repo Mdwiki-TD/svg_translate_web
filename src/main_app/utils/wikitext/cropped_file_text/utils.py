@@ -34,7 +34,6 @@ def update_information_author(text: str, author_citation: str | None) -> str:
 
         for argument in template.arguments:
             if argument.name.strip().lower() == "author":
-
                 if argument.value.strip().lower() == "our world in data":
                     argument.value = f" {author_citation}\n"
                     return parsed.string

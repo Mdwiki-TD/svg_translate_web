@@ -71,7 +71,6 @@ def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
 
 
 class TestExtractPost:
-
     def test_extract_post_empty_filename_shows_error(
         self,
         mock_client,
@@ -119,7 +118,6 @@ class TestExtractPost:
 
 
 class TestExtractRender:
-
     def test_extract_post_strips_file_prefix(
         self,
         mock_client,

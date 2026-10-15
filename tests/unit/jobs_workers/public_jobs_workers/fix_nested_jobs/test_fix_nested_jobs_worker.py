@@ -138,7 +138,6 @@ class TestSetup:
 
 
 class TestFixNestedJobsProcessorSteps(TestSetup):
-
     def test_verify_step_failure_no_tags_fixed(self, mock_fix_nested_services: MockFixNestedServices, tmp_path) -> None:
         self.processor.result.stages.fix.status = "success"
         self.processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_before=2)
