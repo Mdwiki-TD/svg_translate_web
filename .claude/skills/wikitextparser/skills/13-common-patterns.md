@@ -44,16 +44,12 @@ import wikitextparser as wtp
 ## Recipe 1: Extract an infobox as a dict
 
 ```python
-def infobox_to_dict(wikitext: str, name_hint: str = 'infobox') -> dict | None:
+def infobox_to_dict(wikitext: str, name_hint: str = "infobox") -> dict | None:
     """Return the first matching infobox's keyword args as {name: value}."""
     parsed = wtp.parse(wikitext)
     for t in parsed.templates:
         if name_hint.lower() in t.normal_name().lower():
-            return {
-                a.name.strip(): a.value.strip()
-                for a in t.arguments
-                if not a.positional
-            }
+            return {a.name.strip(): a.value.strip() for a in t.arguments if not a.positional}
     return None
 ```
 
@@ -94,6 +90,7 @@ Always iterate in reverse when deleting to avoid invalidating spans.
 import csv
 import io
 
+
 def tables_to_csv(wikitext: str) -> list[str]:
     """Return one CSV string per table in the article."""
     parsed = wtp.parse(wikitext)
@@ -119,8 +116,8 @@ def outbound_links(wikitext: str) -> list[str]:
     seen = set()
     out = []
     for wl in parsed.wikilinks:
-        title = wl.title.strip().split('#')[0]
-        if title and title not in seen and ':' not in title:
+        title = wl.title.strip().split("#")[0]
+        if title and title not in seen and ":" not in title:
             seen.add(title)
             out.append(title)
     return out
@@ -146,7 +143,8 @@ def clean_for_nlp(wikitext: str) -> str:
         replace_bolds_and_italics=True,
     )
     import re
-    text = re.sub(r'\s+', ' ', text).strip()
+
+    text = re.sub(r"\s+", " ", text).strip()
     return text
 ```
 
@@ -168,10 +166,12 @@ def find_dup_args(wikitext: str) -> list[dict]:
                 dups.add(n)
             seen.add(n)
         if dups:
-            issues.append({
-                'template': t.normal_name(),
-                'duplicates': sorted(dups),
-            })
+            issues.append(
+                {
+                    "template": t.normal_name(),
+                    "duplicates": sorted(dups),
+                }
+            )
     return issues
 ```
 
@@ -183,13 +183,15 @@ def find_dup_args(wikitext: str) -> list[dict]:
 def extract_refs(wikitext: str) -> list[dict]:
     parsed = wtp.parse(wikitext)
     refs = []
-    for tag in parsed.get_tags('ref'):
-        refs.append({
-            'name': tag.get_attr('name'),
-            'group': tag.get_attr('group'),
-            'content': (tag.contents or '').strip() or None,
-            'is_reuse': tag.contents is None,
-        })
+    for tag in parsed.get_tags("ref"):
+        refs.append(
+            {
+                "name": tag.get_attr("name"),
+                "group": tag.get_attr("group"),
+                "content": (tag.contents or "").strip() or None,
+                "is_reuse": tag.contents is None,
+            }
+        )
     return refs
 ```
 
@@ -204,6 +206,7 @@ def rename_section(wikitext: str, old_title: str, new_title: str) -> str:
         if s.title and s.title.strip() == old_title:
             s.title = new_title
     return str(parsed)
+
 
 def promote_all_headings(wikitext: str) -> str:
     """Decrease every heading level by 1 (=== → ==)."""
@@ -221,8 +224,8 @@ def promote_all_headings(wikitext: str) -> str:
 ```python
 def bullets_to_numbers(wikitext: str) -> str:
     parsed = wtp.parse(wikitext)
-    for wl in parsed.get_lists(r'\*'):
-        wl.convert('#')
+    for wl in parsed.get_lists(r"\*"):
+        wl.convert("#")
     return str(parsed)
 ```
 
@@ -232,9 +235,10 @@ def bullets_to_numbers(wikitext: str) -> str:
 
 ```python
 REQUIRED_FIELDS = {
-    'infobox person': ['name', 'birth_date', 'nationality'],
-    'cite web': ['url', 'title'],
+    "infobox person": ["name", "birth_date", "nationality"],
+    "cite web": ["url", "title"],
 }
+
 
 def validate_templates(wikitext: str) -> list[dict]:
     parsed = wtp.parse(wikitext)
@@ -246,7 +250,7 @@ def validate_templates(wikitext: str) -> list[dict]:
             continue
         missing = [f for f in required if not t.has_arg(f)]
         if missing:
-            issues.append({'template': name, 'missing': missing})
+            issues.append({"template": name, "missing": missing})
     return issues
 ```
 
@@ -256,15 +260,25 @@ def validate_templates(wikitext: str) -> list[dict]:
 
 ```python
 CATEGORY_NS = {
-    'category', 'cat', 'categoría', 'catégorie', 'kategorie', 'kategori',
-    'категория', 'تصنيف', '分类', '分類', 'κατηγορία',
+    "category",
+    "cat",
+    "categoría",
+    "catégorie",
+    "kategorie",
+    "kategori",
+    "категория",
+    "تصنيف",
+    "分类",
+    "分類",
+    "κατηγορία",
 }
+
 
 def get_categories(wikitext: str) -> list[str]:
     parsed = wtp.parse(wikitext)
     cats = []
     for wl in parsed.wikilinks:
-        head, sep, tail = wl.title.partition(':')
+        head, sep, tail = wl.title.partition(":")
         if sep and head.strip().lower() in CATEGORY_NS:
             cats.append(tail.strip())
     return cats
@@ -296,9 +310,9 @@ def nested_template_tree(wikitext: str) -> list[dict]:
     parsed = wtp.parse(wikitext)
     return [
         {
-            'name': t.normal_name(),
-            'level': t.nesting_level,
-            'child_count': len(t.templates),
+            "name": t.normal_name(),
+            "level": t.nesting_level,
+            "child_count": len(t.templates),
         }
         for t in parsed.templates
     ]
@@ -309,15 +323,15 @@ def nested_template_tree(wikitext: str) -> list[dict]:
 ## Recipe 15: Detect empty / self-referencing wikilinks
 
 ```python
-def broken_links(wikitext: str, page_title: str = '') -> list[str]:
+def broken_links(wikitext: str, page_title: str = "") -> list[str]:
     parsed = wtp.parse(wikitext)
     bad = []
     for wl in parsed.wikilinks:
         title = wl.title.strip()
         if not title:
-            bad.append(f'empty link: {str(wl)!r}')
+            bad.append(f"empty link: {str(wl)!r}")
         elif title.lower() == page_title.lower():
-            bad.append(f'self-link: {str(wl)!r}')
+            bad.append(f"self-link: {str(wl)!r}")
     return bad
 ```
 
@@ -326,20 +340,23 @@ def broken_links(wikitext: str, page_title: str = '') -> list[str]:
 ## Recipe 16: Extract all images with parameters
 
 ```python
-FILE_NS = {'file', 'image', 'archivo', 'datei', 'fichier', 'файл', 'ملف'}
+FILE_NS = {"file", "image", "archivo", "datei", "fichier", "файл", "ملف"}
+
 
 def extract_images(wikitext: str) -> list[dict]:
     parsed = wtp.parse(wikitext)
     images = []
     for wl in parsed.wikilinks:
-        head, sep, tail = wl.title.partition(':')
+        head, sep, tail = wl.title.partition(":")
         if sep and head.strip().lower() in FILE_NS:
-            params = (wl.text or '').split('|') if wl.text else []
-            images.append({
-                'filename': tail.strip(),
-                'params': [p.strip() for p in params],
-                'raw': str(wl),
-            })
+            params = (wl.text or "").split("|") if wl.text else []
+            images.append(
+                {
+                    "filename": tail.strip(),
+                    "params": [p.strip() for p in params],
+                    "raw": str(wl),
+                }
+            )
     return images
 ```
 
@@ -352,10 +369,10 @@ def organize_refs(wikitext: str) -> dict[str, list[str]]:
     """Group ref contents by their group attribute."""
     parsed = wtp.parse(wikitext)
     groups: dict[str, list[str]] = {}
-    for tag in parsed.get_tags('ref'):
+    for tag in parsed.get_tags("ref"):
         if tag.contents is None:
             continue
-        group = tag.get_attr('group') or 'default'
+        group = tag.get_attr("group") or "default"
         groups.setdefault(group, []).append(tag.contents.strip())
     return groups
 ```
@@ -365,8 +382,7 @@ def organize_refs(wikitext: str) -> dict[str, list[str]]:
 ## Recipe 18: Bulk-replace one template with another
 
 ```python
-def replace_template(wikitext: str, old_name: str, new_name: str,
-                     arg_renames: dict[str, str] = None) -> str:
+def replace_template(wikitext: str, old_name: str, new_name: str, arg_renames: dict[str, str] = None) -> str:
     """Replace template name and optionally rename arguments."""
     parsed = wtp.parse(wikitext)
     arg_renames = arg_renames or {}
@@ -385,7 +401,7 @@ def replace_template(wikitext: str, old_name: str, new_name: str,
         ws_before = len(t.name) - len(t.name.lstrip())
         ws_after = len(t.name) - len(t.name.rstrip())
         prefix = t.name[:ws_before]
-        suffix = t.name[len(t.name) - ws_after:] if ws_after else ''
+        suffix = t.name[len(t.name) - ws_after :] if ws_after else ""
         t.name = prefix + new_name + suffix
     return str(parsed)
 ```
@@ -395,9 +411,9 @@ Example:
 ```python
 result = replace_template(
     wikitext,
-    old_name='Cite web',
-    new_name='Cite news',
-    arg_renames={'url': 'newspaper_url', 'website': 'newspaper'},
+    old_name="Cite web",
+    new_name="Cite news",
+    arg_renames={"url": "newspaper_url", "website": "newspaper"},
 )
 ```
 
@@ -409,15 +425,15 @@ result = replace_template(
 def full_audit(wikitext: str) -> dict:
     parsed = wtp.parse(wikitext)
     return {
-        'categories': get_categories(wikitext),
-        'images': extract_images(wikitext),
-        'external_links': len(parsed.external_links),
-        'templates': [t.normal_name() for t in parsed.templates],
-        'duplicate_args': find_dup_args(wikitext),
-        'broken_links': broken_links(wikitext),
-        'ref_count': len(parsed.get_tags('ref')),
-        'tables': len(parsed.tables),
-        'sections': [(s.level, s.title) for s in parsed.sections if s.title],
+        "categories": get_categories(wikitext),
+        "images": extract_images(wikitext),
+        "external_links": len(parsed.external_links),
+        "templates": [t.normal_name() for t in parsed.templates],
+        "duplicate_args": find_dup_args(wikitext),
+        "broken_links": broken_links(wikitext),
+        "ref_count": len(parsed.get_tags("ref")),
+        "tables": len(parsed.tables),
+        "sections": [(s.level, s.title) for s in parsed.sections if s.title],
     }
 ```
 

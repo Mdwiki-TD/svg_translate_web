@@ -86,7 +86,7 @@ Look for **3+ lines of identical mock construction** copied across test methods,
 ```python
 mock_site = MagicMock(spec=SomeClass)
 mock_page = MagicMock()
-mock_page.exists = True          # ← this line varies per test
+mock_page.exists = True  # ← this line varies per test
 mock_site.pages = MagicMock()
 mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
 ```
@@ -107,6 +107,7 @@ def make_mock_site():
         mock_site.pages = MagicMock()
         mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
         return mock_site
+
     return _factory
 ```
 
@@ -162,14 +163,19 @@ When the file defines 5+ separate fixtures that all follow the same `monkeypatch
 @pytest.fixture
 def mock_save_job_result(monkeypatch): ...
 
+
 @pytest.fixture
 def mock_is_job_cancelled(monkeypatch): ...
+
 
 @pytest.fixture
 def mock_download_svg_file(monkeypatch): ...
 
+
 @pytest.fixture
 def mock_detect_nested_tags(monkeypatch): ...
+
+
 # ... and so on
 ```
 
@@ -195,6 +201,7 @@ Accessing via `mock_services["create_page"]` has no autocomplete and is prone to
 
 ```python
 from dataclasses import dataclass
+
 
 @dataclass
 class MockServices:
@@ -230,6 +237,7 @@ def mock_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 def test_something(self, mock_services):
     mock_services["create_page"].assert_called_once()
 
+
 # After
 def test_something(self, mock_services: MockServices):
     mock_services.create_page.assert_called_once()
@@ -261,6 +269,7 @@ def test_something(self, mock_services: MockServices):
 ```python
 from unittest.mock import patch
 
+
 class TestDownloadCommonsSvgs:
     @patch("src.main_app.api_services.utils.download_file_utils.download_file_rate_limit")
     def test_download_single_file(self, mock_download_core, temp_output_dir):
@@ -271,6 +280,7 @@ class TestDownloadCommonsSvgs:
     @patch("src.main_app.api_services.utils.download_file_utils.download_file_rate_limit")
     def test_download_handles_network_error(self, mock_download_core, temp_output_dir):
         import requests
+
         mock_download_core.side_effect = requests.exceptions.RequestException("Network error")
         result = download_commons_svgs(["NetworkError.svg"], temp_output_dir)
         assert len(result) == 0
@@ -301,6 +311,7 @@ class TestDownloadCommonsSvgs:
 
     def test_download_handles_network_error(self, mock_download_core, temp_output_dir):
         import requests
+
         mock_download_core.side_effect = requests.exceptions.RequestException("Network error")
         result = download_commons_svgs(["NetworkError.svg"], temp_output_dir)
         assert len(result) == 0
@@ -427,6 +438,7 @@ def make_mock_site():
         mock_site.pages = MagicMock()
         mock_site.pages.__getitem__ = MagicMock(return_value=mock_page)
         return mock_site
+
     return _factory
 
 
@@ -570,11 +582,13 @@ def mock_save_job_result(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", _mock)
     return _mock
 
+
 @pytest.fixture
 def mock_is_job_cancelled(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.is_job_cancelled", _mock)
     return _mock
+
 
 @pytest.fixture
 def mock_download_svg_file(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
@@ -582,11 +596,13 @@ def mock_download_svg_file(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.download_svg_file", _mock)
     return _mock
 
+
 @pytest.fixture
 def mock_detect_nested_tags(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.detect_nested_tags", _mock)
     return _mock
+
 
 @pytest.fixture
 def mock_fix_nested_tags(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
@@ -594,11 +610,13 @@ def mock_fix_nested_tags(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.fix_nested_tags", _mock)
     return _mock
 
+
 @pytest.fixture
 def mock_verify_fix(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.fix_nested_jobs.worker.verify_fix", _mock)
     return _mock
+
 
 @pytest.fixture
 def mock_upload_fixed_svg(monkeypatch: pytest.MonkeyPatch) -> MagicMock:

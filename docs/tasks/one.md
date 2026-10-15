@@ -15,22 +15,21 @@ so before
 check if self.args has a title key, and if so, `return self.process_one(self, template_title)`
 
 ```python
-    def process_one(self, template_title) -> CollectTemplatesDataWorkerObject:
-        """Execute the collection processing logic."""
+def process_one(self, template_title) -> CollectTemplatesDataWorkerObject:
+    """Execute the collection processing logic."""
 
-        template: TemplateRecord = get_template_by_title(template_title)
-        self.result.summary.total = 1
+    template: TemplateRecord = get_template_by_title(template_title)
+    self.result.summary.total = 1
 
-        self._save_progress()
+    self._save_progress()
 
-        logger.info(f"Job {self.job_id}: Processing template {template.title}")
+    logger.info(f"Job {self.job_id}: Processing template {template.title}")
 
-        _updated = self._process_one_item(template)
-        if _updated:
-            logger.info(f"Job {self.job_id}: Template {template.title} updated")
+    _updated = self._process_one_item(template)
+    if _updated:
+        logger.info(f"Job {self.job_id}: Template {template.title} updated")
 
-        self.finish()
+    self.finish()
 
-        return self.result
-
+    return self.result
 ```

@@ -81,6 +81,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+
 def create_app(config_name="default"):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
@@ -88,6 +89,7 @@ def create_app(config_name="default"):
     db.init_app(app)
 
     from app.routes import main_bp, api_bp
+
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix="/api")
 
@@ -110,14 +112,17 @@ from flask import Blueprint, request, jsonify
 
 users_bp = Blueprint("users", __name__, url_prefix="/users")
 
+
 @users_bp.route("/", methods=["GET"])
 def list_users():
     return jsonify(users=User.query.all())
+
 
 @users_bp.route("/<int:user_id>", methods=["GET"])
 def get_user(user_id):
     user = User.query.get_or_404(user_id)
     return jsonify(user=user.to_dict())
+
 
 # app/routes/__init__.py
 from app.routes.users import users_bp
@@ -143,14 +148,18 @@ def create_user():
     user = User(name=data["name"])  # KeyError risk
     return jsonify(user.to_dict())
 
+
 # GOOD: With validation (marshmallow)
 from marshmallow import Schema, fields, validate
+
 
 class UserSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1, max=100))
     email = fields.Email(required=True)
 
+
 user_schema = UserSchema()
+
 
 @app.route("/user", methods=["POST"])
 def create_user():
@@ -181,14 +190,16 @@ def create_user():
 # config.py
 import os
 
+
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-key-change-me"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URL") or \
-        "sqlite:///dev.db"
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DEV_DATABASE_URL") or "sqlite:///dev.db"
+
 
 class ProductionConfig(Config):
     DEBUG = False
@@ -203,6 +214,7 @@ class ProductionConfig(Config):
         handler = RotatingFileHandler("app.log", maxBytes=10240, backupCount=10)
         handler.setLevel(logging.INFO)
         app.logger.addHandler(handler)
+
 
 config = {
     "development": DevelopmentConfig,
@@ -222,6 +234,7 @@ config = {
 ```python
 # app/errors.py
 from flask import jsonify, render_template
+
 
 def register_error_handlers(app):
     @app.errorhandler(400)
@@ -244,10 +257,9 @@ def register_error_handlers(app):
             return jsonify(error="Internal server error"), 500
         return render_template("errors/500.html"), 500
 
+
 def request_wants_json():
-    return request.accept_mimetypes.best_match(
-        ["application/json", "text/html"]
-    ) == "application/json"
+    return request.accept_mimetypes.best_match(["application/json", "text/html"]) == "application/json"
 ```
 
 ## Response Template

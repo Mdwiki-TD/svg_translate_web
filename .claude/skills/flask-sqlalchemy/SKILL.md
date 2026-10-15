@@ -41,24 +41,25 @@ myapp/
 ```python
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
+
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key')
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///dev.db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///dev.db")
+
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
 
-config = {
-    'development': DevelopmentConfig,
-    'production': ProductionConfig,
-    'default': DevelopmentConfig
-}
+
+config = {"development": DevelopmentConfig, "production": ProductionConfig, "default": DevelopmentConfig}
 ```
 
 ### app/**init**.py — Application Factory
@@ -72,7 +73,8 @@ from config import config
 db = SQLAlchemy()
 migrate = Migrate()
 
-def create_app(config_name='default'):
+
+def create_app(config_name="default"):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
@@ -80,6 +82,7 @@ def create_app(config_name='default'):
     migrate.init_app(app, db)
 
     from app.routes import main
+
     app.register_blueprint(main)
 
     return app
@@ -92,7 +95,7 @@ from app import create_app
 
 app = create_app()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
 ```
 
@@ -130,74 +133,70 @@ flask db upgrade
 from app import db
 from datetime import datetime
 
-class User(db.Model):
-    __tablename__ = 'users'
 
-    id         = db.Column(db.Integer, primary_key=True)
-    username   = db.Column(db.String(80), unique=True, nullable=False)
-    email      = db.Column(db.String(120), unique=True, nullable=False)
-    is_active  = db.Column(db.Boolean, default=True)
+class User(db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f'<User {self.username}>'
+        return f"<User {self.username}>"
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'username': self.username,
-            'email': self.email,
-            'is_active': self.is_active,
-            'created_at': self.created_at.isoformat()
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat(),
         }
 ```
 
 ### Common Column Types
 
 ```python
-db.Integer          # whole number
-db.String(n)        # string with max length n
-db.Text             # unlimited length text
-db.Float            # decimal number
-db.Boolean          # True / False
-db.DateTime         # date + time
-db.Date             # date only
-db.JSON             # JSON data
+db.Integer  # whole number
+db.String(n)  # string with max length n
+db.Text  # unlimited length text
+db.Float  # decimal number
+db.Boolean  # True / False
+db.DateTime  # date + time
+db.Date  # date only
+db.JSON  # JSON data
 ```
 
 ### Column Options
 
 ```python
-primary_key=True         # primary key
-unique=True              # enforce uniqueness
-nullable=False           # disallow NULL
-default=value            # static default value
-default=datetime.utcnow  # callable default — NO parentheses!
-index=True               # speeds up filtering on this column
+primary_key = True  # primary key
+unique = True  # enforce uniqueness
+nullable = False  # disallow NULL
+default = value  # static default value
+default = datetime.utcnow  # callable default — NO parentheses!
+index = True  # speeds up filtering on this column
 ```
 
 ### Example: Two Related Models (One-to-Many)
 
 ```python
 class Post(db.Model):
-    __tablename__ = 'posts'
+    __tablename__ = "posts"
 
-    id         = db.Column(db.Integer, primary_key=True)
-    title      = db.Column(db.String(200), nullable=False)
-    body       = db.Column(db.Text)
-    user_id    = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Enables: post.author  and  user.posts.all()
-    author = db.relationship('User', backref=db.backref('posts', lazy='dynamic'))
+    author = db.relationship("User", backref=db.backref("posts", lazy="dynamic"))
 
     def to_dict(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'body': self.body,
-            'user_id': self.user_id
-        }
+        return {"id": self.id, "title": self.title, "body": self.body, "user_id": self.user_id}
 ```
 
 ---
@@ -208,15 +207,15 @@ class Post(db.Model):
 
 ```python
 # Add a single record
-user = User(username='ahmed', email='ahmed@example.com')
+user = User(username="ahmed", email="ahmed@example.com")
 db.session.add(user)
 db.session.commit()
 print(user.id)  # ID is populated after commit
 
 # Add multiple records at once
 users = [
-    User(username='sara', email='sara@example.com'),
-    User(username='ali',  email='ali@example.com'),
+    User(username="sara", email="sara@example.com"),
+    User(username="ali", email="ali@example.com"),
 ]
 db.session.add_all(users)
 db.session.commit()
@@ -232,11 +231,11 @@ users = User.query.all()
 user = db.session.get(User, 1)
 
 # First match or None
-user = User.query.filter_by(username='ahmed').first()
+user = User.query.filter_by(username="ahmed").first()
 
 # Filtering
 active_users = User.query.filter(User.is_active == True).all()
-gmail_users  = User.query.filter(User.email.like('%@gmail.com')).all()
+gmail_users = User.query.filter(User.email.like("%@gmail.com")).all()
 
 # Ordering
 users = User.query.order_by(User.created_at.desc()).all()
@@ -254,11 +253,11 @@ count = User.query.filter_by(is_active=True).count()
 # Update a single record
 user = db.session.get(User, 1)
 if user:
-    user.email = 'newemail@example.com'
+    user.email = "newemail@example.com"
     db.session.commit()
 
 # Bulk update
-User.query.filter_by(is_active=False).update({'is_active': True})
+User.query.filter_by(is_active=False).update({"is_active": True})
 db.session.commit()
 ```
 
@@ -281,6 +280,7 @@ db.session.commit()
 ```python
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+
 def create_user(username, email):
     try:
         user = User(username=username, email=email)
@@ -289,10 +289,10 @@ def create_user(username, email):
         return user, None
     except IntegrityError:
         db.session.rollback()
-        return None, 'User already exists'
+        return None, "User already exists"
     except SQLAlchemyError:
         db.session.rollback()
-        return None, 'Database error'
+        return None, "Database error"
 ```
 
 ---

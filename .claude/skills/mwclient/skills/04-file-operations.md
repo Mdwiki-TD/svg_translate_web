@@ -43,9 +43,9 @@ Files on MediaWiki are pages in namespace 6 (File:). The `Image` class extends `
 ### Get an Image
 
 ```python
-image = site.images['Example.jpg']  # With or without "File:" prefix
-print(image.exists)           # True if file exists locally
-print(image.imageinfo)        # Dict with url, size, sha1, mime, etc.
+image = site.images["Example.jpg"]  # With or without "File:" prefix
+print(image.exists)  # True if file exists locally
+print(image.imageinfo)  # Dict with url, size, sha1, mime, etc.
 print(image.imagerepository)  # 'local', 'shared', or ''
 ```
 
@@ -68,7 +68,7 @@ print(f"Comment: {info.get('comment', '')}")
 
 ```python
 for rev in image.imagehistory():
-    print(rev.get('timestamp'), rev.get('user'), rev.get('url'))
+    print(rev.get("timestamp"), rev.get("user"), rev.get("url"))
 ```
 
 ### Pages using a file
@@ -90,7 +90,7 @@ for dup in image.duplicatefiles():
 Files from shared repositories (e.g., Wikimedia Commons) have `image.exists = False` on the local wiki but `image.imageinfo` is populated. Don't rely on `exists` to check file availability — check `imageinfo` instead:
 
 ```python
-image = site.images['Commons_file.jpg']
+image = site.images["Commons_file.jpg"]
 if image.imageinfo:
     print("File is available (may be from shared repository)")
 else:
@@ -102,8 +102,8 @@ else:
 ### Stream to disk (recommended for all files)
 
 ```python
-image = site.images['Example.jpg']
-with open('downloaded.jpg', 'wb') as f:
+image = site.images["Example.jpg"]
+with open("downloaded.jpg", "wb") as f:
     image.download(f)
 ```
 
@@ -122,8 +122,8 @@ For large files, this loads the entire file into memory. Prefer streaming.
 ### Direct file upload
 
 ```python
-with open('photo.jpg', 'rb') as f:
-    result = site.upload(f, 'MyPhoto.jpg', description='A photo', comment='Uploading')
+with open("photo.jpg", "rb") as f:
+    result = site.upload(f, "MyPhoto.jpg", description="A photo", comment="Uploading")
 ```
 
 The `description` parameter sets the file description page content (wikitext). The `comment` parameter is the upload log comment.
@@ -131,7 +131,7 @@ The `description` parameter sets the file description page content (wikitext). T
 ### Upload from path string
 
 ```python
-result = site.upload('photo.jpg', 'MyPhoto.jpg', description='A photo')
+result = site.upload("photo.jpg", "MyPhoto.jpg", description="A photo")
 ```
 
 Passing a string path works — the library opens the file internally.
@@ -140,9 +140,9 @@ Passing a string path works — the library opens the file internally.
 
 ```python
 result = site.upload(
-    url='https://example.com/image.png',
-    filename='RemoteImage.png',
-    description='Image fetched from example.com',
+    url="https://example.com/image.png",
+    filename="RemoteImage.png",
+    description="Image fetched from example.com",
 )
 ```
 
@@ -151,8 +151,8 @@ The wiki server fetches the file from the URL.
 ### Overwrite existing file
 
 ```python
-with open('updated.jpg', 'rb') as f:
-    site.upload(f, 'ExistingFile.jpg', description='Updated version', ignore=True)
+with open("updated.jpg", "rb") as f:
+    site.upload(f, "ExistingFile.jpg", description="Updated version", ignore=True)
 ```
 
 Without `ignore=True`, uploading to an existing filename raises `FileExists`.
@@ -162,8 +162,8 @@ Without `ignore=True`, uploading to an existing filename raises `FileExists`.
 Files larger than `site.chunk_size` (default 1 MiB) are automatically uploaded in chunks. No extra code needed — just upload normally:
 
 ```python
-with open('large_video.mp4', 'rb') as f:
-    site.upload(f, 'Video.mp4', description='A video')
+with open("large_video.mp4", "rb") as f:
+    site.upload(f, "Video.mp4", description="A video")
 # Automatically uses chunked upload if file > 1 MiB
 ```
 
@@ -173,12 +173,12 @@ For more control, stash the file first, then publish:
 
 ```python
 # Phase 1: stash
-with open('image.jpg', 'rb') as f:
-    result = site.upload(f, 'Image.jpg', stash=True)
-filekey = result['filekey']
+with open("image.jpg", "rb") as f:
+    result = site.upload(f, "Image.jpg", stash=True)
+filekey = result["filekey"]
 
 # Phase 2: publish
-site.upload(filename='Image.jpg', filekey=filekey, comment='Publishing')
+site.upload(filename="Image.jpg", filekey=filekey, comment="Publishing")
 ```
 
 This is useful for validating file metadata before committing the upload.
@@ -186,8 +186,8 @@ This is useful for validating file metadata before committing the upload.
 ### Asynchronous upload
 
 ```python
-with open('huge_file.zip', 'rb') as f:
-    site.upload(f, 'Archive.zip', asynchronous=True, description='Large archive')
+with open("huge_file.zip", "rb") as f:
+    site.upload(f, "Archive.zip", asynchronous=True, description="Large archive")
 ```
 
 The server processes the upload in the background.
@@ -198,8 +198,8 @@ The server processes the upload in the background.
 from mwclient import errors
 
 try:
-    with open('image.jpg', 'rb') as f:
-        site.upload(f, 'Image.jpg', description='Photo')
+    with open("image.jpg", "rb") as f:
+        site.upload(f, "Image.jpg", description="Photo")
 except errors.FileExists:
     print("File already exists — use ignore=True to overwrite")
 except errors.InsufficientPermission:

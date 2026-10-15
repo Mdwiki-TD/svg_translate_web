@@ -33,7 +33,7 @@ pip install wikitextparser
 ```python
 import wikitextparser as wtp
 
-parsed = wtp.parse(wikitext_string)   # returns a WikiText object
+parsed = wtp.parse(wikitext_string)  # returns a WikiText object
 ```
 
 `wtp.parse` is an alias of `wtp.WikiText`. The library has zero required
@@ -98,29 +98,30 @@ import wikitextparser as wtp
 parsed = wtp.parse(article)
 
 # Basic enumeration
-parsed.templates         # all {{templates}}
-parsed.wikilinks         # all [[wikilinks]]
-parsed.tables            # all {| tables |} (recursive)
-parsed.external_links    # all [url text] and bare URLs
-parsed.sections          # all sections (lead at index 0)
-parsed.comments          # all <!-- comments -->
-parsed.get_tags('ref')   # all <ref> tags
+parsed.templates  # all {{templates}}
+parsed.wikilinks  # all [[wikilinks]]
+parsed.tables  # all {| tables |} (recursive)
+parsed.external_links  # all [url text] and bare URLs
+parsed.sections  # all sections (lead at index 0)
+parsed.comments  # all <!-- comments -->
+parsed.get_tags("ref")  # all <ref> tags
 
 # Read a template
 t = parsed.templates[0]
-t.name                   # 'Infobox person'
-t.normal_name()          # canonicalized name
-t.get_arg('name').value  # value of |name=
+t.name  # 'Infobox person'
+t.normal_name()  # canonicalized name
+t.get_arg("name").value  # value of |name=
 
 # Modify in place — the change is reflected in str(parsed)
-t.set_arg('birth_date', '1990-01-01')
-str(parsed)              # full updated wikitext
+t.set_arg("birth_date", "1990-01-01")
+str(parsed)  # full updated wikitext
 
 # Strip all wiki markup
 clean = parsed.plain_text()
 
 # Or use the standalone helper
 from wikitextparser import remove_markup
+
 clean = remove_markup(article)
 ```
 

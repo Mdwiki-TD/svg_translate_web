@@ -11,7 +11,6 @@ if original_chart_url and "/grapher/" in original_chart_url:
     original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
     if original_slug != chart.slug:
         data["slug"] = original_slug
-
 ```
 ### Block 2
 ```python
@@ -23,7 +22,6 @@ if _slug_to_check:
             original_slug = original_chart_url.split("/grapher/", maxsplit=1)[1].split("?")[0]
             if original_slug != _slug_to_check:
                 _slug = original_slug
-
 ```
 ## Required Changes
 ### 1. Create New Database Table
@@ -60,23 +58,19 @@ Instead of:
 ```python
 if original_slug != chart.slug:
     data["slug"] = original_slug
-
 ```
 Use:
 ```python
 if original_slug != chart.slug:
     add_new_slug_redirect(slug=chart.slug, redirect_to=original_slug)
-
 ```
 Similarly, replace:
 ```python
 _slug = original_slug
-
 ```
 With:
 ```python
 add_new_slug_redirect(slug=_slug_to_check, redirect_to=original_slug)
-
 ```
 > ⚠️ **Important:** Do not modify owid_charts.slug or templates.slug, and do not perform automatic replacements. Only record the redirect for later manual review.
 >

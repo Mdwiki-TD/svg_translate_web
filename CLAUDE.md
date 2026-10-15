@@ -69,9 +69,9 @@ Translation tasks run through a sequential pipeline defined in `src/main_app/job
 
 ### Database Layer
 
--   `TaskStorePyMysql` (composed via mixins: `CreateUpdateTask`, `StageStore`, `TasksListDB`) handles task persistence
--   `UserTokenRecord` manages encrypted OAuth token storage
--   Connection wrapper in `src/main_app/database/db_class.py` provides retry logic
+- `TaskStorePyMysql` (composed via mixins: `CreateUpdateTask`, `StageStore`, `TasksListDB`) handles task persistence
+- `UserTokenRecord` manages encrypted OAuth token storage
+- Connection wrapper in `src/main_app/database/db_class.py` provides retry logic
 
 ### Key Route Blueprints
 
@@ -88,9 +88,9 @@ Translation tasks run through a sequential pipeline defined in `src/main_app/job
 
 ### Configuration
 
--   Environment variables loaded via `src/svg_config.py` using python-dotenv (expects `.env` file in `src/`)
--   Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `Paths`, `CookieConfig`, `JobsConfig`, `SecurityConfig`
--   Settings cached via `@lru_cache` in `src/main_app/config.py`
+- Environment variables loaded via `src/svg_config.py` using python-dotenv (expects `.env` file in `src/`)
+- Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `Paths`, `CookieConfig`, `JobsConfig`, `SecurityConfig`
+- Settings cached via `@lru_cache` in `src/main_app/config.py`
 
 #### Required Environment Variables
 
@@ -134,15 +134,15 @@ Jobs use the current user's OAuth session (via `get_user_site(user)`) for wiki o
 
 All wiki page operations go through `MwClientPage` (`api_services/mwclient_page/mwclient_wraper.py`) which handles:
 
--   Page loading, existence checks, redirect detection
--   Editing with rate-limit retry (5s, 15s, 30s delays)
--   Moving (renaming) with rate-limit retry
+- Page loading, existence checks, redirect detection
+- Editing with rate-limit retry (5s, 15s, 30s delays)
+- Moving (renaming) with rate-limit retry
 
 Thin wrappers in `pages_api.py`:
 
 ```python
-is_page_exists(title, site)   # Check if page exists
-is_redirect(title, site)      # Check if page is a redirect (uses page.redirects_to())
+is_page_exists(title, site)  # Check if page exists
+is_redirect(title, site)  # Check if page is a redirect (uses page.redirects_to())
 edit_page(site, title, text, summary)  # Edit page content
 move_page(site, title, new_title, reason, ...)  # Move/rename page
 ```
@@ -151,14 +151,14 @@ move_page(site, title, new_title, reason, ...)  # Move/rename page
 
 Standalone CLI scripts not part of the Flask app:
 
--   **`rename_owid_pages.py`** — Capitalize OWID subpage names using WIKI_USERNAME/WIKI_PASSWORD from `.env`. Dry-run by default; use `--apply` to execute.
+- **`rename_owid_pages.py`** — Capitalize OWID subpage names using WIKI_USERNAME/WIKI_PASSWORD from `.env`. Dry-run by default; use `--apply` to execute.
 
 ### External Dependencies
 
--   **CopySVGTranslation**: Core SVG translation library (external package)
--   **mwclient/mwoauth**: MediaWiki API and OAuth integration
--   **lxml**: XML/SVG processing
--   **cryptography.Fernet**: OAuth token encryption
+- **CopySVGTranslation**: Core SVG translation library (external package)
+- **mwclient/mwoauth**: MediaWiki API and OAuth integration
+- **lxml**: XML/SVG processing
+- **cryptography.Fernet**: OAuth token encryption
 
 ## Deployment
 
@@ -166,9 +166,9 @@ Automated via GitHub Actions on `main` branch push to Wikimedia Toolforge Kubern
 
 ## File Locations
 
--   Source code: `src/`
--   Tests: `tests/`
--   Templates: `src/templates/`
--   Static assets: `src/static/`
--   Config files: `0/` (flake8, pylint, mypy)
--   Deployment scripts: `toolforge/deploy_scripts/`
+- Source code: `src/`
+- Tests: `tests/`
+- Templates: `src/templates/`
+- Static assets: `src/static/`
+- Config files: `0/` (flake8, pylint, mypy)
+- Deployment scripts: `toolforge/deploy_scripts/`

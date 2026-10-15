@@ -88,6 +88,7 @@ from flask import Flask
 
 app = Flask(__name__)
 
+
 @app.cli.command("create-user")
 @click.argument("name")
 def create_user(name):
@@ -104,12 +105,13 @@ flask create-user admin
 ```python
 from flask.cli import AppGroup
 
-user_cli = AppGroup('user')
+user_cli = AppGroup("user")
 
-@user_cli.command('create')
-@click.argument('name')
-def create_user(name):
-    ...
+
+@user_cli.command("create")
+@click.argument("name")
+def create_user(name): ...
+
 
 app.cli.add_command(user_cli)
 ```
@@ -125,11 +127,13 @@ Commands registered via `app.cli` get an app context automatically. For standalo
 ```python
 from flask.cli import with_appcontext
 
+
 @click.command()
 @with_appcontext
 def do_work():
     # access current_app, db, etc.
     ...
+
 
 app.cli.add_command(do_work)
 ```
@@ -141,12 +145,13 @@ app.cli.add_command(do_work)
 ```python
 from flask import Blueprint
 
-bp = Blueprint('students', __name__)
+bp = Blueprint("students", __name__)
 
-@bp.cli.command('create')
-@click.argument('name')
-def create(name):
-    ...
+
+@bp.cli.command("create")
+@click.argument("name")
+def create(name): ...
+
 
 app.register_blueprint(bp)
 ```
@@ -158,9 +163,9 @@ flask students create alice   # nested under blueprint name by default
 **Override the group name:**
 
 ```python
-bp = Blueprint('students', __name__, cli_group='school')
+bp = Blueprint("students", __name__, cli_group="school")
 # or at registration:
-app.register_blueprint(bp, cli_group='school')
+app.register_blueprint(bp, cli_group="school")
 ```
 
 ```bash
@@ -170,7 +175,7 @@ flask school create alice
 **Flatten to top-level:**
 
 ```python
-bp = Blueprint('students', __name__, cli_group=None)
+bp = Blueprint("students", __name__, cli_group=None)
 # or:
 app.register_blueprint(bp, cli_group=None)
 ```
@@ -191,10 +196,12 @@ import click
 from flask import Flask
 from flask.cli import FlaskGroup
 
+
 def create_app():
-    app = Flask('wiki')
+    app = Flask("wiki")
     # configure, register blueprints, etc.
     return app
+
 
 @click.group(cls=FlaskGroup, create_app=create_app)
 def cli():
@@ -232,9 +239,9 @@ my-command = "my_extension.commands:cli"
 # my_extension/commands.py
 import click
 
+
 @click.command()
-def cli():
-    ...
+def cli(): ...
 ```
 
 Once installed in the same virtualenv: `flask my-command`
@@ -254,7 +261,7 @@ Add objects to the shell context:
 ```python
 @app.shell_context_processor
 def make_shell_context():
-    return {'db': db, 'User': User}
+    return {"db": db, "User": User}
 ```
 
 ---

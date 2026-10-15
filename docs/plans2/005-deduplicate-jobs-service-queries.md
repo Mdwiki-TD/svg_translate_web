@@ -81,10 +81,7 @@ def get_user_jobs_stats(
 
     base_query = self.session.query(JobRecord).filter(JobRecord.username == username)
 
-    status_query = (
-        self.session.query(JobRecord.status, func.count(JobRecord.id))
-        .filter(JobRecord.username == username)
-    )
+    status_query = self.session.query(JobRecord.status, func.count(JobRecord.id)).filter(JobRecord.username == username)
 
     if jobs_types:
         base_query = base_query.filter(JobRecord.job_type.in_(jobs_types))

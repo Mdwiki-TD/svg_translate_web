@@ -86,28 +86,28 @@ on demand, not in the spans table.
 
 ```python
 parsed = wtp.parse("{{outer|x={{inner|y=[[Earth]]}}}}")
-wl = parsed.wikilinks[0]                # [[Earth]]
+wl = parsed.wikilinks[0]  # [[Earth]]
 
-wl.parent()                             # {{inner|...}}
-wl.parent(type_='Template')             # {{inner|...}} (same here)
-wl.ancestors()                          # [{{inner|...}}, {{outer|...}}]
-wl.ancestors(type_='Template')[-1].name # 'outer'
+wl.parent()  # {{inner|...}}
+wl.parent(type_="Template")  # {{inner|...}} (same here)
+wl.ancestors()  # [{{inner|...}}, {{outer|...}}]
+wl.ancestors(type_="Template")[-1].name  # 'outer'
 ```
 
 ### 2. Find which `<ref>` contains a wikilink
 
 ```python
 for wl in parsed.wikilinks:
-    ref = wl.parent(type_='ExtensionTag')
+    ref = wl.parent(type_="ExtensionTag")
     if ref:
-        print(wl.title, 'is inside an extension tag')
+        print(wl.title, "is inside an extension tag")
 ```
 
 ### 3. Detect top-level vs nested templates
 
 ```python
 top_level = [t for t in parsed.templates if t.nesting_level == 0]
-nested    = [t for t in parsed.templates if t.nesting_level > 0]
+nested = [t for t in parsed.templates if t.nesting_level > 0]
 ```
 
 `nesting_level` is defined on `Template` and `ParserFunction`
@@ -120,8 +120,8 @@ parent type.
 parsed = wtp.parse("{{a|{{b}}|x}}")
 b = parsed.templates[1]
 a = parsed.templates[0]
-b in a    # True
-a in b    # False
+b in a  # True
+a in b  # False
 ```
 
 `__contains__` works only when both objects share the same `_lststr` (root
@@ -132,7 +132,7 @@ will report `False` even for identical content.
 
 ```python
 for t in parsed.templates:
-    if t.normal_name() == 'Cleanup':
+    if t.normal_name() == "Cleanup":
         del t[:]
 ```
 
@@ -144,8 +144,8 @@ surrounding `{{` and `}}`. After deletion, the node becomes a "dead" object
 
 ```python
 for t in parsed.templates:
-    if t.normal_name() == 'OldTemplate':
-        t[:] = '{{NewTemplate|x=1}}'
+    if t.normal_name() == "OldTemplate":
+        t[:] = "{{NewTemplate|x=1}}"
 ```
 
 Setting `node[:] = '...'` replaces the entire span. After the replacement
@@ -160,11 +160,11 @@ There is no `walk()` helper, but you can intersect lists:
 def nodes_in_section(parsed, section_index):
     s = parsed.sections[section_index]
     return {
-        'templates'        : [t  for t  in parsed.templates if t in s],
-        'wikilinks'        : [wl for wl in parsed.wikilinks if wl in s],
-        'external_links'   : [el for el in parsed.external_links if el in s],
-        'tables'           : [tb for tb in parsed.tables if tb in s],
-        'comments'         : [c  for c  in parsed.comments  if c  in s],
+        "templates": [t for t in parsed.templates if t in s],
+        "wikilinks": [wl for wl in parsed.wikilinks if wl in s],
+        "external_links": [el for el in parsed.external_links if el in s],
+        "tables": [tb for tb in parsed.tables if tb in s],
+        "comments": [c for c in parsed.comments if c in s],
     }
 ```
 
@@ -175,9 +175,9 @@ def nodes_in_section(parsed, section_index):
 ```python
 parsed = wtp.parse("{{a}}\n{{b}}")
 a, b = parsed.templates
-b.parent()          # None  — not nested under anything
-b in parsed         # True  — both share the buffer
-b in a              # False — span doesn't lie within a
+b.parent()  # None  — not nested under anything
+b in parsed  # True  — both share the buffer
+b in a  # False — span doesn't lie within a
 ```
 
 ## Edge cases & gotchas
@@ -217,7 +217,7 @@ b in a              # False — span doesn't lie within a
 def link_to_container_template(parsed) -> dict[str, str | None]:
     out = {}
     for wl in parsed.wikilinks:
-        t = wl.parent(type_='Template')
+        t = wl.parent(type_="Template")
         out[wl.title.strip()] = t.normal_name() if t else None
     return out
 ```
@@ -227,7 +227,7 @@ def link_to_container_template(parsed) -> dict[str, str | None]:
 ```python
 def is_in_references(node, parsed) -> bool:
     for s in parsed.sections:
-        if s.title and s.title.strip() == 'References' and node in s:
+        if s.title and s.title.strip() == "References" and node in s:
             return True
     return False
 ```
@@ -235,7 +235,7 @@ def is_in_references(node, parsed) -> bool:
 ### Recipe C: cascade-delete a template and everything that referenced it
 
 ```python
-target = 'Outdated'
+target = "Outdated"
 for t in parsed.templates:
     if t.normal_name() == target:
         for nested in t.templates:
@@ -249,10 +249,8 @@ for t in parsed.templates:
 def templates_per_section(parsed) -> dict[str, list[str]]:
     out = {}
     for s in parsed.sections:
-        title = (s.title or '<lead>').strip()
-        out[title] = [
-            t.normal_name() for t in parsed.templates if t in s
-        ]
+        title = (s.title or "<lead>").strip()
+        out[title] = [t.normal_name() for t in parsed.templates if t in s]
     return out
 ```
 
@@ -261,8 +259,8 @@ def templates_per_section(parsed) -> dict[str, list[str]]:
 ```python
 nested_in_template = 0
 free = 0
-for ref in parsed.get_tags('ref'):
-    if ref.parent(type_='Template') is not None:
+for ref in parsed.get_tags("ref"):
+    if ref.parent(type_="Template") is not None:
         nested_in_template += 1
     else:
         free += 1

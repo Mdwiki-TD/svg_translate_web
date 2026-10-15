@@ -158,9 +158,7 @@ if not login_rate_limiter.allow(_client_key()):
     time_left_str = str(time_left).split(".")[0]
     flash(f"Too many login attempts. Please try again after {time_left_str}s.", "warning")
     logger.warning("OAuth login rate limited, client: %s, try_after: %ss", _client_key(), time_left_str)
-    return redirect(
-        url_for("main.index", error=f"Too many login attempts. Please try again after {time_left_str}s.")
-    )
+    return redirect(url_for("main.index", error=f"Too many login attempts. Please try again after {time_left_str}s."))
 ```
 
 After: use `limiter.limit()` decorator on the method, OR use the programmatic

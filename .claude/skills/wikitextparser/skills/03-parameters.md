@@ -59,39 +59,39 @@ provided". Triple-brace constructs only resolve at template-expansion time.
 ```python
 parsed = wtp.parse(template_body)
 for p in parsed.parameters:
-    print(p.name, '→', p.default)
+    print(p.name, "→", p.default)
 ```
 
 ### 2. Inspect a single parameter
 
 ```python
-p = wtp.parse('{{{name|Alice}}}').parameters[0]
-p.name         # 'name'
-p.default      # 'Alice'
-p.pipe         # '|'
+p = wtp.parse("{{{name|Alice}}}").parameters[0]
+p.name  # 'name'
+p.default  # 'Alice'
+p.pipe  # '|'
 
-p2 = wtp.parse('{{{name}}}').parameters[0]
-p2.default     # None
-p2.pipe        # ''
+p2 = wtp.parse("{{{name}}}").parameters[0]
+p2.default  # None
+p2.pipe  # ''
 ```
 
 ### 3. Set or change the default
 
 ```python
-p = wtp.parse('{{{name}}}').parameters[0]
-p.default = 'unknown'         # adds the pipe and the value
-str(p)                         # '{{{name|unknown}}}'
+p = wtp.parse("{{{name}}}").parameters[0]
+p.default = "unknown"  # adds the pipe and the value
+str(p)  # '{{{name|unknown}}}'
 
-p.default = 'anonymous'        # overwrites
-str(p)                         # '{{{name|anonymous}}}'
+p.default = "anonymous"  # overwrites
+str(p)  # '{{{name|anonymous}}}'
 ```
 
 ### 4. Remove the default
 
 ```python
-p = wtp.parse('{{{name|Alice}}}').parameters[0]
+p = wtp.parse("{{{name|Alice}}}").parameters[0]
 del p.default
-str(p)        # '{{{name}}}'
+str(p)  # '{{{name}}}'
 ```
 
 `del p.default` removes both the `|` separator and the default content.
@@ -101,9 +101,9 @@ will write the string `'None'` into the buffer. Always use `del`.
 ### 5. Rename a parameter
 
 ```python
-p = wtp.parse('{{{old|x}}}').parameters[0]
-p.name = 'new'
-str(p)        # '{{{new|x}}}'
+p = wtp.parse("{{{old|x}}}").parameters[0]
+p.name = "new"
+str(p)  # '{{{new|x}}}'
 ```
 
 ### 6. Append a fallback default layer
@@ -112,12 +112,12 @@ str(p)        # '{{{new|x}}}'
 declaration, creating a fallback chain:
 
 ```python
-p = wtp.parse('{{{p1|}}}').parameters[0]
-p.append_default('p2')
-str(p)        # '{{{p1|{{{p2|}}}}}}'
+p = wtp.parse("{{{p1|}}}").parameters[0]
+p.append_default("p2")
+str(p)  # '{{{p1|{{{p2|}}}}}}'
 
-p.append_default('p3')
-str(p)        # '{{{p1|{{{p2|{{{p3|}}}}}}}}}'
+p.append_default("p3")
+str(p)  # '{{{p1|{{{p2|{{{p3|}}}}}}}}}'
 ```
 
 Use case: making a template fall back to a secondary parameter name without
@@ -125,7 +125,7 @@ breaking existing usages.
 
 ```python
 # {{{first_name|}}}  →  also accept |firstname=
-p.append_default('firstname')
+p.append_default("firstname")
 # Now: {{{first_name|{{{firstname|}}}}}}
 ```
 
@@ -135,8 +135,8 @@ is a no-op.
 ### 7. Walk nested parameters
 
 ```python
-parsed = wtp.parse('{{{a|{{{b|{{{c|x}}}}}}}}}')
-parsed.parameters                # [outer, mid, inner] (3 entries)
+parsed = wtp.parse("{{{a|{{{b|{{{c|x}}}}}}}}}")
+parsed.parameters  # [outer, mid, inner] (3 entries)
 parsed.parameters[0].parameters  # [mid, inner]  — excludes self
 ```
 
@@ -183,8 +183,8 @@ def add_alias(template_body: str, primary: str, alias: str) -> str:
 ```python
 parsed = wtp.parse(template_body)
 for p in parsed.parameters:
-    if p.default == '':
-        p.default = '{{{1|}}}'   # echo positional 1 if set
+    if p.default == "":
+        p.default = "{{{1|}}}"  # echo positional 1 if set
 ```
 
 ### Recipe D: remove all defaults (force callers to provide values)

@@ -164,6 +164,7 @@ During the transition, maintain a compatibility layer:
 from flask import current_app, has_app_context
 from .extensions import db
 
+
 def get_session():
     """Backward-compatible session getter.
     Uses Flask-SQLAlchemy session when in app context,
@@ -173,6 +174,7 @@ def get_session():
         return db.session
     # Fallback for CLI scripts or workers not in Flask context
     from .sqlalchemy_db.engine import get_session as legacy_get_session
+
     return legacy_get_session()
 ```
 
@@ -231,7 +233,8 @@ Blueprints remain unchanged. The key integration point is that services now use 
 # admin/routes/jobs.py — No changes needed if services handle DB
 from ...services.jobs_service import create_job, get_job
 
-@bp.route('/jobs', methods=['POST'])
+
+@bp.route("/jobs", methods=["POST"])
 def start_job():
     job = create_job(job_type="fix_nested", username=g.user)
     return jsonify(job.to_dict())
@@ -274,6 +277,7 @@ Flask-Migrate>=4.0.0
 ```python
 # src/main_app/config.py — Add to existing settings
 
+
 @dataclass(frozen=True)
 class FlaskSQLAlchemyConfig:
     """Flask-SQLAlchemy configuration mapped from existing DbConfig."""
@@ -284,17 +288,21 @@ class FlaskSQLAlchemyConfig:
 
     def __post_init__(self):
         if self.SQLALCHEMY_ENGINE_OPTIONS is None:
-            object.__setattr__(self, 'SQLALCHEMY_ENGINE_OPTIONS', {
-                'pool_pre_ping': True,
-                'pool_size': 5,
-                'max_overflow': 10,
-                'pool_recycle': 3600,
-                'connect_args': {
-                    'connect_timeout': 5,
-                    'init_command': 'SET time_zone = "+00:00"',
-                    'charset': 'utf8mb4',
+            object.__setattr__(
+                self,
+                "SQLALCHEMY_ENGINE_OPTIONS",
+                {
+                    "pool_pre_ping": True,
+                    "pool_size": 5,
+                    "max_overflow": 10,
+                    "pool_recycle": 3600,
+                    "connect_args": {
+                        "connect_timeout": 5,
+                        "init_command": 'SET time_zone = "+00:00"',
+                        "charset": "utf8mb4",
+                    },
                 },
-            })
+            )
 ```
 
 ### 4.3 Environment-Specific Configuration
@@ -302,44 +310,45 @@ class FlaskSQLAlchemyConfig:
 ```python
 # config.py additions
 
+
 def build_sqlalchemy_uri(db_config: DbConfig) -> str:
     """Build SQLAlchemy URI from existing DbConfig dataclass."""
-    return (
-        f"mysql+pymysql://{db_config.db_user}:{db_config.db_password}"
-        f"@{db_config.db_host}/{db_config.db_name}"
-    )
+    return f"mysql+pymysql://{db_config.db_user}:{db_config.db_password}@{db_config.db_host}/{db_config.db_name}"
+
 
 class DevelopmentConfig:
     SQLALCHEMY_DATABASE_URI = build_sqlalchemy_uri(settings.database_data)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = True  # Log SQL in development
     SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_pre_ping': True,
-        'pool_size': 5,
-        'max_overflow': 10,
-        'pool_recycle': 3600,
-        'connect_args': {
-            'connect_timeout': 5,
-            'init_command': 'SET time_zone = "+00:00"',
-            'charset': 'utf8mb4',
+        "pool_pre_ping": True,
+        "pool_size": 5,
+        "max_overflow": 10,
+        "pool_recycle": 3600,
+        "connect_args": {
+            "connect_timeout": 5,
+            "init_command": 'SET time_zone = "+00:00"',
+            "charset": "utf8mb4",
         },
     }
+
 
 class ProductionConfig:
     SQLALCHEMY_DATABASE_URI = build_sqlalchemy_uri(settings.database_data)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_pre_ping': True,
-        'pool_size': 10,
-        'max_overflow': 20,
-        'pool_recycle': 1800,
-        'connect_args': {
-            'connect_timeout': 5,
-            'init_command': 'SET time_zone = "+00:00"',
-            'charset': 'utf8mb4',
+        "pool_pre_ping": True,
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_recycle": 1800,
+        "connect_args": {
+            "connect_timeout": 5,
+            "init_command": 'SET time_zone = "+00:00"',
+            "charset": "utf8mb4",
         },
     }
+
 
 class TestingConfig:
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
@@ -355,7 +364,7 @@ The existing `build_db_url()` function in `engine.py` already produces valid SQL
 ```python
 # In create_app or config
 if settings.database_data.db_host:
-    app.config['SQLALCHEMY_DATABASE_URI'] = build_db_url(settings.database_data.to_dict())
+    app.config["SQLALCHEMY_DATABASE_URI"] = build_db_url(settings.database_data.to_dict())
 ```
 
 ### 4.5 Session Management Differences
@@ -388,14 +397,12 @@ from __future__ import annotations
 from typing import Any
 from datetime import datetime
 
+
 class ToDictMixin:
     """Preserves the existing to_dict behavior from BaseDb."""
 
     def to_dict(self) -> dict[str, Any]:
-        data = {
-            column.name: getattr(self, column.name)
-            for column in self.__table__.columns
-        }
+        data = {column.name: getattr(self, column.name) for column in self.__table__.columns}
         # Handle date serialization
         for key, value in data.items():
             if isinstance(value, datetime):
@@ -405,6 +412,7 @@ class ToDictMixin:
 
 class TimestampMixin:
     """Common timestamp columns used across most models."""
+
     from sqlalchemy import Column, DateTime, func
 
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
@@ -425,6 +433,7 @@ class TimestampMixin:
 from sqlalchemy import Column, DateTime, Integer, String, func
 from ..engine import BaseDb
 
+
 class JobRecord(BaseDb):
     __tablename__ = "jobs"
 
@@ -436,8 +445,9 @@ class JobRecord(BaseDb):
     completed_at = Column(DateTime, nullable=True)
     result_file = Column(String(500), nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
-    updated_at = Column(DateTime, nullable=False, server_default=func.current_timestamp(),
-                        server_onupdate=func.current_timestamp())
+    updated_at = Column(
+        DateTime, nullable=False, server_default=func.current_timestamp(), server_onupdate=func.current_timestamp()
+    )
 ```
 
 **AFTER (Flask-SQLAlchemy):**
@@ -447,6 +457,7 @@ class JobRecord(BaseDb):
 from sqlalchemy import Column, DateTime, Integer, String, func
 from ..extensions import db
 from .base import ToDictMixin, TimestampMixin
+
 
 class JobRecord(ToDictMixin, TimestampMixin, db.Model):
     __tablename__ = "jobs"
@@ -468,6 +479,7 @@ The existing `viewonly` relationship in `OwidChartRecord` migrates directly:
 # src/main_app/models/owid_charts.py
 from ..extensions import db
 from .base import ToDictMixin
+
 
 class OwidChartRecord(ToDictMixin, db.Model):
     __tablename__ = "owid_charts"
@@ -493,6 +505,7 @@ SQL Views require special handling. Flask-SQLAlchemy will try to create tables f
 from ..extensions import db
 from .base import ToDictMixin
 
+
 class TemplateNeedUpdateRecord(ToDictMixin, db.Model):
     __tablename__ = "templates_need_update"
 
@@ -503,9 +516,10 @@ class TemplateNeedUpdateRecord(ToDictMixin, db.Model):
     max_time = Column(Integer, nullable=True)
 
     __table_args__ = (
-        {"info": {
-            "is_view": True,
-            "create_query": """
+        {
+            "info": {
+                "is_view": True,
+                "create_query": """
                 CREATE VIEW templates_need_update AS
                 SELECT t.id AS template_id, t.title AS template_title,
                        t.slug AS slug, t.last_world_year, c.max_time
@@ -514,7 +528,8 @@ class TemplateNeedUpdateRecord(ToDictMixin, db.Model):
                 WHERE t.last_world_year <> c.max_time
                   AND t.last_world_year IS NOT NULL;
             """,
-        }},
+            }
+        },
     )
 ```
 
@@ -523,6 +538,7 @@ Register the view creation event on `db.metadata` after `db.init_app(app)`:
 ```python
 # In create_app or extensions setup
 from sqlalchemy import event, inspect, text
+
 
 @event.listens_for(db.metadata, "after_create")
 def create_views(target, connection, **kw):
@@ -548,6 +564,7 @@ The existing `LONGTEXT` TypeDecorator migrates unchanged — it's pure SQLAlchem
 from sqlalchemy import Text
 from sqlalchemy.dialects.mysql import LONGTEXT as LONGTEXTSQLALCHEMY
 from sqlalchemy.types import TypeDecorator
+
 
 class LONGTEXT(TypeDecorator):
     impl = Text
@@ -614,6 +631,7 @@ def create_job(job_type: str, username: str | None = None) -> JobRecord:
     db.session.commit()
     return job
 
+
 # PATTERN 2: Caller controls transaction (complex multi-step operations)
 def create_job_no_commit(job_type: str, username: str | None = None) -> JobRecord:
     job = JobRecord(job_type=job_type, username=username, status="pending")
@@ -621,8 +639,9 @@ def create_job_no_commit(job_type: str, username: str | None = None) -> JobRecor
     db.session.flush()  # Gets the ID without committing
     return job
 
+
 # In the route:
-@bp.route('/complex-operation', methods=['POST'])
+@bp.route("/complex-operation", methods=["POST"])
 def complex_operation():
     try:
         job = create_job_no_commit("batch", g.user)
@@ -639,6 +658,7 @@ def complex_operation():
 # Recommended pattern for service functions
 from ..extensions import db
 from sqlalchemy.exc import IntegrityError
+
 
 def create_template(title: str, slug: str) -> TemplateRecord:
     """Create a template with proper error handling."""
@@ -690,10 +710,12 @@ flask db init
 ```python
 # In extensions.py
 from flask_migrate import Migrate
+
 migrate = Migrate()
 
 # In create_app()
 from .extensions import db, migrate
+
 db.init_app(app)
 migrate.init_app(app, db)
 ```
@@ -731,7 +753,7 @@ def run_migrations_online():
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
-        compare_type=True,        # Detect type changes
+        compare_type=True,  # Detect type changes
         compare_server_default=True,  # Detect default changes
     )
 ```
@@ -746,9 +768,10 @@ def include_object(object, name, type_, reflected, compare_to):
     """Exclude views from migration autogeneration."""
     if type_ == "table":
         # Check if this table is actually a view
-        if hasattr(object, 'info') and object.info.get("is_view"):
+        if hasattr(object, "info") and object.info.get("is_view"):
             return False
     return True
+
 
 # In run_migrations_online():
 context.configure(
@@ -799,6 +822,7 @@ flask db history
 ```python
 # src/main_app/__init__.py
 """Flask application factory."""
+
 from __future__ import annotations
 
 import logging
@@ -826,20 +850,20 @@ def create_app(config_override: dict | None = None) -> Flask:
 
     # --- Database Configuration ---
     if settings.database_data.db_host or settings.database_data.db_user:
-        app.config['SQLALCHEMY_DATABASE_URI'] = build_sqlalchemy_uri(settings.database_data)
+        app.config["SQLALCHEMY_DATABASE_URI"] = build_sqlalchemy_uri(settings.database_data)
     else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///:memory:"
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
 
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_pre_ping': True,
-        'pool_size': 5,
-        'max_overflow': 10,
-        'pool_recycle': 3600,
-        'connect_args': {
-            'connect_timeout': 5,
-            'init_command': 'SET time_zone = "+00:00"',
-            'charset': 'utf8mb4',
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,
+        "pool_size": 5,
+        "max_overflow": 10,
+        "pool_recycle": 3600,
+        "connect_args": {
+            "connect_timeout": 5,
+            "init_command": 'SET time_zone = "+00:00"',
+            "charset": "utf8mb4",
         },
     }
 
@@ -887,9 +911,16 @@ def _register_view_creation_listener():
 
 def _register_blueprints(app: Flask) -> None:
     from .public import (
-        bp_admin, bp_api, bp_auth, bp_explorer,
-        bp_extract, bp_jobs, bp_main, bp_owid_charts,
+        bp_admin,
+        bp_api,
+        bp_auth,
+        bp_explorer,
+        bp_extract,
+        bp_jobs,
+        bp_main,
+        bp_owid_charts,
     )
+
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_explorer)
     app.register_blueprint(bp_jobs)
@@ -913,8 +944,8 @@ def _register_context_processors(app: Flask) -> None:
     def inject_user():
         return context_data()
 
-    app.jinja_env.filters['stage_timestamp'] = get_status_class
-    app.jinja_env.filters['short_url'] = short_url
+    app.jinja_env.filters["stage_timestamp"] = get_status_class
+    app.jinja_env.filters["short_url"] = short_url
 ```
 
 ### 8.2 Extension Initialization Order
@@ -949,11 +980,13 @@ __init__.py    ← Imports everything (but inside functions, not at module level
 
 ```python
 def test_create_app_with_sqlite():
-    app = create_app(config_override={
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-        'TESTING': True,
-    })
-    assert app.config['TESTING'] is True
+    app = create_app(
+        config_override={
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "TESTING": True,
+        }
+    )
+    assert app.config["TESTING"] is True
     with app.app_context():
         db.create_all()
 ```
@@ -979,30 +1012,32 @@ import pytest
 from src.main_app import create_app
 from src.main_app.extensions import db
 
+
 @pytest.fixture
 def app():
     """Create application for testing."""
-    app = create_app(config_override={
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-        'TESTING': True,
-        'WTF_CSRF_ENABLED': False,
-    })
+    app = create_app(
+        config_override={
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "TESTING": True,
+            "WTF_CSRF_ENABLED": False,
+        }
+    )
 
     with app.app_context():
         # Create only real tables (exclude views for SQLite)
-        real_tables = [
-            t for t in db.metadata.tables.values()
-            if not t.info.get("is_view")
-        ]
+        real_tables = [t for t in db.metadata.tables.values() if not t.info.get("is_view")]
         db.metadata.create_all(db.engine, tables=real_tables)
         yield app
         db.session.remove()
         db.drop_all()
 
+
 @pytest.fixture
 def client(app):
     """Test client."""
     return app.test_client()
+
 
 @pytest.fixture
 def db_session(app):
@@ -1019,15 +1054,18 @@ def db_session(app):
 def sample_job(db_session):
     """Create a sample job for testing."""
     from src.main_app.models import JobRecord
+
     job = JobRecord(job_type="test_job", username="testuser", status="pending")
     db_session.add(job)
     db_session.commit()
     return job
 
+
 @pytest.fixture
 def sample_template(db_session):
     """Create a sample template for testing."""
     from src.main_app.models import TemplateRecord
+
     template = TemplateRecord(title="Test Template", slug="test-slug", source="")
     db_session.add(template)
     db_session.commit()
@@ -1043,7 +1081,7 @@ def auto_rollback(app):
     with app.app_context():
         db.session.begin_nested()  # SAVEPOINT
         yield
-        db.session.rollback()      # Rollback to savepoint
+        db.session.rollback()  # Rollback to savepoint
         db.session.remove()
 ```
 
@@ -1053,6 +1091,7 @@ def auto_rollback(app):
 # Mock external API calls, not the database layer
 from unittest.mock import patch
 
+
 def test_create_job_service(db_session):
     """Test service function directly with real DB session."""
     from src.main_app.services.jobs_service import create_job
@@ -1061,14 +1100,12 @@ def test_create_job_service(db_session):
     assert job.id is not None
     assert job.status == "pending"
 
+
 # For integration tests that need to mock DB:
 def test_route_with_db_error(client, mocker):
     """Test error handling when DB fails."""
-    mocker.patch(
-        'src.main_app.services.jobs_service.db.session.commit',
-        side_effect=Exception("DB Error")
-    )
-    response = client.post('/jobs')
+    mocker.patch("src.main_app.services.jobs_service.db.session.commit", side_effect=Exception("DB Error"))
+    response = client.post("/jobs")
     assert response.status_code == 500
 ```
 
@@ -1096,27 +1133,29 @@ import pytest
 from src.main_app import create_app
 from src.main_app.extensions import db as _db
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope="session")
 def app():
     """Session-scoped test application."""
-    app = create_app(config_override={
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-        'TESTING': True,
-        'WTF_CSRF_ENABLED': False,
-    })
+    app = create_app(
+        config_override={
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "TESTING": True,
+            "WTF_CSRF_ENABLED": False,
+        }
+    )
     return app
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope="session")
 def database(app):
     """Create all tables once per test session."""
     with app.app_context():
-        real_tables = [
-            t for t in _db.metadata.tables.values()
-            if not t.info.get("is_view")
-        ]
+        real_tables = [t for t in _db.metadata.tables.values() if not t.info.get("is_view")]
         _db.metadata.create_all(_db.engine, tables=real_tables)
         yield _db
         _db.drop_all()
+
 
 @pytest.fixture(autouse=True)
 def session(app, database):
@@ -1160,11 +1199,11 @@ Flask-SQLAlchemy manages the pool via `SQLALCHEMY_ENGINE_OPTIONS`:
 
 ```python
 SQLALCHEMY_ENGINE_OPTIONS = {
-    'pool_pre_ping': True,      # Validate connections before use
-    'pool_size': 5,             # Base connections in pool
-    'max_overflow': 10,         # Extra connections under load
-    'pool_recycle': 3600,       # Recycle connections after 1 hour
-    'pool_timeout': 30,         # Wait 30s for available connection
+    "pool_pre_ping": True,  # Validate connections before use
+    "pool_size": 5,  # Base connections in pool
+    "max_overflow": 10,  # Extra connections under load
+    "pool_recycle": 3600,  # Recycle connections after 1 hour
+    "pool_timeout": 30,  # Wait 30s for available connection
 }
 ```
 
@@ -1193,9 +1232,7 @@ _template_info = db.relationship("OwidChartTemplateRecord", ..., uselist=False)
 
 # If loading many OwidChartRecords and accessing _template_info:
 # This causes N+1 queries. Fix with eager loading:
-charts = db.session.query(OwidChartRecord).options(
-    db.joinedload(OwidChartRecord._template_info)
-).all()
+charts = db.session.query(OwidChartRecord).options(db.joinedload(OwidChartRecord._template_info)).all()
 
 # Or configure the relationship:
 _template_info = db.relationship(
@@ -1212,10 +1249,10 @@ _template_info = db.relationship(
     ```python
     from sqlalchemy import event
 
+
     @event.listens_for(db.engine, "checkout")
     def receive_checkout(dbapi_connection, connection_record, connection_proxy):
-        logger.debug("Connection checked out from pool. Pool size: %s",
-                     db.engine.pool.status())
+        logger.debug("Connection checked out from pool. Pool size: %s", db.engine.pool.status())
     ```
 
 2. **Slow query logging:**
@@ -1223,18 +1260,19 @@ _template_info = db.relationship(
     ```python
     @event.listens_for(db.engine, "before_cursor_execute")
     def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-        conn.info.setdefault('query_start_time', []).append(time.time())
+        conn.info.setdefault("query_start_time", []).append(time.time())
+
 
     @event.listens_for(db.engine, "after_cursor_execute")
     def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-        total = time.time() - conn.info['query_start_time'].pop()
+        total = time.time() - conn.info["query_start_time"].pop()
         if total > 0.5:  # Log queries over 500ms
             logger.warning("Slow query (%.3fs): %s", total, statement[:200])
     ```
 
 3. **Health check endpoint:**
     ```python
-    @app.route('/health/db')
+    @app.route("/health/db")
     def db_health():
         try:
             db.session.execute(text("SELECT 1"))
@@ -1257,6 +1295,7 @@ _template_info = db.relationship(
 # BAD - causes circular import
 from .extensions import db
 from .models import JobRecord  # models imports db from extensions
+
 
 # GOOD - import models inside create_app after db.init_app()
 def create_app():
@@ -1342,7 +1381,7 @@ db.session.commit()
 print(job.id)  # Triggers a SELECT to refresh
 
 # Fix: Either refresh explicitly or configure session:
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     # ... other options ...
 }
 # Override session options:
@@ -1453,6 +1492,7 @@ from typing import Any
 from sqlalchemy import Column, DateTime, Integer, String, func
 from ..engine import BaseDb
 
+
 class TemplateRecord(BaseDb):
     __tablename__ = "templates"
 
@@ -1464,8 +1504,9 @@ class TemplateRecord(BaseDb):
     slug = Column(String(255), nullable=False, server_default="")
     source = Column(String(255), nullable=False, server_default="")
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
-    updated_at = Column(DateTime, nullable=False, server_default=func.current_timestamp(),
-                        server_onupdate=func.current_timestamp())
+    updated_at = Column(
+        DateTime, nullable=False, server_default=func.current_timestamp(), server_onupdate=func.current_timestamp()
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -1490,6 +1531,7 @@ from typing import Any
 from sqlalchemy import Column, DateTime, Integer, String, func
 from ..extensions import db
 from .base import TimestampMixin
+
 
 class TemplateRecord(TimestampMixin, db.Model):
     __tablename__ = "templates"
@@ -1530,6 +1572,7 @@ from datetime import UTC, datetime
 from ..engine import get_session
 from ..models.jobs import JobRecord
 
+
 def create_job(job_type: str, username: str | None = None) -> JobRecord:
     with get_session() as session:
         job = JobRecord(job_type=job_type, username=username, status="pending")
@@ -1537,6 +1580,7 @@ def create_job(job_type: str, username: str | None = None) -> JobRecord:
         session.commit()
         session.refresh(job)
         return job
+
 
 def get_job(job_id: int, job_type: str) -> JobRecord:
     with get_session() as session:
@@ -1547,6 +1591,7 @@ def get_job(job_id: int, job_type: str) -> JobRecord:
         if not job:
             raise LookupError(f"Job id {job_id} was not found")
         return job
+
 
 def update_job_status(job_id: int, status: str) -> None:
     with get_session() as session:
@@ -1569,11 +1614,13 @@ from datetime import UTC, datetime
 from ..extensions import db
 from ..models.jobs import JobRecord
 
+
 def create_job(job_type: str, username: str | None = None) -> JobRecord:
     job = JobRecord(job_type=job_type, username=username, status="pending")
     db.session.add(job)
     db.session.commit()
     return job
+
 
 def get_job(job_id: int, job_type: str) -> JobRecord:
     query = db.session.query(JobRecord).filter(JobRecord.id == job_id)
@@ -1583,6 +1630,7 @@ def get_job(job_id: int, job_type: str) -> JobRecord:
     if not job:
         raise LookupError(f"Job id {job_id} was not found")
     return job
+
 
 def update_job_status(job_id: int, status: str, result_file: str | None = None, *, job_type: str) -> JobRecord:
     job = db.session.query(JobRecord).filter(JobRecord.id == job_id, JobRecord.job_type == job_type).first()
@@ -1611,25 +1659,24 @@ from ..extensions import db
 from ..models import OwidChartRecord, TemplateRecord
 from sqlalchemy.exc import IntegrityError
 
+
 def import_chart_with_template(chart_data: dict, template_title: str) -> OwidChartRecord:
     """Atomic operation: create chart + link template."""
     try:
         # Step 1: Create chart
         chart = OwidChartRecord(
-            slug=chart_data['slug'],
-            title=chart_data['title'],
-            has_map_tab=chart_data.get('has_map_tab', False),
-            is_published=chart_data.get('is_published', False),
+            slug=chart_data["slug"],
+            title=chart_data["title"],
+            has_map_tab=chart_data.get("has_map_tab", False),
+            is_published=chart_data.get("is_published", False),
         )
         db.session.add(chart)
         db.session.flush()  # Get chart_id without committing
 
         # Step 2: Update template slug
-        template = db.session.query(TemplateRecord).filter_by(
-            title=template_title
-        ).first()
+        template = db.session.query(TemplateRecord).filter_by(title=template_title).first()
         if template:
-            template.slug = chart_data['slug']
+            template.slug = chart_data["slug"]
 
         # Step 3: Commit both changes atomically
         db.session.commit()
@@ -1650,39 +1697,38 @@ def import_chart_with_template(chart_data: dict, template_title: str) -> OwidCha
 from flask import Blueprint, jsonify, request, g, abort
 from ...services.jobs_service import create_job, get_job, update_job_status
 
-bp_jobs = Blueprint('jobs', __name__, url_prefix='/admin/jobs')
+bp_jobs = Blueprint("jobs", __name__, url_prefix="/admin/jobs")
 
-@bp_jobs.route('/', methods=['GET'])
+
+@bp_jobs.route("/", methods=["GET"])
 def list_jobs():
     from ...extensions import db
     from ...models import JobRecord
 
-    jobs = db.session.query(JobRecord).order_by(
-        JobRecord.created_at.desc()
-    ).limit(50).all()
+    jobs = db.session.query(JobRecord).order_by(JobRecord.created_at.desc()).limit(50).all()
     return jsonify([j.to_dict() for j in jobs])
 
-@bp_jobs.route('/', methods=['POST'])
+
+@bp_jobs.route("/", methods=["POST"])
 def start_job():
     data = request.get_json()
-    job = create_job(
-        job_type=data['job_type'],
-        username=g.get('user', {}).get('username')
-    )
+    job = create_job(job_type=data["job_type"], username=g.get("user", {}).get("username"))
     return jsonify(job.to_dict()), 201
 
-@bp_jobs.route('/<int:job_id>', methods=['GET'])
+
+@bp_jobs.route("/<int:job_id>", methods=["GET"])
 def get_job_detail(job_id: int):
     try:
-        job = get_job(job_id, job_type=request.args.get('type', ''))
+        job = get_job(job_id, job_type=request.args.get("type", ""))
         return jsonify(job.to_dict())
     except LookupError:
         abort(404)
 
-@bp_jobs.route('/<int:job_id>/status', methods=['PATCH'])
+
+@bp_jobs.route("/<int:job_id>/status", methods=["PATCH"])
 def update_status(job_id: int):
     data = request.get_json()
-    update_job_status(job_id, data['status'])
+    update_job_status(job_id, data["status"])
     return jsonify({"message": "updated"}), 200
 ```
 
@@ -1696,6 +1742,7 @@ Flask extensions instantiation.
 IMPORTANT: This file must NOT import any application modules.
 Only third-party extensions should be instantiated here.
 """
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 

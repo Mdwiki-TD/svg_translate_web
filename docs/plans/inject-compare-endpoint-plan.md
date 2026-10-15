@@ -35,6 +35,7 @@ def extract_from_file(filename: str, temp_dir: Path) -> dict[str, Any]:
     # Same logic as extract_routes.work_file but takes temp_dir param
     # Returns: translations dict with "new", "title_new", etc.
 
+
 def inject_translations(
     source_file: Path,
     target_file: Path,
@@ -55,8 +56,8 @@ class InjectRoutes:
         self._setup_routes()
 
     def _setup_routes(self):
-        self.bp.route("/", methods=["GET"])(self.dashboard)      # form
-        self.bp.route("/", methods=["POST"])(self.inject_post)   # PRG redirect
+        self.bp.route("/", methods=["GET"])(self.dashboard)  # form
+        self.bp.route("/", methods=["POST"])(self.inject_post)  # PRG redirect
         self.bp.route("/<string:source>/<string:target>", methods=["GET"])(self.inject_get)  # result
 ```
 
@@ -160,7 +161,7 @@ from .main_routes import InjectRoutes
 Add to `PUBLIC_ROUTE_MODULES`:
 
 ```python
-PublicRouteModule(InjectRoutes, "inject", "/inject"),
+(PublicRouteModule(InjectRoutes, "inject", "/inject"),)
 ```
 
 ## Key Imports

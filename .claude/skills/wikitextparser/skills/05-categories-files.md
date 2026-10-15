@@ -62,23 +62,41 @@ Define them once and reuse:
 
 ```python
 CATEGORY_NS = {
-    'category', 'cat',
-    'categoría', 'categorie', 'catégorie', 'kategorie', 'kategori',
-    'категория', 'категорія',
-    'קטגוריה',
-    'تصنيف', 'رده',
-    'श्रेणी',
-    '分类', '分類', 'カテゴリ', '범주',
-    'κατηγορία',
+    "category",
+    "cat",
+    "categoría",
+    "categorie",
+    "catégorie",
+    "kategorie",
+    "kategori",
+    "категория",
+    "категорія",
+    "קטגוריה",
+    "تصنيف",
+    "رده",
+    "श्रेणी",
+    "分类",
+    "分類",
+    "カテゴリ",
+    "범주",
+    "κατηγορία",
 }
 
 FILE_NS = {
-    'file', 'image',
-    'archivo', 'datei', 'fichier',
-    'файл',
-    'ファイル', '파일', '文件',
-    'ملف',
-    'קובץ', 'plik', 'bestand', 'tệp',
+    "file",
+    "image",
+    "archivo",
+    "datei",
+    "fichier",
+    "файл",
+    "ファイル",
+    "파일",
+    "文件",
+    "ملف",
+    "קובץ",
+    "plik",
+    "bestand",
+    "tệp",
 }
 ```
 
@@ -91,13 +109,15 @@ def get_categories(wikitext: str) -> list[dict]:
     parsed = wtp.parse(wikitext)
     out = []
     for wl in parsed.wikilinks:
-        head, sep, tail = wl.title.partition(':')
+        head, sep, tail = wl.title.partition(":")
         if sep and head.strip().lower() in CATEGORY_NS:
-            out.append({
-                'name'   : tail.strip(),
-                'sortkey': (wl.text or '').strip(),  # [[Cat:X|sortkey]]
-                'raw'    : str(wl),
-            })
+            out.append(
+                {
+                    "name": tail.strip(),
+                    "sortkey": (wl.text or "").strip(),  # [[Cat:X|sortkey]]
+                    "raw": str(wl),
+                }
+            )
     return out
 ```
 
@@ -109,8 +129,8 @@ for ordering on the category page. `None`/empty means "use the article title".
 ```python
 def add_category(wikitext: str, name: str, sortkey: str = None) -> str:
     parsed = wtp.parse(wikitext)
-    link = f'[[Category:{name}]]' if not sortkey else f'[[Category:{name}|{sortkey}]]'
-    parsed.string = str(parsed).rstrip() + '\n' + link + '\n'
+    link = f"[[Category:{name}]]" if not sortkey else f"[[Category:{name}|{sortkey}]]"
+    parsed.string = str(parsed).rstrip() + "\n" + link + "\n"
     return parsed.string
 ```
 
@@ -123,7 +143,7 @@ def remove_category(wikitext: str, name: str) -> str:
     parsed = wtp.parse(wikitext)
     name = name.strip().lower()
     for wl in parsed.wikilinks:
-        head, sep, tail = wl.title.partition(':')
+        head, sep, tail = wl.title.partition(":")
         if sep and head.strip().lower() in CATEGORY_NS and tail.strip().lower() == name:
             del wl[:]
     return str(parsed)
@@ -136,9 +156,9 @@ def rename_category(wikitext, old_name, new_name):
     parsed = wtp.parse(wikitext)
     old_lc = old_name.strip().lower()
     for wl in parsed.wikilinks:
-        head, sep, tail = wl.title.partition(':')
+        head, sep, tail = wl.title.partition(":")
         if sep and head.strip().lower() in CATEGORY_NS and tail.strip().lower() == old_lc:
-            wl.title = head + ':' + new_name
+            wl.title = head + ":" + new_name
     return str(parsed)
 ```
 
@@ -146,9 +166,9 @@ def rename_category(wikitext, old_name, new_name):
 
 ```python
 for wl in parsed.wikilinks:
-    head, sep, tail = wl.title.partition(':')
-    if sep and head.lower() in CATEGORY_NS and tail.strip() == 'Living people':
-        wl.text = 'Smith, John'        # adds or replaces |sortkey
+    head, sep, tail = wl.title.partition(":")
+    if sep and head.lower() in CATEGORY_NS and tail.strip() == "Living people":
+        wl.text = "Smith, John"  # adds or replaces |sortkey
 ```
 
 ## Files / Images
@@ -160,13 +180,15 @@ def get_files(wikitext: str) -> list[dict]:
     parsed = wtp.parse(wikitext)
     out = []
     for wl in parsed.wikilinks:
-        head, sep, tail = wl.title.partition(':')
+        head, sep, tail = wl.title.partition(":")
         if sep and head.strip().lower() in FILE_NS:
-            out.append({
-                'filename': tail.strip(),
-                'params'  : (wl.text or '').strip(),
-                'raw'     : str(wl),
-            })
+            out.append(
+                {
+                    "filename": tail.strip(),
+                    "params": (wl.text or "").strip(),
+                    "raw": str(wl),
+                }
+            )
     return out
 ```
 
@@ -176,48 +198,49 @@ def get_files(wikitext: str) -> list[dict]:
 `thumb|right|200px|caption`. Parse them yourself:
 
 ```python
-ALIGN     = {'left', 'right', 'center', 'centre', 'none'}
-FORMAT    = {'thumb', 'thumbnail', 'frame', 'framed', 'frameless'}
-SPECIALS  = {'border', 'upright'}
+ALIGN = {"left", "right", "center", "centre", "none"}
+FORMAT = {"thumb", "thumbnail", "frame", "framed", "frameless"}
+SPECIALS = {"border", "upright"}
+
 
 def parse_image_params(text: str | None) -> dict:
     """Split 'thumb|right|200px|caption' into structured fields."""
     if not text:
-        return {'caption': None}
-    parts = text.split('|')
+        return {"caption": None}
+    parts = text.split("|")
     result = {
-        'format'  : None,
-        'align'   : None,
-        'size'    : None,
-        'border'  : False,
-        'caption' : None,
-        'extras'  : [],
+        "format": None,
+        "align": None,
+        "size": None,
+        "border": False,
+        "caption": None,
+        "extras": [],
     }
     for p in parts:
         s = p.strip().lower()
         if s in FORMAT:
-            result['format'] = s
+            result["format"] = s
         elif s in ALIGN:
-            result['align'] = s
-        elif s == 'border':
-            result['border'] = True
-        elif s.endswith('px') and s[:-2].replace('x', '').isdigit():
-            result['size'] = s
-        elif s.startswith(('alt=', 'link=', 'lang=', 'page=', 'class=', 'upright')):
-            result['extras'].append(p.strip())
+            result["align"] = s
+        elif s == "border":
+            result["border"] = True
+        elif s.endswith("px") and s[:-2].replace("x", "").isdigit():
+            result["size"] = s
+        elif s.startswith(("alt=", "link=", "lang=", "page=", "class=", "upright")):
+            result["extras"].append(p.strip())
         else:
             # First non-keyword token wins as caption
-            if result['caption'] is None:
-                result['caption'] = p.strip()
+            if result["caption"] is None:
+                result["caption"] = p.strip()
             else:
-                result['extras'].append(p.strip())
+                result["extras"].append(p.strip())
     return result
 ```
 
 Example:
 
 ```python
-parse_image_params('thumb|right|200px|alt=Alice|A portrait of Alice')
+parse_image_params("thumb|right|200px|alt=Alice|A portrait of Alice")
 # {'format': 'thumb', 'align': 'right', 'size': '200px',
 #  'border': False, 'caption': 'A portrait of Alice',
 #  'extras': ['alt=Alice']}
@@ -229,10 +252,10 @@ This is intentionally simple — the full MediaWiki spec has more options
 ### Add a file
 
 ```python
-def add_file(wikitext, filename, options='thumb|right'):
+def add_file(wikitext, filename, options="thumb|right"):
     parsed = wtp.parse(wikitext)
-    link = f'[[File:{filename}|{options}]]'
-    return str(parsed) + '\n' + link
+    link = f"[[File:{filename}|{options}]]"
+    return str(parsed) + "\n" + link
 ```
 
 ### Detect images in a `plain_text()` cleanup
@@ -245,7 +268,7 @@ plain text, images are gone. To preserve a placeholder, use a callable on
 parsed = wtp.parse(wikitext)
 files = get_files(wikitext)
 for f in files:
-    print('IMAGE:', f['filename'])
+    print("IMAGE:", f["filename"])
 clean = parsed.plain_text()
 ```
 
@@ -260,17 +283,19 @@ they are a newline-separated list of file references.
 def parse_galleries(wikitext: str) -> list[list[dict]]:
     parsed = wtp.parse(wikitext)
     galleries = []
-    for tag in parsed.get_tags('gallery'):
+    for tag in parsed.get_tags("gallery"):
         items = []
-        for raw_line in (tag.contents or '').splitlines():
+        for raw_line in (tag.contents or "").splitlines():
             line = raw_line.strip()
-            if not line or line.startswith('<!--'):
+            if not line or line.startswith("<!--"):
                 continue
-            filename, sep, options = line.partition('|')
-            items.append({
-                'filename': filename.strip(),
-                'caption' : options.strip() if sep else None,
-            })
+            filename, sep, options = line.partition("|")
+            items.append(
+                {
+                    "filename": filename.strip(),
+                    "caption": options.strip() if sep else None,
+                }
+            )
         galleries.append(items)
     return galleries
 ```
@@ -278,17 +303,17 @@ def parse_galleries(wikitext: str) -> list[list[dict]]:
 ### Read gallery attributes
 
 ```python
-for g in parsed.get_tags('gallery'):
-    g.attrs           # e.g. {'mode': 'packed', 'widths': '180px'}
-    g.get_attr('mode')
+for g in parsed.get_tags("gallery"):
+    g.attrs  # e.g. {'mode': 'packed', 'widths': '180px'}
+    g.get_attr("mode")
 ```
 
 ### Add an image to an existing gallery
 
 ```python
-for g in parsed.get_tags('gallery'):
-    text = g.contents or ''
-    text = text.rstrip() + '\nNew_image.jpg|A new caption\n'
+for g in parsed.get_tags("gallery"):
+    text = g.contents or ""
+    text = text.rstrip() + "\nNew_image.jpg|A new caption\n"
     g.contents = text
     break
 ```
@@ -315,8 +340,8 @@ for g in parsed.get_tags('gallery'):
 
   ```python
   for t in parsed.templates:
-      if 'infobox' in t.normal_name().lower():
-          img = t.get_arg('image')
+      if "infobox" in t.normal_name().lower():
+          img = t.get_arg("image")
           if img:
               print(img.value.strip())
   ```
@@ -330,16 +355,16 @@ def all_media(parsed):
     media = set()
     # 1. [[File:...]]
     for f in get_files(str(parsed)):
-        media.add(f['filename'])
+        media.add(f["filename"])
     # 2. <gallery>...</gallery>
     for items in parse_galleries(str(parsed)):
         for it in items:
-            media.add(it['filename'])
+            media.add(it["filename"])
     # 3. infobox image fields
     for t in parsed.templates:
         for arg in t.arguments:
             v = arg.value.strip()
-            if v.lower().endswith(('.jpg', '.jpeg', '.png', '.svg', '.gif', '.webp', '.tif', '.tiff', '.ogv')):
+            if v.lower().endswith((".jpg", ".jpeg", ".png", ".svg", ".gif", ".webp", ".tif", ".tiff", ".ogv")):
                 media.add(v)
     return media
 ```
@@ -349,7 +374,7 @@ def all_media(parsed):
 ```python
 cats = get_categories(wikitext)
 if not cats:
-    wikitext = add_category(wikitext, 'Uncategorized')
+    wikitext = add_category(wikitext, "Uncategorized")
 ```
 
 ### Recipe C: replace every category with a tracking version
@@ -357,16 +382,16 @@ if not cats:
 ```python
 parsed = wtp.parse(wikitext)
 for wl in parsed.wikilinks:
-    head, sep, tail = wl.title.partition(':')
+    head, sep, tail = wl.title.partition(":")
     if sep and head.lower() in CATEGORY_NS:
-        wl.title = head + ':Reviewed/' + tail
+        wl.title = head + ":Reviewed/" + tail
 ```
 
 ### Recipe D: count files per gallery
 
 ```python
 for i, items in enumerate(parse_galleries(wikitext), 1):
-    print(f'Gallery {i}: {len(items)} files')
+    print(f"Gallery {i}: {len(items)} files")
 ```
 
 ## See also

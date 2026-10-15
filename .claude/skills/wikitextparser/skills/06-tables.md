@@ -112,16 +112,16 @@ default; pass `strip=False` to keep raw whitespace.
 ### 2. Read just one row or column
 
 ```python
-table.data(row=0)              # ['Country', 'Capital']
-table.data(column=1)           # ['Capital', 'Paris', 'Tokyo']
-table.data(row=1, column=0)    # 'France'
+table.data(row=0)  # ['Country', 'Capital']
+table.data(column=1)  # ['Capital', 'Paris', 'Tokyo']
+table.data(row=1, column=0)  # 'France'
 ```
 
 ### 3. Caption
 
 ```python
-table.caption        # ' Capitals'
-table.caption = 'Major Capitals'   # set
+table.caption  # ' Capitals'
+table.caption = "Major Capitals"  # set
 ```
 
 If the table has no caption, the setter creates the `|+` line.
@@ -134,7 +134,7 @@ There is no separate `headers` API — header rows look like data rows with
 ```python
 for row in table.cells():
     if all(c.is_header for c in row):
-        print('header:', [c.value.strip() for c in row])
+        print("header:", [c.value.strip() for c in row])
 ```
 
 ### 5. List of dicts (assuming first row is header)
@@ -176,10 +176,10 @@ to `1` (the library does not implement HTML's "span to end of group").
 
 ```python
 cell = table.cells(row=0, column=0)
-cell.value           # ' A '
-cell.attrs           # {'colspan': '2'} for the B cell
-cell.is_header       # False
-cell.get_attr('colspan')   # '2' or None
+cell.value  # ' A '
+cell.attrs  # {'colspan': '2'} for the B cell
+cell.is_header  # False
+cell.get_attr("colspan")  # '2' or None
 ```
 
 Note that `cell.attrs` keys may be **bytes** in some library internals when
@@ -190,9 +190,9 @@ read via `data()` with span=True; the `Cell` API exposes `str` keys via
 
 ```python
 cell = table.cells(row=1, column=0)
-cell.set_attr('style', 'background:#fee;')
-cell.set('colspan', '2')   # shorthand
-cell.del_attr('rowspan')
+cell.set_attr("style", "background:#fee;")
+cell.set("colspan", "2")  # shorthand
+cell.del_attr("rowspan")
 ```
 
 If the cell had no attribute placeholder before, `set_attr` adds one with
@@ -202,8 +202,8 @@ the proper `|` separator: a cell like `| A` becomes `| style="x" | A`.
 
 ```python
 cell = table.cells(row=1, column=0)
-cell.value = ' Updated '
-str(parsed)   # full table buffer reflects the change
+cell.value = " Updated "
+str(parsed)  # full table buffer reflects the change
 ```
 
 ### 10. Per-row attributes
@@ -216,14 +216,14 @@ table.row_attrs
 Setter overwrites every row's attributes:
 
 ```python
-table.row_attrs = [{}, {'class': 'highlight'}, {'style': 'color:red'}]
+table.row_attrs = [{}, {"class": "highlight"}, {"style": "color:red"}]
 ```
 
 If you only want to modify one row, copy and re-assign:
 
 ```python
 attrs = table.row_attrs
-attrs[1]['class'] = 'highlight'
+attrs[1]["class"] = "highlight"
 table.row_attrs = attrs
 ```
 
@@ -231,9 +231,9 @@ table.row_attrs = attrs
 
 ```python
 parsed = wtp.parse(article)
-top    = parsed.get_tables(recursive=False)   # only outer tables
-all_t  = parsed.get_tables(recursive=True)    # outer + nested
-nesting = [t.nesting_level for t in all_t]    # 0, 1, 1, 2, ...
+top = parsed.get_tables(recursive=False)  # only outer tables
+all_t = parsed.get_tables(recursive=True)  # outer + nested
+nesting = [t.nesting_level for t in all_t]  # 0, 1, 1, 2, ...
 ```
 
 `parsed.tables` is a property equivalent to `get_tables(recursive=True)`.
@@ -245,8 +245,8 @@ nesting = [t.nesting_level for t in all_t]    # 0, 1, 1, 2, ...
     `10 km`. To extract structured data from such cells, parse the cell value:
 
     ```python
-    raw = table.data(row=1, column=0)         # '{{convert|10|km}}'
-    inner = wtp.parse(raw)                # treat as new wikitext
+    raw = table.data(row=1, column=0)  # '{{convert|10|km}}'
+    inner = wtp.parse(raw)  # treat as new wikitext
     ```
 
 -   **`!!` in header rows** is treated as a cell separator inside a header row,
@@ -272,6 +272,7 @@ nesting = [t.nesting_level for t in all_t]    # 0, 1, 1, 2, ...
 
 ```python
 import csv, io
+
 
 def tables_to_csv(wikitext: str) -> list[str]:
     parsed = wtp.parse(wikitext)
@@ -306,7 +307,7 @@ def first_table_records(wikitext: str) -> list[dict]:
 for table in parsed.tables:
     for row in table.cells():
         for cell in row:
-            if 'TODO' in cell.value:
+            if "TODO" in cell.value:
                 cell.value = "'''" + cell.value.strip() + "'''"
 ```
 
@@ -316,8 +317,8 @@ for table in parsed.tables:
 for table in parsed.tables:
     for row in table.cells(span=False):
         for cell in row:
-            cell.del_attr('colspan')
-            cell.del_attr('rowspan')
+            cell.del_attr("colspan")
+            cell.del_attr("rowspan")
 ```
 
 ### Recipe E: add a caption if missing
@@ -325,7 +326,7 @@ for table in parsed.tables:
 ```python
 for table in parsed.tables:
     if table.caption is None:
-        table.caption = 'Untitled table'
+        table.caption = "Untitled table"
 ```
 
 ### Recipe F: count cells by content type
@@ -333,19 +334,20 @@ for table in parsed.tables:
 ```python
 from collections import Counter
 
+
 def cell_kinds(table) -> Counter:
     c = Counter()
     for row in table.cells(span=False):
         for cell in row:
             v = cell.value.strip()
             if not v:
-                kind = 'empty'
-            elif v.startswith('{{') and v.endswith('}}'):
-                kind = 'template-only'
-            elif '[[' in v:
-                kind = 'has-wikilink'
+                kind = "empty"
+            elif v.startswith("{{") and v.endswith("}}"):
+                kind = "template-only"
+            elif "[[" in v:
+                kind = "has-wikilink"
             else:
-                kind = 'plain'
+                kind = "plain"
             c[kind] += 1
     return c
 ```

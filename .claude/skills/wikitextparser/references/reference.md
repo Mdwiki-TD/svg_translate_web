@@ -321,7 +321,7 @@ Represents `[https://url Display text]` or bare `https://url`.
 **Edge case:** Templates adjacent to external links may be included in the URL:
 
 ```python
-wtp.parse('http://example.com{{dead link}}').external_links[0].url
+wtp.parse("http://example.com{{dead link}}").external_links[0].url
 # → 'http://example.com{{dead link}}'
 ```
 
@@ -408,8 +408,8 @@ Represents ordered (`#`), unordered (`*`), or definition (`:` / `;`) lists.
 Replaces current list prefix pattern with `newstart` in-place.
 
 ```python
-wl.convert('#')   # * → #  (unordered → ordered)
-wl.convert(':')   # → definition list
+wl.convert("#")  # * → #  (unordered → ordered)
+wl.convert(":")  # → definition list
 ```
 
 #### `get_lists(pattern=...)`
@@ -466,9 +466,9 @@ in-place — the surrounding `'''` / `''` delimiters are preserved.
 ```python
 parsed = wtp.parse("This is '''important''' text")
 b = parsed.get_bolds()[0]
-b.text                 # 'important'
-b.text = 'critical'
-str(parsed)            # "This is '''critical''' text"
+b.text  # 'important'
+b.text = "critical"
+str(parsed)  # "This is '''critical''' text"
 ```
 
 ### Additional notes

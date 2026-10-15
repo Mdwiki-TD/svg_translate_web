@@ -53,10 +53,12 @@ pip install pytest-asyncio aiosqlite
 def add(a, b):
     return a + b
 
+
 def test_add():
     assert add(2, 3) == 5
     assert add(-1, 1) == 0
     assert add(0, 0) == 0
+
 
 def test_add_negative():
     assert add(-2, -3) == -5
@@ -92,6 +94,7 @@ class Calculator:
     def multiply(self, a, b):
         return a * b
 
+
 class TestCalculator:
     def test_add(self):
         calc = Calculator()
@@ -111,22 +114,27 @@ class TestCalculator:
 ```python
 import pytest
 
+
 # Test exception raising
 def divide(a, b):
     if b == 0:
         raise ValueError("Cannot divide by zero")
     return a / b
 
+
 def test_divide_by_zero():
     with pytest.raises(ValueError, match="Cannot divide by zero"):
         divide(10, 0)
 
+
 def test_divide_success():
     assert divide(10, 2) == 5.0
+
 
 # Test approximate equality
 def test_float_comparison():
     assert 0.1 + 0.2 == pytest.approx(0.3)
+
 
 # Test containment
 def test_list_contains():
@@ -143,20 +151,24 @@ def test_list_contains():
 # conftest.py
 import pytest
 
+
 @pytest.fixture
 def sample_data():
     """Provide sample data for tests."""
     return {"name": "Alice", "age": 30, "email": "alice@example.com"}
+
 
 @pytest.fixture
 def empty_list():
     """Provide an empty list."""
     return []
 
+
 # test_fixtures.py
 def test_sample_data(sample_data):
     assert sample_data["name"] == "Alice"
     assert sample_data["age"] == 30
+
 
 def test_empty_list(empty_list):
     empty_list.append(1)
@@ -168,10 +180,12 @@ def test_empty_list(empty_list):
 ```python
 import pytest
 
+
 # Function scope (default) - runs for each test
 @pytest.fixture(scope="function")
 def user():
     return {"id": 1, "name": "Alice"}
+
 
 # Class scope - runs once per test class
 @pytest.fixture(scope="class")
@@ -180,12 +194,14 @@ def database():
     yield db
     db.close()
 
+
 # Module scope - runs once per test module
 @pytest.fixture(scope="module")
 def api_client():
     client = APIClient()
     yield client
     client.shutdown()
+
 
 # Session scope - runs once for entire test session
 @pytest.fixture(scope="session")
@@ -227,12 +243,14 @@ def test_file_creation(temp_directory):
 ```python
 import pytest
 
+
 @pytest.fixture
 def database_connection():
     """Database connection."""
     conn = connect_to_db()
     yield conn
     conn.close()
+
 
 @pytest.fixture
 def database_session(database_connection):
@@ -242,10 +260,12 @@ def database_session(database_connection):
     session.rollback()
     session.close()
 
+
 @pytest.fixture
 def user_repository(database_session):
     """User repository depends on session."""
     return UserRepository(database_session)
+
 
 def test_create_user(user_repository):
     user = user_repository.create(name="Alice", email="alice@example.com")
@@ -259,13 +279,17 @@ def test_create_user(user_repository):
 ```python
 import pytest
 
-@pytest.mark.parametrize("a,b,expected", [
-    (2, 3, 5),
-    (5, 7, 12),
-    (-1, 1, 0),
-    (0, 0, 0),
-    (100, 200, 300),
-])
+
+@pytest.mark.parametrize(
+    "a,b,expected",
+    [
+        (2, 3, 5),
+        (5, 7, 12),
+        (-1, 1, 0),
+        (0, 0, 0),
+        (100, 200, 300),
+    ],
+)
 def test_add_parametrized(a, b, expected):
     assert add(a, b) == expected
 ```
@@ -273,12 +297,15 @@ def test_add_parametrized(a, b, expected):
 ### Multiple Parameters
 
 ```python
-@pytest.mark.parametrize("operation,a,b,expected", [
-    ("add", 2, 3, 5),
-    ("subtract", 10, 5, 5),
-    ("multiply", 4, 5, 20),
-    ("divide", 10, 2, 5),
-])
+@pytest.mark.parametrize(
+    "operation,a,b,expected",
+    [
+        ("add", 2, 3, 5),
+        ("subtract", 10, 5, 5),
+        ("multiply", 4, 5, 20),
+        ("divide", 10, 2, 5),
+    ],
+)
 def test_calculator_operations(operation, a, b, expected):
     calc = Calculator()
     result = getattr(calc, operation)(a, b)
@@ -288,11 +315,15 @@ def test_calculator_operations(operation, a, b, expected):
 ### Parametrize with IDs
 
 ```python
-@pytest.mark.parametrize("input_data,expected", [
-    pytest.param({"name": "Alice"}, "Alice", id="valid_name"),
-    pytest.param({"name": ""}, None, id="empty_name"),
-    pytest.param({}, None, id="missing_name"),
-], ids=lambda x: x if isinstance(x, str) else None)
+@pytest.mark.parametrize(
+    "input_data,expected",
+    [
+        pytest.param({"name": "Alice"}, "Alice", id="valid_name"),
+        pytest.param({"name": ""}, None, id="empty_name"),
+        pytest.param({}, None, id="missing_name"),
+    ],
+    ids=lambda x: x if isinstance(x, str) else None,
+)
 def test_extract_name(input_data, expected):
     result = extract_name(input_data)
     assert result == expected
@@ -306,6 +337,7 @@ def user_data(request):
     """Create user based on parameter."""
     return {"name": request.param, "email": f"{request.param}@example.com"}
 
+
 @pytest.mark.parametrize("user_data", ["Alice", "Bob", "Charlie"], indirect=True)
 def test_user_creation(user_data):
     assert "@example.com" in user_data["email"]
@@ -318,20 +350,24 @@ def test_user_creation(user_data):
 ```python
 import pytest
 
+
 # Skip test
 @pytest.mark.skip(reason="Not implemented yet")
 def test_future_feature():
     pass
+
 
 # Skip conditionally
 @pytest.mark.skipif(sys.platform == "win32", reason="Unix-only test")
 def test_unix_specific():
     pass
 
+
 # Expected failure
 @pytest.mark.xfail(reason="Known bug #123")
 def test_known_bug():
     assert False
+
 
 # Slow test marker
 @pytest.mark.slow
@@ -400,19 +436,23 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+
 class Item(BaseModel):
     name: str
     price: float
 
+
 @app.get("/")
 def read_root():
     return {"message": "Hello World"}
+
 
 @app.get("/items/{item_id}")
 def read_item(item_id: int):
     if item_id == 0:
         raise HTTPException(status_code=404, detail="Item not found")
     return {"item_id": item_id, "name": f"Item {item_id}"}
+
 
 @app.post("/items")
 def create_item(item: Item):
@@ -427,10 +467,12 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 
+
 @pytest.fixture
 def client():
     """FastAPI test client."""
     return TestClient(app)
+
 
 # test_api.py
 def test_read_root(client):
@@ -438,21 +480,21 @@ def test_read_root(client):
     assert response.status_code == 200
     assert response.json() == {"message": "Hello World"}
 
+
 def test_read_item(client):
     response = client.get("/items/1")
     assert response.status_code == 200
     assert response.json() == {"item_id": 1, "name": "Item 1"}
+
 
 def test_read_item_not_found(client):
     response = client.get("/items/0")
     assert response.status_code == 404
     assert response.json() == {"detail": "Item not found"}
 
+
 def test_create_item(client):
-    response = client.post(
-        "/items",
-        json={"name": "Widget", "price": 9.99}
-    )
+    response = client.post("/items", json={"name": "Widget", "price": 9.99})
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == "Widget"
@@ -468,14 +510,17 @@ import pytest
 from httpx import AsyncClient
 from app.main import app
 
+
 @pytest.fixture
 async def async_client():
     """Async test client for FastAPI."""
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
 
+
 # test_async_api.py
 import pytest
+
 
 @pytest.mark.asyncio
 async def test_read_root_async(async_client):
@@ -483,12 +528,10 @@ async def test_read_root_async(async_client):
     assert response.status_code == 200
     assert response.json() == {"message": "Hello World"}
 
+
 @pytest.mark.asyncio
 async def test_create_item_async(async_client):
-    response = await async_client.post(
-        "/items",
-        json={"name": "Gadget", "price": 19.99}
-    )
+    response = await async_client.post("/items", json={"name": "Gadget", "price": 19.99})
     assert response.status_code == 200
     assert response.json()["name"] == "Gadget"
 ```
@@ -508,6 +551,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 @pytest.fixture(scope="function")
 def test_db():
     """Create test database."""
@@ -515,9 +559,11 @@ def test_db():
     yield
     Base.metadata.drop_all(bind=engine)
 
+
 @pytest.fixture
 def client(test_db):
     """Override database dependency."""
+
     def override_get_db():
         try:
             db = TestingSessionLocal()
@@ -532,14 +578,13 @@ def client(test_db):
 
     app.dependency_overrides.clear()
 
+
 # test_users.py
 def test_create_user(client):
-    response = client.post(
-        "/users",
-        json={"email": "test@example.com", "password": "secret"}
-    )
+    response = client.post("/users", json={"email": "test@example.com", "password": "secret"})
     assert response.status_code == 200
     assert response.json()["email"] == "test@example.com"
+
 
 def test_read_users(client):
     # Create user first
@@ -580,23 +625,24 @@ def django_db_setup():
 # models.py
 from django.db import models
 
+
 class User(models.Model):
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
 
+
 # test_models.py
 import pytest
 from myapp.models import User
 
+
 @pytest.mark.django_db
 def test_create_user():
-    user = User.objects.create(
-        email="test@example.com",
-        name="Test User"
-    )
+    user = User.objects.create(email="test@example.com", name="Test User")
     assert user.email == "test@example.com"
     assert user.is_active is True
+
 
 @pytest.mark.django_db
 def test_user_unique_email():
@@ -613,21 +659,23 @@ def test_user_unique_email():
 from django.http import JsonResponse
 from django.views import View
 
+
 class UserListView(View):
     def get(self, request):
         users = User.objects.all()
-        return JsonResponse({
-            "users": list(users.values("id", "email", "name"))
-        })
+        return JsonResponse({"users": list(users.values("id", "email", "name"))})
+
 
 # test_views.py
 import pytest
 from django.test import Client
 from myapp.models import User
 
+
 @pytest.fixture
 def client():
     return Client()
+
 
 @pytest.mark.django_db
 def test_user_list_view(client):
@@ -650,28 +698,34 @@ def test_user_list_view(client):
 from rest_framework import serializers
 from myapp.models import User
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'name', 'is_active']
+        fields = ["id", "email", "name", "is_active"]
+
 
 # views.py
 from rest_framework import viewsets
 from myapp.models import User
 from myapp.serializers import UserSerializer
 
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
 
 # test_api.py
 import pytest
 from rest_framework.test import APIClient
 from myapp.models import User
 
+
 @pytest.fixture
 def api_client():
     return APIClient()
+
 
 @pytest.mark.django_db
 def test_list_users(api_client):
@@ -681,6 +735,7 @@ def test_list_users(api_client):
     response = api_client.get("/api/users/")
     assert response.status_code == 200
     assert len(response.data) == 2
+
 
 @pytest.mark.django_db
 def test_create_user(api_client):
@@ -701,9 +756,11 @@ def test_create_user(api_client):
 # service.py
 import requests
 
+
 def get_user_data(user_id):
     response = requests.get(f"https://api.example.com/users/{user_id}")
     return response.json()
+
 
 # test_service.py
 def test_get_user_data(mocker):
@@ -729,15 +786,12 @@ class UserService:
         user = self.get_user(user_id)
         return user["name"]
 
+
 def test_get_user_name(mocker):
     service = UserService()
 
     # Mock the get_user method
-    mocker.patch.object(
-        service,
-        "get_user",
-        return_value={"id": 1, "name": "Alice"}
-    )
+    mocker.patch.object(service, "get_user", return_value={"id": 1, "name": "Alice"})
 
     result = service.get_user_name(1)
     assert result == "Alice"
@@ -751,7 +805,7 @@ def test_retry_on_failure(mocker):
     mock_api = mocker.patch("requests.get")
     mock_api.side_effect = [
         requests.exceptions.Timeout(),  # First call
-        mocker.Mock(json=lambda: {"status": "ok"})  # Second call
+        mocker.Mock(json=lambda: {"status": "ok"}),  # Second call
     ]
 
     result = api_call_with_retry()
@@ -836,19 +890,22 @@ pytest --cov=app --cov-report=json
 import pytest
 
 # Enable asyncio mode
-pytest_plugins = ('pytest_asyncio',)
+pytest_plugins = ("pytest_asyncio",)
 
 # async_service.py
 import asyncio
 import aiohttp
+
 
 async def fetch_data(url):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             return await response.json()
 
+
 # test_async_service.py
 import pytest
+
 
 @pytest.mark.asyncio
 async def test_fetch_data(mocker):
@@ -880,15 +937,14 @@ async def async_db_session():
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
+
 @pytest.mark.asyncio
 async def test_create_user_async(async_db_session):
     user = User(email="test@example.com", name="Test")
     async_db_session.add(user)
     await async_db_session.commit()
 
-    result = await async_db_session.execute(
-        select(User).where(User.email == "test@example.com")
-    )
+    result = await async_db_session.execute(select(User).where(User.email == "test@example.com"))
     assert result.scalar_one().name == "Test"
 ```
 
@@ -942,12 +998,15 @@ project/
 def test_user_creation_with_valid_email():
     pass
 
+
 def test_user_creation_raises_error_for_duplicate_email():
     pass
+
 
 # ❌ BAD: Vague names
 def test_user1():
     pass
+
 
 def test_case2():
     pass
@@ -979,11 +1038,13 @@ def test_user_creation():
     assert user.id is not None
     db.close()
 
+
 def test_user_deletion():
     db = setup_database()
     user = create_user(db)
     delete_user(db, user.id)
     db.close()
+
 
 # ✅ GOOD: Fixture-based setup
 @pytest.fixture
@@ -992,12 +1053,15 @@ def db():
     yield database
     database.close()
 
+
 @pytest.fixture
 def user(db):
     return create_user(db)
 
+
 def test_user_creation(user):
     assert user.id is not None
+
 
 def test_user_deletion(db, user):
     delete_user(db, user.id)
@@ -1011,18 +1075,24 @@ def test_user_deletion(db, user):
 def test_add_positive():
     assert add(2, 3) == 5
 
+
 def test_add_negative():
     assert add(-2, -3) == -5
+
 
 def test_add_zero():
     assert add(0, 0) == 0
 
+
 # ✅ GOOD: Parametrized tests
-@pytest.mark.parametrize("a,b,expected", [
-    (2, 3, 5),
-    (-2, -3, -5),
-    (0, 0, 0),
-])
+@pytest.mark.parametrize(
+    "a,b,expected",
+    [
+        (2, 3, 5),
+        (-2, -3, -5),
+        (0, 0, 0),
+    ],
+)
 def test_add(a, b, expected):
     assert add(a, b) == expected
 ```
@@ -1041,15 +1111,18 @@ def test_user_workflow():
     deleted = delete_user(user.id)
     assert deleted is True
 
+
 # ✅ GOOD: Separate tests
 def test_user_creation():
     user = create_user()
     assert user.id is not None
 
+
 def test_user_update():
     user = create_user()
     updated = update_user(user.id, name="New Name")
     assert updated.name == "New Name"
+
 
 def test_user_deletion():
     user = create_user()
@@ -1064,10 +1137,12 @@ def test_user_deletion():
 def test_pure_function():
     pass
 
+
 @pytest.mark.integration
 @pytest.mark.slow
 def test_database_integration():
     pass
+
 
 @pytest.mark.smoke
 def test_critical_path():
@@ -1082,6 +1157,7 @@ def test_fetch_user_data(mocker):
     mocker.patch("requests.get", return_value=mock_response)
     result = fetch_user_data(user_id=1)
     assert result["name"] == "Alice"
+
 
 # ❌ BAD: Real API call in test
 def test_fetch_user_data():
@@ -1114,8 +1190,10 @@ class TestUserWorkflow:
 def created_user():
     return create_user()
 
+
 def test_create_user(created_user):
     assert created_user.id is not None
+
 
 def test_update_user(created_user):
     update_user(created_user.id, name="New")
@@ -1168,6 +1246,7 @@ def test_user_service_returns_user():
 # WRONG: Using unittest assertions
 import unittest
 
+
 def test_addition():
     result = add(2, 3)
     unittest.TestCase().assertEqual(result, 5)
@@ -1203,9 +1282,11 @@ def everything():
 def db():
     return setup_db()
 
+
 @pytest.fixture
 def user(db):
     return create_user(db)
+
 
 @pytest.fixture
 def session(user):
@@ -1301,10 +1382,12 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 
+
 # FastAPI client fixture
 @pytest.fixture
 def client():
     return TestClient(app)
+
 
 # Database fixture
 @pytest.fixture(scope="function")
@@ -1313,10 +1396,12 @@ def db():
     yield database
     database.close()
 
+
 # Mock user fixture
 @pytest.fixture
 def mock_user():
     return {"id": 1, "email": "test@example.com", "name": "Test User"}
+
 
 # Custom pytest configuration
 def pytest_configure(config):
@@ -1350,7 +1435,7 @@ When using pytest, consider these complementary skills:
     ```python
     def test_should_authenticate_user_when_credentials_valid():
         # Test that describes desired behavior
-        user = User(username='alice', password='secret123')
+        user = User(username="alice", password="secret123")
         result = authenticate(user)
         assert result.is_authenticated is True
         # This test will fail because authenticate() doesn't exist yet
@@ -1361,7 +1446,7 @@ When using pytest, consider these complementary skills:
     ```python
     def authenticate(user):
         # Minimum code to pass the test
-        if user.username == 'alice' and user.password == 'secret123':
+        if user.username == "alice" and user.password == "secret123":
             return AuthResult(is_authenticated=True)
         return AuthResult(is_authenticated=False)
     ```
@@ -1372,9 +1457,7 @@ When using pytest, consider these complementary skills:
         # Clean up while keeping tests green
         hashed_password = hash_password(user.password)
         stored_user = database.get_user(user.username)
-        return AuthResult(
-            is_authenticated=(stored_user.password_hash == hashed_password)
-        )
+        return AuthResult(is_authenticated=(stored_user.password_hash == hashed_password))
     ```
 
 **Test Structure: Arrange-Act-Assert (AAA)**
@@ -1382,14 +1465,14 @@ When using pytest, consider these complementary skills:
 ```python
 def test_user_creation():
     # Arrange: Set up test data
-    user_data = {'username': 'alice', 'email': 'alice@example.com'}
+    user_data = {"username": "alice", "email": "alice@example.com"}
 
     # Act: Perform the action
     user = create_user(user_data)
 
     # Assert: Verify outcome
-    assert user.username == 'alice'
-    assert user.email == 'alice@example.com'
+    assert user.username == "alice"
+    assert user.email == "alice@example.com"
 ```
 
 ### Quick Debugging Reference (Inlined for Standalone Use)

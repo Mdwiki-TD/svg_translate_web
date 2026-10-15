@@ -134,6 +134,7 @@ class TestIntegrationScenario:
 
 ```python
 """End-to-end tests for [feature]"""
+
 import pytest
 from unittest.mock import patch
 
@@ -185,7 +186,7 @@ class TestE2EFeature:
 ```python
 def test_classifier_handles_malformed_json():
     """Should handle LLM returning invalid JSON"""
-    with patch('pipeline.classifier.call_gemini') as mock_llm:
+    with patch("pipeline.classifier.call_gemini") as mock_llm:
         mock_llm.return_value = "This is not JSON"
 
         result = classify_job("Test job description")
@@ -193,12 +194,13 @@ def test_classifier_handles_malformed_json():
         assert result is None  # or error dict
         # Verify error was logged
 
+
 def test_classifier_provider_fallback():
     """Should fall back to Claude when Gemini fails"""
-    with patch('pipeline.classifier.call_gemini') as mock_gemini:
+    with patch("pipeline.classifier.call_gemini") as mock_gemini:
         mock_gemini.side_effect = Exception("API Error")
 
-        with patch('pipeline.classifier.call_claude') as mock_claude:
+        with patch("pipeline.classifier.call_claude") as mock_claude:
             mock_claude.return_value = valid_response
 
             result = classify_job("Test job")
@@ -211,17 +213,19 @@ def test_classifier_provider_fallback():
 ```python
 def test_greenhouse_scraper_handles_empty_page():
     """Should return empty list when no jobs found"""
-    with patch('scrapers.greenhouse.greenhouse_scraper.fetch_page') as mock:
+    with patch("scrapers.greenhouse.greenhouse_scraper.fetch_page") as mock:
         mock.return_value = "<html><body>No jobs</body></html>"
 
         result = scrape_company("test-company")
 
         assert result == []
 
+
 def test_greenhouse_scraper_pagination():
     """Should fetch all pages of results"""
     # Mock multiple pages
     pass
+
 
 def test_lever_api_rate_limiting():
     """Should handle 429 responses with backoff"""
@@ -238,13 +242,16 @@ def test_db():
     # Option 2: Mock Supabase client
     pass
 
+
 def test_upsert_new_job(test_db):
     """Should insert new job and return ID"""
     pass
 
+
 def test_upsert_existing_job(test_db):
     """Should update existing job, not duplicate"""
     pass
+
 
 def test_deduplication_by_hash(test_db):
     """Should detect duplicate by job_hash"""
@@ -263,12 +270,13 @@ def test_agency_blacklist_loads():
     assert isinstance(blacklist, list)
     assert len(blacklist) > 0
 
+
 def test_job_family_mapping_complete():
     """All subfamilies should map to a family"""
     from pipeline.job_family_mapper import SUBFAMILY_TO_FAMILY
 
     for subfamily, family in SUBFAMILY_TO_FAMILY.items():
-        assert family in ['data', 'product', 'delivery', 'out_of_scope']
+        assert family in ["data", "product", "delivery", "out_of_scope"]
 ```
 
 ## Running Tests

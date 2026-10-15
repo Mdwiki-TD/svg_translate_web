@@ -74,16 +74,16 @@ parsed (WikiText) │ "Hello {{t|x=1}} world"│   ← shared buffer
 import wikitextparser as wtp
 
 parsed = wtp.parse("Hello '''world''' and [[Earth]]")
-print(type(parsed).__name__)   # WikiText
-print(str(parsed))             # 'Hello \'\'\'world\'\'\' and [[Earth]]'
+print(type(parsed).__name__)  # WikiText
+print(str(parsed))  # 'Hello \'\'\'world\'\'\' and [[Earth]]'
 ```
 
 ### 2. Round-trip (parse → mutate → emit)
 
 ```python
 parsed = wtp.parse("{{Person|name=Alice|age=30}}")
-parsed.templates[0].set_arg('age', '31')
-print(str(parsed))   # '{{Person|name=Alice|age=31}}'
+parsed.templates[0].set_arg("age", "31")
+print(str(parsed))  # '{{Person|name=Alice|age=31}}'
 ```
 
 The original input string is never re-parsed. The buffer has been mutated.
@@ -120,13 +120,14 @@ Comments (`<!-- ... -->`) are **always** removed.
 
 ```python
 # Keep templates but replace each with its name
-parsed.plain_text(replace_templates=lambda t: '{{%s}}' % t.normal_name())
+parsed.plain_text(replace_templates=lambda t: "{{%s}}" % t.normal_name())
 ```
 
 #### Standalone function form
 
 ```python
 from wikitextparser import remove_markup
+
 remove_markup("Hello '''world''' [[Earth]]")
 # → 'Hello world Earth'
 ```
@@ -162,12 +163,12 @@ Notes:
 
 ```python
 parsed = wtp.parse("== Lead ==\nbody")
-parsed[0:7]                 # '== Lead'
-parsed(0, 7)                # '== Lead'  (faster — avoids creating .string)
-parsed(0)                   # '='
-len(parsed)                 # 14
-'body' in parsed            # True (substring check)
-some_template in parsed     # True if same root and inside this span
+parsed[0:7]  # '== Lead'
+parsed(0, 7)  # '== Lead'  (faster — avoids creating .string)
+parsed(0)  # '='
+len(parsed)  # 14
+"body" in parsed  # True (substring check)
+some_template in parsed  # True if same root and inside this span
 ```
 
 The `__call__` form is preferred internally because it avoids materialising
@@ -178,8 +179,8 @@ the full `.string` property. Use it when you slice a lot.
 ```python
 parsed1 = wtp.parse("{{a}}")
 parsed2 = wtp.parse("{{a}}")
-parsed1.templates[0] in parsed2   # False — different roots
-parsed1.templates[0] in parsed1   # True
+parsed1.templates[0] in parsed2  # False — different roots
+parsed1.templates[0] in parsed1  # True
 ```
 
 `in` checks both *span containment* and *same root list*. Two parses of the
@@ -210,16 +211,20 @@ same string are independent.
 
 ```python
 def to_clean_text(wikitext: str) -> str:
-    return wtp.parse(wikitext).plain_text(
-        replace_templates=True,
-        replace_parser_functions=True,
-        replace_parameters=True,
-        replace_tags=True,
-        replace_external_links=True,
-        replace_wikilinks=True,
-        unescape_html_entities=True,
-        replace_bolds_and_italics=True,
-    ).strip()
+    return (
+        wtp.parse(wikitext)
+        .plain_text(
+            replace_templates=True,
+            replace_parser_functions=True,
+            replace_parameters=True,
+            replace_tags=True,
+            replace_external_links=True,
+            replace_wikilinks=True,
+            unescape_html_entities=True,
+            replace_bolds_and_italics=True,
+        )
+        .strip()
+    )
 ```
 
 ### Recipe 2: Keep wikilink display text but strip everything else
@@ -228,7 +233,7 @@ def to_clean_text(wikitext: str) -> str:
 def link_aware_text(wikitext: str) -> str:
     parsed = wtp.parse(wikitext)
     return parsed.plain_text(
-        replace_wikilinks=True,   # [[a|b]] → 'b'
+        replace_wikilinks=True,  # [[a|b]] → 'b'
         replace_templates=True,
         replace_external_links=True,
     )
@@ -239,7 +244,7 @@ def link_aware_text(wikitext: str) -> str:
 ```python
 def pp_all_templates(wikitext: str) -> str:
     parsed = wtp.parse(wikitext)
-    return '\n\n'.join(t.pformat() for t in parsed.templates)
+    return "\n\n".join(t.pformat() for t in parsed.templates)
 ```
 
 ## See also

@@ -114,11 +114,10 @@ from __future__ import annotations
 from celery import Celery
 from flask import Flask
 
+
 def make_celery(app: Flask) -> Celery:
     celery = Celery(
-        app.import_name,
-        backend=app.config.get("CELERY_RESULT_BACKEND"),
-        broker=app.config.get("CELERY_BROKER_URL")
+        app.import_name, backend=app.config.get("CELERY_RESULT_BACKEND"), broker=app.config.get("CELERY_BROKER_URL")
     )
     celery.conf.update(app.config)
 
@@ -149,6 +148,7 @@ CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://localho
 # البنية المقترحة:
 from .tasks import run_background_job_task
 
+
 def start_job(
     auth_payload: dict[str, Any] | None,
     job_type: str,
@@ -158,12 +158,7 @@ def start_job(
     job = JobsService().create_job(job_type, auth_payload.get("username"))
 
     # 2. إرسال المهمة إلى Celery بشكل غير متزامن
-    run_background_job_task.delay(
-        job_id=job.id,
-        auth_payload=auth_payload,
-        job_type=job_type,
-        args=args
-    )
+    run_background_job_task.delay(job_id=job.id, auth_payload=auth_payload, job_type=job_type, args=args)
     return job.id
 ```
 
@@ -176,6 +171,7 @@ from __future__ import annotations
 from celery import shared_task
 from flask import current_app
 from .jobs_worker import load_job_data
+
 
 @shared_task(bind=True)
 def run_background_job_task(self, job_id: int, auth_payload: dict, job_type: str, args: dict | None = None):
@@ -208,6 +204,7 @@ def run_background_job_task(self, job_id: int, auth_payload: dict, job_type: str
    ```python
    # لإلغاء المهمة في Celery مباشرة فوراً:
    from celery.task.control import revoke
+
    revoke(celery_task_id, terminate=True, signal="SIGTERM")
    ```
 

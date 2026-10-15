@@ -132,76 +132,140 @@ Lowest HTTP layer. Handles 5xx/429/DB-lag/ConnectionError/Timeout with retry.
 All return lazy `List` or `GeneratorList` iterators. Common params: `max_items`, `api_chunk_size`, `generator`.
 
 ```python
-site.allpages(start=None, prefix=None, namespace=None, redirects='all', end=None,
-              filterredir=None, filterlanglinks=None, minsize=None, maxsize=None,
-              prtype=None, prlevel=None, dir='ascending', protection=None,
-              max_items=None, api_chunk_size=None, generator=True)
+site.allpages(
+    start=None,
+    prefix=None,
+    namespace=None,
+    redirects="all",
+    end=None,
+    filterredir=None,
+    filterlanglinks=None,
+    minsize=None,
+    maxsize=None,
+    prtype=None,
+    prlevel=None,
+    dir="ascending",
+    protection=None,
+    max_items=None,
+    api_chunk_size=None,
+    generator=True,
+)
 ```
 
 ```python
-site.allimages(start=None, prefix=None, minsize=None, maxsize=None, dir='ascending',
-               sha1=None, sha1base36=None, mime=None, max_items=None, api_chunk_size=None)
+site.allimages(
+    start=None,
+    prefix=None,
+    minsize=None,
+    maxsize=None,
+    dir="ascending",
+    sha1=None,
+    sha1base36=None,
+    mime=None,
+    max_items=None,
+    api_chunk_size=None,
+)
 ```
 
 ```python
-site.alllinks(start=None, prefix=None, unique=False, prop='title', namespace=None,
-              max_items=None, api_chunk_size=None)
+site.alllinks(start=None, prefix=None, unique=False, prop="title", namespace=None, max_items=None, api_chunk_size=None)
 ```
 
 ```python
-site.allcategories(start=None, prefix=None, dir='ascending', min=None, max=None,
-                   max_items=None, api_chunk_size=None)
+site.allcategories(start=None, prefix=None, dir="ascending", min=None, max=None, max_items=None, api_chunk_size=None)
 ```
 
 ```python
-site.allusers(start=None, prefix=None, group=None, prop=None, rights=None,
-              witheditsonly=False, activeusers=False, max_items=None, api_chunk_size=None)
+site.allusers(
+    start=None,
+    prefix=None,
+    group=None,
+    prop=None,
+    rights=None,
+    witheditsonly=False,
+    activeusers=False,
+    max_items=None,
+    api_chunk_size=None,
+)
 ```
 
 ```python
-site.recentchanges(start=None, end=None, dir='older', namespace=None,
-                   prop='title|timestamp|ids', show=None, type=None,
-                   toponly=None, max_items=None, api_chunk_size=None)
+site.recentchanges(
+    start=None,
+    end=None,
+    dir="older",
+    namespace=None,
+    prop="title|timestamp|ids",
+    show=None,
+    type=None,
+    toponly=None,
+    max_items=None,
+    api_chunk_size=None,
+)
 ```
 
 ```python
-site.logevents(type=None, start=None, end=None, dir='older', user=None, title=None,
-               action=None, prop='type|user|timestamp|details', max_items=None,
-               api_chunk_size=None)
+site.logevents(
+    type=None,
+    start=None,
+    end=None,
+    dir="older",
+    user=None,
+    title=None,
+    action=None,
+    prop="type|user|timestamp|details",
+    max_items=None,
+    api_chunk_size=None,
+)
 ```
 
 ```python
-site.blocks(start=None, end=None, users=None, ip=None, props=None,
-            max_items=None, api_chunk_size=None)
+site.blocks(start=None, end=None, users=None, ip=None, props=None, max_items=None, api_chunk_size=None)
 ```
 
 ```python
-site.deletedrevisions(start=None, end=None, dir='older', namespace=None, user=None,
-                      fromuser=None, prop=None, max_items=None, api_chunk_size=None)
+site.deletedrevisions(
+    start=None,
+    end=None,
+    dir="older",
+    namespace=None,
+    user=None,
+    fromuser=None,
+    prop=None,
+    max_items=None,
+    api_chunk_size=None,
+)
 ```
 
 ```python
-site.exturlusage(query=None, prop='url|title', protocol=None, namespace=None,
-                 max_items=None, api_chunk_size=None)
+site.exturlusage(query=None, prop="url|title", protocol=None, namespace=None, max_items=None, api_chunk_size=None)
 ```
 
 ```python
-site.usercontributions(user, start=None, end=None, dir='older', namespace=None,
-                       prop='title|timestamp|comment|size', show=None, topOnly=None,
-                       max_items=None, api_chunk_size=None)
+site.usercontributions(
+    user,
+    start=None,
+    end=None,
+    dir="older",
+    namespace=None,
+    prop="title|timestamp|comment|size",
+    show=None,
+    topOnly=None,
+    max_items=None,
+    api_chunk_size=None,
+)
 ```
 
 ```python
-site.random(namespace=None, redirect='all', max_items=None, api_chunk_size=None)
+site.random(namespace=None, redirect="all", max_items=None, api_chunk_size=None)
 ```
 
 ```python
-site.search(search, namespace=None, what=None, redirects=False,
-            max_items=None, api_chunk_size=None)
+site.search(search, namespace=None, what=None, redirects=False, max_items=None, api_chunk_size=None)
 ```
 
 ```python
-site.users(users, prop='blockinfo|groups|editcount|registration|rights')
+site.users(users, prop="blockinfo|groups|editcount|registration|rights")
 ```
 
 ```python
@@ -211,8 +275,9 @@ site.revisions(revids) -> list[dict]
 Not a generator. Returns a plain list of revision dicts.
 
 ```python
-site.watchlist(allrev=False, start=None, end=None, namespace=None, owner=None,
-               token=None, max_items=None, api_chunk_size=None)
+site.watchlist(
+    allrev=False, start=None, end=None, namespace=None, owner=None, token=None, max_items=None, api_chunk_size=None
+)
 ```
 
 ### Utility Methods
@@ -304,20 +369,20 @@ Returns wikitext. Returns `''` for non-existent pages. `section` can be int or s
 ### Writing
 
 ```python
-page.edit(text, summary='', minor=False, bot=True, section=None, **kwargs)
-page.save(text, summary='', minor=False, bot=True, section=None, **kwargs)  # alias
+page.edit(text, summary="", minor=False, bot=True, section=None, **kwargs)
+page.save(text, summary="", minor=False, bot=True, section=None, **kwargs)  # alias
 ```
 
 Full page replace. Checks `force_login`, `blocked`, `can('edit')`. Handles edit conflicts via `basetimestamp`/`starttimestamp`. On `badtoken`, auto-refreshes token and retries once.
 
 ```python
-page.append(text, summary='', minor=False, bot=True, section=None, **kwargs)
+page.append(text, summary="", minor=False, bot=True, section=None, **kwargs)
 ```
 
 Appends text (uses `appendtext` parameter).
 
 ```python
-page.prepend(text, summary='', minor=False, bot=True, section=None, **kwargs)
+page.prepend(text, summary="", minor=False, bot=True, section=None, **kwargs)
 ```
 
 Prepends text (uses `prependtext` parameter).
@@ -331,14 +396,13 @@ Null edit. Updates parser cache without changing content.
 ### Page Management
 
 ```python
-page.move(new_title, reason='', move_talk=True, no_redirect=False,
-          move_subpages=False, ignore_warnings=False)
+page.move(new_title, reason="", move_talk=True, no_redirect=False, move_subpages=False, ignore_warnings=False)
 ```
 
 Checks `can('move')`. Raises `InsufficientPermission` on failure.
 
 ```python
-page.delete(reason='', watch=False, unwatch=False, oldimage=None)
+page.delete(reason="", watch=False, unwatch=False, oldimage=None)
 ```
 
 Checks `can('delete')`. Sets `page.exists = False` on success.
@@ -371,8 +435,7 @@ page.resolve_redirect() -> Page
 All return lazy iterators. Common params: `max_items`, `api_chunk_size`, `generator`.
 
 ```python
-page.backlinks(namespace=None, filterredir=None, redirect=None, generator=True,
-               max_items=None, api_chunk_size=None)
+page.backlinks(namespace=None, filterredir=None, redirect=None, generator=True, max_items=None, api_chunk_size=None)
 ```
 
 ```python
@@ -380,8 +443,7 @@ page.categories(generator=True, show=None)
 ```
 
 ```python
-page.embeddedin(namespace=None, filterredir=None, generator=True,
-                max_items=None, api_chunk_size=None)
+page.embeddedin(namespace=None, filterredir=None, generator=True, max_items=None, api_chunk_size=None)
 ```
 
 ```python
@@ -411,10 +473,23 @@ page.templates(namespace=None, generator=True)
 ### Revisions
 
 ```python
-page.revisions(startid=None, endid=None, start=None, end=None, dir='older',
-               user=None, excludeuser=None, prop='ids|timestamp|size|user|comment',
-               expandtemplates=False, section=None, diffto=None, slots=None,
-               uselang=None, max_items=None, api_chunk_size=None)
+page.revisions(
+    startid=None,
+    endid=None,
+    start=None,
+    end=None,
+    dir="older",
+    user=None,
+    excludeuser=None,
+    prop="ids|timestamp|size|user|comment",
+    expandtemplates=False,
+    section=None,
+    diffto=None,
+    slots=None,
+    uselang=None,
+    max_items=None,
+    api_chunk_size=None,
+)
 ```
 
 Returns `RevisionsIterator`. Fetches revision history with content.
@@ -441,8 +516,7 @@ image.imagehistory() -> PageProperty
 Returns iterator of past file revision dicts.
 
 ```python
-image.imageusage(namespace=None, filterredir=None, redirect=None,
-                 max_items=None, api_chunk_size=None, generator=True)
+image.imageusage(namespace=None, filterredir=None, redirect=None, max_items=None, api_chunk_size=None, generator=True)
 ```
 
 Pages that use this file.
@@ -487,8 +561,7 @@ Returns iterable of category members. `generator=True` yields page objects; `gen
 Base lazy iterator. Fetches data in chunks from the MediaWiki API, following continuation tokens automatically.
 
 ```python
-List(site, list_name, prefix, limit=None, return_values=None,
-     max_items=None, api_chunk_size=None, **kwargs)
+List(site, list_name, prefix, limit=None, return_values=None, max_items=None, api_chunk_size=None, **kwargs)
 ```
 
 -   `max_items`: Cap total items yielded
@@ -503,7 +576,7 @@ Extends `List`. Yields `Page`, `Image`, or `Category` objects based on namespace
 ### PageList
 
 ```python
-PageList(site, prefix=None, start=None, namespace=0, redirects='all', end=None)
+PageList(site, prefix=None, start=None, namespace=0, redirects="all", end=None)
 ```
 
 Used for `site.pages`, `site.categories`, `site.images`. Supports `__getitem__` for direct access: `site.pages['Title']`.
