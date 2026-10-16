@@ -54,23 +54,28 @@ cleanup_old_backups() {
 }
 
 clone_repo() {
-    echo ">>> Deploying ${REPO_NAME} (branch: ${BRANCH})"
+    local repo_url="$1"
+    local branch="$2"
+    local clone_dir="$3"
+    local repo_name="$4"
 
-    # Navigate to the project directory
-    cd "$BASE_DIR" || exit 1
+    echo ">>> Deploying ${repo_name} (branch: ${branch})"
 
     # Remove any existing clone directory
-    rm -rf "$CLONE_DIR"
+    rm -rf "$clone_dir"
 
-    echo ">>> clone --branch ${BRANCH}"
-    echo "${REPO_URL}"
+    echo ">>> clone --branch ${branch}"
+    echo "${repo_url}"
 
-    git clone --branch "$BRANCH" "$REPO_URL" "$CLONE_DIR"
+    git clone --branch "$branch" "$repo_url" "$clone_dir"
 
-    rm -rf "$CLONE_DIR/.git"
+    rm -rf "$clone_dir/.git"
 }
 
-clone_repo
+# Navigate to the project directory
+cd "$BASE_DIR" || exit 1
+
+clone_repo "$REPO_URL" "$BRANCH" "$CLONE_DIR" "$REPO_NAME"
 
 # 1. Clean install / Archive if requested
 if [ "$CLEAN_INSTALL" = "1" ] && [ -d "$TARGET_DIR" ]; then
