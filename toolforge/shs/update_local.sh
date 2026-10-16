@@ -2,9 +2,9 @@
 # This file can not be executed directly, it is called from the toolforge/tool-deploy.sh script
 
 # Target local temporary path passed from the deploy steps
-REPO_TMP_DIR=$1
+CLONE_DIR=$1
 
-if [ -z "$REPO_TMP_DIR" ]; then
+if [ -z "$CLONE_DIR" ]; then
     echo "Error: Missing temporary repository path argument."
     exit 1
 fi
@@ -26,4 +26,4 @@ TARGET_DIR="$HOME/www/python/src"
 
 # Execute the local deployment script directly without cloning from GitHub
 # We copy the script to ~/deploy_scripts/ first from the github action workflow, then call it
-$HOME/deploy_scripts/deploy_from_local.sh "$REPO_TMP_DIR" "$TARGET_DIR"
+$HOME/deploy_scripts/deploy_from_local.sh "$CLONE_DIR" "$TARGET_DIR"
