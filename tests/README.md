@@ -70,6 +70,7 @@ Every test module follows a consistent structure divided by clear section header
 import pytest
 from unittest.mock import MagicMock, AsyncMock
 
+
 # ---------------------------------------------------------------
 # Fixtures & Helpers
 # ---------------------------------------------------------------
@@ -116,9 +117,12 @@ class TestProcessProject:
 # ---------------------------------------------------------------
 class TestUpdateReports:
     """Tests for the `update_reports` method of the `ReportUpdater` class."""
+
     ...
+
 
 class TestUpdateIndex:
     """Tests for the `update_index` method of the `ReportUpdater` class."""
+
     ...
 ```

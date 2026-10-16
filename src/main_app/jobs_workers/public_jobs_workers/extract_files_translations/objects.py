@@ -80,7 +80,6 @@ class FilesProcessedItem:
 
 @dataclass
 class ExtractFilesTranslationsObject(WorkerMapping):
-
     summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
     title: str | None = None
 

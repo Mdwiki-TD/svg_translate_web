@@ -31,15 +31,15 @@ pip install mwclient
 import mwclient
 
 # Read a page
-site = mwclient.Site('en.wikipedia.org')
-page = site.pages['Python (programming language)']
+site = mwclient.Site("en.wikipedia.org")
+page = site.pages["Python (programming language)"]
 print(page.text()[:200])
 
 # Edit a page (requires authentication)
-site = mwclient.Site('en.wikipedia.org')
-site.login('MyBot', 'bot_password')
-page = site.pages['Sandbox']
-page.save('New content', summary='Test edit via mwclient')
+site = mwclient.Site("en.wikipedia.org")
+site.login("MyBot", "bot_password")
+page = site.pages["Sandbox"]
+page.save("New content", summary="Test edit via mwclient")
 ```
 
 ## Core Concepts

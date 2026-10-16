@@ -99,8 +99,8 @@ in place while preserving the surrounding quote tokens).
 
 ```python
 parsed = wtp.parse('Cite.<ref name="x">Smith 2020</ref> More.<ref name="x"/>')
-for ref in parsed.get_tags('ref'):
-    print(ref.get_attr('name'), '|', ref.contents)
+for ref in parsed.get_tags("ref"):
+    print(ref.get_attr("name"), "|", ref.contents)
 # x | Smith 2020
 # x | None         ← self-closing reuse
 ```
@@ -111,39 +111,39 @@ for ref in parsed.get_tags('ref'):
 named = []
 inline = []
 reused = []
-for r in parsed.get_tags('ref'):
-    name = r.get_attr('name')
+for r in parsed.get_tags("ref"):
+    name = r.get_attr("name")
     body = r.contents
     if body is None:
-        reused.append(r)         # <ref name="x"/>  — pointer to a previous ref
+        reused.append(r)  # <ref name="x"/>  — pointer to a previous ref
     elif name:
-        named.append(r)          # <ref name="x">...</ref>
+        named.append(r)  # <ref name="x">...</ref>
     else:
-        inline.append(r)         # <ref>...</ref>
+        inline.append(r)  # <ref>...</ref>
 ```
 
 ### 3. Read tag attributes
 
 ```python
-for tag in parsed.get_tags('cite'):
-    tag.attrs                    # {'class': 'book', 'data-x': '1'}
-    tag.get_attr('class')        # 'book'
-    tag.has_attr('id')           # False
+for tag in parsed.get_tags("cite"):
+    tag.attrs  # {'class': 'book', 'data-x': '1'}
+    tag.get_attr("class")  # 'book'
+    tag.has_attr("id")  # False
 ```
 
 ### 4. Modify tag attributes
 
 ```python
-for ref in parsed.get_tags('ref'):
-    if not ref.has_attr('group'):
-        ref.set_attr('group', 'sources')
-    ref.del_attr('xml:lang')
+for ref in parsed.get_tags("ref"):
+    if not ref.has_attr("group"):
+        ref.set_attr("group", "sources")
+    ref.del_attr("xml:lang")
 ```
 
 ### 5. Modify tag contents
 
 ```python
-for ref in parsed.get_tags('ref'):
+for ref in parsed.get_tags("ref"):
     if ref.contents is not None:
         # Wrap citations in a {{cite ... }} template
         ref.contents = ref.contents.strip()
@@ -152,10 +152,10 @@ for ref in parsed.get_tags('ref'):
 #### Self-closing → paired
 
 ```python
-tag = wtp.parse('<gallery/>').get_tags('gallery')[0]
-tag.contents                # None
-tag.contents = 'image1.jpg|caption'
-str(tag)                    # '<gallery>image1.jpg|caption</gallery>'
+tag = wtp.parse("<gallery/>").get_tags("gallery")[0]
+tag.contents  # None
+tag.contents = "image1.jpg|caption"
+str(tag)  # '<gallery>image1.jpg|caption</gallery>'
 ```
 
 Setting `contents` on a self-closing tag automatically expands it to a
@@ -164,8 +164,8 @@ proper open/close pair.
 ### 6. Rename a tag
 
 ```python
-for tag in parsed.get_tags('s'):
-    tag.name = 'del'
+for tag in parsed.get_tags("s"):
+    tag.name = "del"
 # <s>...</s>  →  <del>...</del>
 ```
 
@@ -174,10 +174,10 @@ The setter renames _both_ the start and end tag.
 ### 7. Walk parsed_contents
 
 ```python
-ref = parsed.get_tags('ref')[0]
-ref.parsed_contents                    # SubWikiText pointing into ref body
-ref.parsed_contents.templates          # templates inside the ref
-ref.parsed_contents.wikilinks          # wikilinks inside the ref
+ref = parsed.get_tags("ref")[0]
+ref.parsed_contents  # SubWikiText pointing into ref body
+ref.parsed_contents.templates  # templates inside the ref
+ref.parsed_contents.wikilinks  # wikilinks inside the ref
 ```
 
 `parsed_contents` is the right way to apply the full WikiText API to a
@@ -200,10 +200,10 @@ del c[:]
 
 ```python
 for b in parsed.get_bolds():
-    print('bold:', b.text)
+    print("bold:", b.text)
 
 for i in parsed.get_italics():
-    print('italic:', i.text)
+    print("italic:", i.text)
 ```
 
 #### Combined call (efficient)
@@ -211,7 +211,7 @@ for i in parsed.get_italics():
 ```python
 for span in parsed.get_bolds_and_italics():
     kind = type(span).__name__
-    print(kind, ':', span.text)
+    print(kind, ":", span.text)
 ```
 
 #### Filter by class
@@ -264,28 +264,30 @@ for b in parsed.get_bolds():
 ```python
 def extract_refs(parsed) -> list[dict]:
     out = []
-    for r in parsed.get_tags('ref'):
-        out.append({
-            'name'   : r.get_attr('name'),
-            'group'  : r.get_attr('group'),
-            'content': (r.contents or '').strip() or None,
-        })
+    for r in parsed.get_tags("ref"):
+        out.append(
+            {
+                "name": r.get_attr("name"),
+                "group": r.get_attr("group"),
+                "content": (r.contents or "").strip() or None,
+            }
+        )
     return out
 ```
 
 ### Recipe B: rename a `<ref>` group
 
 ```python
-for r in parsed.get_tags('ref'):
-    if r.get_attr('group') == 'note':
-        r.set_attr('group', 'notes')
+for r in parsed.get_tags("ref"):
+    if r.get_attr("group") == "note":
+        r.set_attr("group", "notes")
 ```
 
 ### Recipe C: replace `<s>` with `<del>` (deprecated tag cleanup)
 
 ```python
-for tag in parsed.get_tags('s'):
-    tag.name = 'del'
+for tag in parsed.get_tags("s"):
+    tag.name = "del"
 ```
 
 ### Recipe D: drop all comments
@@ -302,14 +304,14 @@ removes comments unconditionally.)
 
 ```python
 for it in parsed.get_italics():
-    it[:] = f'<em>{it.text}</em>'
+    it[:] = f"<em>{it.text}</em>"
 ```
 
 ### Recipe F: list every block-quoted text inside a `<blockquote>`
 
 ```python
 quotes = []
-for tag in parsed.get_tags('blockquote'):
+for tag in parsed.get_tags("blockquote"):
     if tag.contents:
         # Strip wiki markup inside
         clean = wtp.parse(tag.contents).plain_text()

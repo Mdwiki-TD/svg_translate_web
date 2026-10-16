@@ -19,4 +19,4 @@ REPO_NAME="svg_translate_web"
 TARGET_DIR="$HOME/www/python/src"
 BRANCH="${1:-main}"
 
-$HOME/shs/deploy_repo.sh "$REPO_NAME" "$TARGET_DIR" "$BRANCH"
+$HOME/deploy_scripts/deploy_repo.sh "$REPO_NAME" "$TARGET_DIR" "$BRANCH"

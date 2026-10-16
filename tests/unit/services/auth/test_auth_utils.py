@@ -46,7 +46,6 @@ class TestResolveUserId:
 
 
 class TestLoadLoggedInUser:
-
     def test_short_circuits_when_g_user_exists(self, mock_app: Flask) -> None:
         with mock_app.test_request_context():
             g._current_user = "existing"

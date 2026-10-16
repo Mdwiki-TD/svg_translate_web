@@ -79,17 +79,21 @@ Plus 2 template files:
 ```python
 # Key functions:
 
+
 def extract_svg_file_name(text: str) -> str | None:
     """Extract SVG file name from the Translate link in page wikitext.
     Reuses the RE_TRANSLATE regex pattern."""
+
 
 def build_category_lines(lang_codes: list[str]) -> list[str]:
     """Convert lang codes to [[Category:XXX-language SVG]] lines.
     Skips codes where lang_code_category() returns None."""
 
+
 def get_existing_lang_categories(text: str) -> set[str]:
     """Parse page text to find existing [[Category:*-language SVG]] entries.
     Uses regex: r'\[\[Category:[^\]]*-language SVG\]\]'"""
+
 
 def add_categories_to_text(text: str, new_categories: list[str]) -> str:
     """Append category lines to the end of the page text."""
@@ -104,10 +108,11 @@ def add_categories_to_text(text: str, new_categories: list[str]) -> str:
 class AddLangCategoriesSummary:
     total: int = 0
     processed: int = 0
-    success: int = 0       # pages that got new categories added
-    skipped: int = 0       # pages where all categories already exist
+    success: int = 0  # pages that got new categories added
+    skipped: int = 0  # pages where all categories already exist
     failed: int = 0
-    no_file: int = 0       # pages where no SVG file name could be extracted
+    no_file: int = 0  # pages where no SVG file name could be extracted
+
 
 @dataclass
 class AddLangCategoriesWorkerObject(StandardAdminWorkerObject):
@@ -142,13 +147,15 @@ Add entry to `jobs_data_admins`:
 Add a new `SidebarItem` in the existing `owid_temp_pages` group, after `add_svglanguages_template`:
 
 ```python
-SidebarItem(
-    id="add_lang_categories_to_owid_pages",
-    admin=1,
-    href=job_list_url("add_lang_categories_to_owid_pages"),
-    title="Add Lang Categories",
-    icon="bi-tags",
-),
+(
+    SidebarItem(
+        id="add_lang_categories_to_owid_pages",
+        admin=1,
+        href=job_list_url("add_lang_categories_to_owid_pages"),
+        title="Add Lang Categories",
+        icon="bi-tags",
+    ),
+)
 ```
 
 ---

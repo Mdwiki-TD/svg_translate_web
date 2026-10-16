@@ -193,17 +193,19 @@ from .update_owid_charts import update_owid_charts_for_templates
 Add under `"Jobs"` group (before or after existing items, maintain alphabetical order):
 
 ```python
-SidebarItem(
-    id="update_owid_charts",
-    admin=1,
-    href=_safe_url_for(
-        "admin.jobs.jobs_list",
-        "/admin/jobs/update_owid_charts",
-        job_type="update_owid_charts",
+(
+    SidebarItem(
+        id="update_owid_charts",
+        admin=1,
+        href=_safe_url_for(
+            "admin.jobs.jobs_list",
+            "/admin/jobs/update_owid_charts",
+            job_type="update_owid_charts",
+        ),
+        title="Update OWID Charts",
+        icon="bi-cloud-download",
     ),
-    title="Update OWID Charts",
-    icon="bi-cloud-download",
-),
+)
 ```
 
 ### 4.3 `__init__.py` for the job package

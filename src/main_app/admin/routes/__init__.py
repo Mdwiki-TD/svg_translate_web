@@ -45,7 +45,6 @@ ADMIN_ROUTE_MODULES: list[AdminRouteModule] = [
 
 
 class AdminRouteRegister:
-
     @staticmethod
     def register(bp_admin: Blueprint) -> None:
         for module in ADMIN_ROUTE_MODULES:

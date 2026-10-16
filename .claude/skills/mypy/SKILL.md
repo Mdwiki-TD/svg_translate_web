@@ -68,20 +68,25 @@ user_email: Optional[str] = None  # Can be str or None
 def greet(name: str) -> str:
     return f"Hello, {name}"
 
+
 # Multiple parameters
 def add(a: int, b: int) -> int:
     return a + b
+
 
 # Optional parameters with defaults
 def create_user(name: str, age: int = 18) -> dict:
     return {"name": name, "age": age}
 
+
 # No return value
 def log_message(message: str) -> None:
     print(message)
 
+
 # Functions that never return
 from typing import NoReturn
+
 
 def raise_error() -> NoReturn:
     raise ValueError("Always raises")
@@ -130,19 +135,11 @@ class User:
         self.email = email
 
     def get_info(self) -> Dict[str, Union[str, int]]:
-        return {
-            "name": self.name,
-            "age": self.age,
-            "email": self.email or "N/A"
-        }
+        return {"name": self.name, "age": self.age, "email": self.email or "N/A"}
 
     @classmethod
     def from_dict(cls, data: Dict[str, any]) -> "User":
-        return cls(
-            name=data["name"],
-            age=data["age"],
-            email=data.get("email")
-        )
+        return cls(name=data["name"], age=data["age"], email=data.get("email"))
 ```
 
 ## Advanced Type Hints
@@ -152,9 +149,11 @@ class User:
 ```python
 from typing import Literal
 
+
 # Restrict to specific values
 def set_log_level(level: Literal["debug", "info", "warning", "error"]) -> None:
     print(f"Log level: {level}")
+
 
 # Valid
 set_log_level("debug")
@@ -165,6 +164,7 @@ set_log_level("verbose")
 
 # Multiple literals
 Status = Literal["pending", "approved", "rejected"]
+
 
 def update_status(status: Status) -> None:
     pass
@@ -179,20 +179,20 @@ from typing import Dict, List, Union
 UserId = int
 UserName = str
 
+
 def get_user(user_id: UserId) -> UserName:
     return f"User {user_id}"
+
 
 # Complex aliases
 JSON = Union[Dict[str, "JSON"], List["JSON"], str, int, float, bool, None]
 Headers = Dict[str, str]
 QueryParams = Dict[str, Union[str, int, List[str]]]
 
-def make_request(
-    url: str,
-    headers: Headers,
-    params: QueryParams
-) -> JSON:
+
+def make_request(url: str, headers: Headers, params: QueryParams) -> JSON:
     pass
+
 
 # NewType for distinct types
 from typing import NewType
@@ -200,8 +200,10 @@ from typing import NewType
 UserId = NewType("UserId", int)
 ProductId = NewType("ProductId", int)
 
+
 def get_user(user_id: UserId) -> str:
     return f"User {user_id}"
+
 
 user = UserId(123)  # Valid
 product = ProductId(456)
@@ -218,8 +220,10 @@ from typing import TypeVar, Generic, List
 # TypeVar for generic functions
 T = TypeVar("T")
 
+
 def first_element(items: List[T]) -> T:
     return items[0]
+
 
 # Type inference
 num = first_element([1, 2, 3])  # mypy infers: int
@@ -230,8 +234,10 @@ from typing import Union
 
 NumericType = TypeVar("NumericType", int, float)
 
+
 def add_numbers(a: NumericType, b: NumericType) -> NumericType:
     return a + b
+
 
 # Generic classes
 class Stack(Generic[T]):
@@ -247,6 +253,7 @@ class Stack(Generic[T]):
     def is_empty(self) -> bool:
         return len(self._items) == 0
 
+
 # Usage with type inference
 int_stack: Stack[int] = Stack()
 int_stack.push(42)
@@ -261,23 +268,27 @@ str_stack.push("hello")  # Valid
 ```python
 from typing import Protocol
 
+
 # Define protocol (interface)
 class Drawable(Protocol):
-    def draw(self) -> str:
-        ...
+    def draw(self) -> str: ...
+
 
 # Any class with draw() method matches
 class Circle:
     def draw(self) -> str:
         return "Drawing circle"
 
+
 class Square:
     def draw(self) -> str:
         return "Drawing square"
 
+
 # Function accepts any Drawable
 def render(obj: Drawable) -> str:
     return obj.draw()
+
 
 # Both work (duck typing with types)
 circle = Circle()
@@ -288,14 +299,16 @@ render(square)  # Valid
 # Runtime checkable protocols
 from typing import runtime_checkable
 
+
 @runtime_checkable
 class Closeable(Protocol):
-    def close(self) -> None:
-        ...
+    def close(self) -> None: ...
+
 
 class File:
     def close(self) -> None:
         pass
+
 
 # Runtime check
 f = File()
@@ -307,12 +320,15 @@ isinstance(f, Closeable)  # True
 ```python
 from typing import Callable
 
+
 # Function that takes another function
 def apply_twice(func: Callable[[int], int], value: int) -> int:
     return func(func(value))
 
+
 def double(x: int) -> int:
     return x * 2
+
 
 result = apply_twice(double, 5)  # Returns 20
 
@@ -322,17 +338,18 @@ from typing import TypeVar
 T = TypeVar("T")
 R = TypeVar("R")
 
-def map_values(
-    func: Callable[[T], R],
-    values: List[T]
-) -> List[R]:
+
+def map_values(func: Callable[[T], R], values: List[T]) -> List[R]:
     return [func(v) for v in values]
+
 
 # Callable with multiple arguments
 Validator = Callable[[str, int], bool]
 
+
 def validate_user(name: str, age: int) -> bool:
     return len(name) > 0 and age >= 0
+
 
 validator: Validator = validate_user
 ```
@@ -470,10 +487,12 @@ disallow_any_explicit = False  # Allow explicit Any
 from typing import Optional
 from app.services import UserService
 
+
 def main(config_path: Optional[str] = None) -> None:
     """Application entry point."""
     service = UserService()
     service.run()
+
 
 if __name__ == "__main__":
     main()
@@ -517,9 +536,11 @@ ignore_errors = True
 # Suppress specific errors during migration
 import legacy_module  # type: ignore[import]
 
+
 def process_data(data):  # type: ignore[no-untyped-def]
     # TODO: Add type hints
     return data.transform()
+
 
 # Ignore specific error codes
 user_dict = get_user_dict()
@@ -533,6 +554,7 @@ result = external_api.call()  # type: ignore
 
 ```python
 from typing import reveal_type
+
 
 def process_user(user_id: int):
     user = get_user(user_id)
@@ -554,6 +576,7 @@ from typing import List, Optional
 
 app = FastAPI()
 
+
 # Pydantic models (auto-validated)
 class User(BaseModel):
     id: int
@@ -561,15 +584,18 @@ class User(BaseModel):
     email: str
     age: Optional[int] = None
 
+
 class UserCreate(BaseModel):
     name: str
     email: str
     age: Optional[int] = None
 
+
 # Type-safe endpoints
 @app.get("/")
 def read_root() -> dict[str, str]:
     return {"message": "Hello World"}
+
 
 @app.get("/users/{user_id}")
 def read_user(user_id: int) -> User:
@@ -577,13 +603,12 @@ def read_user(user_id: int) -> User:
         raise HTTPException(status_code=404, detail="User not found")
     return User(id=user_id, name=f"User {user_id}", email="user@example.com")
 
+
 @app.get("/users")
 def list_users(skip: int = 0, limit: int = 10) -> List[User]:
-    users = [
-        User(id=i, name=f"User {i}", email=f"user{i}@example.com")
-        for i in range(skip, skip + limit)
-    ]
+    users = [User(id=i, name=f"User {i}", email=f"user{i}@example.com") for i in range(skip, skip + limit)]
     return users
+
 
 @app.post("/users")
 def create_user(user: UserCreate) -> User:
@@ -600,31 +625,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 app = FastAPI()
 
+
 # Async dependency
 async def get_db() -> AsyncSession:
     async with AsyncSessionLocal() as session:
         yield session
 
+
 # Async endpoints with types
 @app.get("/users/{user_id}")
-async def read_user(
-    user_id: int,
-    db: AsyncSession = Depends(get_db)
-) -> User:
+async def read_user(user_id: int, db: AsyncSession = Depends(get_db)) -> User:
     user = await db.get(User, user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
 @app.get("/users")
-async def list_users(
-    skip: int = 0,
-    limit: int = 10,
-    db: AsyncSession = Depends(get_db)
-) -> List[User]:
-    result = await db.execute(
-        select(User).offset(skip).limit(limit)
-    )
+async def list_users(skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db)) -> List[User]:
+    result = await db.execute(select(User).offset(skip).limit(limit))
     return result.scalars().all()
 ```
 
@@ -636,21 +655,20 @@ from fastapi import FastAPI, Depends, Header, HTTPException
 
 app = FastAPI()
 
+
 # Typed dependencies
-async def get_current_user(
-    authorization: Annotated[Optional[str], Header()] = None
-) -> User:
+async def get_current_user(authorization: Annotated[Optional[str], Header()] = None) -> User:
     if authorization is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
     # Verify token and return user
     return User(id=1, name="Current User", email="user@example.com")
 
+
 # Use dependency with type annotation
 @app.get("/me")
-async def read_current_user(
-    current_user: Annotated[User, Depends(get_current_user)]
-) -> User:
+async def read_current_user(current_user: Annotated[User, Depends(get_current_user)]) -> User:
     return current_user
+
 
 # Complex dependency chain
 class UserService:
@@ -660,16 +678,13 @@ class UserService:
     async def get_user(self, user_id: int) -> Optional[User]:
         return await self.db.get(User, user_id)
 
-def get_user_service(
-    db: Annotated[AsyncSession, Depends(get_db)]
-) -> UserService:
+
+def get_user_service(db: Annotated[AsyncSession, Depends(get_db)]) -> UserService:
     return UserService(db)
 
+
 @app.get("/users/{user_id}")
-async def get_user_endpoint(
-    user_id: int,
-    service: Annotated[UserService, Depends(get_user_service)]
-) -> User:
+async def get_user_endpoint(user_id: int, service: Annotated[UserService, Depends(get_user_service)]) -> User:
     user = await service.get_user(user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -704,6 +719,7 @@ django_settings_module = "myproject.settings"
 from django.db import models
 from typing import Optional
 
+
 class User(models.Model):
     email: models.EmailField = models.EmailField(unique=True)
     name: models.CharField = models.CharField(max_length=100)
@@ -728,6 +744,7 @@ from django.shortcuts import get_object_or_404
 from typing import Dict, Any
 from .models import User
 
+
 def user_detail(request: HttpRequest, user_id: int) -> JsonResponse:
     user: User = get_object_or_404(User, pk=user_id)
     data: Dict[str, Any] = {
@@ -737,11 +754,10 @@ def user_detail(request: HttpRequest, user_id: int) -> JsonResponse:
     }
     return JsonResponse(data)
 
+
 def user_list(request: HttpRequest) -> JsonResponse:
     users = User.get_active_users()
-    data = {
-        "users": list(users.values("id", "name", "email"))
-    }
+    data = {"users": list(users.values("id", "name", "email"))}
     return JsonResponse(data)
 ```
 
@@ -769,12 +785,14 @@ mypy --install-types
 # stubs/external_lib.pyi
 from typing import Optional, List
 
+
 class Client:
     def __init__(self, api_key: str) -> None: ...
 
     def get_user(self, user_id: int) -> Optional[dict]: ...
 
     def list_users(self, limit: int = 10) -> List[dict]: ...
+
 
 def connect(host: str, port: int) -> Client: ...
 ```
@@ -883,14 +901,18 @@ ci: typecheck test lint
 ```python
 from typing import overload, Union
 
+
 @overload
 def process(data: str) -> str: ...
+
 
 @overload
 def process(data: int) -> int: ...
 
+
 @overload
 def process(data: list) -> list: ...
+
 
 def process(data: Union[str, int, list]) -> Union[str, int, list]:
     """Process different data types."""
@@ -900,6 +922,7 @@ def process(data: Union[str, int, list]) -> Union[str, int, list]:
         return data * 2
     else:
         return [x * 2 for x in data]
+
 
 # mypy knows return types
 result1: str = process("hello")  # Valid
@@ -912,11 +935,13 @@ result3: str = process(42)  # Type error
 ```python
 from typing import TypedDict, Optional
 
+
 class UserDict(TypedDict):
     id: int
     name: str
     email: str
     age: Optional[int]
+
 
 # Type-safe dict usage
 def create_user(data: UserDict) -> UserDict:
@@ -927,12 +952,8 @@ def create_user(data: UserDict) -> UserDict:
         "age": data.get("age"),
     }
 
-user: UserDict = {
-    "id": 1,
-    "name": "Alice",
-    "email": "alice@example.com",
-    "age": 30
-}
+
+user: UserDict = {"id": 1, "name": "Alice", "email": "alice@example.com", "age": 30}
 
 # Type error: Missing required key "email"
 invalid_user: UserDict = {
@@ -956,9 +977,11 @@ API_VERSION = "v2"
 # Final class (cannot be subclassed)
 from typing import final
 
+
 @final
 class BaseConfig:
     pass
+
 
 # Type error: Cannot inherit from final class
 class AppConfig(BaseConfig):  # Error!
@@ -969,6 +992,7 @@ class AppConfig(BaseConfig):  # Error!
 
 ```python
 from typing import Self  # Python 3.11+
+
 
 class Builder:
     def __init__(self) -> None:
@@ -984,6 +1008,7 @@ class Builder:
 
     def build(self) -> int:
         return self._value
+
 
 # Type-safe method chaining
 result = Builder().add(5).multiply(2).add(3).build()
@@ -1068,6 +1093,7 @@ Reference: see `pyproject.toml` in `edgar`, `kuzu-memory`, `mcp-vector-search`, 
 # services/user_service.py
 from typing import Optional
 
+
 class UserService:
     def get_user(self, user_id: int) -> Optional[User]:
         """Retrieve user by ID."""
@@ -1091,13 +1117,14 @@ JSON = Union[Dict[str, "JSON"], List["JSON"], str, int, float, bool, None]
 Headers = Dict[str, str]
 UserId = int
 
+
 def parse_response(data: JSON, headers: Headers) -> UserId:
     pass
 
+
 # ❌ BAD: Complex inline types
 def parse_response(
-    data: Union[Dict[str, Union[...]], List[...], str, int, float, bool, None],
-    headers: Dict[str, str]
+    data: Union[Dict[str, Union[...]], List[...], str, int, float, bool, None], headers: Dict[str, str]
 ) -> int:
     pass
 ```
@@ -1109,6 +1136,7 @@ def parse_response(
 def get_user(user_id: int) -> Optional[User]:
     return db.query(User).get(user_id)
 
+
 # ❌ ACCEPTABLE: Type inference for internal helpers
 def _format_name(first, last):  # mypy infers str -> str
     return f"{first} {last}"
@@ -1119,6 +1147,7 @@ def _format_name(first, last):  # mypy infers str -> str
 ```python
 # During development, check inferred types
 from typing import reveal_type
+
 
 def process_data(data):
     result = transform(data)
@@ -1144,6 +1173,7 @@ import legacy_module  # type: ignore
 # WRONG: Defeats purpose of type checking
 from typing import Any
 
+
 def process(data: Any) -> Any:
     return data.transform()
 ```
@@ -1153,8 +1183,10 @@ def process(data: Any) -> Any:
 ```python
 from typing import Union, Protocol
 
+
 class Transformable(Protocol):
     def transform(self) -> dict: ...
+
 
 def process(data: Transformable) -> dict:
     return data.transform()
@@ -1193,8 +1225,10 @@ def get_user(user_id: int) -> User:
 ```python
 from typing import Optional
 
+
 def get_user(user_id: int) -> Optional[User]:
     return db.get(user_id)
+
 
 # Handle None explicitly
 user = get_user(123)

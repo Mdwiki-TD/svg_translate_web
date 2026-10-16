@@ -36,7 +36,8 @@ Guidelines for clean, performant, and idiomatic Python code.
 ```python
 from typing import Callable, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 def process(items: list[str], transform: Callable[[str], T]) -> list[T]:
     """Process items with a transformation function."""
@@ -61,7 +62,7 @@ def calculate_total(items: list[dict], tax_rate: float = 0.0) -> float:
     """
     if tax_rate < 0:
         raise ValueError("tax_rate cannot be negative")
-    subtotal = sum(i['price'] * i['quantity'] for i in items)
+    subtotal = sum(i["price"] * i["quantity"] for i in items)
     return subtotal * (1 + tax_rate)
 ```
 
@@ -85,11 +86,13 @@ def calculate_total(items: list[dict], tax_rate: float = 0.0) -> float:
 from functools import wraps
 from typing import Callable, ParamSpec, TypeVar
 
-P = ParamSpec('P')
-R = TypeVar('R')
+P = ParamSpec("P")
+R = TypeVar("R")
+
 
 def retry(attempts: int = 3) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Retry decorator with configurable attempts."""
+
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
@@ -100,7 +103,9 @@ def retry(attempts: int = 3) -> Callable[[Callable[P, R]], Callable[P, R]]:
                     if attempt == attempts - 1:
                         raise
             raise RuntimeError("Unreachable")
+
         return wrapper
+
     return decorator
 ```
 
@@ -109,11 +114,13 @@ def retry(attempts: int = 3) -> Callable[[Callable[P, R]], Callable[P, R]]:
 ```python
 from typing import Protocol, runtime_checkable
 
+
 @runtime_checkable
 class Serializable(Protocol):
     """Protocol for serializable objects."""
+
     def to_dict(self) -> dict: ...
-    def from_dict(cls, data: dict) -> 'Serializable': ...
+    def from_dict(cls, data: dict) -> "Serializable": ...
 ```
 
 ### Context Manager
@@ -122,10 +129,12 @@ class Serializable(Protocol):
 from contextlib import contextmanager
 from typing import Iterator
 
+
 @contextmanager
 def timer(name: str) -> Iterator[None]:
     """Context manager to time code execution."""
     import time
+
     start = time.perf_counter()
     try:
         yield
@@ -139,10 +148,13 @@ def timer(name: str) -> Iterator[None]:
 ```python
 class ValidationError(Exception):
     """Base exception for validation errors."""
+
     pass
+
 
 class InvalidEmailError(ValidationError):
     """Raised when email format is invalid."""
+
     def __init__(self, email: str) -> None:
         self.email = email
         super().__init__(f"Invalid email: {email}")
@@ -154,6 +166,7 @@ class InvalidEmailError(ValidationError):
 
 ```python
 import pytest
+
 
 class TestUserService:
     def test_create_user_with_valid_data(self) -> None:
@@ -174,11 +187,14 @@ class TestUserService:
         with pytest.raises(InvalidEmailError, match="Invalid email"):
             service.create({"email": "invalid", "name": "Test"})
 
-    @pytest.mark.parametrize("email,expected", [
-        ("user@example.com", True),
-        ("invalid", False),
-        ("", False),
-    ])
+    @pytest.mark.parametrize(
+        "email,expected",
+        [
+            ("user@example.com", True),
+            ("invalid", False),
+            ("", False),
+        ],
+    )
     def test_email_validation(self, email: str, expected: bool) -> None:
         assert validate_email(email) == expected
 ```
@@ -202,6 +218,7 @@ def db_session():
 ```python
 from typing import Iterator
 
+
 def process_large_file(path: str) -> Iterator[dict]:
     """Process file without loading into memory."""
     with open(path) as f:
@@ -215,11 +232,12 @@ def process_large_file(path: str) -> Iterator[dict]:
 # Memory-efficient
 def squares(n: int) -> Iterator[int]:
     for i in range(n):
-        yield i ** 2
+        yield i**2
+
 
 # Instead of
 def squares_list(n: int) -> list[int]:
-    return [i ** 2 for i in range(n)]  # Allocates full list
+    return [i**2 for i in range(n)]  # Allocates full list
 ```
 
 ## Common Anti-Patterns
@@ -231,6 +249,7 @@ def squares_list(n: int) -> list[int]:
 def append(item, lst=[]):
     lst.append(item)
     return lst
+
 
 # ✅ Correct
 def append(item, lst: list | None = None):

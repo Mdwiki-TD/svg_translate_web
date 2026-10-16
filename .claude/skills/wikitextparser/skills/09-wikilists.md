@@ -80,8 +80,8 @@ parsed = wtp.parse("""
 ; Term : Definition
 """)
 
-parsed.get_lists()           # 3 WikiList objects
-parsed.get_lists(r'\*')      # only the bullet block
+parsed.get_lists()  # 3 WikiList objects
+parsed.get_lists(r"\*")  # only the bullet block
 ```
 
 The default pattern is `(r'\#', r'\*', '[:;]')` — note that `:` and `;` are
@@ -90,7 +90,7 @@ grouped together because they form a single definition list.
 ### 2. Items vs fullitems
 
 ```python
-wl = parsed.get_lists(r'\*')[0]
+wl = parsed.get_lists(r"\*")[0]
 wl.items
 # [' alpha', ' beta', ' gamma']    ← only top-level items, no `*` prefix
 
@@ -111,7 +111,7 @@ wl.sublists()
 wl.sublists(1)
 # only sub-lists belonging to item index 1
 
-wl.sublists(1, pattern=r'\#')
+wl.sublists(1, pattern=r"\#")
 # only the numbered sub-lists under item 1
 ```
 
@@ -121,11 +121,11 @@ prepended automatically — you don't repeat it.
 ### 4. Convert list types
 
 ```python
-wl = parsed.get_lists(r'\*')[0]
-wl.convert('#')
+wl = parsed.get_lists(r"\*")[0]
+wl.convert("#")
 # All `* item` become `# item` (in place)
 
-wl.convert(':')
+wl.convert(":")
 # Now they become definition entries (no term)
 ```
 
@@ -135,7 +135,7 @@ After `convert`, the list's `pattern` attribute is updated automatically.
 
 ```python
 parsed = wtp.parse(";Apple : red fruit\n;Banana : yellow fruit")
-wl = parsed.get_lists('[:;]')[0]
+wl = parsed.get_lists("[:;]")[0]
 wl.items
 # ['Apple ', ' red fruit', 'Banana ', ' yellow fruit']
 ```
@@ -155,10 +155,10 @@ parts as separate items.
 ### 6. Build a list directly
 
 ```python
-ol = wtp.WikiList("# step 1\n# step 2\n", r'\#')
-ol.items                # [' step 1', ' step 2']
-ol.convert(':')
-str(ol)                 # ': step 1\n: step 2\n'
+ol = wtp.WikiList("# step 1\n# step 2\n", r"\#")
+ol.items  # [' step 1', ' step 2']
+ol.convert(":")
+str(ol)  # ': step 1\n: step 2\n'
 ```
 
 This is useful when you have a fragment of wikitext that _is_ a list (no
@@ -167,7 +167,7 @@ surrounding article), and you want the WikiList API directly.
 ### 7. Multiple sub-list patterns at once
 
 ```python
-wl.sublists(pattern=(r'\#', r'\*'))   # all sub-lists of either type
+wl.sublists(pattern=(r"\#", r"\*"))  # all sub-lists of either type
 ```
 
 ## Edge cases & gotchas
@@ -197,7 +197,7 @@ wl.sublists(pattern=(r'\#', r'\*'))   # all sub-lists of either type
 ```python
 def all_bullets(parsed) -> list[str]:
     out = []
-    for wl in parsed.get_lists(r'\*'):
+    for wl in parsed.get_lists(r"\*"):
         out.extend(item.strip() for item in wl.items)
     return out
 ```
@@ -206,8 +206,8 @@ def all_bullets(parsed) -> list[str]:
 
 ```python
 def bullets_to_numbers(parsed):
-    for wl in parsed.get_lists(r'\*'):
-        wl.convert('#')
+    for wl in parsed.get_lists(r"\*"):
+        wl.convert("#")
 ```
 
 ### Recipe C: count by list type
@@ -215,9 +215,9 @@ def bullets_to_numbers(parsed):
 ```python
 def list_counts(parsed) -> dict[str, int]:
     return {
-        'bullet'    : sum(len(wl.items) for wl in parsed.get_lists(r'\*')),
-        'numbered'  : sum(len(wl.items) for wl in parsed.get_lists(r'\#')),
-        'definition': sum(len(wl.items) for wl in parsed.get_lists('[:;]')),
+        "bullet": sum(len(wl.items) for wl in parsed.get_lists(r"\*")),
+        "numbered": sum(len(wl.items) for wl in parsed.get_lists(r"\#")),
+        "definition": sum(len(wl.items) for wl in parsed.get_lists("[:;]")),
     }
 ```
 
@@ -226,7 +226,7 @@ def list_counts(parsed) -> dict[str, int]:
 ```python
 def def_pairs(parsed) -> list[tuple[str, str]]:
     pairs = []
-    for wl in parsed.get_lists('[:;]'):
+    for wl in parsed.get_lists("[:;]"):
         items = [i.strip() for i in wl.items]
         # pair odd→even after the leading `;` term
         for i in range(0, len(items) - 1, 2):

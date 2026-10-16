@@ -152,6 +152,7 @@ pip install pyright
 ```python
 from typing import Union
 
+
 def process(value: Union[str, int]) -> str:
     # Pyright narrows type based on isinstance
     if isinstance(value, str):
@@ -159,11 +160,14 @@ def process(value: Union[str, int]) -> str:
     else:
         return str(value)  # value is int here
 
+
 # Type guards
 from typing import TypeGuard
 
+
 def is_str_list(val: list[object]) -> TypeGuard[list[str]]:
     return all(isinstance(x, str) for x in val)
+
 
 def process_list(items: list[object]) -> None:
     if is_str_list(items):
@@ -176,15 +180,19 @@ def process_list(items: list[object]) -> None:
 ```python
 from typing import Protocol
 
+
 class Drawable(Protocol):
     def draw(self) -> None: ...
+
 
 class Circle:
     def draw(self) -> None:
         print("Drawing circle")
 
+
 def render(obj: Drawable) -> None:
     obj.draw()
+
 
 # Works with structural typing
 render(Circle())  # ✓ No explicit inheritance needed
@@ -195,19 +203,19 @@ render(Circle())  # ✓ No explicit inheritance needed
 ```python
 from typing import TypedDict, NotRequired
 
+
 class User(TypedDict):
     name: str
     age: int
     email: NotRequired[str]  # Optional in Python 3.11+
 
+
 def create_user(data: User) -> None:
     print(data["name"])  # ✓ Type-safe
     # print(data["missing"])  # ✗ Error
 
-user: User = {
-    "name": "Alice",
-    "age": 30
-}  # ✓ email is optional
+
+user: User = {"name": "Alice", "age": 30}  # ✓ email is optional
 ```
 
 ### Literal Types
@@ -217,10 +225,11 @@ from typing import Literal
 
 Mode = Literal["read", "write", "append"]
 
-def open_file(mode: Mode) -> None:
-    ...
 
-open_file("read")    # ✓
+def open_file(mode: Mode) -> None: ...
+
+
+open_file("read")  # ✓
 open_file("delete")  # ✗ Error
 ```
 
@@ -234,11 +243,14 @@ from typing import TypeVar, Generic, Sequence
 T_co = TypeVar("T_co", covariant=True)
 T_contra = TypeVar("T_contra", contravariant=True)
 
+
 class Reader(Generic[T_co]):
     def read(self) -> T_co: ...
 
+
 class Writer(Generic[T_contra]):
     def write(self, item: T_contra) -> None: ...
+
 
 # Covariance: Reader[Dog] is subtype of Reader[Animal]
 # Contravariance: Writer[Animal] is subtype of Writer[Dog]
@@ -252,15 +264,19 @@ from typing import ParamSpec, TypeVar, Callable
 P = ParamSpec("P")
 R = TypeVar("R")
 
+
 def add_logging(f: Callable[P, R]) -> Callable[P, R]:
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         print(f"Calling {f.__name__}")
         return f(*args, **kwargs)
+
     return wrapper
+
 
 @add_logging
 def greet(name: str, age: int) -> str:
     return f"Hello {name}, {age}"
+
 
 # Type-safe: greet("Alice", 30)
 ```
@@ -276,6 +292,7 @@ Username: TypeAlias = str
 
 # Generic alias
 from collections.abc import Sequence
+
 Vector: TypeAlias = Sequence[float]
 
 # Complex alias
@@ -442,8 +459,10 @@ pyright --watch src/
 ```python
 from typing import Optional
 
+
 def get_user(user_id: int) -> Optional[str]:
     return "Alice" if user_id == 1 else None
+
 
 # Before pyright 1.1.200
 user = get_user(1)
@@ -461,6 +480,7 @@ if user:  # Narrows to str
 ```python
 from typing import Union
 
+
 def process(value: Union[str, list[str]]) -> str:
     if isinstance(value, list):
         return ", ".join(value)  # value is list[str]
@@ -472,16 +492,20 @@ def process(value: Union[str, list[str]]) -> str:
 ```python
 from typing import overload, Literal
 
+
 @overload
 def open_file(path: str, mode: Literal["r"]) -> str: ...
 
+
 @overload
 def open_file(path: str, mode: Literal["rb"]) -> bytes: ...
+
 
 def open_file(path: str, mode: str) -> str | bytes:
     if mode == "rb":
         return b"binary data"
     return "text data"
+
 
 # Type-safe usage
 text: str = open_file("file.txt", "r")
@@ -493,8 +517,10 @@ data: bytes = open_file("file.bin", "rb")
 ```python
 from typing import Never
 
+
 def assert_never(value: Never) -> Never:
     raise AssertionError(f"Unexpected value: {value}")
+
 
 def handle_status(status: Literal["success", "error"]) -> None:
     if status == "success":

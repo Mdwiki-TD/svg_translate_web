@@ -368,9 +368,9 @@ class TestStepAddTemplate:
         self, mock_add_svglanguages_services, mock_add_svg_worker: AddSvgSVGLanguagesTemplate
     ):
         """Test successful addition of template to text."""
-        mock_add_svglanguages_services["add_template_to_text"].return_value = (
-            "original text\n*{{SVGLanguages|test.svg}}"
-        )
+        mock_add_svglanguages_services[
+            "add_template_to_text"
+        ].return_value = "original text\n*{{SVGLanguages|test.svg}}"
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._text = "original text"

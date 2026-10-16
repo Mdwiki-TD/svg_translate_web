@@ -10,7 +10,6 @@ from src.main_app.public.shared_jobs_routes import SharedJobRoutes
 
 
 class TestCanManageJob:
-
     @pytest.fixture(autouse=True)
     def setup(self):
         """Setup test."""

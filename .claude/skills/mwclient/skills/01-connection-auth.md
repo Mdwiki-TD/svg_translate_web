@@ -43,7 +43,7 @@ When the user needs to connect to a MediaWiki site, authenticate, configure sess
 ```python
 import mwclient
 
-site = mwclient.Site('en.wikipedia.org')
+site = mwclient.Site("en.wikipedia.org")
 ```
 
 The host parameter takes hostname only — no scheme, no path. The library constructs the URL as `{scheme}://{host}{path}api{ext}` internally.
@@ -52,25 +52,25 @@ The host parameter takes hostname only — no scheme, no path. The library const
 
 ```python
 # Wiki at /wiki/ instead of /w/
-site = mwclient.Site('mywiki.example.org', path='/wiki/')
+site = mwclient.Site("mywiki.example.org", path="/wiki/")
 
 # Custom extension
-site = mwclient.Site('mywiki.example.org', ext='.php5')
+site = mwclient.Site("mywiki.example.org", ext=".php5")
 
 # HTTP instead of HTTPS
-site = mwclient.Site('mywiki.example.org', scheme='http')
+site = mwclient.Site("mywiki.example.org", scheme="http")
 ```
 
 ### Connection options
 
 ```python
 site = mwclient.Site(
-    'en.wikipedia.org',
-    max_retries=10,           # Default 25
-    retry_timeout=15,         # Default 30 seconds per level
-    max_lag=5,                # Default 3 seconds
-    compress=True,            # Request gzip (default)
-    clients_useragent='MyBot/1.0 (contact@example.org)',
+    "en.wikipedia.org",
+    max_retries=10,  # Default 25
+    retry_timeout=15,  # Default 30 seconds per level
+    max_lag=5,  # Default 3 seconds
+    compress=True,  # Request gzip (default)
+    clients_useragent="MyBot/1.0 (contact@example.org)",
 )
 ```
 
@@ -80,10 +80,10 @@ site = mwclient.Site(
 import requests
 
 session = requests.Session()
-session.proxies = {'https': 'http://proxy:8080'}
-session.verify = '/path/to/ca-bundle.crt'
+session.proxies = {"https": "http://proxy:8080"}
+session.verify = "/path/to/ca-bundle.crt"
 
-site = mwclient.Site('en.wikipedia.org', pool=session)
+site = mwclient.Site("en.wikipedia.org", pool=session)
 ```
 
 ## Authentication methods
@@ -91,8 +91,8 @@ site = mwclient.Site('en.wikipedia.org', pool=session)
 ### Bot passwords (recommended for bots)
 
 ```python
-site = mwclient.Site('en.wikipedia.org')
-site.login('MyBot@BotPasswordName', 'actual_password_here')
+site = mwclient.Site("en.wikipedia.org")
+site.login("MyBot@BotPasswordName", "actual_password_here")
 ```
 
 Bot passwords are created in Special:BotPasswords on the wiki. The format is `Username@BotName`. After login, `site.logged_in` is `True` and `site.username` reflects the actual username.
@@ -107,11 +107,11 @@ The `login()` method handles:
 
 ```python
 site = mwclient.Site(
-    'en.wikipedia.org',
-    consumer_token='your_consumer_token',
-    consumer_secret='your_consumer_secret',
-    access_token='your_access_token',
-    access_secret='your_access_secret',
+    "en.wikipedia.org",
+    consumer_token="your_consumer_token",
+    consumer_secret="your_consumer_secret",
+    access_token="your_access_token",
+    access_secret="your_access_secret",
 )
 ```
 
@@ -120,8 +120,8 @@ OAuth credentials are "owner-only consumer" tokens — no redirect flow needed. 
 ### clientlogin (MW 1.27+ interactive login)
 
 ```python
-site = mwclient.Site('en.wikipedia.org')
-result = site.clientlogin(username='MyUser', password='MyPassword')
+site = mwclient.Site("en.wikipedia.org")
+result = site.clientlogin(username="MyUser", password="MyPassword")
 # Returns True on PASS
 # Raises LoginError on FAIL
 # Returns dict on UI/REDIRECT (multi-step flow)
@@ -131,8 +131,8 @@ result = site.clientlogin(username='MyUser', password='MyPassword')
 
 ```python
 site = mwclient.Site(
-    'private.wiki.org',
-    httpauth=('username', 'password'),
+    "private.wiki.org",
+    httpauth=("username", "password"),
 )
 ```
 
@@ -142,8 +142,8 @@ site = mwclient.Site(
 from requests.auth import HTTPDigestAuth
 
 site = mwclient.Site(
-    'wiki.org',
-    httpauth=HTTPDigestAuth('user', 'pass'),
+    "wiki.org",
+    httpauth=HTTPDigestAuth("user", "pass"),
 )
 ```
 
@@ -151,10 +151,10 @@ site = mwclient.Site(
 
 ```python
 # Single PEM file
-site = mwclient.Site('wiki.org', client_certificate='client.pem')
+site = mwclient.Site("wiki.org", client_certificate="client.pem")
 
 # Separate cert and key
-site = mwclient.Site('wiki.org', client_certificate=('client.crt', 'client.key'))
+site = mwclient.Site("wiki.org", client_certificate=("client.crt", "client.key"))
 ```
 
 ## Private wikis
@@ -162,10 +162,10 @@ site = mwclient.Site('wiki.org', client_certificate=('client.crt', 'client.key')
 Private wikis deny API access to unauthenticated users. Use `do_init=False` to defer the initial API call, authenticate, then proceed:
 
 ```python
-site = mwclient.Site('private.wiki.org', do_init=False)
-site.login('admin', 'secret')
+site = mwclient.Site("private.wiki.org", do_init=False)
+site.login("admin", "secret")
 # site_init() runs automatically inside login()
-page = site.pages['Main Page']
+page = site.pages["Main Page"]
 print(page.text())
 ```
 
@@ -177,7 +177,7 @@ Tokens are cached in `site.tokens` and cleared on every `site_init()` call:
 
 ```python
 # Force-refresh a stale token
-token = site.get_token('csrf', force=True)
+token = site.get_token("csrf", force=True)
 ```
 
 Token types: `'csrf'` (most operations), `'login'` (authentication), `'email'` (sending email). For MW >= 1.24, most token types are remapped to `'csrf'` automatically.

@@ -68,7 +68,7 @@ MwClientError (RuntimeError)
 from mwclient import errors
 
 try:
-    page.save('New content', summary='Editing')
+    page.save("New content", summary="Editing")
 except errors.ProtectedPageError:
     print(f"Page {page.name} is protected")
 except errors.EditError as e:
@@ -81,7 +81,7 @@ except errors.APIError as e:
 
 ```python
 try:
-    site.login('Bot', 'wrong_password')
+    site.login("Bot", "wrong_password")
 except errors.LoginError as e:
     print(f"Login failed: {e.code} — {e.info}")
 except errors.OAuthAuthorizationError:
@@ -92,8 +92,8 @@ except errors.OAuthAuthorizationError:
 
 ```python
 try:
-    with open('image.jpg', 'rb') as f:
-        site.upload(f, 'Image.jpg', description='Photo')
+    with open("image.jpg", "rb") as f:
+        site.upload(f, "Image.jpg", description="Photo")
 except errors.FileExists:
     print("File already exists")
 except errors.InsufficientPermission:
@@ -104,7 +104,7 @@ except errors.InsufficientPermission:
 
 ```python
 try:
-    page.save('content', summary='edit')
+    page.save("content", summary="edit")
 except errors.MwClientError as e:
     print(f"mwclient error: {type(e).__name__}: {e}")
 ```
@@ -114,18 +114,18 @@ except errors.MwClientError as e:
 Edit conflicts happen when someone edits a page between your `text()` and `save()` calls:
 
 ```python
-page = site.pages['Some Page']
+page = site.pages["Some Page"]
 old_text = page.text()  # Sets basetimestamp for conflict detection
 
-new_text = old_text.replace('old value', 'new value')
+new_text = old_text.replace("old value", "new value")
 try:
-    page.save(new_text, summary='Updating value')
+    page.save(new_text, summary="Updating value")
 except errors.EditError:
     # Conflict — re-read and retry
     page = site.pages[page.name]  # Fresh page object
     old_text = page.text()
-    new_text = old_text.replace('old value', 'new value')
-    page.save(new_text, summary='Updating value (retry after conflict)')
+    new_text = old_text.replace("old value", "new value")
+    page.save(new_text, summary="Updating value (retry after conflict)")
 ```
 
 ## Bad token recovery
@@ -146,15 +146,15 @@ except errors.APIError as e:
 ## Blocked user handling
 
 ```python
-site = mwclient.Site('en.wikipedia.org')
-site.login('MyBot', 'password')
+site = mwclient.Site("en.wikipedia.org")
+site.login("MyBot", "password")
 
 if site.blocked:
     print(f"Bot is blocked — cannot edit")
     # site.blocked contains block info or True
 else:
-    page = site.pages['Some Page']
-    page.save('content', summary='edit')
+    page = site.pages["Some Page"]
+    page.save("content", summary="edit")
 ```
 
 ## Retry mechanism
@@ -181,9 +181,9 @@ Both use linear backoff: `sleep = retry_timeout * (retries - 1)`.
 
 ```python
 site = mwclient.Site(
-    'en.wikipedia.org',
-    max_retries=10,         # Default 25
-    retry_timeout=15,       # Default 30 seconds per level
+    "en.wikipedia.org",
+    max_retries=10,  # Default 25
+    retry_timeout=15,  # Default 30 seconds per level
 )
 ```
 
@@ -193,7 +193,8 @@ site = mwclient.Site(
 def log_retries(sleeper, retries, args):
     print(f"Retry {retries}/{sleeper.max_retries} — sleeping {sleeper.retry_timeout * retries}s")
 
-site = mwclient.Site('en.wikipedia.org', wait_callback=log_retries)
+
+site = mwclient.Site("en.wikipedia.org", wait_callback=log_retries)
 ```
 
 The callback is called before each sleep. Raise an exception inside it to cancel retries.
@@ -202,7 +203,7 @@ The callback is called before each sleep. Raise an exception inside it to cancel
 
 ```python
 try:
-    page.save('content', summary='edit')
+    page.save("content", summary="edit")
 except errors.MaximumRetriesExceeded:
     print("Server too busy — try again later")
 ```
@@ -212,20 +213,20 @@ except errors.MaximumRetriesExceeded:
 ### Pre-flight permission check
 
 ```python
-page = site.pages['Protected Page']
-if not page.can('edit'):
+page = site.pages["Protected Page"]
+if not page.can("edit"):
     print(f"Cannot edit — protection level too high")
     print(f"Page protection: {page.protection}")
 else:
-    page.save('content', summary='edit')
+    page.save("content", summary="edit")
 ```
 
 ### Check site-level permissions
 
 ```python
-if 'upload' in site.rights:
+if "upload" in site.rights:
     print("Can upload files")
-if 'delete' in site.rights:
+if "delete" in site.rights:
     print("Can delete pages")
 ```
 
@@ -234,7 +235,7 @@ if 'delete' in site.rights:
 ### Skip inaccessible pages
 
 ```python
-for page in site.allpages(prefix='Protected/', max_items=100):
+for page in site.allpages(prefix="Protected/", max_items=100):
     try:
         text = page.text()
         # Process text
@@ -250,10 +251,10 @@ import time
 
 for attempt in range(3):
     try:
-        page.save('content', summary='edit')
+        page.save("content", summary="edit")
         break
     except errors.APIError as e:
-        if e.code in ('ratelimited', 'actionthrottledtext'):
+        if e.code in ("ratelimited", "actionthrottledtext"):
             time.sleep(30)
             continue
         raise
@@ -262,13 +263,13 @@ for attempt in range(3):
 ### Handle missing pages gracefully
 
 ```python
-page = site.pages['Maybe Exists']
+page = site.pages["Maybe Exists"]
 text = page.text()  # Returns '' for non-existent pages, no exception
 if page.exists:
     process(text)
 else:
     print(f"Page does not exist — creating")
-    page.save('Initial content', summary='Creating page')
+    page.save("Initial content", summary="Creating page")
 ```
 
 ## Edge cases and gotchas

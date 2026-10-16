@@ -111,7 +111,6 @@ class FilesProcessedItem:
 
 @dataclass
 class CopySvgLangsWorkerObject(WorkerMapping):
-
     summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
     title: str | None = None
     main_title: str | None = None

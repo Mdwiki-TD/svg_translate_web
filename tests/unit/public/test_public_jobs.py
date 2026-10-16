@@ -173,7 +173,6 @@ class TestSetup:
 
 
 class TestCancelJob(TestSetup):
-
     def test_not_logged_in(self, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.get_current_user.return_value = None
         result = self.service.cancel_job_handler(1, "test_job")

@@ -48,7 +48,7 @@ A `Page` object represents a single wiki page. It's obtained from `site.pages['T
 ### Basic read
 
 ```python
-page = site.pages['Python (programming language)']
+page = site.pages["Python (programming language)"]
 if page.exists:
     text = page.text()
     print(text[:500])
@@ -59,8 +59,8 @@ if page.exists:
 ### Read a specific section
 
 ```python
-text = page.text(section=2)        # By section number
-text = page.text(section='History')  # By section heading
+text = page.text(section=2)  # By section number
+text = page.text(section="History")  # By section heading
 ```
 
 ### Expand templates
@@ -72,7 +72,7 @@ text = page.text(expandtemplates=True)
 ### Content slots (MW >= 1.32)
 
 ```python
-text = page.text(slot='main')  # Default
+text = page.text(slot="main")  # Default
 ```
 
 ### Force fresh read
@@ -87,6 +87,7 @@ The text cache is keyed by `(section, expandtemplates)` and cleared automaticall
 
 ```python
 import mwclient.page
+
 page = mwclient.page.Page(site, 12345)
 print(page.name, page.text()[:100])
 ```
@@ -96,18 +97,18 @@ print(page.name, page.text()[:100])
 After construction (or first API interaction), a Page has these attributes:
 
 ```python
-page.name             # Full title, e.g. "Talk:Foo"
-page.page_title       # Title without namespace prefix
-page.namespace        # Namespace number (0=main, 1=talk, etc.)
-page.exists           # bool
-page.pageid           # int (0 if not exists)
-page.revision         # dict with current revision info
-page.length           # Size in bytes
-page.touched          # Last touched timestamp
-page.protection       # list of protection settings
-page.redirect         # bool
-page.contentmodel     # e.g. "wikitext"
-page.pagelanguage     # Language code
+page.name  # Full title, e.g. "Talk:Foo"
+page.page_title  # Title without namespace prefix
+page.namespace  # Namespace number (0=main, 1=talk, etc.)
+page.exists  # bool
+page.pageid  # int (0 if not exists)
+page.revision  # dict with current revision info
+page.length  # Size in bytes
+page.touched  # Last touched timestamp
+page.protection  # list of protection settings
+page.redirect  # bool
+page.contentmodel  # e.g. "wikitext"
+page.pagelanguage  # Language code
 ```
 
 ## Editing pages
@@ -115,8 +116,8 @@ page.pagelanguage     # Language code
 ### Full page replacement
 
 ```python
-page = site.pages['User:MyBot/Sandbox']
-page.save('New content here', summary='Replaced content')
+page = site.pages["User:MyBot/Sandbox"]
+page.save("New content here", summary="Replaced content")
 ```
 
 `save()` is an alias for `edit()`. Both do the same thing.
@@ -124,13 +125,13 @@ page.save('New content here', summary='Replaced content')
 ### Edit a section
 
 ```python
-page.edit('New section content', summary='Updating section', section='2')
+page.edit("New section content", summary="Updating section", section="2")
 ```
 
 ### Append text
 
 ```python
-page.append('\n* New list item', summary='Adding item')
+page.append("\n* New list item", summary="Adding item")
 ```
 
 Uses the `appendtext` API parameter — no need to read the page first.
@@ -138,7 +139,7 @@ Uses the `appendtext` API parameter — no need to read the page first.
 ### Prepend text
 
 ```python
-page.prepend('{{Notice}}\n', summary='Adding notice')
+page.prepend("{{Notice}}\n", summary="Adding notice")
 ```
 
 Uses the `prependtext` API parameter.
@@ -147,10 +148,10 @@ Uses the `prependtext` API parameter.
 
 ```python
 page.save(
-    'content',
-    summary='edit summary',
-    minor=True,     # Mark as minor edit
-    bot=True,       # Mark as bot edit (default: True)
+    "content",
+    summary="edit summary",
+    minor=True,  # Mark as minor edit
+    bot=True,  # Mark as bot edit (default: True)
 )
 ```
 
@@ -159,11 +160,13 @@ page.save(
 Extra `**kwargs` are passed directly to the API:
 
 ```python
-page.save('content', summary='edit',
-    recreate=True,       # Recreate if previously deleted
-    createonly=False,    # Don't fail if page exists
-    nocreate=False,      # Don't fail if page doesn't exist
-    watchlist='nochange',
+page.save(
+    "content",
+    summary="edit",
+    recreate=True,  # Recreate if previously deleted
+    createonly=False,  # Don't fail if page exists
+    nocreate=False,  # Don't fail if page doesn't exist
+    watchlist="nochange",
 )
 ```
 
@@ -177,12 +180,12 @@ The library automatically sends two timestamps to detect edit conflicts:
 If someone edits the page between your `text()` and `save()` calls, the API returns an `editconflict` error and mwclient raises `EditError`.
 
 ```python
-page = site.pages['Some Page']
+page = site.pages["Some Page"]
 old_text = page.text()  # Sets basetimestamp
 
-new_text = old_text.replace('old', 'new')
+new_text = old_text.replace("old", "new")
 try:
-    page.save(new_text, summary='Updating')
+    page.save(new_text, summary="Updating")
 except mwclient.errors.EditError:
     print("Edit conflict — someone else edited this page")
 ```
@@ -192,9 +195,9 @@ except mwclient.errors.EditError:
 ### Move a page
 
 ```python
-page.move('New Title', reason='Renaming')
-page.move('New Title', reason='Renaming', no_redirect=True)
-page.move('New Title', reason='Renaming', move_talk=False, move_subpages=True)
+page.move("New Title", reason="Renaming")
+page.move("New Title", reason="Renaming", no_redirect=True)
+page.move("New Title", reason="Renaming", move_talk=False, move_subpages=True)
 ```
 
 Checks `can('move')` first. Raises `InsufficientPermission` if not allowed.
@@ -202,8 +205,8 @@ Checks `can('move')` first. Raises `InsufficientPermission` if not allowed.
 ### Delete a page
 
 ```python
-page.delete(reason='Removing spam')
-page.delete(reason='Cleanup', watch=True)
+page.delete(reason="Removing spam")
+page.delete(reason="Cleanup", watch=True)
 ```
 
 Checks `can('delete')` first. Sets `page.exists = False` on success.
@@ -227,8 +230,8 @@ Appends empty string. Useful for updating cached data (e.g., Semantic MediaWiki 
 ## Permissions
 
 ```python
-if page.can('edit'):
-    page.save('content', summary='edit')
+if page.can("edit"):
+    page.save("content", summary="edit")
 else:
     print(f"Page is protected at a level you can't edit")
 ```
@@ -238,8 +241,8 @@ else:
 ## Redirects
 
 ```python
-page = site.pages['Some Redirect']
-target = page.redirects_to()      # Returns target Page or None
+page = site.pages["Some Redirect"]
+target = page.redirects_to()  # Returns target Page or None
 target = page.resolve_redirect()  # Follows chain, returns self if not redirect
 ```
 

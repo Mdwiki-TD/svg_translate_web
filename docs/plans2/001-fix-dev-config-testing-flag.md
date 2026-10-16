@@ -39,7 +39,7 @@ class DevelopmentConfig(Config):
     """Development configuration with debugging enabled."""
 
     DEBUG: bool = True
-    TESTING: bool = True          # <-- THIS IS THE PROBLEM
+    TESTING: bool = True  # <-- THIS IS THE PROBLEM
     SQLALCHEMY_ECHO: bool = False
 
     SESSION_COOKIE_SECURE: bool = True

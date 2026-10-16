@@ -40,9 +40,9 @@ page = mwclient.page.Page(site, name, info=None, extra_properties=None)
 **Via site.pages (typical):**
 
 ```python
-page = site.pages['Main Page']
-image = site.images['Example.jpg']      # namespace 6
-category = site.categories['Python']     # namespace 14
+page = site.pages["Main Page"]
+image = site.images["Example.jpg"]  # namespace 6
+category = site.categories["Python"]  # namespace 14
 ```
 
 ## Page Properties
@@ -133,8 +133,8 @@ page.resolve_redirect() -> Page         # Returns target or self
 Example:
 
 ```python
-page = site.pages['WP:AN']              # might be a redirect
-canonical = page.resolve_redirect()     # returns target or page itself
+page = site.pages["WP:AN"]  # might be a redirect
+canonical = page.resolve_redirect()  # returns target or page itself
 text = canonical.text()
 ```
 
@@ -163,17 +163,16 @@ text = canonical.text()
 Example:
 
 ```python
-page.edit('New page content', summary='Updated content')
-page.append('\nNew line', summary='Added line')
-page.prepend('Header\n', summary='Added header')
+page.edit("New page content", summary="Updated content")
+page.append("\nNew line", summary="Added line")
+page.prepend("Header\n", summary="Added header")
 ```
 
 ### Managing Pages
 
 ```python
-page.move(new_title, reason='', move_talk=True, no_redirect=False,
-          move_subpages=False, ignore_warnings=False)
-page.delete(reason='', watch=False, unwatch=False, oldimage=None)
+page.move(new_title, reason="", move_talk=True, no_redirect=False, move_subpages=False, ignore_warnings=False)
+page.delete(reason="", watch=False, unwatch=False, oldimage=None)
 page.purge()  # Forces MediaWiki to re-render the page
 ```
 
@@ -209,7 +208,7 @@ for cat in page.categories(generator=False):
 
 # Get interwiki links
 for prefix, title in page.iwlinks():
-    print(f'{prefix}:{title}')
+    print(f"{prefix}:{title}")
 ```
 
 ## Permission Checking
@@ -221,11 +220,11 @@ page.can(action) -> bool
 Checks whether the current user has permission to perform an action on the page.
 
 ```python
-if page.can('edit'):
-    page.edit('New content')
-if page.can('move'):
-    page.move('New Title')
-if page.can('delete'):
+if page.can("edit"):
+    page.edit("New content")
+if page.can("move"):
+    page.move("New Title")
+if page.can("delete"):
     page.delete()
 ```
 
@@ -255,24 +254,24 @@ Delegates to `site.get_token()`. Used internally for edit, move, and delete oper
 ### Read, Modify, Save
 
 ```python
-page = site.pages['My Page']
+page = site.pages["My Page"]
 text = page.text()
-new_text = text.replace('old', 'new')
-page.edit(new_text, summary='Replaced old with new')
+new_text = text.replace("old", "new")
+page.edit(new_text, summary="Replaced old with new")
 ```
 
 ### Check if page exists before editing
 
 ```python
-page = site.pages['New Page']
+page = site.pages["New Page"]
 if not page.exists:
-    page.edit('Initial content', summary='Created page')
+    page.edit("Initial content", summary="Created page")
 ```
 
 ### Handle redirects
 
 ```python
-page = site.pages['Shortcut']
+page = site.pages["Shortcut"]
 if page.redirect:
     page = page.resolve_redirect()
 text = page.text()
@@ -281,13 +280,13 @@ text = page.text()
 ### Iterate backlinks with filter
 
 ```python
-for p in page.backlinks(namespace=0, filterredir='nonredirects'):
+for p in page.backlinks(namespace=0, filterredir="nonredirects"):
     print(p.name)
 ```
 
 ### Get all revisions by a user
 
 ```python
-for rev in page.revisions(user='SomeUser', dir='older'):
-    print(rev['timestamp'], rev['comment'])
+for rev in page.revisions(user="SomeUser", dir="older"):
+    print(rev["timestamp"], rev["comment"])
 ```

@@ -16,7 +16,7 @@ jobs:
 
             - name: Test workspace
               run: |
-                  echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE" # /home/runner/work/svg_translate_web/svg_translate_web # ls -al
+                  echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
 
             - name: Copy files to server
               uses: appleboy/scp-action@v1.0.0
@@ -39,18 +39,12 @@ jobs:
                   script_stop: true
                   key: ${{ secrets.KEY }}
                   script: |
-                      become copy-svg-langs bash -lc "
-                        rm -rf ~/tmp_repo &&
-                        cp -r /mnt/nfs/labstore-secondary-tools-home/${{ secrets.USERNAME }}/svg_tr_repo_tmp ~/tmp_repo &&
-                        cp -r ~/tmp_repo/toolforge_tool/shs/* ~/shs &&
-                        sed -i 's/\r$//' ~/shs/*.sh &&
-                        chmod +x ~/shs/*.sh &&
-                        toolforge-jobs run update-repo --image python3.13 --command ~/shs/update.sh --wait &&
-                        rm -rf ~/tmp_repo &&
-                        toolforge-jobs run pipup --image python3.13 --command ~/shs/pip.sh --wait &&
-                        toolforge-webservice python3.13 status &&
-                        toolforge-webservice python3.13 stop &&
-                        toolforge-webservice python3.13 start &&
-                        echo ''
-                      "
-                      rm -rf svg_tr_repo_tmp
+                      # Define the full source path of the uploaded repository
+                      FULL_PATH="/home/${{ secrets.USERNAME }}/svg_tr_repo_tmp"
+
+                      # Execute updater script
+                      chmod +x "$FULL_PATH/toolforge/deploy.sh"
+                      bash "$FULL_PATH/toolforge/deploy.sh" "$FULL_PATH"
+
+                      echo ">>> Cleaning up temporary repository..."
+                      rm -rf "$FULL_PATH"

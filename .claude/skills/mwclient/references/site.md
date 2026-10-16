@@ -15,35 +15,36 @@ This reference covers the `Site` class in mwclient, the central class for intera
 
 ```python
 import mwclient
-site = mwclient.Site('en.wikipedia.org')
+
+site = mwclient.Site("en.wikipedia.org")
 ```
 
 ## Constructor
 
 ```python
 Site(
-    host,                          # Required: hostname without scheme
-    path='/w/',                    # Script path (must end with /)
-    ext='.php',                    # File extension for API scripts
-    pool=None,                     # Pre-existing requests.Session
-    retry_timeout=30,              # Seconds to sleep per past retry
-    max_retries=25,                # Max retry attempts
-    wait_callback=None,            # Called on each retry
-    clients_useragent=None,        # Prepended to user agent
-    max_lag=3,                     # maxlag for index.php calls
-    compress=True,                 # Request gzip compression
-    force_login=True,              # Require auth before editing
-    do_init=True,                  # Run site_init() during construction
-    httpauth=None,                 # HTTP Basic auth tuple or AuthBase
-    connection_options=None,       # Extra kwargs for requests
-    consumer_token=None,           # OAuth1 consumer key
-    consumer_secret=None,          # OAuth1 consumer secret
-    access_token=None,             # OAuth1 access token
-    access_secret=None,            # OAuth1 access secret
-    client_certificate=None,       # Path to PEM or (cert, key) tuple
-    custom_headers=None,           # Additional headers
-    scheme='https',                # 'http' or 'https'
-    reqs=None                      # Deprecated: use connection_options
+    host,  # Required: hostname without scheme
+    path="/w/",  # Script path (must end with /)
+    ext=".php",  # File extension for API scripts
+    pool=None,  # Pre-existing requests.Session
+    retry_timeout=30,  # Seconds to sleep per past retry
+    max_retries=25,  # Max retry attempts
+    wait_callback=None,  # Called on each retry
+    clients_useragent=None,  # Prepended to user agent
+    max_lag=3,  # maxlag for index.php calls
+    compress=True,  # Request gzip compression
+    force_login=True,  # Require auth before editing
+    do_init=True,  # Run site_init() during construction
+    httpauth=None,  # HTTP Basic auth tuple or AuthBase
+    connection_options=None,  # Extra kwargs for requests
+    consumer_token=None,  # OAuth1 consumer key
+    consumer_secret=None,  # OAuth1 consumer secret
+    access_token=None,  # OAuth1 access token
+    access_secret=None,  # OAuth1 access secret
+    client_certificate=None,  # Path to PEM or (cert, key) tuple
+    custom_headers=None,  # Additional headers
+    scheme="https",  # 'http' or 'https'
+    reqs=None,  # Deprecated: use connection_options
 )
 ```
 
@@ -80,42 +81,42 @@ After `site_init()` completes:
 
 ```python
 site = mwclient.Site(
-    'en.wikipedia.org',
-    consumer_token='my_consumer_token',
-    consumer_secret='my_consumer_secret',
-    access_token='my_access_token',
-    access_secret='my_access_secret'
+    "en.wikipedia.org",
+    consumer_token="my_consumer_token",
+    consumer_secret="my_consumer_secret",
+    access_token="my_access_token",
+    access_secret="my_access_secret",
 )
 ```
 
 ### HTTP Basic Auth
 
 ```python
-site = mwclient.Site('mywiki.example.org', httpauth=('user', 'pass'))
+site = mwclient.Site("mywiki.example.org", httpauth=("user", "pass"))
 ```
 
 ### clientlogin (Recommended for interactive)
 
 ```python
-site = mwclient.Site('mywiki.example.org')
-site.clientlogin(username='myuser', password='secret')
+site = mwclient.Site("mywiki.example.org")
+site.clientlogin(username="myuser", password="secret")
 ```
 
 ### Legacy login (for bot passwords)
 
 ```python
-site = mwclient.Site('mywiki.example.org')
-site.login(username='myuser', password='botpassword')
+site = mwclient.Site("mywiki.example.org")
+site.login(username="myuser", password="botpassword")
 ```
 
 ### SSL Client Certificate
 
 ```python
 # Single combined PEM
-site = mwclient.Site('mywiki.example.org', client_certificate='/path/to/client.pem')
+site = mwclient.Site("mywiki.example.org", client_certificate="/path/to/client.pem")
 
 # Separate cert and key
-site = mwclient.Site('mywiki.example.org', client_certificate=('client.pem', 'key.pem'))
+site = mwclient.Site("mywiki.example.org", client_certificate=("client.pem", "key.pem"))
 ```
 
 ## Core API Methods
@@ -125,7 +126,7 @@ site = mwclient.Site('mywiki.example.org', client_certificate=('client.pem', 'ke
 Shorthand for `api(action, 'GET', ...)`. Use for idempotent read operations.
 
 ```python
-result = site.get('query', meta='siteinfo')
+result = site.get("query", meta="siteinfo")
 ```
 
 ### site.post(action, \*\*kwargs)
@@ -133,7 +134,7 @@ result = site.get('query', meta='siteinfo')
 Shorthand for `api(action, 'POST', ...)`. Use for write operations.
 
 ```python
-result = site.post('edit', title='Page', text='Content', token=token)
+result = site.post("edit", title="Page", text="Content", token=token)
 ```
 
 ### site.api(action, http_method='POST', \*\*kwargs)
@@ -141,7 +142,7 @@ result = site.post('edit', title='Page', text='Content', token=token)
 The primary API call method.
 
 ```python
-result = site.api('query', http_method='GET', meta='userinfo')
+result = site.api("query", http_method="GET", meta="userinfo")
 ```
 
 ## Site-Level Listing Methods
@@ -151,7 +152,7 @@ result = site.api('query', http_method='GET', meta='userinfo')
 Iterate over all pages on the wiki.
 
 ```python
-for page in site.allpages(namespace=0, filterredir='nonredirects'):
+for page in site.allpages(namespace=0, filterredir="nonredirects"):
     print(page.name)
 ```
 
@@ -160,7 +161,7 @@ for page in site.allpages(namespace=0, filterredir='nonredirects'):
 Search the wiki.
 
 ```python
-for page in site.search('python', namespace=0):
+for page in site.search("python", namespace=0):
     print(page.name)
 ```
 
@@ -170,7 +171,7 @@ Get recent changes.
 
 ```python
 for change in site.recentchanges(namespace=0, limit=50):
-    print(change['title'], change['timestamp'])
+    print(change["title"], change["timestamp"])
 ```
 
 ### usercontributions()
@@ -178,8 +179,8 @@ for change in site.recentchanges(namespace=0, limit=50):
 Get contributions by a user.
 
 ```python
-for contrib in site.usercontributions('Username'):
-    print(contrib['title'])
+for contrib in site.usercontributions("Username"):
+    print(contrib["title"])
 ```
 
 ### logevents()
@@ -187,8 +188,8 @@ for contrib in site.usercontributions('Username'):
 Get log events.
 
 ```python
-for log in site.logevents(logtype='upload'):
-    print(log['title'])
+for log in site.logevents(logtype="upload"):
+    print(log["title"])
 ```
 
 ### allimages(), allcategories(), allusers()
@@ -202,9 +203,9 @@ Similar patterns for other list types.
 Retrieves and caches API tokens.
 
 ```python
-csrf_token = site.get_token('csrf')      # For edits
-login_token = site.get_token('login')    # For login
-email_token = site.get_token('email')    # For email
+csrf_token = site.get_token("csrf")  # For edits
+login_token = site.get_token("login")  # For login
+email_token = site.get_token("email")  # For email
 ```
 
 Tokens are cached in `site.tokens` and cleared on `site_init()`.
@@ -228,9 +229,9 @@ if site.require(1, 35, raise_error=False):
 Access any page by title:
 
 ```python
-page = site.pages['Main Page']
-page = site.pages['Template:Infobox']
-page = site.pages['Category:Python']
+page = site.pages["Main Page"]
+page = site.pages["Template:Infobox"]
+page = site.pages["Category:Python"]
 ```
 
 ### site.images
@@ -238,7 +239,7 @@ page = site.pages['Category:Python']
 Access files (namespace 6), prepends `File:` automatically:
 
 ```python
-image = site.images['Example.jpg']  # Equivalent to site.pages['File:Example.jpg']
+image = site.images["Example.jpg"]  # Equivalent to site.pages['File:Example.jpg']
 ```
 
 ### site.categories
@@ -246,7 +247,7 @@ image = site.images['Example.jpg']  # Equivalent to site.pages['File:Example.jpg
 Access categories (namespace 14), prepends `Category:` automatically:
 
 ```python
-cat = site.categories['Python']  # Equivalent to site.pages['Category:Python']
+cat = site.categories["Python"]  # Equivalent to site.pages['Category:Python']
 ```
 
 ## Utility Methods
@@ -256,7 +257,7 @@ cat = site.categories['Python']  # Equivalent to site.pages['Category:Python']
 Expands templates in wikitext.
 
 ```python
-expanded = site.expandtemplates('{{CURRENTYEAR}}')
+expanded = site.expandtemplates("{{CURRENTYEAR}}")
 ```
 
 ### parse(title=None, text=None, page=None)
@@ -264,8 +265,8 @@ expanded = site.expandtemplates('{{CURRENTYEAR}}')
 Parse wikitext and return HTML.
 
 ```python
-result = site.parse(text='== Heading ==\nParagraph')
-html = result['text']['*']
+result = site.parse(text="== Heading ==\nParagraph")
+html = result["text"]["*"]
 ```
 
 ### email(user, subject, text)
@@ -273,7 +274,7 @@ html = result['text']['*']
 Send email to a user.
 
 ```python
-site.email('TargetUser', subject='Hello', text='Message body')
+site.email("TargetUser", subject="Hello", text="Message body")
 ```
 
 ## Error Handling
@@ -296,8 +297,8 @@ site.email('TargetUser', subject='Hello', text='Message body')
 ```python
 import mwclient
 
-site = mwclient.Site('en.wikipedia.org')
-site.login('Username', 'password')
+site = mwclient.Site("en.wikipedia.org")
+site.login("Username", "password")
 print(f"Logged in as {site.username}")
 print(f"Rights: {site.rights}")
 ```
@@ -305,11 +306,11 @@ print(f"Rights: {site.rights}")
 ### Check if user can perform action
 
 ```python
-if 'upload' in site.rights:
+if "upload" in site.rights:
     # Can upload files
     pass
 
-if 'delete' in site.rights:
+if "delete" in site.rights:
     # Can delete pages
     pass
 ```
@@ -317,14 +318,14 @@ if 'delete' in site.rights:
 ### Iterate all pages in namespace
 
 ```python
-for page in site.allpages(namespace=10, prefix='Infobox'):  # Templates
+for page in site.allpages(namespace=10, prefix="Infobox"):  # Templates
     print(page.name)
 ```
 
 ### Search with limit
 
 ```python
-for page in site.search('python', namespace=0, max_items=10):
+for page in site.search("python", namespace=0, max_items=10):
     print(page.name)
 ```
 
@@ -339,9 +340,9 @@ if site.blocked:
 ### Raw API call for custom actions
 
 ```python
-result = site.get('query', list='allusers', auprop='editcount')
-for user in result['query']['allusers']:
-    print(user['name'], user['editcount'])
+result = site.get("query", list="allusers", auprop="editcount")
+for user in result["query"]["allusers"]:
+    print(user["name"], user["editcount"])
 ```
 
 ## Connection Options
@@ -349,11 +350,5 @@ for user in result['query']['allusers']:
 Pass custom options to all requests:
 
 ```python
-site = mwclient.Site(
-    'mywiki.example.org',
-    connection_options={
-        'timeout': 30,
-        'verify': '/path/to/ca-bundle.crt'
-    }
-)
+site = mwclient.Site("mywiki.example.org", connection_options={"timeout": 30, "verify": "/path/to/ca-bundle.crt"})
 ```

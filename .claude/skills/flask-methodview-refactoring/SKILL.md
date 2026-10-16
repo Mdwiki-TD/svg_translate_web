@@ -54,7 +54,6 @@ This skill guides the AI agent through refactoring legacy function-based Flask r
 def translate():
     title = request.args.get("title")
     return render_template("translate.html", title=title)
-
 ```
 
 #### ✅ After (MethodView Refactored with `@classmethod register`)
@@ -90,7 +89,6 @@ class TranslateView(MethodView):
 __all__ = [
     "TranslateView",
 ]
-
 ```
 
 ---
@@ -146,7 +144,6 @@ class EditItemView(MethodView):
 __all__ = [
     "EditItemView",
 ]
-
 ```
 
 ---

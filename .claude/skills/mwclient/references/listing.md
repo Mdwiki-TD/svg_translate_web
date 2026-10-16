@@ -91,9 +91,9 @@ When iterating, `GeneratorList.__next__()` inspects the `ns` field and instantia
 When accessing via `site.pages['Name']`, `PageList` guesses the namespace:
 
 ```python
-page = site.pages['Template:Infobox']  # Detects namespace 10
-page = site.pages['File:Image.jpg']     # Detects namespace 6, returns Image
-page = site.pages['Category:Python']    # Detects namespace 14, returns Category
+page = site.pages["Template:Infobox"]  # Detects namespace 10
+page = site.pages["File:Image.jpg"]  # Detects namespace 6, returns Image
+page = site.pages["Category:Python"]  # Detects namespace 14, returns Category
 ```
 
 ## PageProperty and RevisionsIterator
@@ -116,24 +116,24 @@ Site-level listing methods return `List` or `GeneratorList` instances:
 
 ```python
 # All pages
-for page in site.allpages(namespace=0, filterredir='nonredirects'):
+for page in site.allpages(namespace=0, filterredir="nonredirects"):
     print(page.name)
 
 # Search results
-for page in site.search('query', namespace=0):
+for page in site.search("query", namespace=0):
     print(page.name)
 
 # Recent changes
 for change in site.recentchanges(namespace=0):
-    print(change['title'])
+    print(change["title"])
 
 # User contributions
-for contrib in site.usercontributions('Username'):
-    print(contrib['title'])
+for contrib in site.usercontributions("Username"):
+    print(contrib["title"])
 
 # Log events
-for log in site.logevents(logtype='upload'):
-    print(log['title'])
+for log in site.logevents(logtype="upload"):
+    print(log["title"])
 
 # All images/categories/users
 for image in site.allimages():
@@ -147,7 +147,7 @@ for cat in site.allcategories():
 Page-level listing methods that return `GeneratorList` or `List`:
 
 ```python
-page = site.pages['Main Page']
+page = site.pages["Main Page"]
 
 # Backlinks (pages linking here)
 for p in page.backlinks():
@@ -171,11 +171,11 @@ for img in page.images():
 
 # Interwiki links
 for prefix, title in page.iwlinks():
-    print(f'{prefix}:{title}')
+    print(f"{prefix}:{title}")
 
 # Language links
 for lang, title in page.langlinks():
-    print(f'{lang}:{title}')
+    print(f"{lang}:{title}")
 
 # Internal links
 for p in page.links():
@@ -187,7 +187,7 @@ for t in page.templates():
 
 # Revision history
 for rev in page.revisions():
-    print(rev['timestamp'], rev['user'])
+    print(rev["timestamp"], rev["user"])
 ```
 
 ## The generator Parameter
@@ -248,26 +248,26 @@ for page in site.allpages(namespace=0):
     print(page.name)
 
 # Multiple namespaces as pipe-separated string
-for page in site.recentchanges(namespace='0|1|2'):
-    print(page['title'])
+for page in site.recentchanges(namespace="0|1|2"):
+    print(page["title"])
 ```
 
 ### Get only titles
 
 ```python
 # Fast - only fetch titles
-for title in site.allpages(namespace=0, return_values='title'):
+for title in site.allpages(namespace=0, return_values="title"):
     print(title)
 
 # Multiple fields as tuple
-for title, ns in site.allpages(namespace=0, return_values=('title', 'ns')):
+for title, ns in site.allpages(namespace=0, return_values=("title", "ns")):
     print(title, ns)
 ```
 
 ### Check if listing has results
 
 ```python
-pages = list(site.search('unlikely_term_12345', max_items=1))
+pages = list(site.search("unlikely_term_12345", max_items=1))
 if pages:
     print("Found results")
 else:
@@ -278,10 +278,7 @@ else:
 
 ```python
 # Only non-redirects in main namespace
-for p in page.backlinks(
-    namespace=0,
-    filterredir='nonredirects'
-):
+for p in page.backlinks(namespace=0, filterredir="nonredirects"):
     print(p.name)
 ```
 
@@ -294,7 +291,7 @@ for item in result:
     if use_objects:
         print(item.name)  # Page object
     else:
-        print(item)       # String
+        print(item)  # String
 ```
 
 ## Class-to-Role Summary

@@ -69,7 +69,7 @@ Raised when the MediaWiki API response contains a top-level `"error"` key.
 
 ```python
 try:
-    site.post('edit', title='Page', text='Content')
+    site.post("edit", title="Page", text="Content")
 except mwclient.errors.APIError as e:
     print(f"API error {e.code}: {e.info}")
 ```
@@ -95,7 +95,7 @@ Raised when the current user lacks a required permission.
 
 ```python
 try:
-    site.upload(file=f, filename='test.jpg')
+    site.upload(file=f, filename="test.jpg")
 except mwclient.errors.InsufficientPermission:
     print("User cannot upload files")
 ```
@@ -106,7 +106,7 @@ Subclass of `InsufficientPermission`. Raised when an action is attempted while t
 
 ```python
 try:
-    page.edit('New content')
+    page.edit("New content")
 except mwclient.errors.UserBlocked as e:
     print("User is blocked")
 ```
@@ -131,7 +131,7 @@ Raised when an edit attempt returns protection-related error codes like `protect
 
 ```python
 try:
-    page.edit('Content')
+    page.edit("Content")
 except mwclient.errors.ProtectedPageError as e:
     print(f"Cannot edit {e.page.name}: {e.info}")
 ```
@@ -144,11 +144,11 @@ Subclass of `EditError`. Raised by `site.upload()` when a file already exists an
 
 ```python
 try:
-    site.upload(file=f, filename='existing.jpg')
+    site.upload(file=f, filename="existing.jpg")
 except mwclient.errors.FileExists as e:
     print(f"File {e.file_name} exists")
     # Retry with ignore=True to overwrite
-    site.upload(file=f, filename='existing.jpg', ignore=True)
+    site.upload(file=f, filename="existing.jpg", ignore=True)
 ```
 
 ### LoginError
@@ -165,7 +165,7 @@ Raised by `site.login()` and `site.clientlogin()` when login fails (status `FAIL
 
 ```python
 try:
-    site.login('user', 'pass')
+    site.login("user", "pass")
 except mwclient.errors.LoginError as e:
     print(f"Login failed: {e.info}")
 ```
@@ -180,7 +180,7 @@ Raised when the API returns `assertuserfailed`. This means an edit was attempted
 
 ```python
 try:
-    page.edit('Content')
+    page.edit("Content")
 except mwclient.errors.AssertUserFailedError:
     print("Must be logged in to edit")
 ```
@@ -197,7 +197,7 @@ Raised when the server returns a response that cannot be decoded as JSON. The ra
 
 ```python
 try:
-    site = mwclient.Site('invalid.host.example')
+    site = mwclient.Site("invalid.host.example")
 except mwclient.errors.InvalidResponse as e:
     print(f"Invalid response: {e.response_text[:100]}")
 ```
@@ -215,8 +215,8 @@ import mwclient.errors as errors
 
 try:
     # Any mwclient operation
-    page = site.pages['Page']
-    page.edit('Content')
+    page = site.pages["Page"]
+    page.edit("Content")
 except errors.MwClientError as e:
     print(f"Mwclient error: {e}")
 ```
@@ -225,7 +225,7 @@ except errors.MwClientError as e:
 
 ```python
 try:
-    page.edit('New content', summary='Edit')
+    page.edit("New content", summary="Edit")
 except errors.ProtectedPageError:
     print("Page is protected")
 except errors.AssertUserFailedError:
@@ -249,13 +249,13 @@ except errors.InsufficientPermission:
 
 ```python
 try:
-    result = site.upload(file=f, filename='test.jpg')
+    result = site.upload(file=f, filename="test.jpg")
 except errors.InsufficientPermission:
     print("No upload permission")
 except errors.FileExists as e:
     print(f"File {e.file_name} already exists")
     # Option to overwrite
-    site.upload(file=f, filename='test.jpg', ignore=True)
+    site.upload(file=f, filename="test.jpg", ignore=True)
 except errors.APIError as e:
     print(f"API error: {e.code} - {e.info}")
 ```
@@ -264,13 +264,13 @@ except errors.APIError as e:
 
 ```python
 try:
-    site.login('username', 'password')
+    site.login("username", "password")
 except errors.LoginError as e:
     print(f"Login failed: {e.info}")
     # Check specific error codes
-    if e.code == 'Failed':
+    if e.code == "Failed":
         print("Invalid credentials")
-    elif e.code == 'Throttled':
+    elif e.code == "Throttled":
         print("Too many attempts - wait before retrying")
 ```
 
@@ -278,7 +278,7 @@ except errors.LoginError as e:
 
 ```python
 try:
-    site = mwclient.Site('example.org')
+    site = mwclient.Site("example.org")
 except errors.APIDisabledError:
     print("API is disabled on this wiki")
 except errors.MediaWikiVersionError:

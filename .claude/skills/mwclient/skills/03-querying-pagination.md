@@ -53,23 +53,23 @@ for page in site.allpages():
     print(page.name)
 
 # With filters
-for page in site.allpages(prefix='Python/', namespace=0, max_items=50):
+for page in site.allpages(prefix="Python/", namespace=0, max_items=50):
     print(page.name)
 
 # Redirects only
-for page in site.allpages(filterredir='redirects', prefix='Redirect/'):
+for page in site.allpages(filterredir="redirects", prefix="Redirect/"):
     print(page.name)
 
 # By protection level
-for page in site.allpages(prtype='edit', prlevel='sysop'):
+for page in site.allpages(prtype="edit", prlevel="sysop"):
     print(page.name)
 ```
 
 ### search — Full-text search
 
 ```python
-for result in site.search('mwclient mediawiki', namespace=0, max_items=20):
-    print(result['title'], result.get('snippet', ''))
+for result in site.search("mwclient mediawiki", namespace=0, max_items=20):
+    print(result["title"], result.get("snippet", ""))
 ```
 
 `generator=True` (default) returns Page objects. `generator=False` returns raw dicts with search metadata.
@@ -78,8 +78,8 @@ for result in site.search('mwclient mediawiki', namespace=0, max_items=20):
 
 ```python
 for change in site.recentchanges(
-    prop='title|timestamp|user|comment|sizes',
-    show='!bot',         # Exclude bot edits
+    prop="title|timestamp|user|comment|sizes",
+    show="!bot",  # Exclude bot edits
     namespace=0,
     max_items=20,
 ):
@@ -96,15 +96,15 @@ for page in site.random(namespace=0, max_items=5):
 ### usercontributions — User's edits
 
 ```python
-for contrib in site.usercontributions('SomeUser', max_items=20):
-    print(contrib['title'], contrib['timestamp'])
+for contrib in site.usercontributions("SomeUser", max_items=20):
+    print(contrib["title"], contrib["timestamp"])
 ```
 
 ### logevents — Log entries
 
 ```python
-for event in site.logevents(type='delete', max_items=10):
-    print(event['title'], event.get('action'), event.get('user'))
+for event in site.logevents(type="delete", max_items=10):
+    print(event["title"], event.get("action"), event.get("user"))
 ```
 
 Types: `'delete'`, `'move'`, `'protect'`, `'upload'`, `'block'`, `'patrol'`, etc.
@@ -112,43 +112,43 @@ Types: `'delete'`, `'move'`, `'protect'`, `'upload'`, `'block'`, `'patrol'`, etc
 ### allcategories — List categories
 
 ```python
-for cat in site.allcategories(prefix='Prog', max_items=50):
-    print(cat['*'])  # Category name
+for cat in site.allcategories(prefix="Prog", max_items=50):
+    print(cat["*"])  # Category name
 ```
 
 ### allusers — List users
 
 ```python
-for user in site.allusers(prefix='Admin', max_items=20):
-    print(user['name'])
+for user in site.allusers(prefix="Admin", max_items=20):
+    print(user["name"])
 ```
 
 ### exturlusage — External links (LinkSearch)
 
 ```python
-for entry in site.exturlusage(query='example.com', max_items=20):
-    print(entry['title'], entry.get('url'))
+for entry in site.exturlusage(query="example.com", max_items=20):
+    print(entry["title"], entry.get("url"))
 ```
 
 ### blocks — Active blocks
 
 ```python
 for block in site.blocks(max_items=10):
-    print(block.get('user'), block.get('reason'))
+    print(block.get("user"), block.get("reason"))
 ```
 
 ### deletedrevisions — Deleted revisions
 
 ```python
-for rev in site.deletedrevisions(user='SomeUser', max_items=10):
-    print(rev.get('title'), rev.get('revid'))
+for rev in site.deletedrevisions(user="SomeUser", max_items=10):
+    print(rev.get("title"), rev.get("revid"))
 ```
 
 ### watchlist — Current user's watchlist
 
 ```python
 for entry in site.watchlist(max_items=20):
-    print(entry['title'])
+    print(entry["title"])
 ```
 
 ## Page-level listing methods
@@ -158,7 +158,7 @@ All return lazy iterators. Common params: `max_items`, `api_chunk_size`, `genera
 ### backlinks — Pages linking to this page
 
 ```python
-page = site.pages['Python (programming language)']
+page = site.pages["Python (programming language)"]
 for link in page.backlinks(max_items=100):
     print(link.name)
 ```
@@ -170,13 +170,13 @@ for cat in page.categories():
     print(cat.name)  # Category objects
 
 for cat in page.categories(generator=False):
-    print(cat)       # Title strings
+    print(cat)  # Title strings
 ```
 
 ### embeddedin — Pages transcluding this page
 
 ```python
-template = site.pages['Template:Infobox']
+template = site.pages["Template:Infobox"]
 for page in template.embeddedin(max_items=50):
     print(page.name)
 ```
@@ -198,25 +198,25 @@ for tmpl in page.templates():
 ### revisions — Revision history
 
 ```python
-for rev in page.revisions(prop='ids|timestamp|user|comment', max_items=10):
-    print(rev['revid'], rev.get('user'), rev['timestamp'])
+for rev in page.revisions(prop="ids|timestamp|user|comment", max_items=10):
+    print(rev["revid"], rev.get("user"), rev["timestamp"])
 ```
 
 To get content in revisions:
 
 ```python
-for rev in page.revisions(prop='ids|timestamp|content', api_chunk_size=1):
-    print(rev['*'][:200])  # Content in '*' key
+for rev in page.revisions(prop="ids|timestamp|content", api_chunk_size=1):
+    print(rev["*"][:200])  # Content in '*' key
     break
 ```
 
 ### Other page iterators
 
 ```python
-page.extlinks()    # External links
-page.images()      # Embedded files
-page.iwlinks()     # Interwiki links
-page.langlinks()   # Interlanguage links
+page.extlinks()  # External links
+page.images()  # Embedded files
+page.iwlinks()  # Interwiki links
+page.langlinks()  # Interlanguage links
 ```
 
 ## Pagination control
@@ -253,7 +253,7 @@ for page in site.allpages(generator=True):
 
 # Yields raw dicts (uses list mechanism)
 for page in site.allpages(generator=False):
-    print(page['title'])
+    print(page["title"])
 ```
 
 `generator=True` is preferred when you need page attributes (existence, revision, protection) because the data comes with the listing response — no extra API calls.

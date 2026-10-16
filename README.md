@@ -4,20 +4,20 @@ A Flask-based web application for copying SVG translations between different lan
 
 ## Features
 
--   **SVG Translation Management**: Copy translations from SVG files to other language versions
--   **Template Processing**: Process MediaWiki templates containing SVG files
--   **OAuth Integration**: Secure authentication via MediaWiki OAuth for file uploads
--   **Task Management**: Track translation tasks with detailed progress monitoring
--   **Admin Dashboard**: Administrative interface for managing templates and tasks
--   **Fix Nested Tags**: Tools to handle and fix nested tag structures in SVG files
--   **Explorer Interface**: Browse and manage SVG files and translations
--   **Rate Limiting**: Built-in rate limiting for API protection
+- **SVG Translation Management**: Copy translations from SVG files to other language versions
+- **Template Processing**: Process MediaWiki templates containing SVG files
+- **OAuth Integration**: Secure authentication via MediaWiki OAuth for file uploads
+- **Task Management**: Track translation tasks with detailed progress monitoring
+- **Admin Dashboard**: Administrative interface for managing templates and tasks
+- **Fix Nested Tags**: Tools to handle and fix nested tag structures in SVG files
+- **Explorer Interface**: Browse and manage SVG files and translations
+- **Rate Limiting**: Built-in rate limiting for API protection
 
 ## Prerequisites
 
--   Python 3.11 or higher (Python 3.13 recommended)
--   MySQL/MariaDB database
--   MediaWiki OAuth consumer credentials (for production use)
+- Python 3.11 or higher (Python 3.13 recommended)
+- MySQL/MariaDB database
+- MediaWiki OAuth consumer credentials (for production use)
 
 ## Installation
 
@@ -136,9 +136,9 @@ For detailed OAuth setup instructions, see [docs/oauth.md](docs/oauth.md).
 
 Administrators have access to:
 
--   Template management interface
--   Task overview and management
--   System configuration
+- Template management interface
+- Task overview and management
+- System configuration
 
 ## Development
 
@@ -146,18 +146,18 @@ Administrators have access to:
 
 The project uses:
 
--   **Black** for code formatting (line length: 120)
--   **isort** for import sorting
--   **flake8** for linting
--   **mypy** for type checking
--   **pylint** for additional linting
+- **Black** for code formatting (line length: 120)
+- **isort** for import sorting
+- **flake8** for linting
+- **mypy** for type checking
+- **pylint** for additional linting
 
 Configuration files:
 
--   `pyproject.toml` - Black and isort configuration
--   `.flake8` - Flake8 configuration
--   `.pylintrc` - Pylint configuration
--   `mypy.ini` - MyPy configuration
+- `pyproject.toml` - Black and isort configuration
+- `.flake8` - Flake8 configuration
+- `.pylintrc` - Pylint configuration
+- `mypy.ini` - MyPy configuration
 
 ### Running Tests
 
@@ -208,7 +208,7 @@ type: python3.13
 
 #### Filesystem Layout on Toolforge
 
--   The deployed application expects the following directory structure on the Toolforge account:
+- The deployed application expects the following directory structure on the Toolforge account:
 
 ```
 $HOME/
@@ -232,11 +232,12 @@ $HOME/
 │   └── crop_main_files/         # Cropped file cache
 │       ├── original/
 │       └── cropped/
-├── shs/                         # Shell scripts (symlinked or copied)
-│   ├── deploy_repo.sh
-│   ├── update.sh
-│   ├── pip.sh
-│   ├── venv.sh
+├── toolforge/
+│   └── deploy_scripts           # Shell scripts (symlinked or copied)
+│       ├── deploy_repo.sh
+│       ├── update.sh
+│       ├── pip.sh
+│       ├── venv.sh
 │   └── run_job.sh
 ├── old_repos/                   # Archived deployments (rollback target)
 └── service.template             # Webservice config (symlinked or copied)
@@ -255,14 +256,14 @@ Deployment is automated via GitHub Actions when pushing to the `main` branch.
 
 Key dependencies include:
 
--   **Flask** - Web framework
--   **flask-limiter** - Rate limiting
--   **mwclient** - MediaWiki API client
--   **mwoauth** - MediaWiki OAuth
--   **lxml** - XML processing
--   **pymysql** - MySQL database connector
--   **CopySVGTranslation** - Core SVG translation library
--   **cryptography** - Encryption support
+- **Flask** - Web framework
+- **flask-limiter** - Rate limiting
+- **mwclient** - MediaWiki API client
+- **mwoauth** - MediaWiki OAuth
+- **lxml** - XML processing
+- **pymysql** - MySQL database connector
+- **CopySVGTranslation** - Core SVG translation library
+- **cryptography** - Encryption support
 
 See `requirements.txt` for complete list.
 
@@ -284,8 +285,8 @@ This project is maintained by the Mdwiki-TD organization. Please refer to the re
 
 For issues, questions, or contributions, please:
 
--   Open an issue on [GitHub](https://github.com/Mdwiki-TD/svg_translate_web/issues)
--   Visit the tool at [copy-svg-langs.toolforge.org](https://copy-svg-langs.toolforge.org)
+- Open an issue on [GitHub](https://github.com/Mdwiki-TD/svg_translate_web/issues)
+- Visit the tool at [copy-svg-langs.toolforge.org](https://copy-svg-langs.toolforge.org)
 
 ## Acknowledgments
 

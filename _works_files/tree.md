@@ -233,7 +233,7 @@ src/
 │   ├── templates_markups/
 │   │   ├── admin_sidebar/
 │   │   │   ├── __init__.py
-│   │   │   ├── objects.py
+│   │   │   ├── mapping.py
 │   │   │   ├── sidebar.py
 │   │   │   └── sidebar_list.py
 │   │   ├── navbar/

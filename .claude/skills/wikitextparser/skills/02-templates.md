@@ -91,10 +91,10 @@ Outer templates appear first.
 
 ```python
 def find_templates(parsed, name: str):
-    return [t for t in parsed.templates
-            if t.normal_name().lower() == name.lower()]
+    return [t for t in parsed.templates if t.normal_name().lower() == name.lower()]
 
-infoboxes = find_templates(parsed, 'Infobox person')
+
+infoboxes = find_templates(parsed, "Infobox person")
 ```
 
 Always compare via `normal_name()` — never `t.name` raw — because the name in
@@ -102,9 +102,9 @@ source can have leading/trailing whitespace, underscores, comments, or even
 the `Template:` prefix:
 
 ```python
-t = wtp.parse('{{ eN : tEmPlAtE : <!-- c --> t_1 # b | a }}').templates[0]
-t.name           # ' eN : tEmPlAtE : <!-- c --> t_1 # b '
-t.normal_name(code='en')   # 'T 1'
+t = wtp.parse("{{ eN : tEmPlAtE : <!-- c --> t_1 # b | a }}").templates[0]
+t.name  # ' eN : tEmPlAtE : <!-- c --> t_1 # b '
+t.normal_name(code="en")  # 'T 1'
 ```
 
 `normal_name(code=...)` is meant for interwiki names like `{{en:Template:Foo}}`.
@@ -113,12 +113,11 @@ t.normal_name(code='en')   # 'T 1'
 
 ```python
 def template_to_dict(t) -> dict:
-    return {arg.name.strip(): arg.value.strip()
-            for arg in t.arguments
-            if not arg.positional}
+    return {arg.name.strip(): arg.value.strip() for arg in t.arguments if not arg.positional}
+
 
 data = template_to_dict(parsed.templates[0])
-print(data['name'], data['birth_date'])
+print(data["name"], data["birth_date"])
 ```
 
 For ordered positional args (e.g. `{{convert|10|km|mi}}`):
@@ -131,7 +130,7 @@ positional = [arg.value for arg in t.arguments if arg.positional]
 ### 4. Get a single argument safely
 
 ```python
-arg = t.get_arg('birth_date')
+arg = t.get_arg("birth_date")
 if arg is not None:
     print(arg.value.strip())
 ```
@@ -142,11 +141,11 @@ MediaWiki itself uses if duplicates exist). It returns `None` if missing.
 ### 5. Set or update an argument
 
 ```python
-t.set_arg('age', '31')                      # update or create at end
-t.set_arg('died', '2024', after='born')     # insert after |born=
-t.set_arg('born', '1990', before='died')    # insert before |died=
-t.set_arg('1', 'yes', positional=True)      # add positional value
-t.set_arg('age', '31', preserve_spacing=True)  # mimic existing whitespace
+t.set_arg("age", "31")  # update or create at end
+t.set_arg("died", "2024", after="born")  # insert after |born=
+t.set_arg("born", "1990", before="died")  # insert before |died=
+t.set_arg("1", "yes", positional=True)  # add positional value
+t.set_arg("age", "31", preserve_spacing=True)  # mimic existing whitespace
 ```
 
 Behaviour rules:
@@ -162,8 +161,8 @@ Behaviour rules:
 
 ```python
 t = wtp.parse("{{convert|10}}").templates[0]
-t.set_arg('', 'km', positional=True)
-str(t)   # '{{convert|10|km}}'
+t.set_arg("", "km", positional=True)
+str(t)  # '{{convert|10|km}}'
 ```
 
 When name is empty and `positional` is unset, the library defaults to
@@ -172,15 +171,15 @@ When name is empty and `positional` is unset, the library defaults to
 ### 7. Delete arguments
 
 ```python
-t.del_arg('deprecated_field')   # removes ALL args with that name
+t.del_arg("deprecated_field")  # removes ALL args with that name
 ```
 
 There is no built-in `del_positional(n)`. To delete a positional arg:
 
 ```python
 for arg in t.arguments:
-    if arg.positional and arg.name == '2':
-        del arg[:]              # deletes this argument from the buffer
+    if arg.positional and arg.name == "2":
+        del arg[:]  # deletes this argument from the buffer
         break
 ```
 
@@ -190,8 +189,8 @@ leading `|`.
 ### 8. Has-arg checks
 
 ```python
-t.has_arg('name')                  # name present (any value)
-t.has_arg('status', 'deceased')    # exact-value match
+t.has_arg("name")  # name present (any value)
+t.has_arg("status", "deceased")  # exact-value match
 ```
 
 Note that for keyword args `has_arg` strips whitespace before comparing both
@@ -202,10 +201,10 @@ the name and the value; for positional args the value is compared verbatim.
 Two strategies, with different safety profiles:
 
 ```python
-t.rm_dup_args_safe()        # only removes truly-redundant dupes
-t.rm_dup_args_safe(tag='[[Category:Pages with duplicate args]]')
+t.rm_dup_args_safe()  # only removes truly-redundant dupes
+t.rm_dup_args_safe(tag="[[Category:Pages with duplicate args]]")
 
-t.rm_first_of_dup_args()    # removes first occurrence; rendered output unchanged
+t.rm_first_of_dup_args()  # removes first occurrence; rendered output unchanged
 ```
 
 Differences:
@@ -222,7 +221,7 @@ Differences:
 
 ```python
 print(t.pformat())
-print(t.pformat(indent='  ', remove_comments=True))
+print(t.pformat(indent="  ", remove_comments=True))
 ```
 
 `pformat()` returns a string and does **not** mutate `t`. To replace the
@@ -236,10 +235,10 @@ t[:] = t.pformat()
 
 ```python
 parsed = wtp.parse("{{outer|x={{inner|y=1}}}}")
-parsed.templates                  # [outer, inner]
-parsed.templates[0].templates     # [inner]   (nested view excludes self)
-parsed.templates[0].nesting_level # 0
-parsed.templates[1].nesting_level # 1
+parsed.templates  # [outer, inner]
+parsed.templates[0].templates  # [inner]   (nested view excludes self)
+parsed.templates[0].nesting_level  # 0
+parsed.templates[1].nesting_level  # 1
 ```
 
 ### 12. Modify templates that contain `{{{params}}}`
@@ -284,10 +283,8 @@ def extract_infobox(wikitext: str, infobox_name: str = None) -> dict | None:
     parsed = wtp.parse(wikitext)
     for t in parsed.templates:
         n = t.normal_name().lower()
-        if (infobox_name and infobox_name.lower() in n) or \
-           (not infobox_name and n.startswith('infobox')):
-            return {a.name.strip(): a.value.strip()
-                    for a in t.arguments if not a.positional}
+        if (infobox_name and infobox_name.lower() in n) or (not infobox_name and n.startswith("infobox")):
+            return {a.name.strip(): a.value.strip() for a in t.arguments if not a.positional}
     return None
 ```
 
@@ -311,14 +308,14 @@ def rename_arg(wikitext, template_name, old, new):
 
 ```python
 for t in parsed.templates:
-    if t.normal_name() == 'Cleanup':
+    if t.normal_name() == "Cleanup":
         del t[:]
 ```
 
 ### Recipe D: validate required fields
 
 ```python
-REQUIRED = {'infobox person': ['name', 'birth_date']}
+REQUIRED = {"infobox person": ["name", "birth_date"]}
 
 issues = []
 for t in parsed.templates:
@@ -335,9 +332,9 @@ for t in parsed.templates:
 
 ```python
 for t in parsed.templates:
-    if t.normal_name().lower() == 'infobox book' and not t.has_arg('isbn'):
+    if t.normal_name().lower() == "infobox book" and not t.has_arg("isbn"):
         # write back at end of arguments
-        t.set_arg('', '[[Category:Books missing ISBN]]', positional=True)
+        t.set_arg("", "[[Category:Books missing ISBN]]", positional=True)
 ```
 
 ## See also

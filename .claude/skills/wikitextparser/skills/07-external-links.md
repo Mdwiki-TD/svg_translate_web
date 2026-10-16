@@ -61,7 +61,7 @@ Bracketed:   [https://example.com/page]              ← no text
 ```python
 parsed = wtp.parse("See https://example.com or [https://example.org docs]")
 for el in parsed.external_links:
-    print(el.url, '|', el.text, '|', el.in_brackets)
+    print(el.url, "|", el.text, "|", el.in_brackets)
 # https://example.com  | None | False
 # https://example.org  | docs | True
 ```
@@ -71,15 +71,14 @@ for el in parsed.external_links:
 ```python
 def links_to(parsed, domain: str) -> list:
     domain = domain.lower()
-    return [el for el in parsed.external_links
-            if domain in el.url.lower()]
+    return [el for el in parsed.external_links if domain in el.url.lower()]
 ```
 
 ### 3. Change a URL
 
 ```python
 el = parsed.external_links[0]
-el.url = 'https://archive.org/page'
+el.url = "https://archive.org/page"
 ```
 
 The setter preserves brackets if the link was bracketed, and stays bare
@@ -88,10 +87,10 @@ otherwise.
 ### 4. Add display text to a bare link
 
 ```python
-parsed = wtp.parse('https://example.com')
+parsed = wtp.parse("https://example.com")
 el = parsed.external_links[0]
-el.text = 'Example'
-str(parsed)        # '[https://example.com Example]'
+el.text = "Example"
+str(parsed)  # '[https://example.com Example]'
 ```
 
 The setter wraps the URL in brackets automatically when needed.
@@ -99,10 +98,10 @@ The setter wraps the URL in brackets automatically when needed.
 ### 5. Remove display text
 
 ```python
-parsed = wtp.parse('[https://example.com Example]')
+parsed = wtp.parse("[https://example.com Example]")
 el = parsed.external_links[0]
 del el.text
-str(parsed)        # '[https://example.com]'
+str(parsed)  # '[https://example.com]'
 ```
 
 `del el.text` is a no-op on bare links.
@@ -124,8 +123,8 @@ for el in parsed.external_links:
   well-known parser quirk that mirrors MediaWiki's own behaviour:
 
   ```python
-  el = wtp.parse('http://example.com{{dead link}}').external_links[0]
-  el.url     # 'http://example.com{{dead link}}'   ← yes, the template too
+  el = wtp.parse("http://example.com{{dead link}}").external_links[0]
+  el.url  # 'http://example.com{{dead link}}'   ← yes, the template too
   ```
 
   If you need to strip such tails, post-process `el.url` with a regex.
@@ -149,10 +148,7 @@ for el in parsed.external_links:
 ```python
 def url_inventory(wikitext: str) -> list[dict]:
     parsed = wtp.parse(wikitext)
-    return [
-        {'url': el.url, 'text': el.text, 'in_brackets': el.in_brackets}
-        for el in parsed.external_links
-    ]
+    return [{"url": el.url, "text": el.text, "in_brackets": el.in_brackets} for el in parsed.external_links]
 ```
 
 ### Recipe B: count distinct domains
@@ -172,10 +168,10 @@ for el in parsed.external_links:
 ### Recipe C: archive.org rewrite
 
 ```python
-def to_archive(parsed, snapshot='*'):
+def to_archive(parsed, snapshot="*"):
     for el in parsed.external_links:
-        if el.url.startswith(('http://', 'https://')):
-            el.url = f'https://web.archive.org/web/{snapshot}/{el.url}'
+        if el.url.startswith(("http://", "https://")):
+            el.url = f"https://web.archive.org/web/{snapshot}/{el.url}"
 ```
 
 ### Recipe D: ensure every bare URL has anchor text
@@ -183,16 +179,17 @@ def to_archive(parsed, snapshot='*'):
 ```python
 for el in parsed.external_links:
     if not el.in_brackets:
-        el.text = el.url   # promotes bare → bracketed with self-text
+        el.text = el.url  # promotes bare → bracketed with self-text
 ```
 
 ### Recipe E: strip tracking parameters
 
 ```python
 import re
+
 for el in parsed.external_links:
-    el.url = re.sub(r'([?&])(utm_[^=&]+|fbclid|gclid)=[^&]*', r'\1', el.url)
-    el.url = re.sub(r'[?&]+$', '', el.url)
+    el.url = re.sub(r"([?&])(utm_[^=&]+|fbclid|gclid)=[^&]*", r"\1", el.url)
+    el.url = re.sub(r"[?&]+$", "", el.url)
 ```
 
 ## See also

@@ -66,7 +66,7 @@ to see only the raw text of each individual heading scope.
 
 ```python
 for s in parsed.sections:
-    print(s.level, '|', s.title, '|', len(s.contents))
+    print(s.level, "|", s.title, "|", len(s.contents))
 ```
 
 `parsed.sections` always includes the lead at index 0, even when empty.
@@ -85,8 +85,8 @@ def section_body(parsed, title: str) -> str | None:
 
 ```python
 for s in parsed.sections:
-    if s.title and s.title.strip() == 'See also':
-        s.title = 'References'
+    if s.title and s.title.strip() == "See also":
+        s.title = "References"
 ```
 
 ### 4. Promote / demote levels
@@ -96,7 +96,7 @@ Setting `s.level = N` adjusts the number of `=` signs:
 ```python
 for s in parsed.sections:
     if s.level >= 3:
-        s.level = s.level - 1     # === → ==
+        s.level = s.level - 1  # === → ==
 ```
 
 The setter inserts or removes the appropriate number of `=` on both sides.
@@ -107,9 +107,9 @@ output that MediaWiki will not recognise as a heading.
 ### 5. Filter by level
 
 ```python
-parsed.get_sections(level=2)                        # only `== ==`
-parsed.get_sections(include_subsections=False)      # no nested folding
-parsed.get_sections(top_levels_only=True)           # only sections that are not subsections of another
+parsed.get_sections(level=2)  # only `== ==`
+parsed.get_sections(include_subsections=False)  # no nested folding
+parsed.get_sections(top_levels_only=True)  # only sections that are not subsections of another
 ```
 
 `top_levels_only=True` cannot be combined with `level=...` — pick one.
@@ -118,8 +118,8 @@ parsed.get_sections(top_levels_only=True)           # only sections that are not
 
 ```python
 for s in parsed.sections:
-    if s.title and s.title.strip() == 'Notes':
-        s.contents = '\n<references/>\n'
+    if s.title and s.title.strip() == "Notes":
+        s.contents = "\n<references/>\n"
 ```
 
 `s.contents` setter replaces everything between the heading line and the
@@ -130,7 +130,7 @@ end of the section's span.
 There is no "create section" helper. Append to the article string:
 
 ```python
-parsed.string = str(parsed).rstrip() + '\n\n== New section ==\nContent\n'
+parsed.string = str(parsed).rstrip() + "\n\n== New section ==\nContent\n"
 ```
 
 Then re-fetch `parsed.sections` if you want to manipulate the new one.
@@ -139,7 +139,7 @@ Then re-fetch `parsed.sections` if you want to manipulate the new one.
 
 ```python
 for s in parsed.sections:
-    if s.title and s.title.strip() == 'Trivia':
+    if s.title and s.title.strip() == "Trivia":
         del s.title
 ```
 
@@ -150,7 +150,7 @@ remains as plain text in the previous section.
 
 ```python
 for s in parsed.sections:
-    if s.title and s.title.strip() == 'Trivia':
+    if s.title and s.title.strip() == "Trivia":
         del s[:]
 ```
 
@@ -185,8 +185,7 @@ contents.")` because the lead has no `=` signs to replace. Modify
 
 ```python
 def toc(parsed) -> list[tuple[int, str]]:
-    return [(s.level, s.title.strip()) for s in parsed.sections
-            if s.title is not None]
+    return [(s.level, s.title.strip()) for s in parsed.sections if s.title is not None]
 ```
 
 ### Recipe B: rename a section
@@ -218,11 +217,13 @@ heading processed exactly once.
 def split_sections(parsed) -> list[dict]:
     out = []
     for s in parsed.get_sections(include_subsections=False):
-        out.append({
-            'level': s.level,
-            'title': s.title.strip() if s.title else '',
-            'body' : s.contents.strip(),
-        })
+        out.append(
+            {
+                "level": s.level,
+                "title": s.title.strip() if s.title else "",
+                "body": s.contents.strip(),
+            }
+        )
     return out
 ```
 
@@ -234,7 +235,7 @@ def add_subsection(wikitext, parent_title, new_subtitle, new_body):
     for s in parsed.sections:
         if s.title and s.title.strip() == parent_title:
             new = f"\n=== {new_subtitle} ===\n{new_body}\n"
-            s.contents = (s.contents.rstrip() + new + '\n')
+            s.contents = s.contents.rstrip() + new + "\n"
             return str(parsed)
     return wikitext
 ```

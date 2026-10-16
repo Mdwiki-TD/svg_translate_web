@@ -64,33 +64,33 @@ removed — read the rules carefully, because they are easy to get wrong.
 ### 1. Inspect parts
 
 ```python
-wl = wtp.parse('[[Earth#Geography|our planet]]').wikilinks[0]
-wl.target     # 'Earth#Geography'
-wl.title      # 'Earth'
-wl.fragment   # 'Geography'
-wl.text       # 'our planet'
+wl = wtp.parse("[[Earth#Geography|our planet]]").wikilinks[0]
+wl.target  # 'Earth#Geography'
+wl.title  # 'Earth'
+wl.fragment  # 'Geography'
+wl.text  # 'our planet'
 
-wl2 = wtp.parse('[[Earth]]').wikilinks[0]
-wl2.target    # 'Earth'
-wl2.title     # 'Earth'
+wl2 = wtp.parse("[[Earth]]").wikilinks[0]
+wl2.target  # 'Earth'
+wl2.title  # 'Earth'
 wl2.fragment  # None
-wl2.text      # None
+wl2.text  # None
 ```
 
 ### 2. Modify title / target
 
 ```python
-wl = wtp.parse('[[Earth#Geography|home]]').wikilinks[0]
+wl = wtp.parse("[[Earth#Geography|home]]").wikilinks[0]
 
-wl.title = 'Mars'             # [[Mars#Geography|home]]
-wl.fragment = 'Surface'       # [[Mars#Surface|home]]
-wl.text = 'red planet'        # [[Mars#Surface|red planet]]
+wl.title = "Mars"  # [[Mars#Geography|home]]
+wl.fragment = "Surface"  # [[Mars#Surface|home]]
+wl.text = "red planet"  # [[Mars#Surface|red planet]]
 ```
 
 Replacing the **whole target** (title + fragment together):
 
 ```python
-wl.target = 'Venus#Atmosphere'
+wl.target = "Venus#Atmosphere"
 # Result: [[Venus#Atmosphere|red planet]]
 ```
 
@@ -100,18 +100,18 @@ Setters automatically insert separators (`#` or `|`) when the target part was
 missing:
 
 ```python
-wl = wtp.parse('[[Earth]]').wikilinks[0]
-wl.fragment = 'Geography'    # adds '#': [[Earth#Geography]]
-wl.text = 'home'             # adds '|': [[Earth#Geography|home]]
+wl = wtp.parse("[[Earth]]").wikilinks[0]
+wl.fragment = "Geography"  # adds '#': [[Earth#Geography]]
+wl.text = "home"  # adds '|': [[Earth#Geography|home]]
 ```
 
 ### 4. Delete parts (and their separators)
 
 ```python
-wl = wtp.parse('[[Earth#Geography|home]]').wikilinks[0]
+wl = wtp.parse("[[Earth#Geography|home]]").wikilinks[0]
 
-del wl.text                  # [[Earth#Geography]]
-del wl.fragment              # [[Earth]]
+del wl.text  # [[Earth#Geography]]
+del wl.fragment  # [[Earth]]
 ```
 
 `del wl.text` removes the `|`. `del wl.fragment` removes the `#`. Setting
@@ -121,14 +121,14 @@ del wl.fragment              # [[Earth]]
 ### 5. The difference between `target = ''` and `del target`
 
 ```python
-wl = wtp.parse('[[Earth|home]]').wikilinks[0]
+wl = wtp.parse("[[Earth|home]]").wikilinks[0]
 
-wl.target = ''
-str(wl)              # '[[|home]]'   — kept the pipe
+wl.target = ""
+str(wl)  # '[[|home]]'   — kept the pipe
 
-wl = wtp.parse('[[Earth|home]]').wikilinks[0]
+wl = wtp.parse("[[Earth|home]]").wikilinks[0]
 del wl.target
-str(wl)              # '[[home]]'    — pipe removed too
+str(wl)  # '[[home]]'    — pipe removed too
 ```
 
 ### 6. Filter wikilinks by namespace
@@ -138,13 +138,14 @@ def by_namespace(parsed, ns: str):
     ns_lower = ns.lower()
     out = []
     for wl in parsed.wikilinks:
-        head = wl.title.partition(':')[0].strip().lower()
+        head = wl.title.partition(":")[0].strip().lower()
         if head == ns_lower:
             out.append(wl)
     return out
 
-files = by_namespace(parsed, 'File')
-cats  = by_namespace(parsed, 'Category')
+
+files = by_namespace(parsed, "File")
+cats = by_namespace(parsed, "Category")
 ```
 
 For category and file links specifically — including localized namespace
@@ -153,9 +154,9 @@ names like `Catégorie:`, `Archivo:`, `ملف:` — see `05-categories-files.md`
 ### 7. Nested wikilinks
 
 ```python
-parsed = wtp.parse('[[A|inner [[B]] text]]')
-parsed.wikilinks                  # [outer-link, B]
-parsed.wikilinks[0].wikilinks     # [B]   — excludes self
+parsed = wtp.parse("[[A|inner [[B]] text]]")
+parsed.wikilinks  # [outer-link, B]
+parsed.wikilinks[0].wikilinks  # [B]   — excludes self
 ```
 
 The outer link's `text` includes the raw nested `[[B]]` substring. If you
@@ -163,7 +164,7 @@ want only the visible text, parse `wl.text` again:
 
 ```python
 inner = wtp.parse(parsed.wikilinks[0].text)
-inner.plain_text()   # 'inner B text'
+inner.plain_text()  # 'inner B text'
 ```
 
 ### 8. Bulk rename a link target
@@ -181,12 +182,12 @@ def rename_target(wikitext, old_title, new_title):
 
 ```python
 # Bare → piped
-wl = wtp.parse('[[Earth]]').wikilinks[0]
-wl.text = 'home'            # [[Earth|home]]
+wl = wtp.parse("[[Earth]]").wikilinks[0]
+wl.text = "home"  # [[Earth|home]]
 
 # Piped → bare (drop display text)
-wl = wtp.parse('[[Earth|home]]').wikilinks[0]
-del wl.text                 # [[Earth]]
+wl = wtp.parse("[[Earth|home]]").wikilinks[0]
+del wl.text  # [[Earth]]
 ```
 
 ## Edge cases & gotchas
@@ -222,8 +223,8 @@ def outbound_links(wikitext: str) -> list[str]:
     out = []
     for wl in parsed.wikilinks:
         title = wl.title.strip()
-        if title and not title.startswith('#'):
-            out.append(title.split('#')[0])
+        if title and not title.startswith("#"):
+            out.append(title.split("#")[0])
     return out
 ```
 
@@ -234,7 +235,7 @@ def reprefix_links(wikitext, old_prefix, new_prefix):
     parsed = wtp.parse(wikitext)
     for wl in parsed.wikilinks:
         if wl.title.startswith(old_prefix):
-            wl.title = new_prefix + wl.title[len(old_prefix):]
+            wl.title = new_prefix + wl.title[len(old_prefix) :]
     return str(parsed)
 ```
 
@@ -248,9 +249,8 @@ empties = [wl for wl in parsed.wikilinks if not wl.title.strip()]
 
 ```python
 from collections import Counter
-counts = Counter(
-    (wl.text or wl.title).strip() for wl in parsed.wikilinks
-)
+
+counts = Counter((wl.text or wl.title).strip() for wl in parsed.wikilinks)
 ```
 
 ### Recipe E: drop fragments from every link

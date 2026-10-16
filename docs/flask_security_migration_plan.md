@@ -178,8 +178,10 @@ roles_users = db.Table(
     db.Column("role_id", db.Integer(), db.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
 )
 
+
 class RoleRecord(db.Model, RoleMixin):
     """Flask-Security standard Role table."""
+
     __tablename__ = "roles"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -187,6 +189,7 @@ class RoleRecord(db.Model, RoleMixin):
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # optional permissions list
     permissions: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+
 
 class UserRecord(db.Model, UserMixin):
     __tablename__ = "users"
@@ -199,12 +202,12 @@ class UserRecord(db.Model, UserMixin):
 
     # Flask-Security requirements
     active: Mapped[bool] = mapped_column(nullable=False, server_default=text("1"), default=True)
-    fs_uniquifier: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, default=lambda: uuid.uuid4().hex)
+    fs_uniquifier: Mapped[str] = mapped_column(
+        String(64), unique=True, nullable=False, default=lambda: uuid.uuid4().hex
+    )
 
     # Relationships
-    roles: Mapped[list[RoleRecord]] = relationship(
-        "RoleRecord", secondary=roles_users, backref="users"
-    )
+    roles: Mapped[list[RoleRecord]] = relationship("RoleRecord", secondary=roles_users, backref="users")
     token: Mapped[UserTokenRecord | None] = relationship(back_populates="user", uselist=False)
 
     # Add property for Flask-Security ID lookup
@@ -256,6 +259,8 @@ class Config:
 from flask_security import SQLAlchemyUserDatastore
 from .extensions import security
 from .database.models.users import UserRecord, RoleRecord
+
+
 def create_app(config_class: Type) -> Flask:
     # ... standard setup ...
     _db.init_app(app)
@@ -333,6 +338,7 @@ We can modify `load_logged_in_user()` to automatically populate Flask-Security c
 ```python
 # src/main_app/public/auth/utils.py
 from flask_security import login_user, current_user
+
 
 def load_logged_in_user() -> None:
     if hasattr(g, "_current_user") and g._current_user is not None:
@@ -464,6 +470,7 @@ With all routes migrated, we remove the legacy session/cookie recovery mechanism
 ```python
 from ...admin.decorators import admin_required
 
+
 @self.bp.route("/coordinators", methods=["GET"])
 @admin_required
 def show_coordinators():
@@ -473,6 +480,7 @@ def show_coordinators():
 #### Recommended Flask-Security-Too Replacement
 ```python
 from flask_security import roles_required
+
 
 @self.bp.route("/coordinators", methods=["GET"])
 @roles_required("admin")
@@ -491,6 +499,7 @@ The custom decorator `@admin_required` executes manually written query logic che
 ```python
 from flask import g
 
+
 @self.bp.route("/profile")
 def profile():
     user = getattr(g, "_current_user", None)
@@ -502,6 +511,7 @@ def profile():
 #### Recommended Flask-Security-Too Replacement
 ```python
 from flask_security import current_user, auth_required
+
 
 @self.bp.route("/profile")
 @auth_required()
@@ -530,6 +540,7 @@ Instead of relying on a manually populated global context variable `g._current_u
    - Write tests simulating authenticated requests by using Flask-Security-Too's test context login manager:
      ```python
      from flask_security import login_user
+
 
      def test_admin_route_as_admin(client, user_datastore):
          admin_user = user_datastore.find_user(username="AdminUser")
