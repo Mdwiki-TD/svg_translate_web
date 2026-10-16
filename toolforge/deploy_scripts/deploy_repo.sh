@@ -5,16 +5,15 @@
 # use bash strict mode
 set -euo pipefail
 
-REPO_NAME="$1"        # e.g. cats_maker
-TARGET_DIR="$2"       # Target tool folder, e.g., ARWIKI_ONE_REPO
+REPO_NAME="${1:-}"    # e.g. cats_maker
+TARGET_DIR="${2:-}"   # Target tool folder, e.g., ARWIKI_ONE_REPO
 
-if [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
+if [ -z "$REPO_NAME" ] || [ -z "$TARGET_DIR" ]; then
     echo "Usage: $0 <repo_name> <target_dir> [branch]" >&2
     exit 1
 fi
 
 COPY_TO_TARGET="${COPY_TO_TARGET:-}"
-
 SUB_DIR_COPY="${SUB_DIR_COPY:-}"
 
 BRANCH="${3:-main}"
@@ -38,6 +37,10 @@ PYTHON_BIN="${PYTHON_BIN:-$HOME/local/bin/python3}"
 COMPILE_PYTHON_FILES="${COMPILE_PYTHON_FILES:-0}"
 
 REPO_URL="https://github.com/${USER_NAME}/${REPO_NAME}.git"
+
+# ---------------------------------------------------------------------------
+# Functions
+# ---------------------------------------------------------------------------
 
 cleanup_old_backups() {
     local prefix="$1"
@@ -72,92 +75,149 @@ clone_repo() {
     rm -rf "$clone_dir/.git"
 }
 
-# Navigate to the project directory
-cd "$BASE_DIR" || exit 1
+# Move the existing target dir into the archive, then prune old backups
+archive_old_version() {
+    local target_dir="$1"
+    local repo_name="$2"
+    local old_repos_base="$3"
+    local keep="${4:-5}"
 
-clone_repo "$REPO_URL" "$BRANCH" "$CLONE_DIR" "$REPO_NAME"
-
-# 1. Clean install / Archive if requested
-if [ "$CLEAN_INSTALL" = "1" ] && [ -d "$TARGET_DIR" ]; then
     echo ">>> Clean install enabled"
 
     # Ensure the directory is writable before moving/deleting
-    chmod -R u+w "$TARGET_DIR" 2>/dev/null || true
+    chmod -R u+w "$target_dir" 2>/dev/null || true
 
     # Ensure the archive directory exists
-    mkdir -p "$OLD_REPOS_BASE"
+    mkdir -p "$old_repos_base"
+
+    local dir_name backup_path destination
 
     # Extract the directory name (e.g., cats_maker) to use in the archive name
-    DIR_NAME=$(basename "$TARGET_DIR")
+    dir_name=$(basename "$target_dir")
 
-    BACKUP_PATH="${REPO_NAME}_${DIR_NAME}_backup"
+    backup_path="${repo_name}_${dir_name}_backup"
 
     # Set the destination path with a timestamp (e.g., ~/old_repos/src_backup_1715000)
-    DESTINATION="${OLD_REPOS_BASE}/${BACKUP_PATH}_$(date +%s%N)_$$"
+    destination="${old_repos_base}/${backup_path}_$(date +%s%N)_$$"
 
-    echo ">>> Archiving old version to: $DESTINATION"
-    mv "$TARGET_DIR" "$DESTINATION"
+    echo ">>> Archiving old version to: $destination"
+    mv "$target_dir" "$destination"
 
-    cleanup_old_backups "${OLD_REPOS_BASE}/${BACKUP_PATH}_" 5
-fi
+    cleanup_old_backups "${old_repos_base}/${backup_path}_" "$keep"
+}
 
-mkdir -p "$TARGET_DIR"
+# Prints the source dir to stdout (logs go to stderr so they are not captured)
+resolve_src_dir() {
+    local base_dir="$1"
+    local sub_dir="${2:-}"
+    local src_dir="$base_dir"
 
-# 2. Determine Source Directory (Handle sub-folder like 'src')
-SRC_DIR="$CLONE_DIR"
+    if [ -n "$sub_dir" ]; then
+        src_dir="$base_dir/$sub_dir"
+        echo ">>> Copying sub-directory: $src_dir" >&2
 
-if [ -n "$SUB_DIR_COPY" ]; then
-    SRC_DIR="$CLONE_DIR/$SUB_DIR_COPY"
-    echo ">>> Copying sub-directory: $SRC_DIR"
-
-    if [ ! -d "$SRC_DIR" ]; then
-        echo ">>> ERROR: $SRC_DIR does not exist in repo"
-        echo ">>> exit."
-        exit 1
+        if [ ! -d "$src_dir" ]; then
+            echo ">>> ERROR: $src_dir does not exist in repo" >&2
+            echo ">>> exit." >&2
+            return 1
+        fi
     fi
-fi
 
-# 3. Clean JSONs if requested
-if [ "$REMOVE_SRC_JSONS_BEFORE_COPY" = "1" ]; then
-    echo ">>> Removing old JSON files from $SRC_DIR"
-    find "$SRC_DIR" -name "*.json" -delete
-fi
+    echo "$src_dir"
+}
 
-# 4. Copy from local temporary folder
-echo ">>> Copying files from $SRC_DIR to $TARGET_DIR"
-cp -rf "$SRC_DIR/"* "$TARGET_DIR/" -v
+remove_json_files() {
+    local src_dir="$1"
+    echo ">>> Removing old JSON files from $src_dir"
+    find "$src_dir" -name "*.json" -delete
+}
 
-if [ -n "$COPY_TO_TARGET" ]; then
-    echo ">>> Copying additional file: $COPY_TO_TARGET"
-    cp -f "$CLONE_DIR/$COPY_TO_TARGET" "$TARGET_DIR/" -v
-fi
+copy_files() {
+    local src_dir="$1"
+    local target_dir="$2"
+    local clone_dir="$3"
+    local extra_file="${4:-}"
 
-# 5. Compile Python Files if requested
-if [ "$COMPILE_PYTHON_FILES" = "1" ]; then
+    echo ">>> Copying files from $src_dir to $target_dir"
+    cp -rf "$src_dir/"* "$target_dir/" -v
+
+    if [ -n "$extra_file" ]; then
+        echo ">>> Copying additional file: $extra_file"
+        cp -f "$clone_dir/$extra_file" "$target_dir/" -v
+    fi
+}
+
+compile_python_files() {
+    local target_dir="$1"
+    local python_bin="$2"
+
     echo ">>> Compiling Python files to .pyc"
 
     # Compile all Python files to .pyc explicitly to avoid race conditions
     # Ensure the Python3 binary exists before compiling
-    if command -v "$PYTHON_BIN" >/dev/null 2>&1; then
+    if command -v "$python_bin" >/dev/null 2>&1; then
         export PYTHONDONTWRITEBYTECODE=1
 
-        # Compile all Python files in the TARGET_DIR
-        "$PYTHON_BIN" -m compileall -q -f "$TARGET_DIR"
+        # Compile all Python files in the target_dir
+        "$python_bin" -m compileall -q -f "$target_dir"
         unset PYTHONDONTWRITEBYTECODE
     else
-        echo ">>> Warning: Python binary not found at $PYTHON_BIN, skipping bytecode compilation"
+        echo ">>> Warning: Python binary not found at $python_bin, skipping bytecode compilation"
     fi
 
     # Optional: Set permissions
     # chmod -R 770 "$TARGET_DIR"
 
-    find "$TARGET_DIR" -type f ! -name "*.pyc" -exec chmod 770 {} \;
-fi
+    find "$target_dir" -type f ! -name "*.pyc" -exec chmod 770 {} \;
+}
 
 # Optional: Install dependencies
-#"$PYTHON_BIN" -m pip install -r "$TARGET_DIR/requirements.in"
+install_requirements() {
+    local python_bin="$1"
+    local target_dir="$2"
+    "$python_bin" -m pip install -r "$target_dir/requirements.in"
+}
 
-# Remove the "$CLONE_DIR" directory.
-rm -rf "$CLONE_DIR"
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
-echo ">>> ${REPO_NAME} Deployed successfully"
+main() {
+    local src_dir
+
+    # Navigate to the project directory
+    cd "$BASE_DIR" || exit 1
+
+    # Clone
+    clone_repo "$REPO_URL" "$BRANCH" "$CLONE_DIR" "$REPO_NAME"
+
+    # 1. Clean install / archive if requested
+    if [ "$CLEAN_INSTALL" = "1" ] && [ -d "$TARGET_DIR" ]; then
+        archive_old_version "$TARGET_DIR" "$REPO_NAME" "$OLD_REPOS_BASE" 5
+    fi
+
+    mkdir -p "$TARGET_DIR"
+
+    # 2. Determine Source Directory (Handle sub-folder like 'src')
+    src_dir=$(resolve_src_dir "$CLONE_DIR" "$SUB_DIR_COPY")
+
+    # 3. Clean JSONs if requested
+    if [ "$REMOVE_SRC_JSONS_BEFORE_COPY" = "1" ]; then
+        remove_json_files "$src_dir"
+    fi
+
+    # 4. Copy files
+    copy_files "$src_dir" "$TARGET_DIR" "$CLONE_DIR" "$COPY_TO_TARGET"
+
+    # 5. Compile Python files if requested
+    if [ "$COMPILE_PYTHON_FILES" = "1" ]; then
+        compile_python_files "$TARGET_DIR" "$PYTHON_BIN"
+    fi
+
+    # Cleanup
+    rm -rf "$CLONE_DIR"
+
+    echo ">>> ${REPO_NAME} Deployed successfully"
+}
+
+main
