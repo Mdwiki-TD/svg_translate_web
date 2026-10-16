@@ -1,6 +1,6 @@
 #!/bin/bash
 # toolforge-jobs run installar --image python3.11 --command "~/shs/update_ArWikiCats.sh" --wait
-# sed -i 's/\r$//' ~/shs/*.sh && chmod +x ~/shs/*.sh
+# sed -i 's/\r$//' ~/deploy_scripts/*.sh && chmod +x ~/deploy_scripts/*.sh
 
 # use bash strict mode
 set -euo pipefail
@@ -54,6 +54,23 @@ git clone --branch "$BRANCH" "$REPO_URL" "$CLONE_DIR"
 
 rm -rf "$CLONE_DIR/.git"
 
+echo ">>> Deploying from local uploaded temporary directory..."
+
+cleanup_old_backups() {
+    local prefix="$1"
+    local keep="${2:-5}"
+    local -a old_backups
+
+    mapfile -t old_backups < <(ls -1dt "${prefix}"* 2>/dev/null | tail -n +"$((keep + 1))" || true)
+
+    echo ">>> Old backups to delete: ${#old_backups[@]}"
+
+    if [ "${#old_backups[@]}" -gt 0 ]; then
+        rm -rf -- "${old_backups[@]}"
+    fi
+}
+
+# 1. Clean install / Archive if requested
 if [ "$CLEAN_INSTALL" = "1" ] && [ -d "$TARGET_DIR" ]; then
     echo ">>> Clean install enabled"
 
@@ -66,11 +83,15 @@ if [ "$CLEAN_INSTALL" = "1" ] && [ -d "$TARGET_DIR" ]; then
     # Extract the directory name (e.g., cats_maker) to use in the archive name
     DIR_NAME=$(basename "$TARGET_DIR")
 
+    BACKUP_PATH="${REPO_NAME}_${DIR_NAME}_backup"
+
     # Set the destination path with a timestamp (e.g., ~/old_repos/src_backup_1715000)
-    DESTINATION="${OLD_REPOS_BASE}/${REPO_NAME}_${DIR_NAME}_backup_$(date +%s%N)_$$"
+    DESTINATION="${OLD_REPOS_BASE}/${BACKUP_PATH}_$(date +%s%N)_$$"
 
     echo ">>> Archiving old version to: $DESTINATION"
     mv "$TARGET_DIR" "$DESTINATION"
+
+    cleanup_old_backups "${OLD_REPOS_BASE}/${BACKUP_PATH}_" 5
 fi
 
 mkdir -p "$TARGET_DIR"

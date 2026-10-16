@@ -4,11 +4,11 @@
 # use bash strict mode
 set -euo pipefail
 
-REPO_TMP_DIR="$1"     # Path to uploaded tmp folder, e.g., /home/username/arwiki_repo_tmp
+CLONE_DIR="$1"     # Path to uploaded tmp folder, e.g., /home/username/arwiki_repo_tmp
 TARGET_DIR="$2"       # Target tool folder, e.g., ARWIKI_ONE_REPO
 
 if [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
-    echo "Usage: $0 <repo_tmp_dir> <target_dir>" >&2
+    echo "Usage: $0 <clone_dir> <target_dir>" >&2
     exit 1
 fi
 
@@ -33,6 +33,20 @@ COMPILE_PYTHON_FILES="${COMPILE_PYTHON_FILES:-0}"
 
 echo ">>> Deploying from local uploaded temporary directory..."
 
+cleanup_old_backups() {
+    local prefix="$1"
+    local keep="${2:-5}"
+    local -a old_backups
+
+    mapfile -t old_backups < <(ls -1dt "${prefix}"* 2>/dev/null | tail -n +"$((keep + 1))" || true)
+
+    echo ">>> Old backups to delete: ${#old_backups[@]}"
+
+    if [ "${#old_backups[@]}" -gt 0 ]; then
+        rm -rf -- "${old_backups[@]}"
+    fi
+}
+
 # 1. Clean install / Archive if requested
 if [ "$CLEAN_INSTALL" = "1" ] && [ -d "$TARGET_DIR" ]; then
     echo ">>> Clean install enabled"
@@ -46,20 +60,24 @@ if [ "$CLEAN_INSTALL" = "1" ] && [ -d "$TARGET_DIR" ]; then
     # Extract the directory name (e.g., cats_maker) to use in the archive name
     DIR_NAME=$(basename "$TARGET_DIR")
 
+    BACKUP_PATH="${DIR_NAME}_backup"
+
     # Set the destination path with a timestamp (e.g., ~/old_repos/src_backup_1715000)
-    DESTINATION="${OLD_REPOS_BASE}/${DIR_NAME}_backup_$(date +%s%N)_$$"
+    DESTINATION="${OLD_REPOS_BASE}/${BACKUP_PATH}_$(date +%s%N)_$$"
 
     echo ">>> Archiving old version to: $DESTINATION"
     mv "$TARGET_DIR" "$DESTINATION"
+
+    cleanup_old_backups "${OLD_REPOS_BASE}/${BACKUP_PATH}_" 5
 fi
 
 mkdir -p "$TARGET_DIR"
 
 # 2. Determine Source Directory (Handle sub-folder like 'src')
-SRC_DIR="$REPO_TMP_DIR"
+SRC_DIR="$CLONE_DIR"
 
 if [ -n "$SUB_DIR_COPY" ]; then
-    SRC_DIR="$REPO_TMP_DIR/$SUB_DIR_COPY"
+    SRC_DIR="$CLONE_DIR/$SUB_DIR_COPY"
     echo ">>> Copying sub-directory: $SRC_DIR"
 
     if [ ! -d "$SRC_DIR" ]; then
@@ -81,7 +99,7 @@ cp -rf "$SRC_DIR/"* "$TARGET_DIR/" -v
 
 if [ -n "$COPY_TO_TARGET" ]; then
     echo ">>> Copying additional file: $COPY_TO_TARGET"
-    cp -f "$REPO_TMP_DIR/$COPY_TO_TARGET" "$TARGET_DIR/" -v
+    cp -f "$CLONE_DIR/$COPY_TO_TARGET" "$TARGET_DIR/" -v
 fi
 
 # 5. Compile Python Files if requested
