@@ -1,20 +1,20 @@
 ---
 name: wikitextparser-parser-functions
 description: >
-  Inspect MediaWiki parser functions like {{#if:...}}, {{#switch:...}},
-  {{#ifeq:...}}, {{#expr:...}}, magic words, and template-with-colon-syntax
-  invocations. Covers the ParserFunction class, name vs arguments, the
-  shared SubWikiTextWithArgs machinery with Template, and the important
-  fact that wikitextparser DOES NOT evaluate parser functions.
+    Inspect MediaWiki parser functions like {{#if:...}}, {{#switch:...}},
+    {{#ifeq:...}}, {{#expr:...}}, magic words, and template-with-colon-syntax
+    invocations. Covers the ParserFunction class, name vs arguments, the
+    shared SubWikiTextWithArgs machinery with Template, and the important
+    fact that wikitextparser DOES NOT evaluate parser functions.
 applies_to:
-  - "ParserFunction"
-  - "{{#if:}}"
-  - "{{#switch:}}"
-  - "{{#ifeq:}}"
-  - "{{#ifexist:}}"
-  - "{{#expr:}}"
-  - "{{ucfirst:}}"
-  - "{{lc:}}"
+    - "ParserFunction"
+    - "{{#if:}}"
+    - "{{#switch:}}"
+    - "{{#ifeq:}}"
+    - "{{#ifexist:}}"
+    - "{{#expr:}}"
+    - "{{ucfirst:}}"
+    - "{{lc:}}"
 ---
 
 # 11 — Parser Functions (`{{#if:...}}`, magic words)
@@ -58,14 +58,14 @@ function name from its first argument:
 
 ## Quick reference
 
-| Attribute / method                                 | Description                                    |
-| -------------------------------------------------- | ---------------------------------------------- |
-| `parsed.parser_functions`                          | All parser functions (recursive)               |
-| `pf.name`                                          | Function name (often starts with `#`)          |
-| `pf.arguments`                                     | `list[Argument]` (first one is the condition)  |
-| `pf.nesting_level`                                 | 0 = top-level; +1 per enclosing template/PF    |
-| `pf.parser_functions`                              | Nested parser functions (excludes self)        |
-| `pf.get_lists(pattern=...)`                        | Lists across all arguments                     |
+| Attribute / method          | Description                                   |
+| --------------------------- | --------------------------------------------- |
+| `parsed.parser_functions`   | All parser functions (recursive)              |
+| `pf.name`                   | Function name (often starts with `#`)         |
+| `pf.arguments`              | `list[Argument]` (first one is the condition) |
+| `pf.nesting_level`          | 0 = top-level; +1 per enclosing template/PF   |
+| `pf.parser_functions`       | Nested parser functions (excludes self)       |
+| `pf.get_lists(pattern=...)` | Lists across all arguments                    |
 
 The `Argument` class is identical to the one used by `Template`. See
 `02-templates.md` for its full surface (`name`, `value`, `positional`).
@@ -87,7 +87,7 @@ trailing whitespace from the source.
 ### 2. Distinguish parser functions from templates
 
 `Template` has its first separator as `|`, `ParserFunction` as `:`. The
-library disambiguates automatically — but a template called *with* a
+library disambiguates automatically — but a template called _with_ a
 colon-prefixed name (interwiki/namespace) is still a Template.
 
 ```python
@@ -177,7 +177,7 @@ parsed.parser_functions[0].nesting_level  # 0
 
 ## Edge cases & gotchas
 
-- **No evaluation.** `wtp` will *never* compute the result of `{{#if:}}` or
+- **No evaluation.** `wtp` will _never_ compute the result of `{{#if:}}` or
   `{{#expr:}}`. Treat the AST as static. Use the MediaWiki API for
   expansion if you need rendered output.
 - **Magic words without arguments** like `{{NAMESPACE}}` or
@@ -189,7 +189,7 @@ parsed.parser_functions[0].nesting_level  # 0
   parser functions. Always use `parsed.parser_functions` and
   `parsed.templates` together if you want both.
 - **The argument with `name == '1'`** (or any positional) carries the
-  *condition* in `#if` / `#ifeq` / `#switch`. Use the position string,
+  _condition_ in `#if` / `#ifeq` / `#switch`. Use the position string,
   not the value, to identify it.
 - **Whitespace inside arguments is meaningful** for parser functions
   (especially conditions). Always `.strip()` when comparing values.
