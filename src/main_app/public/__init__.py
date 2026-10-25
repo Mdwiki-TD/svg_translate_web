@@ -1,9 +1,8 @@
 """ """
 
-from dataclasses import dataclass, field
-from typing import Any
-
 from flask import Blueprint, Flask
+
+from ..models import RouteModule
 
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from .api_routes import ApiRoutes
@@ -22,27 +21,19 @@ from .profile import ProfileView
 from .public_jobs import PublicJobsRoutes
 
 
-@dataclass(frozen=True)
-class PublicRouteModule:
-    route_cls: type
-    name: str
-    url_prefix: str = ""
-    extra_kwargs: dict[str, Any] = field(default_factory=dict)
-
-
-PUBLIC_ROUTE_MODULES: list[PublicRouteModule] = [
-    PublicRouteModule(route_cls=MainView, name="main", url_prefix=""),
-    PublicRouteModule(route_cls=AuthView, name="auth", url_prefix=""),  # "/auth"
-    PublicRouteModule(route_cls=ProfileView, name="profile", url_prefix="/profile"),
-    PublicRouteModule(route_cls=ExplorerView, name="explorer", url_prefix="/explorer"),
-    PublicRouteModule(route_cls=ExtractView, name="extract", url_prefix="/extract"),
-    PublicRouteModule(route_cls=InjectView, name="inject", url_prefix="/inject"),
-    PublicRouteModule(route_cls=TranslateView, name="translate", url_prefix="/translate"),
-    PublicRouteModule(route_cls=ApiRoutes, name="api", url_prefix="/api"),
-    PublicRouteModule(route_cls=OwidChartsRoutes, name="owid_charts", url_prefix="/owidcharts"),
-    PublicRouteModule(route_cls=UtilsJobsBpRoutes, name="jobs_utils", url_prefix="/jobs_utils"),
-    PublicRouteModule(route_cls=TemplatesView, name="templates", url_prefix="/templates"),
-    PublicRouteModule(
+PUBLIC_ROUTE_MODULES: list[RouteModule] = [
+    RouteModule(route_cls=MainView, name="main", url_prefix=""),
+    RouteModule(route_cls=AuthView, name="auth", url_prefix=""),  # "/auth"
+    RouteModule(route_cls=ProfileView, name="profile", url_prefix="/profile"),
+    RouteModule(route_cls=ExplorerView, name="explorer", url_prefix="/explorer"),
+    RouteModule(route_cls=ExtractView, name="extract", url_prefix="/extract"),
+    RouteModule(route_cls=InjectView, name="inject", url_prefix="/inject"),
+    RouteModule(route_cls=TranslateView, name="translate", url_prefix="/translate"),
+    RouteModule(route_cls=ApiRoutes, name="api", url_prefix="/api"),
+    RouteModule(route_cls=OwidChartsRoutes, name="owid_charts", url_prefix="/owidcharts"),
+    RouteModule(route_cls=UtilsJobsBpRoutes, name="jobs_utils", url_prefix="/jobs_utils"),
+    RouteModule(route_cls=TemplatesView, name="templates", url_prefix="/templates"),
+    RouteModule(
         route_cls=PublicJobsRoutes,
         name="public_jobs",
         url_prefix="/jobs",

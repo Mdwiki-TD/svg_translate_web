@@ -1,0 +1,161 @@
+{% extends "admins/base1.html" %}
+
+{% block admin_contents %}
+<div class="container-fluid py-3">
+  <h3 class="mb-3">Request Errors logs</h3>
+
+  {# Summary #}
+  <div class="row g-2 mb-3">
+    <div class="col-auto"><span class="badge bg-secondary fs-6">Total: {{ total_hits }}</span></div>
+    <div class="col-auto"><span class="badge bg-warning text-dark fs-6">Suspected bots: {{ total_bot_hits }}</span>
+    </div>
+    {% for row in summary %}
+    <div class="col-auto">
+      <a class="badge bg-light text-dark border fs-6 text-decoration-none"
+        href="{{ url_for(request.endpoint, **dict(filters, status=row.status_code)) }}">
+        {{ row.status_code }}: {{ row.hits }}
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# Filters #}
+  <form method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-auto">
+      <label class="form-label mb-0" for="days">Days</label>
+      <input class="form-control form-control-sm" type="number" min="1" max="365" id="days" name="days"
+        value="{{ filters.days }}">
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0" for="status">Status</label>
+      <input class="form-control form-control-sm" type="number" id="status" name="status"
+        value="{{ filters.status or '' }}" placeholder="404">
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0" for="path">Path contains</label>
+      <input class="form-control form-control-sm" type="text" id="path" name="path" value="{{ filters.path or '' }}"
+        placeholder=".php">
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0" for="ip">IP</label>
+      <input class="form-control form-control-sm" type="text" id="ip" name="ip" value="{{ filters.ip or '' }}">
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0" for="bot">Client</label>
+      <select class="form-select form-select-sm" id="bot" name="bot">
+        <option value="" {{ 'selected' if not filters.bot }}>All</option>
+        <option value="1" {{ 'selected' if filters.bot == '1' }}>Suspected bots</option>
+        <option value="0" {{ 'selected' if filters.bot == '0' }}>Browsers</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for(request.endpoint) }}">Reset</a>
+    </div>
+  </form>
+
+  <div class="row">
+    {# Rows #}
+    <div class="col-lg-9">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Time (UTC)</th>
+              <th>Status</th>
+              <th>Request</th>
+              <th>IP</th>
+              <th>Flags</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in pagination.items %}
+            <tr>
+              <td class="text-nowrap">{{ r.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+              <td><span
+                  class="badge bg-{{ 'danger' if r.status_code >= 500 else 'secondary' }}">{{ r.status_code }}</span>
+              </td>
+              <td class="text-break">
+                <span class="text-muted">{{ r.method }}</span>
+                {{ r.path }}{% if r.query_str %}?{{ r.query_str }}{% endif %}
+              </td>
+              <td class="text-nowrap">{{ r.ip }}</td>
+              <td class="text-nowrap">
+                {% if r.suspected_bot %}<span class="badge bg-warning text-dark">bot?</span>{% endif %}
+                {% if r.has_cookie %}<span class="badge bg-info text-dark">cookie</span>{% endif %}
+                {% if r.username %}<span class="badge bg-success">{{ r.username }}</span>{% endif %}
+              </td>
+              <td>
+                <details>
+                  <summary>headers</summary>
+                  <dl class="mb-0 small">
+                    <dt>User-Agent</dt>
+                    <dd class="text-break">{{ r.user_agent or '-' }}</dd>
+                    <dt>Accept</dt>
+                    <dd class="text-break">{{ r.accept or '-' }}</dd>
+                    <dt>Accept-Language</dt>
+                    <dd>{{ r.accept_language or '-' }}</dd>
+                    <dt>Accept-Encoding</dt>
+                    <dd>{{ r.accept_encoding or '-' }}</dd>
+                    <dt>Referer</dt>
+                    <dd class="text-break">{{ r.referer or '-' }}</dd>
+                    <dt>Sec-Fetch (mode / dest)</dt>
+                    <dd>{{ r.sec_fetch_mode or '-' }} / {{ r.sec_fetch_dest or '-' }}</dd>
+                    <dt>Sec-Ch-Ua</dt>
+                    <dd class="text-break">{{ r.sec_ch_ua or '-' }}</dd>
+                    <dt>Route</dt>
+                    <dd>{{ r.access_route or '-' }}</dd>
+                    <dt>Request ID</dt>
+                    <dd>{{ r.request_id or '-' }}</dd>
+                    <dt>Error</dt>
+                    <dd class="text-break">{{ r.error or '-' }}</dd>
+                  </dl>
+                </details>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center text-muted">No rows match these filters.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {# Pagination #}
+      <nav class="d-flex justify-content-between align-items-center">
+        <span class="text-muted small">
+          Page {{ pagination.page }} of {{ pagination.pages or 1 }} ({{ pagination.total }} rows)
+        </span>
+        <div class="btn-group btn-group-sm">
+          {% if pagination.has_prev %}
+          <a class="btn btn-outline-secondary"
+            href="{{ url_for(request.endpoint, **dict(filters, page=pagination.prev_num)) }}">Previous</a>
+          {% endif %}
+          {% if pagination.has_next %}
+          <a class="btn btn-outline-secondary"
+            href="{{ url_for(request.endpoint, **dict(filters, page=pagination.next_num)) }}">Next</a>
+          {% endif %}
+        </div>
+      </nav>
+    </div>
+
+    {# Top failing paths #}
+    <div class="col-lg-3">
+      <h6>Top failing paths</h6>
+      <ul class="list-group list-group-flush small">
+        {% for p in top_paths %}
+        <li class="list-group-item d-flex justify-content-between align-items-start px-0">
+          <a class="text-break text-decoration-none"
+            href="{{ url_for(request.endpoint, **dict(filters, path=p.path, status=p.status_code)) }}">{{ p.path }}</a>
+          <span class="badge bg-secondary ms-2">{{ p.hits }}</span>
+        </li>
+        {% else %}
+        <li class="list-group-item px-0 text-muted">Nothing yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -50,30 +50,7 @@ class WrapModelView(ModelView):
         abort(403)
 
 
-def add_admin_dashboard(app: Flask, _db: SQLAlchemy) -> None:
-    babel = Babel(app)
-    # Initialize Admin and add views
-    theme = Bootstrap4Theme(
-        base_template="admin/index_with_sidebar.html",
-        swatch="default",
-        fluid=True,
-    )
-    admin = Admin(
-        app,
-        name="DB admin",
-        theme=theme,
-        endpoint=None,
-        index_view=MyAdminIndexView(
-            name="DB admin",
-            template="admin/index_with_sidebar.html",
-            url="/adminpanel/db_admin",
-        ),
-    )
-
-    add_views(_db, admin)
-
-
-def add_views(_db, admin):
+def add_views(_db, admin: Admin):
     # 4. Dynamically build and construct WrapModelView instances
     all_models = []
 
@@ -101,6 +78,30 @@ def add_views(_db, admin):
 
     # 5. Register all wrapped view instances in a single call
     admin.add_views(*all_models)
+
+
+def add_admin_dashboard(app: Flask, _db: SQLAlchemy) -> None:
+    babel = Babel(app)
+    # Initialize Admin and add views
+    theme = Bootstrap4Theme(
+        base_template="admin/index_with_sidebar.html",
+        swatch="default",
+        fluid=True,
+    )
+    admin_index_view = MyAdminIndexView(
+        name="DB admin",
+        template="admin/index_with_sidebar.html",
+        url="/adminpanel/db_admin",
+    )
+    admin = Admin(
+        app,
+        name="DB admin",
+        theme=theme,
+        endpoint=None,
+        index_view=admin_index_view,
+    )
+
+    add_views(_db, admin)
 
 
 __all__ = [

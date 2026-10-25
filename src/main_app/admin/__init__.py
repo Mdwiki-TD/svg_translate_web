@@ -7,7 +7,7 @@ from flask import Blueprint, Flask
 from .admin_panel import AdminPanel
 from .decorators import admin_guard
 from .flask_admin_panel import add_admin_dashboard
-from .routes import AdminRouteRegister
+from .routes import AdminSubRoutesRegister
 
 
 def register_bp_admin_blueprints(app: Flask) -> None:
@@ -17,7 +17,7 @@ def register_bp_admin_blueprints(app: Flask) -> None:
     # blueprints, so this single guard covers every admin sub-blueprint too.
     bp_admin.before_request(admin_guard)
     AdminPanel().register(bp_admin)
-    AdminRouteRegister.register(bp_admin)
+    AdminSubRoutesRegister.register(bp_admin)
     app.register_blueprint(bp_admin)
 
 

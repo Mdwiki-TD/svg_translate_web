@@ -152,6 +152,13 @@ def load_groups_menu() -> list[SidebarGroup]:
                 "adminpanel.settings.dashboard",
                 "/adminpanel/settings/",
             ),
+            SidebarItem(
+                id="db_admin",
+                requires_admin=True,
+                fallback_href="/adminpanel/db_admin",
+                title="DB admin",
+                icon="bi-database",
+            ),
             dashboard_item(
                 "errors",
                 "App Errors",
@@ -160,11 +167,11 @@ def load_groups_menu() -> list[SidebarGroup]:
                 "/adminpanel/errors/",
             ),
             SidebarItem(
-                id="db_admin",
-                requires_admin=1,
-                fallback_href="/adminpanel/db_admin",
-                title="DB admin",
-                icon="bi-database",
+                id="error_logs",
+                requires_admin=True,
+                fallback_href="/adminpanel/error-logs",
+                title="Request Errors logs",
+                icon="bi-exclamation-triangle",
             ),
         ],
     )
