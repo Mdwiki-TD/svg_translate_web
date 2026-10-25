@@ -18,6 +18,9 @@
     <link rel='stylesheet' href="{{ url_for('static', filename='css/navbar.css') }}">
     <link rel='stylesheet'
         href='{{ static_server }}/ajax/libs/datatables.net-responsive-bs5/3.0.4/responsive.bootstrap5.min.css'>
+    <!-- Prism Theme CSS -->
+    <link href="{{ static_server }}/ajax/libs/prism/1.30.0/themes/prism.min.css" rel="stylesheet" />
+    <!-- <link href="{{ static_server }}/ajax/libs/prism/1.30.0/themes/prism-coy.min.css" rel="stylesheet" /> -->
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -40,6 +43,10 @@
     <script src='{{ static_server }}/ajax/libs/datatables.net-bs5/2.3.4/dataTables.bootstrap5.min.js'></script>
     <script src='{{ static_server }}/ajax/libs/datatables-responsive/3.0.4/dataTables.responsive.min.js'></script>
     <script src='{{ static_server }}/ajax/libs/ace/1.42.0/ace.js'></script>
+
+    <script src="{{ static_server }}/ajax/libs/prism/1.30.0/prism.min.js"></script>
+    <script src="{{ static_server }}/ajax/libs/prism/1.30.0/components/prism-log.min.js"></script>
+
     <!-- Autocomplete script -->
     <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
     <!-- Dark mode toggle script -->
@@ -54,6 +61,13 @@
     {% block extra_js %}{% endblock %}
     <script>
         $(document).ready(function () {
+            // Prism.highlightAll();
+
+            document.querySelectorAll('.hljs-item').forEach(el => {
+                // then highlight each
+                Prism.highlightElement(el);
+            });
+
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
             const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 

@@ -1,0 +1,122 @@
+{% extends "admins/base1.html" %}
+
+{% block title %}Check Errors · {{ tool_title }}{% endblock %}
+
+{# Builds a link to another page while keeping file, search and page size. #}
+{% macro page_url(p) -%}
+{{ url_for('adminpanel.errors.dashboard', log_file=selected_file, q=query or None, per_page=per_page, page=p) }}
+{%- endmacro %}
+
+{% macro pager() %}
+<nav class="d-flex justify-content-between align-items-center flex-wrap gap-2" aria-label="Log pages">
+    <div class="btn-group btn-group-sm">
+        <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}" href="{{ page_url(1) }}">&laquo;
+            First</a>
+        <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
+            href="{{ page_url(page - 1) }}">&lsaquo; Prev</a>
+        <a class="btn btn-outline-secondary {% if page >= total_pages %}disabled{% endif %}"
+            href="{{ page_url(page + 1) }}">Next &rsaquo;</a>
+        <a class="btn btn-outline-secondary {% if page >= total_pages %}disabled{% endif %}"
+            href="{{ page_url(total_pages) }}">{{ 'Last' if query else 'Newest' }} &raquo;</a>
+    </div>
+    <span class="text-muted small">Page {{ page }} of {{ total_pages }}</span>
+</nav>
+{% endmacro %}
+
+{% block admin_contents %}
+
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="headline mb-0">Errors ({{ files | length }} files):</h3>
+        </div>
+        <form method="get" action="{{ url_for('adminpanel.errors.dashboard') }}" class="row g-2 align-items-center">
+            <div class="col-auto">
+                <select name="log_file" class="form-select form-select-sm" required>
+                    <option value="" disabled {% if not selected_file %}selected{% endif %}>
+                        Select a file&hellip;
+                    </option>
+                    {% for file_name in files %}
+                    <option value="{{ file_name }}" {% if file_name == selected_file %}selected{% endif %}>
+                        {{ file_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col">
+                <input type="search" name="q" value="{{ query }}" class="form-control form-control-sm"
+                    placeholder="Search in file (case-insensitive)&hellip;">
+            </div>
+            <div class="col-auto">
+                <select name="per_page" class="form-select form-select-sm" title="Lines per page">
+                    {% for n in per_page_choices %}
+                    <option value="{{ n }}" {% if n == per_page %}selected{% endif %}>{{ n }} lines</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">{{ 'Search' if query else 'View' }}</button>
+                {% if query %}
+                <a class="btn btn-outline-secondary btn-sm"
+                    href="{{ url_for('adminpanel.errors.dashboard', log_file=selected_file, per_page=per_page) }}">Clear</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    {% if selected_file and file_exists %}
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+            <h5 class="card-title mb-0">{{ selected_file }}</h5>
+            <span class="text-muted small">
+                {% if query %}
+                {{ '{:,}'.format(total) }}{{ '+' if capped }} matches for &ldquo;{{ query }}&rdquo;
+                {% else %}
+                {{ '{:,}'.format(total) }} lines
+                {% endif %}
+            </span>
+        </div>
+
+        {% if capped %}
+        <div class="alert alert-warning py-1 small">
+            Search stopped after {{ '{:,}'.format(max_matches) }} matches. Use a more specific query to narrow it down.
+        </div>
+        {% endif %}
+
+        {% if rows %}
+        {{ pager() }}
+
+        <div class="bg-light rounded border my-2" style="max-height: 60vh; overflow: auto;">
+            <table class="table table-sm table-borderless mb-0 font-monospace" style="font-size: 0.8rem;">
+                <tbody>
+                    {%- for line_no, text in rows -%}
+                    <tr>
+                        <td class="text-muted text-end user-select-none align-top px-2"
+                            style="width: 1%; white-space: nowrap;">
+                            {{ line_no }}
+                        </td>
+                        <td style="white-space: pre-wrap; word-break: break-all;"> <span
+                                class="hljs-item language-log">{{ text }}</span> </td>
+                    </tr>
+                    {%- endfor -%}
+                </tbody>
+            </table>
+        </div>
+        {{ pager() }}
+        {% elif query %}
+        <p class="text-muted mb-0">No matches found.</p>
+        {% else %}
+        <p class="text-muted mb-0">This file is empty.</p>
+        {% endif %}
+    </div>
+    {% elif files | length == 0 %}
+    <div class="card-body">
+        <p class="text-muted mb-0">No log files found in the logs directory.</p>
+    </div>
+    {% else %}
+    <div class="card-body">
+        <p class="text-muted mb-0">No error log found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -49,7 +49,7 @@ def init_db(_db: SQLAlchemy) -> None:
     Raises:
         DatabaseInitError: If table creation fails.
     """
-    from . import models  # noqa: F401 - register models on db.metadata
+    # from . import models
 
     register_events(_db.engine)
 
