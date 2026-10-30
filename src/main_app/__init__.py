@@ -13,7 +13,7 @@ from .admin import add_admin_dashboard, register_bp_admin_blueprints
 from .config import Config, ConfigLoader, app_settings, ensure_directories
 from .database import init_db
 from .database.exceptions import DatabaseInitError
-from .error_pages import register_error_pages, register_cache_headers
+from .error_pages import register_cache_headers, register_error_pages
 from .extensions import csrf_init_app
 from .extensions import db as _db
 from .extensions import migrate

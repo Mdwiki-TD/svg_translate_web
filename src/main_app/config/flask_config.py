@@ -76,7 +76,7 @@ class Config:
     MAX_FORM_PARTS: int = app_settings.security.max_form_parts
 
     # Flask-SQLAlchemy
-    SQLALCHEMY_DATABASE_URI: str | None = None
+    SQLALCHEMY_DATABASE_URI: str | None = os.environ.get("DATABASE_URI")
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     SQLALCHEMY_ENGINE_OPTIONS: dict[str, Any] = {}
 

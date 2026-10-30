@@ -19,6 +19,8 @@ Both methods return a safe Markup object (no need for the |safe filter,
 though adding it doesn't hurt).
 """
 
+from __future__ import annotations
+
 import logging
 from urllib.parse import quote
 

@@ -1,5 +1,7 @@
 """ """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -10,3 +12,8 @@ class RouteModule:
     name: str
     url_prefix: str = ""
     extra_kwargs: dict[str, Any] = field(default_factory=dict)
+
+
+__all__ = [
+    "RouteModule",
+]
