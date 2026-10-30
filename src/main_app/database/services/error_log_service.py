@@ -5,7 +5,7 @@ Service layer for the error_logs table
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from flask import request
@@ -14,8 +14,8 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from ...extensions import db
-from .crud_service import CRUDService  # adjust to where CRUDService lives in your project
 from ..models.error_log_models import ErrorLogRecord
+from .crud_service import CRUDService  # adjust to where CRUDService lives in your project
 
 logger = logging.getLogger(__name__)
 

@@ -53,12 +53,8 @@ class ErrorLogRecord(db.Model):
     )
 
     # BigInteger on MySQL, plain Integer on SQLite so autoincrement works in tests
-    id: Mapped[int] = mapped_column(
-        BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, server_default=func.now(), index=True
-    )
+    id: Mapped[int] = mapped_column(BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), index=True)
 
     # What was requested
     status_code: Mapped[int] = mapped_column(SmallInteger, nullable=False)

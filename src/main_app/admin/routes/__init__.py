@@ -5,7 +5,9 @@ from __future__ import annotations
 from flask import Blueprint
 
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
+from ...models import RouteModule
 from .coordinators import CoordinatorView
+from .error_logs import CheckErrorLogsView
 from .errors_route import CheckErrorsView
 from .jobs import AdminJobsRoutes
 from .owid_charts import OwidChartsRoutes
@@ -13,9 +15,6 @@ from .settings import SettingsRoutes
 from .slug_redirects import SlugRedirectsRoutes
 from .templates import TemplatesRoutes
 from .users import UsersRoutes
-from .error_logs import CheckErrorLogsView
-
-from ...models import RouteModule
 
 ADMIN_ROUTE_MODULES: list[RouteModule] = [
     RouteModule(route_cls=CoordinatorView, name="coordinators", url_prefix="/coordinators"),

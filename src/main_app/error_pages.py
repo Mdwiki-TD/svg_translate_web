@@ -110,6 +110,7 @@ def log_error(label: str, e: Exception, level: int = logging.ERROR) -> None:
         ip=client_ip(),
     )
 
+
 def wants_json() -> bool:
     """True when the client expects a JSON error body."""
     return request.is_json or request.path.startswith("/api/")

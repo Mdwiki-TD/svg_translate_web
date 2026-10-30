@@ -20,7 +20,6 @@ ModelT = TypeVar("ModelT")  # , bound=db.Model
 PKT = TypeVar("PKT")  # primary key type, e.g. int, str, uuid.UUID
 
 
-# class CRUDService[ModelT, PKT]:
 class CRUDService[ModelT]:
     """
     Generic CRUD service wrapping a single SQLAlchemy model.
@@ -52,7 +51,7 @@ class CRUDService[ModelT]:
         """Fetch a single row matching the given column=value filters."""
         try:
             stmt = self._base_select().filter_by(**filters)
-            return self.session.execute(stmt).scalars().first()
+            return self.session.execute(stmt).scalars().first()  # pyright: ignore[reportReturnType]
         except Exception as exc:
             logger.error("Error getting %s by filters: %s", self.model_name, exc)
             return None
@@ -98,14 +97,14 @@ class CRUDService[ModelT]:
             if offset is not None:
                 stmt = stmt.offset(offset)
             result = self.session.execute(stmt).scalars().all()
-            return list(result)
+            return list(result)  # pyright: ignore[reportReturnType]
         except Exception as exc:
             logger.error("Error listing %s records: %s", self.model_name, exc)
             return []
 
     def list_by_statement(self, stmt: Select[tuple[ModelT]]) -> Sequence[ModelT]:
         """Escape hatch: run a caller-built Select and return scalar results."""
-        return self.session.execute(stmt).scalars().all()
+        return self.session.execute(stmt).scalars().all()  # pyright: ignore[reportReturnType]
 
     def count(self, filters: dict[str, Any] | None = None) -> int:
         stmt = select(func.count()).select_from(self.model)
@@ -337,7 +336,7 @@ class CRUDService[ModelT]:
             raise
 
     def _base_select(self) -> Select[tuple[ModelT]]:
-        return select(self.model)
+        return select(self.model)  # pyright: ignore[reportReturnType]
 
     def expire_all(self) -> None:
         self.session.expire_all()
