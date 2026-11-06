@@ -121,6 +121,32 @@ class NavigationBar:
 
         return Markup("").join(parts)
 
+    def render(
+        self,
+        is_admin=False,
+        current_username: str | None = None,
+    ) -> Markup:
+        main_links = self.render_main_links(is_admin)
+        user_links = self.render_user_links(current_username)
+
+        navbar_markup = Markup(
+            """
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
+                    {main_links}
+                </ul>
+                <hr class="d-lg-none text-dark-subtle text-50">
+                <ul class="d-flex align-items-center navbar-nav flex-row flex-wrap bd-navbar-nav">
+                    {user_links}
+                </ul>
+            </div>
+        """
+        ).format(
+            main_links=main_links,
+            user_links=user_links,
+        )
+        return navbar_markup
+
 
 __all__ = [
     "NavigationBar",
