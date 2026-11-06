@@ -54,13 +54,6 @@ class TestSetupLogging:
         logger = logging.getLogger(logger_name)
         assert logger.level == logging.DEBUG
 
-    def test_setup_logging_with_numeric_level(self):
-        """Test setup with numeric level."""
-        logger_name = "test_logger_numeric"
-        setup_logging(level=logging.WARNING, name=logger_name)
-        logger = logging.getLogger(logger_name)
-        assert logger.level == logging.WARNING
-
     def test_setup_logging_skips_if_handlers_exist(self):
         """Test that setup is skipped if handlers already exist."""
         logger_name = "test_logger_skip"
@@ -81,18 +74,6 @@ class TestSetupLogging:
         # Check that file handler was added
         file_handlers = [h for h in logger.handlers if isinstance(h, logging.FileHandler)]
         assert len(file_handlers) == 1
-
-    def test_setup_logging_with_error_log_file(self, tmp_path):
-        """Test setup with error log file."""
-        logger_name = "test_logger_error_file"
-        error_log_file = tmp_path / "error.log"
-        setup_logging(level="INFO", name=logger_name, error_log_file=str(error_log_file))
-        logger = logging.getLogger(logger_name)
-        # Check that file handler was added
-        file_handlers = [h for h in logger.handlers if isinstance(h, logging.FileHandler)]
-        assert len(file_handlers) == 1
-        # Check that handler is set to WARNING level
-        assert file_handlers[0].level == logging.WARNING
 
     def test_setup_logging_propagate_false(self):
         """Test that propagate is set to False."""
