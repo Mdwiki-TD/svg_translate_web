@@ -29,11 +29,12 @@ class HttpClient:
         default_timeout: float = 30.0,
         user_agent: str | None = None,
         use_session: bool = False,
+        session: requests.Session | None = None,
     ) -> None:
         self.default_timeout = default_timeout
         self.user_agent = user_agent or self._user_agent
         self.use_session = use_session
-        self._session: requests.Session | None = requests.Session() if use_session else None
+        self._session: requests.Session | None = session or (requests.Session() if use_session else None)
 
     # ------------------------------------------------------------------
     # Session management

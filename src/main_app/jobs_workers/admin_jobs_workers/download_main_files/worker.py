@@ -8,9 +8,7 @@ import logging
 import zipfile
 from pathlib import Path
 
-import requests
-
-from ....api_services import FilesService, create_commons_session
+from ....api_services import FilesService
 from ....api_services.files_service import DownloadAndSaveData
 from ....config import app_settings
 from ....database.models import TemplateRecord
@@ -74,7 +72,6 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
             output_path=str(self.output_dir),
         )
 
-        self.session: requests.Session | None = None
         self.main_files_zip_name = self.args.get("main_files_zip_name", "main_files.zip")
         self.limit_items = self.args.get("limit_items") or 0
         self.files_service = FilesService()
@@ -137,9 +134,6 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
         # Create output directory if it doesn't exist
         self.output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Create a services session for all downloads
-        self.session = create_commons_session(app_settings.other.user_agent)
 
         per_item = self.get_priority(len(templates_with_files))
 

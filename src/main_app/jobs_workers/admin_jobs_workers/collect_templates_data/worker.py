@@ -286,7 +286,11 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         self.views_service = ViewsService()
 
         self.update_all = str(self.args.get("update_all", "")).lower() == "true"
-        self.files_processor = OneFileProcessor(self.job_id, self.site, self.template_service)
+        self.files_processor = OneFileProcessor(
+            self.job_id,
+            self.site,
+            self.template_service,
+        )
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""

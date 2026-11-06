@@ -30,7 +30,6 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "save_job_result_by_name": MagicMock(),
         "is_job_cancelled": MagicMock(return_value=False),
         "list": MagicMock(),
-        "create_commons_session": MagicMock(),
         "owid_charts_service": MagicMock(),
         "MwClientPage": MagicMock(),
         "download_file": MagicMock(),
@@ -63,10 +62,6 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.TemplateService.list",
         mocks["list"],
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.create_commons_session",
-        mocks["create_commons_session"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.MwClientPage",
@@ -305,7 +300,6 @@ class TestCropMainFilesProcessorBeforeRun:
         )
 
         mock_crop_services["get_user_site"].return_value = MagicMock()
-        mock_crop_services["create_commons_session"].return_value = MagicMock()
 
         result = processor.before_run()
 
@@ -1050,7 +1044,6 @@ class TestCropMainFilesProcessorRun:
 
         mock_crop_services["get_user_site"].return_value = _site
 
-        mock_crop_services["create_commons_session"].return_value = MagicMock()
         mock_crop_services["list"].return_value = [
             TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg"),
         ]

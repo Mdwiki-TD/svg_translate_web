@@ -6,18 +6,20 @@ from unittest.mock import MagicMock
 
 import requests
 
-from src.main_app.api_services.files_service.file_langs import FileLanguagesMap  # noqa: F401
-from src.main_app.api_services.files_service.file_langs import get_file_languages
+from src.main_app.api_services.clients.http_client import HttpClient
+from src.main_app.api_services.files_service import FilesService
 
 
 class TestGetFileLanguages:
     def test_empty_filename(self):
-        result = get_file_languages("")
+        http_client = HttpClient(use_session=True)
+        result = FilesService(http_client=http_client).get_file_languages("")
         assert result.error == "Empty fileName"
         assert result.langs is None
 
     def test_none_filename(self):
-        result = get_file_languages(None)
+        http_client = HttpClient(use_session=True)
+        result = FilesService(http_client=http_client).get_file_languages(None)
         assert result.error == "Empty fileName"
 
     def test_file_colon_prefix_stripped(self):
@@ -44,7 +46,8 @@ class TestGetFileLanguages:
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
-        result = get_file_languages("File:Test.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("File:Test.svg")
         call_args = mock_session.get.call_args
         assert "File:Test.svg" in str(call_args)
 
@@ -53,7 +56,8 @@ class TestGetFileLanguages:
 
         mock_session.get.side_effect = requests.ConnectionError("Connection failed")
 
-        result = get_file_languages("Test.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Test.svg")
         assert "API error" in result.error
         assert result.langs is None
 
@@ -66,7 +70,8 @@ class TestGetFileLanguages:
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
-        result = get_file_languages("Test.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Test.svg")
         assert result.error == "Metadata not found for File:Test.svg. Error: Unexpected API response"
 
     def test_file_missing(self):
@@ -78,7 +83,8 @@ class TestGetFileLanguages:
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
-        result = get_file_languages("Missing.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Missing.svg")
         assert "does not exist" in result.error
 
     def test_no_imageinfo(self):
@@ -90,7 +96,8 @@ class TestGetFileLanguages:
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
-        result = get_file_languages("Test.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Test.svg")
         assert "Metadata not found" in result.error
 
     def test_no_metadata(self):
@@ -111,7 +118,8 @@ class TestGetFileLanguages:
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
-        result = get_file_languages("Test.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Test.svg")
         assert "Metadata array empty" in result.error
 
     def test_with_translations(self):
@@ -145,7 +153,8 @@ class TestGetFileLanguages:
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
-        result = get_file_languages("Test.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Test.svg")
         assert result.error is None
         assert result.langs == ["fr", "de", "es", "en"]
 
@@ -173,7 +182,8 @@ class TestGetFileLanguages:
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
-        result = get_file_languages("Test.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Test.svg")
         assert result.error is None
         assert result.langs == ["en"]
 
@@ -201,7 +211,8 @@ class TestGetFileLanguages:
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
-        result = get_file_languages("Test.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Test.svg")
         assert result.error is None
         assert result.langs == ["en"]
 
@@ -235,7 +246,8 @@ class TestGetFileLanguages:
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
-        result = get_file_languages("Test.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Test.svg")
         assert result.error is None
         assert result.langs == ["fr", "en"]
 
@@ -258,7 +270,8 @@ class TestGetFileLanguages:
         mock_session.get.return_value = mock_response
 
         custom_session = MagicMock()
-        result = get_file_languages("Test.svg", session=custom_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Test.svg")
         custom_session.get.assert_called_once()
 
     def test_metadata_non_dict_items_filtered(self):
@@ -287,6 +300,7 @@ class TestGetFileLanguages:
         mock_response.raise_for_status = MagicMock()
         mock_session.get.return_value = mock_response
 
-        result = get_file_languages("Test.svg", mock_session)
+        http_client = HttpClient(use_session=True, session=mock_session)
+        result = FilesService(http_client=http_client).get_file_languages("Test.svg")
         assert result.error is None
         assert result.langs == ["it", "en"]

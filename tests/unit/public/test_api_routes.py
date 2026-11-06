@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 from flask.testing import FlaskClient
 
-from src.main_app.api_services.files_service.file_langs import FileLanguagesMap
+from src.main_app.api_services.files_service import FileLanguagesMap
 from src.main_app.database.services import (
     OwidChartsService,
     TemplateService,
@@ -229,7 +229,7 @@ class TestFileLanguages:
     @pytest.fixture(autouse=True)
     def mock_get_file_languages(self, monkeypatch: pytest.MonkeyPatch):
         mock = MagicMock(return_value=FileLanguagesMap(error=None, langs=["en"]))
-        monkeypatch.setattr("src.main_app.public.api_routes.get_file_languages", mock)
+        monkeypatch.setattr("src.main_app.public.api_routes.FilesService.get_file_languages", mock)
         return mock
 
     def test_returns_languages(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:

@@ -16,7 +16,7 @@ from collections.abc import Iterable
 from mwclient.client import Site
 
 from ....api_services import MwClientPage
-from ....api_services.files_service.file_langs import get_file_languages
+from ....api_services.files_service import FilesService
 from ....utils.wikitext.categories_utils import get_missing_categories_list
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
@@ -53,6 +53,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         )
 
         self.limit_items = self.args.get("limit_items") or 0
+        self.files_service = FilesService()
 
     # ------------------------------------------------------------------
     # BaseObjectsJobWorker hooks
@@ -192,7 +193,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
     def _step_get_languages(self, info: PageInfo) -> bool:
         """Call the Commons API to get available languages for the SVG file."""
-        result = get_file_languages(info.svg_file or "")
+        result = self.files_service.get_file_languages(info.svg_file or "")
         error = result.error
         langs = result.langs
 

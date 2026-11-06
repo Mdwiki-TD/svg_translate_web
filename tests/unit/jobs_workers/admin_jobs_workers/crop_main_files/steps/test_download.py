@@ -13,7 +13,7 @@ from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.download
 def mock_download(monkeypatch):
     _mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.download.download_and_save", _mock
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.download.FilesService.download_and_save", _mock
     )
     return _mock
 

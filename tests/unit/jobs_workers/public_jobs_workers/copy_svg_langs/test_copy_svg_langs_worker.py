@@ -129,12 +129,7 @@ def mock_clients(
     )
     m_session = MagicMock()
     m_session.return_value = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.api_services.files_service.service.create_commons_session",
-        m_session,
-    )
     return {
-        "session": m_session,
         "site": mock_get_user_site,
     }
 

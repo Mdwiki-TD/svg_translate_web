@@ -8,9 +8,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-import requests
-
-from .....api_services.files_service.downloader import download_and_save
+from .....api_services.files_service import FilesService
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +16,7 @@ logger = logging.getLogger(__name__)
 def download_file_for_cropping(
     filename: str,
     output_dir: Path,
-    session: requests.Session | None = None,
+    files_service: FilesService | None = None,
 ) -> dict[str, Any]:
     """
     Download a single file from Wikimedia Commons for cropping.
@@ -31,6 +29,8 @@ def download_file_for_cropping(
     Returns:
         dict with keys: success (bool), path (Path|None), error (str|None)
     """
+    files_service = files_service or FilesService()
+
     result = {
         "success": False,
         "path": None,
@@ -45,10 +45,9 @@ def download_file_for_cropping(
     clean_filename = filename.removeprefix("File:")
 
     try:
-        d_result = download_and_save(
+        d_result = files_service.download_and_save(
             title=clean_filename,
             out_dir=output_dir,
-            session=session,
             overwrite_download=True,
         )
 

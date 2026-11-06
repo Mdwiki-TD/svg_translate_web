@@ -239,7 +239,11 @@ class InjectProcessView(MethodView):
 
     def _download_and_extract(self, filename: str, temp_dir: Path) -> dict[str, Any] | None:
         """Download a file from Commons and extract translations."""
-        result = self.files_service.download_and_save(title=filename, out_dir=temp_dir, overwrite_download=True)
+        result = self.files_service.download_and_save(
+            title=filename,
+            out_dir=temp_dir,
+            overwrite_download=True,
+        )
 
         if result.result != "success" or not result.path:
             flash(f"Failed to download file: {filename}", "danger")
