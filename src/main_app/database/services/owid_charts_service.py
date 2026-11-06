@@ -116,8 +116,12 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
             if value is not None and hasattr(OwidChartRecord, key):
                 setattr(chart, key, value)
 
-        self.session.commit()
-        self.session.refresh(chart)
+        try:
+            self.session.commit()
+            self.session.refresh(chart)
+        except Exception:
+            self.session.rollback()
+            raise
 
         return chart
 

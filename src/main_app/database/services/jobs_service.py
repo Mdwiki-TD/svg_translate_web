@@ -39,7 +39,9 @@ class UserJobsStats:
         return cls(stats=JobStats(), recent_jobs=[])
 
 
-def _normalize_limit(limit: int | None, *, default: int = 100, max_limit: int = 500) -> int:
+def _normalize_limit(
+    limit: int | None, *, default: int = 100, max_limit: int = 500
+) -> int:
     if limit is None or limit <= 0:
         return default
     return min(limit, max_limit)
@@ -79,7 +81,9 @@ class JobsService(CRUDService[JobRecord]):
         try:
             # Dedicated autocommit connection: always reads the latest committed
             # value and never touches the worker's session or its transaction.
-            with db.engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+            with db.engine.connect().execution_options(
+                isolation_level="AUTOCOMMIT"
+            ) as conn:
                 status = conn.execute(stmt).scalar_one_or_none()
             return (status or "").lower() == "cancelled"
         except Exception:
@@ -97,7 +101,9 @@ class JobsService(CRUDService[JobRecord]):
             raise LookupError(f"Job id {job_id} was not found")
         return job
 
-    def list_jobs(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:
+    def list_jobs(
+        self, limit: int = 100, job_type: str | None = None
+    ) -> list[JobRecord]:
         filters = {}
         if job_type:
             filters["job_type"] = job_type
@@ -142,7 +148,9 @@ class JobsService(CRUDService[JobRecord]):
         )
         status_counts = {row[0]: row[1] for row in records}
 
-        recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
+        recent_jobs = (
+            base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
+        )
 
         total_jobs = sum(status_counts.values())
 
@@ -196,18 +204,30 @@ class JobsService(CRUDService[JobRecord]):
             DuplicateRecordError: If a job of the same type is already running.
         """
         try:
-            job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
+            job = JobRecord(
+                job_type=job_type, username=username, status="pending", is_running=1
+            )
             self.session.add(job)
             self.session.commit()
         except IntegrityError as exc:
             self.session.rollback()
-            if "idx_unique_active_job" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
-                logger.warning("Duplicate active job detected for job_type=%s", job_type)
+            if "idx_unique_active_job" in str(
+                exc.orig
+            ) or "UNIQUE constraint failed" in str(exc.orig):
+                logger.warning(
+                    "Duplicate active job detected for job_type=%s", job_type
+                )
                 raise DuplicateRecordError(
                     f"A job of type '{job_type}' is already active (pending or running)."
                 ) from exc
             raise  # Re-raise unexpected IntegrityError
-        self.session.refresh(job)
+
+        try:
+            self.session.refresh(job)
+        except Exception:
+            self.session.rollback()
+            raise
+
         return job
 
     def update_job_status(
@@ -324,16 +344,24 @@ class JobsService(CRUDService[JobRecord]):
         if result_file:
             job.result_file = result_file
 
-        self.session.commit()
-        self.session.refresh(job)
+        try:
+            self.session.commit()
+            self.session.refresh(job)
+        except Exception:
+            self.session.rollback()
+            raise
 
         return job
 
-    def _get_all_user_jobs_stats(self, username: str, limit: int | None = 100) -> UserJobsStats:
+    def _get_all_user_jobs_stats(
+        self, username: str, limit: int | None = 100
+    ) -> UserJobsStats:
         """Return typed statistics and recent jobs for all of a user's job types."""
         limit = _normalize_limit(limit)
 
-        base_query = self.session.query(JobRecord).filter(JobRecord.username == username)
+        base_query = self.session.query(JobRecord).filter(
+            JobRecord.username == username
+        )
 
         records = (
             self.session.query(JobRecord.status, func.count(JobRecord.id))
@@ -343,7 +371,9 @@ class JobsService(CRUDService[JobRecord]):
         )
         status_counts: dict[str, int] = {row[0]: row[1] for row in records}
 
-        recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
+        recent_jobs = (
+            base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
+        )
 
         total_jobs = sum(status_counts.values())
 
