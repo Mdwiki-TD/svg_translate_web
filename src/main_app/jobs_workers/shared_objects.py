@@ -32,11 +32,11 @@ class SharedMapToJson:
         return asdict(self)
 
 
-@dataclass(frozen=True)
+@dataclass  # (frozen=True)
 class UpdaterOutcome:
     """Result of running the updater on one page."""
 
-    status: Literal["missing", "changed", "error", "skipped"]
+    status: Literal["missing", "changed", "error", "skipped", "completed"]
     newrevid: int = 0
     msg: str = ""
 

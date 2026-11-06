@@ -1,13 +1,13 @@
 """Utility modules for the main application."""
 
-from .nav_bar import NavigationBar
-from .navbar_list import nav_list
-from .objects import NavDropdown, NavLink
+from __future__ import annotations
 
-main_navbar = NavigationBar(nav_list)
+from .mapping import NavDropdown, NavLink
+from .nav_bar import NavigationBar
+from .navbar_list import main_nav_list
 
 __all__ = [
-    "main_navbar",
+    "main_nav_list",
     "NavigationBar",
     "NavLink",
     "NavDropdown",
