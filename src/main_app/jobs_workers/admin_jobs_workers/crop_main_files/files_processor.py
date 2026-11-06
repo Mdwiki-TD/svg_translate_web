@@ -10,9 +10,8 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services.files_service import FilesService
-
 from ....api_services import MwClientPage
+from ....api_services.files_service import FilesService
 from ....config import app_settings
 from ....database.models import TemplateRecord
 from ....database.services import OwidChartsService

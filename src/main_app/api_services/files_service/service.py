@@ -4,15 +4,13 @@ from urllib.parse import quote
 
 import requests
 
+from ..clients import CommonsSession, GetWithRetryData
 from ..clients.http_client import HttpClient
 from .objects import (
     DownloadAndSaveData,
     FileInfo,
     FileLanguagesMap,
 )
-
-
-from ..clients import CommonsSession, GetWithRetryData
 from .save_file import write_bytes_to_file
 
 logger = logging.getLogger(__name__)

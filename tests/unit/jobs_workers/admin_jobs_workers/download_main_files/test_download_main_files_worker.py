@@ -54,7 +54,6 @@ def mock_download_main_services(monkeypatch: pytest.MonkeyPatch, mock_before_run
         mock_generate_main_files_zip,
     )
 
-
     return MockServices(
         list=mock_list_templates,
         download_and_save=mock_download_and_save,

@@ -4,9 +4,9 @@ from .commons_client import (
     CommonsSession,
     GetWithRetryData,
 )
+from .http_client import HttpClient
 from .owid_client import fetch_grapher_metadata_raw, fetch_indicators_metadata
 from .wiki_client import get_cronjob_site, get_user_site
-from .http_client import HttpClient
 
 __all__ = [
     "GetWithRetryData",

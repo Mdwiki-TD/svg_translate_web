@@ -1,10 +1,10 @@
 """Utility modules for the main application."""
 
 from .objects import (
-    FileLanguagesMap,
     DownloadAndSaveData,
     DownloadResult,
     FileInfo,
+    FileLanguagesMap,
 )
 from .service import FilesService
 from .uploader import UploadService
