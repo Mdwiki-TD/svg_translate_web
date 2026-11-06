@@ -166,7 +166,7 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
         cutoff = _utcnow() - timedelta(days=days)
         result = self.session.execute(delete(ErrorLogRecord).where(ErrorLogRecord.created_at < cutoff))
         # CRUDService.commit() rolls back on failure, so the session stays usable
-        self.commit()
+        self.commit_or_rollback()
         return result.rowcount or 0  # pyright: ignore[reportAttributeAccessIssue]
 
 

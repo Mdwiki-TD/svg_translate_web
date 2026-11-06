@@ -129,7 +129,7 @@ class CRUDService[ModelT]:
             raise
 
         try:
-            self.commit()
+            self.commit_or_rollback()
             self.session.refresh(instance)
             return instance
         except Exception:
@@ -146,7 +146,7 @@ class CRUDService[ModelT]:
             raise
 
         try:
-            self.commit()
+            self.commit_or_rollback()
             self.session.refresh(instance)
             return instance
         except Exception:
@@ -163,7 +163,7 @@ class CRUDService[ModelT]:
             if value is not None:
                 setattr(instance, key, value)
 
-        self.commit()
+        self.commit_or_rollback()
         self.session.refresh(instance)
 
         return instance
@@ -270,7 +270,7 @@ class CRUDService[ModelT]:
         instances = [self.model(**fields) for fields in items]
         self.session.add_all(instances)
         try:
-            self.commit()
+            self.commit_or_rollback()
         except Exception as exc:
             logger.error("Error bulk creating %s: %s", self.model_name, exc)
         return instances
@@ -295,7 +295,7 @@ class CRUDService[ModelT]:
     def delete_record(self, record: ModelT) -> bool:
         try:
             self.session.delete(record)
-            self.commit()
+            self.commit_or_rollback()
             return True
         except Exception as e:
             logger.error(f"Error deleting {self.model_name} {e}")
@@ -328,7 +328,7 @@ class CRUDService[ModelT]:
     # Internals
     # ------------------------------------------------------------------ #
 
-    def commit(self) -> None:
+    def commit_or_rollback(self) -> None:
         try:
             self.session.commit()
         except Exception:
