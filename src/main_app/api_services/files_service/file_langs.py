@@ -34,7 +34,7 @@ def get_file_languages(
     normalized_name = file_name[5:] if file_name.lower().startswith("file:") else file_name
     prefixed_file_name = f"File:{normalized_name}"
 
-    file_info = get_file_info(prefixed_file_name, session=session)
+    file_info = get_file_info(prefixed_file_name)
     # check if image exists
     if file_info.exists is False:
         return FileLanguagesMap(error="File does not exist")

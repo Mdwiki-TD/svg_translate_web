@@ -167,7 +167,7 @@ class TestIsJobCancelled(TestSetup):
         job = self.service.create_job("test", username="test_user")
         self.service.update_job_status(job.id, "cancelled", job_type="test")
 
-        result = self.service.is_job_cancelled(job.id, "test")
+        result = self.service.is_job_cancelled(job.id)
         assert result is True
 
     def test_active_statuses_return_false(self) -> None:
@@ -176,11 +176,11 @@ class TestIsJobCancelled(TestSetup):
             if status != "pending":
                 self.service.update_job_status(job.id, status, job_type=f"test_{status}")
 
-            result = self.service.is_job_cancelled(job.id, f"test_{status}")
+            result = self.service.is_job_cancelled(job.id)
             assert result is False
 
     def test_no_record_returns_false(self) -> None:
-        result = self.service.is_job_cancelled(1, "test")
+        result = self.service.is_job_cancelled(1)
         assert result is False
 
 

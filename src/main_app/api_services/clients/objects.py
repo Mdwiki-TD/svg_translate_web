@@ -25,5 +25,7 @@ class GetWithRetryData(SharedMapToJson):
 
 
 __all__ = [
+    "RawGrapherMetadataResponse",
+    "SharedMapToJson",
     "GetWithRetryData",
 ]

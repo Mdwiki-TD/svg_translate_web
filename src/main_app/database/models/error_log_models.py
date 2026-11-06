@@ -81,3 +81,12 @@ class ErrorLogRecord(db.Model):
     request_id: Mapped[str | None] = mapped_column(String(64), index=True)
 
     error: Mapped[str | None] = mapped_column(String(500))
+
+    @classmethod
+    def load(cls, **data):
+        return cls(**data)
+
+
+__all__ = [
+    "ErrorLogRecord",
+]

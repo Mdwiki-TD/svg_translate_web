@@ -54,7 +54,7 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
         """
         try:
             headers = request.headers
-            record = ErrorLogRecord(
+            record = ErrorLogRecord.load(
                 status_code=status_code,
                 method=_cut(request.method, 10) or "",
                 path=_cut(request.path, 500) or "",
@@ -167,4 +167,9 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
         result = self.session.execute(delete(ErrorLogRecord).where(ErrorLogRecord.created_at < cutoff))
         # CRUDService.commit() rolls back on failure, so the session stays usable
         self.commit()
-        return result.rowcount or 0
+        return result.rowcount or 0  # pyright: ignore[reportAttributeAccessIssue]
+
+
+__all__ = [
+    "ErrorLogService",
+]

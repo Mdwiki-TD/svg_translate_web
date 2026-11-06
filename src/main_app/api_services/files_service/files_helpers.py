@@ -4,7 +4,6 @@ import logging
 
 import requests
 
-from ..clients.commons_client import create_commons_session
 from .objects import FileInfo
 
 logger = logging.getLogger(__name__)
@@ -50,9 +49,6 @@ def get_file_info(
 
     if not prefixed_file_name:
         return FileInfo(error="No file name provided")
-
-    if not session:
-        session = create_commons_session()
 
     # Define API endpoint and parameters
     url = "https://commons.wikimedia.org/w/api.php"

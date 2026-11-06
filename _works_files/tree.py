@@ -31,6 +31,7 @@ for work_path, save_path in paths:
         sortBy=2,
         raiseException=False,
         printErrorTraceback=False,
+        spacing=True,
     )
 
     save_path.write_text(f"```\n{tree}\n```", encoding="utf-8")

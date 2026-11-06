@@ -3,7 +3,7 @@ from pathlib import Path
 
 import requests
 
-from ..clients import create_commons_session
+from ..clients.http_client import HttpClient
 from .downloader import download_and_save
 from .file_langs import get_file_languages
 from .files_helpers import get_file_info
@@ -17,8 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 class FilesService:
-    def __init__(self, session: requests.Session | None = None) -> None:
-        self.session: requests.Session = session or create_commons_session()
+    def __init__(
+        self,
+        session: requests.Session | None = None,
+        http_client: HttpClient | None = None,
+    ) -> None:
+        self.http_client = http_client or HttpClient(use_session=True)
 
     def get_file_info(self, title: str) -> FileInfo:
         """Get file info from Commons."""
@@ -42,6 +46,5 @@ class FilesService:
         return download_and_save(
             title=title,
             out_dir=out_dir,
-            session=self.session,
             overwrite_download=overwrite_download,
         )
