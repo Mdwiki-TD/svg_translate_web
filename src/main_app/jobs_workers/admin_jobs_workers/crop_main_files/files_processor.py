@@ -10,7 +10,8 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, create_commons_session
+from ....api_services import MwClientPage
+from ....api_services.files_service import FilesService
 from ....config import app_settings
 from ....database.models import TemplateRecord
 from ....database.services import OwidChartsService
@@ -33,16 +34,22 @@ logger = logging.getLogger(__name__)
 
 
 class OneFileProcessor:
-    def __init__(self, job_id: int, site: Site, args: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        job_id: int,
+        site: Site,
+        args: dict[str, Any],
+        files_service: FilesService | None = None,
+    ) -> None:
         self.job_id = job_id
         self.site = site
         self.exists: dict[str, Any] = {}
         self.args = args
         self.original_dir = Path(app_settings.paths.crop_main_files_path) / "original"
         self.cropped_dir = Path(app_settings.paths.crop_main_files_path) / "cropped"
-        self.session = create_commons_session(app_settings.other.user_agent)
 
         self.owid_charts_service = OwidChartsService()
+        self.files_service = files_service or FilesService()
 
     # ------------------------------------------------------------------
     # Per-template orchestration
@@ -151,7 +158,7 @@ class OneFileProcessor:
         download_result = download_file_for_cropping(
             template.last_world_file,
             self.original_dir,
-            session=self.session,
+            files_service=self.files_service,
         )
 
         if download_result["success"]:

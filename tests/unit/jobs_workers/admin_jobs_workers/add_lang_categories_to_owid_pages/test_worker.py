@@ -30,7 +30,7 @@ def mock_lang_categories_services(monkeypatch: pytest.MonkeyPatch, mock_base_wor
         mocks["MwClientPage"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pages.worker.get_file_languages",
+        "src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pages.worker.FilesService.get_file_languages",
         mocks["get_file_languages"],
     )
     return mocks

@@ -141,7 +141,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         """
         # Use temp directory for processing
         try:
-            download = self.files_service.download_and_save(filename, temp_dir)
+            download = self.files_service.download_and_save(title=filename, out_dir=temp_dir)
         except Exception as e:
             logger.exception("Error downloading SVG file")
             return {

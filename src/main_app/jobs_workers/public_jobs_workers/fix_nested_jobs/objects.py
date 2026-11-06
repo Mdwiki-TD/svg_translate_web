@@ -7,8 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from ...base_worker import WorkerMapping
-from ...shared_objects import STATUS_LITERAL
+from ...shared_objects import STATUS_LITERAL, WorkerMapping
 
 
 @dataclass

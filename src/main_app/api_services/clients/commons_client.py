@@ -13,6 +13,7 @@ from typing import Any
 
 import requests
 
+from .http_client import HttpClient
 from .objects import GetWithRetryData
 
 logger = logging.getLogger(__name__)
@@ -21,34 +22,16 @@ logger = logging.getLogger(__name__)
 COMMONS_API_ENDPOINT = "https://commons.wikimedia.org/w/api.php"
 
 
-def create_commons_session(user_agent: str | None = None) -> requests.Session:
-    """Create a pre-configured requests Session for Commons API calls.
-
-    Args:
-        user_agent: Optional custom User-Agent string. If not provided,
-            defaults to a generic bot identifier.
-
-    Returns:
-        Configured requests Session ready for use.
-    """
-    session = requests.Session()
-    session.headers.update(
-        {
-            "User-Agent": user_agent or "SVGTranslateBot/1.0",
-        }
-    )
-    return session
-
-
 class CommonsSession:
     def __init__(
         self,
         session: requests.Session | None = None,
         user_agent: str | None = None,
         timeout: int = 60,
+        http_client: HttpClient | None = None,
     ) -> None:
-        self.session = session or create_commons_session(user_agent)
         self.timeout = timeout
+        self.http_client = http_client or HttpClient(use_session=True)
 
     def get(self, params: dict[str, Any]) -> dict[str, Any]:
         try:
@@ -87,7 +70,7 @@ class CommonsSession:
         if url is None:
             url = COMMONS_API_ENDPOINT
 
-        response = self.session.request(
+        response = self.http_client.request(
             method=method,
             url=url,
             params=params,
@@ -189,5 +172,4 @@ class CommonsSession:
 
 __all__ = [
     "CommonsSession",
-    "create_commons_session",
 ]

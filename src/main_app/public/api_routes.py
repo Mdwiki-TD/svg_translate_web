@@ -8,7 +8,7 @@ from typing import Any
 from flask import Blueprint, jsonify
 from flask.views import MethodView
 
-from ..api_services.files_service.file_langs import get_file_languages
+from ..api_services.files_service import FilesService
 from ..database.models import TemplateRecord
 from ..database.services import (
     ChartAndTemplate,
@@ -107,7 +107,8 @@ class FileLanguagesView(MethodView):
 
     def get(self, file_name: str) -> str:
         """Return the language list for ``file_name`` as JSON."""
-        result = get_file_languages(file_name)
+        files_service = FilesService()
+        result = files_service.get_file_languages(file_name)
         error = result.error
         langs = result.langs or []
         if error or not langs:

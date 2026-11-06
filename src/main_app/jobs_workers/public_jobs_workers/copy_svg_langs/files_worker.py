@@ -11,8 +11,7 @@ from pathlib import Path
 from mwclient.client import Site
 
 from ....api_services import UploadService
-from ....api_services.files_service import FilesService
-from ....api_services.files_service.downloader import DownloadAndSaveData
+from ....api_services.files_service import DownloadAndSaveData, FilesService
 from ....services.copysvg_wrapper import (
     ExtractResult,
     InjectResult,

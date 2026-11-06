@@ -19,7 +19,6 @@ class MockServices:
     list: MagicMock
     download_and_save: MagicMock
     generate_main_files_zip: MagicMock
-    create_commons_session: MagicMock
     before_run: MagicMock
 
 
@@ -55,17 +54,10 @@ def mock_download_main_services(monkeypatch: pytest.MonkeyPatch, mock_before_run
         mock_generate_main_files_zip,
     )
 
-    mock_create_commons_session = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.create_commons_session",
-        mock_create_commons_session,
-    )
-
     return MockServices(
         list=mock_list_templates,
         download_and_save=mock_download_and_save,
         generate_main_files_zip=mock_generate_main_files_zip,
-        create_commons_session=mock_create_commons_session,
         before_run=mock_before_run,
     )
 

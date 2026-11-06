@@ -99,7 +99,7 @@ class TestCancelJobWorker(TestSetup):
 
         # Verify DB was updated
         with mock_app.app_context():
-            assert self.job_service.is_job_cancelled(job_id, "test_job") is True
+            assert self.job_service.is_job_cancelled(job_id) is True
 
         mock_create_file.assert_called_once()
 
