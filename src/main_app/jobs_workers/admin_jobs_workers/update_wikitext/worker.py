@@ -1,0 +1,317 @@
+"""
+Worker module for create_owid_pages.
+"""
+
+from __future__ import annotations
+
+import logging
+
+from mwclient.client import Site
+
+from ....api_services import MwClientPage, is_pages_exists
+from ....data import get_slug_categories
+from ....database.models import TemplateRecord
+from ....database.services import TemplateService
+from ....utils.wikitext import merge_categories, sort_categories
+from ...base_worker import BaseObjectsJobWorker
+from ...objects import JobsRunner
+from .objects import CreateOwidPagesWorkerObject, OneStep, TemplateProcessingInfo
+
+logger = logging.getLogger(__name__)
+
+
+class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
+    """
+    Worker for create_owid_pages.
+    Steps:
+        1. load template wikitext
+        2. create new wikitext using create_new_text
+        3. check if new page already exists then compare if text need to be updated
+        4. create new page with new wikitext
+    """
+
+    def __init__(self, data: JobsRunner) -> None:
+        self.site: Site | None = None
+
+        super().__init__(data)
+        self.args = data.args or {}
+
+        self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
+
+        self.limit_items = self.args.get("limit_items") or 0
+        self.update_all = str(self.args.get("update_all", "")).lower() == "true"
+
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "create_owid_pages"
+
+    def process(self) -> CreateOwidPagesWorkerObject:
+
+        if not self._check_site():
+            return self.result
+
+        templates = self._load_templates()
+        len_all = len(templates)
+        self.result.summary.total = len_all
+        self._save_progress()
+
+        if not self.update_all:
+            templates = self.filter_created(templates)
+            if not templates:
+                self.result.summary.skipped = len_all
+                self.result.status = "skipped"
+                self.result.note = f"Nothing to create, All {len_all:,} pages already exist"
+                logger.warning("Job %s: No templates to process", self.job_id)
+                return self.result
+
+        # self.result.summary.total = len(templates)
+        logger.info("Job %s: Found %d templates.", self.job_id, len(templates))
+
+        per_item = self.get_priority(len(templates))
+
+        for n, template in enumerate(templates, start=1):
+            if self.is_cancelled():
+                break
+
+            logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
+            # file info
+            file_info = TemplateProcessingInfo.from_template(template)
+
+            ok = self._process_one_item(file_info)
+            self.update_status(file_info)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
+                break
+
+            if n == 1 or n % per_item == 0:
+                self._save_progress()
+
+        return self.result
+
+    # ------------------------------------------------------------------
+    # Initialisation helpers
+    # ------------------------------------------------------------------
+
+    def filter_created(self, templates) -> list[TemplateRecord]:
+        owid_pages = [t.title.removeprefix("Template:") for t in templates]
+        pages_created = is_pages_exists(owid_pages, self.site)
+
+        # Optimize: use set for O(1) membership lookups instead of list scan (O(N*M) -> O(N+M))
+        already_created = {x for x, v in pages_created.items() if v is True}
+
+        if not already_created:
+            logger.warning("filter_created failed returning all templates")
+            return templates
+
+        logger.debug("len of OWID already created pages: %s", len(already_created))
+
+        templates = [t for t in templates if t.title.removeprefix("Template:") not in already_created]
+        logger.debug("len of templates after filter created pages: %s", len(templates))
+
+        return templates
+
+    def _load_templates(self) -> list[TemplateRecord]:
+        templates = TemplateService().list()
+        _templates = [t for t in templates if t.title.startswith("Template:OWID/")]
+        return self._apply_limits(_templates, self.limit_items)
+
+    # ------------------------------------------------------------------
+    # Per-template orchestration
+    # ------------------------------------------------------------------
+    def add_slug_categories(self, new_text: str, categories: list[str]) -> str:
+        for x in categories:
+            if x not in new_text:
+                new_text += f"\n[[{x}]]"
+
+        return new_text
+
+    def _process_one_item(self, file_info: TemplateProcessingInfo) -> bool:
+
+        # ----------------------------------
+        # Step 1 - load_template_text
+        if not self._step_load_template_text(file_info):
+            return False
+
+        # ----------------------------------
+        # Step 2 - create_new_text
+        if not self._step_create_new_text(file_info):
+            return False
+
+        if file_info._new_text and file_info.slug:
+            categories = get_slug_categories(file_info.slug)
+            file_info._new_text = self.add_slug_categories(file_info._new_text, categories)
+
+        # ----------------------------------
+        # Step 2 A) - check if new page already exists
+        new_title = self.create_new_page_title(file_info)
+
+        page = MwClientPage(new_title, self.site)
+
+        if page.exists():
+            # ----------------------------------
+            # Step 3 - compare if text need to be updated
+            upd_step = self._step_update(file_info, new_title)
+
+            return upd_step is True
+
+        # Step 4 - create_new_page
+        create_step = self._step_create_new_page(file_info)
+        if create_step is False:
+            return False
+
+        elif create_step is True:
+            return True
+
+        # dead code?
+        file_info.status = "completed"
+        return True
+
+    # ------------------------------------------------------------------
+    # Individual pipeline steps
+    # ------------------------------------------------------------------
+
+    def _step_load_template_text(self, info: TemplateProcessingInfo) -> bool:
+        """Download the original Template wikitext. Returns True on success."""
+        text = MwClientPage(info.template_title, self.site).get_text()
+        if not text:
+            self._fail(info, info.steps.load_template_text, f"Could not retrieve text for {info.template_title}")
+            return False
+
+        info.steps.load_template_text = OneStep(result=True, msg="Loaded template text")
+        info._template_text = text
+        return True
+
+    def _step_create_new_text(self, info: TemplateProcessingInfo) -> bool:
+        """Generate the new OWID page wikitext. Returns True on success."""
+        try:
+            new_text = ""  # create_new_text(info._template_text, info.template_title)
+            info.steps.create_new_text = OneStep(result=True, msg="Target wikitext generated")
+            info._new_text = new_text
+            return True
+
+        except Exception as exc:
+            self._fail(info, info.steps.create_new_text, str(exc))
+            return False
+
+    def _step_update(self, info: TemplateProcessingInfo, new_title: str) -> bool | None:
+        """
+        compare the target OWID page content.
+        If identical, skip creation. If different, update here and return False.
+        Returns True to continue to Step 4 (Creation) if page does not exist.
+        """
+        # Page exists, check if update is needed
+        new_title_page = MwClientPage(new_title, self.site)
+
+        current_text = new_title_page.get_text()
+        if not current_text:
+            self._fail(info, info.steps.update_text, f"Could not retrieve text for {new_title}")
+            return False
+
+        # extend categories from current text
+        info._new_text = merge_categories(current_text, info._new_text)
+        info._new_text = sort_categories(info._new_text)
+
+        # sort current_text categories to compare with new text
+        current_text = sort_categories(current_text)
+
+        if current_text.strip() == info._new_text.strip():
+            info.steps.update_text.msg = "Skipped - page content is already identical"
+            info.status = "skipped"
+            info.new_page_title = new_title
+            return None  # nothing to update
+
+        # Content is different, perform update
+        res = new_title_page.edit(
+            info._new_text,
+            f"Updating OWID page from [[{info.template_title}]]",
+        )
+
+        if res["success"]:
+            info.steps.update_text = OneStep(
+                result=True,
+                msg=f"Updated page: {new_title}",
+                newrevid=res.get("newrevid", 0),
+            )
+            info.new_page_title = new_title
+            info.status = "updated"
+            return True
+
+        err = res.get("error", "Unknown error")
+        self._fail(info, info.steps.update_text, err)
+        return False
+
+    def _step_create_new_page(self, info: TemplateProcessingInfo) -> bool:
+        """Create/Update the OWID gallery page on Commons. Returns True on success."""
+        # Expected pattern: Template:OWID/... -> OWID/...
+        new_title = self.create_new_page_title(info)
+
+        new_title_page = MwClientPage(new_title, self.site)
+
+        res = new_title_page.create(
+            info._new_text,
+            summary=f"Creating OWID page from [[{info.template_title}]]",
+        )
+
+        if not res["success"]:
+            err = res.get("error", "Unknown error")
+            self._fail(info, info.steps.create_new_page, err)
+            return False
+
+        info.steps.create_new_page = OneStep(
+            result=True,
+            msg=f"Created: {new_title}",
+            newrevid=res.get("newrevid", 0),
+        )
+        info.new_page_title = new_title
+        info.status = "created"
+        return True
+
+    def create_new_page_title(self, info: TemplateProcessingInfo) -> str:
+        if info.template_title.startswith("Template:OWID/"):
+            return info.template_title.replace("Template:OWID/", "OWID/", 1)
+
+        return "OWID/" + info.template_title.removeprefix("Template:")
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def _fail(self, info: TemplateProcessingInfo, step_obj: OneStep, error: str) -> None:
+        """Mark a step and the info as failed."""
+        step_obj.result = False
+        step_obj.msg = error
+        info.status = "failed"
+        info.error = error
+
+    def update_status(self, info: TemplateProcessingInfo) -> None:
+        """
+        TODO: move self.result.<stats>.append() into this method
+        """
+        self.result.summary.processed += 1
+
+        if info.status in ["pending", "running"]:
+            info.status = "completed"
+
+        if info.status == "skipped":
+            self.result.pages_skipped.append(info)
+
+        elif info.status == "failed":
+            self.result.pages_failed.append(info)
+
+        elif info.status == "updated":
+            self.result.pages_updated.append(info)
+
+        elif info.status == "created":
+            self.result.pages_created.append(info)
+
+        else:
+            self.result.pages_processed.append(info)
+
+
+__all__ = [
+    "UpdateFilesWikiTextWorker",
+]
