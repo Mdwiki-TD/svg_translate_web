@@ -99,7 +99,7 @@ class JobsService(CRUDService[JobRecord]):
 
         job = self.get_by(**filters)
         if not job:
-            raise LookupError(f"Job id {job_id} was not found")
+            raise LookupError(f"Job id {job_id} with {job_type=} was not found")
         return job
 
     def list_jobs(self, limit: int = 100, job_type: str | None = None) -> list[JobRecord]:

@@ -84,7 +84,7 @@ class TestJobsRoutes(TestSetup):
 
         response = admin_jobs_client.get("/adminpanel/jobs/collect_templates_data/999", follow_redirects=True)
         assert response.status_code == 200
-        mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
+        mock_flash.assert_called_once_with("Job id 999 with job_type='collect_templates_data' was not found", "warning")
 
     def test_start_collect_templates_data_job_route(
         self, admin_jobs_client, mock_flash, mock_start_job_form, mock_load_auth_payload
@@ -207,7 +207,7 @@ class TestJobsRoutes(TestSetup):
 
         response = admin_jobs_client.get("/adminpanel/jobs/fix_nested_main_files/999", follow_redirects=True)
         assert response.status_code == 200
-        mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
+        mock_flash.assert_called_once_with("Job id 999 with job_type='collect_templates_data' was not found", "warning")
 
     def test_start_fix_nested_main_files_job_route(
         self, admin_jobs_client, mock_flash, mock_start_job_form, mock_load_auth_payload
@@ -480,7 +480,7 @@ class TestJobsRoutes(TestSetup):
 
         response = admin_jobs_client.get("/adminpanel/jobs/download_main_files/999", follow_redirects=True)
         assert response.status_code == 200
-        mock_flash.assert_called_once_with("Job id 999 was not found", "warning")
+        mock_flash.assert_called_once_with("Job id 999 with job_type='collect_templates_data' was not found", "warning")
 
     def test_start_download_main_files_job_route(
         self, admin_jobs_client, mock_flash, mock_start_job_form, mock_load_auth_payload

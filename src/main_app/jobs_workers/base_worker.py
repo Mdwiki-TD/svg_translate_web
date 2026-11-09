@@ -85,7 +85,6 @@ class BaseObjectsJobWorker(ABC):
         Returns:
             True to continue with processing, False to abort
         """
-        # Some time update_job_status method failed to get the job do to race condition.
         try:
             self._jobs_service.update_job_status(
                 self.job_id,

@@ -1,5 +1,5 @@
 """
-Worker module for create_owid_pages.
+Worker module for update_wikitext.
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
     """
-    Worker for create_owid_pages.
+    Worker for update_wikitext.
     Steps:
         1. load template wikitext
         2. create new wikitext using create_new_text
@@ -46,7 +46,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
-        return "create_owid_pages"
+        return "update_wikitext"
 
     def process(self) -> CreateOwidPagesWorkerObject:
 

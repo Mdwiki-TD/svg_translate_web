@@ -31,7 +31,7 @@ class TestGet(TestSetup):
 
     def test_get_nonexistent_job(self) -> None:
         """Test retrieving a nonexistent job raises LookupError."""
-        with pytest.raises(LookupError, match="Job id 999 was not found"):
+        with pytest.raises(LookupError, match="Job id 999 with job_type='collect_templates_data' was not found"):
             self.service.get_job(999, job_type="collect_templates_data")
 
 
@@ -194,7 +194,7 @@ class TestGetJob(TestSetup):
         assert result.job_type == "test_job"
 
     def test_raises_lookup_error_when_not_found(self) -> None:
-        with pytest.raises(LookupError, match="Job id 999 was not found"):
+        with pytest.raises(LookupError, match="Job id 999 with job_type='test_job' was not found"):
             self.service.get_job(999, "test_job")
 
 

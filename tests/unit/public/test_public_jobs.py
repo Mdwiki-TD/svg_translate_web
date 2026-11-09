@@ -341,7 +341,7 @@ class TestJobDetail(TestSetup):
     def test_job_not_found(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
         result = self.service.job_detail_handler(999, mock_template_data)
         assert result == "redirected"
-        mock_deps.flash.assert_called_once_with("Job id 999 was not found", "warning")
+        mock_deps.flash.assert_called_once_with("Job id 999 with job_type='collect_templates_data' was not found", "warning")
         mock_deps.redirect.assert_called_once()
 
 
