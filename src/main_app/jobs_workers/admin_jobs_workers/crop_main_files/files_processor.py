@@ -14,8 +14,7 @@ from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
 from ....config import app_settings
 from ....database.models import TemplateRecord
-from ....database.services import OwidChartsService
-from ....database.templates_utils import extract_slug
+from ....database.services import ChartsAndTemplatesService, OwidChartsService
 from ....utils.wikitext import (
     create_cropped_file_text,
     ensure_file_prefix,
@@ -50,6 +49,7 @@ class OneFileProcessor:
 
         self.owid_charts_service = OwidChartsService()
         self.files_service = files_service or FilesService()
+        self.charts_and_tmps_service = ChartsAndTemplatesService()
 
     # ------------------------------------------------------------------
     # Per-template orchestration
@@ -199,7 +199,7 @@ class OneFileProcessor:
         """Read the OWID source citation persisted for the template's chart."""
         if template is None:
             return None
-
+        """
         slug = template.slug or extract_slug(template.source)
         if not slug:
             return None
@@ -211,6 +211,8 @@ class OneFileProcessor:
 
         logger.info("Job %s: No stored OWID author citation found for chart %s", self.job_id, slug)
         return None
+        """
+        return self.charts_and_tmps_service.get_author_citation(template)
 
     def _step_upload(self, file_info: CropFileProcessingInfo, template: TemplateRecord | None = None) -> bool | None:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""

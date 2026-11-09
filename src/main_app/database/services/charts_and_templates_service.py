@@ -6,10 +6,9 @@ from typing import Any
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from ..templates_utils import extract_slug
-
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
+from ..templates_utils import extract_slug
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +99,7 @@ class ChartsAndTemplatesService:  # (CRUDService[OwidChartRecord]):
         if template is None:
             return None
 
-        slug = template.slug or template.extract_slug()
+        slug = template.slug or extract_slug(template.source)
         if not slug:
             return None
 
