@@ -381,16 +381,20 @@ class OneFileProcessor:
             # inject success
             translation_details = title_info.steps.translations.details or {}
             summary = self._create_language_summary(main_title, translation_details)
-            return self._upload_step(title_info, summary, new_path)
+            upload_step = self._upload_step(title_info, summary, new_path)
 
         # ----------------------------------------------
-        if verify_fixed > 0:
+        elif verify_fixed > 0:
             # Here we need to upload the orignal file because we fix nested tags.
             summary = f"{verify_fixed} nested tags fixed"
-            return self._upload_step(title_info, summary, file_path)
+            upload_step = self._upload_step(title_info, summary, file_path)
 
+        # ----------------------------------------------
         # No nested tags were fixed
         # inject_result.result is one of (None/False)
+        if not upload_step:
+            return False
+
         return False
 
     # ----
