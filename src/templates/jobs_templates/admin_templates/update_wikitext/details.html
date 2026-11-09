@@ -1,69 +1,26 @@
-{% extends "jobs_templates/base_details_public.html" %}
-{% from "_macros.html" import card_header, stats_card, status_icon, commons_file_link, render_step, commons_link %}
-{% from '_macros/svg_macros.html' import render_extract_details, render_json %}
+{% extends "jobs_templates/admin_templates/base_details_admin.html" %}
+{% from "_macros.html" import stats_card %}
 {% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
 
 {% block job_info_extra %}
-{% if result_data %}
-{% set title = result_data.title or (result_data.args.title if result_data.args else None) %}
-{% if title %}
+{% if result_data and result_data.args %}
 <tr>
-    <th>Template:</th>
+    <th>Update all pages:</th>
     <td>
-        {{ commons_link(title) }}
+        {{ result_data.args.update_all }}
     </td>
 </tr>
-{% endif %}
-{% if result_data.main_title %}
-<tr>
-    <th>File:</th>
-    <td>
-        {{ commons_file_link(result_data.main_title) }}
-    </td>
-</tr>
-{% endif %}
 {% endif %}
 {% endblock %}
 
+{# Filter pages by their specific statuses #}
+{% set pages_skipped = result_data.pages_skipped %}
+{% set pages_failed = result_data.pages_failed %}
+{% set pages_created = result_data.pages_created %}
+{% set pages_updated = result_data.pages_updated %}
+{% set pages_processed = result_data.pages_processed %}
+
 {% block job_summary %}
-
-<!-- Pipeline Stages -->
-{% if result_data.stages %}
-{% set stage_order = ['text', 'translations'] %}
-<div class="table-responsive mb-3">
-    <table class="table table-striped table-sm mb-0">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Stage</th>
-                <th>Status</th>
-                <th>Message</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for stage_key in stage_order %}
-            {% set stage = result_data.stages.get(stage_key) %}
-            {% if stage %}
-            <tr>
-                <td> {{ loop.index }} </td>
-                <td>{{ stage_key|title }}</td>
-                <td>
-                    {{ status_icon(stage.status) }}
-                </td>
-                <td><small>{{ stage.message }}</small></td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-{% set len_new_translations = result_data.translations|length if result_data and result_data.translations else 0 %}
-
-{% if result_data.main_title %}
-{{ render_extract_details(result_data.main_title, result_data.languages, len_new_translations) }}
-{% endif %}
-
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
@@ -71,186 +28,139 @@
     <div class="col-md-9">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Uploaded', result_data.files_success | length, "success", "") }}
-            </div>
-            {#
-            <div class="col">
-                {{ stats_card('Updated', pages_updated | length, "info", "") }}
-            </div>
-            #}
-            <div class="col">
-                {{ stats_card('Skipped', result_data.files_skipped | length, "secondary", "") }}
+                {{ stats_card('Created', pages_created | length , "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Failed', result_data.files_failed | length, "danger", "") }}
+                {{ stats_card('Updated', ( pages_updated | length ) or result_data.summary.updated, "info", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Skipped', ( pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Failed', ( pages_failed | length ) or result_data.summary.failed, "danger", "") }}
             </div>
         </div>
     </div>
 </div>
-{% endif %}
 {% endblock %}
 
 {% block job_details %}
 
-{% if result_data.files_success %}
+{% if pages_created %}
 {{ new_pages_table(
-    table_title="Success",
+    table_title="Created",
     job_id=job.id,
     job_type=template_data.job_type,
-    list_name="files_success",
+    list_name="pages_created",
+    bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
 
-{% if result_data.files_processed %}
+{% if pages_updated %}
+{{ new_pages_table(
+    table_title="Updated",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_updated",
+    bp_name='adminpanel.jobs'
+) }}
+{% endif %}
+
+{% if pages_processed %}
 {{ new_pages_table(
     table_title="Processed",
     job_id=job.id,
     job_type=template_data.job_type,
-    list_name="files_processed",
+    list_name="pages_processed",
+    bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
 
-{% if result_data.files_skipped %}
-
+{% if pages_skipped %}
 {{ new_pages_table(
     table_title="Skipped",
     job_id=job.id,
     job_type=template_data.job_type,
-    list_name="files_skipped",
+    list_name="pages_skipped",
+    bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
 
-{% if result_data.files_failed %}
+{% if pages_failed %}
 {{ new_pages_table(
     table_title="Failed",
     job_id=job.id,
     job_type=template_data.job_type,
-    list_name="files_failed",
+    list_name="pages_failed",
+    bp_name='adminpanel.jobs'
 ) }}
-{% endif %}
-
-<!-- Translations -->
-{% if result_data.translations %}
-{{ render_json(result_data.translations, title='Extracted Translations', card_class='mb-4') }}
 {% endif %}
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    function createTableColumns(
-        show_download = false,
-        show_nested = true,
-        err_colmn = false,
-        show_status = false,
-    ) {
+    const WIKIDOMAIN = "{{ wiki_domain }}";
+
+    /**
+     * All 5 lists share the same columns:
+     * #, Template, New Page, Load Text, Generate Text, Update Page, Create Page
+     */
+    function createColumns() {
         return [
             {
                 data: null,
-                title: "#",
+                title: '#',
                 // @ts-ignore
-                render: function (data, type, row, meta) {
-                    return meta.row + 1;
+                render: function (data, type, row, meta) { return meta.row + 1; },
+            },
+            {
+                data: 'template_title',
+                title: 'Template',
+                render: (template_title) => renderOwidTemplate(WIKIDOMAIN, template_title),
+            },
+            {
+                data: 'new_page_title',
+                title: 'New Page',
+                render: function (title) {
+                    if (!title) return '-';
+                    return renderWikiLink(WIKIDOMAIN, title, "OWID Page");
                 },
             },
             {
-                data: 'title',
-                title: 'File',
-                render: (title) => renderCommonsFileLink(title),
-            },
-            {
-                data: 'status',
-                title: 'Status',
-                render: renderStatus,
-                visible: show_status,
-            },
-            {
-                data: 'steps.download',
-                title: 'Download',
-                render: renderStep,
-                orderable: false,
-                visible: show_download,
-            },
-            {
-                data: 'steps.nested',
-                title: "Nested tags",
-                render: renderStep,
-                orderable: false,
-                visible: show_nested
-            },
-            {
-                data: null,
-                orderable: false,
-                title: "Translations Inserted",
-                // @ts-ignore
-                render: (row) => row.steps?.translations?.details?.inserted ??
-                    row.steps?.inject?.details?.inserted_translations ?? ''
-            },
-            {
-                data: null,
-                orderable: false,
-                title: "Translations Updated",
-                // @ts-ignore
-                render: (row) => row.steps?.translations?.details?.updated ??
-                    row.steps?.inject?.details?.updated_translations ?? ''
-            },
-            {
-                data: 'steps.inject',
-                title: 'Inject',
+                data: 'steps.load_template_text',
+                title: 'Load Text',
                 orderable: false,
                 render: renderStep
             },
             {
-                data: 'steps.upload',
-                title: 'Upload',
+                data: 'steps.create_new_text',
+                title: 'Generate Text',
                 orderable: false,
                 render: renderStep
             },
             {
-                data: null,
-                title: 'Update text',
+                data: 'steps.update_text',
+                title: 'Update Page',
                 orderable: false,
-                render: (row) => renderStep(row.steps?.update_text)
+                render: renderStep
             },
             {
-                data: 'error',
-                title: 'Error',
-                render: undefined,
-                visible: err_colmn
-            }
+                data: 'steps.create_new_page',
+                title: 'Create Page',
+                orderable: false,
+                render: renderStep
+            },
         ];
     }
 
     $(document).ready(function () {
-        initServerTable(
-            'table-files_success',
-            createTableColumns(),
-        );
-        initServerTable(
-            'table-files_processed',
-            createTableColumns(
-                show_download = false,
-                show_nested = true,
-                err_colmn = false,
-                show_status = true,
-            )
-        );
-        initServerTable(
-            'table-files_skipped',
-            createTableColumns(
-                show_download = true,
-                show_nested = true,
-                err_colmn = false,
-            )
-        );
-        initServerTable(
-            'table-files_failed',
-            createTableColumns(
-                show_download = true,
-                show_nested = true,
-                err_colmn = true,
-            )
-        );
+        let columns = createColumns();
+        initServerTable('table-pages_created', columns);
+        initServerTable('table-pages_updated', columns);
+        initServerTable('table-pages_processed', columns);
+        initServerTable('table-pages_skipped', columns);
+        initServerTable('table-pages_failed', columns);
     });
 </script>
 {% endblock %}

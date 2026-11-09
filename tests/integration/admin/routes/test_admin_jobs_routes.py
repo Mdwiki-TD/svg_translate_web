@@ -57,7 +57,7 @@ class TestJobsRoutes(TestSetup):
         response = admin_jobs_client.get("/adminpanel/jobs/collect_templates_data")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
-        assert "Collect Templates data Jobs" in page
+        assert "Collect Templates data" in page
 
     def test_jobs_list_page_shows_no_jobs_message(self, admin_jobs_client):
         """Test that the jobs list page shows a message when there are no jobs."""
@@ -65,7 +65,7 @@ class TestJobsRoutes(TestSetup):
         response = admin_jobs_client.get("/adminpanel/jobs/collect_templates_data")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
-        assert "Collect Templates data Jobs" in page
+        assert "Collect Templates data" in page
 
     def test_job_detail_page_displays_job_info(self, admin_jobs_client):
         """Test that the job detail page displays job information."""
@@ -140,7 +140,7 @@ class TestJobsRoutes(TestSetup):
         response = admin_jobs_client.get("/adminpanel/jobs/fix_nested_main_files")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
-        assert "Fix Nested Main Files Jobs" in page
+        assert "Fix Nested Main Files" in page
 
     def test_fix_nested_jobs_list_page_shows_no_jobs_message(self, admin_jobs_client):
         """Test that the fix nested jobs list page shows a message when there are no jobs."""
@@ -148,7 +148,7 @@ class TestJobsRoutes(TestSetup):
         response = admin_jobs_client.get("/adminpanel/jobs/fix_nested_main_files")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
-        assert "Fix Nested Main Files Jobs" in page
+        assert "Fix Nested Main Files" in page
 
     def test_fix_nested_job_detail_page_displays_job_info(self, admin_jobs_client):
         """Test that the fix nested job detail page displays job information."""
@@ -406,7 +406,7 @@ class TestJobsRoutes(TestSetup):
         response = admin_jobs_client.get("/adminpanel/jobs/download_main_files")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
-        assert "Download Main Files Jobs" in page
+        assert "Download Main Files" in page
 
     def test_download_main_files_jobs_list_page_shows_no_jobs_message(self, admin_jobs_client):
         """Test that the download main files jobs list page shows a message when there are no jobs."""
@@ -414,7 +414,7 @@ class TestJobsRoutes(TestSetup):
         response = admin_jobs_client.get("/adminpanel/jobs/download_main_files")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
-        assert "Download Main Files Jobs" in page
+        assert "Download Main Files" in page
 
     def test_download_main_files_job_detail_page_displays_job_info(self, admin_jobs_client):
         """Test that the download main files job detail page displays job information."""
