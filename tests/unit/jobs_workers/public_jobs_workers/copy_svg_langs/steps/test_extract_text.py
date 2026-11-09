@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text import extract_text_step
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps import extract_text_step
 
 
 @pytest.fixture
@@ -11,7 +11,7 @@ def mock_extract_text_services(monkeypatch: pytest.MonkeyPatch):
         "MwClientPage": MagicMock(),
     }
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_text.MwClientPage",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.MwClientPage",
         mocks["MwClientPage"],
     )
     return mocks

@@ -49,19 +49,19 @@ def update_original_file_text(
     """
     Update the original file's wikitext to include the cropped file information.
     """
-    template_name = "Image extracted"
+    temp_name = "Image extracted"
     file_name = file_name.removeprefix("File:").replace("_", " ").strip()
     if file_name.lower() in text.replace("_", " ").lower():
         return text
 
-    text_to_add = f"{{{{{template_name}|1={file_name}}}}}"
+    text_to_add = f"{{{{{temp_name}|1={file_name}}}}}"
 
     modified_text = append_image_extracted_template(file_name, text)
 
     if modified_text == text:
         modified_text = add_other_versions_new(
             text=text,
-            template_name=template_name,
+            template_name=temp_name,
             first_param_valve=file_name,
             main_template_name="Information",
             param_names=["other versions", "other_versions"],
