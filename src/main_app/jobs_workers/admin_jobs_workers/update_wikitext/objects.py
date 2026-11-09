@@ -1,16 +1,13 @@
 """
 Objects for create_owid_pages worker.
-
 """
 
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
 from typing import Any
 
-from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LIST, OneStep, StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, OneStep, WorkerMapping, StandardAdminSummary
 
 
 @dataclass
@@ -22,61 +19,39 @@ class InfoSteps:
 
 
 @dataclass
-class TemplateProcessingInfo:
+class ProcessingFileInfo:
     """Holds all state for a single template being processed."""
 
-    template_id: int
-    template_title: str
-    new_page_title: str | None = None
-    slug: str | None = None
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: STATUS_LIST = "pending"
+    title: str
+    status: STATUS_LITERAL = "pending"
     error: str | None = None
-    steps: InfoSteps = field(default_factory=InfoSteps)
+    steps: InfoSteps = field(default_factory=lambda: InfoSteps())
 
-    # Internal temporary state
-    _template_text: str | None = None
-    _new_text: str | None = None
+    wikitext: str | None = None
+    new_wikitext: str | None = None
 
     def to_json(self) -> dict[str, Any]:
-        return {
-            "template_id": self.template_id,
-            "template_title": self.template_title,
-            "new_page_title": self.new_page_title,
-            "slug": self.slug,
-            "timestamp": self.timestamp,
-            "status": self.status,
-            "error": self.error,
-            "steps": asdict(self.steps),
-        }
-
-    @classmethod
-    def from_template(cls, template: TemplateRecord) -> TemplateProcessingInfo:
-        return cls(
-            template_id=template.id,
-            template_title=template.title,
-            slug=template.slug,
-        )
+        data = asdict(self)
+        data.pop("wikitext", None)
+        data.pop("new_wikitext", None)
+        return data
 
 
 @dataclass
-class CreateOwidPagesSummary:
-    total: int = 0
-    processed: int = 0
-    created: int = 0
-    updated: int = 0
-    failed: int = 0
-    skipped: int = 0
+class UpdateFilesWikiTextObject(WorkerMapping):
+    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
+    title: str | None = None
 
+    files_processed: list[ProcessingFileInfo] = field(default_factory=list)
+    files_success: list[ProcessingFileInfo] = field(default_factory=list)
+    files_skipped: list[ProcessingFileInfo] = field(default_factory=list)
+    files_failed: list[ProcessingFileInfo] = field(default_factory=list)
 
-@dataclass
-class CreateOwidPagesWorkerObject(StandardAdminWorkerObject):
-    summary: CreateOwidPagesSummary = field(default_factory=CreateOwidPagesSummary)
-    pages_created: list[dict[str, Any]] = field(default_factory=list)
-    pages_updated: list[dict[str, Any]] = field(default_factory=list)
+    def to_json(self) -> dict[str, Any]:
+        """Converts the dataclass instance back to its original dictionary format."""
+        return asdict(self)
 
 
 __all__ = [
-    "CreateOwidPagesWorkerObject",
-    "CreateOwidPagesSummary",
+    "UpdateFilesWikiTextObject",
 ]

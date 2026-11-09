@@ -8,129 +8,45 @@ import logging
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, is_pages_exists
+from ....api_services.files_service import FilesService
+
+from ....api_services import MwClientPage
 from ....data import get_slug_categories
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
 from ....utils.wikitext import merge_categories, sort_categories
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from .objects import CreateOwidPagesWorkerObject, OneStep, TemplateProcessingInfo
+from .objects import UpdateFilesWikiTextObject, OneStep, ProcessingFileInfo
+
+from ....utils.wikitext import get_titles
+from ...public_jobs_workers.copy_svg_langs.steps import extract_text_step
+from ....utils.wikitext.cropped_file_text.other_versions import (
+    OtherVersionsUpdater,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
+class UpdateWikiTextProcessor:
     """
-    Worker for update_wikitext.
-    Steps:
-        1. load template wikitext
-        2. create new wikitext using create_new_text
-        3. check if new page already exists then compare if text need to be updated
-        4. create new page with new wikitext
+    process_one_item Steps:
+        1. Check if file exists or skip it
+        2. load file wikitext
+        3. Update author value `| Author=` in `Information` template using update_information_author()
+            if author_citation or skip this step
+        4.
+            - load file languages using self.files_service.get_file_languages(file_name)
+            - update `Svg lang` template to include all file languages using self.other_versions_updater.add_svg_langs(text, langs)
     """
 
-    def __init__(self, data: JobsRunner) -> None:
-        self.site: Site | None = None
+    def __init__(self, files_service: FilesService, site: Site) -> None:
+        self.files_service = files_service
+        self.site = site
+        self.author_citation = ""
+        self.other_versions_updater = OtherVersionsUpdater()
 
-        super().__init__(data)
-        self.args = data.args or {}
-
-        self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject(
-            job_id=self.job_id,
-            args=self.args,
-        )
-
-        self.limit_items = self.args.get("limit_items") or 0
-        self.update_all = str(self.args.get("update_all", "")).lower() == "true"
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "update_wikitext"
-
-    def process(self) -> CreateOwidPagesWorkerObject:
-
-        if not self._check_site():
-            return self.result
-
-        templates = self._load_templates()
-        len_all = len(templates)
-        self.result.summary.total = len_all
-        self._save_progress()
-
-        if not self.update_all:
-            templates = self.filter_created(templates)
-            if not templates:
-                self.result.summary.skipped = len_all
-                self.result.status = "skipped"
-                self.result.note = f"Nothing to create, All {len_all:,} pages already exist"
-                logger.warning("Job %s: No templates to process", self.job_id)
-                return self.result
-
-        # self.result.summary.total = len(templates)
-        logger.info("Job %s: Found %d templates.", self.job_id, len(templates))
-
-        per_item = self.get_priority(len(templates))
-
-        for n, template in enumerate(templates, start=1):
-            if self.is_cancelled():
-                break
-
-            logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(templates), template.title)
-            # file info
-            file_info = TemplateProcessingInfo.from_template(template)
-
-            ok = self._process_one_item(file_info)
-            self.update_status(file_info)
-
-            if ok and self.check_cancel_db_periodic():
-                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
-                break
-
-            if n == 1 or n % per_item == 0:
-                self._save_progress()
-
-        return self.result
-
-    # ------------------------------------------------------------------
-    # Initialisation helpers
-    # ------------------------------------------------------------------
-
-    def filter_created(self, templates) -> list[TemplateRecord]:
-        owid_pages = [t.title.removeprefix("Template:") for t in templates]
-        pages_created = is_pages_exists(owid_pages, self.site)
-
-        # Optimize: use set for O(1) membership lookups instead of list scan (O(N*M) -> O(N+M))
-        already_created = {x for x, v in pages_created.items() if v is True}
-
-        if not already_created:
-            logger.warning("filter_created failed returning all templates")
-            return templates
-
-        logger.debug("len of OWID already created pages: %s", len(already_created))
-
-        templates = [t for t in templates if t.title.removeprefix("Template:") not in already_created]
-        logger.debug("len of templates after filter created pages: %s", len(templates))
-
-        return templates
-
-    def _load_templates(self) -> list[TemplateRecord]:
-        templates = TemplateService().list()
-        _templates = [t for t in templates if t.title.startswith("Template:OWID/")]
-        return self._apply_limits(_templates, self.limit_items)
-
-    # ------------------------------------------------------------------
-    # Per-template orchestration
-    # ------------------------------------------------------------------
-    def add_slug_categories(self, new_text: str, categories: list[str]) -> str:
-        for x in categories:
-            if x not in new_text:
-                new_text += f"\n[[{x}]]"
-
-        return new_text
-
-    def _process_one_item(self, file_info: TemplateProcessingInfo) -> bool:
-
+    def process_one_item(self, file_info: ProcessingFileInfo) -> bool:
         # ----------------------------------
         # Step 1 - load_template_text
         if not self._step_load_template_text(file_info):
@@ -141,9 +57,9 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         if not self._step_create_new_text(file_info):
             return False
 
-        if file_info._new_text and file_info.slug:
+        if file_info.new_wikitext and file_info.slug:
             categories = get_slug_categories(file_info.slug)
-            file_info._new_text = self.add_slug_categories(file_info._new_text, categories)
+            file_info.new_wikitext = self.add_slug_categories(file_info.new_wikitext, categories)
 
         # ----------------------------------
         # Step 2 A) - check if new page already exists
@@ -174,7 +90,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
     # Individual pipeline steps
     # ------------------------------------------------------------------
 
-    def _step_load_template_text(self, info: TemplateProcessingInfo) -> bool:
+    def _step_load_template_text(self, info: ProcessingFileInfo) -> bool:
         """Download the original Template wikitext. Returns True on success."""
         text = MwClientPage(info.template_title, self.site).get_text()
         if not text:
@@ -182,22 +98,22 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
             return False
 
         info.steps.load_template_text = OneStep(result=True, msg="Loaded template text")
-        info._template_text = text
+        info.wikitext = text
         return True
 
-    def _step_create_new_text(self, info: TemplateProcessingInfo) -> bool:
+    def _step_create_new_text(self, info: ProcessingFileInfo) -> bool:
         """Generate the new OWID page wikitext. Returns True on success."""
         try:
-            new_text = ""  # create_new_text(info._template_text, info.template_title)
+            new_text = ""
             info.steps.create_new_text = OneStep(result=True, msg="Target wikitext generated")
-            info._new_text = new_text
+            info.new_wikitext = new_text
             return True
 
         except Exception as exc:
             self._fail(info, info.steps.create_new_text, str(exc))
             return False
 
-    def _step_update(self, info: TemplateProcessingInfo, new_title: str) -> bool | None:
+    def _step_update(self, info: ProcessingFileInfo, new_title: str) -> bool | None:
         """
         compare the target OWID page content.
         If identical, skip creation. If different, update here and return False.
@@ -212,13 +128,13 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
             return False
 
         # extend categories from current text
-        info._new_text = merge_categories(current_text, info._new_text)
-        info._new_text = sort_categories(info._new_text)
+        info.new_wikitext = merge_categories(current_text, info.new_wikitext)
+        info.new_wikitext = sort_categories(info.new_wikitext)
 
         # sort current_text categories to compare with new text
         current_text = sort_categories(current_text)
 
-        if current_text.strip() == info._new_text.strip():
+        if current_text.strip() == info.new_wikitext.strip():
             info.steps.update_text.msg = "Skipped - page content is already identical"
             info.status = "skipped"
             info.new_page_title = new_title
@@ -226,7 +142,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
 
         # Content is different, perform update
         res = new_title_page.edit(
-            info._new_text,
+            info.new_wikitext,
             f"Updating OWID page from [[{info.template_title}]]",
         )
 
@@ -244,7 +160,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         self._fail(info, info.steps.update_text, err)
         return False
 
-    def _step_create_new_page(self, info: TemplateProcessingInfo) -> bool:
+    def _step_create_new_page(self, info: ProcessingFileInfo) -> bool:
         """Create/Update the OWID gallery page on Commons. Returns True on success."""
         # Expected pattern: Template:OWID/... -> OWID/...
         new_title = self.create_new_page_title(info)
@@ -252,7 +168,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         new_title_page = MwClientPage(new_title, self.site)
 
         res = new_title_page.create(
-            info._new_text,
+            info.new_wikitext,
             summary=f"Creating OWID page from [[{info.template_title}]]",
         )
 
@@ -270,27 +186,150 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         info.status = "created"
         return True
 
-    def create_new_page_title(self, info: TemplateProcessingInfo) -> str:
+    def create_new_page_title(self, info: ProcessingFileInfo) -> str:
         if info.template_title.startswith("Template:OWID/"):
             return info.template_title.replace("Template:OWID/", "OWID/", 1)
 
         return "OWID/" + info.template_title.removeprefix("Template:")
 
     # ------------------------------------------------------------------
-    # Helpers
+    # Per-template orchestration
     # ------------------------------------------------------------------
+    def add_slug_categories(self, new_text: str, categories: list[str]) -> str:
+        for x in categories:
+            if x not in new_text:
+                new_text += f"\n[[{x}]]"
 
-    def _fail(self, info: TemplateProcessingInfo, step_obj: OneStep, error: str) -> None:
+        return new_text
+
+    def _fail(self, info: ProcessingFileInfo, step_obj: OneStep, error: str) -> None:
         """Mark a step and the info as failed."""
         step_obj.result = False
         step_obj.msg = error
         info.status = "failed"
         info.error = error
 
-    def update_status(self, info: TemplateProcessingInfo) -> None:
-        """
-        TODO: move self.result.<stats>.append() into this method
-        """
+
+class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
+    """
+    Worker for update_wikitext.
+    Steps:
+        1. extract_text: load template wikitext using extract_text_step()
+        2. extract_titles: get all files names from wikitext into self.titles using get_titles(text)
+        3. get template `author_citation` using `self.files_processor.author_citation = self._get_author_citation(template)`
+        4. run process_titles with self.titles.
+    """
+
+    def __init__(self, data: JobsRunner) -> None:
+        self.site: Site | None = None
+
+        super().__init__(data)
+        self.args = data.args or {}
+
+        self.result: UpdateFilesWikiTextObject = UpdateFilesWikiTextObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
+
+        self.title = self.args.get("template_name") or ""
+        self.titles: list[str] = []
+        self.files_service = FilesService()
+        self.files_processor = UpdateWikiTextProcessor(self.files_service, self.site)
+
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "update_wikitext"
+
+    def _extract_titles_step(self) -> bool:
+        self.titles = get_titles(self.text)
+
+        if not self.titles:
+            self.result.status = "failed"
+            return False
+
+        return True
+
+    def _extract_text_step(self) -> bool | None:
+        # {"success": False | True, "text": "", "error": None | "error"}
+        step_result = extract_text_step(
+            self.title,
+            self.site,
+        )
+        text = step_result.get("text", "")
+
+        if step_result.get("success") and text:
+            self.text = text
+            return True
+
+        self.result.status = "failed"
+        return False
+
+    def process(self) -> UpdateFilesWikiTextObject:
+        """Execute the full pipeline."""
+        if not self._check_site():
+            return self.result
+
+        # update site after calling _check_site
+        if self.site is None:
+            raise ValueError("Site is not set")
+
+        if not self.title:
+            logger.error("No title found")
+            self.result.status = "failed"
+            return self.result
+
+        self.result.title = self.title
+
+        # ----------------------------------------------
+        # Stage 1: Extract Text
+        self._save_progress()
+
+        if not self._extract_text_step():
+            return self.result
+
+        # ----------------------------------------------
+        # Stage 2: Extract Titles
+        if not self._extract_titles_step():
+            return self.result
+
+        self.result.summary.total = len(self.titles)
+        self._save_progress()
+
+        logger.info("Job %s: Found %d File.", self.job_id, self.result.summary.total)
+
+        self.process_titles(self.titles)
+
+        return self.result
+
+    def process_titles(self, titles: list[str]) -> None:
+        per_item = self.get_priority(len(titles))
+
+        for n, file in enumerate(titles, start=1):
+            if self.is_cancelled():
+                break
+
+            logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(titles), file)
+
+            file_info = ProcessingFileInfo(title=file)
+
+            ok = self.files_processor.process_one_item(file_info)
+            self.update_status(file_info)
+
+            if ok and self.check_cancel_db_periodic():
+                logger.info("Job %s: Cancelled due to periodic check", self.job_id)
+                break
+
+            if n == 1 or n % per_item == 0:
+                self._save_progress()
+
+        return self.result
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def update_status(self, info: ProcessingFileInfo) -> None:
+        """ """
         self.result.summary.processed += 1
 
         if info.status in ["pending", "running"]:
