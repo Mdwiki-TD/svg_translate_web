@@ -148,3 +148,17 @@ class TestAddOtherVersions:
         )
 
         assert result == text_input
+
+    def test_fills_empty_other_versions_param(self):
+        """An existing but empty other_versions parameter is filled without extra spacing."""
+        text_input = "{{Information|description=A cropped image|other_versions=}}"
+
+        result = add_other_versions_new(
+            text=text_input,
+            temp_name="Extracted from",
+            first_param_valve="Original.svg",
+        )
+
+        assert result == (
+            "{{Information|description=A cropped image|other_versions={{Extracted from|1=Original.svg}}}}"
+        )
