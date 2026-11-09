@@ -365,7 +365,7 @@ class TestCropMainFilesProcessorLoadTemplates:
             )
         )
 
-        result = processor._apply_limits(templates)
+        result = processor._apply_limits(templates, processor.upload_limit)
 
         assert len(result) == 2
 

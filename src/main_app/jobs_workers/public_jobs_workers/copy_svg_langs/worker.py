@@ -57,20 +57,16 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         self.files_processor = OneFileProcessor(self.config, self.files_service, self.site)
 
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "copy_svg_langs"
+
     def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
         return SvgLangsConfig.load(
             title=self.title,
             args=args,
             svg_data_path=app_settings.paths.svg_data,
         )
-
-    def _apply_limits(self, titles: list[str]) -> list[str]:
-        _limit = self.config.limit_items
-        if _limit > 0 and len(titles) > _limit:
-            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(titles), _limit)
-            return titles[:_limit]
-
-        return titles
 
     def _extract_titles_step(self) -> bool:
         stage = self.result.stages.titles
@@ -258,10 +254,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     # Public API
     # ------------------
 
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "copy_svg_langs"
-
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
         if not self._check_site():
@@ -307,7 +299,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return self.result
 
         self.result.summary.total = len(self.titles)
-        title_to_work = self._apply_limits(self.titles)
+        title_to_work = self._apply_limits(self.titles, self.config.limit_items)
 
         self.process_titles(title_to_work)
 

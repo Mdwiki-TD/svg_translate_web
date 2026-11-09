@@ -161,7 +161,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
                 args={"limit_items": 2},
             )
         )
-        result = worker._apply_limits(charts)
+        result = worker._apply_limits(charts, worker.limit_items)
 
         assert len(result) == 2
 
@@ -179,7 +179,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
                 cancel_event=None,
             )
         )
-        result = worker._apply_limits(charts)
+        result = worker._apply_limits(charts, worker.limit_items)
 
         assert len(result) == 2
 
@@ -196,7 +196,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
                 cancel_event=None,
             )
         )
-        result = worker._apply_limits(charts)
+        result = worker._apply_limits(charts, worker.limit_items)
 
         assert len(result) == 1
 
@@ -215,7 +215,7 @@ class TestUpdateOwidChartsWorkerApplyLimits:
                 args={"limit_items": "not_an_int"},
             )
         )
-        result = worker._apply_limits(charts)
+        result = worker._apply_limits(charts, worker.limit_items)
 
         assert len(result) == 2
 

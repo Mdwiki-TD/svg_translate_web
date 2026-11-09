@@ -5,6 +5,7 @@ Worker module for add_svglanguages_template.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from mwclient.client import Site
 
@@ -53,15 +54,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
     def _load_templates(self) -> list[TemplateRecord]:
         templates = TemplateService().list()
         templates = [t for t in templates if t.title.startswith("Template:OWID/")]
-        return self._apply_limits(templates)
-
-    def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        _limit = self.limit_items if isinstance(self.limit_items, int) else 0
-        if _limit > 0 and len(templates) > _limit:
-            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(templates), _limit)
-            return templates[:_limit]
-
-        return templates
+        return self._apply_limits(templates, self.limit_items)
 
     # ------------------------------------------------------------------
     # Per-template orchestration

@@ -109,15 +109,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     def _load_templates(self) -> list[TemplateRecord]:
         templates = self.template_service.list()
         _templates = [t for t in templates if t.last_world_file]
-        return self._apply_limits(_templates)
-
-    def _apply_limits(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
-        _limit = self.upload_limit if isinstance(self.upload_limit, int) else 0
-        if _limit > 0 and len(templates) > _limit:
-            logger.info("Job %s: limiting from %d to %d item", self.job_id, len(templates), _limit)
-            return templates[:_limit]
-
-        return templates
+        return self._apply_limits(_templates, self.upload_limit)
 
     # ------------------------------------------------------------------
     # Per-template orchestration

@@ -517,7 +517,7 @@ class TestCopySvgLangsWorkerLimits:
         mock_worker.config.limit_items = 2
         titles = ["a.svg", "b.svg", "c.svg", "d.svg"]
 
-        result = mock_worker._apply_limits(titles)
+        result = mock_worker._apply_limits(titles, mock_worker.config.limit_items)
 
         assert len(result) == 2
         assert result == ["a.svg", "b.svg"]
@@ -529,7 +529,7 @@ class TestCopySvgLangsWorkerLimits:
         mock_worker.config.limit_items = 0
         titles = ["a.svg", "b.svg", "c.svg"]
 
-        result = mock_worker._apply_limits(titles)
+        result = mock_worker._apply_limits(titles, mock_worker.config.limit_items)
 
         assert len(result) == 3
 
@@ -540,7 +540,7 @@ class TestCopySvgLangsWorkerLimits:
         mock_worker.config.limit_items = 5
         titles = ["a.svg"]
 
-        result = mock_worker._apply_limits(titles)
+        result = mock_worker._apply_limits(titles, mock_worker.config.limit_items)
 
         assert len(result) == 1
 

@@ -222,15 +222,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
     def _load_charts(self) -> list[OwidChartRecord]:
         charts = self.owid_charts_service.list_charts()
-        return self._apply_limits(charts)
-
-    def _apply_limits(self, charts: list[OwidChartRecord]) -> list[OwidChartRecord]:
-        _limit = self.limit_items if isinstance(self.limit_items, int) else 0
-        if _limit > 0 and len(charts) > _limit:
-            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(charts), _limit)
-            return charts[:_limit]
-
-        return charts
+        return self._apply_limits(charts, self.limit_items)
 
     # ------------------------------------------------------------------
     # sub public entry-point
