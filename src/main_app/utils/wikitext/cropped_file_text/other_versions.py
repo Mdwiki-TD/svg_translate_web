@@ -121,13 +121,13 @@ class OtherVersionsUpdater:
             return text
 
         if arg:
+            trail = raw[len(raw.rstrip()) :]
             if current:
                 lead = raw[: len(raw) - len(raw.lstrip())]
-                trail = raw[len(raw.rstrip()) :]
                 arg.value = f"{lead}{new_value}{trail}"
             else:
-                # Empty parameter: replace the value as-is (no added spaces/newlines).
-                arg.value = new_value
+                # Empty parameter: keep the original line break before the next param / closing braces.
+                arg.value = f"{new_value}{trail}"
         else:
             main.set_arg(self.param_names[0], new_value)
         return parsed.string
