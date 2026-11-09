@@ -79,14 +79,20 @@ class BaseObjectsJobWorker(ABC):
         ...
 
     def before_run(self) -> bool:
-        """Called before processing starts.
+        """
+        Called before processing starts.
 
         Returns:
             True to continue with processing, False to abort
         """
-
+        # Some time update_job_status method failed to get the job do to race condition.
         try:
-            self._jobs_service.update_job_status(self.job_id, "running", self.result_file, job_type=self.job_type)
+            self._jobs_service.update_job_status(
+                self.job_id,
+                "running",
+                self.result_file,
+                job_type=self.job_type,
+            )
             self.result.status = "running"
             self._save_progress()
             return True
