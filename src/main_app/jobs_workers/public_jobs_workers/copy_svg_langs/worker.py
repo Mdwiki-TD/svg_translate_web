@@ -363,7 +363,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         super().after_run()
 
-    def update_status(self, info: FilesProcessedItem):
+    def update_status(self, info: FilesProcessedItem) -> None:
         self.result.summary.processed += 1
 
         if info.status in ["pending", "running"]:
