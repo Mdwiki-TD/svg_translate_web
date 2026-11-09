@@ -5,8 +5,6 @@ Worker module for copy_svg_langs.
 from __future__ import annotations
 
 import logging
-import re
-from pathlib import Path
 from typing import Any
 
 from mwclient.client import Site
@@ -59,60 +57,16 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         self.files_processor = OneFileProcessor(self.config, self.files_service, self.site)
 
+    def get_job_type(self) -> str:
+        """Return the job type identifier."""
+        return "copy_svg_langs"
+
     def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
-        output_dir = self._compute_output_dir(self.title)
-        output_dir_files = (output_dir / "files") if output_dir else None
-
-        try:
-            limit_items = int(args.get("limit_items")) or 0
-        except Exception:
-            limit_items = 0
-
-        upload_limit = args.get("upload_limit") or 0
-        upload_limit = upload_limit if isinstance(upload_limit, int) else 0
-
-        overwrite_translations = bool(args.get("overwrite_translations"))
-
-        overwrite_download = True
-
-        # if args.get("overwrite_download") is not None: overwrite_download = bool(args.get("overwrite_download"))
-
-        return SvgLangsConfig(
-            upload=args.get("upload"),
-            upload_files=args.get("upload_files"),
-            upload_limit=upload_limit,
-            limit_items=limit_items,
-            overwrite_translations=overwrite_translations,
-            overwrite_download=overwrite_download,
-            output_dir=output_dir,
-            output_dir_files=output_dir_files,
+        return SvgLangsConfig.load(
+            title=self.title,
+            args=args,
+            svg_data_path=app_settings.paths.svg_data,
         )
-
-    def _apply_limits(self, titles: list[str]) -> list[str]:
-        _limit = self.config.limit_items
-        if _limit > 0 and len(titles) > _limit:
-            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(titles), _limit)
-            return titles[:_limit]
-
-        return titles
-
-    def _compute_output_dir(self, title: str) -> Path:
-        if not title:
-            return None
-
-        name = Path(title).name
-        slug = re.sub(r"[^A-Za-z0-9._\- ]+", "_", str(name)).strip("._") or "untitled"
-        slug = slug.replace(" ", "_").lower()
-        out = Path(app_settings.paths.svg_data) / slug
-        out.mkdir(parents=True, exist_ok=True)
-
-        out_translated = out / "translated"
-        out_translated.mkdir(parents=True, exist_ok=True)
-
-        out_dir_main = out / "files"
-        out_dir_main.mkdir(parents=True, exist_ok=True)
-
-        return out
 
     def _extract_titles_step(self) -> bool:
         stage = self.result.stages.titles
@@ -300,10 +254,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     # Public API
     # ------------------
 
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "copy_svg_langs"
-
     def process(self) -> CopySvgLangsWorkerObject:
         """Execute the full pipeline."""
         if not self._check_site():
@@ -349,7 +299,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return self.result
 
         self.result.summary.total = len(self.titles)
-        title_to_work = self._apply_limits(self.titles)
+        title_to_work = self._apply_limits(self.titles, self.config.limit_items)
 
         self.process_titles(title_to_work)
 
@@ -363,7 +313,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
         super().after_run()
 
-    def update_status(self, info: FilesProcessedItem):
+    def update_status(self, info: FilesProcessedItem) -> None:
         self.result.summary.processed += 1
 
         if info.status in ["pending", "running"]:

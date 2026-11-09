@@ -6,7 +6,7 @@ import wikitextparser as wtp
 
 from src.main_app.utils.wikitext.cropped_file_text import add_other_versions_new
 from src.main_app.utils.wikitext.cropped_file_text.other_versions import (
-    OtherVersionsAdder,
+    OtherVersionsUpdater,
 )
 
 
@@ -16,7 +16,7 @@ class TestGetArgs:
     def test_basic(self) -> None:
         text_raw = """{{Information |description={{en|1=Daily per capita supply of all meat, World}} |author = Our World In Data |date= 2022 |Other_versions={{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}}}"""
         template = wtp.Template(text_raw)
-        args_in = OtherVersionsAdder._get_argument(template, ["other versions", "other_versions"])
+        args_in = OtherVersionsUpdater._get_argument(template, ["other versions", "other_versions"])
         assert args_in is not None
         assert args_in.value == "{{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}"
         assert args_in.name == "Other_versions"
@@ -24,7 +24,7 @@ class TestGetArgs:
     def test_basic_args(self) -> None:
         text_raw = """{{Extracted from| 1 =  Daily meat consumption per person, World, 2022.svg}}"""
         template = wtp.Template(text_raw)
-        args_in = OtherVersionsAdder._get_argument(template, ["1"])
+        args_in = OtherVersionsUpdater._get_argument(template, ["1"])
         assert args_in is not None
         assert args_in.value == "  Daily meat consumption per person, World, 2022.svg"
         assert args_in.name == " 1 "
@@ -33,7 +33,7 @@ class TestGetArgs:
         text_raw = """ hello? {{Extracted from | Daily meat consumption per person, World, 2022.svg}} zz"""
         template = wtp.WikiText(text_raw).templates[0]
         assert template.name.strip() == "Extracted from"
-        args_in = OtherVersionsAdder._get_argument(template, ["1"])
+        args_in = OtherVersionsUpdater._get_argument(template, ["1"])
         assert args_in is not None
         assert args_in.value.strip() == "Daily meat consumption per person, World, 2022.svg"
         assert args_in.name == "1"
@@ -42,14 +42,12 @@ class TestGetArgs:
         """Test that template is added to existing content."""
         text = "{{Information|description=A cropped image|other_versions={{Extracted from| 1=Original test.svg |z=}}}}"
 
-        # text_to_add = "{{Extracted from|1=Original.svg}}"
-
         result = add_other_versions_new(
             text=text,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="original_test.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
 
         # The other versions parameter is added to the Information template
@@ -69,10 +67,10 @@ class TestAddOtherVersionsNew:
         text_output = """{{Information |description={{en|1=Daily per capita supply of all meat, World}} |author = Our World In Data |date= 2022 |other versions={{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}}}"""
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
         assert result == text_output
 
@@ -81,24 +79,22 @@ class TestAddOtherVersionsNew:
 
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
         assert result == text_input
 
     def test_basic_not_duplicate(self) -> None:
         text_input = """{{Information |description={{en|1=Daily per capita supply of all meat, World}} |author = Our World In Data |date= 2022 |Other_versions={{Extracted from|Daily meat consumption per person, World, 2022.svg}}}}"""
 
-        text_output = """{{Information |description={{en|1=Daily per capita supply of all meat, World}} |author = Our World In Data |date= 2022 |Other_versions={{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}}}"""
-
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
         assert result == text_input
 
@@ -112,10 +108,10 @@ class TestAddOtherVersions:
 
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
 
         assert "|other versions={{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}" in result
@@ -131,10 +127,10 @@ class TestAddOtherVersions:
         extracted_text = "{{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}"
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
 
         assert f"|other versions={extracted_text}" in result
@@ -145,10 +141,24 @@ class TestAddOtherVersions:
 
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
 
         assert result == text_input
+
+    def test_fills_empty_other_versions_param(self):
+        """An existing but empty other_versions parameter is filled without extra spacing."""
+        text_input = "{{Information|description=A cropped image|other_versions=}}"
+
+        result = add_other_versions_new(
+            text=text_input,
+            template_name="Extracted from",
+            first_param_valve="Original.svg",
+        )
+
+        assert result == (
+            "{{Information|description=A cropped image|other_versions={{Extracted from|1=Original.svg}}}}"
+        )

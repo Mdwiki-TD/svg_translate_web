@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_titles import extract_titles_step
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps import extract_titles_step
 
 
 @pytest.fixture
@@ -11,7 +11,7 @@ def mock_extract_titles_services(monkeypatch: pytest.MonkeyPatch):
         "get_files_list_data": MagicMock(),
     }
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.extract_titles.get_files_list_data",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps.get_files_list_data",
         mocks["get_files_list_data"],
     )
     return mocks

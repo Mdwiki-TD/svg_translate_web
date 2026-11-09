@@ -299,6 +299,14 @@ class BaseObjectsJobWorker(ABC):
         else:
             self.result.pages_processed.append(info)
 
+    def _apply_limits(self, titles: list[Any], limit_items: int | None) -> list[Any]:
+        _limit = limit_items if isinstance(limit_items, int) else 0
+        if _limit > 0 and len(titles) > _limit:
+            logger.info("Job %s: limiting from %d to %d item", self.job_id, len(titles), _limit)
+            return titles[:_limit]
+
+        return titles
+
 
 __all__ = [
     "BaseObjectsJobWorker",

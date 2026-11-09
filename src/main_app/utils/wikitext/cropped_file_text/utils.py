@@ -76,10 +76,10 @@ def create_cropped_file_text(
 
     modified_text = add_other_versions_new(
         text=text,
-        temp_name=temp_name,
+        template_name=temp_name,
         first_param_valve=file_name,
         main_template_name="Information",
-        main_template_args=["other versions", "other_versions"],
+        param_names=["other versions", "other_versions"],
     )
 
     if modified_text == text:

@@ -80,18 +80,11 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         """Return the job type identifier."""
         return "download_main_files"
 
-    def _apply_limits(self, templates_with_files: list[TemplateRecord]) -> list[TemplateRecord]:
-        _limit = self.limit_items if isinstance(self.limit_items, int) else 0
-        if _limit > 0 and len(templates_with_files) > _limit:
-            logger.info("Job %s: limiting from %d to %d page", self.job_id, len(templates_with_files), _limit)
-            return templates_with_files[:_limit]
-        return templates_with_files
-
     def _load_templates(self) -> list[TemplateRecord]:
         # Get all templates with main files
         templates = TemplateService().list()
         templates_with_files = [t for t in templates if t.main_file]
-        return self._apply_limits(templates_with_files)
+        return self._apply_limits(templates_with_files, self.limit_items)
 
     def _process_one_item(self, file_info: FileInfo) -> bool:
         try:

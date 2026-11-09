@@ -1,36 +1,14 @@
-{% set nav_item_class = "nav-item col-lg-auto col-md-4 col-sm-6 col-6" %}
-
-<header class="mb-3 border-bottom">
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+<header>
+    <nav class="navbar navbar-expand-lg mb-3 border-bottom bg-body-tertiary shadow">
         <div class="container-fluid">
             <a class="navbar-brand mb-0 h1" href="{{ url_for('main.index') }}">
                 {{ tool_title }}
             </a>
-            <div class="d-flex align-items-center order-lg-last">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#collapsibleNavbar" aria-controls="collapsibleNavbar" aria-expanded="false"
-                    aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <button class="btn btn-outline-secondary btn-sm ms-2" id="darkModeToggle" type="button"
-                    aria-label="Toggle dark mode">
-                    <i class="bi bi-moon-stars-fill"></i>
-                </button>
-            </div>
-            <div class="collapse navbar-collapse" id="collapsibleNavbar">
-                <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
-                    {{ main_navbar.render_main_links(is_admin=is_admin) }}
-                </ul>
-                <hr class="d-lg-none text-dark-subtle text-50">
-                <ul class="d-flex align-items-center navbar-nav flex-row flex-wrap bd-navbar-nav">
-                    {{
-                        main_navbar.render_user_links(
-                            profile_url = url_for("profile.dashboard", user_name=current_username),
-                            current_username = current_username,
-                        )
-                    }}
-                </ul>
-            </div>
+            {{ main_navbar.create_collapsible_nav() }}
+            {{ main_navbar.render(
+                is_admin,
+                current_username
+            ) }}
         </div>
     </nav>
 </header>

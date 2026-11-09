@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 from dataclasses import dataclass
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -317,12 +317,6 @@ class TestCopySvgLangsWorkerProcess:
         result = mock_worker.process()
         assert result.stages.text.status == "cancelled"
 
-    def test_compute_output_dir_none(
-        self,
-        mock_worker: CopySvgLangsWorker,
-    ):
-        assert mock_worker._compute_output_dir(None) is None
-
 
 class TestCopySvgLangsWorkerInjectStepFile:
     """tests for the inject_step_file function"""
@@ -523,7 +517,7 @@ class TestCopySvgLangsWorkerLimits:
         mock_worker.config.limit_items = 2
         titles = ["a.svg", "b.svg", "c.svg", "d.svg"]
 
-        result = mock_worker._apply_limits(titles)
+        result = mock_worker._apply_limits(titles, mock_worker.config.limit_items)
 
         assert len(result) == 2
         assert result == ["a.svg", "b.svg"]
@@ -535,7 +529,7 @@ class TestCopySvgLangsWorkerLimits:
         mock_worker.config.limit_items = 0
         titles = ["a.svg", "b.svg", "c.svg"]
 
-        result = mock_worker._apply_limits(titles)
+        result = mock_worker._apply_limits(titles, mock_worker.config.limit_items)
 
         assert len(result) == 3
 
@@ -546,7 +540,7 @@ class TestCopySvgLangsWorkerLimits:
         mock_worker.config.limit_items = 5
         titles = ["a.svg"]
 
-        result = mock_worker._apply_limits(titles)
+        result = mock_worker._apply_limits(titles, mock_worker.config.limit_items)
 
         assert len(result) == 1
 
@@ -826,21 +820,3 @@ class TestCopySvgLangsWorkerStageMethods:
         assert result is False
         assert mock_worker.result.stages.text.status == "failed"
         assert mock_worker.result.status == "failed"
-
-
-class TestCopySvgLangsWorkerComputeOutputDir:
-    def test_compute_output_dir_none(
-        self,
-        mock_worker: CopySvgLangsWorker,
-    ):
-        assert mock_worker._compute_output_dir(None) is None
-
-    def test_compute_output_dir_creates_dirs(
-        self,
-        mock_worker: CopySvgLangsWorker,
-        tmp_path: Path,
-    ):
-        with patch("pathlib.Path.mkdir") as mock_mkdir:
-            mock_worker._compute_output_dir("File:Test File.svg")
-
-            assert mock_mkdir.call_count == 3

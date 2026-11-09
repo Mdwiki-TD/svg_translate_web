@@ -1,193 +1,273 @@
-"""Utilities for adding an ``other versions`` parameter to wikitext templates."""
+"""Generic utilities for adding/updating templates inside the ``other versions``
+parameter of a main template (e.g. ``{{Information}}``) in wikitext."""
 
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 
 import wikitextparser as wtp
 
 logger = logging.getLogger(__name__)
 
 
-class OtherVersionsAdder:
-    """Adds ``{{<temp_name>|1=<first_param_value>}}`` to a template's
-    "other versions" parameter inside wikitext.
+class OtherVersionsUpdater:
+    """Adds or updates templates inside the "other versions" parameter.
 
-    The manager holds general, reusable configuration (which main template
-    to target, which parameter names count as "other versions", and whether
-    value comparison is case-insensitive). The actual template name/value to
-    insert are passed per call to :meth:`add`, so a single instance can be
-    reused across many texts and many different templates.
+    Two generic operations are supported, and new template types can be
+    supported by adding a thin method on top of them:
 
-    Typical usage::
+    * :meth:`merge_values`: a template whose positional parameters are a
+      list of values (``{{Svg lang|ar|de|fr}}``). New values are merged into
+      the existing template instead of adding a second one.
+    * :meth:`add_template`: a single-instance template with ``1=`` value
+      (``{{Extracted from|1=File.svg}}``). Skipped if already present.
 
-        adder = OtherVersionsAdder()
-        new_text = adder.add(text, temp_name="Extracted from", first_param_value="Original.svg")
+    Example::
+
+        updater = OtherVersionsUpdater()
+        text = updater.add_svg_langs(text, ["ar", "de"])
+        text = updater.add_template(text, "Extracted from", "Original.svg")
 
     Args:
-        main_template_name: Name of the template whose parameter should be
-            edited (defaults to "Information").
-        main_template_args: Candidate parameter names to look for on the
-            main template (defaults to ``("other versions", "other_versions")``).
-        case_insensitive: Whether duplicate-value comparison ignores case
-            (defaults to True).
+        main_template_name: Template that owns the parameter.
+        param_names: Accepted parameter names (the first is used when the
+            parameter has to be created). Matching ignores case and
+            treats ``_`` as a space.
+        case_insensitive: Whether duplicate detection ignores case.
     """
 
     DEFAULT_MAIN_TEMPLATE = "Information"
-    DEFAULT_MAIN_ARGS: tuple[str, ...] = ("other versions", "other_versions")
+    DEFAULT_PARAM_NAMES: tuple[str, ...] = ("other versions", "other_versions")
 
     def __init__(
         self,
         main_template_name: str = DEFAULT_MAIN_TEMPLATE,
-        main_template_args: list[str] | None = None,
+        param_names: list[str] | None = None,
         case_insensitive: bool = True,
     ) -> None:
         self.main_template_name = main_template_name
-        self.main_template_args = (
-            list(main_template_args) if main_template_args is not None else list(self.DEFAULT_MAIN_ARGS)
-        )
+        self.param_names = list(param_names) if param_names else list(self.DEFAULT_PARAM_NAMES)
         self.case_insensitive = case_insensitive
 
     # ---------------------------------------------------------------- #
     # Public API
     # ---------------------------------------------------------------- #
 
-    def add(
+    def merge_values(
         self,
         text: str,
-        temp_name: str,
+        template_name: str,
+        values: list[str],
+        *,
+        sort: bool = False,
+    ) -> str:
+        """Merge ``values`` into ``{{template_name|v1|v2|...}}``.
+
+        Creates the template (and the parameter) if missing, otherwise adds
+        only the values that are not already present, keeping the existing
+        order. Returns ``text`` unchanged when nothing needs to change or
+        the main template is not found.
+        """
+        clean = [v.strip() for v in values if v and v.strip()]
+        if not clean:
+            return text
+        return self._update(text, lambda cur: self._merge_positional(cur, template_name, clean, sort))
+
+    def add_template(
+        self,
+        text: str,
+        template_name: str,
         first_param_value: str,
     ) -> str:
-        """
-        Add the configured template to the main template's parameter.
+        """Append ``{{template_name|1=first_param_value}}`` unless already present."""
+        return self._update(
+            text,
+            lambda cur: self._append_unique(
+                cur,
+                template_name,
+                first_param_value,
+            ),
+        )
 
-        Args:
-            text: The wikitext content to modify.
-            temp_name: Name of the template to insert (e.g. "Extracted from").
-            first_param_value: Value for the inserted template's first
-                (unnamed / ``1=``) parameter.
+    # ---- presets (add more here for other templates) ---------------- #
 
-        Returns:
-            The modified wikitext, or the original text unchanged if the
-            main template could not be found.
-        """
-        parsed = wtp.parse(text)
-        target = self._find_main_template(parsed)
-
-        if target is None:
-            return text
-
-        self._apply_to_template(target, temp_name, first_param_value)
-        return parsed.string
-
-    def get_template_param(self, text: str, template_name: str, params: list[str]) -> str | None:
-        """
-        Extract the value of a specific parameter from a given template in the text.
-        """
-        templates = wtp.WikiText(text).templates
-        matches = [t for t in templates if str(t.normal_name()).strip() == template_name.strip()]
-        if not matches:
-            return None
-
-        arg = self._get_argument(matches[0], params)
-        return str(arg.value).strip() if arg else None
+    def add_svg_langs(self, text: str, langs: list[str], *, sort: bool = False) -> str:
+        """Add language codes to ``{{Svg lang|...}}``."""
+        return self.merge_values(
+            text,
+            "Svg lang",
+            (lang.lower() for lang in langs if lang),
+            sort=sort,
+        )
 
     # ---------------------------------------------------------------- #
-    # Internal helpers
+    # Core
+    # ---------------------------------------------------------------- #
+
+    def _update(self, text: str, transform: Callable[[str], str]) -> str:
+        parsed = wtp.parse(text)
+        main = self._find_main_template(parsed)
+        if main is None:
+            logger.debug("Main template %r not found", self.main_template_name)
+            return text
+
+        arg = self._get_argument(main, self.param_names)
+        raw = arg.value if arg else ""
+        current = raw.strip()
+
+        new_value = transform(current)
+        if new_value == current:
+            return text
+
+        if arg:
+            trail = raw[len(raw.rstrip()) :]
+            if current:
+                lead = raw[: len(raw) - len(raw.lstrip())]
+                arg.value = f"{lead}{new_value}{trail}"
+            else:
+                # Empty parameter: keep the original line break before the next param / closing braces.
+                arg.value = f"{new_value}{trail}"
+        else:
+            main.set_arg(self.param_names[0], new_value)
+        return parsed.string
+
+    # ---------------------------------------------------------------- #
+    # Transforms (operate on the parameter value only)
+    # ---------------------------------------------------------------- #
+
+    def _merge_positional(
+        self,
+        current: str,
+        template_name: str,
+        values: list[str],
+        sort: bool,
+    ) -> str:
+        tpl = self._find_template(current, template_name)
+
+        if tpl is None:
+            merged = self._dedupe(values)
+            if sort:
+                merged.sort(key=self._key)
+            new_tpl = self._render(template_name, merged, [])
+            return f"{current}\n{new_tpl}" if current else new_tpl
+
+        existing: list[tuple[int, str]] = []
+        named: list[str] = []
+        for a in tpl.arguments:
+            name = a.name.strip()
+            value = a.value.strip()
+            if name.isdigit():
+                if value:
+                    existing.append((int(name), value))
+            else:
+                named.append(f"{name}={a.value}")
+
+        old = [v for _, v in sorted(existing)]
+        merged = self._dedupe(old + values)
+        if len(merged) == len(self._dedupe(old)):
+            return current  # nothing new
+        if sort:
+            merged.sort(key=self._key)
+
+        new_tpl = self._render(tpl.name.strip(), merged, named)
+        return current.replace(tpl.string, new_tpl, 1)
+
+    def _append_unique(
+        self,
+        current: str,
+        template_name: str,
+        first_param_value: str,
+    ) -> str:
+        new_tpl = f"{{{{{template_name}|1={first_param_value}}}}}"
+        if not current:
+            return new_tpl
+
+        wanted = self._key(first_param_value)
+        for t in wtp.parse(current).templates:
+            if self._norm_name(t.name) != self._norm_name(template_name):
+                continue
+            arg = next((a for a in t.arguments if a.name.strip() == "1"), None)
+            if arg and self._key(arg.value) == wanted:
+                return current
+        return f"{current}\n{new_tpl}"
+
+    # ---------------------------------------------------------------- #
+    # Helpers
     # ---------------------------------------------------------------- #
 
     def _find_main_template(self, parsed: wtp.WikiText) -> wtp.Template | None:
-        """Return the first template matching ``main_template_name``."""
-        name = self.main_template_name.lower()
-        for template in parsed.templates:
-            if template.name.strip().lower() == name:
-                return template
+        target = self._norm_name(self.main_template_name)
+        for t in parsed.templates:
+            if self._norm_name(t.name) == target:
+                return t
         return None
 
-    def _apply_to_template(self, template: wtp.Template, temp_name: str, first_param_value: str) -> None:
-        """Update or create the "other versions" parameter on the given template."""
-        existing_arg = self._get_argument(template, self.main_template_args)
-        current_value = existing_arg.value.strip() if existing_arg and existing_arg.value else ""
-
-        new_value = self._merge_value(current_value, temp_name, first_param_value)
-
-        if existing_arg:
-            existing_arg.value = new_value
-        else:
-            # Prefer the first name from the configured list
-            preferred_name = self.main_template_args[0]
-            template.set_arg(preferred_name, new_value)
-
-    def _merge_value(self, current_value: str, temp_name: str, first_param_value: str) -> str:
-        """Return ``current_value`` with the new template appended, avoiding duplicates."""
-        insertion = self._build_new_template(temp_name, first_param_value)
-
-        if not current_value:
-            return insertion
-
-        if self._already_present(current_value, insertion, temp_name, first_param_value):
-            return current_value
-
-        return f"{current_value.strip()}\n{insertion}"
-
-    def _already_present(
-        self,
-        current_value: str,
-        insertion: str,
-        temp_name: str,
-        first_param_value: str,
-    ) -> bool:
-        """Return True if the target template is already present."""
-        # Exact text match
-        if insertion in current_value or current_value.strip() == insertion.strip():
-            return True
-
-        # Semantic match (same template name + same first parameter value)
-        current_first_param = self.get_template_param(current_value, temp_name, ["1"])
-        if current_first_param is None:
-            return False
-
-        return self._normalize(current_first_param) == self._normalize(first_param_value)
-
-    def _normalize(self, text: str) -> str:
-        """Normalize text for comparison."""
-        result = text.replace("_", " ").strip()
-        return result.lower() if self.case_insensitive else result
-
     @staticmethod
-    def _build_new_template(temp_name: str, first_param_value: str) -> str:
-        return f"{{{{{temp_name}|1={first_param_value}}}}}"
+    def _get_argument(
+        template: wtp.Template,
+        params: list[str],
+    ) -> wtp.Argument | None:
+        """Return the first argument matching one of ``params`` (in order).
 
-    @staticmethod
-    def _get_argument(template: wtp.Template, params: list[str]) -> wtp.Argument | None:
-        """Return the first matching argument from ``param_names``."""
-        args_map = {arg.name.lower().strip(): arg for arg in template.arguments}
+        Matching ignores case and surrounding spaces, and treats ``_`` as a space.
+        """
+        args_map = {OtherVersionsUpdater._norm_name(a.name): a for a in template.arguments}
         for param in params:
-            found = args_map.get(param) or args_map.get(param.lower())
+            found = args_map.get(OtherVersionsUpdater._norm_name(param))
             if found:
                 return found
         return None
+
+    def _find_template(self, value: str, name: str) -> wtp.Template | None:
+        target = self._norm_name(name)
+        for t in wtp.parse(value).templates:
+            if self._norm_name(t.name) == target:
+                return t
+        return None
+
+    def _dedupe(self, values: list[str]) -> list[str]:
+        seen: dict[str, str] = {}
+        for v in values:
+            seen.setdefault(self._key(v), v)
+        return list(seen.values())
+
+    def _key(self, value: str) -> str:
+        result = value.replace("_", " ").strip()
+        return result.lower() if self.case_insensitive else result
+
+    @staticmethod
+    def _norm_name(name: str) -> str:
+        return name.replace("_", " ").strip().lower()
+
+    @staticmethod
+    def _render(name: str, positional: list[str], named: list[str]) -> str:
+        return "{{" + "|".join([name, *positional, *named]) + "}}"
 
 
 def add_other_versions_new(
     *,
     text: str,
-    temp_name: str,
-    first_param_valve: str,  # kept for backward compatibility
+    template_name: str,
+    first_param_valve: str,  # name kept for backward compatibility
     main_template_name: str = "Information",
-    main_template_args: list[str] | None = None,
+    param_names: list[str] | None = None,
 ) -> str:
-    """
-    Backward-compatible function wrapper around :class:`OtherVersionsAdder`.
-    """
-    adder = OtherVersionsAdder(
+    """Backward-compatible wrapper: add ``{{template_name|1=value}}`` to other versions."""
+    updater = OtherVersionsUpdater(
         main_template_name=main_template_name,
-        main_template_args=main_template_args,
+        param_names=param_names,
     )
-    return adder.add(text, temp_name, first_param_valve)
+    return updater.add_template(text, template_name, first_param_valve)
+
+
+def add_svg_langs_to_other_versions(*, text: str, langs: list[str]) -> str:
+    """Functional wrapper around :meth:`OtherVersionsUpdater.add_svg_langs`."""
+    return OtherVersionsUpdater().add_svg_langs(text, langs)
 
 
 __all__ = [
-    "OtherVersionsAdder",
+    "OtherVersionsUpdater",
     "add_other_versions_new",
+    "add_svg_langs_to_other_versions",
 ]

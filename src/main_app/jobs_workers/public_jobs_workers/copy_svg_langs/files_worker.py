@@ -384,11 +384,12 @@ class OneFileProcessor:
             return self._upload_step(title_info, summary, new_path)
 
         # ----------------------------------------------
-        if verify_fixed > 0:
+        elif verify_fixed > 0:
             # Here we need to upload the orignal file because we fix nested tags.
             summary = f"{verify_fixed} nested tags fixed"
             return self._upload_step(title_info, summary, file_path)
 
+        # ----------------------------------------------
         # No nested tags were fixed
         # inject_result.result is one of (None/False)
         return False

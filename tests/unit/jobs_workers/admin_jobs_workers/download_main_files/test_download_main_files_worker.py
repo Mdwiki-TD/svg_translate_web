@@ -399,7 +399,7 @@ class TestDownloadMainFilesWorkerApplyLimits:
                 args={"limit_items": 1},
             )
         )
-        result = w._apply_limits(templates)
+        result = w._apply_limits(templates, w.limit_items)
         assert len(result) == 1
 
     def test_apply_limits_with_zero_limit(self):
@@ -411,5 +411,5 @@ class TestDownloadMainFilesWorkerApplyLimits:
                 args={"limit_items": 0},
             )
         )
-        result = w._apply_limits(templates)
+        result = w._apply_limits(templates, w.limit_items)
         assert len(result) == 1

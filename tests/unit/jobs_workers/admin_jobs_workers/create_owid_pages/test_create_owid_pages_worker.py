@@ -262,7 +262,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
                 args={"limit_items": 2},
             )
         )
-        result = worker._apply_limits(templates)
+        result = worker._apply_limits(templates, worker.limit_items)
 
         assert len(result) == 2
 
@@ -280,7 +280,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
                 cancel_event=None,
             )
         )
-        result = worker._apply_limits(templates)
+        result = worker._apply_limits(templates, worker.limit_items)
 
         assert len(result) == 2
 
@@ -297,7 +297,7 @@ class TestCreateOwidPagesWorkerLoadTemplates:
                 cancel_event=None,
             )
         )
-        result = worker._apply_limits(templates)
+        result = worker._apply_limits(templates, worker.limit_items)
 
         assert len(result) == 1
 
