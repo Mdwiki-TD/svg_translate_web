@@ -129,8 +129,7 @@ class NavigationBar:
         main_links = self.render_main_links(is_admin)
         user_links = self.render_user_links(current_username)
 
-        navbar_markup = Markup(
-            """
+        navbar_markup = Markup("""
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
                     {main_links}
@@ -140,8 +139,7 @@ class NavigationBar:
                     {user_links}
                 </ul>
             </div>
-        """
-        ).format(
+        """).format(
             main_links=main_links,
             user_links=user_links,
         )

@@ -4,6 +4,7 @@ Objects for copy_svg_langs worker.
 
 from __future__ import annotations
 
+import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,60 @@ class SvgLangsConfig:
     # --- Mapping ---
     merge_mapping_all_files: bool = False
     """ merge mapping for all files not only the main_file """
+
+    @classmethod
+    def load(
+        cls,
+        title: str,
+        args: dict[str, Any],
+        svg_data_path: Path | str,
+    ) -> SvgLangsConfig:
+        output_dir = cls._compute_output_dir(title, svg_data_path)
+        output_dir_files = (output_dir / "files") if output_dir else None
+
+        try:
+            limit_items = int(args.get("limit_items")) or 0
+        except Exception:
+            limit_items = 0
+
+        upload_limit = args.get("upload_limit") or 0
+        upload_limit = upload_limit if isinstance(upload_limit, int) else 0
+
+        overwrite_translations = bool(args.get("overwrite_translations"))
+
+        overwrite_download = True
+
+        # if args.get("overwrite_download") is not None: overwrite_download = bool(args.get("overwrite_download"))
+
+        return SvgLangsConfig(
+            upload=args.get("upload"),
+            upload_files=args.get("upload_files"),
+            upload_limit=upload_limit,
+            limit_items=limit_items,
+            overwrite_translations=overwrite_translations,
+            overwrite_download=overwrite_download,
+            output_dir=output_dir,
+            output_dir_files=output_dir_files,
+        )
+
+    @staticmethod
+    def _compute_output_dir(title: str, svg_data_path: Path | str) -> Path:
+        if not title:
+            return None
+
+        name = Path(title).name
+        slug = re.sub(r"[^A-Za-z0-9._\- ]+", "_", str(name)).strip("._") or "untitled"
+        slug = slug.replace(" ", "_").lower()
+        out = Path(svg_data_path) / slug
+        out.mkdir(parents=True, exist_ok=True)
+
+        out_translated = out / "translated"
+        out_translated.mkdir(parents=True, exist_ok=True)
+
+        out_dir_main = out / "files"
+        out_dir_main.mkdir(parents=True, exist_ok=True)
+
+        return out
 
 
 @dataclass

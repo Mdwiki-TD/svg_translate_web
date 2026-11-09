@@ -4,7 +4,7 @@ parameter of a main template (e.g. ``{{Information}}``) in wikitext."""
 from __future__ import annotations
 
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 import wikitextparser as wtp
 

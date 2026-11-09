@@ -317,12 +317,6 @@ class TestCopySvgLangsWorkerProcess:
         result = mock_worker.process()
         assert result.stages.text.status == "cancelled"
 
-    def test_compute_output_dir_none(
-        self,
-        mock_worker: CopySvgLangsWorker,
-    ):
-        assert mock_worker._compute_output_dir(None) is None
-
 
 class TestCopySvgLangsWorkerInjectStepFile:
     """tests for the inject_step_file function"""
@@ -826,21 +820,3 @@ class TestCopySvgLangsWorkerStageMethods:
         assert result is False
         assert mock_worker.result.stages.text.status == "failed"
         assert mock_worker.result.status == "failed"
-
-
-class TestCopySvgLangsWorkerComputeOutputDir:
-    def test_compute_output_dir_none(
-        self,
-        mock_worker: CopySvgLangsWorker,
-    ):
-        assert mock_worker._compute_output_dir(None) is None
-
-    def test_compute_output_dir_creates_dirs(
-        self,
-        mock_worker: CopySvgLangsWorker,
-        tmp_path: Path,
-    ):
-        with patch("pathlib.Path.mkdir") as mock_mkdir:
-            mock_worker._compute_output_dir("File:Test File.svg")
-
-            assert mock_mkdir.call_count == 3

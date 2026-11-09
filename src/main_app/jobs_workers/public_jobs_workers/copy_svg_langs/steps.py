@@ -10,8 +10,8 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....utils.wikitext import get_files_list_data
 from ....api_services import MwClientPage
+from ....utils.wikitext import get_files_list_data
 
 logger = logging.getLogger(__name__)
 
