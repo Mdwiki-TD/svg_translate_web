@@ -68,6 +68,40 @@ class TemplateRecord(TimestampMixin, db.Model):
         if not self.title or not self.title.strip():
             raise ValueError("Title is required")
 
+    def extract_slug(self) -> str | None:
+        """
+        Extracts the chart slug from a given Our World in Data URL.
+
+        This function looks specifically for standard grapher URLs and extracts the unique identifier (slug) of the chart,
+        ignoring query parameters. If the URL is not a standard grapher link (e.g., explorer links) or is invalid,
+        it returns None.
+
+        Args:
+            chart_url (str | None): The full URL string of the chart.
+
+        Returns:
+            str | None: The extracted slug string if found, otherwise None.
+
+        Examples:
+            >>> template.extract_slug("https://ourworldindata.org/grapher/death-rate-by-source-from-indoor-air-pollution?tab=map")
+            'death-rate-by-source-from-indoor-air-pollution'
+
+            >>> template.extract_slug("https://ourworldindata.org/explorers/democracy?v=1&csvType=full")
+            None
+        """
+        if not self.source:
+            return None
+
+        # Remove query parameters from the URL
+        chart_url = str(self.source).split("?")[0]
+
+        slug = None
+        # Check if it's a valid grapher URL and extract the slug
+        if "/grapher/" in chart_url:
+            slug = chart_url.split("/grapher/", maxsplit=1)[1]
+
+        return slug
+
 
 __all__ = [
     "TemplateRecord",

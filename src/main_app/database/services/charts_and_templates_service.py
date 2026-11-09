@@ -6,6 +6,8 @@ from typing import Any
 
 from sqlalchemy.exc import SQLAlchemyError
 
+from ..templates_utils import extract_slug
+
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
 
@@ -92,6 +94,29 @@ class ChartsAndTemplatesService:  # (CRUDService[OwidChartRecord]):
         Retrieve charts that have no matching template.
         """
         return [x.chart for x in self.list_all() if x.template_id is None]
+
+    def get_author_citation(self, template: TemplateRecord | None) -> str | None:
+        """Read the OWID source citation persisted for the template's chart."""
+        if template is None:
+            return None
+
+        slug = template.slug or template.extract_slug()
+        if not slug:
+            return None
+
+        chart = self._get_chart_by_slug(slug)
+        source = chart.source if chart else None
+        if isinstance(source, str) and source.strip():
+            return source.strip()
+
+        logger.info("No stored OWID author citation found for chart %s", slug)
+        return None
+
+    def _get_chart_by_slug(self, slug: str) -> OwidChartRecord | None:
+        """
+        Fetch a single chart by slug.
+        """
+        return self.session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug).first()
 
 
 __all__ = [

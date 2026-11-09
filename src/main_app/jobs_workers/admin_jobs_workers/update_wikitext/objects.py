@@ -7,7 +7,13 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, OneStep, WorkerMapping, StandardAdminSummary
+from ...shared_objects import STATUS_LITERAL, OneStep, StandardAdminSummary, WorkerMapping
+
+EXCLUDED_KEYS = {"wikitext", "new_wikitext"}
+
+
+def _dict_factory(items):
+    return {k: v for k, v in items if k not in EXCLUDED_KEYS}
 
 
 @dataclass
@@ -49,7 +55,7 @@ class UpdateFilesWikiTextObject(WorkerMapping):
 
     def to_json(self) -> dict[str, Any]:
         """Converts the dataclass instance back to its original dictionary format."""
-        return asdict(self)
+        return asdict(self, dict_factory=_dict_factory)
 
 
 __all__ = [
