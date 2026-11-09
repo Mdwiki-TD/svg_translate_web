@@ -3,12 +3,12 @@ from .add_lang_categories_to_owid_pages import AddLangCategoriesWorker
 from .add_svglanguages_template import AddSvgSVGLanguagesTemplate
 from .collect_templates_data import CollectMainFilesWorker
 from .create_owid_pages import CreateOwidPagesWorker
-from .update_wikitext import UpdateFilesWikiTextWorker
 from .crop_main_files import CropMainFilesWorker
 from .download_main_files import DownloadMainFilesWorker
 from .fix_nested_main_files import FixNestedMainFilesWorker
 from .rename_owid_pages import RenameOwidPagesWorker
 from .update_owid_charts import UpdateOwidChartsWorker
+from .update_wikitext import UpdateFilesWikiTextWorker
 
 jobs_data_admins = {
     "update_wikitext": JobData(
@@ -17,7 +17,9 @@ jobs_data_admins = {
         job_details_template="jobs_templates/admin_templates/update_wikitext/details.html",
         job_list_template="jobs_templates/admin_templates/update_wikitext/list.html",
         job_class=UpdateFilesWikiTextWorker,
-        job_args=[],
+        job_args=[
+            {"key": "template_name", "as": "template_name"},
+        ],
         start_confirm_message="This will start a background job to update templates files wikitext. Continue?",
     ),
     # DB Jobs
