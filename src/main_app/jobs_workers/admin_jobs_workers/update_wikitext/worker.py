@@ -8,8 +8,7 @@ import logging
 
 from mwclient.client import Site
 
-from ....database.services import TemplateService
-
+from ....database.services import ChartsAndTemplatesService, TemplateService
 from ....utils.wikitext import get_titles
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
@@ -45,6 +44,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         self.titles: list[str] = []
         self.files_processor = UpdateWikiTextProcessor(self.site)
         self.template_service = TemplateService()
+        self.charts_and_tmps_service = ChartsAndTemplatesService()
 
     def get_job_type(self) -> str:
         """Return the job type identifier."""
@@ -134,9 +134,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         # Stage 3: Get template and template author_citation
         template = self.template_service.get_template_by_title(self.title)
 
-        if template:
-            self.files_processor.author_citation = self._get_author_citation(template)
-
+        self.files_processor.author_citation = self.charts_and_tmps_service.get_author_citation(template) or ""
         # ----------------------------------------------
         # Stage 4: Extract Titles
         self.process_titles(self.titles)

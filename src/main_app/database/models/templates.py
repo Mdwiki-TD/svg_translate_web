@@ -68,6 +68,7 @@ class TemplateRecord(TimestampMixin, db.Model):
         if not self.title or not self.title.strip():
             raise ValueError("Title is required")
 
+
 __all__ = [
     "TemplateRecord",
 ]

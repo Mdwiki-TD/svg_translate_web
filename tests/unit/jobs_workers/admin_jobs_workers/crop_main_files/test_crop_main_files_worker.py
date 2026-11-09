@@ -30,7 +30,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "save_job_result_by_name": MagicMock(),
         "is_job_cancelled": MagicMock(return_value=False),
         "list": MagicMock(),
-        "owid_charts_service": MagicMock(),
+        "charts_and_tmps_service": MagicMock(),
         "MwClientPage": MagicMock(),
         "download_file": MagicMock(),
         "crop_svg_file": MagicMock(),
@@ -39,12 +39,11 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "update_information_author": MagicMock(side_effect=lambda text, author_citation: text),
         "update_original_file_text": MagicMock(return_value="Updated original text"),
         "update_template_page_file_reference": MagicMock(return_value="Updated template text"),
-        # "generate_cropped_filename": MagicMock(side_effect=lambda x: f"File:{x.replace('File:', '')} (cropped).svg"),
         "settings": mock_settings,
         "get_user_site": mock_base_worker["get_user_site"],
     }
 
-    mocks["OwidChartsService"] = MagicMock(return_value=mocks["owid_charts_service"])
+    mocks["ChartsAndTemplatesService"] = MagicMock(return_value=mocks["charts_and_tmps_service"])
     mocks["MwClientPage"].return_value.exists.return_value = False
 
     monkeypatch.setattr(
@@ -64,16 +63,17 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         mocks["list"],
     )
     monkeypatch.setattr(
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.is_pages_exists",
+        MagicMock(return_value={}),
+    )
+
+    monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.MwClientPage",
         mocks["MwClientPage"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.OwidChartsService",
-        mocks["OwidChartsService"],
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.is_pages_exists",
-        MagicMock(return_value={}),
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.ChartsAndTemplatesService",
+        mocks["ChartsAndTemplatesService"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.download_file_for_cropping",
@@ -103,10 +103,6 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.update_template_page_file_reference",
         mocks["update_template_page_file_reference"],
     )
-    # monkeypatch.setattr(
-    #     "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.generate_cropped_filename",
-    #     mocks["generate_cropped_filename"],
-    # )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.app_settings",
         mocks["settings"],
@@ -511,7 +507,7 @@ class TestCropMainFilesProcessorSteps:
         """Test that uploads use the citation stored for the OWID chart as the Author value."""
         citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
-        mock_crop_services["owid_charts_service"].get_chart_by_slug.return_value = MagicMock(source=citation)
+        mock_crop_services["charts_and_tmps_service"].get_author_citation.return_value = citation
         mock_crop_services["upload_cropped_file"].return_value = {"success": True}
 
         processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
@@ -533,7 +529,7 @@ class TestCropMainFilesProcessorSteps:
         result = processor.files_processor._step_upload(file_info, template)
 
         assert result is True
-        mock_crop_services["owid_charts_service"].get_chart_by_slug.assert_called_once_with("wheat-production")
+        mock_crop_services["charts_and_tmps_service"].get_author_citation.assert_called_once_with(template)
         mock_crop_services["create_cropped_file_text"].assert_called_once_with(
             file_name="File:test.svg",
             text="Original file text",
@@ -675,7 +671,7 @@ class TestCropMainFilesProcessorSteps:
         """Test that unchanged cropped-file text is reported without an edit."""
         citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Cropped file text"
-        mock_crop_services["owid_charts_service"].get_chart_by_slug.return_value = MagicMock(source=citation)
+        mock_crop_services["charts_and_tmps_service"].get_author_citation.return_value = citation
 
         processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
         processor.site = MagicMock()
@@ -710,7 +706,7 @@ class TestCropMainFilesProcessorSteps:
         mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True, "newrevid": 42}
         mock_crop_services["update_information_author"].side_effect = None
         mock_crop_services["update_information_author"].return_value = "Updated cropped file text"
-        mock_crop_services["owid_charts_service"].get_chart_by_slug.return_value = MagicMock(source=citation)
+        mock_crop_services["charts_and_tmps_service"].get_author_citation.return_value = citation
 
         processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
         processor.site = MagicMock()
@@ -743,7 +739,7 @@ class TestCropMainFilesProcessorSteps:
         mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": False, "error": "Edit conflict"}
         mock_crop_services["update_information_author"].side_effect = None
         mock_crop_services["update_information_author"].return_value = "Updated cropped file text"
-        mock_crop_services["owid_charts_service"].get_chart_by_slug.return_value = MagicMock(source="Stored citation")
+        mock_crop_services["charts_and_tmps_service"].get_author_citation.return_value = "Stored citation"
 
         processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
         processor.site = MagicMock()
