@@ -44,10 +44,10 @@ class TestGetArgs:
 
         result = add_other_versions_new(
             text=text,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="original_test.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
 
         # The other versions parameter is added to the Information template
@@ -67,10 +67,10 @@ class TestAddOtherVersionsNew:
         text_output = """{{Information |description={{en|1=Daily per capita supply of all meat, World}} |author = Our World In Data |date= 2022 |other versions={{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}}}"""
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
         assert result == text_output
 
@@ -79,10 +79,10 @@ class TestAddOtherVersionsNew:
 
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
         assert result == text_input
 
@@ -91,10 +91,10 @@ class TestAddOtherVersionsNew:
 
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
         assert result == text_input
 
@@ -108,10 +108,10 @@ class TestAddOtherVersions:
 
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
 
         assert "|other versions={{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}" in result
@@ -127,10 +127,10 @@ class TestAddOtherVersions:
         extracted_text = "{{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}"
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
 
         assert f"|other versions={extracted_text}" in result
@@ -141,10 +141,10 @@ class TestAddOtherVersions:
 
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Daily meat consumption per person, World, 2022.svg",
             main_template_name="Information",
-            main_template_args=["other versions", "other_versions"],
+            param_names=["other versions", "other_versions"],
         )
 
         assert result == text_input
@@ -155,7 +155,7 @@ class TestAddOtherVersions:
 
         result = add_other_versions_new(
             text=text_input,
-            temp_name="Extracted from",
+            template_name="Extracted from",
             first_param_valve="Original.svg",
         )
 

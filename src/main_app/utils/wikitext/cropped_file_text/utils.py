@@ -66,20 +66,20 @@ def create_cropped_file_text(
     Returns:
         The wikitext content for the cropped file.
     """
-    temp_name = "Extracted from"
+    template_name = "Extracted from"
     file_name = file_name.removeprefix("File:").replace("_", " ").strip()
     # add new argment like |other versions = {{Extracted from|1=Daily meat consumption per person, World, 2022.svg}} to template {{Information}} in the wikitext
-    text_to_add = f"{{{{{temp_name}|1={file_name}}}}}"
+    text_to_add = f"{{{{{template_name}|1={file_name}}}}}"
 
     if not text or not text.strip():
         return text_to_add
 
     modified_text = add_other_versions_new(
         text=text,
-        temp_name=temp_name,
+        template_name=template_name,
         first_param_valve=file_name,
         main_template_name="Information",
-        main_template_args=["other versions", "other_versions"],
+        param_names=["other versions", "other_versions"],
     )
 
     if modified_text == text:

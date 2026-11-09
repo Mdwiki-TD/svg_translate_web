@@ -4,7 +4,7 @@ parameter of a main template (e.g. ``{{Information}}``) in wikitext."""
 from __future__ import annotations
 
 import logging
-from typing import Callable, Iterable
+from typing import Callable
 
 import wikitextparser as wtp
 
@@ -43,7 +43,7 @@ class OtherVersionsUpdater:
     def __init__(
         self,
         main_template_name: str = DEFAULT_MAIN_TEMPLATE,
-        param_names: Iterable[str] | None = None,
+        param_names: list[str] | None = None,
         case_insensitive: bool = True,
     ) -> None:
         self.main_template_name = main_template_name
@@ -58,7 +58,7 @@ class OtherVersionsUpdater:
         self,
         text: str,
         template_name: str,
-        values: Iterable[str],
+        values: list[str],
         *,
         sort: bool = False,
     ) -> str:
@@ -74,15 +74,32 @@ class OtherVersionsUpdater:
             return text
         return self._update(text, lambda cur: self._merge_positional(cur, template_name, clean, sort))
 
-    def add_template(self, text: str, template_name: str, first_param_value: str) -> str:
+    def add_template(
+        self,
+        text: str,
+        template_name: str,
+        first_param_value: str,
+    ) -> str:
         """Append ``{{template_name|1=first_param_value}}`` unless already present."""
-        return self._update(text, lambda cur: self._append_unique(cur, template_name, first_param_value))
+        return self._update(
+            text,
+            lambda cur: self._append_unique(
+                cur,
+                template_name,
+                first_param_value,
+            ),
+        )
 
     # ---- presets (add more here for other templates) ---------------- #
 
-    def add_svg_langs(self, text: str, langs: Iterable[str], *, sort: bool = False) -> str:
+    def add_svg_langs(self, text: str, langs: list[str], *, sort: bool = False) -> str:
         """Add language codes to ``{{Svg lang|...}}``."""
-        return self.merge_values(text, "Svg lang", (lang.lower() for lang in langs if lang), sort=sort)
+        return self.merge_values(
+            text,
+            "Svg lang",
+            (lang.lower() for lang in langs if lang),
+            sort=sort,
+        )
 
     # ---------------------------------------------------------------- #
     # Core
@@ -95,7 +112,7 @@ class OtherVersionsUpdater:
             logger.debug("Main template %r not found", self.main_template_name)
             return text
 
-        arg = self._find_param(main)
+        arg = self._get_argument(main, self.param_names)
         raw = arg.value if arg else ""
         current = raw.strip()
 
@@ -106,7 +123,7 @@ class OtherVersionsUpdater:
         if arg:
             if current:
                 lead = raw[: len(raw) - len(raw.lstrip())]
-                trail = raw[len(raw.rstrip()):]
+                trail = raw[len(raw.rstrip()) :]
                 arg.value = f"{lead}{new_value}{trail}"
             else:
                 # Empty parameter: replace the value as-is (no added spaces/newlines).
@@ -119,7 +136,13 @@ class OtherVersionsUpdater:
     # Transforms (operate on the parameter value only)
     # ---------------------------------------------------------------- #
 
-    def _merge_positional(self, current: str, template_name: str, values: list[str], sort: bool) -> str:
+    def _merge_positional(
+        self,
+        current: str,
+        template_name: str,
+        values: list[str],
+        sort: bool,
+    ) -> str:
         tpl = self._find_template(current, template_name)
 
         if tpl is None:
@@ -150,7 +173,12 @@ class OtherVersionsUpdater:
         new_tpl = self._render(tpl.name.strip(), merged, named)
         return current.replace(tpl.string, new_tpl, 1)
 
-    def _append_unique(self, current: str, template_name: str, first_param_value: str) -> str:
+    def _append_unique(
+        self,
+        current: str,
+        template_name: str,
+        first_param_value: str,
+    ) -> str:
         new_tpl = f"{{{{{template_name}|1={first_param_value}}}}}"
         if not current:
             return new_tpl
@@ -175,11 +203,11 @@ class OtherVersionsUpdater:
                 return t
         return None
 
-    def _find_param(self, template: wtp.Template) -> wtp.Argument | None:
-        return self._get_argument(template, self.param_names)
-
     @staticmethod
-    def _get_argument(template: wtp.Template, params: Iterable[str]) -> wtp.Argument | None:
+    def _get_argument(
+        template: wtp.Template,
+        params: list[str],
+    ) -> wtp.Argument | None:
         """Return the first argument matching one of ``params`` (in order).
 
         Matching ignores case and surrounding spaces, and treats ``_`` as a space.
@@ -198,7 +226,7 @@ class OtherVersionsUpdater:
                 return t
         return None
 
-    def _dedupe(self, values: Iterable[str]) -> list[str]:
+    def _dedupe(self, values: list[str]) -> list[str]:
         seen: dict[str, str] = {}
         for v in values:
             seen.setdefault(self._key(v), v)
@@ -220,24 +248,23 @@ class OtherVersionsUpdater:
 def add_other_versions_new(
     *,
     text: str,
-    temp_name: str,
+    template_name: str,
     first_param_valve: str,  # name kept for backward compatibility
     main_template_name: str = "Information",
-    main_template_args: list[str] | None = None,
+    param_names: list[str] | None = None,
 ) -> str:
-    """Backward-compatible wrapper: add ``{{temp_name|1=value}}`` to other versions."""
+    """Backward-compatible wrapper: add ``{{template_name|1=value}}`` to other versions."""
     updater = OtherVersionsUpdater(
         main_template_name=main_template_name,
-        param_names=main_template_args,
+        param_names=param_names,
     )
-    return updater.add_template(text, temp_name, first_param_valve)
+    return updater.add_template(text, template_name, first_param_valve)
 
 
 def add_svg_langs_to_other_versions(*, text: str, langs: list[str]) -> str:
     """Functional wrapper around :meth:`OtherVersionsUpdater.add_svg_langs`."""
     return OtherVersionsUpdater().add_svg_langs(text, langs)
 
-OtherVersionsAdder = OtherVersionsUpdater
 
 __all__ = [
     "OtherVersionsUpdater",
