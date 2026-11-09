@@ -5,7 +5,6 @@ Worker module for add_svglanguages_template.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from mwclient.client import Site
 

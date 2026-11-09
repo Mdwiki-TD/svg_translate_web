@@ -5,7 +5,6 @@ Worker module for downloading main files from remote source to local filesystem.
 from __future__ import annotations
 
 import logging
-from typing import Any
 import zipfile
 from pathlib import Path
 

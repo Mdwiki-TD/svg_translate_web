@@ -5,7 +5,6 @@ Worker module for create_owid_pages.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from mwclient.client import Site
 
