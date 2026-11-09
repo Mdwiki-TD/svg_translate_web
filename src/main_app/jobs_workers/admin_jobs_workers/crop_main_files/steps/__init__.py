@@ -36,9 +36,25 @@ class CropMainFilesSteps:
             files_service=files_service,
         )
 
+    # @cached_property
     @staticmethod
     def generate_cropped_filename(filename: str) -> str:
-        return generate_cropped_filename(filename)
+        """
+        Transform filename to cropped version.
+
+        Examples:
+            "File:Death rate from obesity, World, 2021.svg"
+            → "File:Death rate from obesity, World, 2021 (cropped).svg"
+        """
+        if filename.startswith("File:"):
+            base_name = filename[5:]
+        else:
+            base_name = filename
+
+        path = Path(base_name)
+        new_stem = f"{path.stem} (cropped)"
+        new_filename = new_stem + path.suffix
+        return f"File:{new_filename}"
 
     @staticmethod
     def crop_svg_file(
