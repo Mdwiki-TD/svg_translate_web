@@ -115,14 +115,10 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     # Per-template orchestration
     # ------------------------------------------------------------------
     def _process_one_item(self, template: TemplateRecord) -> bool:
-
-        # file info
         file_info = CropFileProcessingInfo.from_template(template)
-
         ok = self.files_processor.process_one_item(file_info, template)
 
         self.update_status(file_info)
-
         return ok
 
     def update_status(self, info: CropFileProcessingInfo) -> None:
