@@ -7,7 +7,7 @@ from flask import url_for
 
 from ...jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ...services.auth.utils import get_current_user
-from ...templates_markups import main_navbar
+from ...templates_markups import NavigationBar, main_nav_list
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,8 @@ def context_data(
     user = get_current_user()
 
     username = user.username if user else None
+
+    main_navbar = NavigationBar(main_nav_list)
 
     return {
         "main_navbar": main_navbar,

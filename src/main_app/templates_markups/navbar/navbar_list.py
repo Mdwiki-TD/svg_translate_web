@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from .objects import NavDropdown, NavLink
+from .mapping import NavDropdown, NavLink
 
-nav_list = [
+main_nav_list = [
     NavLink(
         text="Main Tasks",
         icon="bi-list-task",
@@ -79,7 +79,7 @@ nav_list = [
         icon="bi-people-fill",
         url_endpoint="adminpanel.dashboard",
         path="/adminpanel",
-        for_admin=True,
+        for_admins=True,
     ),
     NavLink(
         text="GitHub",
@@ -92,5 +92,5 @@ nav_list = [
 
 
 __all__ = [
-    "nav_list",
+    "main_nav_list",
 ]
