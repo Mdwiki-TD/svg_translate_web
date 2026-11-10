@@ -108,7 +108,7 @@ def create_cropped_file_text(
     return CroppedFileTextBuilder().create_cropped_file_text(file_name, text, author_citation)
 
 
-# ---- template_page and ensure_file_prefix ----
+# ---- template_page ----
 
 
 def update_template_page_file_reference(
@@ -117,11 +117,7 @@ def update_template_page_file_reference(
     text: str,
 ) -> str:
     """Replace the file reference in a template page's wikitext."""
-    return FileReferenceUpdater().update_template_page_file_reference(original_file, cropped_file, text)
-
-
-def ensure_file_prefix(file_name) -> str:
-    return FileReferenceUpdater().ensure_prefix(file_name)
+    return FileReferenceUpdater.update_template_page_file_reference(original_file, cropped_file, text)
 
 
 # ---- temp_source ----
@@ -209,7 +205,6 @@ __all__ = [
     "count_svg_files",
     "create_category_link_from_str",
     "create_cropped_file_text",
-    "ensure_file_prefix",
     "extract_categories",
     "find_main_title",
     "find_main_title_from_owidslidersrcs",

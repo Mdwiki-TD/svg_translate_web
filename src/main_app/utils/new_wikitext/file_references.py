@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 class FileReferenceUpdater:
     """Normalizes file names and rewrites file references."""
 
-    def ensure_prefix(self, file_name) -> str:
+    @staticmethod
+    def ensure_prefix(file_name) -> str:
         """Return ``file_name`` with a ``File:`` prefix; non-string or empty values are returned as is."""
         if not file_name or not isinstance(file_name, str):
             return file_name
@@ -20,8 +21,8 @@ class FileReferenceUpdater:
             file_name = "File:" + file_name
         return file_name
 
+    @staticmethod
     def update_template_page_file_reference(
-        self,
         original_file: str,
         cropped_file: str,
         text: str,

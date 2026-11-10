@@ -15,12 +15,11 @@ from ....api_services.files_service import FilesService
 from ....config import app_settings
 from ....database.models import TemplateRecord
 from ....database.services import ChartsAndTemplatesService
-from ....utils.wikitext import (
-    create_cropped_file_text,
-    ensure_file_prefix,
-    update_information_author,
-    update_original_file_text,
-    update_template_page_file_reference,
+from ....utils.new_wikitext import (
+    CroppedFileTextBuilder,
+    FileReferenceUpdater,
+    InformationAuthorUpdater,
+    OriginalFileTextUpdater,
 )
 from .objects import CropFileProcessingInfo, FileStep
 from .steps import CropMainFilesSteps
@@ -195,12 +194,12 @@ class OneFileProcessor:
 
     def _step_upload(self, file_info: CropFileProcessingInfo, template: TemplateRecord | None = None) -> bool | None:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""
-        file_name = ensure_file_prefix(file_info.original_file)
+        file_name = FileReferenceUpdater.ensure_prefix(file_info.original_file)
         page = MwClientPage(file_name, self.site)
         wikitext = page.get_text()
         author_citation = self.charts_and_tmps_service.get_author_citation(template)
 
-        cropped_file_wikitext = create_cropped_file_text(
+        cropped_file_wikitext = CroppedFileTextBuilder().create_cropped_file_text(
             file_name=file_info.original_file,
             text=wikitext,
             author_citation=author_citation,
@@ -247,11 +246,11 @@ class OneFileProcessor:
 
     def _step_update_original(self, file_info: CropFileProcessingInfo) -> bool:
         """Update the original file's wikitext to reference the cropped version."""
-        original_file_name = ensure_file_prefix(file_info.original_file)
+        original_file_name = FileReferenceUpdater.ensure_prefix(file_info.original_file)
         original_page = MwClientPage(original_file_name, self.site)
 
         wikitext = original_page.get_text()
-        updated_text = update_original_file_text(file_info.cropped_filename, wikitext)
+        updated_text = OriginalFileTextUpdater().update_original_file_text(file_info.cropped_filename, wikitext)
 
         if wikitext == updated_text:
             logger.info("Job %s: No update needed for original file text of %s", self.job_id, file_info.original_file)
@@ -283,7 +282,7 @@ class OneFileProcessor:
 
     def _step_update_cropped(self, file_info: CropFileProcessingInfo, template: TemplateRecord | None) -> bool:
         """Update a cropped file page's Author field from the persisted OWID source citation."""
-        cropped_file_name = ensure_file_prefix(file_info.cropped_filename)
+        cropped_file_name = FileReferenceUpdater.ensure_prefix(file_info.cropped_filename)
         cropped_page = MwClientPage(cropped_file_name, self.site)
         cropped_file_wikitext = cropped_page.get_text()
 
@@ -293,7 +292,7 @@ class OneFileProcessor:
             return False
 
         author_citation = self.charts_and_tmps_service.get_author_citation(template)
-        new_wikitext = update_information_author(
+        new_wikitext = InformationAuthorUpdater().update_information_author(
             text=cropped_file_wikitext,
             author_citation=author_citation,
         )
@@ -348,7 +347,7 @@ class OneFileProcessor:
             step_obj.msg = f"Empty page text: {page_title}"
             return False
 
-        updated_text = update_template_page_file_reference(
+        updated_text = FileReferenceUpdater.update_template_page_file_reference(
             file_info.original_file,
             file_info.cropped_filename,
             page_text,
