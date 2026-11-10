@@ -95,7 +95,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         mocks["update_information_author"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.OriginalFileTextUpdater().update_original_file_text",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.OriginalFileTextUpdater.update_original_file_text",
         mocks["update_original_file_text"],
     )
     monkeypatch.setattr(
