@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import unittest.mock as mock
 
-from src.main_app.utils.wikitext.owid_sliders_rcs.main_file import (
+from src.main_app.utils.wikitext import (
     find_main_title_from_template,
     match_main_title_from_url,
     match_main_title_from_url_new,
@@ -154,9 +154,7 @@ class TestMatchMainTitleFromUrlNew:
         """Test that ValueError from urlparse returns None (lines 32-33)."""
         # Mock urlparse to raise ValueError to test exception handler
         text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
-        with mock.patch(
-            "src.main_app.utils.wikitext.owid_sliders_rcs.main_file.urlparse", side_effect=ValueError("Invalid URL")
-        ):
+        with mock.patch("src.main_app.utils.new_wikitext.owid_gallery.urlparse", side_effect=ValueError("Invalid URL")):
             result = match_main_title_from_url_new(text)
             assert result is None
 
@@ -166,7 +164,7 @@ class TestMatchMainTitleFromUrlNew:
         text = "*'''Translate''': https://svgtranslate.toolforge.org/File:test.svg"
         mock_parsed = mock.Mock()
         mock_parsed.netloc = "different-domain.toolforge.org"
-        with mock.patch("src.main_app.utils.wikitext.owid_sliders_rcs.main_file.urlparse", return_value=mock_parsed):
+        with mock.patch("src.main_app.utils.new_wikitext.owid_gallery.urlparse", return_value=mock_parsed):
             result = match_main_title_from_url_new(text)
             assert result is None
 

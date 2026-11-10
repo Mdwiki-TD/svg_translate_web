@@ -183,7 +183,7 @@ class TestFindTemplateSource3:
         """Test when check_url returns False in _find_template_source (line 73)."""
         # Mock check_url to return False to test the guard clause
         wikitext = "*'''Source''': https://ourworldindata.org/grapher/test"
-        with mock.patch("src.main_app.utils.wikitext.temp_source.check_url", return_value=False):
+        with mock.patch("src.main_app.utils.new_wikitext.owid_source.OwidSourceFinder.check_url", return_value=False):
             result = _find_template_source(wikitext)
             assert result == ""
 
@@ -191,12 +191,12 @@ class TestFindTemplateSource3:
         """Test when check_url returns False in _find_template_source_2 (line 42)."""
         # Mock check_url to return False to test the guard clause
         wikitext = "* https://ourworldindata.org/grapher/test"
-        with mock.patch("src.main_app.utils.wikitext.temp_source.check_url", return_value=False):
+        with mock.patch("src.main_app.utils.new_wikitext.owid_source.OwidSourceFinder.check_url", return_value=False):
             result = _find_template_source_2(wikitext)
             assert result == ""
 
     def test_urlparse_value_error_in_check_url(self):
         """Test that urlparse ValueError is handled in check_url (lines 10-11)."""
-        with mock.patch("src.main_app.utils.wikitext.temp_source.urlparse", side_effect=ValueError("Invalid URL")):
+        with mock.patch("src.main_app.utils.new_wikitext.owid_source.urlparse", side_effect=ValueError("Invalid URL")):
             result = check_url("http://[invalid-url")
             assert result is False

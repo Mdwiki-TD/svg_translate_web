@@ -18,10 +18,10 @@ from ....database.services import ChartsAndTemplatesService
 from ....utils.wikitext import (
     create_cropped_file_text,
     ensure_file_prefix,
+    update_information_author,
     update_original_file_text,
     update_template_page_file_reference,
 )
-from ....utils.wikitext import update_information_author
 from .objects import CropFileProcessingInfo, FileStep
 from .steps import CropMainFilesSteps
 

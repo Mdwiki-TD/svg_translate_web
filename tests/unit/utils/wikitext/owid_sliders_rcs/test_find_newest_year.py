@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.owid_sliders_rcs.owidslidersrcs_utils import (
+from src.main_app.utils.wikitext import (
     find_newest_year,
 )
 

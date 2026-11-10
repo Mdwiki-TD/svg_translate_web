@@ -8,7 +8,7 @@ Pytest test suite for:
 
 import pytest
 
-from src.main_app.utils.wikitext.owid_sliders_rcs.main_file import find_main_title
+from src.main_app.utils.wikitext import find_main_title
 
 
 @pytest.fixture

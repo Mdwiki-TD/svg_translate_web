@@ -10,7 +10,7 @@ Replace `from your_module import ...` with your actual module name.
 
 import pytest
 
-from src.main_app.utils.wikitext.owid_sliders_rcs.main_file import (
+from src.main_app.utils.wikitext import (
     find_main_title_from_owidslidersrcs,
     match_main_title_from_url,
     match_main_title_from_url_new,

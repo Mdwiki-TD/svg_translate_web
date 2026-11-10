@@ -4,7 +4,7 @@ Edge Cases Tests for src/main_app/utils/wikitext/owid_sliders_rcs/last_world_fil
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.owid_sliders_rcs.owidslidersrcs_utils import (
+from src.main_app.utils.wikitext import (
     match_newest_world_file,
 )
 

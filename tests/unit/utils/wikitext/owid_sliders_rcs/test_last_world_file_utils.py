@@ -1,6 +1,6 @@
 """Tests for last_world_file module."""
 
-from src.main_app.utils.wikitext.owid_sliders_rcs.owidslidersrcs_utils import (
+from src.main_app.utils.wikitext import (
     find_newest_world_file,
     match_newest_world_file,
 )
