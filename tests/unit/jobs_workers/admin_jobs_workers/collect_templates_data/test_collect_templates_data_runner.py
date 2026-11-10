@@ -415,7 +415,7 @@ class TestRunner:
         assert len(result_dict["pages_added"]) == 1
         assert len(result_dict["pages_updated"]) == 1
 
-    def test_collect_templates_data_with_last_world_file(self, monkeypatch: pytest.MonkeyPatch):
+    def test_collect_templates_data_with_last_world_file(self, monkeypatch: pytest.MonkeyPatch, mock_find_last_world):
         """Test that last_world_file is extracted and saved."""
         templates = [
             TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
@@ -436,11 +436,7 @@ class TestRunner:
         self.services["find_main_title"].return_value = "test.svg"
 
         # Mock find_newest_world_file
-        mock_find_last_world = MagicMock(return_value="test, World, 2021.svg")
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
-            mock_find_last_world,
-        )
+        mock_find_last_world.return_value = "test, World, 2021.svg"
 
         self.collect_runner(job_id=1, user={})
 
@@ -544,7 +540,7 @@ class TestRunner:
         # Expecting at least 3 saves (n=1, n=10, n=20, plus final)
         assert len(save_progress_calls) >= 3
 
-    def test_collect_templates_data_only_last_world_file(self, monkeypatch: pytest.MonkeyPatch):
+    def test_collect_templates_data_only_last_world_file(self, monkeypatch: pytest.MonkeyPatch, mock_find_last_world):
         """Test template with only last_world_file (no main_file)."""
         templates = [
             TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
@@ -563,11 +559,7 @@ class TestRunner:
         self.services["find_main_title"].return_value = None  # No main file
 
         # Mock find_newest_world_file
-        mock_find_last_world = MagicMock(return_value="test, World, 2021.svg")
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
-            mock_find_last_world,
-        )
+        mock_find_last_world.return_value = "test, World, 2021.svg"
 
         self.collect_runner(job_id=1, user={})
 

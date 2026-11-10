@@ -23,11 +23,7 @@ from ....utils.wikitext import (
 )
 from ....utils.wikitext.cropped_file_text.utils import update_information_author
 from .objects import CropFileProcessingInfo, FileStep
-from .steps import (
-    crop_svg_file,
-    download_file_for_cropping,
-    upload_cropped_file,
-)
+from .steps import CropMainFilesSteps
 
 logger = logging.getLogger(__name__)
 
@@ -39,13 +35,16 @@ class OneFileProcessor:
         site: Site,
         args: dict[str, Any],
         files_service: FilesService | None = None,
+        *,
+        original_dir: Path | None = None,
+        cropped_dir: Path | None = None,
     ) -> None:
         self.job_id = job_id
         self.site = site
         self.exists: dict[str, Any] = {}
         self.args = args
-        self.original_dir = Path(app_settings.paths.crop_main_files_path) / "original"
-        self.cropped_dir = Path(app_settings.paths.crop_main_files_path) / "cropped"
+        self.original_dir = original_dir or Path(app_settings.paths.crop_main_files_path) / "original"
+        self.cropped_dir = cropped_dir or Path(app_settings.paths.crop_main_files_path) / "cropped"
 
         self.files_service = files_service or FilesService()
         self.charts_and_tmps_service = ChartsAndTemplatesService()
@@ -154,7 +153,7 @@ class OneFileProcessor:
     def _step_download(self, file_info: CropFileProcessingInfo, template: TemplateRecord) -> bool:
         """Download the original file. Returns True on success."""
 
-        download_result = download_file_for_cropping(
+        download_result = CropMainFilesSteps.download_file_for_cropping(
             template.last_world_file,
             self.original_dir,
             files_service=self.files_service,
@@ -180,7 +179,7 @@ class OneFileProcessor:
         cropped_path: Path,
     ) -> bool:
         """Crop the SVG. Returns True on success."""
-        crop_result = crop_svg_file(Path(file_info.downloaded_path), cropped_path)
+        crop_result = CropMainFilesSteps.crop_svg_file(Path(file_info.downloaded_path), cropped_path)
 
         if crop_result["success"]:
             file_info.steps.crop.result = True
@@ -207,7 +206,7 @@ class OneFileProcessor:
             author_citation=author_citation,
         )
 
-        upload_result = upload_cropped_file(
+        upload_result = CropMainFilesSteps.upload_cropped_file(
             file_info.cropped_filename,
             Path(file_info.cropped_path),
             self.site,

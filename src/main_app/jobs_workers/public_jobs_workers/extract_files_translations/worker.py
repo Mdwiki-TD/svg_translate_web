@@ -57,6 +57,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self.titles: list[str] = []
         self.files_service = FilesService()
         self.mapping: TranslationMapping = TranslationMapping()
+        self.svg_data_path = Path(app_settings.paths.svg_data)
 
     def _compute_output_dir(self, title: str) -> Path:
         if not title:
@@ -65,7 +66,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         name = Path(title).name
         slug = re.sub(r"[^A-Za-z0-9._\- ]+", "_", str(name)).strip("._") or "untitled"
         slug = slug.replace(" ", "_").lower()
-        out = Path(app_settings.paths.svg_data) / slug
+        out = self.svg_data_path / slug
         out.mkdir(parents=True, exist_ok=True)
 
         out_dir_main = out / "files"

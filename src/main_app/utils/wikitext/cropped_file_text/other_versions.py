@@ -97,7 +97,7 @@ class OtherVersionsUpdater:
         return self.merge_values(
             text,
             "Svg lang",
-            (lang.lower() for lang in langs if lang),
+            [lang.lower() for lang in langs if lang],
             sort=sort,
         )
 
