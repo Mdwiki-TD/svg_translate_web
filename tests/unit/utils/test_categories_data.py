@@ -1,9 +1,9 @@
-"""Tests for src/main_app/utils/categories.py."""
+"""Tests for src/main_app/utils/categories_data.py."""
 
 from __future__ import annotations
 
-from src.main_app.utils.categories import LANG_CODE_CATEGORY_MAP  # noqa: F401
-from src.main_app.utils.categories import lang_code_category
+from src.main_app.utils.categories_data import LANG_CODE_CATEGORY_MAP  # noqa: F401
+from src.main_app.utils.categories_data import lang_code_category
 
 
 class TestLangCodeCategory:
