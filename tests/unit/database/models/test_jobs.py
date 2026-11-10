@@ -1,3 +1,7 @@
+"""
+Unit tests for src/main_app/database/models/jobs.py module.
+"""
+
 from __future__ import annotations
 
 from src.main_app.database.models.jobs import JobRecord

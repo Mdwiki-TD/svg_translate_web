@@ -210,7 +210,9 @@ class SharedJobRoutes:
         except LookupError:
             logger.error("Job not found: id=%s, type=%s", job_id, job_type)
             flash(f"Job id {job_id} with {job_type=} was not found", "warning")
-            return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))  # pyright: ignore[reportReturnType]
+            return redirect(
+                url_for(f"{self.bp_name}.jobs_list", job_type=job_type),
+            )  # pyright: ignore[reportReturnType]
 
         # Load job result if available
         result_data = None
