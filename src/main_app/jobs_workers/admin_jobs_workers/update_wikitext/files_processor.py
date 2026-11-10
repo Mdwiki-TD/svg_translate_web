@@ -12,7 +12,7 @@ from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
 from ....data import get_slug_categories
 from ....utils.wikitext import merge_categories, sort_categories
-from ....utils.wikitext.cropped_file_text.other_versions import (
+from ....utils.wikitext.other_versions import (
     OtherVersionsUpdater,
 )
 from .objects import OneStep, ProcessingFileInfo

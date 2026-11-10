@@ -1,11 +1,11 @@
-"""Tests for the wikitext.cropped_file_text.other_versions module."""
+"""Tests for the wikitext.other_versions module."""
 
 from __future__ import annotations
 
 import wikitextparser as wtp
 
-from src.main_app.utils.wikitext.cropped_file_text import add_other_versions_new
-from src.main_app.utils.wikitext.cropped_file_text.other_versions import (
+from src.main_app.utils.wikitext.other_versions import (
+    add_other_versions_new,
     OtherVersionsUpdater,
 )
 

@@ -9,7 +9,7 @@ import logging
 import wikitextparser as wtp
 
 from ..before_methods import insert_before_methods
-from .other_versions import add_other_versions_new
+from ..other_versions import add_other_versions_new
 
 logger = logging.getLogger(__name__)
 

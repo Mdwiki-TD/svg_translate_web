@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.utils.wikitext.cropped_file_text.other_versions import (
+from src.main_app.utils.wikitext.other_versions import (
     OtherVersionsUpdater,
     add_svg_langs_to_other_versions,
 )
