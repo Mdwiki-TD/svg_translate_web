@@ -8,11 +8,12 @@ import logging
 
 from mwclient.client import Site
 
+from ....api_services import MwClientPage
+
 from ....database.services import ChartsAndTemplatesService, TemplateService
 from ....utils.new_wikitext import SvgFilesCollector
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from ...public_jobs_workers.copy_svg_langs.steps import extract_text_step
 from .files_processor import UpdateWikiTextProcessor
 from .objects import ProcessingFileInfo, UpdateFilesWikiTextObject
 
@@ -61,22 +62,26 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
 
     def _extract_text_step(self) -> bool | None:
         # {"success": False | True, "text": "", "error": None | "error"}
-        step_result = extract_text_step(
-            self.title,
-            self.site,
-        )
-        text = step_result.get("text", "")
+        logger.info(f"Extracting wikitext for: {self.title}")
+        if not self.title:
+            logger.error("No title found")
+            self.log_errors("No title found")
+            return False
 
-        if step_result.get("success") and text:
-            self.text = text
-            return True
+        try:
+            text = MwClientPage(self.title, self.site).get_text()
+        except Exception:
+            logger.exception(f"Failed to fetch wikitext for title: {self.title}")
+            self.log_errors("Failed to fetch wikitext")
+            return False
 
-        self.result.status = "failed"
+        if not text:
+            logger.error(f"No wikitext found for title: {self.title}")
+            self.log_errors("No wikitext found")
+            return False
 
-        error = step_result.get("error") or "Failed to extract text"
-        self.log_errors(error)
-
-        return False
+        self.text = text
+        return True
 
     def process_titles(self, titles: list[str]) -> None:
         per_item = self.get_priority(len(titles))
@@ -122,11 +127,13 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         self._save_progress()
 
         if not self._extract_text_step():
+            self.result.status = "failed"
             return self.result
 
         # ----------------------------------------------
         # Stage 2: Extract Titles
         if not self._extract_titles_step():
+            self.result.status = "failed"
             return self.result
 
         self.result.summary.total = len(self.titles)
