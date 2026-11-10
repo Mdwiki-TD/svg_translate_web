@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from src.main_app.utils.new_wikitext.file_text import (
     CroppedFileTextBuilder,
     InformationAuthorUpdater,
