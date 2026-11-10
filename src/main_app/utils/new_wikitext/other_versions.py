@@ -94,10 +94,14 @@ class OtherVersionsUpdater:
 
     def add_svg_langs(self, text: str, langs: list[str], *, sort: bool = False) -> str:
         """Add language codes to ``{{Svg lang|...}}``."""
+        filtered_langs = [lang.lower() for lang in langs if lang]
+        if not filtered_langs:
+            return text
+
         return self.merge_values(
             text,
             "Svg lang",
-            [lang.lower() for lang in langs if lang],
+            filtered_langs,
             sort=sort,
         )
 

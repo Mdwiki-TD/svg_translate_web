@@ -15,7 +15,8 @@ STATUS_LIST = Literal["completed", "failed", "pending", "skipped", "success"]
 @dataclass
 class InfoSteps:
     load_text: OneStep = field(default_factory=OneStep)
-    update_text: OneStep = field(default_factory=OneStep)
+    update_author: OneStep = field(default_factory=OneStep)
+    update_langs: OneStep = field(default_factory=OneStep)
     save_page: OneStep = field(default_factory=OneStep)
 
 
@@ -26,7 +27,17 @@ class ProcessingFileInfo:
     title: str
     status: STATUS_LIST = "pending"
     error: str | None = None
+    langs: list[str] = field(default_factory=list)
     steps: InfoSteps = field(default_factory=lambda: InfoSteps())
+
+    def create_summary_message(self, author_citation: str) -> str:
+        summary = ""
+        if self.steps.update_author.result:
+            summary += f"Updated author to {author_citation} "
+
+        if self.steps.update_langs.result:
+            summary += f"Updated languages to {self.langs} "
+        return summary
 
 
 @dataclass

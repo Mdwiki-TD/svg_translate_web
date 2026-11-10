@@ -10,6 +10,7 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
+from ....utils.new_wikitext import InformationAuthorUpdater
 from ....utils.new_wikitext.other_versions import OtherVersionsUpdater
 from .objects import OneStep, ProcessingFileInfo
 
@@ -57,8 +58,15 @@ class UpdateWikiTextProcessor:
 
         # ----------------------------------
         # Step 3 - update text
-        new_wikitext = self._step_update_text(text, file_info)
-        if not new_wikitext:
+        file_langs = self.files_service.get_file_languages(file_info.title)
+        if file_langs.langs:
+            logger.info("File %s has languages: %r", file_info.title, file_langs.langs)
+            file_info.langs = file_langs.langs
+
+        new_wikitext = self._step_update_author(text, file_info)
+        new_wikitext = self._step_update_langs(new_wikitext, file_info)
+
+        if new_wikitext.strip() == text.strip():
             return False
 
         # ----------------------------------
@@ -73,28 +81,46 @@ class UpdateWikiTextProcessor:
     # Individual pipeline steps
     # ------------------------------------------------------------------
 
-    def _step_update_text(self, text: str, info: ProcessingFileInfo) -> bool:
+    def _step_update_author(self, text: str, info: ProcessingFileInfo) -> bool:
         """ """
-        # Page exists, check if update is needed
-        new_wikitext = do_something(text)  # type: ignore # noqa: F821
+        if not self.author_citation:
+            info.steps.update_author.result = False
+            info.steps.update_author.msg = "Skipped - no author citation provided"
+            return text
+
+        new_wikitext = InformationAuthorUpdater.update_information_author(
+            text=text,
+            author_citation=self.author_citation,
+        )
+        if text.strip() != new_wikitext.strip() and self.author_citation in new_wikitext:
+            info.steps.update_author.result = True
+            info.steps.update_author.msg = f"Author saved: {self.author_citation}"
+
+        return new_wikitext
+
+    def _step_update_langs(self, text: str, info: ProcessingFileInfo) -> str:
+        """ """
+        new_wikitext = self.other_versions_updater.add_svg_langs(text, info.langs, sort=False)
 
         if text.strip() == new_wikitext.strip():
-            info.steps.update_text.msg = "Skipped - page content is already identical"
-            info.status = "skipped"
-            return None  # nothing to update
+            info.steps.update_langs.msg = "Skipped - page content is already identical"
+            return text  # nothing to update
 
-        info.steps.update_text = OneStep(
-            result=True,
-            msg=f"Updated page: {info.title}",
-        )
+        info.steps.update_langs.result = True
+        info.steps.update_langs.msg = f"Updated page: {info.title}"
         return new_wikitext
 
     def _step_save_text(self, new_wikitext: str, page: MwClientPage, info: ProcessingFileInfo) -> bool:
         """ """
-        # Content is different, perform update
+        summary = info.create_summary_message(self.author_citation)
+
+        if not summary:
+            self._fail(info, info.steps.save_page, "No changes to save")
+            return False
+
         res = page.edit(
             new_wikitext,
-            f"Updating OWID page from [[{info.title}]]",
+            summary=summary,
         )
 
         if res["success"]:
