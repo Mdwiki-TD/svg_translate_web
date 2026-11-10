@@ -31,13 +31,14 @@ class ProcessingFileInfo:
     steps: InfoSteps = field(default_factory=lambda: InfoSteps())
 
     def create_summary_message(self, author_citation: str) -> str:
-        summary = ""
+        summary = []
         if self.steps.update_author.result:
-            summary += f"Updated author to {author_citation} "
+            summary.append(f"Updated author to {author_citation}")
 
         if self.steps.update_langs.result:
-            summary += f"Updated languages to {self.langs} "
-        return summary
+            summary.append(f"Insert Svg lang ({self.langs})")
+
+        return ", ".join(summary)
 
 
 @dataclass
