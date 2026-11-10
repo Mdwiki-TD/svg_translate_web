@@ -19,7 +19,7 @@ pymysql.install_as_MySQLdb()
 
 # Load environment variables before any other imports
 
-_env_file_path = str(Path(__file__).parent.parent.parent / ".env")
+_env_file_path = str(Path(__file__).parent.parent.parent.parent.parent / ".env")
 try:
     load_dotenv(_env_file_path)
 except Exception:

@@ -3,9 +3,9 @@
 from .category import get_category_members
 from .clients import (
     CommonsSession,
+    WikiSiteClient,
     fetch_grapher_metadata_raw,
     fetch_indicators_metadata,
-    WikiSiteClient,
 )
 from .files_service import FilesService, UploadService
 from .mwclient_page import MwClientPage

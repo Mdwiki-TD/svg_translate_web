@@ -19,7 +19,7 @@ from flask import (
 )
 from flask.views import MethodView
 
-from ...api_services import FilesService, UploadService, get_user_site
+from ...api_services import FilesService, UploadService, WikiSiteClient
 from ...config import get_settings
 from ...decorators import oauth_required
 from ...services.copysvg_wrapper import InjectResult, extract_from_path, inject_step_one_file
@@ -257,7 +257,7 @@ class TranslateSaveView(MethodView):
 
         # Handle Action: Upload
         user_payload = load_auth_payload(g._current_user)
-        site = get_user_site(user_payload)
+        site = WikiSiteClient.get_user_site(wiki_domain, user_payload)
         if not site:
             flash("OAuth session error. Please log in again.", "danger")
             return redirect(url_for("translate.dashboard"))

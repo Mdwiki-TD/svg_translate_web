@@ -1,13 +1,14 @@
-""" """
+"""Admin sidebar ."""
 
 from __future__ import annotations
 
 import functools
+import logging
 
-from .mapping import (
-    SidebarGroup,
-    SidebarItem,
-)
+from ..templates_markups.sidebar.mapping import SidebarGroup, SidebarItem
+from ..templates_markups.sidebar.sidebar import Sidebar
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Menu item builders — small factories to avoid repeating the same
@@ -34,7 +35,7 @@ def job_item(job_type: str, title: str, icon: str, *, disabled: bool = False) ->
 
 
 @functools.lru_cache(maxsize=1)
-def load_groups_menu() -> list[SidebarGroup]:
+def load_admin_tools() -> list[SidebarGroup]:
     """Build the static sidebar menu structure.
 
     No Flask request/app context is touched here — URLs are resolved lazily
@@ -125,7 +126,12 @@ def load_groups_menu() -> list[SidebarGroup]:
             job_item("crop_main_files", "Crop Newest World Files", "bi-crop"),
             job_item("fix_nested_main_files", "Fix Nested Main Files", "bi-tools"),
             job_item("update_wikitext", "Update Files Wikitext", "bi-file-earmark-text"),
-            job_item("download_main_files", "Download Main Files", "bi-download", disabled=True),
+            job_item(
+                "download_main_files",
+                "Download Main Files",
+                "bi-download",
+                disabled=True,
+            ),
         ],
     )
 
@@ -136,7 +142,11 @@ def load_groups_menu() -> list[SidebarGroup]:
         items=[
             job_item("create_owid_pages", "Create OWID Pages", "bi-file-earmark-text"),
             job_item("rename_owid_pages", "Rename OWID Pages", "bi-fonts"),
-            job_item("add_svglanguages_template", "Add {{SVGLanguages}}", "bi-file-earmark-text"),
+            job_item(
+                "add_svglanguages_template",
+                "Add {{SVGLanguages}}",
+                "bi-file-earmark-text",
+            ),
             job_item("add_lang_categories_to_owid_pages", "Add Lang Categories", "bi-tags"),
         ],
     )
@@ -187,6 +197,17 @@ def load_groups_menu() -> list[SidebarGroup]:
     ]
 
 
+def create_admin_sidebar(path: str, is_admin: bool = False) -> str:
+    """
+    Generate sidebar HTML structure based on menu definitions.
+
+    This is the public entry point used by the Jinja template.
+    """
+    main_menu = load_admin_tools()
+    sidebar = Sidebar(main_menu)
+    return sidebar.render(path, is_admin=is_admin)
+
+
 __all__ = [
-    "load_groups_menu",
+    "create_admin_sidebar",
 ]

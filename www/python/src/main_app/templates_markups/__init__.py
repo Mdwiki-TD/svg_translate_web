@@ -1,10 +1,13 @@
 """Utility modules for the main application."""
 
-from .admin_sidebar import create_admin_sidebar
 from .navbar import NavigationBar, main_nav_list
+from .sidebar import Sidebar, SidebarItem, SidebarGroup
 
 __all__ = [
     "NavigationBar",
     "main_nav_list",
-    "create_admin_sidebar",
+    "Sidebar",
+    "Sidebar",
+    "SidebarItem",
+    "SidebarGroup",
 ]

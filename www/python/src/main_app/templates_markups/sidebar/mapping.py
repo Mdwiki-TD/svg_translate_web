@@ -16,7 +16,7 @@ class SidebarItem:
     """Sidebar menu item definition.
 
     The URL is resolved lazily via `resolve_href()`, at render time, rather
-    than when the menu is built. This keeps `load_groups_menu()` free of any
+    than when the menu is built. This keeps `load_admin_tools()` free of any
     Flask request/app-context dependency, which in turn makes it safe to
     cache with `functools.lru_cache`.
     """
