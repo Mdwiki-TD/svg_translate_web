@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .other_versions import OtherVersionsUpdater, add_other_versions_new
 from .before_methods import insert_before_methods
 from .categories_utils import merge_categories, sort_categories
 from .cropped_file_text import create_cropped_file_text
@@ -25,6 +26,8 @@ def ensure_file_prefix(file_name) -> str:
 
 
 __all__ = [
+    "OtherVersionsUpdater",
+    "add_other_versions_new",
     "append_image_extracted_template",
     "count_svg_files",
     "create_cropped_file_text",

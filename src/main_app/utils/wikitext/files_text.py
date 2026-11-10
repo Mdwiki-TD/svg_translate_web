@@ -8,7 +8,7 @@ import logging
 import re
 
 from .before_methods import insert_before_methods
-from .cropped_file_text import add_other_versions_new
+from ..wikitext import add_other_versions_new
 
 logger = logging.getLogger(__name__)
 
