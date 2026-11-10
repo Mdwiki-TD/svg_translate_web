@@ -17,7 +17,7 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
-from ....utils.wikitext.categories_utils import get_missing_categories_list
+from ....utils.new_wikitext import CategoryMerger
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import AddLangCategoriesWorkerObject, OneStep, PageInfo
@@ -27,6 +27,10 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def get_missing_categories_list(cats_list: list[str], text: str) -> list[str]:
+    return CategoryMerger().get_missing_categories_list(cats_list, text)
 
 
 class AddLangCategoriesWorker(BaseObjectsJobWorker):

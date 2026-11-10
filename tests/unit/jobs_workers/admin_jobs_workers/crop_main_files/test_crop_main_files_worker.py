@@ -87,19 +87,19 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         MagicMock(return_value=mocks["charts_and_tmps_service"]),
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.create_cropped_file_text",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.CroppedFileTextBuilder.create_cropped_file_text",
         mocks["create_cropped_file_text"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.update_information_author",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.InformationAuthorUpdater.update_information_author",
         mocks["update_information_author"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.update_original_file_text",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.OriginalFileTextUpdater.update_original_file_text",
         mocks["update_original_file_text"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.update_template_page_file_reference",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.FileReferenceUpdater.update_template_page_file_reference",
         mocks["update_template_page_file_reference"],
     )
     monkeypatch.setattr(

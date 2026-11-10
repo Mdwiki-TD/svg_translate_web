@@ -1,24 +1,17 @@
 {% extends "jobs_templates/admin_templates/base_details_admin.html" %}
-{% from "_macros.html" import stats_card %}
+{% from "_macros.html" import stats_card, commons_link %}
 {% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
 
 {% block job_info_extra %}
 {% if result_data and result_data.args %}
 <tr>
-    <th>Update all pages:</th>
+    <th>Template:</th>
     <td>
-        {{ result_data.args.update_all }}
+        {{ commons_link(result_data.args.template_name) }}
     </td>
 </tr>
 {% endif %}
 {% endblock %}
-
-{# Filter pages by their specific statuses #}
-{% set pages_skipped = result_data.pages_skipped %}
-{% set pages_failed = result_data.pages_failed %}
-{% set pages_created = result_data.pages_created %}
-{% set pages_updated = result_data.pages_updated %}
-{% set pages_processed = result_data.pages_processed %}
 
 {% block job_summary %}
 <div class="row g-3 mb-4">
@@ -28,16 +21,13 @@
     <div class="col-md-9">
         <div class="row g-3">
             <div class="col">
-                {{ stats_card('Created', pages_created | length , "success", "") }}
+                {{ stats_card('Updated', result_data.files_updated | length , "success", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Updated', ( pages_updated | length ) or result_data.summary.updated, "info", "") }}
+                {{ stats_card('Skipped', result_data.files_skipped | length, "secondary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Skipped', ( pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
-            </div>
-            <div class="col">
-                {{ stats_card('Failed', ( pages_failed | length ) or result_data.summary.failed, "danger", "") }}
+                {{ stats_card('Failed', result_data.files_failed | length, "danger", "") }}
             </div>
         </div>
     </div>
@@ -46,52 +36,42 @@
 
 {% block job_details %}
 
-{% if pages_created %}
-{{ new_pages_table(
-    table_title="Created",
-    job_id=job.id,
-    job_type=template_data.job_type,
-    list_name="pages_created",
-    bp_name='adminpanel.jobs'
-) }}
-{% endif %}
-
-{% if pages_updated %}
+{% if result_data.files_updated %}
 {{ new_pages_table(
     table_title="Updated",
     job_id=job.id,
     job_type=template_data.job_type,
-    list_name="pages_updated",
+    list_name="files_updated",
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
 
-{% if pages_processed %}
+{% if result_data.files_processed %}
 {{ new_pages_table(
     table_title="Processed",
     job_id=job.id,
     job_type=template_data.job_type,
-    list_name="pages_processed",
+    list_name="files_processed",
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
 
-{% if pages_skipped %}
+{% if result_data.files_skipped %}
 {{ new_pages_table(
     table_title="Skipped",
     job_id=job.id,
     job_type=template_data.job_type,
-    list_name="pages_skipped",
+    list_name="files_skipped",
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
 
-{% if pages_failed %}
+{% if result_data.files_failed %}
 {{ new_pages_table(
     table_title="Failed",
     job_id=job.id,
     job_type=template_data.job_type,
-    list_name="pages_failed",
+    list_name="files_failed",
     bp_name='adminpanel.jobs'
 ) }}
 {% endif %}
@@ -115,39 +95,35 @@
                 render: function (data, type, row, meta) { return meta.row + 1; },
             },
             {
-                data: 'template_title',
-                title: 'Template',
-                render: (template_title) => renderOwidTemplate(WIKIDOMAIN, template_title),
+                data: 'title',
+                title: 'File',
+                render: (title) => renderOwidTemplate(WIKIDOMAIN, title),
             },
             {
-                data: 'new_page_title',
-                title: 'New Page',
-                render: function (title) {
-                    if (!title) return '-';
-                    return renderWikiLink(WIKIDOMAIN, title, "OWID Page");
-                },
+                data: 'langs',
+                title: 'File langs',
             },
             {
-                data: 'steps.load_template_text',
+                data: 'steps.load_text',
                 title: 'Load Text',
                 orderable: false,
                 render: renderStep
             },
             {
-                data: 'steps.create_new_text',
-                title: 'Generate Text',
+                data: 'steps.update_author',
+                title: 'Update author',
                 orderable: false,
                 render: renderStep
             },
             {
-                data: 'steps.update_text',
-                title: 'Update Page',
+                data: 'steps.update_langs',
+                title: 'Update langs',
                 orderable: false,
                 render: renderStep
             },
             {
-                data: 'steps.create_new_page',
-                title: 'Create Page',
+                data: 'steps.save_page',
+                title: 'Save Page',
                 orderable: false,
                 render: renderStep
             },
@@ -156,11 +132,10 @@
 
     $(document).ready(function () {
         let columns = createColumns();
-        initServerTable('table-pages_created', columns);
-        initServerTable('table-pages_updated', columns);
-        initServerTable('table-pages_processed', columns);
-        initServerTable('table-pages_skipped', columns);
-        initServerTable('table-pages_failed', columns);
+        initServerTable('table-files_updated', columns);
+        initServerTable('table-files_processed', columns);
+        initServerTable('table-files_skipped', columns);
+        initServerTable('table-files_failed', columns);
     });
 </script>
 {% endblock %}

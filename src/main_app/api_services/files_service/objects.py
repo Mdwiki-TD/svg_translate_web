@@ -22,7 +22,7 @@ class FileData(SharedMapToJson):
             self.file_name = self.fix_file_name(self.file_name)
 
     @classmethod
-    def from_dict(cls, **data: dict[str, Any]) -> "FileData":
+    def from_dict(cls, **data) -> "FileData":
         return cls(
             file_name=data["file_name"],
             file_path=data["file_path"],

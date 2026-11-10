@@ -11,7 +11,7 @@ from typing import Any
 from mwclient.client import Site
 
 from ....api_services import MwClientPage
-from ....utils.wikitext import get_files_list_data
+from ....utils.new_wikitext import SvgFilesCollector
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ def extract_titles_step(
     Returns:
         dict with keys: success (bool), main_title (str|None), titles (list[str]), error (str|None)
     """
-    data = get_files_list_data(text)
+    data = SvgFilesCollector().get_files_list_data(text)
 
     main_title = data["main_title"]
     titles = data["titles"]

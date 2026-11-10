@@ -47,12 +47,12 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch):
         lambda title, site: MagicMock(get_text=MagicMock(return_value="some wikitext")),
     )
     monkeypatch.setattr(
-        worker,
+        worker.MainTitleFinder,
         "find_main_title",
         lambda x, remove_prefix=False: "file.svg",
     )
     monkeypatch.setattr(
-        worker,
+        worker.SlidersGalleryReader,
         "find_newest_world_file",
         lambda x, remove_prefix=False: None,
     )

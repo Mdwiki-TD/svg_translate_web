@@ -9,13 +9,14 @@ from typing import Any, Literal
 
 from ...shared_objects import OneStep, StandardAdminSummary, WorkerMapping
 
-STATUS_LIST = Literal["completed", "failed", "pending", "skipped", "success"]
+STATUS_LIST = Literal["completed", "failed", "pending", "skipped", "updated"]
 
 
 @dataclass
 class InfoSteps:
     load_text: OneStep = field(default_factory=OneStep)
-    update_text: OneStep = field(default_factory=OneStep)
+    update_author: OneStep = field(default_factory=OneStep)
+    update_langs: OneStep = field(default_factory=OneStep)
     save_page: OneStep = field(default_factory=OneStep)
 
 
@@ -26,7 +27,19 @@ class ProcessingFileInfo:
     title: str
     status: STATUS_LIST = "pending"
     error: str | None = None
+    langs: list[str] = field(default_factory=list)
     steps: InfoSteps = field(default_factory=lambda: InfoSteps())
+
+    def create_summary_message(self, author_citation: str) -> str:
+        summary = []
+        if self.steps.update_author.result:
+            summary.append(f"Updated author to {author_citation}")
+
+        if self.steps.update_langs.result:
+            row = ",".join(self.langs)
+            summary.append(f"Insert Svg lang ({row})")
+
+        return ", ".join(summary)
 
 
 @dataclass
@@ -34,7 +47,7 @@ class UpdateFilesWikiTextObject(WorkerMapping):
     summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
     title: str | None = None
 
-    files_success: list[ProcessingFileInfo] = field(default_factory=list)
+    files_updated: list[ProcessingFileInfo] = field(default_factory=list)
     files_skipped: list[ProcessingFileInfo] = field(default_factory=list)
     files_failed: list[ProcessingFileInfo] = field(default_factory=list)
     files_processed: list[ProcessingFileInfo] = field(default_factory=list)
@@ -56,8 +69,8 @@ class UpdateFilesWikiTextObject(WorkerMapping):
         elif info.status == "failed":
             self.files_failed.append(info)
 
-        elif info.status == "success":
-            self.files_success.append(info)
+        elif info.status == "updated":
+            self.files_updated.append(info)
 
         else:
             self.files_processed.append(info)

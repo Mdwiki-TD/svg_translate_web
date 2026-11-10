@@ -160,9 +160,10 @@ class FilesService:
             langs_keys = [t["name"] for t in translations if isinstance(t, dict) and "name" in t]
             if "en" not in langs_keys:
                 langs_keys.append("en")
-            return FileLanguagesMap(langs=langs_keys)
+        else:
+            langs_keys = ["en"]
 
-        return FileLanguagesMap(langs=["en"])
+        return FileLanguagesMap(langs=langs_keys)
 
     # ----------------------
     #  download methods

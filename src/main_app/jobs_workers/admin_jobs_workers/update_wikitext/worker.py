@@ -8,11 +8,11 @@ import logging
 
 from mwclient.client import Site
 
+from ....api_services import MwClientPage
 from ....database.services import ChartsAndTemplatesService, TemplateService
-from ....utils.wikitext import get_titles
+from ....utils.new_wikitext import SvgFilesCollector
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
-from ...public_jobs_workers.copy_svg_langs.steps import extract_text_step
 from .files_processor import UpdateWikiTextProcessor
 from .objects import ProcessingFileInfo, UpdateFilesWikiTextObject
 
@@ -24,7 +24,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
     Worker for update_wikitext.
     Steps:
         1. extract_text: load template wikitext using extract_text_step()
-        2. extract_titles: get all files names from wikitext into self.titles using get_titles(text)
+        2. extract_titles: get all files names from wikitext into self.titles using SvgFilesCollector.get_titles(text)
         3. get template `author_citation` using `self.files_processor.author_citation = self._get_author_citation(template)`
         4. run process_titles with self.titles.
     """
@@ -51,7 +51,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         return "update_wikitext"
 
     def _extract_titles_step(self) -> bool:
-        self.titles = get_titles(self.text)
+        self.titles = SvgFilesCollector.get_titles(self.text, with_prefix=True)
 
         if not self.titles:
             self.result.status = "failed"
@@ -61,18 +61,26 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
 
     def _extract_text_step(self) -> bool | None:
         # {"success": False | True, "text": "", "error": None | "error"}
-        step_result = extract_text_step(
-            self.title,
-            self.site,
-        )
-        text = step_result.get("text", "")
+        logger.info(f"Extracting wikitext for: {self.title}")
+        if not self.title:
+            logger.error("No title found")
+            self.log_errors("No title found")
+            return False
 
-        if step_result.get("success") and text:
-            self.text = text
-            return True
+        try:
+            text = MwClientPage(self.title, self.site).get_text()
+        except Exception:
+            logger.exception(f"Failed to fetch wikitext for title: {self.title}")
+            self.log_errors("Failed to fetch wikitext")
+            return False
 
-        self.result.status = "failed"
-        return False
+        if not text:
+            logger.error(f"No wikitext found for title: {self.title}")
+            self.log_errors("No wikitext found")
+            return False
+
+        self.text = text
+        return True
 
     def process_titles(self, titles: list[str]) -> None:
         per_item = self.get_priority(len(titles))
@@ -106,6 +114,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         if self.site is None:
             raise ValueError("Site is not set")
 
+        self.files_processor.site = self.site
         if not self.title:
             logger.error("No title found")
             self.result.status = "failed"
@@ -118,11 +127,13 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         self._save_progress()
 
         if not self._extract_text_step():
+            self.result.status = "failed"
             return self.result
 
         # ----------------------------------------------
         # Stage 2: Extract Titles
         if not self._extract_titles_step():
+            self.result.status = "failed"
             return self.result
 
         self.result.summary.total = len(self.titles)
