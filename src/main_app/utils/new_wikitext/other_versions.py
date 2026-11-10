@@ -127,7 +127,7 @@ class OtherVersionsUpdater:
         if delete_values:
             delete_values = [x.lower() for x in delete_values if x]
             text = self.delete_params(text, delete_values)
-            delete_values = [lang.lower() for lang in filtered_langs if lang.lower() not in delete_values]
+            filtered_langs = [lang.lower() for lang in filtered_langs if lang.lower() not in delete_values]
 
         if not filtered_langs:
             return text

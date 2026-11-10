@@ -60,6 +60,9 @@ class UpdateWikiTextProcessor:
         # Step 3 - update text
         file_langs = self.files_service.get_file_languages(file_info.title)
         if file_langs.langs:
+            if "en" in file_langs.langs:
+                file_langs.langs.remove("en")
+
             logger.info("File %s has languages: %r", file_info.title, file_langs.langs)
             file_info.langs = file_langs.langs or []
 

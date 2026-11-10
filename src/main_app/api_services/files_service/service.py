@@ -110,7 +110,7 @@ class FilesService:
 
         return FileInfo(error=None, imageinfo=imageinfo, exists=True)
 
-    def get_file_languages(self, file_name: str, include_en: bool = True) -> FileLanguagesMap:
+    def get_file_languages(self, file_name: str) -> FileLanguagesMap:
         """
         Extract available SVG translation languages for a given Commons file.
 
@@ -162,9 +162,6 @@ class FilesService:
                 langs_keys.append("en")
         else:
             langs_keys = ["en"]
-
-        if not include_en and "en" in langs_keys:
-            langs_keys.remove("en")
 
         return FileLanguagesMap(langs=langs_keys)
 
