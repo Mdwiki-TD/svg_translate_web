@@ -69,8 +69,11 @@ class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
         update_data = {k: v for k, v in data.items() if k in allowed_keys}
         if update_data and redirect_ids:
             try:
-                self.session.query(OwidSlugRedirectRecord).filter(OwidSlugRedirectRecord.id.in_(redirect_ids)).update(
-                    update_data, synchronize_session=False
+                self.session.query(OwidSlugRedirectRecord).filter(
+                    OwidSlugRedirectRecord.id.in_(redirect_ids),
+                ).update(
+                    update_data,
+                    synchronize_session=False,
                 )
                 self.session.commit()
             except Exception as e:

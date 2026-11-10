@@ -65,7 +65,7 @@ class FileUploader:
             with open(file_data.file_path, "rb") as f:
                 response = self.site.upload(
                     file=f,
-                    description=file_data.description,
+                    description=str(file_data.description),
                     filename=file_data.file_name,
                     comment=file_data.summary or "",
                     ignore=True,  # skip warnings like "file exists"

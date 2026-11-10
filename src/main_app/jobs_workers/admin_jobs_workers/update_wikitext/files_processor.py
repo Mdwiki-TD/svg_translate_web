@@ -86,7 +86,7 @@ class UpdateWikiTextProcessor:
     # Individual pipeline steps
     # ------------------------------------------------------------------
 
-    def _step_update_author(self, text: str, info: ProcessingFileInfo) -> bool:
+    def _step_update_author(self, text: str, info: ProcessingFileInfo) -> str:
         """ """
         if not self.author_citation:
             info.steps.update_author.result = None

@@ -16,10 +16,10 @@ class SharedMapToJson:
 
 @dataclass
 class GetWithRetryData(SharedMapToJson):
-    content: str | None = None
+    content: bytes | None = None
     success: bool | None = None
     status_code: int | None = None
-    msg: int | None = None
+    msg: str | None = None
     attempts: int | None = None
     wait_time: int | None = None
 
