@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import logging
 import secrets
-from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlencode
 
@@ -20,46 +19,14 @@ from werkzeug.wrappers import Response as WerkzeugResponse
 
 from ...config import get_settings
 from ...database.services import UsersService
-from ..core.cookies import (
-    extract_user_id,
-    sign_state_token,
-    sign_user_id,
-    verify_state_token,
-)
+from ..core.cookies import SignedTokenService
 from .auth_exceptions import OAuthCallbackError, OAuthIdentityError
 from .auth_service import OAuthService
 from .token_manager import TokenManager
 
+from .mapping import LoginStartResult, CallbackResult, LogoutResult
+
 logger = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class LoginStartResult:
-    """Outcome of starting the OAuth login flow."""
-
-    success: bool
-    redirect_url: str | None = None
-    error_message: str | None = None
-    flash_category: str = "danger"
-
-
-@dataclass(frozen=True)
-class CallbackResult:
-    """Outcome of completing the OAuth callback."""
-
-    success: bool
-    response: WerkzeugResponse | None = None
-    error_message: str | None = None
-    flash_category: str = "danger"
-
-
-@dataclass(frozen=True)
-class LogoutResult:
-    """Outcome of logout."""
-
-    response: WerkzeugResponse
-    message: str
-    flash_category: str = "info"
 
 
 class AuthFlowService:
@@ -101,7 +68,7 @@ class AuthFlowService:
         state_nonce = secrets.token_urlsafe(32)
         session[self.oauth_state_nonce] = state_nonce
 
-        signed_state = sign_state_token(state_nonce)
+        signed_state = SignedTokenService().sign_state_token(state_nonce)
         callback_url = self.build_callback_url(signed_state)
 
         try:
@@ -262,7 +229,7 @@ class AuthFlowService:
                 flash_category="danger",
             )
 
-        verified_state = verify_state_token(returned_state)
+        verified_state = SignedTokenService().verify_state_token(returned_state)
         if verified_state != expected_state:
             logger.warning("OAuth callback failed: state mismatch")
             return CallbackResult(
@@ -280,7 +247,7 @@ class AuthFlowService:
     def _set_auth_cookie(self, user_id: int, response: WerkzeugResponse) -> None:
         response.set_cookie(
             self.app_settings.cookie.name,
-            sign_user_id(user_id),
+            SignedTokenService().sign_user_id(user_id),
             httponly=self.app_settings.cookie.httponly,
             secure=self.app_settings.cookie.secure,
             samesite=self.app_settings.cookie.samesite,
@@ -311,7 +278,7 @@ class AuthFlowService:
 
         # extract user_id from signed cookie if needed
         if user_id is None and cookie_value:
-            user_id = extract_user_id(cookie_value)
+            user_id = SignedTokenService().extract_user_id(cookie_value)
             logger.debug("Extracted user_id from cookie: %s", user_id)
 
         message = "Session cleared."
