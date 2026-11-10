@@ -36,7 +36,8 @@ class ProcessingFileInfo:
             summary.append(f"Updated author to {author_citation}")
 
         if self.steps.update_langs.result:
-            summary.append(f"Insert Svg lang ({self.langs})")
+            row = ",".join(self.langs)
+            summary.append(f"Insert Svg lang ({row})")
 
         return ", ".join(summary)
 
