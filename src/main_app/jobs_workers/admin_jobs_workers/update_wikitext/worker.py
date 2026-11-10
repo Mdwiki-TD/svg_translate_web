@@ -72,6 +72,10 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
             return True
 
         self.result.status = "failed"
+
+        error = step_result.get("error") or "Failed to extract text"
+        self.log_errors(error)
+
         return False
 
     def process_titles(self, titles: list[str]) -> None:
