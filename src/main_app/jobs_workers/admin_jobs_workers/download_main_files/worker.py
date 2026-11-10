@@ -10,7 +10,7 @@ from pathlib import Path
 
 from ....api_services import FilesService
 from ....api_services.files_service import DownloadAndSaveData
-from ....config import app_settings
+from ....config import get_settings
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
@@ -34,6 +34,7 @@ def generate_main_files_zip(main_files_zip_name) -> Path:
         FileNotFoundError: If main_files_path directory does not exist
         RuntimeError: If no files are found to zip
     """
+    app_settings = get_settings()
     main_files_path = Path(app_settings.paths.main_files_path)
 
     if not main_files_path.exists():
@@ -66,6 +67,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         data: JobsRunner,
         output_dir: Path | None = None,
     ) -> None:
+        app_settings = get_settings()
         self.output_dir = output_dir or Path(app_settings.paths.main_files_path)
         super().__init__(data)
         self.args = data.args or {}

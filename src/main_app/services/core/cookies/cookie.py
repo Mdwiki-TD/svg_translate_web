@@ -6,14 +6,19 @@ import logging
 
 from itsdangerous import BadSignature, BadTimeSignature, URLSafeTimedSerializer
 
-from ....config import app_settings
+from ....config import get_settings
 
 logger = logging.getLogger(__name__)
 
-_serializer = URLSafeTimedSerializer(app_settings.security.secret_key, salt=f"{app_settings.security.salt}-uid")
+app_settings = get_settings()
+_serializer = URLSafeTimedSerializer(
+    app_settings.security.secret_key,
+    salt=f"{app_settings.security.salt}-uid",
+)
 
 _state_serializer = URLSafeTimedSerializer(
-    app_settings.security.secret_key, salt=f"{app_settings.security.salt}-oauth-state"
+    app_settings.security.secret_key,
+    salt=f"{app_settings.security.salt}-oauth-state",
 )
 
 

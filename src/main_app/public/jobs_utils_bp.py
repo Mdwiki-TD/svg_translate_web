@@ -18,7 +18,7 @@ from flask.views import MethodView
 from flask.wrappers import Response
 
 from ..admin.decorators import admin_required
-from ..config import app_settings
+from ..config import get_settings
 from ..jobs_workers.admin_jobs_workers.download_main_files.zip_utils import create_main_files_zip
 
 logger = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ class ServeDownloadMainFileView(MethodView):
 
     def get(self, filename: str) -> Response:
         """Serve a downloaded main file from the main_files_path directory."""
+        app_settings = get_settings()
         response = send_from_directory(app_settings.paths.main_files_path, filename)
         response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -61,6 +62,7 @@ class ServeCropOriginalFileView(MethodView):
 
     def get(self, filename: str) -> Response:
         """Serve an original file from the crop_main_files_path/original directory."""
+        app_settings = get_settings()
         filename = filename.removeprefix("File:")
         response = send_from_directory(Path(app_settings.paths.crop_main_files_path) / "original", filename)
         response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
@@ -75,6 +77,7 @@ class ServeCropCroppedFileView(MethodView):
 
     def get(self, filename: str) -> Response:
         """Serve a cropped file from the crop_main_files_path/cropped directory."""
+        app_settings = get_settings()
         filename = filename.removeprefix("File:")
         response = send_from_directory(Path(app_settings.paths.crop_main_files_path) / "cropped", filename)
         response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"

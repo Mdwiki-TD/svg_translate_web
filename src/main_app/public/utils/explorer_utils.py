@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from ...config import app_settings
+from ...config import get_settings
 from ...database.services import TemplateService
 
 logger = logging.getLogger(__name__)
@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 def load_svg_data_path() -> Path:
     # return Path("I:/TOOLFORGE_TOOLS/copy-svg-langs.toolforge.org/data/svg_data")
     # return Path(__name__).parent.parent.parent / "svg_data"
+    app_settings = get_settings()
     return Path(app_settings.paths.svg_data)
 
 

@@ -9,7 +9,7 @@ from typing import Any
 import requests
 from mwclient.client import Site
 
-from ...config import app_settings
+from ...config import get_settings
 from ...services.core.crypto import decrypt_value
 
 logger = logging.getLogger(__name__)
@@ -31,13 +31,13 @@ def coerce_encrypted(value: object) -> bytes | None:
 
 def get_cronjob_site(domain: str | None = None) -> Site | None:
     if domain is None:
-        domain = app_settings.other.wiki_domain
+        domain = get_settings().other.wiki_domain
 
     try:
         site = Site(
             domain,
             scheme="https",
-            clients_useragent=app_settings.other.user_agent,
+            clients_useragent=get_settings().other.user_agent,
             force_login=False,
         )
     except requests.exceptions.ReadTimeout as exc:  # pragma: no cover - network interaction
@@ -56,7 +56,7 @@ def _get_user_site(user: dict[str, Any] | None) -> Site | None:
     if user is None:
         return None
 
-    if not app_settings.oauth:
+    if not get_settings().oauth:
         logger.warning("MediaWiki OAuth consumer not configured")
         return None
 
@@ -70,11 +70,11 @@ def _get_user_site(user: dict[str, Any] | None) -> Site | None:
         _access_key = decrypt_value(access_token)
         _access_secret = decrypt_value(access_secret)
         site = Site(
-            app_settings.other.wiki_domain,
+            get_settings().other.wiki_domain,
             scheme="https",
-            clients_useragent=app_settings.other.user_agent,
-            consumer_token=app_settings.oauth.consumer_key,
-            consumer_secret=app_settings.oauth.consumer_secret,
+            clients_useragent=get_settings().other.user_agent,
+            consumer_token=get_settings().oauth.consumer_key,
+            consumer_secret=get_settings().oauth.consumer_secret,
             access_token=_access_key,
             access_secret=_access_secret,
         )

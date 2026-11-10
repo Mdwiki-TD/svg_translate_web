@@ -25,7 +25,7 @@ from flask import (
 from flask.views import MethodView
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-from ...config import app_settings
+from ...config import get_settings
 from ...services.auth.flow import AuthFlowService
 from ...services.auth.utils import set_logged_in_user
 from .rate_limit import callback_rate_limiter, login_rate_limiter
@@ -122,6 +122,7 @@ class LogoutView(MethodView):
         return self._do_logout()
 
     def _do_logout(self) -> WerkzeugResponse:
+        app_settings = get_settings()
         flow = AuthFlowService()
         cookie_value = request.cookies.get(app_settings.cookie.name)
         session_uid = session.get("uid")

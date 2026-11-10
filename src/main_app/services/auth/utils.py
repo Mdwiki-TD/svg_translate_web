@@ -10,7 +10,7 @@ from typing import Any, TypeVar
 
 from flask import g, request, session
 
-from ...config import app_settings
+from ...config import get_settings
 from ..core.cookies import extract_user_id
 from .current_user import CurrentUser
 from .token_manager import TokenManager
@@ -46,6 +46,7 @@ def _get_user_id() -> None | int:
 
     # 2. Fallback to cookie if session is empty
     if user_id is None:
+        app_settings = get_settings()
         signed = request.cookies.get(app_settings.cookie.name)
         if signed:
             user_id = extract_user_id(signed)

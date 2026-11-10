@@ -18,7 +18,7 @@ from flask import g, make_response, redirect, session, url_for
 from mwoauth import AccessToken
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-from ...config import app_settings
+from ...config import get_settings
 from ...database.services import UsersService
 from ..core.cookies import (
     extract_user_id,
@@ -31,10 +31,6 @@ from .auth_service import OAuthService
 from .token_manager import TokenManager
 
 logger = logging.getLogger(__name__)
-
-request_secret_key = app_settings.sessions.request_secret_key
-request_token_key = app_settings.sessions.request_token_key
-oauth_state_nonce = app_settings.sessions.state_key
 
 
 @dataclass(frozen=True)
@@ -70,14 +66,19 @@ class AuthFlowService:
     """High-level orchestration for the OAuth login lifecycle."""
 
     def __init__(self) -> None:
+        self.app_settings = get_settings()
         self.oauth_service = OAuthService(
-            consumer_key=app_settings.oauth.consumer_key,
-            consumer_secret=app_settings.oauth.consumer_secret,
-            oauth_mwuri=app_settings.oauth.mw_uri,
-            user_agent=app_settings.other.user_agent,
+            consumer_key=self.app_settings.oauth.consumer_key,
+            consumer_secret=self.app_settings.oauth.consumer_secret,
+            oauth_mwuri=self.app_settings.oauth.mw_uri,
+            user_agent=self.app_settings.other.user_agent,
         )
         self.token_manager = TokenManager()
         self.user_svc = UsersService()
+
+        self.request_secret_key = self.app_settings.sessions.request_secret_key
+        self.request_token_key = self.app_settings.sessions.request_token_key
+        self.oauth_state_nonce = self.app_settings.sessions.state_key
 
     # ------------------------------------------------------------------
     # Login
@@ -98,7 +99,7 @@ class AuthFlowService:
         Stores request token + secret and state nonce in the session.
         """
         state_nonce = secrets.token_urlsafe(32)
-        session[oauth_state_nonce] = state_nonce
+        session[self.oauth_state_nonce] = state_nonce
 
         signed_state = sign_state_token(state_nonce)
         callback_url = self.build_callback_url(signed_state)
@@ -116,8 +117,8 @@ class AuthFlowService:
 
         # ------------------
         # Store request token in session for the callback step
-        session[request_token_key] = request_token
-        session[request_secret_key] = request_secret
+        session[self.request_token_key] = request_token
+        session[self.request_secret_key] = request_secret
 
         logger.debug("OAuth request token stored in session")
         logger.info("OAuth login started successfully, redirecting to MediaWiki")
@@ -138,14 +139,14 @@ class AuthFlowService:
         persist credentials, set session + cookie.
         """
         # 1. State verification
-        state_error = self._verify_oauth_state(request_args.get(app_settings.sessions.request_token_key))
+        state_error = self._verify_oauth_state(request_args.get(self.app_settings.sessions.request_token_key))
         if state_error:
             return state_error
 
         # 2. Request token + verifier
         oauth_verifier = request_args.get("oauth_verifier")
-        request_token = session.pop(request_token_key, None)
-        request_secret = session.pop(request_secret_key, None)
+        request_token = session.pop(self.request_token_key, None)
+        request_secret = session.pop(self.request_secret_key, None)
 
         if not request_token or not request_secret or not oauth_verifier:
             logger.warning("OAuth callback failed: missing request token or verifier")
@@ -252,7 +253,7 @@ class AuthFlowService:
         return CallbackResult(success=True, response=response)
 
     def _verify_oauth_state(self, returned_state: str | None) -> CallbackResult | None:
-        expected_state = session.pop(oauth_state_nonce, None)
+        expected_state = session.pop(self.oauth_state_nonce, None)
         if not expected_state or not returned_state:
             logger.warning("OAuth callback failed: missing state token")
             return CallbackResult(
@@ -276,15 +277,14 @@ class AuthFlowService:
         record = self.user_svc.ensure_exists(username)
         return record.user_id
 
-    @staticmethod
-    def _set_auth_cookie(user_id: int, response: WerkzeugResponse) -> None:
+    def _set_auth_cookie(self, user_id: int, response: WerkzeugResponse) -> None:
         response.set_cookie(
-            app_settings.cookie.name,
+            self.app_settings.cookie.name,
             sign_user_id(user_id),
-            httponly=app_settings.cookie.httponly,
-            secure=app_settings.cookie.secure,
-            samesite=app_settings.cookie.samesite,
-            max_age=app_settings.cookie.max_age,
+            httponly=self.app_settings.cookie.httponly,
+            secure=self.app_settings.cookie.secure,
+            samesite=self.app_settings.cookie.samesite,
+            max_age=self.app_settings.cookie.max_age,
             path="/",
         )
 
@@ -302,9 +302,9 @@ class AuthFlowService:
         user_id = session_uid
 
         session.pop("uid", None)
-        session.pop(request_token_key, None)
-        session.pop(request_secret_key, None)
-        session.pop(oauth_state_nonce, None)
+        session.pop(self.request_token_key, None)
+        session.pop(self.request_secret_key, None)
+        session.pop(self.oauth_state_nonce, None)
         session.pop("username", None)
 
         logger.info("Logout requested, user_id: %s", user_id)
@@ -329,7 +329,7 @@ class AuthFlowService:
                 flash_category = "danger"
 
         response = make_response(redirect(index_url))
-        response.delete_cookie(app_settings.cookie.name, path="/")
+        response.delete_cookie(self.app_settings.cookie.name, path="/")
         g._current_user = None
 
         return LogoutResult(

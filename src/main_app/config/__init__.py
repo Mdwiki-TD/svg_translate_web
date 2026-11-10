@@ -12,6 +12,7 @@ from .classes import (
     SecurityConfig,
     SessionConfig,
     Settings,
+    get_settings,
 )
 from .flask_config import (
     Config,
@@ -21,7 +22,6 @@ from .flask_config import (
     TestingConfig,
     build_sqlalchemy_uri,
 )
-from .main_settings import app_settings, ensure_directories
 
 __all__ = [
     "ConfigLoader",
@@ -39,6 +39,5 @@ __all__ = [
     "Paths",
     "SecurityConfig",
     "SessionConfig",
-    "ensure_directories",
-    "app_settings",
+    "get_settings",
 ]

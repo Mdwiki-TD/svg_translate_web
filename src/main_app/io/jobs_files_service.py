@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from ..config import app_settings
+from ..config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 @functools.lru_cache(maxsize=1)
 def get_jobs_data_dir() -> Path:
     """Get the directory for storing job data files."""
+    app_settings = get_settings()
     # Use jobs_path from settings paths
     jobs_dir = getattr(app_settings.paths, "jobs_path", None)
     if not jobs_dir:

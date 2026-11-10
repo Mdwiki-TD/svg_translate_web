@@ -14,7 +14,7 @@ from flask import (
 from flask.views import MethodView
 from flask.wrappers import Response
 
-from ...config import app_settings
+from ...config import get_settings
 from ..utils.compare import analyze_file
 from ..utils.explorer_utils import (
     get_files,
@@ -27,11 +27,13 @@ logger = logging.getLogger(__name__)
 
 def load_thumb_path() -> Path:
     """Return configured path for thumbnail storage."""
+    app_settings = get_settings()
     return Path(app_settings.paths.svg_data_thumb)
 
 
 def load_svg_data_path() -> Path:
     """Return configured path for SVG data storage."""
+    app_settings = get_settings()
     return Path(app_settings.paths.svg_data)
 
 
