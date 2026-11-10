@@ -5,8 +5,8 @@ from __future__ import annotations
 import wikitextparser as wtp
 
 from src.main_app.utils.wikitext.other_versions import (
-    add_other_versions_new,
     OtherVersionsUpdater,
+    add_other_versions_new,
 )
 
 
