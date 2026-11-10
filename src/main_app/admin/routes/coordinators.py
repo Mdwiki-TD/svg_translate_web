@@ -20,7 +20,7 @@ from flask.views import MethodView
 
 from ...database.exceptions import DuplicateRecordError, UserNotFoundError
 from ...database.services import AdminService
-from ..decorators import admin_required
+from ...decorators.admin_decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

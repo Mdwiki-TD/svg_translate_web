@@ -11,7 +11,7 @@ from typing import Any, TypeVar, cast
 
 from flask import redirect, request, session, url_for
 
-from ...services.auth.current_user_resolver import CurrentUserResolver
+from ..services.auth.current_user_resolver import CurrentUserResolver
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 

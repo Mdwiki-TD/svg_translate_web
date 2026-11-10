@@ -77,12 +77,13 @@ from src.main_app.extensions import db as _db
 
 @pytest.fixture(autouse=True)
 def stop_nets(request):
-    # Check if 'network' mark is present in the current test item
-    if "network" in request.node.keywords:
+    # Allow network access only if the 'network' mark is explicitly present
+    if "network" in request.node.keywords or "enable_socket" in request.node.keywords:
         from pytest_socket import enable_socket
 
         enable_socket()
         return
+
     # Otherwise, disable the socket for all other tests
     disable_socket(allow_unix_socket=True)
 

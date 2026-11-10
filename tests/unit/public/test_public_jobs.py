@@ -49,7 +49,7 @@ def mock_deps(
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.redirect", deps.redirect)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.url_for", deps.url_for)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.render_template", deps.render_template)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.get_current_user", deps.get_current_user)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.CurrentUserResolver.get_current_user", deps.get_current_user)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.SharedJobRoutes.can_manage_job", deps.can_manage_job)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.cancel_job_worker", deps.cancel_job_worker)
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_auth_payload", deps.load_auth_payload)
@@ -390,10 +390,10 @@ class TestJobsPublicRoutesRoutes(TestSetup):
         mock_deps.cancel_job_worker.return_value = True
         mock_deps.load_job_result.return_value = {"result": "ok"}
 
-        monkeypatch.setattr("src.main_app.public.auth.decorators.get_current_user", mock_deps.get_current_user)
+        monkeypatch.setattr("src.main_app.decorators.auth_decorators.CurrentUserResolver.get_current_user", mock_deps.get_current_user)
 
         mock_deps.admin_load_user = MagicMock(return_value=MagicMock(username="admin", is_active_admin=True))
-        monkeypatch.setattr("src.main_app.admin.decorators.get_current_user", mock_deps.admin_load_user)
+        monkeypatch.setattr("src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", mock_deps.admin_load_user)
 
     def test_jobs_list_200(self, mock_p_client: Flask.test_client) -> None:
         resp = mock_p_client.get("/jobs/test_job")

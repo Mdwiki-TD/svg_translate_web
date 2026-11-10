@@ -13,8 +13,8 @@ from src.main_app.database.services import TemplateService
 def _fake_admin_user(monkeypatch):
     """Fake an authenticated admin user for all tests in this module."""
     admin_user = SimpleNamespace(username="test_admin", is_active_admin=True)
-    monkeypatch.setattr("src.main_app.admin.decorators.get_current_user", lambda: admin_user)
-    monkeypatch.setattr("src.main_app.public.auth.decorators.get_current_user", lambda: admin_user)
+    monkeypatch.setattr("src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: admin_user)
+    monkeypatch.setattr("src.main_app.decorators.auth_decorators.CurrentUserResolver.get_current_user", lambda: admin_user)
     monkeypatch.setattr("src.main_app.public.utils.routes_utils.get_current_user", lambda: admin_user)
 
 

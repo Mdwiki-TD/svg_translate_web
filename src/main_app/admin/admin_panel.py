@@ -15,7 +15,7 @@ from ..database.services import JobsService
 from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ..public.utils.routes_utils import get_job_detail_url
 from ..templates_markups import create_side
-from .decorators import admin_required
+from ..decorators.admin_decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

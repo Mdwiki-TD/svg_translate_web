@@ -19,7 +19,7 @@ from flask.views import MethodView
 from werkzeug.datastructures import ImmutableMultiDict
 
 from ...database.services import SettingsService
-from ..decorators import admin_required
+from ...decorators.admin_decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

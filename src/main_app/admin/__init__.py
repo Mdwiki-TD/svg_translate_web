@@ -5,7 +5,7 @@ from __future__ import annotations
 from flask import Blueprint, Flask
 
 from .admin_panel import AdminPanel
-from .decorators import admin_guard
+from ..decorators.admin_decorators import admin_guard
 from .flask_admin_panel import add_admin_dashboard
 from .routes import AdminSubRoutesRegister
 

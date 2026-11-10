@@ -17,7 +17,7 @@ from ...public.shared_jobs_routes import (
     ReadJobResultFileView,
     StartJobView,
 )
-from ..decorators import admin_required
+from ...decorators.admin_decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

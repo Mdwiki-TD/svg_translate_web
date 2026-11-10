@@ -15,7 +15,7 @@ from flask.views import MethodView
 from markupsafe import Markup, escape
 
 from ...config import get_settings
-from ..decorators import admin_required
+from ...decorators.admin_decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

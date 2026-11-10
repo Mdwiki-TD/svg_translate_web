@@ -21,7 +21,7 @@ from flask.views import MethodView
 
 from ...api_services import FilesService, UploadService, get_user_site
 from ...config import get_settings
-from ...public.auth import oauth_required
+from ...decorators import oauth_required
 from ...services.copysvg_wrapper import InjectResult, extract_from_path, inject_step_one_file
 from ...services.copysvg_wrapper.mapping import TranslationMapping
 from ..utils.routes_utils import load_auth_payload
