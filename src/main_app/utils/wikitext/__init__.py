@@ -1,44 +1,69 @@
-""" """
-
-from __future__ import annotations
-
-from .before_methods import insert_before_methods
-from .categories_utils import merge_categories, sort_categories
-from .cropped_file_text import create_cropped_file_text
-from .files_text import append_image_extracted_template, update_original_file_text
-from .owid_sliders_rcs import (
+from .legacy import (
+    _find_template_source,
+    _find_template_source_2,
+    add_before,
+    append_image_extracted_template,
+    capitalize_category,
+    check_url,
+    count_svg_files,
+    create_category_link_from_str,
+    create_cropped_file_text,
+    ensure_file_prefix,
+    extract_categories,
     find_main_title,
+    find_main_title_from_owidslidersrcs,
+    find_main_title_from_template,
+    find_missing_categories,
     find_newest_world_file,
     find_newest_year,
+    find_template_source,
+    get_files_list_data,
+    get_missing_categories_list,
+    get_titles,
+    get_titles_from_wikilinks,
+    insert_before_methods,
+    match_main_title_from_url,
+    match_main_title_from_url_new,
+    match_newest_world_file,
+    merge_categories,
+    merge_categories_into_text,
+    sort_categories,
+    update_information_author,
+    update_original_file_text,
+    update_template_page_file_reference,
 )
-from .temp_source import find_template_source
-from .template_page import update_template_page_file_reference
-from .temps_bot import count_svg_files, get_files_list_data, get_titles, get_titles_from_wikilinks
-
-
-def ensure_file_prefix(file_name) -> str:
-    if not file_name or not isinstance(file_name, str):
-        return file_name
-    if not file_name.startswith("File:"):
-        file_name = "File:" + file_name
-    return file_name
-
 
 __all__ = [
+    "_find_template_source",
+    "_find_template_source_2",
+    "add_before",
     "append_image_extracted_template",
+    "capitalize_category",
+    "check_url",
     "count_svg_files",
+    "create_category_link_from_str",
     "create_cropped_file_text",
     "ensure_file_prefix",
+    "extract_categories",
     "find_main_title",
+    "find_main_title_from_owidslidersrcs",
+    "find_main_title_from_template",
+    "find_missing_categories",
     "find_newest_world_file",
     "find_newest_year",
     "find_template_source",
     "get_files_list_data",
+    "get_missing_categories_list",
     "get_titles",
     "get_titles_from_wikilinks",
     "insert_before_methods",
+    "match_main_title_from_url",
+    "match_main_title_from_url_new",
+    "match_newest_world_file",
     "merge_categories",
+    "merge_categories_into_text",
     "sort_categories",
+    "update_information_author",
     "update_original_file_text",
     "update_template_page_file_reference",
 ]

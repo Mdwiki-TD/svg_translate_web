@@ -4,7 +4,7 @@ Tests for src/main_app/utils/wikitext/files_text.py
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.files_text import (
+from src.main_app.utils.wikitext import (
     append_image_extracted_template,
     update_original_file_text,
 )

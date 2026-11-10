@@ -4,8 +4,8 @@ Unit tests for src/main_app/utils/wikitext/categories_utils.py module.
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.categories_utils import (
-    CategoryLink,
+from src.main_app.utils.wikitext.categories_utils import CategoryLink
+from src.main_app.utils.wikitext import (
     capitalize_category,
     create_category_link_from_str,
     extract_categories,

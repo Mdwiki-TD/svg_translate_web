@@ -17,7 +17,7 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
-from ....utils.wikitext.categories_utils import get_missing_categories_list
+from ....utils.wikitext import get_missing_categories_list
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import AddLangCategoriesWorkerObject, OneStep, PageInfo

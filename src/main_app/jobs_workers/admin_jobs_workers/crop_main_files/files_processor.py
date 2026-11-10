@@ -21,7 +21,7 @@ from ....utils.wikitext import (
     update_original_file_text,
     update_template_page_file_reference,
 )
-from ....utils.wikitext.cropped_file_text.utils import update_information_author
+from ....utils.wikitext import update_information_author
 from .objects import CropFileProcessingInfo, FileStep
 from .steps import CropMainFilesSteps
 

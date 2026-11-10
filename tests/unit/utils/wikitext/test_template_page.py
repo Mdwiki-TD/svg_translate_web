@@ -4,7 +4,7 @@ Tests for src/main_app/utils/wikitext/template_page.py
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext.template_page import update_template_page_file_reference
+from src.main_app.utils.wikitext import update_template_page_file_reference
 
 
 class TestUpdateTemplatePageFileReference:

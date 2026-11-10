@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.main_app.utils.wikitext.temps_bot import (
+from src.main_app.utils.wikitext import (
     get_files_list_data,
     get_titles,
     get_titles_from_wikilinks,
