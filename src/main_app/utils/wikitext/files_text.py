@@ -7,8 +7,8 @@ from __future__ import annotations
 import logging
 import re
 
+from ..new_wikitext.other_versions import add_other_versions_new
 from .before_methods import insert_before_methods
-from .cropped_file_text import add_other_versions_new
 
 logger = logging.getLogger(__name__)
 

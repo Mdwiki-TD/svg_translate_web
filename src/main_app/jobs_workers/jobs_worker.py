@@ -168,7 +168,7 @@ def _start_job_impl(
     )
     thread.start()
 
-    logger.info("Started background job %s for %s", job.id, job_type)
+    logger.info("Started background job job_type: %r, job created in DB with id: %r", job_type, job.id)
 
     return job.id
 

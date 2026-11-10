@@ -1,0 +1,28 @@
+{% extends "jobs_templates/admin_templates/base_list_admin.html" %}
+{% from "_macros/forms.html" import form_start_job %}
+
+{% block list_info %}
+<div class="alert alert-info mb-3">
+    <i class="bi bi-info-circle"></i>
+    This job update wikitext of file to include:<br>
+    <code>Svg lang template</code><br>
+    <code>Update Author in Information template</code><br>
+</div>
+{% endblock %}
+{% set hide_start_button = True %}
+{% block header_actions %}
+<form method="post" action="{{ url_for('adminpanel.jobs.start_job', job_type=template_data.job_type) }}"
+    class="row g-2 align-items-end" data-confirm-message="{{ template_data.start_confirm_message }}"
+    onsubmit="return confirm(this.dataset.confirmMessage);">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="col-auto">
+        <input type="text" name="template_name" class="form-control" id="template_name" placeholder="Template name"
+            required>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary" title="Start">
+            <i class="bi bi-play-circle"></i> Start New Job
+        </button>
+    </div>
+</form>
+{% endblock %}

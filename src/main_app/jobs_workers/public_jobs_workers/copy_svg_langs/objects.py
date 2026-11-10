@@ -186,7 +186,6 @@ class CopySvgLangsWorkerObject(WorkerMapping):
         """
         Converts the dataclass instance back to its original dictionary format.
         """
-
         return asdict(self)
 
 

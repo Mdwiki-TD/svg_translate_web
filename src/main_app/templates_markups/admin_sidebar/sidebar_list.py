@@ -124,6 +124,7 @@ def load_groups_menu() -> list[SidebarGroup]:
         items=[
             job_item("crop_main_files", "Crop Newest World Files", "bi-crop"),
             job_item("fix_nested_main_files", "Fix Nested Main Files", "bi-tools"),
+            job_item("update_wikitext", "Update Files Wikitext", "bi-file-earmark-text"),
             job_item("download_main_files", "Download Main Files", "bi-download", disabled=True),
         ],
     )

@@ -14,8 +14,7 @@ from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
 from ....config import app_settings
 from ....database.models import TemplateRecord
-from ....database.services import OwidChartsService
-from ....database.templates_utils import extract_slug
+from ....database.services import ChartsAndTemplatesService
 from ....utils.wikitext import (
     create_cropped_file_text,
     ensure_file_prefix,
@@ -24,11 +23,7 @@ from ....utils.wikitext import (
 )
 from ....utils.wikitext.cropped_file_text.utils import update_information_author
 from .objects import CropFileProcessingInfo, FileStep
-from .steps import (
-    crop_svg_file,
-    download_file_for_cropping,
-    upload_cropped_file,
-)
+from .steps import CropMainFilesSteps
 
 logger = logging.getLogger(__name__)
 
@@ -40,16 +35,19 @@ class OneFileProcessor:
         site: Site,
         args: dict[str, Any],
         files_service: FilesService | None = None,
+        *,
+        original_dir: Path | None = None,
+        cropped_dir: Path | None = None,
     ) -> None:
         self.job_id = job_id
         self.site = site
         self.exists: dict[str, Any] = {}
         self.args = args
-        self.original_dir = Path(app_settings.paths.crop_main_files_path) / "original"
-        self.cropped_dir = Path(app_settings.paths.crop_main_files_path) / "cropped"
+        self.original_dir = original_dir or Path(app_settings.paths.crop_main_files_path) / "original"
+        self.cropped_dir = cropped_dir or Path(app_settings.paths.crop_main_files_path) / "cropped"
 
-        self.owid_charts_service = OwidChartsService()
         self.files_service = files_service or FilesService()
+        self.charts_and_tmps_service = ChartsAndTemplatesService()
 
     # ------------------------------------------------------------------
     # Per-template orchestration
@@ -155,7 +153,7 @@ class OneFileProcessor:
     def _step_download(self, file_info: CropFileProcessingInfo, template: TemplateRecord) -> bool:
         """Download the original file. Returns True on success."""
 
-        download_result = download_file_for_cropping(
+        download_result = CropMainFilesSteps.download_file_for_cropping(
             template.last_world_file,
             self.original_dir,
             files_service=self.files_service,
@@ -181,7 +179,7 @@ class OneFileProcessor:
         cropped_path: Path,
     ) -> bool:
         """Crop the SVG. Returns True on success."""
-        crop_result = crop_svg_file(Path(file_info.downloaded_path), cropped_path)
+        crop_result = CropMainFilesSteps.crop_svg_file(Path(file_info.downloaded_path), cropped_path)
 
         if crop_result["success"]:
             file_info.steps.crop.result = True
@@ -195,29 +193,12 @@ class OneFileProcessor:
         self._fail(file_info, file_info.steps.crop, error_msg)
         return False
 
-    def _get_author_citation(self, template: TemplateRecord | None) -> str | None:
-        """Read the OWID source citation persisted for the template's chart."""
-        if template is None:
-            return None
-
-        slug = template.slug or extract_slug(template.source)
-        if not slug:
-            return None
-
-        chart = self.owid_charts_service.get_chart_by_slug(slug)
-        source = chart.source if chart else None
-        if isinstance(source, str) and source.strip():
-            return source.strip()
-
-        logger.info("Job %s: No stored OWID author citation found for chart %s", self.job_id, slug)
-        return None
-
     def _step_upload(self, file_info: CropFileProcessingInfo, template: TemplateRecord | None = None) -> bool | None:
         """Upload the cropped file. Returns True if upload succeeded or was skipped."""
         file_name = ensure_file_prefix(file_info.original_file)
         page = MwClientPage(file_name, self.site)
         wikitext = page.get_text()
-        author_citation = self._get_author_citation(template)
+        author_citation = self.charts_and_tmps_service.get_author_citation(template)
 
         cropped_file_wikitext = create_cropped_file_text(
             file_name=file_info.original_file,
@@ -225,7 +206,7 @@ class OneFileProcessor:
             author_citation=author_citation,
         )
 
-        upload_result = upload_cropped_file(
+        upload_result = CropMainFilesSteps.upload_cropped_file(
             file_info.cropped_filename,
             Path(file_info.cropped_path),
             self.site,
@@ -311,7 +292,7 @@ class OneFileProcessor:
             file_info.steps.update_cropped.msg = f"Empty cropped file text: {cropped_file_name}"
             return False
 
-        author_citation = self._get_author_citation(template)
+        author_citation = self.charts_and_tmps_service.get_author_citation(template)
         new_wikitext = update_information_author(
             text=cropped_file_wikitext,
             author_citation=author_citation,

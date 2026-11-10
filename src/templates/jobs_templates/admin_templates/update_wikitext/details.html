@@ -1,0 +1,166 @@
+{% extends "jobs_templates/admin_templates/base_details_admin.html" %}
+{% from "_macros.html" import stats_card %}
+{% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
+
+{% block job_info_extra %}
+{% if result_data and result_data.args %}
+<tr>
+    <th>Update all pages:</th>
+    <td>
+        {{ result_data.args.update_all }}
+    </td>
+</tr>
+{% endif %}
+{% endblock %}
+
+{# Filter pages by their specific statuses #}
+{% set pages_skipped = result_data.pages_skipped %}
+{% set pages_failed = result_data.pages_failed %}
+{% set pages_created = result_data.pages_created %}
+{% set pages_updated = result_data.pages_updated %}
+{% set pages_processed = result_data.pages_processed %}
+
+{% block job_summary %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        {{ stats_card('Processed', (result_data.summary.processed or 0) ~ ' / ' ~ result_data.summary.total, "primary", "") }}
+    </div>
+    <div class="col-md-9">
+        <div class="row g-3">
+            <div class="col">
+                {{ stats_card('Created', pages_created | length , "success", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Updated', ( pages_updated | length ) or result_data.summary.updated, "info", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Skipped', ( pages_skipped | length ) or result_data.summary.skipped, "secondary", "") }}
+            </div>
+            <div class="col">
+                {{ stats_card('Failed', ( pages_failed | length ) or result_data.summary.failed, "danger", "") }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block job_details %}
+
+{% if pages_created %}
+{{ new_pages_table(
+    table_title="Created",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_created",
+    bp_name='adminpanel.jobs'
+) }}
+{% endif %}
+
+{% if pages_updated %}
+{{ new_pages_table(
+    table_title="Updated",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_updated",
+    bp_name='adminpanel.jobs'
+) }}
+{% endif %}
+
+{% if pages_processed %}
+{{ new_pages_table(
+    table_title="Processed",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_processed",
+    bp_name='adminpanel.jobs'
+) }}
+{% endif %}
+
+{% if pages_skipped %}
+{{ new_pages_table(
+    table_title="Skipped",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_skipped",
+    bp_name='adminpanel.jobs'
+) }}
+{% endif %}
+
+{% if pages_failed %}
+{{ new_pages_table(
+    table_title="Failed",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_failed",
+    bp_name='adminpanel.jobs'
+) }}
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const WIKIDOMAIN = "{{ wiki_domain }}";
+
+    /**
+     * All 5 lists share the same columns:
+     * #, Template, New Page, Load Text, Generate Text, Update Page, Create Page
+     */
+    function createColumns() {
+        return [
+            {
+                data: null,
+                title: '#',
+                // @ts-ignore
+                render: function (data, type, row, meta) { return meta.row + 1; },
+            },
+            {
+                data: 'template_title',
+                title: 'Template',
+                render: (template_title) => renderOwidTemplate(WIKIDOMAIN, template_title),
+            },
+            {
+                data: 'new_page_title',
+                title: 'New Page',
+                render: function (title) {
+                    if (!title) return '-';
+                    return renderWikiLink(WIKIDOMAIN, title, "OWID Page");
+                },
+            },
+            {
+                data: 'steps.load_template_text',
+                title: 'Load Text',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'steps.create_new_text',
+                title: 'Generate Text',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'steps.update_text',
+                title: 'Update Page',
+                orderable: false,
+                render: renderStep
+            },
+            {
+                data: 'steps.create_new_page',
+                title: 'Create Page',
+                orderable: false,
+                render: renderStep
+            },
+        ];
+    }
+
+    $(document).ready(function () {
+        let columns = createColumns();
+        initServerTable('table-pages_created', columns);
+        initServerTable('table-pages_updated', columns);
+        initServerTable('table-pages_processed', columns);
+        initServerTable('table-pages_skipped', columns);
+        initServerTable('table-pages_failed', columns);
+    });
+</script>
+{% endblock %}

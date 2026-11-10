@@ -61,8 +61,12 @@ def generate_main_files_zip(main_files_zip_name) -> Path:
 class DownloadMainFilesWorker(BaseObjectsJobWorker):
     """Worker for downloading main files from Commons to local filesystem."""
 
-    def __init__(self, data: JobsRunner) -> None:
-        self.output_dir = Path(app_settings.paths.main_files_path)
+    def __init__(
+        self,
+        data: JobsRunner,
+        output_dir: Path | None = None,
+    ) -> None:
+        self.output_dir = output_dir or Path(app_settings.paths.main_files_path)
         super().__init__(data)
         self.args = data.args or {}
 

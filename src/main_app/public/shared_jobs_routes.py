@@ -209,7 +209,7 @@ class SharedJobRoutes:
             job = self.job_service.get_job(job_id, job_type)
         except LookupError:
             logger.error("Job not found: id=%s, type=%s", job_id, job_type)
-            flash(f"Job id {job_id} was not found", "warning")
+            flash(f"Job id {job_id} with {job_type=} was not found", "warning")
             return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
 
         # Load job result if available

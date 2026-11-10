@@ -16,7 +16,7 @@ from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .files_processor import OneFileProcessor
 from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject
-from .steps import generate_cropped_filename
+from .steps import CropMainFilesSteps
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,9 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
 
     def _check_exists(self, templates) -> None:
-        cropped_filenames = [generate_cropped_filename(template.last_world_file) for template in templates]
+        cropped_filenames = [
+            CropMainFilesSteps.generate_cropped_filename(template.last_world_file) for template in templates
+        ]
         exists_files = is_pages_exists(cropped_filenames, self.site)
 
         for file in exists_files:

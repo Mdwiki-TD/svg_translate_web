@@ -36,3 +36,4 @@ errors.log
 src/templates/inject/example.json
 *.isorted
 url_maps.txt
+*.7z

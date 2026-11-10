@@ -86,7 +86,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
             info = PageInfo(page_title=page_title)
 
             ok = self._process_one_item(info)
-            self.update_status(info)
+            self.result.update_status(info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -293,24 +293,6 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         step_obj.msg = error
         info.status = "failed"
         info.error = error
-
-    def update_status(self, info: PageInfo):
-        self.result.summary.processed += 1
-
-        if info.status in ["pending", "running"]:
-            info.status = "completed"
-
-        if info.status == "skipped":
-            self.result.pages_skipped.append(info)
-
-        elif info.status == "success":
-            self.result.pages_success.append(info)
-
-        elif info.status == "failed":
-            self.result.pages_failed.append(info)
-
-        else:
-            self.result.pages_processed.append(info)
 
 
 __all__ = [
