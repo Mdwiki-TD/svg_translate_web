@@ -65,6 +65,24 @@ class AddLangCategoriesSummary:
 class AddLangCategoriesWorkerObject(StandardAdminWorkerObject):
     summary: AddLangCategoriesSummary = field(default_factory=AddLangCategoriesSummary)
 
+    def update_status(self, info: PageInfo):
+        self.summary.processed += 1
+
+        if info.status in ["pending", "running"]:
+            info.status = "completed"
+
+        if info.status == "skipped":
+            self.pages_skipped.append(info)
+
+        elif info.status == "success":
+            self.pages_success.append(info)
+
+        elif info.status == "failed":
+            self.pages_failed.append(info)
+
+        else:
+            self.pages_processed.append(info)
+
 
 __all__ = [
     "AddLangCategoriesWorkerObject",

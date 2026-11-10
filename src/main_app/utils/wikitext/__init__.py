@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from .other_versions import OtherVersionsUpdater, add_other_versions_new
 from .before_methods import insert_before_methods
 from .categories_utils import merge_categories, sort_categories
 from .cropped_file_text import create_cropped_file_text
 from .files_text import append_image_extracted_template, update_original_file_text
+from .other_versions import OtherVersionsUpdater, add_other_versions_new
 from .owid_sliders_rcs import (
     find_main_title,
     find_newest_world_file,

@@ -206,24 +206,6 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
 
         return self.result
 
-    def update_status(self, info: TemplateInfo) -> None:
-        """ """
-        self.result.summary.processed += 1
-        if info.status in ["pending", "running"]:
-            info.status = "completed"
-
-        if info.status == "skipped":
-            self.result.pages_skipped.append(info)
-
-        elif info.status == "success":
-            self.result.pages_success.append(info)
-
-        elif info.status == "failed":
-            self.result.pages_failed.append(info)
-
-        else:
-            self.result.pages_processed.append(info)
-
 
 __all__ = [
     "AddSvgSVGLanguagesTemplate",

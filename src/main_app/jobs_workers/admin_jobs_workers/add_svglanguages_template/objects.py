@@ -49,7 +49,28 @@ class TemplateInfo:
 
 @dataclass
 class AddSvgLanguagesWorkerObject(StandardAdminWorkerObject):
-    pass
+    pages_processed: list[TemplateInfo] = field(default_factory=list)
+    pages_success: list[TemplateInfo] = field(default_factory=list)
+    pages_skipped: list[TemplateInfo] = field(default_factory=list)
+    pages_failed: list[TemplateInfo] = field(default_factory=list)
+
+    def update_status(self, info: TemplateInfo) -> None:
+        """ """
+        self.summary.processed += 1
+        if info.status in ["pending", "running"]:
+            info.status = "completed"
+
+        if info.status == "skipped":
+            self.pages_skipped.append(info)
+
+        elif info.status == "success":
+            self.pages_success.append(info)
+
+        elif info.status == "failed":
+            self.pages_failed.append(info)
+
+        else:
+            self.pages_processed.append(info)
 
 
 __all__ = [

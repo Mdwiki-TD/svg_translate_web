@@ -86,7 +86,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
             file_info = ProcessingFileInfo(title=file)
 
             ok = self.files_processor.process_one_item(file_info)
-            self.update_status(file_info)
+            self.result.update_status(file_info)
 
             if ok and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -140,32 +140,6 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         self.process_titles(self.titles)
 
         return self.result
-
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-
-    def update_status(self, info: ProcessingFileInfo) -> None:
-        """ """
-        self.result.summary.processed += 1
-
-        if info.status in ["pending", "running"]:
-            info.status = "completed"
-
-        if info.status == "skipped":
-            self.result.files_skipped.append(info)
-
-        elif info.status == "failed":
-            self.result.files_failed.append(info)
-
-        elif info.status == "updated":
-            self.result.files_updated.append(info)
-
-        elif info.status == "created":
-            self.result.files_created.append(info)
-
-        else:
-            self.result.files_processed.append(info)
 
 
 __all__ = [

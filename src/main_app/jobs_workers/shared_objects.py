@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 STATUS_LITERAL = Literal["cancelled", "completed", "failed", "pending", "running", "skipped", "success"]
 
-STATUS_LIST = Literal["completed", "created", "failed", "pending", "skipped", "updated", "uploaded"]
+STATUS_LIST = Literal["completed", "created", "failed", "pending", "skipped", "updated", "uploaded", "success"]
 
 STATUS_LIST3 = Literal["failed", "pending", "redirected", "renamed", "skipped_target_exists"]
 
