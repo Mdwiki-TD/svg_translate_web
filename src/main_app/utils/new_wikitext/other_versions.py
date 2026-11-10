@@ -245,29 +245,15 @@ class OtherVersionsUpdater:
         return "{{" + "|".join([name, *positional, *named]) + "}}"
 
 
-def add_other_versions_new(
-    *,
-    text: str,
-    template_name: str,
-    first_param_valve: str,  # name kept for backward compatibility
-    main_template_name: str = "Information",
-    param_names: list[str] | None = None,
-) -> str:
-    """Backward-compatible wrapper: add ``{{template_name|1=value}}`` to other versions."""
-    updater = OtherVersionsUpdater(
-        main_template_name=main_template_name,
-        param_names=param_names,
-    )
-    return updater.add_template(text, template_name, first_param_valve)
-
-
 def add_svg_langs_to_other_versions(*, text: str, langs: list[str]) -> str:
     """Functional wrapper around :meth:`OtherVersionsUpdater.add_svg_langs`."""
-    return OtherVersionsUpdater().add_svg_langs(text, langs)
+    return OtherVersionsUpdater().add_svg_langs(
+        text,
+        langs,
+    )
 
 
 __all__ = [
     "OtherVersionsUpdater",
-    "add_other_versions_new",
     "add_svg_langs_to_other_versions",
 ]

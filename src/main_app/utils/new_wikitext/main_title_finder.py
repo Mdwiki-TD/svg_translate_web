@@ -17,13 +17,15 @@ SVG_FILE_NAME_PATTERN = re.compile(r"^File:[\w\-,.()\s_]+\.svg$")
 class MainTitleFinder:
     """Finds the main SVG title of a page using several strategies in order."""
 
-    def match_main_title_from_url(self, text: str):
+    @staticmethod
+    def match_main_title_from_url(text: str):
         """Match ``*'''Translate''': <svgtranslate url>`` lines that end the line."""
         pattern = r"^\*'''Translat(?:e|ion)''':\s+https?://svgtranslate\.toolforge\.org/(File:[\w\-,.()\s_]+\.svg)$"
         match = re.search(pattern, text, flags=re.M)
         return match.group(1) if match else None
 
-    def match_main_title_from_url_new(self, text: str) -> str | None:
+    @staticmethod
+    def match_main_title_from_url_new(text: str) -> str | None:
         """Return the SVG filename from the ``Translate`` line if present."""
         pattern = re.compile(
             r"^\*'''Translat(?:e|ion)''':\s+(?P<url>https?://svgtranslate\.toolforge\.org/[^\s]+)",
@@ -50,10 +52,12 @@ class MainTitleFinder:
 
         return path
 
-    def find_main_title_from_template(self, text: str) -> str | None:
+    @staticmethod
+    def find_main_title_from_template(text: str) -> str | None:
         """Extract the main title from ``{{SVGLanguages|...}}``."""
         parsed = wtp.parse(text)
 
+        # --- 1. Extract main title from {{SVGLanguages|...}}
         main_title = None
         for tpl in parsed.templates:
             if tpl.name.strip().lower() == "svglanguages":
@@ -65,20 +69,27 @@ class MainTitleFinder:
 
         return main_title
 
-    def find_main_title_from_owidslidersrcs(self, text: str) -> str | None:
+    @staticmethod
+    def find_main_title_from_owidslidersrcs(text: str) -> str | None:
         """
         Return the first file of ``|gallery-World=`` in ``{{owidslidersrcs}}``.
 
         Example:
-            {{owidslidersrcs|id=gallery
+        ==Data==
+        {{owidslidersrcs|id=gallery|widths=240|heights=240
             |gallery-World=
             File:youth mortality rate, World, 1950.svg!year=1950
+        File:youth mortality rate, World, 1951.svg!year=1951
+        File:youth mortality rate, World, 1952.svg!year=1952
+        File:youth mortality rate, World, 1953.svg!year=1953
             }}
         Returns:
             "File:youth mortality rate, World, 1950.svg"
         """
+        # Parse the text using wikitextparser
         parsed = wtp.parse(text)
 
+        # --- 1. Extract main title from {{owidslidersrcs|gallery-World=...}}
         main_title = None
         for tpl in parsed.templates:
             if tpl.name.strip().lower() == "owidslidersrcs":
@@ -91,13 +102,14 @@ class MainTitleFinder:
                 break
         return main_title
 
-    def find_main_title(self, text: str, remove_prefix: bool = False) -> str | None:
+    @classmethod
+    def find_main_title(cls, text: str, remove_prefix: bool = False) -> str | None:
         """Find the main title, trying template, translate URL, then the gallery."""
         main_title = (
-            self.find_main_title_from_template(text)
-            or self.match_main_title_from_url_new(text)
-            or self.match_main_title_from_url(text)
-            or self.find_main_title_from_owidslidersrcs(text)
+            cls.find_main_title_from_template(text)
+            or cls.match_main_title_from_url_new(text)
+            or cls.match_main_title_from_url(text)
+            or cls.find_main_title_from_owidslidersrcs(text)
         )
 
         if main_title:

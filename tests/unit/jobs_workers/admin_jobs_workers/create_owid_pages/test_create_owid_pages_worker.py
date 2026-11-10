@@ -62,11 +62,11 @@ def mock_owid_pages_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         mocks["is_pages_exists"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.merge_categories",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.CategoryMerger.merge_categories",
         mocks["merge_categories"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.sort_categories",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.CategoryMerger.sort_categories",
         mocks["sort_categories"],
     )
 

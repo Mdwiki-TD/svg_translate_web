@@ -18,7 +18,7 @@ def mock_find_last_world(monkeypatch: pytest.MonkeyPatch):
     """Mock find_newest_world_file to return None by default."""
     mock = MagicMock(return_value=None)
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.SlidersGalleryReader.find_newest_world_file",
         mock,
     )
     return mock
@@ -29,7 +29,7 @@ def mock_find_source(monkeypatch: pytest.MonkeyPatch):
     """Mock find_template_source to return empty string by default."""
     mock = MagicMock(return_value="")
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_template_source",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidSourceFinder.find_template_source",
         mock,
     )
     return mock
@@ -101,7 +101,7 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
         mocks["MwClientPage"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_main_title",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MainTitleFinder.find_main_title",
         mocks["find_main_title"],
     )
 

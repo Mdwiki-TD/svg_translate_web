@@ -48,6 +48,7 @@ class OwidSourceFinder:
         if not cls.check_url(url):
             return ""
 
+        # Return the full validated URL
         return url
 
     @classmethod
@@ -55,10 +56,14 @@ class OwidSourceFinder:
         """
         Input:
             *'''Source''': https://ourworldindata.org/grapher/share-electricity-renewables
+            *'''Translate''': https://svgtranslate.toolforge.org/File:Share_electricity_renewables,_World,_1985.svg
         Output:
             https://ourworldindata.org/grapher/share-electricity-renewables
         """
-        return cls._find_with_pattern(OwidSourceFinder.SOURCE_LINE_PATTERN, wikitext)
+        return cls._find_with_pattern(
+            OwidSourceFinder.SOURCE_LINE_PATTERN,
+            wikitext,
+        )
 
     @classmethod
     def find_from_bullet_line(cls, wikitext: str) -> str:
@@ -68,7 +73,10 @@ class OwidSourceFinder:
         Output:
             https://ourworldindata.org/grapher/share-electricity-renewables
         """
-        return cls._find_with_pattern(OwidSourceFinder.BULLET_LINE_PATTERN, wikitext)
+        return cls._find_with_pattern(
+            OwidSourceFinder.BULLET_LINE_PATTERN,
+            wikitext,
+        )
 
     @classmethod
     def find_template_source(cls, wikitext: str, check_grapher: bool = True) -> str:

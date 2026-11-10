@@ -34,16 +34,6 @@ def find_missing_categories(
     return CategoryMerger().find_missing_categories(target_categories, base_categories)
 
 
-def merge_categories(old_text: str, new_text: str) -> str:
-    """Append categories found in old_text to new_text if they are not already present."""
-    return CategoryMerger().merge_categories(old_text, new_text)
-
-
-def sort_categories(wikitext: str) -> str:
-    """Move all categories to the end of the text, sorted."""
-    return CategoryMerger().sort_categories(wikitext)
-
-
 def merge_categories_into_text(cats_list: list[str], text: str) -> str:
     """Append the categories of cats_list that are missing from text."""
     return CategoryMerger().merge_categories_into_text(cats_list, text)
@@ -74,7 +64,7 @@ def test_full_pipeline() -> None:
 
     assert missing_categories == []
 
-    result = merge_categories(old_text, new_text)
+    result = CategoryMerger().merge_categories(old_text, new_text)
 
     assert "[[Category:Cat1]]" in result
     assert result.count("[[Category:Cat2]]") == 1
@@ -104,7 +94,7 @@ def test_full_pipeline_2() -> None:
 
     assert missing_categories[0].target == create_category_link_from_str("[[Category:Cat3 | test ]]").target
 
-    result = merge_categories(old_text, new_text)
+    result = CategoryMerger().merge_categories(old_text, new_text)
 
     assert "[[Category:Cat1]]" in result
     assert result.count("[[Category:Cat2]]") == 1

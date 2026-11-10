@@ -96,7 +96,7 @@ def sample_from_prompt() -> str:
 
 def test_get_titles_from_sample_prompt(sample_from_prompt):
     """Extract all .svg filenames from owidslidersrcs and ignore everything else."""
-    titles = SvgFilesCollector().get_titles(sample_from_prompt)
+    titles = SvgFilesCollector.get_titles(sample_from_prompt)
     # All must end with .svg and contain expected country codes as part of filename
     assert all(t.endswith(".svg") for t in titles)
     # Check some expected members (whitespace around commas should have been stripped)
@@ -108,7 +108,7 @@ def test_get_titles_from_sample_prompt(sample_from_prompt):
 
 def test_get_titles_multiple_blocks_and_duplicates(sample_multiple_owidslidersrcs):
     """All File:... entries across multiple blocks are collected. Duplicates remain as-is."""
-    titles = SvgFilesCollector().get_titles(sample_multiple_owidslidersrcs, filter_duplicates=False)
+    titles = SvgFilesCollector.get_titles(sample_multiple_owidslidersrcs, filter_duplicates=False)
     assert titles == [
         "Alpha, 2000 to 2001, AAA.svg",
         "Beta, 2001 to 2002, BBB.svg",
@@ -119,7 +119,7 @@ def test_get_titles_multiple_blocks_and_duplicates(sample_multiple_owidslidersrc
 
 def test_get_titles_empty_when_no_entries(sample_without_titles):
     """Returns empty list when owidslidersrcs contains no File entries."""
-    assert SvgFilesCollector().get_titles(sample_without_titles) == []
+    assert SvgFilesCollector.get_titles(sample_without_titles) == []
 
 
 @pytest.mark.parametrize(
@@ -143,7 +143,7 @@ def test_get_titles_empty_when_no_entries(sample_without_titles):
 )
 def test_get_titles_regex_variants(block, expected_count):
     """Regex should capture up to .svg and ignore anything after '!' or newlines."""
-    titles = SvgFilesCollector().get_titles(block)
+    titles = SvgFilesCollector.get_titles(block)
     assert len(titles) == expected_count
     assert all(t.endswith(".svg") for t in titles)
 
@@ -178,7 +178,7 @@ def test_get_files_list_no_titles_no_main(sample_without_titles):
 
 def test_get_titles_from_wikilinks(sample_from_prompt: str):
     """Ensures wikilink-based SVG titles are extracted separately from owidslidersrcs titles."""
-    titles = SvgFilesCollector().get_titles(sample_from_prompt)
+    titles = SvgFilesCollector.get_titles(sample_from_prompt)
 
     titles_new = SvgFilesCollector().get_titles_from_wikilinks(sample_from_prompt)
 
@@ -250,7 +250,7 @@ class TestGetTitles:
         File:test2.svg!year=2021
         }}
         """
-        result = SvgFilesCollector().get_titles(text, filter_duplicates=False)
+        result = SvgFilesCollector.get_titles(text, filter_duplicates=False)
         assert sorted(result) == ["test1.svg", "test2.svg"]
 
     def test_filter_duplicates(self) -> None:
@@ -261,7 +261,7 @@ class TestGetTitles:
         |File:test.svg!year=2021
         }}
         """
-        result = SvgFilesCollector().get_titles(text, filter_duplicates=True)
+        result = SvgFilesCollector.get_titles(text, filter_duplicates=True)
         assert result == ["test.svg"]
 
     def test_no_duplicates_filtering(self) -> None:
@@ -272,18 +272,18 @@ class TestGetTitles:
         |File:test.svg!year=2021
         }}
         """
-        result = SvgFilesCollector().get_titles(text, filter_duplicates=False)
+        result = SvgFilesCollector.get_titles(text, filter_duplicates=False)
         assert result == ["test.svg", "test.svg"]
 
     def test_empty_text(self) -> None:
         """Test with empty text."""
-        result = SvgFilesCollector().get_titles("")
+        result = SvgFilesCollector.get_titles("")
         assert result == []
 
     def test_no_owidslidersrcs_template(self) -> None:
         """Test text without {{owidslidersrcs}} template."""
         text = "Some text without the template"
-        result = SvgFilesCollector().get_titles(text)
+        result = SvgFilesCollector.get_titles(text)
         assert result == []
 
     def test_case_insensitive_template_name(self) -> None:
@@ -293,7 +293,7 @@ class TestGetTitles:
         |File:test.svg!year=2020
         }}
         """
-        result = SvgFilesCollector().get_titles(text)
+        result = SvgFilesCollector.get_titles(text)
         assert result == ["test.svg"]
 
     def test_multiple_owidslidersrcs_templates(self) -> None:
@@ -302,7 +302,7 @@ class TestGetTitles:
         {{owidslidersrcs|File:file1.svg!year=2020}}
         {{owidslidersrcs|File:file2.svg!year=2021}}
         """
-        result = SvgFilesCollector().get_titles(text, filter_duplicates=False)
+        result = SvgFilesCollector.get_titles(text, filter_duplicates=False)
         assert sorted(result) == ["file1.svg", "file2.svg"]
 
 
@@ -378,7 +378,7 @@ class TestSvgFilesCollector:
     """Tests for ``SvgFilesCollector``."""
 
     def test_get_titles_reads_owidslidersrcs_files(self):
-        assert sorted(SvgFilesCollector().get_titles(GALLERY)) == ["a, World, 1950.svg", "a, World, 1951.svg"]
+        assert sorted(SvgFilesCollector.get_titles(GALLERY)) == ["a, World, 1950.svg", "a, World, 1951.svg"]
 
     def test_get_titles_from_wikilinks_strips_prefix(self):
         titles = SvgFilesCollector().get_titles_from_wikilinks(GALLERY)

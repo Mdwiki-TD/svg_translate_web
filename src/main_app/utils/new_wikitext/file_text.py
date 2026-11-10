@@ -150,13 +150,23 @@ class CroppedFileTextBuilder:
             return text_to_add
 
         # Add {{Extracted from|1=...}} to the "other versions" parameter of {{Information}}
-        modified_text = self.other_versions.add_template(text, self.TEMPLATE_NAME, file_name)
+        modified_text = self.other_versions.add_template(
+            text,
+            self.TEMPLATE_NAME,
+            file_name,
+        )
 
         if modified_text == text:
-            modified_text = self.inserter.insert_before_methods(text, text_to_add)
+            modified_text = self.inserter.insert_before_methods(
+                text,
+                text_to_add,
+            )
 
         if author_citation:
-            modified_text = self.author_updater.update_information_author(modified_text, author_citation)
+            modified_text = self.author_updater.update_information_author(
+                modified_text,
+                author_citation,
+            )
         return modified_text
 
 

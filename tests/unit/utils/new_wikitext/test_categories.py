@@ -1,6 +1,5 @@
 from types import SimpleNamespace
 
-
 from src.main_app.utils.new_wikitext.categories import CategoryExtractor, CategoryLink, CategoryMerger
 
 

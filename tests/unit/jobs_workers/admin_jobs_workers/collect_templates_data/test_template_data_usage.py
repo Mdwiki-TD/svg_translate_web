@@ -140,19 +140,19 @@ class TestProcessOneItemWithTemplateData:
             lambda title, site: MagicMock(get_text=MagicMock(return_value="wikitext")),
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_main_title",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MainTitleFinder.find_main_title",
             lambda text, remove_prefix=False: "file.svg",
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.SlidersGalleryReader.find_newest_world_file",
             lambda text, remove_prefix=False: "world.svg",
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_year",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.SlidersGalleryReader.find_newest_year",
             lambda text: 2024,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_template_source",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidSourceFinder.find_template_source",
             lambda text, check_grapher=False: "src",
         )
         return w
@@ -195,19 +195,19 @@ class TestProcessOneItemWithTemplateData:
 
     def test_marks_failed_when_no_data_extracted(self, worker, monkeypatch):
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_main_title",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MainTitleFinder.find_main_title",
             lambda text, remove_prefix=False: None,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_world_file",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.SlidersGalleryReader.find_newest_world_file",
             lambda text, remove_prefix=False: None,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_newest_year",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.SlidersGalleryReader.find_newest_year",
             lambda text: None,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.find_template_source",
+            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidSourceFinder.find_template_source",
             lambda text, check_grapher=False: None,
         )
         monkeypatch.setattr(

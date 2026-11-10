@@ -47,7 +47,7 @@ tests_list = [
 )
 def test_match_main_title_from_url_various(line, expected):
     """Validate regex-based extraction from 'Translate' line."""
-    assert MainTitleFinder().match_main_title_from_url(line) == expected
+    assert MainTitleFinder.match_main_title_from_url(line) == expected
 
 
 @pytest.mark.parametrize(
@@ -56,7 +56,7 @@ def test_match_main_title_from_url_various(line, expected):
 )
 def test_match_main_title_from_url_new_various(line, expected):
     """Validate regex-based extraction from 'Translate' line."""
-    assert MainTitleFinder().match_main_title_from_url_new(line) == expected
+    assert MainTitleFinder.match_main_title_from_url_new(line) == expected
 
 
 def test_find_main_title_from_owidslidersrcs():
@@ -74,7 +74,7 @@ File:youth mortality rate, World, 1952.svg!year=1952
 File:youth mortality rate, World, 1953.svg!year=1953
 }}"""
     expected = "File:youth mortality rate, World, 1950.svg"
-    assert MainTitleFinder().find_main_title_from_owidslidersrcs(text) == expected
+    assert MainTitleFinder.find_main_title_from_owidslidersrcs(text) == expected
 
 
 class TestFindMainTitleFromOwidslidersrcs:
@@ -87,7 +87,7 @@ class TestFindMainTitleFromOwidslidersrcs:
         File:test, World, 2020.svg!year=2020
         }}
         """
-        result = MainTitleFinder().find_main_title_from_owidslidersrcs(text)
+        result = MainTitleFinder.find_main_title_from_owidslidersrcs(text)
         assert result == "File:test, World, 2020.svg"
 
     def test_extract_first_file_only(self) -> None:
@@ -98,7 +98,7 @@ class TestFindMainTitleFromOwidslidersrcs:
         File:second.svg!year=2021
         }}
         """
-        result = MainTitleFinder().find_main_title_from_owidslidersrcs(text)
+        result = MainTitleFinder.find_main_title_from_owidslidersrcs(text)
         assert result == "File:first.svg"
 
     def test_underscores_converted_to_spaces(self) -> None:
@@ -108,13 +108,13 @@ class TestFindMainTitleFromOwidslidersrcs:
         File:test_file.svg!year=2020
         }}
         """
-        result = MainTitleFinder().find_main_title_from_owidslidersrcs(text)
+        result = MainTitleFinder.find_main_title_from_owidslidersrcs(text)
         assert result == "File:test file.svg"
 
     def test_no_owidslidersrcs_template(self) -> None:
         """Test when no {{owidslidersrcs}} template exists."""
         text = "Some text without the template"
-        result = MainTitleFinder().find_main_title_from_owidslidersrcs(text)
+        result = MainTitleFinder.find_main_title_from_owidslidersrcs(text)
         assert result is None
 
     def test_no_gallery_world_argument(self) -> None:
@@ -124,7 +124,7 @@ class TestFindMainTitleFromOwidslidersrcs:
         File:test.svg!country=XX
         }}
         """
-        result = MainTitleFinder().find_main_title_from_owidslidersrcs(text)
+        result = MainTitleFinder.find_main_title_from_owidslidersrcs(text)
         assert result is None
 
     def test_case_insensitive_template_name(self) -> None:
@@ -134,10 +134,10 @@ class TestFindMainTitleFromOwidslidersrcs:
         File:test.svg!year=2020
         }}
         """
-        result = MainTitleFinder().find_main_title_from_owidslidersrcs(text)
+        result = MainTitleFinder.find_main_title_from_owidslidersrcs(text)
         assert result == "File:test.svg"
 
     def test_empty_text(self) -> None:
         """Test with empty text."""
-        result = MainTitleFinder().find_main_title_from_owidslidersrcs("")
+        result = MainTitleFinder.find_main_title_from_owidslidersrcs("")
         assert result is None

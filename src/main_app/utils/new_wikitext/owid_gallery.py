@@ -37,9 +37,15 @@ class SlidersGalleryReader:
         """
         Return the file with the latest date in a ``gallery-World`` value.
 
-        Example:
+        text Example:
+        ==Data==
+        {{owidslidersrcs|id=gallery|widths=240|heights=240
+        |gallery-World=
+        File:youth mortality rate, World, 1950.svg!year=1950
+        File:youth mortality rate, World, 1951.svg!year=1951
             File:youth mortality rate, World, 1952.svg!year=1952
             File:youth mortality rate, World, Apr 15, 1953.svg!year=Apr 15, 1953
+        }}
         Returns:
             "File:youth mortality rate, World, Apr 15, 1953.svg"
         """
@@ -85,6 +91,7 @@ class SlidersGalleryReader:
         """Return the newest file of the first ``{{owidslidersrcs}}`` template."""
         parsed = wtp.parse(text)
 
+        # --- 1. Extract newest_world_file from {{owidslidersrcs|gallery-World=...}}
         newest_world_file = None
         for tpl in parsed.templates:
             if tpl.name.strip().lower() != "owidslidersrcs":
@@ -110,10 +117,12 @@ class SlidersGalleryReader:
         """Return the biggest ``!year=YYYY`` of the first ``{{owidslidersrcs}}`` template."""
         parsed = wtp.parse(text)
 
+        # --- 1. Extract last_world_year from {{owidslidersrcs|gallery-World=...}}
         last_world_year = None
         for tpl in parsed.templates:
             if tpl.name.strip().lower() != "owidslidersrcs":
                 continue
+            # match all `!year=2009` in tpl_text then select the biggest year
             matches = re.findall(r"!\s*year\s*=\s*(\d{4})", tpl.string)
             if matches:
                 last_world_year = max(matches)

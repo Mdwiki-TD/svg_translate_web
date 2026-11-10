@@ -12,7 +12,7 @@ from ....api_services import MwClientPage, is_pages_exists
 from ....data import get_slug_categories
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
-from ....utils.wikitext.legacy import merge_categories, sort_categories
+from ....utils.new_wikitext import CategoryMerger
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import CreateOwidPagesWorkerObject, OneStep, TemplateProcessingInfo
@@ -213,11 +213,11 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
             return False
 
         # extend categories from current text
-        info._new_text = merge_categories(current_text, info._new_text)
-        info._new_text = sort_categories(info._new_text)
+        info._new_text = CategoryMerger().merge_categories(current_text, info._new_text)
+        info._new_text = CategoryMerger().sort_categories(info._new_text)
 
         # sort current_text categories to compare with new text
-        current_text = sort_categories(current_text)
+        current_text = CategoryMerger().sort_categories(current_text)
 
         if current_text.strip() == info._new_text.strip():
             info.steps.update_text.msg = "Skipped - page content is already identical"

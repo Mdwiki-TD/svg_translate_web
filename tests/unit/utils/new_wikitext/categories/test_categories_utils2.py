@@ -34,16 +34,6 @@ def find_missing_categories(
     return CategoryMerger().find_missing_categories(target_categories, base_categories)
 
 
-def merge_categories(old_text: str, new_text: str) -> str:
-    """Append categories found in old_text to new_text if they are not already present."""
-    return CategoryMerger().merge_categories(old_text, new_text)
-
-
-def sort_categories(wikitext: str) -> str:
-    """Move all categories to the end of the text, sorted."""
-    return CategoryMerger().sort_categories(wikitext)
-
-
 class TestCapitalizeCategory:
     """Tests for capitalize_category."""
 
@@ -176,21 +166,21 @@ class TestMergeCategories:
 
     def test_returns_new_text_when_old_text_empty(self):
         """Empty old_text should return new_text unchanged."""
-        assert merge_categories("", "new") == "new"
+        assert CategoryMerger().merge_categories("", "new") == "new"
 
     def test_returns_new_text_when_new_text_empty(self):
         """Empty new_text should return new_text (empty)."""
-        assert merge_categories("old", "") == ""
+        assert CategoryMerger().merge_categories("old", "") == ""
 
     def test_returns_new_text_when_old_has_no_categories(self):
         """Old text without categories should return new_text unchanged."""
-        assert merge_categories("plain text", "[[Category:A]]") == "[[Category:A]]"
+        assert CategoryMerger().merge_categories("plain text", "[[Category:A]]") == "[[Category:A]]"
 
     def test_appends_missing_categories_from_old_to_new(self):
         """Missing categories from old should be appended to new."""
         old = "[[Category:Old1]]"
         new = "[[Category:New1]]"
-        result = merge_categories(old, new)
+        result = CategoryMerger().merge_categories(old, new)
         assert "[[Category:New1]]" in result
         assert "[[Category:Old1]]" in result
 
@@ -198,13 +188,13 @@ class TestMergeCategories:
         """When old categories are already in new, return new_text as-is."""
         old = "[[Category:Shared]]"
         new = "[[Category:Shared]]"
-        assert merge_categories(old, new) == new
+        assert CategoryMerger().merge_categories(old, new) == new
 
     def test_does_not_duplicate_existing_categories(self):
         """Existing categories should not be duplicated."""
         old = "[[Category:A]] [[Category:B]]"
         new = "[[Category:A]]"
-        result = merge_categories(old, new)
+        result = CategoryMerger().merge_categories(old, new)
         assert result.count("[[Category:A]]") == 1
         assert "[[Category:B]]" in result
 
@@ -215,7 +205,7 @@ class TestSortCategories:
     def test_sorts_categories_alphabetically(self):
         """Categories should be sorted alphabetically."""
         text = "[[Category:Z]] text [[Category:A]]"
-        result = sort_categories(text)
+        result = CategoryMerger().sort_categories(text)
         cats = extract_categories(result)
         assert cats[0].target == "Category:A"
         assert cats[1].target == "Category:Z"
@@ -223,12 +213,12 @@ class TestSortCategories:
     def test_returns_original_if_no_categories(self):
         """Wikitext without categories should be returned unchanged."""
         text = "Just text"
-        assert sort_categories(text) == text
+        assert CategoryMerger().sort_categories(text) == text
 
     def test_removes_categories_from_original_position_and_appends_sorted(self):
         """Categories should be removed from their original positions and appended at the end sorted."""
         text = "Start [[Category:Banana]] middle [[Category:Apple]] end"
-        result = sort_categories(text)
+        result = CategoryMerger().sort_categories(text)
         assert "Apple" in result
         assert "Banana" in result
         assert result.index("Apple") < result.index("Banana")

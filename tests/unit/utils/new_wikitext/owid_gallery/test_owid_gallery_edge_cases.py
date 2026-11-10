@@ -1,5 +1,5 @@
 """
-Edge Cases Tests for src/main_app/utils/wikitext/owid_sliders_rcs/last_world_file_utils.py
+Edge Cases Tests for src/main_app/utils/new_wikitext/owid_gallery.py
 """
 
 from __future__ import annotations

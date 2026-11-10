@@ -19,13 +19,7 @@ from ....database.services import (
     ViewsService,
 )
 from ....database.templates_utils import extract_slug
-from ....utils.wikitext.legacy import (
-    count_svg_files,
-    find_main_title,
-    find_newest_world_file,
-    find_newest_year,
-    find_template_source,
-)
+from ....utils.new_wikitext import MainTitleFinder, OwidSourceFinder, SlidersGalleryReader, SvgFilesCollector
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ..slugs_helpers import check_slugs
@@ -99,7 +93,7 @@ class OneFileProcessor:
         # template_info step # 1 main_file
         try:
             # Extract main file using find_main_title
-            main_file = find_main_title(wikitext, remove_prefix=True)
+            main_file = MainTitleFinder.find_main_title(wikitext, remove_prefix=True)
             if not main_file:
                 raise Exception("Could not find main file")
         except Exception as e:
@@ -116,7 +110,7 @@ class OneFileProcessor:
         # ------------------
         # template_info step # 2 last_world_file
         try:
-            last_file = find_newest_world_file(wikitext, remove_prefix=True)
+            last_file = SlidersGalleryReader.find_newest_world_file(wikitext, remove_prefix=True)
             if not last_file:
                 raise Exception("Could not find newest world file")
         except Exception as e:
@@ -133,7 +127,7 @@ class OneFileProcessor:
         # ------------------
         # template_info step # 2 newest_year
         try:
-            newest_y = find_newest_year(wikitext)
+            newest_y = SlidersGalleryReader.find_newest_year(wikitext)
             if not newest_y:
                 raise Exception("Could not find newest year")
         except Exception as e:
@@ -151,7 +145,7 @@ class OneFileProcessor:
         # template_info step # 4 source
         source_step: CollectStepResult = template_info.steps.source
         try:
-            source = find_template_source(wikitext, check_grapher=False)
+            source = OwidSourceFinder.find_template_source(wikitext, check_grapher=False)
             if not source:
                 raise Exception("Could not find source")
         except Exception as e:
@@ -181,7 +175,7 @@ class OneFileProcessor:
                 db_data["slug"] = _slug
 
         # ------------------
-        files_len = count_svg_files(wikitext)
+        files_len = SvgFilesCollector().count_svg_files(wikitext)
         if files_len:
             template_info.steps.files._update_if_diff(new_value=files_len)
             if files_len != template.files:
