@@ -173,7 +173,13 @@ class TestRunner:
     def test_collect_templates_data_updates_template_without_main_file(self, mock_find_source):
         """Test that templates without main_file are updated."""
         templates = [
-            TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
+            TemplateRecord(
+                id=1,
+                title="Template:Test",
+                main_file=None,
+                last_world_file=None,
+                source="",
+            ),
         ]
         self.services["get_category_members"].return_value = []
         self.services["list"].return_value = templates
@@ -190,7 +196,7 @@ class TestRunner:
         self.services["MwClientPage"].assert_called_once_with("Template:Test", magic)
 
         # Should find main title
-        self.services["find_main_title"].assert_called_once()
+        self.services["find_main_title"].assert_called_with("{{SVGLanguages|test.svg}}")
 
         # Should update template with main_file
         self.services["update_template_data"].assert_called_once_with(

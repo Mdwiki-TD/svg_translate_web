@@ -4,6 +4,7 @@ Tests for TemplateData usage in the collect_templates_data worker.
 
 from __future__ import annotations
 
+import threading
 from unittest.mock import MagicMock
 
 import pytest
@@ -15,10 +16,48 @@ from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker 
 )
 from src.main_app.jobs_workers.objects import JobsRunner
 
+WORKER_PATH = "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker"
+
 # The db.models.TemplateRecord.__init__ also uses hasattr(self, key) but
 # works because SQLAlchemy declarative base sets up descriptors on the class.
-# TemplateData (a plain dataclass) does NOT have that — so __init__ must
+# TemplateData (a plain dataclass) does NOT have that, so __init__ must
 # setattr unconditionally (hasattr always returns False at init time).
+
+
+@pytest.fixture
+def patch_extractors(monkeypatch: pytest.MonkeyPatch):
+    """Factory fixture: patch every extractor the worker calls with fixed return values."""
+
+    def _apply(
+        *,
+        main_title: str | None = "file.svg",
+        world_file: str | None = "world.svg",
+        year: int | None = 2024,
+        source: str | None = "src",
+        slug: str | None = "test-slug",
+    ) -> None:
+        monkeypatch.setattr(
+            f"{WORKER_PATH}.MainTitleFinder.find_main_title",
+            lambda text, remove_prefix=False: main_title,
+        )
+        monkeypatch.setattr(
+            f"{WORKER_PATH}.SlidersGalleryReader.find_newest_world_file",
+            lambda text, remove_prefix=False: world_file,
+        )
+        monkeypatch.setattr(
+            f"{WORKER_PATH}.SlidersGalleryReader.find_newest_year",
+            lambda text: year,
+        )
+        monkeypatch.setattr(
+            f"{WORKER_PATH}.OwidSourceFinder.find_template_source",
+            lambda text, check_grapher=False: source,
+        )
+        monkeypatch.setattr(
+            f"{WORKER_PATH}.OneFileProcessor._load_slug",
+            lambda self, title, slug_arg, source_arg: slug,
+        )
+
+    return _apply
 
 
 class TestTemplateDataConstruction:
@@ -75,7 +114,6 @@ class TestTemplateRecordToTemplateDataConversion:
     """start_process converts TemplateRecord to TemplateData."""
 
     def test_conversion_preserves_all_fields(self, mock_base_worker):
-
         record = TemplateRecord(
             id=5,
             title="Template:Test",
@@ -123,9 +161,7 @@ class TestProcessOneItemWithTemplateData:
     """_process_one_item compares extracted values against TemplateData attributes."""
 
     @pytest.fixture
-    def worker(self, mock_base_worker, monkeypatch):
-        import threading
-
+    def worker(self, mock_base_worker, monkeypatch, patch_extractors):
         w = CollectMainFilesWorker(
             JobsRunner(
                 job_id=1,
@@ -136,36 +172,14 @@ class TestProcessOneItemWithTemplateData:
         w.site = MagicMock()
         w.template_service = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MwClientPage",
+            f"{WORKER_PATH}.MwClientPage",
             lambda title, site: MagicMock(get_text=MagicMock(return_value="wikitext")),
         )
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MainTitleFinder.find_main_title",
-            lambda text, remove_prefix=False: "file.svg",
-        )
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.SlidersGalleryReader.find_newest_world_file",
-            lambda text, remove_prefix=False: "world.svg",
-        )
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.SlidersGalleryReader.find_newest_year",
-            lambda text: 2024,
-        )
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidSourceFinder.find_template_source",
-            lambda text, check_grapher=False: "src",
-        )
+        # Default extracted values; individual tests override via patch_extractors(...)
+        patch_extractors()
         return w
 
-    @pytest.fixture
-    def worker_with_slug(self, worker, monkeypatch):
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OneFileProcessor._load_slug",
-            lambda self, title, slug, source: "test-slug",
-        )
-        return worker
-
-    def test_updates_template_when_data_differs_from_template_data(self, worker_with_slug, monkeypatch):
+    def test_updates_template_when_data_differs_from_template_data(self, worker):
         template = TemplateData(
             id=1,
             title="T",
@@ -175,12 +189,11 @@ class TestProcessOneItemWithTemplateData:
             slug="x",
             source="y",
         )
-        worker_with_slug.template_service.update_template_data = MagicMock()
-        result = worker_with_slug._process_one_item(template)
+        worker.template_service.update_template_data = MagicMock()
+        result = worker._process_one_item(template)
         assert result is True
 
-    def test_skips_template_when_all_data_matches(self, worker_with_slug):
-
+    def test_skips_template_when_all_data_matches(self, worker):
         template = TemplateData(
             id=1,
             title="T",
@@ -190,43 +203,21 @@ class TestProcessOneItemWithTemplateData:
             slug="test-slug",
             source="src",
         )
-        result = worker_with_slug._process_one_item(template)
+        result = worker._process_one_item(template)
         assert result is False
 
-    def test_marks_failed_when_no_data_extracted(self, worker, monkeypatch):
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.MainTitleFinder.find_main_title",
-            lambda text, remove_prefix=False: None,
-        )
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.SlidersGalleryReader.find_newest_world_file",
-            lambda text, remove_prefix=False: None,
-        )
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.SlidersGalleryReader.find_newest_year",
-            lambda text: None,
-        )
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidSourceFinder.find_template_source",
-            lambda text, check_grapher=False: None,
-        )
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OneFileProcessor._load_slug",
-            lambda self, title, slug, source: None,
-        )
+    def test_marks_failed_when_no_data_extracted(self, worker, patch_extractors):
+        patch_extractors(main_title=None, world_file=None, year=None, source=None, slug=None)
         template = TemplateData(id=1, title="T", main_file=None, last_world_file=None, slug="", source="")
         result = worker._process_one_item(template)
         assert result is False
         assert len(worker.result.pages_failed) == 1
 
-    def test_slug_updated_from_extracted(self, worker_with_slug, monkeypatch):
-        worker_with_slug.template_service.update_template_data = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OneFileProcessor._load_slug",
-            lambda self, title, slug, source: "new-slug",
-        )
+    def test_slug_updated_from_extracted(self, worker, patch_extractors):
+        worker.template_service.update_template_data = MagicMock()
+        patch_extractors(slug="new-slug")
         template = TemplateData(
             id=1, title="T", main_file=None, last_world_file=None, last_world_year=None, slug="old-slug", source=""
         )
-        result = worker_with_slug._process_one_item(template)
+        result = worker._process_one_item(template)
         assert result is True

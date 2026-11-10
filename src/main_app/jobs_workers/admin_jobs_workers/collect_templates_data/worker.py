@@ -72,7 +72,8 @@ class OneFileProcessor:
 
         logger.info(f"Job {self.job_id}: Fetching wikitext for {template.title}")
         # Fetch wikitext from Commons
-        wikitext = MwClientPage(template.title, self.site).get_text()
+        page = MwClientPage(template.title, self.site)
+        wikitext = page.get_text()
 
         if not wikitext:
             template_info.status = "failed"
