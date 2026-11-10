@@ -100,34 +100,30 @@
                 render: (title) => renderOwidTemplate(WIKIDOMAIN, title),
             },
             {
-                data: 'new_page_title',
-                title: 'New Page',
-                render: function (title) {
-                    if (!title) return '-';
-                    return renderWikiLink(WIKIDOMAIN, title, "OWID Page");
-                },
+                data: 'langs',
+                title: 'File langs',
             },
             {
-                data: 'steps.load_template_text',
+                data: 'steps.load_text',
                 title: 'Load Text',
                 orderable: false,
                 render: renderStep
             },
             {
-                data: 'steps.create_new_text',
-                title: 'Generate Text',
+                data: 'steps.update_author',
+                title: 'Update author',
                 orderable: false,
                 render: renderStep
             },
             {
-                data: 'steps.update_text',
-                title: 'Update Page',
+                data: 'steps.update_langs',
+                title: 'Update langs',
                 orderable: false,
                 render: renderStep
             },
             {
-                data: 'steps.create_new_page',
-                title: 'Create Page',
+                data: 'steps.save_page',
+                title: 'Save Page',
                 orderable: false,
                 render: renderStep
             },

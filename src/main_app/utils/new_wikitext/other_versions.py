@@ -72,7 +72,16 @@ class OtherVersionsUpdater:
         clean = [v.strip() for v in values if v and v.strip()]
         if not clean:
             return text
-        return self._update(text, lambda cur: self._merge_positional(cur, template_name, clean, sort))
+
+        return self._update(
+            text,
+            lambda cur: self._merge_positional(
+                cur,
+                template_name,
+                clean,
+                sort,
+            ),
+        )
 
     def add_template(
         self,
@@ -90,11 +99,37 @@ class OtherVersionsUpdater:
             ),
         )
 
+    def delete_params(self, text: str, delete_values: list[str]) -> str:
+        parsed = wtp.parse(text)
+        tpl = self._find_template(parsed, "Svg lang")
+        if tpl is None:
+            return text
+
+        for param in tpl.arguments:
+            if param.value and param.value.strip().lower() in delete_values:
+                del param
+                # param.string = ""
+
+        return parsed.string
+
     # ---- presets (add more here for other templates) ---------------- #
 
-    def add_svg_langs(self, text: str, langs: list[str], *, sort: bool = False) -> str:
+    def add_svg_langs(
+        self,
+        text: str,
+        langs: list[str],
+        *,
+        sort: bool = False,
+        delete_values: list[str] | None = None,
+    ) -> str:
         """Add language codes to ``{{Svg lang|...}}``."""
         filtered_langs = [lang.lower() for lang in langs if lang]
+
+        if delete_values:
+            delete_values = [x.lower() for x in delete_values if x]
+            text = self.delete_params(text, delete_values)
+            delete_values = [lang.lower() for lang in filtered_langs if lang.lower() not in delete_values]
+
         if not filtered_langs:
             return text
 
@@ -109,8 +144,13 @@ class OtherVersionsUpdater:
     # Core
     # ---------------------------------------------------------------- #
 
-    def _update(self, text: str, transform: Callable[[str], str]) -> str:
+    def _update(
+        self,
+        text: str,
+        transform: Callable[[str], str],
+    ) -> str:
         parsed = wtp.parse(text)
+
         main = self._find_main_template(parsed)
         if main is None:
             logger.debug("Main template %r not found", self.main_template_name)
@@ -134,6 +174,7 @@ class OtherVersionsUpdater:
                 arg.value = f"{new_value}{trail}"
         else:
             main.set_arg(self.param_names[0], new_value)
+
         return parsed.string
 
     # ---------------------------------------------------------------- #
@@ -147,7 +188,8 @@ class OtherVersionsUpdater:
         values: list[str],
         sort: bool,
     ) -> str:
-        tpl = self._find_template(current, template_name)
+        parsed = wtp.parse(current)
+        tpl = self._find_template(parsed, template_name)
 
         if tpl is None:
             merged = self._dedupe(values)
@@ -223,9 +265,9 @@ class OtherVersionsUpdater:
                 return found
         return None
 
-    def _find_template(self, value: str, name: str) -> wtp.Template | None:
+    def _find_template(self, parsed: wtp.WikiText, name: str) -> wtp.Template | None:
         target = self._norm_name(name)
-        for t in wtp.parse(value).templates:
+        for t in parsed.templates:
             if self._norm_name(t.name) == target:
                 return t
         return None

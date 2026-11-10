@@ -9,7 +9,6 @@ import logging
 from mwclient.client import Site
 
 from ....api_services import MwClientPage
-
 from ....database.services import ChartsAndTemplatesService, TemplateService
 from ....utils.new_wikitext import SvgFilesCollector
 from ...base_worker import BaseObjectsJobWorker

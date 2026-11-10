@@ -86,7 +86,7 @@ class UpdateWikiTextProcessor:
     def _step_update_author(self, text: str, info: ProcessingFileInfo) -> bool:
         """ """
         if not self.author_citation:
-            info.steps.update_author.result = False
+            info.steps.update_author.result = None
             info.steps.update_author.msg = "Skipped - no author citation provided"
             return text
 
@@ -102,7 +102,12 @@ class UpdateWikiTextProcessor:
 
     def _step_update_langs(self, text: str, info: ProcessingFileInfo) -> str:
         """ """
-        new_wikitext = self.other_versions_updater.add_svg_langs(text, info.langs, sort=False)
+        new_wikitext = self.other_versions_updater.add_svg_langs(
+            text,
+            info.langs,
+            sort=False,
+            delete_values=["en"],
+        )
 
         if text.strip() == new_wikitext.strip():
             info.steps.update_langs.msg = "Skipped - page content is already identical"
