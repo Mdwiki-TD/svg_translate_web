@@ -7,7 +7,7 @@ from .auth_service import OAuthService
 from .current_user import CurrentUser
 from .flow import AuthFlowService
 from .token_manager import TokenManager
-from .utils import get_current_user, set_logged_in_user
+from .current_user_resolver import get_current_user, set_logged_in_user
 
 __all__ = [
     "AuthFlowService",

@@ -11,7 +11,7 @@ from flask_admin.theme import Bootstrap4Theme
 from flask_babel import Babel
 from flask_sqlalchemy import SQLAlchemy
 
-from ..services.auth.utils import get_current_user
+from ..services.auth.current_user_resolver import get_current_user
 from .flask_admin_panel_models import ModelItem, categories
 
 

@@ -11,6 +11,15 @@ from ....config import get_settings
 logger = logging.getLogger(__name__)
 
 
+def _build_serializer(purpose: str) -> URLSafeTimedSerializer:
+    """Create a serializer whose salt is scoped to a single purpose."""
+    settings = get_settings()
+    return URLSafeTimedSerializer(
+        settings.security.secret_key,
+        salt=f"{settings.security.salt}-{purpose}",
+    )
+
+
 class SignedTokenService:
     """Sign and verify user-id tokens and OAuth state tokens."""
 
@@ -20,28 +29,29 @@ class SignedTokenService:
         state_serializer: URLSafeTimedSerializer | None = None,
         max_age: int | None = None,
     ) -> None:
-        self.settings = get_settings()
-        self.uid_serializer = uid_serializer or URLSafeTimedSerializer(
-            self.settings.security.secret_key,
-            salt=f"{self.settings.security.salt}-uid",
-        )
+        # Separate salts keep a token of one kind from validating as the other
+        self.uid_serializer = uid_serializer or _build_serializer("uid")
+        self.state_serializer = state_serializer or _build_serializer("oauth-state")
 
-        self.state_serializer = state_serializer or URLSafeTimedSerializer(
-            self.settings.security.secret_key,
-            salt=f"{self.settings.security.salt}-oauth-state",
-        )
-        self._max_age = self.settings.cookie.max_age if max_age is None else max_age
+        self.settings = get_settings()
+        self.max_age = max_age if max_age is not None else self.settings.cookie.max_age
+
+    # ---- user id tokens ----
+
+    def dump_uid(self, data):
+        """Serialize raw data with the user id serializer."""
+        return self.uid_serializer.dumps(data)
 
     def sign_user_id(self, user_id: int) -> str:
         """Generate a signed payload for the given user id."""
         logger.debug("Signing user_id: %s", user_id)
-        return self.uid_serializer.dumps({"uid": int(user_id)})
+        return self.dump_uid({"uid": int(user_id)})
 
     def extract_user_id(self, token: str) -> int | None:
         """Validate and decode a signed user id token."""
         logger.debug("Extracting user_id from token")
         try:
-            data = self.uid_serializer.loads(token, max_age=self._max_age)
+            data = self.uid_serializer.loads(token, max_age=self.max_age)
         except (BadSignature, BadTimeSignature):
             logger.exception("Failed to extract user_id: invalid or expired token")
             return None
@@ -53,16 +63,22 @@ class SignedTokenService:
             logger.exception("Failed to extract user_id: invalid uid in data")
             return None
 
+    # ---- OAuth state tokens ----
+
+    def dump_state(self, data):
+        """Serialize raw data with the OAuth state serializer."""
+        return self.state_serializer.dumps(data)
+
     def sign_state_token(self, state_nonce: str) -> str:
         """Sign and serialize an OAuth state nonce."""
         logger.debug("Signing state nonce")
-        return self.state_serializer.dumps({"nonce": state_nonce})
+        return self.dump_state({"nonce": state_nonce})
 
     def verify_state_token(self, token: str) -> str | None:
         """Validate a signed OAuth state token and return the embedded nonce."""
         logger.debug("Verifying state token")
         try:
-            data = self.state_serializer.loads(token, max_age=self._max_age)
+            data = self.state_serializer.loads(token, max_age=self.max_age)
         except (BadSignature, BadTimeSignature):
             logger.exception("Failed to verify state token: invalid or expired")
             return None
@@ -74,35 +90,6 @@ class SignedTokenService:
         return nonce
 
 
-# --- Legacy compatibility layer: thin wrappers, no logic of their own ---
-
-_default_service = SignedTokenService()
-
-
-def sign_user_id(user_id: int) -> str:
-    """Generate a signed payload for the given user id."""
-    return _default_service.sign_user_id(user_id)
-
-
-def extract_user_id(token: str) -> int | None:
-    """Validate and decode a signed user id token."""
-    return _default_service.extract_user_id(token)
-
-
-def sign_state_token(state_nonce: str) -> str:
-    """Sign and serialize an OAuth state nonce."""
-    return _default_service.sign_state_token(state_nonce)
-
-
-def verify_state_token(token: str) -> str | None:
-    """Validate a signed OAuth state token and return the embedded nonce."""
-    return _default_service.verify_state_token(token)
-
-
 __all__ = [
     "SignedTokenService",
-    "sign_user_id",
-    "extract_user_id",
-    "sign_state_token",
-    "verify_state_token",
 ]

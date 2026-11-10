@@ -27,7 +27,7 @@ from werkzeug.wrappers import Response as WerkzeugResponse
 
 from ...config import get_settings
 from ...services.auth.flow import AuthFlowService
-from ...services.auth.utils import set_logged_in_user
+from ...services.auth.current_user_resolver import set_logged_in_user
 from .rate_limit import callback_rate_limiter, login_rate_limiter
 
 logger = logging.getLogger(__name__)

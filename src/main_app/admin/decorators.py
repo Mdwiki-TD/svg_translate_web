@@ -15,7 +15,7 @@ from flask import (
 from flask.typing import ResponseReturnValue
 
 from ..services.auth.current_user import CurrentUser
-from ..services.auth.utils import get_current_user
+from ..services.auth.current_user_resolver import get_current_user
 
 logger = logging.getLogger(__name__)
 

@@ -175,7 +175,7 @@ class AuthFlowService:
 
         # 5. Resolve / create user record
         try:
-            user_id = self._resolve_user_id(username)
+            user_id = self.resolve_user_id(username)
         except Exception as exc:
             logger.exception("Failed to resolve user ID: %s", exc)
             return CallbackResult(
@@ -239,7 +239,7 @@ class AuthFlowService:
             )
         return None
 
-    def _resolve_user_id(self, username: str) -> int:
+    def resolve_user_id(self, username: str) -> int:
         """Return the user_id for ``username``, creating a UserRecord if needed."""
         record = self.user_svc.ensure_exists(username)
         return record.user_id

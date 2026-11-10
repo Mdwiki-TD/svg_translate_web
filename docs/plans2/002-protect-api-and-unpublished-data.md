@@ -99,7 +99,7 @@ routes = [
 
 In `src/main_app/public/api_routes.py`:
 
-1. Add import: `from .auth.utils import user_login_required`
+1. Add import: `from .auth.current_user_resolver import user_login_required`
 2. Wrap the three template endpoints with `user_login_required`:
 
 ```python
