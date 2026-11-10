@@ -4,9 +4,14 @@ Unit tests for create_owid_pages/categoriez_extract.py module.
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext import (
-    merge_categories,
+from src.main_app.utils.new_wikitext.categories import (
+    CategoryMerger,
 )
+
+
+def merge_categories(old_text: str, new_text: str) -> str:
+    """Append categories found in old_text to new_text if they are not already present."""
+    return CategoryMerger().merge_categories(old_text, new_text)
 
 
 class TestMergeCategoriesWithSpecialChars:

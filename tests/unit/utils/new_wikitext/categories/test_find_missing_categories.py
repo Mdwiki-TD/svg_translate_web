@@ -4,10 +4,24 @@ Unit tests for create_owid_pages/categoriez_extract.py module.
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext import (
-    create_category_link_from_str,
-    find_missing_categories,
+from src.main_app.utils.new_wikitext.categories import (
+    CategoryExtractor,
+    CategoryLink,
+    CategoryMerger,
 )
+
+
+def create_category_link_from_str(str_link: str) -> CategoryLink:
+    """Create a CategoryLink object from a string representation of a wiki link."""
+    return CategoryExtractor().create_category_link_from_str(str_link)
+
+
+def find_missing_categories(
+    target_categories: list[CategoryLink],
+    base_categories: list[CategoryLink],
+) -> list[CategoryLink]:
+    """Identify categories in 'base_categories' that are missing from 'target_categories'."""
+    return CategoryMerger().find_missing_categories(target_categories, base_categories)
 
 
 class TestFindMissingCategories:

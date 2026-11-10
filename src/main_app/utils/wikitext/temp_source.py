@@ -16,7 +16,7 @@ def check_url(url: str) -> bool:
     return True
 
 
-def _find_template_source_2(wikitext: str) -> str:
+def find_from_bullet_line(wikitext: str) -> str:
     """
     Extract OWID source URL from wikitext.
 
@@ -46,7 +46,7 @@ def _find_template_source_2(wikitext: str) -> str:
     return url
 
 
-def _find_template_source(wikitext: str) -> str:
+def find_from_source_line(wikitext: str) -> str:
     """
     Extract OWID source URL from wikitext.
 
@@ -78,7 +78,7 @@ def _find_template_source(wikitext: str) -> str:
 
 
 def find_template_source(wikitext: str, check_grapher: bool = True) -> str:
-    url = _find_template_source(wikitext) or _find_template_source_2(wikitext)
+    url = find_from_source_line(wikitext) or find_from_bullet_line(wikitext)
     if check_grapher and "/grapher/" not in url:
         return ""
     return url

@@ -1,20 +1,7 @@
 from types import SimpleNamespace
 
-import pytest
-import wikitextparser as wtp
 
 from src.main_app.utils.new_wikitext.categories import CategoryExtractor, CategoryLink, CategoryMerger
-
-
-def _wtp_works() -> bool:
-    try:
-        wtp.parse("a")
-    except RuntimeError:
-        return False
-    return True
-
-
-needs_wtp = pytest.mark.skipif(not _wtp_works(), reason="real wikitextparser is required")
 
 
 def _cat(target: str) -> CategoryLink:
@@ -41,7 +28,6 @@ class TestCategoryExtractorCapitalize:
         assert CategoryExtractor().capitalize_category("nocolon") == "nocolon"
 
 
-@needs_wtp
 class TestCategoryExtractorExtract:
     """Tests for ``CategoryExtractor.extract_categories``."""
 
@@ -94,7 +80,6 @@ class TestCategoryMergerMergeIntoText:
         assert result == "text\n[[Category:A]]"
 
 
-@needs_wtp
 class TestCategoryMergerSort:
     """Tests for ``CategoryMerger.sort_categories``."""
 

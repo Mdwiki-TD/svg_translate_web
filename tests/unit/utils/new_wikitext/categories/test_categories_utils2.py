@@ -4,15 +4,44 @@ Unit tests for src/main_app/utils/wikitext/categories_utils.py module.
 
 from __future__ import annotations
 
-from src.main_app.utils.new_wikitext import CategoryLink
-from src.main_app.utils.wikitext import (
-    capitalize_category,
-    create_category_link_from_str,
-    extract_categories,
-    find_missing_categories,
-    merge_categories,
-    sort_categories,
+from src.main_app.utils.new_wikitext.categories import (
+    CategoryExtractor,
+    CategoryLink,
+    CategoryMerger,
 )
+
+
+def capitalize_category(str_category) -> str:
+    """Capitalize the first letter of each part in a category string separated by a colon."""
+    return CategoryExtractor().capitalize_category(str_category)
+
+
+def create_category_link_from_str(str_link: str) -> CategoryLink:
+    """Create a CategoryLink object from a string representation of a wiki link."""
+    return CategoryExtractor().create_category_link_from_str(str_link)
+
+
+def extract_categories(wikitext: str) -> list[CategoryLink]:
+    """Extract category WikiLinks from the given wikitext."""
+    return CategoryExtractor().extract_categories(wikitext)
+
+
+def find_missing_categories(
+    target_categories: list[CategoryLink],
+    base_categories: list[CategoryLink],
+) -> list[CategoryLink]:
+    """Identify categories in 'base_categories' that are missing from 'target_categories'."""
+    return CategoryMerger().find_missing_categories(target_categories, base_categories)
+
+
+def merge_categories(old_text: str, new_text: str) -> str:
+    """Append categories found in old_text to new_text if they are not already present."""
+    return CategoryMerger().merge_categories(old_text, new_text)
+
+
+def sort_categories(wikitext: str) -> str:
+    """Move all categories to the end of the text, sorted."""
+    return CategoryMerger().sort_categories(wikitext)
 
 
 class TestCapitalizeCategory:

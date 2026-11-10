@@ -16,7 +16,8 @@ class BeforeMarkerInserter:
     LICENSE_HEADER_PATTERN = r"==\s*\{\{\s*int:license-header\s*\}\}\s*=="
     CATEGORY_PATTERN = r"\[\[\s*category:"
 
-    def add_before(self, text: str, new_text: str, search_text: str) -> str:
+    @staticmethod
+    def add_before(text: str, new_text: str, search_text: str) -> str:
         """Insert ``new_text`` before the first match of ``search_text``."""
         res = re.search(search_text, text, flags=re.I | re.M)
         if res:
@@ -24,12 +25,13 @@ class BeforeMarkerInserter:
             text = text[:start].rstrip() + "\n" + new_text + "\n\n" + text[start:].lstrip()
         return text
 
-    def insert_before_methods(self, text: str, other_versions_text: str) -> str:
+    @classmethod
+    def insert_before_methods(cls, text: str, other_versions_text: str) -> str:
         """Insert before the license header, or before the first category."""
-        modified_text = self.add_before(text, other_versions_text, self.LICENSE_HEADER_PATTERN)
+        modified_text = cls.add_before(text, other_versions_text, cls.LICENSE_HEADER_PATTERN)
 
         if modified_text == text:
-            modified_text = self.add_before(text, other_versions_text, self.CATEGORY_PATTERN)
+            modified_text = cls.add_before(text, other_versions_text, cls.CATEGORY_PATTERN)
         return modified_text
 
 

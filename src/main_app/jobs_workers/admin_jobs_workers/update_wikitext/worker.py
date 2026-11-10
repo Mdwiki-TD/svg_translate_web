@@ -9,7 +9,7 @@ import logging
 from mwclient.client import Site
 
 from ....database.services import ChartsAndTemplatesService, TemplateService
-from ....utils.wikitext import get_titles
+from ....utils.wikitext.legacy import get_titles
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from ...public_jobs_workers.copy_svg_langs.steps import extract_text_step

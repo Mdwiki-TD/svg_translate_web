@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 class InformationAuthorUpdater:
     """Sets the Author value of the first ``{{Information}}`` template."""
 
-    def update_information_author(self, text: str, author_citation: str | None) -> str:
+    @staticmethod
+    def update_information_author(text: str, author_citation: str | None) -> str:
         """Replace the Author value in the first ``{{Information}}`` template.
 
         Args:
@@ -68,12 +69,17 @@ class OriginalFileTextUpdater:
         self.inserter = inserter or BeforeMarkerInserter()
         self.other_versions = other_versions or OtherVersionsUpdater()
 
-    def append_image_extracted_template(self, cropped_file_name: str, text: str) -> str:
+    @staticmethod
+    def append_image_extracted_template(cropped_file_name: str, text: str) -> str:
         """If the page already has an extracted-image template, append the cropped file to it."""
         if cropped_file_name.lower() in text.replace("_", " ").lower():
             return text
         cropped_file_name = cropped_file_name.removeprefix("File:")
-        match = re.search(r"{{\s*" + self.TEMPLATE_NAME_REGEX + r"\s*(\s*|\|[^\}]+)}}", text, flags=re.I | re.M)
+        match = re.search(
+            r"{{\s*" + OriginalFileTextUpdater.TEMPLATE_NAME_REGEX + r"\s*(\s*|\|[^\}]+)}}",
+            text,
+            flags=re.I | re.M,
+        )
         if not match:
             return text
 

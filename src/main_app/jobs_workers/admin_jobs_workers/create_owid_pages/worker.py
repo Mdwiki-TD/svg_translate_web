@@ -12,7 +12,7 @@ from ....api_services import MwClientPage, is_pages_exists
 from ....data import get_slug_categories
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
-from ....utils.wikitext import merge_categories, sort_categories
+from ....utils.wikitext.legacy import merge_categories, sort_categories
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .objects import CreateOwidPagesWorkerObject, OneStep, TemplateProcessingInfo

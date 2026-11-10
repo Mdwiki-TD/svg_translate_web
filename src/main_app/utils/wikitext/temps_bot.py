@@ -11,7 +11,7 @@ from typing import Any
 
 import wikitextparser as wtp
 
-from .owid_sliders_rcs.main_file import find_main_title
+from .legacy import find_main_title
 
 
 def get_titles_from_wikilinks(text: str) -> list:

@@ -9,7 +9,7 @@ from typing import Any
 
 import wikitextparser as wtp
 
-from .owid_gallery import MainTitleFinder
+from .main_title_finder import MainTitleFinder
 
 
 class SvgFilesCollector:

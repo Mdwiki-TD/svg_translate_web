@@ -19,7 +19,7 @@ from ....database.services import (
     ViewsService,
 )
 from ....database.templates_utils import extract_slug
-from ....utils.wikitext import (
+from ....utils.wikitext.legacy import (
     count_svg_files,
     find_main_title,
     find_newest_world_file,

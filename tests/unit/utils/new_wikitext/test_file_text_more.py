@@ -4,10 +4,7 @@ Tests for src/main_app/utils/wikitext/files_text.py
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext import (
-    append_image_extracted_template,
-    update_original_file_text,
-)
+from src.main_app.utils.new_wikitext.file_text import OriginalFileTextUpdater
 
 
 class TestAppendImageExtractedTemplate:
@@ -16,66 +13,66 @@ class TestAppendImageExtractedTemplate:
     def test_append_to_existing_template(self) -> None:
         """Test appending a file to an existing {{Image extracted}} template."""
         text = "{{Image extracted|1=File1.svg|2=File2.svg}}"
-        result = append_image_extracted_template("File3.svg", text)
+        result = OriginalFileTextUpdater.append_image_extracted_template("File3.svg", text)
         assert "|3=File3.svg}}" in result
 
     def test_file_already_exists_in_text(self) -> None:
         """Test that function returns original text if file already exists."""
         text = "{{Image extracted|1=File1.svg|2=File2.svg}}"
-        result = append_image_extracted_template("File2.svg", text)
+        result = OriginalFileTextUpdater.append_image_extracted_template("File2.svg", text)
         assert result == text
 
     def test_file_already_exists_case_insensitive(self) -> None:
         """Test that file existence check is case-insensitive."""
         text = "{{Image extracted|1=file1.svg}}"
-        result = append_image_extracted_template("FILE1.SVG", text)
+        result = OriginalFileTextUpdater.append_image_extracted_template("FILE1.SVG", text)
         assert result == text
 
     def test_file_already_exists_with_underscores(self) -> None:
         """Test that file existence check handles underscores."""
         text = "{{Image extracted|1=File_One.svg}}"
-        result = append_image_extracted_template("File One.svg", text)
+        result = OriginalFileTextUpdater.append_image_extracted_template("File One.svg", text)
         assert result == text
 
     def test_no_template_returns_original(self) -> None:
         """Test that function returns original text if no template found."""
         text = "Some text without any template"
-        result = append_image_extracted_template("File3.svg", text)
+        result = OriginalFileTextUpdater.append_image_extracted_template("File3.svg", text)
         assert result == text
 
     def test_template_variations_image_extracted(self) -> None:
         """Test with {{Image extracted}} template variation."""
         text = "{{Image extracted|1=File1.svg}}"
-        result = append_image_extracted_template("File2.svg", text)
+        result = OriginalFileTextUpdater.append_image_extracted_template("File2.svg", text)
         assert "|2=File2.svg}}" in result
 
     def test_template_variations_extracted_image(self) -> None:
         """Test with {{Extracted image}} template variation."""
         text = "{{Extracted image|1=File1.svg}}"
-        result = append_image_extracted_template("File2.svg", text)
+        result = OriginalFileTextUpdater.append_image_extracted_template("File2.svg", text)
         assert "|2=File2.svg}}" in result
 
     def test_template_variations_cropped_version(self) -> None:
         """Test with {{Cropped version}} template variation."""
         text = "{{Cropped version|1=File1.svg}}"
-        result = append_image_extracted_template("File2.svg", text)
+        result = OriginalFileTextUpdater.append_image_extracted_template("File2.svg", text)
         assert "|2=File2.svg}}" in result
 
     def test_template_with_spaces(self) -> None:
         """Test template with extra spaces."""
         text = "{{ Image extracted | 1=File1.svg }}"
-        result = append_image_extracted_template("File2.svg", text)
+        result = OriginalFileTextUpdater.append_image_extracted_template("File2.svg", text)
         assert "|2=File2.svg" in result
 
     def test_file_name_with_file_prefix(self) -> None:
         """Test file name with 'File:' prefix is handled correctly."""
         text = "{{Image extracted|1=File1.svg}}"
-        result = append_image_extracted_template("File:File2.svg", text)
+        result = OriginalFileTextUpdater.append_image_extracted_template("File:File2.svg", text)
         assert "|2=File2.svg}}" in result
 
     def test_empty_text(self) -> None:
         """Test with empty text."""
-        result = append_image_extracted_template("File1.svg", "")
+        result = OriginalFileTextUpdater.append_image_extracted_template("File1.svg", "")
         assert result == ""
 
 
@@ -85,37 +82,37 @@ class TestUpdateOriginalFileText:
     def test_file_already_in_text(self) -> None:
         """Test that function returns original text if file already exists."""
         text = "Some text with File:Test.svg already present"
-        result = update_original_file_text("File:Test.svg", text)
+        result = OriginalFileTextUpdater().update_original_file_text("File:Test.svg", text)
         assert result == text
 
     def test_file_already_in_text_case_insensitive(self) -> None:
         """Test that file existence check is case-insensitive."""
         text = "Some text with File:test.svg already present"
-        result = update_original_file_text("File:TEST.SVG", text)
+        result = OriginalFileTextUpdater().update_original_file_text("File:TEST.SVG", text)
         assert result == text
 
     def test_adds_image_extracted_template(self) -> None:
         """Test that function adds {{Image extracted}} template."""
         text = "{{Information|description=Test}}"
-        result = update_original_file_text("File:Cropped.svg", text)
+        result = OriginalFileTextUpdater().update_original_file_text("File:Cropped.svg", text)
         assert "{{Image extracted|1=Cropped.svg}}" in result
 
     def test_file_prefix_removed(self) -> None:
         """Test that 'File:' prefix is removed from cropped file name."""
         text = "{{Information}}"
-        result = update_original_file_text("File:Test.svg", text)
+        result = OriginalFileTextUpdater().update_original_file_text("File:Test.svg", text)
         assert "Test.svg" in result
         assert "File:Test.svg" not in result.split("|1=")[1] if "|1=" in result else True
 
     def test_underscores_replaced_with_spaces(self) -> None:
         """Test that underscores in file name are replaced with spaces."""
         text = "{{Information}}"
-        result = update_original_file_text("File:Test_File.svg", text)
+        result = OriginalFileTextUpdater().update_original_file_text("File:Test_File.svg", text)
         assert "Test File.svg" in result
 
     def test_empty_text(self) -> None:
         """Test with empty text."""
-        result = update_original_file_text("File:Test.svg", "")
+        result = OriginalFileTextUpdater().update_original_file_text("File:Test.svg", "")
         # Empty text with no templates returns empty string
         assert result == ""
 
@@ -174,7 +171,7 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
 
 [[Category:Essar Steel Algoma]]"""
 
-        result = update_original_file_text("My new file.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("My new file.jpg", old_text)
         assert result == new_text
 
     def testnotduplicateinsert(self):
@@ -187,7 +184,9 @@ Sault-S<sup>te</sup>-Marie, Ontario, Canada<br>
         |other versions ={{Image extracted|1=Share-with-drug-use-disorders,World,2021 (cropped).svg}}
         }}"""
 
-        result = update_original_file_text("File:Share-with-drug-use-disorders,World,2021_(cropped).svg", oldText)
+        result = OriginalFileTextUpdater().update_original_file_text(
+            "File:Share-with-drug-use-disorders,World,2021_(cropped).svg", oldText
+        )
         assert result == oldText
 
 
@@ -214,19 +213,21 @@ class TestUpdateOriginalFileTextExtensive:
     def test_returns_unchanged_when_filename_already_present(self):
         """Text already contains the exact filename - must not be modified."""
         text = """{{Information\n|other_versions={{Image extracted|1=My cropped file.jpg}}\n}}"""
-        result = update_original_file_text("My cropped file.jpg", text)
+        result = OriginalFileTextUpdater().update_original_file_text("My cropped file.jpg", text)
         assert result == text
 
     def test_returns_unchanged_when_filename_with_file_prefix_already_present(self):
         """'File:' prefix is stripped before the duplicate check."""
         text = """{{Information\n|other_versions={{Image extracted|1=My cropped file.jpg}}\n}}"""
-        result = update_original_file_text("File:My cropped file.jpg", text)
+        result = OriginalFileTextUpdater().update_original_file_text("File:My cropped file.jpg", text)
         assert result == text
 
     def test_returns_unchanged_when_filename_with_underscores_already_present(self):
         """Underscores in the input are normalised to spaces for the duplicate check."""
         text = """{{Information\n|other_versions={{Image extracted|1=Share-with-drug-use-disorders,World,2021 (cropped).svg}}\n}}"""
-        result = update_original_file_text("File:Share-with-drug-use-disorders,World,2021_(cropped).svg", text)
+        result = OriginalFileTextUpdater().update_original_file_text(
+            "File:Share-with-drug-use-disorders,World,2021_(cropped).svg", text
+        )
         assert result == text
 
     def test_no_duplicate_insert_when_already_in_other_versions(self):
@@ -240,7 +241,9 @@ class TestUpdateOriginalFileTextExtensive:
         |other versions ={{Image extracted|1=Share-with-drug-use-disorders,World,2021 (cropped).svg}}
         }}"""
 
-        result = update_original_file_text("File:Share-with-drug-use-disorders,World,2021_(cropped).svg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text(
+            "File:Share-with-drug-use-disorders,World,2021_(cropped).svg", old_text
+        )
         assert result == old_text
 
     # ------------------------------------------------------------------
@@ -252,7 +255,7 @@ class TestUpdateOriginalFileTextExtensive:
         old_text = (
             """{{Information\n|description=Some desc\n|other_versions={{Image extracted|Existing crop.jpg}}\n}}"""
         )
-        result = update_original_file_text("New crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|Existing crop.jpg|2=New crop.jpg}}" in result
 
     def test_appends_to_existing_image_extracted_with_two_args(self):
@@ -260,20 +263,20 @@ class TestUpdateOriginalFileTextExtensive:
         old_text = (
             """{{Information\n|description=Some desc\n|other_versions={{Image extracted|First.jpg|Second.jpg}}\n}}"""
         )
-        result = update_original_file_text("Third.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("Third.jpg", old_text)
         assert "{{Image extracted|First.jpg|Second.jpg|3=Third.jpg}}" in result
 
     def test_appends_to_extracted_images_template_variant(self):
         """Template aliases like 'Extracted images' are also recognised."""
         old_text = """{{Information\n|other_versions={{Extracted images|Foo.jpg}}\n}}"""
-        result = update_original_file_text("Bar.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("Bar.jpg", old_text)
         assert "Bar.jpg" in result
         assert old_text != result
 
     def test_file_prefix_stripped_when_appending_to_image_extracted(self):
         """'File:' prefix must be stripped from the filename before appending."""
         old_text = """{{Information\n|other_versions={{Image extracted|Existing.jpg}}\n}}"""
-        result = update_original_file_text("File:New crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("File:New crop.jpg", old_text)
         assert "New crop.jpg" in result
         assert "File:New crop.jpg" not in result
 
@@ -294,7 +297,7 @@ class TestUpdateOriginalFileTextExtensive:
 
 [[Category:Some Category]]"""
 
-        result = update_original_file_text("My new file.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("My new file.jpg", old_text)
         assert "{{Image extracted|1=My new file.jpg}}" in result
         # Other parameters must remain intact
         assert "|description = Some description" in result
@@ -303,7 +306,7 @@ class TestUpdateOriginalFileTextExtensive:
     def test_appends_to_non_empty_other_versions_without_image_extracted(self):
         """Non-empty |other_versions| without Image extracted gets the template appended."""
         old_text = """{{Information\n|description=Some desc\n|other_versions=[[File:Related.jpg|thumb]]\n}}"""
-        result = update_original_file_text("New crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
 
     # ------------------------------------------------------------------
@@ -313,7 +316,7 @@ class TestUpdateOriginalFileTextExtensive:
     def test_creates_other_versions_param_when_information_has_none(self):
         """{{Information}} without any |other_versions| gets the param added."""
         old_text = """{{Information\n|description={{en|1=Some description}}\n|author=Test Author\n|date=2022\n|source=https://example.com\n|permission=CC-BY\n}}"""
-        result = update_original_file_text("New crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
         assert result != old_text
 
@@ -327,7 +330,7 @@ class TestUpdateOriginalFileTextExtensive:
 
 [[Category:Old photos]]"""
 
-        result = update_original_file_text("New crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
         license_pos = result.index("{{int:license-header}}")
         inserted_pos = result.index("{{Image extracted|1=New crop.jpg}}")
@@ -336,7 +339,7 @@ class TestUpdateOriginalFileTextExtensive:
     def test_license_header_match_is_case_insensitive(self):
         """License-header section marker is matched case-insensitively."""
         old_text = """== {{int:License-Header}} ==\n{{PD-self}}"""
-        result = update_original_file_text("New crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
 
     # ------------------------------------------------------------------
@@ -349,7 +352,7 @@ class TestUpdateOriginalFileTextExtensive:
 
 [[Category:Photographs]]"""
 
-        result = update_original_file_text("New crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
         cat_pos = result.index("[[Category:")
         inserted_pos = result.index("{{Image extracted|1=New crop.jpg}}")
@@ -360,7 +363,7 @@ class TestUpdateOriginalFileTextExtensive:
         old_text = """Some text.
 
 [[category:Photographs]]"""
-        result = update_original_file_text("New crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
 
     # ------------------------------------------------------------------
@@ -370,12 +373,12 @@ class TestUpdateOriginalFileTextExtensive:
     def test_returns_unchanged_when_no_anchor_found(self):
         """Text with no {{Information}}, no license header, no category → unchanged."""
         old_text = "Just a plain text without any wiki markup."
-        result = update_original_file_text("New crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("New crop.jpg", old_text)
         assert result == old_text
 
     def test_returns_unchanged_for_empty_string(self):
         """Empty input string is returned unchanged."""
-        result = update_original_file_text("New crop.jpg", "")
+        result = OriginalFileTextUpdater().update_original_file_text("New crop.jpg", "")
         assert result == ""
 
     # ------------------------------------------------------------------
@@ -385,21 +388,21 @@ class TestUpdateOriginalFileTextExtensive:
     def test_underscores_in_filename_are_converted_to_spaces(self):
         """Underscores in the input filename are replaced with spaces in the output."""
         old_text = """{{Information\n|description=Some desc\n|other_versions=\n}}"""
-        result = update_original_file_text("My_new_file.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("My_new_file.jpg", old_text)
         assert "My new file.jpg" in result
         assert "My_new_file.jpg" not in result
 
     def test_file_prefix_stripped_in_output(self):
         """'File:' prefix must not appear in the inserted template text."""
         old_text = """{{Information\n|description=Some desc\n|other_versions=\n}}"""
-        result = update_original_file_text("File:New crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("File:New crop.jpg", old_text)
         assert "{{Image extracted|1=New crop.jpg}}" in result
         assert "File:New crop.jpg" not in result
 
     def test_file_prefix_and_underscores_together(self):
         """Both normalisation rules apply simultaneously."""
         old_text = """{{Information\n|description=Some desc\n|other_versions=\n}}"""
-        result = update_original_file_text("File:My_new_crop.jpg", old_text)
+        result = OriginalFileTextUpdater().update_original_file_text("File:My_new_crop.jpg", old_text)
         # Filename must appear without the File: prefix and without underscores
         assert "{{Image extracted|1=My new crop.jpg}}" in result
         assert "File:My_new_crop.jpg" not in result

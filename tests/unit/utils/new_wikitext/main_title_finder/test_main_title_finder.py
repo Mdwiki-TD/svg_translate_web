@@ -1,28 +1,22 @@
-# test_wikitext_processing.py
-
-"""
-Pytest test suite for:
-- find_main_title
-
-"""
-
 import pytest
 
-from src.main_app.utils.wikitext import find_main_title
+from src.main_app.utils.new_wikitext.main_title_finder import MainTitleFinder
+
+GALLERY = (
+    "{{owidslidersrcs|id=gallery\n"
+    "|gallery-World=\n"
+    "File:a, World, 1950.svg!year=1950\n"
+    "File:a, World, 1951.svg!year=1951\n"
+    "}}"
+)
 
 
-@pytest.fixture
-def sample_with_svglanguages_only() -> str:
-    """Wikitext with only SVGLanguages main title."""
-    return "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\nSome other text...\n"
-
-
-# ---------- Tests for find_main_title ----------
-
-
-def test_find_main_title_svglanguages(sample_with_svglanguages_only):
+def test_find_main_title_svglanguages():
     """SVGLanguages should be parsed and returned as-is except underscores replaced with spaces."""
-    got = find_main_title(sample_with_svglanguages_only)
+    sample_svglanguages_only = (
+        "{{SVGLanguages|parkinsons-disease-prevalence-ihme,World,1990.svg}}\nSome other text...\n"
+    )
+    got = MainTitleFinder().find_main_title(sample_svglanguages_only)
     assert got == "parkinsons-disease-prevalence-ihme,World,1990.svg".replace("_", " ")
 
 
@@ -34,7 +28,7 @@ def test_find_main_title_prefers_svglanguages_over_translate():
         "*'''Translate''': https://svgtranslate.toolforge.org/File:another-title,World,2005.svg\n"
     )
 
-    got = find_main_title(with_both_titles)
+    got = MainTitleFinder().find_main_title(with_both_titles)
     assert got == "some_main_title,World,2010.svg".replace("_", " ")
 
 
@@ -52,7 +46,7 @@ def test_find_main_title_prefers_svglanguages_over_translate():
 )
 def test_find_main_title_variants(tpl, expected):
     """Whitespace and case variations are handled."""
-    assert find_main_title(tpl) == expected
+    assert MainTitleFinder().find_main_title(tpl) == expected
 
 
 def test_find_main_title_new():
@@ -72,7 +66,36 @@ def test_find_main_title_new():
 *'''Source''': https://ourworldindata.org/grapher/military-spending-as-a-share-of-gdp-sipri
 *'''Translation''': https://svgtranslate.toolforge.org/File:Military-spending-as-a-share-of-gdp-sipri,World,1949.svg
 {{-}}"""
-    assert find_main_title(text) == "File:Military-spending-as-a-share-of-gdp-sipri,World,1949.svg"
+    assert MainTitleFinder().find_main_title(text) == "File:Military-spending-as-a-share-of-gdp-sipri,World,1949.svg"
+
+
+class TestMainTitleFinderUrl:
+    """Tests for the svgtranslate URL matchers of ``MainTitleFinder``."""
+
+    def test_new_matcher_returns_decoded_file_path(self):
+        text = "*'''Translate''': https://svgtranslate.toolforge.org/File:Foo_bar%2C_World.svg"
+        assert MainTitleFinder().match_main_title_from_url_new(text) == "File:Foo_bar,_World.svg"
+
+    def test_new_matcher_rejects_non_svg(self):
+        text = "*'''Translate''': https://svgtranslate.toolforge.org/File:a.png"
+        assert MainTitleFinder().match_main_title_from_url_new(text) is None
+
+    def test_old_matcher_requires_full_line(self):
+        text = "*'''Translation''': https://svgtranslate.toolforge.org/File:A_b,_World.svg"
+        assert MainTitleFinder().match_main_title_from_url(text) == "File:A_b,_World.svg"
+
+
+class TestMainTitleFinderFind:
+    """Tests for ``MainTitleFinder.find_main_title``."""
+
+    def test_reads_svglanguages_template(self):
+        assert MainTitleFinder().find_main_title("{{SVGLanguages|my_file,World,1990.svg}}") == "my file,World,1990.svg"
+
+    def test_reads_first_gallery_file(self):
+        assert MainTitleFinder().find_main_title(GALLERY) == "File:a, World, 1950.svg"
+
+    def test_remove_prefix(self):
+        assert MainTitleFinder().find_main_title(GALLERY, remove_prefix=True) == "a, World, 1950.svg"
 
 
 class TestFindMainTitle:
@@ -85,7 +108,7 @@ class TestFindMainTitle:
         *'''Translate''': https://svgtranslate.toolforge.org/File:from-url.svg
         {{owidslidersrcs|gallery-World=File:from-owid.svg!year=2020}}
         """
-        result = find_main_title(text)
+        result = MainTitleFinder().find_main_title(text)
         assert result == "from-template.svg"
 
     def test_fallback_to_url(self) -> None:
@@ -96,7 +119,7 @@ class TestFindMainTitle:
         *'''Translate''': https://svgtranslate.toolforge.org/File:from-url.svg
         {{owidslidersrcs|gallery-World=File:from-owid.svg!year=2020}}
         """
-        result = find_main_title(text)
+        result = MainTitleFinder().find_main_title(text)
         assert result == "File:from-owid.svg"
 
     def test_fallback_to_owidslidersrcs(self) -> None:
@@ -104,28 +127,28 @@ class TestFindMainTitle:
         text = """
         {{owidslidersrcs|gallery-World=File:from-owid.svg!year=2020}}
         """
-        result = find_main_title(text)
+        result = MainTitleFinder().find_main_title(text)
         assert result == "File:from-owid.svg"
 
     def test_no_main_title_found(self) -> None:
         """Test when no main title can be found."""
         text = "Some text without any title sources"
-        result = find_main_title(text)
+        result = MainTitleFinder().find_main_title(text)
         assert result is None
 
     def test_empty_text(self) -> None:
         """Test with empty text."""
-        result = find_main_title("")
+        result = MainTitleFinder().find_main_title("")
         assert result is None
 
     def test_underscores_converted_to_spaces(self) -> None:
         """Test that underscores are converted to spaces in result."""
         text = "{{SVGLanguages|test_file_name.svg}}"
-        result = find_main_title(text)
+        result = MainTitleFinder().find_main_title(text)
         assert result == "test file name.svg"
 
     def test_whitespace_stripped(self) -> None:
         """Test that whitespace is stripped from result."""
         text = "{{SVGLanguages|  test.svg  }}"
-        result = find_main_title(text)
+        result = MainTitleFinder().find_main_title(text)
         assert result == "test.svg"

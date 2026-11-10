@@ -4,9 +4,7 @@ Edge Cases Tests for src/main_app/utils/wikitext/owid_sliders_rcs/last_world_fil
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext import (
-    match_newest_world_file,
-)
+from src.main_app.utils.new_wikitext.owid_gallery import SlidersGalleryReader
 
 # Template:OWID/Monthly temperature anomalies
 CASE_1_WIKITEXT = """
@@ -801,21 +799,21 @@ File:youth mortality rate, World, 1953.svg!year=1953
 
 class TestMatchLastWorldFileEdgeCases:
     def test_basic(self):
-        result = match_newest_world_file(wikitext)
+        result = SlidersGalleryReader.match_newest_world_file(wikitext)
         expected = "File:youth mortality rate, World, 1953.svg"
         assert result == expected
 
     def test_case_1(self):
-        result = match_newest_world_file(CASE_1_WIKITEXT)
+        result = SlidersGalleryReader.match_newest_world_file(CASE_1_WIKITEXT)
         expected = "File:monthly temperature anomalies, World, Sep 15, 1983.svg"
         assert result == expected
 
     def test_case_2(self):
-        result = match_newest_world_file(CASE_2_WIKITEXT)
+        result = SlidersGalleryReader.match_newest_world_file(CASE_2_WIKITEXT)
         expected = "File:Daily tests per thousand people smoothed 7 day, World, Jun 23, 2022.svg"
         assert result == expected
 
     def test_case_3(self):
-        result = match_newest_world_file(CASE_3_WIKITEXT)
+        result = SlidersGalleryReader.match_newest_world_file(CASE_3_WIKITEXT)
         expected = "File:average monthly surface temperature, World, Dec 15, 2025.svg"
         assert result == expected

@@ -4,9 +4,14 @@ Unit tests for create_owid_pages/categoriez_extract.py module.
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext import (
-    capitalize_category,
+from src.main_app.utils.new_wikitext.categories import (
+    CategoryExtractor,
 )
+
+
+def capitalize_category(str_category) -> str:
+    """Capitalize the first letter of each part in a category string separated by a colon."""
+    return CategoryExtractor().capitalize_category(str_category)
 
 
 class TestCapitalizeCategory:

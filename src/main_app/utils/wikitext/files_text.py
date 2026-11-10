@@ -8,7 +8,7 @@ import logging
 import re
 
 from ..new_wikitext.other_versions import add_other_versions_new
-from .before_methods import insert_before_methods
+from .legacy import insert_before_methods
 
 logger = logging.getLogger(__name__)
 

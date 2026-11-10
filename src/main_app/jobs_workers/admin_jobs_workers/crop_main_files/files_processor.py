@@ -292,7 +292,7 @@ class OneFileProcessor:
             return False
 
         author_citation = self.charts_and_tmps_service.get_author_citation(template)
-        new_wikitext = InformationAuthorUpdater().update_information_author(
+        new_wikitext = InformationAuthorUpdater.update_information_author(
             text=cropped_file_wikitext,
             author_citation=author_citation,
         )

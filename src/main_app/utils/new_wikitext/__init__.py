@@ -6,8 +6,9 @@ from .categories import CategoryExtractor, CategoryLink, CategoryMerger
 from .file_references import FileReferenceUpdater
 from .file_text import CroppedFileTextBuilder, InformationAuthorUpdater, OriginalFileTextUpdater
 from .insertion import BeforeMarkerInserter
+from .main_title_finder import MainTitleFinder
 from .other_versions import OtherVersionsUpdater
-from .owid_gallery import MainTitleFinder, SlidersGalleryReader
+from .owid_gallery import SlidersGalleryReader
 from .owid_source import OwidSourceFinder
 from .svg_files import SvgFilesCollector
 

@@ -1,10 +1,8 @@
-"""Tests for the owidslidersrcs_utils.find_newest_year module."""
+"""Tests for the SlidersGalleryReader.find_newest_year module."""
 
 from __future__ import annotations
 
-from src.main_app.utils.wikitext import (
-    find_newest_year,
-)
+from src.main_app.utils.new_wikitext.owid_gallery import SlidersGalleryReader
 
 TEMPLATE_EXAMPLE = """
 {{ owidslidersrcs |id=gallery|widths=240|heights=240
@@ -40,20 +38,20 @@ File:Deforestation embedded trade, South America, 2025.svg! year  = 2025
 
 
 class TestFindNewestYear:
-    """Tests for find_newest_year function."""
+    """Tests for SlidersGalleryReader.find_newest_year function."""
 
     def test_basic(self):
         """Test happy path with multiple galleries and years."""
-        assert find_newest_year(TEMPLATE_EXAMPLE) == 2025
+        assert SlidersGalleryReader.find_newest_year(TEMPLATE_EXAMPLE) == 2025
 
     def test_empty_text_returns_none(self):
         """Test that empty text returns None."""
-        assert find_newest_year("") is None
+        assert SlidersGalleryReader.find_newest_year("") is None
 
     def test_no_template_returns_none(self):
         """Test that text without owidslidersrcs template returns None."""
         text = "Some random text without the template."
-        assert find_newest_year(text) is None
+        assert SlidersGalleryReader.find_newest_year(text) is None
 
     def test_template_no_year_entries_returns_none(self):
         """Test that template without any !year= entries returns None."""
@@ -64,7 +62,7 @@ class TestFindNewestYear:
         File:other.svg
         }}
         """
-        assert find_newest_year(text) is None
+        assert SlidersGalleryReader.find_newest_year(text) is None
 
     def test_single_year_entry(self):
         """Test with a single year entry returns that year."""
@@ -73,7 +71,7 @@ class TestFindNewestYear:
         File:test.svg!year=2020
         }}
         """
-        assert find_newest_year(text) == 2020
+        assert SlidersGalleryReader.find_newest_year(text) == 2020
 
     def test_multiple_years_returns_max(self):
         """Test that multiple years returns the maximum."""
@@ -84,7 +82,7 @@ class TestFindNewestYear:
         File:c.svg!year=2020
         }}
         """
-        assert find_newest_year(text) == 2020
+        assert SlidersGalleryReader.find_newest_year(text) == 2020
 
     def test_years_not_in_order(self):
         """Test that years are correctly identified when not sorted."""
@@ -95,7 +93,7 @@ class TestFindNewestYear:
         File:c.svg!year=2015
         }}
         """
-        assert find_newest_year(text) == 2020
+        assert SlidersGalleryReader.find_newest_year(text) == 2020
 
     def test_case_insensitive_template_name_uppercase(self):
         """Test case-insensitive matching with uppercase template name."""
@@ -104,7 +102,7 @@ class TestFindNewestYear:
         File:test.svg!year=2023
         }}
         """
-        assert find_newest_year(text) == 2023
+        assert SlidersGalleryReader.find_newest_year(text) == 2023
 
     def test_case_insensitive_template_name_mixed(self):
         """Test case-insensitive matching with mixed-case template name."""
@@ -113,7 +111,7 @@ class TestFindNewestYear:
         File:test.svg!year=2022
         }}
         """
-        assert find_newest_year(text) == 2022
+        assert SlidersGalleryReader.find_newest_year(text) == 2022
 
     def test_whitespace_around_year_equals(self):
         """Test various whitespace patterns around !year=."""
@@ -124,7 +122,7 @@ class TestFindNewestYear:
         File:c.svg!  year  =  2022
         }}
         """
-        assert find_newest_year(text) == 2022
+        assert SlidersGalleryReader.find_newest_year(text) == 2022
 
     def test_duplicate_years(self):
         """Test duplicate years don't cause issues."""
@@ -135,7 +133,7 @@ class TestFindNewestYear:
         File:c.svg!year=2020
         }}
         """
-        assert find_newest_year(text) == 2020
+        assert SlidersGalleryReader.find_newest_year(text) == 2020
 
     def test_all_same_year(self):
         """Test that same year across galleries returns correctly."""
@@ -148,7 +146,7 @@ class TestFindNewestYear:
         File:c.svg!year=2022
         }}
         """
-        assert find_newest_year(text) == 2022
+        assert SlidersGalleryReader.find_newest_year(text) == 2022
 
     def test_multiple_templates_only_first_processed(self):
         """Test that only the first owidslidersrcs template is processed."""
@@ -162,7 +160,7 @@ class TestFindNewestYear:
         """
         # First template has max 2010, second has 2020, but function only
         # processes the first template.
-        assert find_newest_year(text) == 2010
+        assert SlidersGalleryReader.find_newest_year(text) == 2010
 
     def test_first_template_no_years_second_ignored(self):
         """Test that if first template has no year entries, second is still ignored."""
@@ -174,7 +172,7 @@ class TestFindNewestYear:
         File:b.svg!year=2020
         }}
         """
-        assert find_newest_year(text) is None
+        assert SlidersGalleryReader.find_newest_year(text) is None
 
     def test_year_with_extra_whitespace_in_template(self):
         """Test whitespace between ! and year and around = is handled."""
@@ -183,10 +181,10 @@ class TestFindNewestYear:
         File:test.svg!year=2023
         }}
         """
-        assert find_newest_year(text) == 2023
+        assert SlidersGalleryReader.find_newest_year(text) == 2023
 
     def test_template_with_no_gallery_world_still_matches(self):
-        """Test that find_newest_year works on the whole template, not just gallery-World."""
+        """Test that SlidersGalleryReader.find_newest_year works on the whole template, not just gallery-World."""
         text = """
         {{owidslidersrcs
         |gallery-Other=
@@ -194,4 +192,4 @@ class TestFindNewestYear:
         }}
         """
         # The function regex-matches the entire template text, not just a specific gallery.
-        assert find_newest_year(text) == 2024
+        assert SlidersGalleryReader.find_newest_year(text) == 2024
