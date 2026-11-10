@@ -11,8 +11,8 @@ from src.main_app.io.jobs_files_service import (
 
 @pytest.fixture
 def temp_jobs_dir(tmp_path):
-    with patch("src.main_app.io.jobs_files_service.app_settings") as mock_settings:
-        mock_settings.paths.public_jobs_path = str(tmp_path)
+    with patch("src.main_app.io.jobs_files_service.get_settings") as mock_settings:
+        mock_settings.return_value.paths.public_jobs_path = str(tmp_path)
         get_jobs_data_dir.cache_clear()
         yield tmp_path
 

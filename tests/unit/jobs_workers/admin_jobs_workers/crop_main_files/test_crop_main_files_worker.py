@@ -102,8 +102,8 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         mocks["update_template_page_file_reference"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.app_settings",
-        mocks["settings"],
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.files_processor.get_settings",
+        MagicMock(return_value=mocks["settings"]),
     )
 
     return mocks

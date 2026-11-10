@@ -103,7 +103,7 @@ class TestGetUserSite:
         assert site is None
 
 
-@patch("src.main_app.api_services.clients.wiki_client.app_settings")
+@patch("src.main_app.api_services.clients.wiki_client.get_settings")
 @patch("src.main_app.api_services.clients.wiki_client.Site")
 @patch("src.main_app.api_services.clients.wiki_client.decrypt_value")
 def test_get_user_site(mock_decrypt, mock_site, mock_settings, mock_app):

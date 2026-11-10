@@ -87,8 +87,8 @@ class TestExtractUserId:
 
         # Patch max_age to be -1 to expire immediately
         # (itsdangerous uses age > max_age check, so -1 expires all tokens)
-        with patch("src.main_app.services.core.cookies.signing.app_settings") as mock_settings:
-            mock_settings.cookie.max_age = -1  # Expire immediately
+        with patch("src.main_app.services.core.cookies.signing.get_settings") as mock_settings:
+            mock_settings.return_value.cookie.max_age = -1  # Expire immediately
 
             result = SignedTokenService().extract_user_id(signed)
             # Should return None for expired token

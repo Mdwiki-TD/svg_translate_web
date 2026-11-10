@@ -25,7 +25,7 @@ class TestServeDownloadMainFile:
         (main_files / "test.svg").write_text("<svg/>")
         mock_settings = MagicMock()
         mock_settings.paths.main_files_path = str(main_files)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.app_settings", mock_settings)
+        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.get_settings", Mock(return_value=mock_settings))
         admin_user = MagicMock(is_active_admin=True)
         monkeypatch.setattr(
             "src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: admin_user
@@ -78,7 +78,7 @@ class TestDownloadAllMainFiles:
         monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
         mock_settings2 = MagicMock()
         mock_settings2.paths.main_files_path = "/tmp"
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.app_settings", mock_settings2)
+        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.get_settings", Mock(return_value=mock_settings2))
 
         resp = mock_client.get("/jobs_utils/download_main_files/download-all")
         assert resp.status_code == 200

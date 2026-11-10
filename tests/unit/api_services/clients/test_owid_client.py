@@ -31,8 +31,8 @@ class TestBuildSession:
         mock_settings = MagicMock()
         mock_settings.other.user_agent = user_agent
         monkeypatch.setattr(
-            "src.main_app.api_services.clients.owid_client.app_settings",
-            mock_settings,
+            "src.main_app.api_services.clients.owid_client.get_settings",
+            MagicMock(return_value=mock_settings),
         )
 
     def test_creates_session_on_first_call(self, monkeypatch):
