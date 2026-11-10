@@ -52,7 +52,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         return "update_wikitext"
 
     def _extract_titles_step(self) -> bool:
-        self.titles = SvgFilesCollector.get_titles(self.text)
+        self.titles = SvgFilesCollector.get_titles(self.text, with_prefix=True)
 
         if not self.titles:
             self.result.status = "failed"
@@ -115,6 +115,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         if self.site is None:
             raise ValueError("Site is not set")
 
+        self.files_processor.site = self.site
         if not self.title:
             logger.error("No title found")
             self.result.status = "failed"

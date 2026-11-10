@@ -35,7 +35,7 @@ class SvgFilesCollector:
         return titles
 
     @staticmethod
-    def get_titles(text: str, filter_duplicates: bool = True) -> list[str]:
+    def get_titles(text: str, filter_duplicates: bool = True, with_prefix: bool = False) -> list[str]:
         """Return all SVG file names found inside ``{{owidslidersrcs}}`` templates."""
         # Parse the text using wikitextparser
         parsed = wtp.parse(text)
@@ -52,6 +52,9 @@ class SvgFilesCollector:
 
         if filter_duplicates:
             titles = list(set(titles))
+
+        if with_prefix:
+            titles = [f"File:{title}" for title in titles]
 
         return titles
 
