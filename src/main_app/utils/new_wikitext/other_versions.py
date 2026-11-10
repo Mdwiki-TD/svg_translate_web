@@ -107,8 +107,7 @@ class OtherVersionsUpdater:
 
         for param in tpl.arguments:
             if param.value and param.value.strip().lower() in delete_values:
-                del param
-                # param.string = ""
+                param.string = ""
 
         return parsed.string
 
@@ -151,7 +150,7 @@ class OtherVersionsUpdater:
     ) -> str:
         parsed = wtp.parse(text)
 
-        main = self._find_main_template(parsed)
+        main = self._find_template(parsed, self.main_template_name)
         if main is None:
             logger.debug("Main template %r not found", self.main_template_name)
             return text
@@ -241,13 +240,6 @@ class OtherVersionsUpdater:
     # ---------------------------------------------------------------- #
     # Helpers
     # ---------------------------------------------------------------- #
-
-    def _find_main_template(self, parsed: wtp.WikiText) -> wtp.Template | None:
-        target = self._norm_name(self.main_template_name)
-        for t in parsed.templates:
-            if self._norm_name(t.name) == target:
-                return t
-        return None
 
     @staticmethod
     def _get_argument(
