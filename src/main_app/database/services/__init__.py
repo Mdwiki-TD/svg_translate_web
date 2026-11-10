@@ -1,3 +1,9 @@
+"""
+Shared db services, used in both admin and public blueprints
+"""
+
+from __future__ import annotations
+
 from .admin_service import AdminService
 from .charts_and_templates_service import ChartAndTemplate, ChartsAndTemplatesService
 from .crud_service import CRUDService

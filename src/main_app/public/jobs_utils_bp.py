@@ -17,8 +17,8 @@ from flask.typing import ResponseReturnValue
 from flask.views import MethodView
 from flask.wrappers import Response
 
-from ..decorators.admin_decorators import admin_required
 from ..config import get_settings
+from ..decorators import admin_required
 from ..jobs_workers.admin_jobs_workers.download_main_files.zip_utils import create_main_files_zip
 
 logger = logging.getLogger(__name__)

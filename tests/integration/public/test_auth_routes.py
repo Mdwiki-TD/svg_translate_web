@@ -13,14 +13,41 @@ import pytest
 from flask import Flask
 from flask.testing import FlaskClient
 
-from src.main_app.config import app_settings
+from src.main_app.config import get_settings
 from src.main_app.database.services import UsersService, UserTokenService
-from src.main_app.public.auth.routes import OAuthCallbackView  # noqa: F401
-from src.main_app.services.core.cookies import sign_state_token
+from src.main_app.public.auth_route import OAuthCallbackView  # noqa: F401
+from src.main_app.services.core.cookies import SignedTokenService
 
 # ---------------------------------------------------------------------------
 # Login
 # ---------------------------------------------------------------------------
+app_settings = get_settings()
+
+
+class DummyLimiter:
+    def allow(self, key: str) -> bool:
+        return False
+
+    def try_after(self, key: str):
+        return type("obj", (object,), {"total_seconds": lambda self: 60})()
+
+    def get_time_left(self, _key) -> str:
+        return "0"
+
+    @classmethod
+    def client_key(cls, request) -> str:
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            return forwarded_for.split(",")[0].strip()
+        return request.remote_addr or "anonymous"
+
+    @classmethod
+    def callback_rate_limiter(cls) -> DummyLimiter:
+        return cls()
+
+    @classmethod
+    def login_rate_limiter(cls) -> DummyLimiter:
+        return cls()
 
 
 @pytest.mark.usefixtures("mock_app")
@@ -44,7 +71,7 @@ class TestLogin:
 
         monkeypatch.setattr("src.main_app.services.auth.flow.OAuthService.create_authorization_url", DummyStart())
 
-        response = mock_client.get("/login")
+        response = mock_client.get("/auth/login")
 
         assert response.status_code == 302
         assert response.headers["Location"] == "https://auth.example"
@@ -60,19 +87,9 @@ class TestLogin:
     ) -> None:
         """Login should redirect when rate limited."""
 
-        class DummyLimiter:
-            def allow(self, key: str) -> bool:
-                return False
+        monkeypatch.setattr("src.main_app.public.routes.auth_route.RateLimiter", DummyLimiter)
 
-            def try_after(self, key: str):
-                return type("obj", (object,), {"total_seconds": lambda self: 60})()
-
-            def get_time_left(self, _key) -> str:
-                return "0"
-
-        monkeypatch.setattr("src.main_app.public.auth.routes.login_rate_limiter", DummyLimiter())
-
-        response = mock_client.get("/login")
+        response = mock_client.get("/auth/login")
         assert response.status_code == 302
 
 
@@ -107,7 +124,7 @@ class TestCallback:
 
         # Sign a state nonce using the real signing utility
         state_nonce = "test-nonce"
-        signed_state = sign_state_token(state_nonce)
+        signed_state = SignedTokenService().sign_state_token(state_nonce)
 
         # Seed session with state nonce + request token (real session keys)
         with mock_client.session_transaction() as sess:
@@ -116,7 +133,7 @@ class TestCallback:
             sess[app_settings.sessions.request_secret_key] = "s"
 
         # The state query param must be the signed token (MediaWiki echoes it back)
-        response = mock_client.get(f"/callback?state={quote(signed_state)}&oauth_verifier=code")
+        response = mock_client.get(f"/auth/callback?state={quote(signed_state)}&oauth_verifier=code")
         cookie_header = response.headers.get("Set-Cookie", "")
 
         assert response.status_code == 302
@@ -139,16 +156,9 @@ class TestCallback:
     ) -> None:
         """Callback should redirect when rate limited."""
 
-        class DummyLimiter:
-            def allow(self, key: str) -> bool:
-                return False
+        monkeypatch.setattr("src.main_app.public.routes.auth_route.RateLimiter", DummyLimiter)
 
-            def get_time_left(self, _key) -> str:
-                return "0"
-
-        monkeypatch.setattr("src.main_app.public.auth.routes.callback_rate_limiter", DummyLimiter())
-
-        response = mock_client.get("/callback?state=token&oauth_verifier=code")
+        response = mock_client.get("/auth/callback?state=token&oauth_verifier=code")
         assert response.status_code == 302
 
     def test_callback_missing_state(
@@ -156,7 +166,7 @@ class TestCallback:
     ) -> None:
         """Callback should fail when state is missing."""
 
-        response = mock_client.get("/callback")
+        response = mock_client.get("/auth/callback")
         assert response.status_code == 302
 
 
@@ -184,7 +194,7 @@ class TestLogout:
             sess["uid"] = user_id
             sess["username"] = "LogoutUser"
 
-        response = mock_client.get("/logout")
+        response = mock_client.get("/auth/logout")
 
         assert response.status_code == 302
         assert response.headers["Location"].endswith("/")

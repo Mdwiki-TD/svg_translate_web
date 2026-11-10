@@ -6,6 +6,7 @@ import logging
 
 from flask import Blueprint
 
+from ...decorators import admin_required
 from ...jobs_workers.objects import JobData
 from ...public.shared_jobs_routes import (
     CancelJobView,
@@ -17,7 +18,6 @@ from ...public.shared_jobs_routes import (
     ReadJobResultFileView,
     StartJobView,
 )
-from ...decorators.admin_decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

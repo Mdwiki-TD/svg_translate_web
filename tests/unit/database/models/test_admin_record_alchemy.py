@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.main_app.database.models.users import AdminUserRecord
 
 
-def test_coordinator_record_initialization():
+def test_admin_record_initialization():
     """Test AdminUserRecord initialization with required fields."""
     rec = AdminUserRecord(id=1, username="testuser", is_active=True)
 
@@ -14,7 +14,7 @@ def test_coordinator_record_initialization():
     assert rec.updated_at is None
 
 
-def test_coordinator_record_with_all_fields():
+def test_admin_record_with_all_fields():
     """Test AdminUserRecord initialization with all fields."""
     rec = AdminUserRecord(id=1, username="testuser", is_active=True, created_at="2023-01-01", updated_at="2023-01-02")
 
@@ -25,7 +25,7 @@ def test_coordinator_record_with_all_fields():
     assert rec.updated_at == "2023-01-02"
 
 
-def test_coordinator_record_inactive():
+def test_admin_record_inactive():
     """Test AdminUserRecord with inactive user."""
     rec = AdminUserRecord(id=1, username="testuser", is_active=False)
 
@@ -36,7 +36,7 @@ def test_coordinator_record_inactive():
     assert rec.updated_at is None
 
 
-def test_coordinator_record_to_dict():
+def test_admin_record_to_dict():
     """Test conversion to dictionary."""
     rec = AdminUserRecord(id=1, username="testuser", is_active=True, created_at="2023-01-01", updated_at="2023-01-02")
 
@@ -53,7 +53,7 @@ def test_coordinator_record_to_dict():
     assert result == expected
 
 
-def test_coordinator_record_to_dict_with_none_values():
+def test_admin_record_to_dict_with_none_values():
     """Test conversion to dictionary with None values."""
     rec = AdminUserRecord(id=1, username="testuser", is_active=True, created_at=None, updated_at=None)
 

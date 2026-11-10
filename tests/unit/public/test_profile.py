@@ -46,7 +46,7 @@ class TestDashboard:
         seeded_jobs: None,
     ) -> None:
         monkeypatch.setattr(
-            "src.main_app.public.profile.get_current_user",
+            "src.main_app.public.profile.CurrentUserResolver.get_current_user",
             lambda: MockUser(username="alice"),
         )
         resp = mock_client.get("/profile/")
@@ -59,7 +59,7 @@ class TestDashboard:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setattr(
-            "src.main_app.public.profile.get_current_user",
+            "src.main_app.public.profile.CurrentUserResolver.get_current_user",
             lambda: None,
         )
         resp = mock_client.get("/profile/")
@@ -72,7 +72,7 @@ class TestDashboard:
         seeded_jobs: None,
     ) -> None:
         monkeypatch.setattr(
-            "src.main_app.public.profile.get_current_user",
+            "src.main_app.public.profile.CurrentUserResolver.get_current_user",
             lambda: MockUser(username="admin", is_active_admin=True),
         )
         resp = mock_client.get("/profile/other_user")
@@ -86,7 +86,7 @@ class TestDashboard:
         seeded_jobs: None,
     ) -> None:
         monkeypatch.setattr(
-            "src.main_app.public.profile.get_current_user",
+            "src.main_app.public.profile.CurrentUserResolver.get_current_user",
             lambda: MockUser(username="regular_user"),
         )
         resp = mock_client.get("/profile/other_user")
@@ -100,7 +100,7 @@ class TestDashboard:
         seeded_jobs: None,
     ) -> None:
         monkeypatch.setattr(
-            "src.main_app.public.profile.get_current_user",
+            "src.main_app.public.profile.CurrentUserResolver.get_current_user",
             lambda: MockUser(username="alice"),
         )
         resp = mock_client.get("/profile/")
@@ -121,7 +121,7 @@ class TestDashboard:
             return "profile response"
 
         monkeypatch.setattr(
-            "src.main_app.public.profile.get_current_user",
+            "src.main_app.public.profile.CurrentUserResolver.get_current_user",
             lambda: MockUser(username="alice"),
         )
         monkeypatch.setattr("src.main_app.public.profile.render_template", capture_template)
@@ -150,7 +150,7 @@ class TestDashboard:
             raise RuntimeError("database unavailable")
 
         monkeypatch.setattr(
-            "src.main_app.public.profile.get_current_user",
+            "src.main_app.public.profile.CurrentUserResolver.get_current_user",
             lambda: MockUser(username="admin", is_active_admin=True),
         )
         monkeypatch.setattr(JobsService, "get_all_user_jobs_stats", raise_loading_error)

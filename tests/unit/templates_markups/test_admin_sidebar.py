@@ -166,10 +166,10 @@ class TestCreateSide:
             assert isinstance(html, str)
             assert "<ul" in html
 
-    def test_contains_coordinators_link(self, mock_app):
+    def test_contains_admins_link(self, mock_app):
         with mock_app.test_request_context():
             html = create_side("admins", is_admin=True)
-            assert "Coordinators" in html
+            assert "Admins" in html
 
     def test_contains_users_link(self, mock_app):
         with mock_app.test_request_context():
@@ -179,7 +179,7 @@ class TestCreateSide:
     def test_create_side_marks_active_item(self) -> None:
         html = create_side("/adminpanel/templates/", is_admin=True)
 
-        assert "Coordinators" in html
+        assert "Admins" in html
         assert "active" in html
         assert html.count("<ul") >= 2
 

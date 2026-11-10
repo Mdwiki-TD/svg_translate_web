@@ -63,7 +63,7 @@ class UserRecord(db.Model):
 
 class AdminUserRecord(TimestampMixin, db.Model):
     """
-    Coordinator/admin role — username references users.username.
+    Admin/admin role — username references users.username.
     """
 
     __tablename__ = "admin_users"
@@ -102,7 +102,7 @@ class AdminUserRecord(TimestampMixin, db.Model):
         return data
 
     def __repr__(self) -> str:
-        return f"<Coordinator id={self.id} username={self.username!r} is_active={self.is_active}>"
+        return f"<Admin id={self.id} username={self.username!r} is_active={self.is_active}>"
 
 
 class UserTokenRecord(TimestampMixin, db.Model):

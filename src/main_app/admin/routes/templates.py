@@ -24,7 +24,7 @@ from ...database.models import TemplateRecord
 from ...database.services import (
     TemplateService,
 )
-from ...decorators.admin_decorators import admin_required
+from ...decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

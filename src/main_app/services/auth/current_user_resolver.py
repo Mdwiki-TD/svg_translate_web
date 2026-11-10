@@ -111,6 +111,7 @@ class CurrentUserResolver:
         """
         return getattr(g, "_current_user", None)
 
+
 __all__ = [
     "CurrentUserResolver",
 ]

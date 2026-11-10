@@ -41,8 +41,12 @@ def owid_charts_admin_client(monkeypatch: pytest.MonkeyPatch):
         return admin_user
 
     monkeypatch.setenv("FLASK_SECRET_KEY", "testing-secret")
-    monkeypatch.setattr("src.main_app.decorators.auth_decorators.CurrentUserResolver.get_current_user", fake_current_user)
-    monkeypatch.setattr("src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", fake_current_user)
+    monkeypatch.setattr(
+        "src.main_app.decorators.auth_decorators.CurrentUserResolver.get_current_user", fake_current_user
+    )
+    monkeypatch.setattr(
+        "src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", fake_current_user
+    )
 
     flask_app = AppFactory.create(TestingConfig)
     flask_app.config["TESTING"] = True

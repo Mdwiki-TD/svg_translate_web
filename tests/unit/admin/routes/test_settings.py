@@ -46,7 +46,9 @@ class TestSettingsRoutesRoutes(TestSetup):
     def _fake_admin_user(self, monkeypatch: pytest.MonkeyPatch):
         """Fake an authenticated admin user for all route tests in this class."""
         admin_user = SimpleNamespace(username="test_admin", is_active_admin=True)
-        monkeypatch.setattr("src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: admin_user)
+        monkeypatch.setattr(
+            "src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: admin_user
+        )
 
     # ── dashboard (GET /) ────────────────────────────────────────────────
 

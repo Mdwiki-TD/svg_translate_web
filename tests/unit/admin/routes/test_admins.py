@@ -1,5 +1,5 @@
 """
-Unit tests for src/main_app/adminpanel/routes/coordinators.py module.
+Unit tests for src/main_app/adminpanel/routes/admins.py module.
 """
 
 from __future__ import annotations
@@ -15,9 +15,15 @@ from src.main_app.database.services import AdminService, UsersService
 def _fake_admin_user(monkeypatch):
     """Fake an authenticated admin user for all tests in this module."""
     admin_user = SimpleNamespace(username="test_admin", is_active_admin=True)
-    monkeypatch.setattr("src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: admin_user)
-    monkeypatch.setattr("src.main_app.decorators.auth_decorators.CurrentUserResolver.get_current_user", lambda: admin_user)
-    monkeypatch.setattr("src.main_app.public.utils.routes_utils.get_current_user", lambda: admin_user)
+    monkeypatch.setattr(
+        "src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: admin_user
+    )
+    monkeypatch.setattr(
+        "src.main_app.decorators.auth_decorators.CurrentUserResolver.get_current_user", lambda: admin_user
+    )
+    monkeypatch.setattr(
+        "src.main_app.public.utils.routes_utils.CurrentUserResolver.get_current_user", lambda: admin_user
+    )
 
 
 @pytest.fixture
@@ -26,14 +32,14 @@ def client(mock_app):
     return mock_app.test_client()
 
 
-class TestCoordinatorDashboard:
-    """Tests for the coordinator dashboard."""
+class TestAdminDashboard:
+    """Tests for the admin dashboard."""
 
-    def _seed_coordinator(self, username: str = "coord1", is_active: bool = True):
-        """Seed a coordinator via real services."""
+    def _seed_admin(self, username: str = "coord1", is_active: bool = True):
+        """Seed a admin via real services."""
         UsersService().create_user(username)
         admin_service = AdminService()
-        admin_service.add_coordinator(username)
+        admin_service.add_admin(username)
         if not is_active:
             record = admin_service.get_record_by_id(
                 admin_service.session.query(admin_service.model)
@@ -41,34 +47,34 @@ class TestCoordinatorDashboard:
                 .first()
                 .id
             )
-            admin_service.set_coordinator_active(record.id, False)
+            admin_service.set_admin_active(record.id, False)
         return admin_service.session.query(admin_service.model).filter(admin_service.model.username == username).first()
 
     def test_dashboard_requires_auth(self, client, mock_app):
         """Dashboard should return 200 for authenticated admin."""
-        resp = client.get("/adminpanel/coordinators/")
+        resp = client.get("/adminpanel/admins/")
 
         assert resp.status_code == 200
 
-    def test_renders_with_coordinators(self, client):
-        """Dashboard should list coordinators."""
-        self._seed_coordinator("coord_active", is_active=True)
+    def test_renders_with_admins(self, client):
+        """Dashboard should list admins."""
+        self._seed_admin("coord_active", is_active=True)
 
-        resp = client.get("/adminpanel/coordinators/")
+        resp = client.get("/adminpanel/admins/")
 
         assert resp.status_code == 200
         html = resp.data.decode()
         assert "coord_active" in html
 
     def test_renders_with_empty_list(self, client):
-        """Dashboard should render with no coordinators."""
-        resp = client.get("/adminpanel/coordinators/")
+        """Dashboard should render with no admins."""
+        resp = client.get("/adminpanel/admins/")
 
         assert resp.status_code == 200
 
 
-class TestAddCoordinator:
-    """Tests for adding a coordinator."""
+class TestAddAdmin:
+    """Tests for adding a admin."""
 
     def _seed_user(self, username: str = "new_user"):
         """Seed a user record for foreign key."""
@@ -77,7 +83,7 @@ class TestAddCoordinator:
     def test_missing_username(self, client):
         """POST /add with empty username should redirect."""
         resp = client.post(
-            "/adminpanel/coordinators/add",
+            "/adminpanel/admins/add",
             data={"username": ""},
         )
 
@@ -86,54 +92,54 @@ class TestAddCoordinator:
     def test_user_not_found(self, client):
         """POST /add with non-existent user should redirect."""
         resp = client.post(
-            "/adminpanel/coordinators/add",
+            "/adminpanel/admins/add",
             data={"username": "unknown_user"},
         )
 
         assert resp.status_code == 302
 
     def test_duplicate_user(self, client):
-        """POST /add with existing coordinator should redirect."""
+        """POST /add with existing admin should redirect."""
         self._seed_user("existing_user")
         admin_service = AdminService()
-        admin_service.add_coordinator("existing_user")
+        admin_service.add_admin("existing_user")
 
         resp = client.post(
-            "/adminpanel/coordinators/add",
+            "/adminpanel/admins/add",
             data={"username": "existing_user"},
         )
 
         assert resp.status_code == 302
 
     def test_success(self, client):
-        """POST /add with valid new user should create coordinator."""
+        """POST /add with valid new user should create admin."""
         self._seed_user("new_coord")
 
         resp = client.post(
-            "/adminpanel/coordinators/add",
+            "/adminpanel/admins/add",
             data={"username": "new_coord"},
         )
 
         assert resp.status_code == 302
         admin_service = AdminService()
-        coordinators = admin_service.list_coordinators()
-        assert any(c.username == "new_coord" for c in coordinators)
+        admins = admin_service.list_admins()
+        assert any(c.username == "new_coord" for c in admins)
 
 
 class TestSetRecordActiveStatus:
-    """Tests for activating/deactivating coordinators."""
+    """Tests for activating/deactivating admins."""
 
-    def _seed_coordinator(self, username: str = "toggle_coord"):
-        """Seed a coordinator via real services."""
+    def _seed_admin(self, username: str = "toggle_coord"):
+        """Seed a admin via real services."""
         UsersService().create_user(username)
-        return AdminService().add_coordinator(username)
+        return AdminService().add_admin(username)
 
     def test_activate_success(self, client):
         """POST /<id>/activate should set is_active=True."""
-        coord = self._seed_coordinator("activate_coord")
-        AdminService().set_coordinator_active(coord.id, False)
+        coord = self._seed_admin("activate_coord")
+        AdminService().set_admin_active(coord.id, False)
 
-        resp = client.post(f"/adminpanel/coordinators/{coord.id}/activate")
+        resp = client.post(f"/adminpanel/admins/{coord.id}/activate")
 
         assert resp.status_code == 302
         updated = AdminService().get_record_by_id(coord.id)
@@ -141,9 +147,9 @@ class TestSetRecordActiveStatus:
 
     def test_deactivate_success(self, client):
         """POST /<id>/deactivate should set is_active=False."""
-        coord = self._seed_coordinator("deactivate_coord")
+        coord = self._seed_admin("deactivate_coord")
 
-        resp = client.post(f"/adminpanel/coordinators/{coord.id}/deactivate")
+        resp = client.post(f"/adminpanel/admins/{coord.id}/deactivate")
 
         assert resp.status_code == 302
         updated = AdminService().get_record_by_id(coord.id)
@@ -151,30 +157,30 @@ class TestSetRecordActiveStatus:
 
     def test_not_found(self, client):
         """POST /<id>/activate with nonexistent id should redirect."""
-        resp = client.post("/adminpanel/coordinators/99999/activate")
+        resp = client.post("/adminpanel/admins/99999/activate")
 
         assert resp.status_code == 302
 
 
-class TestDeleteCoordinator:
-    """Tests for deleting a coordinator."""
+class TestDeleteAdmin:
+    """Tests for deleting a admin."""
 
-    def _seed_coordinator(self, username: str = "del_coord"):
-        """Seed a coordinator via real services."""
+    def _seed_admin(self, username: str = "del_coord"):
+        """Seed a admin via real services."""
         UsersService().create_user(username)
-        return AdminService().add_coordinator(username)
+        return AdminService().add_admin(username)
 
     def test_success(self, client):
-        """POST /<id>/delete should remove the coordinator."""
-        coord = self._seed_coordinator("del_coord_ok")
+        """POST /<id>/delete should remove the admin."""
+        coord = self._seed_admin("del_coord_ok")
 
-        resp = client.post(f"/adminpanel/coordinators/{coord.id}/delete")
+        resp = client.post(f"/adminpanel/admins/{coord.id}/delete")
 
         assert resp.status_code == 302
         assert AdminService().get_record_by_id(coord.id) is None
 
     def test_not_found(self, client):
         """POST /<id>/delete with nonexistent id should redirect."""
-        resp = client.post("/adminpanel/coordinators/99999/delete")
+        resp = client.post("/adminpanel/admins/99999/delete")
 
         assert resp.status_code == 302

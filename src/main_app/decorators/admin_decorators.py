@@ -1,4 +1,4 @@
-"""Admin-only routes for managing coordinator access."""
+"""Admin-only routes for managing admin access."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ FuncType = TypeVar("FuncType", bound=Callable[..., ResponseReturnValue])
 
 
 def admin_required(view: FuncType) -> FuncType:  # noqa: UP047
-    """Decorator enforcing that the current user is an coordinator."""
+    """Decorator enforcing that the current user is an admin."""
 
     @wraps(view)
     def wrapped(*args, **kwargs):
