@@ -143,6 +143,9 @@ class Sidebar:
         sidebar_parts = ["<ul class='list-unstyled'>"]
 
         for group_obj in self.menu:
+            if group_obj.disabled:
+                continue
+
             sub_items_str = build_sub_items(group_obj.items, active_id)
 
             if not sub_items_str:

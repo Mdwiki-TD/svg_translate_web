@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from src.main_app.api_services.clients.wikisite_client import (
+    WikiSiteClient,
     coerce_encrypted,
-    get_user_site,
 )
 from src.main_app.services.core.crypto import CryptoService
 
@@ -50,19 +50,19 @@ class TestCoerceEncrypted:
 
 class TestGetUserSite:
     def test_get_user_site_none_user(self) -> None:
-        assert get_user_site(None) is None
+        assert WikiSiteClient.get_user_site(None, None) is None
 
     def test_get_user_site_missing_access_token(self) -> None:
         user = {"access_secret": b"secret"}
-        assert get_user_site(user) is None
+        assert WikiSiteClient.get_user_site(None, user) is None
 
     def test_get_user_site_missing_access_secret(self) -> None:
         user = {"access_token": b"token"}
-        assert get_user_site(user) is None
+        assert WikiSiteClient.get_user_site(None, user) is None
 
     def test_get_user_site_empty_tokens(self) -> None:
         user = {"access_token": b"", "access_secret": b"secret"}
-        assert get_user_site(user) is None
+        assert WikiSiteClient.get_user_site(None, user) is None
 
     def test_get_user_site_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
         calls: list[Any] = []
@@ -79,7 +79,7 @@ class TestGetUserSite:
             "access_token": CryptoService().encrypt("my-access-key"),
             "access_secret": CryptoService().encrypt("my-access-secret"),
         }
-        site = get_user_site(user)
+        site = WikiSiteClient.get_user_site(None, user)
 
         assert site is not None
         assert len(calls) == 1
@@ -98,14 +98,14 @@ class TestGetUserSite:
             "access_token": CryptoService().encrypt("token"),
             "access_secret": CryptoService().encrypt("secret"),
         }
-        site = get_user_site(user)
+        site = WikiSiteClient.get_user_site(None, user)
 
         assert site is None
 
 
 @patch("src.main_app.api_services.clients.wikisite_client.get_settings")
 @patch("src.main_app.api_services.clients.wikisite_client.Site")
-@patch("src.main_app.api_services.clients.wikisite_client.decrypt_value")
+@patch("src.main_app.api_services.clients.wikisite_client.CryptoService.decrypt")
 def test_get_user_site(mock_decrypt, mock_site, mock_settings, mock_app):
     mock_settings.oauth = MagicMock()
     mock_settings.other = MagicMock()
@@ -113,14 +113,14 @@ def test_get_user_site(mock_decrypt, mock_site, mock_settings, mock_app):
 
     user = {"access_token": b"token", "access_secret": b"secret"}
 
-    site = get_user_site(user)
+    site = WikiSiteClient.get_user_site(None, user)
     assert site is not None
     mock_site.assert_called_once()
 
 
 def test_get_user_site_no_user():
-    assert get_user_site(None) is None
+    assert WikiSiteClient.get_user_site(None, None) is None
 
 
 def test_get_user_site_no_tokens():
-    assert get_user_site({}) is None
+    assert WikiSiteClient.get_user_site(None, {}) is None

@@ -62,6 +62,8 @@ class BaseObjectsJobWorker(ABC):
         self._jobs_service = JobsService()
         self.wikisite_client = WikiSiteClient()
 
+        self.app_settings = get_settings()
+
     @abstractmethod
     def get_job_type(self) -> str:
         """Return the job type string identifier.
@@ -207,9 +209,8 @@ class BaseObjectsJobWorker(ABC):
         if length < 11:
             return 1
 
-        app_settings = get_settings()
-        if app_settings.jobs.priority_per_item is not None:
-            return app_settings.jobs.priority_per_item
+        if self.app_settings.jobs.priority_per_item is not None:
+            return self.app_settings.jobs.priority_per_item
 
         # Calculate the interval for progress updates to aim for about 10 updates.
         return min(10, length // 10)
@@ -254,7 +255,7 @@ class BaseObjectsJobWorker(ABC):
         return True
 
     def _check_site(self) -> bool:
-        self.site = WikiSiteClient.get_user_site(self.user)
+        self.site = WikiSiteClient.get_user_site(self.app_settings.other.wiki_domain, self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
             self.log_no_site_error()

@@ -5,8 +5,7 @@ from __future__ import annotations
 import functools
 import logging
 
-from ..templates_markups.sidebar.mapping import SidebarGroup, SidebarItem
-from ..templates_markups.sidebar.sidebar import Sidebar
+from ..templates_markups.sidebar import Sidebar, SidebarGroup, SidebarItem
 
 logger = logging.getLogger(__name__)
 
@@ -16,12 +15,24 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-def dashboard_item(id_: str, title: str, icon: str, endpoint: str, fallback_href: str) -> SidebarItem:
+def dashboard_item(
+    id_: str,
+    title: str,
+    icon: str,
+    endpoint: str,
+    fallback_href: str,
+) -> SidebarItem:
     """Build a SidebarItem pointing at a regular admin-panel dashboard endpoint."""
     return SidebarItem(id=id_, title=title, icon=icon, endpoint=endpoint, fallback_href=fallback_href)
 
 
-def job_item(job_type: str, title: str, icon: str, *, disabled: bool = False) -> SidebarItem:
+def job_item(
+    job_type: str,
+    title: str,
+    icon: str,
+    *,
+    disabled: bool = False,
+) -> SidebarItem:
     """Build a SidebarItem pointing at the job-list page for the given job type."""
     return SidebarItem(
         id=job_type,
@@ -197,13 +208,17 @@ def load_admin_tools() -> list[SidebarGroup]:
     ]
 
 
-def create_admin_sidebar(path: str, is_admin: bool = False) -> str:
+def create_admin_sidebar(
+    path: str,
+    is_admin: bool = False,
+    list_items: list[SidebarGroup] | None = None,
+) -> str:
     """
     Generate sidebar HTML structure based on menu definitions.
 
     This is the public entry point used by the Jinja template.
     """
-    main_menu = load_admin_tools()
+    main_menu = list_items or load_admin_tools()
     sidebar = Sidebar(main_menu)
     return sidebar.render(path, is_admin=is_admin)
 

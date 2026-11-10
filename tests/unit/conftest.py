@@ -45,7 +45,7 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mocks["save_job_result_by_name"]
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
         mocks["get_user_site"],
     )
 

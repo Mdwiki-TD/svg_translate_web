@@ -7,8 +7,8 @@ from typing import Any
 from flask import Blueprint, Flask
 
 from ..decorators.admin_decorators import admin_guard
-from .admin_sidebar import create_admin_sidebar
 from .admin_panel import AdminPanel
+from .admin_sidebar import create_admin_sidebar
 from .flask_admin_panel import add_admin_dashboard
 from .routes import AdminSubRoutesRegister
 
