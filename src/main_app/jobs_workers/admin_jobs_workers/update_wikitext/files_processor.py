@@ -61,12 +61,14 @@ class UpdateWikiTextProcessor:
         file_langs = self.files_service.get_file_languages(file_info.title)
         if file_langs.langs:
             logger.info("File %s has languages: %r", file_info.title, file_langs.langs)
-            file_info.langs = file_langs.langs
+            file_info.langs = file_langs.langs or []
 
         new_wikitext = self._step_update_author(text, file_info)
         new_wikitext = self._step_update_langs(new_wikitext, file_info)
 
         if new_wikitext.strip() == text.strip():
+            file_info.status = "skipped"
+            # file_info.error = "No changes to save"
             return False
 
         # ----------------------------------
@@ -129,7 +131,7 @@ class UpdateWikiTextProcessor:
                 msg=f"Updated page: {info.title}",
                 newrevid=res.get("newrevid", 0),
             )
-            info.status = "success"
+            info.status = "updated"
             return True
 
         err = res.get("error", "Unknown error")

@@ -9,7 +9,7 @@ from typing import Any, Literal
 
 from ...shared_objects import OneStep, StandardAdminSummary, WorkerMapping
 
-STATUS_LIST = Literal["completed", "failed", "pending", "skipped", "success"]
+STATUS_LIST = Literal["completed", "failed", "pending", "skipped", "updated"]
 
 
 @dataclass
@@ -45,7 +45,7 @@ class UpdateFilesWikiTextObject(WorkerMapping):
     summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
     title: str | None = None
 
-    files_success: list[ProcessingFileInfo] = field(default_factory=list)
+    files_updated: list[ProcessingFileInfo] = field(default_factory=list)
     files_skipped: list[ProcessingFileInfo] = field(default_factory=list)
     files_failed: list[ProcessingFileInfo] = field(default_factory=list)
     files_processed: list[ProcessingFileInfo] = field(default_factory=list)
@@ -67,8 +67,8 @@ class UpdateFilesWikiTextObject(WorkerMapping):
         elif info.status == "failed":
             self.files_failed.append(info)
 
-        elif info.status == "success":
-            self.files_success.append(info)
+        elif info.status == "updated":
+            self.files_updated.append(info)
 
         else:
             self.files_processed.append(info)
