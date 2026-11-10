@@ -10,7 +10,7 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
-from ....utils.wikitext.other_versions import OtherVersionsUpdater
+from ....utils.new_wikitext.other_versions import OtherVersionsUpdater
 from .objects import OneStep, ProcessingFileInfo
 
 logger = logging.getLogger(__name__)

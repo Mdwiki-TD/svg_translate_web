@@ -1,10 +1,10 @@
-"""Tests for the wikitext.other_versions module."""
+"""Tests for the new_wikitext.other_versions module."""
 
 from __future__ import annotations
 
 import wikitextparser as wtp
 
-from src.main_app.utils.wikitext.other_versions import (
+from src.main_app.utils.new_wikitext.other_versions import (
     OtherVersionsUpdater,
     add_other_versions_new,
 )
