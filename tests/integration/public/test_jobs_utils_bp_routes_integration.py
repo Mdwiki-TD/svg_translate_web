@@ -11,7 +11,7 @@ from werkzeug.wrappers import Response
 @pytest.fixture
 def mock_settings(monkeypatch: pytest.MonkeyPatch):
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.jobs_utils_bp.app_settings", _mock)
+    monkeypatch.setattr("src.main_app.public.jobs_utils_bp.app_settings", Mock(return_value=_mock))
     return _mock
 
 
