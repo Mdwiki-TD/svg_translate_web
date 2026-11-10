@@ -35,7 +35,7 @@ if sys:
     # Make the src/ directory importable as `main_app`. The repo's prod
     # entrypoint src/app.py does the same trick.
     _REPO = Path(__file__).resolve().parents[1]
-    sys.path.insert(0, str(_REPO / "src"))
+    sys.path.insert(0, str(_REPO / "www/python"))
 
     # ── Set ALL env vars before any src.* import ─────────────────────────────────
     # config.py executes get_settings() at module level and raises RuntimeError

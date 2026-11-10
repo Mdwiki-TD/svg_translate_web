@@ -2,7 +2,7 @@
 # toolforge-jobs run update-repo --image python3.11 --command "~/shs/update.sh" --wait
 
 export USER_NAME="Mdwiki-TD"
-export SUB_DIR_COPY="src"
+export SUB_DIR_COPY="www/python/src"
 export CLEAN_INSTALL=1
 
 # Optional clean of jsons files before copy to avoid issues with old jsons files

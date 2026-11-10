@@ -14,7 +14,7 @@ skip_list = [
 ]
 
 paths = [
-    (main_project_path / "src", Path(__file__).parent / "tree.md"),
+    (main_project_path / "www/python/src", Path(__file__).parent / "tree.md"),
     (main_project_path / "tests", Path(__file__).parent / "test_tree.md"),
 ]
 
@@ -32,6 +32,6 @@ for work_path, save_path in paths:
         raiseException=False,
         printErrorTraceback=False,
         spacing=True,
-    )
+    )  # pyright: ignore[reportAssignmentType]
 
     save_path.write_text(f"```\n{tree}\n```", encoding="utf-8")

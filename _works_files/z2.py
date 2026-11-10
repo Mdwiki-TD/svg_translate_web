@@ -191,7 +191,7 @@ def generate_domain_test_placeholders(src_root, test_root, src_name: str = "src"
 if __name__ == "__main__":
     main_path = Path(__file__).parent.parent
 
-    SOURCE_DIR = main_path / "src/main_app"
+    SOURCE_DIR = main_path / "www/python/src/main_app"
     TEST_DIR = main_path / "tests"
 
     print(f"SOURCE_DIR: {SOURCE_DIR}")
