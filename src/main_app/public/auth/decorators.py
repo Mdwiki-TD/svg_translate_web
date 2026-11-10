@@ -11,7 +11,7 @@ from typing import Any, TypeVar, cast
 
 from flask import redirect, request, session, url_for
 
-from ...services.auth.current_user_resolver import get_current_user
+from ...services.auth.current_user_resolver import CurrentUserResolver
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any])
 
@@ -24,7 +24,7 @@ def oauth_required(func: FuncType) -> FuncType:  # noqa: UP047
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Check g._current_user which was populated by set_logged_in_user
-        user = get_current_user()
+        user = CurrentUserResolver.get_current_user()
         if not user:
             session["post_login_redirect"] = request.url
             return redirect(url_for("auth.login"))

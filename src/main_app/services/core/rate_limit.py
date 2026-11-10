@@ -7,6 +7,8 @@ from collections import deque
 from datetime import UTC, datetime, timedelta
 from threading import Lock
 
+from flask import Request
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,17 +56,26 @@ class RateLimiter:
                 return self._period - (now - hits[0])
             return timedelta(0)
 
-    def get_login_rate_limit_seconds(self, key: str) -> str:
+    def get_time_left(self, key: str) -> str:
         time_left = self.try_after(key).total_seconds()
         return str(time_left).split(".")[0]
 
+    @classmethod
+    def client_key(cls, request: Request) -> str:
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            return forwarded_for.split(",")[0].strip()
+        return request.remote_addr or "anonymous"
 
-login_rate_limiter = RateLimiter(limit=5, period=timedelta(minutes=1))
-callback_rate_limiter = RateLimiter(limit=10, period=timedelta(minutes=1))
+    @classmethod
+    def login_rate_limiter(cls) -> RateLimiter:
+        return RateLimiter(limit=5, period=timedelta(minutes=1))
+
+    @classmethod
+    def callback_rate_limiter(cls) -> RateLimiter:
+        return RateLimiter(limit=10, period=timedelta(minutes=1))
 
 
 __all__ = [
     "RateLimiter",
-    "callback_rate_limiter",
-    "login_rate_limiter",
 ]

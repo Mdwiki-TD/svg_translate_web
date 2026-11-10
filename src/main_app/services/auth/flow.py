@@ -22,9 +22,8 @@ from ...database.services import UsersService
 from ..core.cookies import SignedTokenService
 from .auth_exceptions import OAuthCallbackError, OAuthIdentityError
 from .auth_service import OAuthService
+from .mapping import CallbackResult, LoginStartResult, LogoutResult
 from .token_manager import TokenManager
-
-from .mapping import LoginStartResult, CallbackResult, LogoutResult
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,7 @@ class AuthFlowService:
         )
         self.token_manager = TokenManager()
         self.user_svc = UsersService()
+        self.token_signer = SignedTokenService()
 
         self.request_secret_key = self.app_settings.sessions.request_secret_key
         self.request_token_key = self.app_settings.sessions.request_token_key
@@ -68,9 +68,10 @@ class AuthFlowService:
         state_nonce = secrets.token_urlsafe(32)
         session[self.oauth_state_nonce] = state_nonce
 
-        signed_state = SignedTokenService().sign_state_token(state_nonce)
+        signed_state = self.token_signer.sign_state_token(state_nonce)
         callback_url = self.build_callback_url(signed_state)
 
+        logger.debug("callback_url: %s", callback_url)
         try:
             auth_url, request_token, request_secret = self.oauth_service.create_authorization_url(callback_url)
             logger.info("OAuth login started successfully, redirecting to MediaWiki")
@@ -84,7 +85,7 @@ class AuthFlowService:
 
         # ------------------
         # Store request token in session for the callback step
-        session[self.request_token_key] = request_token
+        session[self.request_token_key] = request_token  # pyright: ignore[reportArgumentType]
         session[self.request_secret_key] = request_secret
 
         logger.debug("OAuth request token stored in session")
@@ -175,7 +176,7 @@ class AuthFlowService:
 
         # 5. Resolve / create user record
         try:
-            user_id = self.resolve_user_id(username)
+            user_id = self._resolve_user_id_db(username)
         except Exception as exc:
             logger.exception("Failed to resolve user ID: %s", exc)
             return CallbackResult(
@@ -229,7 +230,7 @@ class AuthFlowService:
                 flash_category="danger",
             )
 
-        verified_state = SignedTokenService().verify_state_token(returned_state)
+        verified_state = self.token_signer.verify_state_token(returned_state)
         if verified_state != expected_state:
             logger.warning("OAuth callback failed: state mismatch")
             return CallbackResult(
@@ -239,7 +240,7 @@ class AuthFlowService:
             )
         return None
 
-    def resolve_user_id(self, username: str) -> int:
+    def _resolve_user_id_db(self, username: str) -> int:
         """Return the user_id for ``username``, creating a UserRecord if needed."""
         record = self.user_svc.ensure_exists(username)
         return record.user_id
@@ -247,7 +248,7 @@ class AuthFlowService:
     def _set_auth_cookie(self, user_id: int, response: WerkzeugResponse) -> None:
         response.set_cookie(
             self.app_settings.cookie.name,
-            SignedTokenService().sign_user_id(user_id),
+            self.token_signer.sign_user_id(user_id),
             httponly=self.app_settings.cookie.httponly,
             secure=self.app_settings.cookie.secure,
             samesite=self.app_settings.cookie.samesite,
@@ -278,7 +279,7 @@ class AuthFlowService:
 
         # extract user_id from signed cookie if needed
         if user_id is None and cookie_value:
-            user_id = SignedTokenService().extract_user_id(cookie_value)
+            user_id = self.token_signer.extract_user_id(cookie_value)
             logger.debug("Extracted user_id from cookie: %s", user_id)
 
         message = "Session cleared."

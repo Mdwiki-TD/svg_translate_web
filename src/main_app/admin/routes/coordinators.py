@@ -31,12 +31,12 @@ class CoordinatorDashboardView(MethodView):
     decorators = [admin_required]
 
     def __init__(self) -> None:
-        self.admin_service = AdminService()
+        self.service = AdminService()
 
     def get(self) -> str:
         """Render the coordinator management dashboard."""
         try:
-            coordinators = self.admin_service.list_coordinators()
+            coordinators = self.service.list_coordinators()
         except Exception as e:  # pragma: no cover - defensive guard
             logger.error("Unable to list coordinators: %s", e)
             flash("Unable to list coordinators.", "danger")
@@ -95,12 +95,16 @@ class CoordinatorStatusView(MethodView):
     decorators = [admin_required]
 
     def __init__(self) -> None:
-        self.admin_service = AdminService()
+        self.service = AdminService()
 
-    def _set_record_active_status(self, coordinator_id: int, is_active: bool) -> ResponseReturnValue:
+    def _set_record_active_status(
+        self,
+        coordinator_id: int,
+        is_active: bool,
+    ) -> ResponseReturnValue:
         """Shared helper to update coordinator is_active status."""
         try:
-            record = self.admin_service.set_coordinator_active(coordinator_id, is_active)
+            record = self.service.set_coordinator_active(coordinator_id, is_active)
             if record is None:
                 raise LookupError(f"Coordinator with id {coordinator_id} not found")
         except LookupError:
@@ -136,15 +140,15 @@ class DeleteCoordinatorView(MethodView):
     decorators = [admin_required]
 
     def __init__(self) -> None:
-        self.admin_service = AdminService()
+        self.service = AdminService()
 
     def post(self, coordinator_id: int) -> ResponseReturnValue:
         """Remove a coordinator entirely."""
         try:
-            record = self.admin_service.get_coordinator_by_id(coordinator_id)
+            record = self.service.get_coordinator_by_id(coordinator_id)
             if record is None:
                 raise LookupError(f"Coordinator with id {coordinator_id} not found")
-            self.admin_service.delete(coordinator_id)
+            self.service.delete(coordinator_id)
         except LookupError:
             logger.exception("Unable to delete coordinator.")
             flash(f"Coordinator id {coordinator_id} was not found", "warning")

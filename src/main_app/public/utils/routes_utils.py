@@ -6,7 +6,7 @@ from typing import Any
 from flask import url_for
 
 from ...jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
-from ...services.auth.current_user_resolver import get_current_user
+from ...services.auth.current_user_resolver import CurrentUserResolver
 from ...templates_markups import NavigationBar, main_nav_list
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ def context_data(
     Used in @app.context_processor to inject variables into templates.
     """
     # Safe retrieval from g with a fallback to None
-    user = get_current_user()
+    user = CurrentUserResolver.get_current_user()
 
     username = user.username if user else None
 

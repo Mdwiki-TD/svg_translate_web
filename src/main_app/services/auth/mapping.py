@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from werkzeug.wrappers import Response as WerkzeugResponse
 
+from werkzeug.wrappers import Response as WerkzeugResponse
 
 logger = logging.getLogger(__name__)
 

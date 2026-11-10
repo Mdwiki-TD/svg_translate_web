@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy.exc import DatabaseError
+from sqlalchemy.exc import IntegrityError
 
 
-class UniqueError(DatabaseError):
+class UniqueError(IntegrityError):
     code = "gkpj-unique"
     message = "Unique constraint failed"
 

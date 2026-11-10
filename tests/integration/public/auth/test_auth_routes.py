@@ -67,7 +67,7 @@ class TestLogin:
             def try_after(self, key: str):
                 return type("obj", (object,), {"total_seconds": lambda self: 60})()
 
-            def get_login_rate_limit_seconds(self, _key) -> str:
+            def get_time_left(self, _key) -> str:
                 return "0"
 
         monkeypatch.setattr("src.main_app.public.auth.routes.login_rate_limiter", DummyLimiter())
@@ -143,7 +143,7 @@ class TestCallback:
             def allow(self, key: str) -> bool:
                 return False
 
-            def get_login_rate_limit_seconds(self, _key) -> str:
+            def get_time_left(self, _key) -> str:
                 return "0"
 
         monkeypatch.setattr("src.main_app.public.auth.routes.callback_rate_limiter", DummyLimiter())

@@ -15,7 +15,7 @@ from flask import (
 from flask.typing import ResponseReturnValue
 
 from ..services.auth.current_user import CurrentUser
-from ..services.auth.current_user_resolver import get_current_user
+from ..services.auth.current_user_resolver import CurrentUserResolver
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ def admin_required(view: FuncType) -> FuncType:  # noqa: UP047
 
     @wraps(view)
     def wrapped(*args, **kwargs):
-        user: CurrentUser | None = get_current_user()
+        user: CurrentUser | None = CurrentUserResolver.get_current_user()
         if not user:
             return redirect(url_for("auth.login"))
         if not user.is_active_admin:
@@ -45,7 +45,7 @@ def admin_guard() -> ResponseReturnValue | None:
     hook, so it covers every endpoint registered under the admin blueprint —
     including the nested sub-blueprints — even when a view forgets the decorator.
     """
-    user: CurrentUser | None = get_current_user()
+    user: CurrentUser | None = CurrentUserResolver.get_current_user()
     if not user:
         return redirect(url_for("auth.login"))
     if not user.is_active_admin:

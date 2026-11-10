@@ -11,17 +11,17 @@ from flask_admin.theme import Bootstrap4Theme
 from flask_babel import Babel
 from flask_sqlalchemy import SQLAlchemy
 
-from ..services.auth.current_user_resolver import get_current_user
+from ..services.auth.current_user_resolver import CurrentUserResolver
 from .flask_admin_panel_models import ModelItem, categories
 
 
 class MyAdminIndexView(AdminIndexView):
     def is_accessible(self) -> bool:
-        user = get_current_user()
+        user = CurrentUserResolver.get_current_user()
         return bool(user and user.is_active_admin)
 
     def inaccessible_callback(self, name: str, **kwargs: Any) -> Any:
-        user = get_current_user()
+        user = CurrentUserResolver.get_current_user()
         if not user:
             return redirect(url_for("auth.login", next=request.url))
         abort(403)
@@ -40,11 +40,11 @@ class WrapModelView(ModelView):
     can_view_details: bool = True
 
     def is_accessible(self) -> bool:
-        user = get_current_user()
+        user = CurrentUserResolver.get_current_user()
         return bool(user and user.is_active_admin)
 
     def inaccessible_callback(self, name: str, **kwargs: Any) -> Any:
-        user = get_current_user()
+        user = CurrentUserResolver.get_current_user()
         if not user:
             return redirect(url_for("auth.login", next=request.url))
         abort(403)

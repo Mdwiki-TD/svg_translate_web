@@ -111,12 +111,6 @@ class CurrentUserResolver:
         """
         return getattr(g, "_current_user", None)
 
-
-get_current_user = CurrentUserResolver.get_current_user
-set_logged_in_user = CurrentUserResolver().set_logged_in_user
-
 __all__ = [
     "CurrentUserResolver",
-    "get_current_user",
-    "set_logged_in_user",
 ]

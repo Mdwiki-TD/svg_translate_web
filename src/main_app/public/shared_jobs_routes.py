@@ -27,7 +27,7 @@ from ..jobs_workers.jobs_worker import (
     start_job_form,
 )
 from ..jobs_workers.objects import JobData
-from ..services.auth.current_user_resolver import get_current_user
+from ..services.auth.current_user_resolver import CurrentUserResolver
 from .utils.routes_utils import can_run_bg_jobs, load_auth_payload
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ class SharedJobRoutes:
 
     def cancel_job_handler(self, job_id: int, job_type: str) -> str:
         """Cancel a running job."""
-        user = get_current_user()
+        user = CurrentUserResolver.get_current_user()
         if not user:
             flash("You must be logged in to cancel jobs.", "danger")
             return "job_detail"
@@ -88,7 +88,7 @@ class SharedJobRoutes:
         form_data: dict[str, Any] | None = None,
     ) -> int | None:
         """Start a job."""
-        user = get_current_user()
+        user = CurrentUserResolver.get_current_user()
 
         if not user:
             flash("You must be logged in to start this job.", "danger")
@@ -122,7 +122,7 @@ class SharedJobRoutes:
 
     def delete_job_handler(self, job_id: int, job_type: str) -> str:
         """Delete a job by ID and job type."""
-        user = get_current_user()
+        user = CurrentUserResolver.get_current_user()
         if not user:
             flash("You must be logged in to delete jobs.", "danger")
             return "job_detail"
@@ -153,7 +153,7 @@ class SharedJobRoutes:
 
     def mark_as_completed_handler(self, job_id: int, job_type: str) -> None:
         """Mark job as completed."""
-        user = get_current_user()
+        user = CurrentUserResolver.get_current_user()
         if not user:
             flash("You must be logged in to change job stats.", "danger")
             return
@@ -210,7 +210,7 @@ class SharedJobRoutes:
         except LookupError:
             logger.error("Job not found: id=%s, type=%s", job_id, job_type)
             flash(f"Job id {job_id} with {job_type=} was not found", "warning")
-            return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
+            return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))  # pyright: ignore[reportReturnType]
 
         # Load job result if available
         result_data = None
@@ -447,7 +447,7 @@ class DrawResultFileView(BaseJobView):
         }
 
     @staticmethod
-    def _row_matches_search(item: dict, search_value: str) -> bool:
+    def _row_matches_search(item: dict | Any, search_value: str) -> bool:
         """
         Basic substring search across the fields that matter for this table.
         Extend this list if you want status/step messages searchable too.
@@ -457,7 +457,7 @@ class DrawResultFileView(BaseJobView):
         return search_value in title or search_value in status
 
     @staticmethod
-    def convert_str_list_to_dict(list_data: list[str], list_name: str) -> list[dict[str, Any] | str]:
+    def convert_str_list_to_dict(list_data: list[str], list_name: str) -> list[dict[str, str]] | list[str]:
         """
         Convert a list of strings into a list of dictionaries with a single key
         """
