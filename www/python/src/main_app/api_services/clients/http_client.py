@@ -8,11 +8,16 @@ import os
 from typing import Any
 
 import requests
+from .http_client_helper import HttpHelper
 
 logger = logging.getLogger(__name__)
 
 
-class HttpClient:
+class ApiRequestError(Exception):
+    """Raised when an API request fails after all retries or receives fatal responses."""
+
+
+class HttpClient(HttpHelper):
     """HTTP client wrapper providing standardized methods for HTTP requests.
 
     - ``get`` / ``post`` / ``request`` return a raw ``requests.Response``.
@@ -34,7 +39,9 @@ class HttpClient:
         self.default_timeout = default_timeout
         self.user_agent = user_agent or self._user_agent
         self.use_session = use_session
-        self._session: requests.Session | None = session or (requests.Session() if use_session else None)
+        self._session: requests.Session | None = session or (
+            requests.Session() if use_session else None
+        )
 
     # ------------------------------------------------------------------
     # Session management
@@ -83,7 +90,9 @@ class HttpClient:
     ) -> requests.Response:
         """Single place where every request is actually sent."""
         # Reuse the session when enabled, otherwise fall back to one-off requests.
-        sender = self._session.request if self._session is not None else requests.request
+        sender = (
+            self._session.request if self._session is not None else requests.request
+        )
         return sender(
             method=method.upper(),
             url=url,
@@ -213,7 +222,9 @@ class HttpClient:
         result["http_code"] = response.status_code
 
         if response.status_code != 200:
-            logger.error("HttpClient: API returned HTTP %s for %s", response.status_code, url)
+            logger.error(
+                "HttpClient: API returned HTTP %s for %s", response.status_code, url
+            )
             result["error"] = "HTTP_ERROR"
             result["error_code"] = str(response.status_code)
 
@@ -251,5 +262,6 @@ class HttpClient:
 
 
 __all__ = [
+    "ApiRequestError",
     "HttpClient",
 ]

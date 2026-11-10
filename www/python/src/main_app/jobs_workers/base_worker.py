@@ -6,12 +6,12 @@ import logging
 import threading
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Final
+from typing import Any, Final, TypeVar
 
 from mwclient.client import Site
 from sqlalchemy.orm.exc import StaleDataError
 
-from ..api_services import get_user_site
+from ..api_services import WikiSiteClient
 from ..config import get_settings
 from ..database.services import JobsService
 from ..io import is_job_cancelled_file_exist, save_job_result_by_name
@@ -20,6 +20,10 @@ from .shared_objects import SharedworkerObject, UpdaterOutcome
 from .utils import generate_result_file_name
 
 logger = logging.getLogger(__name__)
+
+
+# Define a TypeVar bounded by SharedworkerObject
+TResult = TypeVar("TResult", bound=SharedworkerObject)
 
 
 class BaseObjectsJobWorker(ABC):
@@ -56,6 +60,7 @@ class BaseObjectsJobWorker(ABC):
         self.result: SharedworkerObject = SharedworkerObject()
         # self.result: WorkerMapping = WorkerMapping()
         self._jobs_service = JobsService()
+        self.wikisite_client = WikiSiteClient()
 
     @abstractmethod
     def get_job_type(self) -> str:
@@ -67,7 +72,7 @@ class BaseObjectsJobWorker(ABC):
         ...
 
     @abstractmethod
-    def process(self) -> SharedworkerObject:
+    def process(self) -> TResult | type[TResult]:
         """Execute the main processing logic.
 
         This method should contain the actual work of the job.
@@ -79,8 +84,7 @@ class BaseObjectsJobWorker(ABC):
         ...
 
     def before_run(self) -> bool:
-        """
-        Called before processing starts.
+        """Called before processing starts.
 
         Returns:
             True to continue with processing, False to abort
@@ -93,7 +97,7 @@ class BaseObjectsJobWorker(ABC):
                 job_type=self.job_type,
             )
             self.result.status = "running"
-            self._save_progress()
+            self.save_progress()
             return True
         except LookupError:
             logger.exception(
@@ -117,7 +121,7 @@ class BaseObjectsJobWorker(ABC):
         self.result.final_status_updated = self.update_final_status(final_status)
 
         # Save final results
-        self._save_progress()
+        self.save_progress()
 
         logger.info("Job %s: Finished with status %s", self.job_id, final_status)
 
@@ -138,7 +142,7 @@ class BaseObjectsJobWorker(ABC):
             logger.exception("Job %s: Failed to update final status", self.job_id)
             return False
 
-    def _save_progress(self, insert_last_update: bool = True) -> None:
+    def save_progress(self, insert_last_update: bool = True) -> None:
         if insert_last_update:
             self.result.last_update = datetime.now().isoformat()
 
@@ -197,7 +201,7 @@ class BaseObjectsJobWorker(ABC):
         self.result.status = "cancelled"
         if self.result.cancelled_at is None:
             self.result.cancelled_at = datetime.now().isoformat()
-        self._save_progress(insert_last_update=False)
+        self.save_progress(insert_last_update=False)
 
     def get_priority(self, length: int) -> int:
         if length < 11:
@@ -250,7 +254,7 @@ class BaseObjectsJobWorker(ABC):
         return True
 
     def _check_site(self) -> bool:
-        self.site = get_user_site(self.user)
+        self.site = WikiSiteClient.get_user_site(self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
             self.log_no_site_error()

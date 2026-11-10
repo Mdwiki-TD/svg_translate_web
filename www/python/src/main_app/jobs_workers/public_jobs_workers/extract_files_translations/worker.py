@@ -357,7 +357,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self._save_mapping(self.job_id)
         self.result.mapping = self.mapping.to_json()
 
-        self._save_progress()
+        self.save_progress()
 
     def update_status(self, info: FilesProcessedItem):
         self.result.summary.processed += 1

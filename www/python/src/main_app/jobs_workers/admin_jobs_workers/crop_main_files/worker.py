@@ -87,7 +87,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
                 break
 
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         return self.result
 

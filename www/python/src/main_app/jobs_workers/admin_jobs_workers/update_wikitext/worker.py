@@ -101,7 +101,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
                 break
 
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         return self.result
 
@@ -124,7 +124,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
 
         # ----------------------------------------------
         # Stage 1: Extract Text
-        self._save_progress()
+        self.save_progress()
 
         if not self._extract_text_step():
             self.result.status = "failed"
@@ -137,7 +137,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
             return self.result
 
         self.result.summary.total = len(self.titles)
-        self._save_progress()
+        self.save_progress()
 
         logger.info("Job %s: Found %d File.", self.job_id, self.result.summary.total)
 

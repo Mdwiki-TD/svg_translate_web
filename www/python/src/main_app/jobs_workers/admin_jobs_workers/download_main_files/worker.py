@@ -156,7 +156,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
 
             # Save progress periodically
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         # Generate zip file after successful completion
         if self.result.status != "cancelled":

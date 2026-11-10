@@ -198,7 +198,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
                 break
 
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         self.result.summary.failed = len(self.result.pages_failed)
         self.result.summary.skipped = len(self.result.pages_skipped)

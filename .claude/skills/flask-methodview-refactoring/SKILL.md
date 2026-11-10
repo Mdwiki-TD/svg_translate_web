@@ -10,20 +10,17 @@ This skill guides the AI agent through refactoring legacy function-based Flask r
 ## Core Rules & Directives
 
 1. **Architecture & Design Pattern:**
-
     - Convert handlers to `flask.views.MethodView` to separate HTTP methods (`get`, `post`, `put`, `delete`).
     - For single-view modules or direct view bindings, implement a `@classmethod def register(cls, bp: Blueprint)` method directly inside the `MethodView` class.
     - For complex multi-view modules, abstract shared logic into base view classes or dedicated route registrar classes.
 
 2. **Backward Compatibility & Legacy Endpoints:**
-
     - When merging separate POST handlers (e.g., `edit_post`, `add_post`) into a unified `MethodView` POST method:
         - Register the primary routes using standard endpoint names (e.g., `edit`, `add`).
         - Provide temporary legacy aliases via `bp.add_url_rule` for old endpoints (e.g., `edit_post`) if existing templates or JavaScript files still depend on them via `url_for()`.
         - Always annotate temporary rules with a explicit `# TODO: Backward Compatibility` comment.
 
 3. **Language & Comments (STRICT):**
-
     - Write **ALL** code comments, docstrings, and module documentation exclusively in **ENGLISH**.
 
 4. **Type Safety & Standards:**
@@ -152,10 +149,10 @@ __all__ = [
 
 When provided with any Python/Flask code file:
 
--   Apply the rules and workflow above.
--   Prefer self-registration (`@classmethod def register`) for standalone/single MethodViews.
--   Handle legacy endpoint aliases cleanly with `# TODO: Backward Compatibility` blocks where applicable.
--   Output clean, fully refactored Python code.
+- Apply the rules and workflow above.
+- Prefer self-registration (`@classmethod def register`) for standalone/single MethodViews.
+- Handle legacy endpoint aliases cleanly with `# TODO: Backward Compatibility` blocks where applicable.
+- Output clean, fully refactored Python code.
 
 ```
 

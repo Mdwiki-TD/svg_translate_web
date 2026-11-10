@@ -77,7 +77,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return False
 
         stage.status = "running"
-        self._save_progress()
+        self.save_progress()
 
         try:
             step_result = extract_titles_step(
@@ -246,7 +246,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         if processfiles_stage.status in ["pending", "running"]:
             processfiles_stage.status = "completed"
@@ -280,7 +280,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 1: Extract Text
 
-        self._save_progress()
+        self.save_progress()
 
         if not self._extract_text_step():
             return self.result

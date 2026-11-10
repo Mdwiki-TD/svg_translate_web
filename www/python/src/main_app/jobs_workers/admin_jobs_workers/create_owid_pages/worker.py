@@ -57,7 +57,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         templates = self._load_templates()
         len_all = len(templates)
         self.result.summary.total = len_all
-        self._save_progress()
+        self.save_progress()
 
         if not self.update_all:
             templates = self.filter_created(templates)
@@ -89,7 +89,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
                 break
 
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         return self.result
 

@@ -2,23 +2,40 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from flask import Blueprint, Flask
 
 from ..decorators.admin_decorators import admin_guard
-from .admin_panel import AdminPanel
 from .flask_admin_panel import add_admin_dashboard
 from .routes import AdminSubRoutesRegister
+from .admin_panel import AdminPanel
+from ..templates_markups import create_admin_sidebar
+
+
+class AdminsRouteRegister:
+    """Registers all route blueprints on a Flask app."""
+
+    @staticmethod
+    def inject_sidebar() -> dict[str, Any]:
+        """Provide the admin sidebar markup as a template global."""
+        return {
+            "create_admin_sidebar": create_admin_sidebar,
+        }
+
+    @staticmethod
+    def register_guard(bp: Blueprint) -> None:
+        # Reject every request to /admin_panel unless it comes from an active admin.
+        # Flask propagates a parent blueprint's before_request to nested child
+        # blueprints, so this single guard covers every admin sub-blueprint too.
+        bp.before_request(admin_guard)
 
 
 def register_bp_admin_blueprints(app: Flask) -> None:
-    bp_admin = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
-    # Reject every request to /adminpanel unless it comes from an active admin.
-    # Flask propagates a parent blueprint's before_request to nested child
-    # blueprints, so this single guard covers every admin sub-blueprint too.
-    bp_admin.before_request(admin_guard)
-    AdminPanel().register(bp_admin)
-    AdminSubRoutesRegister.register(bp_admin)
-    app.register_blueprint(bp_admin)
+    bp = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
+    AdminPanel.register(bp)
+    AdminSubRoutesRegister.register(bp)
+    app.register_blueprint(bp)
 
 
 __all__ = [

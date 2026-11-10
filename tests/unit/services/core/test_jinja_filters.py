@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/core/jinja_filters.py module."""
+"""Unit tests for src/main_app/services/core/jinja_filters.py module."""
 
 from __future__ import annotations
 
@@ -6,9 +6,8 @@ from datetime import datetime
 
 import pytest
 from src.main_app.services.core.jinja_filters import (
+    FormatTimestamps,
     filters,
-    format_long_date,
-    format_short_date,
     get_status_class,
     short_url,
 )
@@ -41,38 +40,38 @@ class TestShortUrl:
 
 class TestFormatLongDate:
     def test_iso_format_string(self):
-        assert format_long_date("2026-05-28T23:51:50") == "2026-05-28 23:51:50"
+        assert FormatTimestamps.format_long_date("2026-05-28T23:51:50") == "2026-05-28 23:51:50"
 
     def test_datetime_object(self):
         dt = datetime(2025, 10, 27, 4, 41, 7)
-        assert format_long_date(dt) == "2025-10-27 04:41:07"
+        assert FormatTimestamps.format_long_date(dt) == "2025-10-27 04:41:07"
 
     def test_empty_string_returns_default(self):
-        assert format_long_date("") == ""
+        assert FormatTimestamps.format_long_date("") == ""
 
     def test_none_returns_default(self):
-        assert format_long_date(None) == ""
+        assert FormatTimestamps.format_long_date(None) == ""
 
     def test_custom_default(self):
-        assert format_long_date("", default="N/A") == "N/A"
+        assert FormatTimestamps.format_long_date("", default="N/A") == "N/A"
 
     def test_invalid_string_returns_default(self):
-        assert format_long_date("not-a-date", default="bad") == "bad"
+        assert FormatTimestamps.format_long_date("not-a-date", default="bad") == "bad"
 
 
 class TestFormatShortDate:
     def test_iso_format_string(self):
-        assert format_short_date("2026-05-28T23:51:50") == "23:51:50"
+        assert FormatTimestamps.format_short_date("2026-05-28T23:51:50") == "23:51:50"
 
     def test_datetime_object(self):
         dt = datetime(2025, 10, 27, 4, 41, 7)
-        assert format_short_date(dt) == "04:41:07"
+        assert FormatTimestamps.format_short_date(dt) == "04:41:07"
 
     def test_empty_string_returns_default(self):
-        assert format_short_date("") == ""
+        assert FormatTimestamps.format_short_date("") == ""
 
     def test_none_returns_default(self):
-        assert format_short_date(None) == ""
+        assert FormatTimestamps.format_short_date(None) == ""
 
 
 class TestGetStatusClass:

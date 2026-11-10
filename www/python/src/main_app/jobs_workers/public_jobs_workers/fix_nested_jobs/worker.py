@@ -65,7 +65,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             return False
 
         download_stage.status = "running"
-        self._save_progress()
+        self.save_progress()
 
         temp_dir = Path(tempfile.gettempdir())
 
@@ -107,7 +107,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             return False
 
         analyze_stage.status = "running"
-        self._save_progress()
+        self.save_progress()
 
         if not self.file_path:
             analyze_stage.skipped(message="download step Failed")
@@ -139,7 +139,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             return False
 
         fix_stage.status = "running"
-        self._save_progress()
+        self.save_progress()
 
         fixed = self.fix_nested_processer.repair_file(self.file_path)
 
@@ -163,7 +163,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             return False
 
         verify_stage.status = "running"
-        self._save_progress()
+        self.save_progress()
 
         # self.result.file_result.nested_tags_after = verify_result.after
         # self.result.file_result.nested_tags_fixed = verify_result.fixed
@@ -195,7 +195,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
             return False
 
         upload_stage.status = "running"
-        self._save_progress()
+        self.save_progress()
 
         # Check if settings upload_files option is disabled
         if self.args.get("upload_files") is False:

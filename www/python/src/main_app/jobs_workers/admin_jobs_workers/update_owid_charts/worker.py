@@ -253,7 +253,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         _changed = self._process_one_item(chart, info)
         self.update_status(chart.slug, info)
 
-        self._save_progress()
+        self.save_progress()
 
         return self.result
 
@@ -281,7 +281,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
                 break
 
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         return self.result
 

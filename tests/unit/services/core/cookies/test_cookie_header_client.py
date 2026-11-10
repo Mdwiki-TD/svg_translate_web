@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/core/cookies.py module."""
+"""Unit tests for src/main_app/services/core/cookies.py module."""
 
 from __future__ import annotations
 

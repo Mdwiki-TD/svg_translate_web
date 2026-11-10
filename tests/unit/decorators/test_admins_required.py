@@ -8,7 +8,9 @@ from types import SimpleNamespace
 from unittest.mock import patch  # , MagicMock
 
 import pytest
-from src.main_app.admin.decorators import admin_required
+from src.main_app.decorators.admin_decorators import (
+    admin_required,
+)
 from werkzeug.exceptions import Forbidden
 
 
@@ -20,8 +22,8 @@ class MockUser:
 
 def test_admin_required_redirects_when_not_logged_in(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: None)
-    monkeypatch.setattr("src.main_app.admin.decorators.redirect", lambda location: f"redirect:{location}")
-    monkeypatch.setattr("src.main_app.admin.decorators.url_for", lambda endpoint: f"/{endpoint}")
+    monkeypatch.setattr("src.main_app.decorators.admin_decorators.redirect", lambda location: f"redirect:{location}")
+    monkeypatch.setattr("src.main_app.decorators.admin_decorators.url_for", lambda endpoint: f"/{endpoint}")
 
     @admin_required
     def view() -> str:
@@ -42,7 +44,7 @@ def test_admin_required_blocks_non_admin(monkeypatch: pytest.MonkeyPatch) -> Non
     def fake_abort(code: int) -> None:
         raise AbortCalled(code)
 
-    monkeypatch.setattr("src.main_app.admin.decorators.abort", fake_abort)
+    monkeypatch.setattr("src.main_app.decorators.admin_decorators.abort", fake_abort)
 
     @admin_required
     def view() -> str:
@@ -79,8 +81,8 @@ def test_admin_required_not_logged_in():
 
     with (
         patch("src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", return_value=None),
-        patch("src.main_app.admin.decorators.redirect") as mock_redirect,
-        patch("src.main_app.admin.decorators.url_for", return_value="/login") as mock_url_for,
+        patch("src.main_app.decorators.admin_decorators.redirect") as mock_redirect,
+        patch("src.main_app.decorators.admin_decorators.url_for", return_value="/login") as mock_url_for,
     ):
         response = dummy_view()
 

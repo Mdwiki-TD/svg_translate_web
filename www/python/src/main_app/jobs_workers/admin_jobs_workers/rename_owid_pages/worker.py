@@ -111,7 +111,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         # Save progress immediately so the UI reflects the discovery phase.
         self.result.summary.total = total
 
-        self._save_progress()
+        self.save_progress()
 
         per_item = self.get_priority(total) if total else 1
 
@@ -133,7 +133,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
                 break
 
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         return self.result
 

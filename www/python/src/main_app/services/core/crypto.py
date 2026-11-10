@@ -41,16 +41,6 @@ class CryptoService:
         return decrypted.decode("utf-8")
 
 
-def encrypt_value(plaintext: str) -> bytes:
-    return CryptoService().encrypt(plaintext)
-
-
-def decrypt_value(token: bytes) -> str:
-    return CryptoService().decrypt(token)
-
-
 __all__ = [
     "CryptoService",
-    "encrypt_value",
-    "decrypt_value",
 ]

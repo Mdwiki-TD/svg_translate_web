@@ -459,7 +459,7 @@ class TestJobsPublicRoutesRoutes(TestSetup):
     ) -> None:
         mock_deps.admin_load_user.return_value = None
         monkeypatch.setattr(
-            "src.main_app.admin.decorators.url_for",
+            "src.main_app.decorators.admin_decorators.url_for",
             lambda endpoint, **values: f"/{endpoint}",
         )
         resp = mock_p_client.post("/jobs/test_job/1/delete")

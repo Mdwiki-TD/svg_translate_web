@@ -144,7 +144,7 @@ def mock_worker():
             args=args,
         )
     )
-    _worker._save_progress = MagicMock()
+    _worker.save_progress = MagicMock()
     return _worker
 
 
