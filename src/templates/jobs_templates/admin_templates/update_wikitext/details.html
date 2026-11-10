@@ -1,13 +1,13 @@
 {% extends "jobs_templates/admin_templates/base_details_admin.html" %}
-{% from "_macros.html" import stats_card %}
+{% from "_macros.html" import stats_card, commons_link %}
 {% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
 
 {% block job_info_extra %}
 {% if result_data and result_data.args %}
 <tr>
-    <th>Update all pages:</th>
+    <th>Template:</th>
     <td>
-        {{ result_data.args.update_all }}
+        {{ commons_link(result_data.args.template_name) }}
     </td>
 </tr>
 {% endif %}
