@@ -9,7 +9,7 @@ if [ -z "$CLONE_DIR" ]; then
     exit 1
 fi
 
-export SUB_DIR_COPY="src"
+export SUB_DIR_COPY="www/python/src"
 export CLEAN_INSTALL=1
 
 # Optional clean of jsons files before copy to avoid issues with old jsons files
