@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import requests
-
 from src.main_app.api_services.clients.http_client import HttpClient
 from src.main_app.api_services.files_service import FilesService
 

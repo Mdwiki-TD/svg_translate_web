@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import Mock
 
 import pytest
-
 from src.main_app.admin.routes import templates
 from src.main_app.database.services import TemplateService
 

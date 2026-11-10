@@ -3,7 +3,6 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import pytest
-
 from src.main_app.io.jobs_files_service import (
     get_jobs_data_dir,
     load_job_result,

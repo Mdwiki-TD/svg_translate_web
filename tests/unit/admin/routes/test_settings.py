@@ -10,7 +10,6 @@ from types import SimpleNamespace
 
 import pytest
 from flask import Flask
-
 from src.main_app.admin.routes.settings import (
     SettingsFuncs,
     _parse_setting_value,

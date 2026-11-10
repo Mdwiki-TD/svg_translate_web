@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 
 import mwclient.errors
 import pytest
-
 from src.main_app.api_services.category import get_category_members
 
 # ── Helpers ────────────────────────────────────────────────────────────────────────────

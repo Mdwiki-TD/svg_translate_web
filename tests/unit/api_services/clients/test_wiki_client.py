@@ -6,7 +6,6 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from src.main_app.api_services.clients.wiki_client import (
     coerce_encrypted,
     get_user_site,

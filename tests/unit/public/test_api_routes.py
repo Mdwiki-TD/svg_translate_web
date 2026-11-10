@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from flask.testing import FlaskClient
-
 from src.main_app.api_services.files_service import FileLanguagesMap
 from src.main_app.database.services import (
     OwidChartsService,

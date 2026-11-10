@@ -8,9 +8,8 @@ from types import SimpleNamespace
 from unittest.mock import patch  # , MagicMock
 
 import pytest
-from werkzeug.exceptions import Forbidden
-
 from src.main_app.admin.decorators import admin_required
+from werkzeug.exceptions import Forbidden
 
 
 class MockUser:

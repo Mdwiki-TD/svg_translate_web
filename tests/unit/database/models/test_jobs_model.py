@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import Index, UniqueConstraint
-
 from src.main_app.database.models.jobs import JobRecord
 
 

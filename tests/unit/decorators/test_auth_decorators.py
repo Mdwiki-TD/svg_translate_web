@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 from flask import Flask, g, session
-
 from src.main_app.decorators.auth_decorators import (
     oauth_required,
 )

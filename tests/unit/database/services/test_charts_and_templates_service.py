@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.main_app.database.models import OwidChartRecord
 from src.main_app.database.services import (
     ChartAndTemplate,

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.main_app.database.exceptions import DuplicateRecordError, UserNotFoundError
 from src.main_app.database.services.admin_service import AdminService
 from src.main_app.database.services.users_service import UsersService

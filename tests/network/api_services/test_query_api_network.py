@@ -8,7 +8,6 @@ TODO: write tests
 """
 
 import pytest
-
 from src.main_app.api_services.query_api import (
     get_page_links,
     get_template_pages,
@@ -16,6 +15,7 @@ from src.main_app.api_services.query_api import (
     resolve_redirects,
     search_pages,
 )
+
 from tests.network.network_conftest import TestNetwork
 
 pytestmark = pytest.mark.network

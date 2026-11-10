@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.zip_utils import (
     MAIN_FILES_ZIP_NAME,
     create_main_files_zip,

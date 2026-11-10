@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import pytest
 from flask import Flask
-
 from src.main_app.database.services import AdminService, UsersService, UserTokenService
 from src.main_app.services.auth.token_manager import TokenManager
 

@@ -8,7 +8,6 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import (
     CropFileProcessingInfo,

@@ -10,7 +10,6 @@ TODO: write tests
 from __future__ import annotations
 
 import pytest
-
 from src.main_app.database.exceptions import (
     DatabaseInitError,
     DuplicateRecordError,

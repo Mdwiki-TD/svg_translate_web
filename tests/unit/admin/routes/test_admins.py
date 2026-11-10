@@ -7,7 +7,6 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-
 from src.main_app.database.services import AdminService, UsersService
 
 

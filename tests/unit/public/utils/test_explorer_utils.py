@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from src.main_app.public.utils import explorer_utils
 
 

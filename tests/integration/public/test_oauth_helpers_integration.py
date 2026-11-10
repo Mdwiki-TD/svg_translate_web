@@ -1,7 +1,6 @@
 """Integration tests for OAuth helper functions."""
 
 from mwoauth import RequestToken
-
 from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
 from src.main_app.services.auth import auth_service as oauth_helpers

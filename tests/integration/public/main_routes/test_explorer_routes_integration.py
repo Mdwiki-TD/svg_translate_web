@@ -8,7 +8,6 @@ from typing import Any
 
 import pytest
 from flask import Blueprint, Flask
-
 from src.main_app.public.main_routes.explorer_routes import ExplorerView
 
 

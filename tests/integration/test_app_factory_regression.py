@@ -6,7 +6,6 @@ from importlib import reload
 from unittest.mock import patch
 
 import pytest
-
 from src.main_app.config import TestingConfig
 
 

@@ -6,7 +6,6 @@ import threading
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from src.main_app.database.services import JobsService
 from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker
 from src.main_app.jobs_workers.objects import JobsRunner

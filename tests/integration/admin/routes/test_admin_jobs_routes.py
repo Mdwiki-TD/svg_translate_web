@@ -7,7 +7,6 @@ from html import unescape
 from unittest.mock import Mock
 
 import pytest
-
 from src.main_app.database.services import JobsService
 
 

@@ -9,7 +9,6 @@ Replace `from your_module import ...` with your actual module name.
 """
 
 import pytest
-
 from src.main_app.utils.new_wikitext.main_title_finder import MainTitleFinder
 
 tests_list = [

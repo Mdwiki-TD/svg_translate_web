@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from flask import Flask
-
 from src.main_app.database.services import JobsService, JobStats, UserJobsStats
 
 

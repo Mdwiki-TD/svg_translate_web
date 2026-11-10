@@ -1,7 +1,6 @@
 from unittest.mock import Mock
 
 import pytest
-
 from src.main_app.admin.routes.templates import (
     TemplatesRoutesFuncs,
 )

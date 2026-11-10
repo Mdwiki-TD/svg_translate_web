@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 import pytest
 from flask import Blueprint, Flask
-
 from src.main_app.public.main_routes.routes import MainView
 
 

@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.public.shared_jobs_routes import SharedJobRoutes
 
 

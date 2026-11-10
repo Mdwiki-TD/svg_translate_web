@@ -1,5 +1,4 @@
 from flask import session
-
 from src.main_app.services.auth.current_user_resolver import (
     resolve_user_id,
 )

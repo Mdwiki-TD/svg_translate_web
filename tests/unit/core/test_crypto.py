@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.main_app.services.core.crypto import decrypt_value, encrypt_value
 
 

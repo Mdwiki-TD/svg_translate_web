@@ -7,7 +7,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from src.main_app.io.jobs_files_service import (
     create_job_cancelled_file,
     get_jobs_data_dir,

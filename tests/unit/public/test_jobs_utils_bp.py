@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 from flask import Blueprint
-
 from src.main_app.public.jobs_utils_bp import UtilsJobsBpRoutes
 
 

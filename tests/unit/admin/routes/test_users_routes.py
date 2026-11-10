@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from flask import Blueprint, Flask
-
 from src.main_app.admin.routes.users import UsersRoutes
 from src.main_app.database.services import UsersService
 

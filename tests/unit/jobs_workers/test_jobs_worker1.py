@@ -6,7 +6,6 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.database.models import JobRecord
 from src.main_app.jobs_workers import jobs_worker
 from src.main_app.jobs_workers.objects import JobsRunner

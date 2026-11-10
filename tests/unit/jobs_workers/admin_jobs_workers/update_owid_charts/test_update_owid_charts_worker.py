@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.api_services.clients.objects import RawGrapherMetadataResponse
 from src.main_app.database.models import OwidChartRecord
 from src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.objects import ChartNewInfo

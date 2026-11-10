@@ -15,7 +15,6 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column
-
 from src.main_app.extensions import BaseModel, db, migrate
 
 

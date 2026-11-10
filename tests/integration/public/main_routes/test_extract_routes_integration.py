@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from pytest_mock import MockerFixture
-
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.public.main_routes.extract_routes import EXTRACT_FILENAME_KEY
 from src.main_app.services.copysvg_wrapper.extract_translations import TranslationMapping

@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
-
 from src.main_app.api_services.clients.owid_client import (
     _build_session,
     _thread_local,

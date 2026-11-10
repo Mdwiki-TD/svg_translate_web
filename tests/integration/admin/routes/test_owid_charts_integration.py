@@ -6,7 +6,6 @@ import json
 from types import SimpleNamespace
 
 import pytest
-
 from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
 from src.main_app.database.models import OwidChartRecord

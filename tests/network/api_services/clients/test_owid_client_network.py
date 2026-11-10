@@ -5,7 +5,6 @@ Network Tests for src.main_app.api_services.clients.owid_client.
 from __future__ import annotations
 
 import pytest
-
 from src.main_app.api_services.clients.owid_client import (
     fetch_grapher_metadata_raw,
 )

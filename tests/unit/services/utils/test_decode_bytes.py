@@ -3,7 +3,6 @@ Tests for services.utils.decode_bytes module.
 """
 
 import pytest
-
 from src.main_app.services.utils.decode_bytes import coerce_bytes
 
 

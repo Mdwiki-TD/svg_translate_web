@@ -12,7 +12,6 @@ from urllib.parse import quote
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
-
 from src.main_app.config import get_settings
 from src.main_app.database.services import UsersService, UserTokenService
 from src.main_app.public.auth_route import OAuthCallbackView  # noqa: F401

@@ -4,7 +4,6 @@ from typing import Any
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
-
 from src.main_app.api_services.files_service.objects import FileData
 from src.main_app.api_services.files_service.uploader import _RETRY_DELAYS, FileUploader
 

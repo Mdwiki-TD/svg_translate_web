@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from flask import Flask, g, session
-
 from src.main_app.services.auth.current_user_resolver import (
     CurrentUserResolver,
 )

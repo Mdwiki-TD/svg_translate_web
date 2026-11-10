@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 import wikitextparser as wtp
-
 from src.main_app.utils.new_wikitext.other_versions import OtherVersionsUpdater
 
 
