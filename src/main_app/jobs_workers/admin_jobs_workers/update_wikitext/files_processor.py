@@ -79,7 +79,6 @@ class UpdateWikiTextProcessor:
         if not self._step_save_text(new_wikitext, page, file_info):
             return False
 
-        file_info.status = "completed"
         return True
 
     # ------------------------------------------------------------------
