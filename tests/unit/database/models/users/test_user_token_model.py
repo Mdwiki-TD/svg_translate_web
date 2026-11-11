@@ -4,8 +4,6 @@ Unit tests for domain.models.user_token module.
 Tests for UserTokenRecord.
 """
 
-from unittest.mock import MagicMock
-
 import pytest
 from src.main_app.database.models import UserRecord, UserTokenRecord
 
