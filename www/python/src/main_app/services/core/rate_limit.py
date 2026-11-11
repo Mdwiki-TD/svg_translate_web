@@ -17,7 +17,8 @@ CALLBACK_LIMIT_STRATEGY = "10 per minute"
 # Storage and header behavior come from the Flask config, e.g.:
 #   RATELIMIT_STORAGE_URI = "redis://localhost:6379"  (default: "memory://")
 #   RATELIMIT_HEADERS_ENABLED = True                  (adds Retry-After etc.)
-limiter = Limiter(key_func=get_remote_address)
+# limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
 
 # Reusable decorators; apply them to views or put them in MethodView.decorators.
 login_limit = limiter.limit(LOGIN_LIMIT_STRATEGY)

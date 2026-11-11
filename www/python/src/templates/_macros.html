@@ -148,8 +148,8 @@
                         class="btn btn-outline-primary btn-sm">
                         <i class="bi bi-file-earmark-text me-1"></i> Diff
                     </a>
-                    <a href="https://{{ domain }}/w/index.php?title={{ form_title }}&action=history" target="_blank"
-                        class="btn btn-outline-primary btn-sm">
+                    <a href="https://{{ domain }}/w/index.php?title={{ form_title | urlencode }}&action=history"
+                        target="_blank" class="btn btn-outline-primary btn-sm">
                         <i class="bi bi-clock-history me-1"></i> History
                     </a>
                 </div>
