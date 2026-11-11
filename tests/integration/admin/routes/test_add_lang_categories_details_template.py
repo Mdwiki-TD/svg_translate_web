@@ -63,7 +63,7 @@ class TestAddLangCategoriesDetailsTemplate:
         )
         job = _create_job_with_result(result_data, tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/add_lang_categories_to_owid_pages/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/add_lang_categories_to_owid_pages/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
 

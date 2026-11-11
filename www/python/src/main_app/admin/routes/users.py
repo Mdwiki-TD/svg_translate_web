@@ -74,7 +74,7 @@ class UpdateCanRunJobsView(MethodView):
                 flash(f"User '{record.username}' permissions updated.", "success")
                 logger.info(f"User '{record.username}' [can_run_jobs]={desired} updated.")
 
-        return redirect(url_for("adminpanel.users.dashboard"))
+        return redirect(url_for("admin_panel.users.dashboard"))
 
 
 class UpdateCanRunBgJobsView(MethodView):
@@ -104,7 +104,7 @@ class UpdateCanRunBgJobsView(MethodView):
                 flash(f"User '{record.username}' permissions updated.", "success")
                 logger.info(f"User '{record.username}' [can_run_bg_jobs]={desired} updated.")
 
-        return redirect(url_for("adminpanel.users.dashboard"))
+        return redirect(url_for("admin_panel.users.dashboard"))
 
 
 class UsersRoutes:

@@ -70,7 +70,7 @@ class TestUpdatePageColumnHeader:
         )
         job = _create_job_with_result(result_data, tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/create_owid_pages/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/create_owid_pages/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Update Page" in page
@@ -89,7 +89,7 @@ class TestUpdatePageColumnHeader:
         )
         job = _create_job_with_result(result_data, tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/create_owid_pages/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/create_owid_pages/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         update_pos = page.find("Update Page")
@@ -128,7 +128,7 @@ class TestUpdateTextStep:
         )
         job = _create_job_with_result(result_data, tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/create_owid_pages/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/create_owid_pages/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         # render_step renders a success badge with bg-success class
@@ -153,7 +153,7 @@ class TestUpdateTextStep:
         )
         job = _create_job_with_result(result_data, tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/create_owid_pages/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/create_owid_pages/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         # assert "bg-danger" in page
@@ -177,7 +177,7 @@ class TestUpdateTextStep:
         )
         job = _create_job_with_result(result_data, tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/create_owid_pages/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/create_owid_pages/{job.id}")
         assert response.status_code == 200
         # page = unescape(response.get_data(as_text=True))
         # render_step with None renders text-muted dash
@@ -202,7 +202,7 @@ class TestUpdateTextStep:
         )
         job = _create_job_with_result(result_data, tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/create_owid_pages/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/create_owid_pages/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Load Text" in page

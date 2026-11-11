@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/adminpanel/routes/owid_charts.py module."""
+"""Unit tests for src/main_app/admin_panel/routes/owid_charts.py module."""
 
 from __future__ import annotations
 
@@ -42,14 +42,14 @@ class TestCreateJsonFile:
         """Download JSON should return a file with chart data."""
         self._seed_chart(slug="chart1", title="Chart 1")
 
-        resp = client.get("/adminpanel/owidcharts/download-json")
+        resp = client.get("/admin_panel/owidcharts/download-json")
 
         assert resp.status_code == 200
         assert "owid_charts.json" in resp.headers.get("Content-Disposition", "")
 
     def test_no_charts(self, client):
         """Download JSON with no charts should redirect with warning."""
-        resp = client.get("/adminpanel/owidcharts/download-json")
+        resp = client.get("/admin_panel/owidcharts/download-json")
 
         assert resp.status_code == 302
 
@@ -57,7 +57,7 @@ class TestCreateJsonFile:
         """Download JSON should include template info when available."""
         self._seed_chart(slug="chart-t", title="Chart T")
 
-        resp = client.get("/adminpanel/owidcharts/download-json")
+        resp = client.get("/admin_panel/owidcharts/download-json")
 
         assert resp.status_code == 200
 
@@ -68,7 +68,7 @@ class TestAddChart:
     def test_missing_slug(self, client):
         """POST /add with empty slug should redirect."""
         resp = client.post(
-            "/adminpanel/owidcharts/add",
+            "/admin_panel/owidcharts/add",
             data={"slug": "", "title": "T", "from_popup": "0"},
         )
 
@@ -77,7 +77,7 @@ class TestAddChart:
     def test_success(self, client):
         """POST /add with valid data should create the chart."""
         resp = client.post(
-            "/adminpanel/owidcharts/add",
+            "/admin_panel/owidcharts/add",
             data={"slug": "new-chart", "title": "New Chart", "from_popup": "0"},
         )
 
@@ -90,7 +90,7 @@ class TestAddChart:
         service.add_chart(slug="dup-chart", title="Dup")
 
         resp = client.post(
-            "/adminpanel/owidcharts/add",
+            "/admin_panel/owidcharts/add",
             data={"slug": "dup-chart", "title": "Dup", "from_popup": "0"},
         )
 
@@ -102,7 +102,7 @@ class TestAddChart:
         service.add_chart(slug="popup-dup", title="Popup Dup")
 
         resp = client.post(
-            "/adminpanel/owidcharts/add",
+            "/admin_panel/owidcharts/add",
             data={"slug": "popup-dup", "title": "Popup Dup", "from_popup": "1"},
         )
 
@@ -121,7 +121,7 @@ class TestUpdateChart:
     def test_missing_slug(self, client):
         """POST /update with empty slug should redirect."""
         resp = client.post(
-            "/adminpanel/owidcharts/update",
+            "/admin_panel/owidcharts/update",
             data={"chart_id": "1", "slug": "", "title": "T"},
         )
 
@@ -132,7 +132,7 @@ class TestUpdateChart:
         chart = self._seed_chart(slug="upd-chart", title="Old Title")
 
         resp = client.post(
-            "/adminpanel/owidcharts/update",
+            "/admin_panel/owidcharts/update",
             data={"chart_id": chart.chart_id, "slug": "upd-chart", "title": "New Title", "from_popup": "0"},
         )
 
@@ -143,7 +143,7 @@ class TestUpdateChart:
     def test_record_none(self, client):
         """POST /update with nonexistent chart_id should redirect."""
         resp = client.post(
-            "/adminpanel/owidcharts/update",
+            "/admin_panel/owidcharts/update",
             data={"chart_id": "99999", "slug": "s", "title": "T", "from_popup": "0"},
         )
 
@@ -152,7 +152,7 @@ class TestUpdateChart:
     def test_from_popup_error(self, client):
         """POST /update from popup with error should redirect back to popup."""
         resp = client.post(
-            "/adminpanel/owidcharts/update",
+            "/admin_panel/owidcharts/update",
             data={"chart_id": "99999", "slug": "s", "title": "T", "from_popup": "1"},
         )
 
@@ -172,14 +172,14 @@ class TestDeleteChart:
         """POST /<chart_id>/delete should remove the chart."""
         chart = self._seed_chart(slug="del-ok", title="Delete OK")
 
-        resp = client.post(f"/adminpanel/owidcharts/{chart.chart_id}/delete")
+        resp = client.post(f"/admin_panel/owidcharts/{chart.chart_id}/delete")
 
         assert resp.status_code == 302
         assert OwidChartsService().get_chart_by_id(chart.chart_id) is None
 
     def test_not_found(self, client):
         """POST /<chart_id>/delete with nonexistent id should redirect."""
-        resp = client.post("/adminpanel/owidcharts/99999/delete")
+        resp = client.post("/admin_panel/owidcharts/99999/delete")
 
         assert resp.status_code == 302
 
@@ -188,7 +188,7 @@ class TestDeleteChart:
         chart = self._seed_chart(slug="del-popup", title="Delete Popup")
 
         resp = client.post(
-            f"/adminpanel/owidcharts/{chart.chart_id}/delete",
+            f"/admin_panel/owidcharts/{chart.chart_id}/delete",
             data={"from_popup": "1"},
         )
 
@@ -210,7 +210,7 @@ class TestEditChart:
         """GET /<chart_id>/edit should render the edit form."""
         chart = self._seed_chart(slug="edit-ok", title="Edit OK")
 
-        resp = client.get(f"/adminpanel/owidcharts/{chart.chart_id}/edit")
+        resp = client.get(f"/admin_panel/owidcharts/{chart.chart_id}/edit")
 
         assert resp.status_code == 200
         html = resp.data.decode()
@@ -218,7 +218,7 @@ class TestEditChart:
 
     def test_not_found(self, client):
         """GET /<chart_id>/edit with nonexistent id should show error."""
-        resp = client.get("/adminpanel/owidcharts/99999/edit")
+        resp = client.get("/admin_panel/owidcharts/99999/edit")
 
         assert resp.status_code == 200
         html = resp.data.decode()

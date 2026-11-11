@@ -86,7 +86,7 @@ class UpdateSlugRedirectDataView(MethodView):
 
         if not redirect_id:
             flash("Redirect ID is required.", "danger")
-            return redirect(url_for("adminpanel.slugredirects.dashboard"))
+            return redirect(url_for("admin_panel.slugredirects.dashboard"))
 
         if self.service.update_slug_redirect(redirect_id, {"should_be_replaced": should_be_replaced}):
             flash("Slug redirect updated.", "success")
@@ -95,7 +95,7 @@ class UpdateSlugRedirectDataView(MethodView):
 
         if from_popup:
             return render_template("admins/popup_action.html")
-        return redirect(url_for("adminpanel.slugredirects.dashboard"))
+        return redirect(url_for("admin_panel.slugredirects.dashboard"))
 
 
 class DeleteSlugRedirectDataView(MethodView):
@@ -112,7 +112,7 @@ class DeleteSlugRedirectDataView(MethodView):
             flash("Slug redirect deleted.", "success")
         else:
             flash("Slug redirect not found.", "danger")
-        return redirect(url_for("adminpanel.slugredirects.dashboard"))
+        return redirect(url_for("admin_panel.slugredirects.dashboard"))
 
 
 class SlugBulkActionView(MethodView):
@@ -130,7 +130,7 @@ class SlugBulkActionView(MethodView):
 
         if not selected_ids:
             flash("No items selected.", "warning")
-            return redirect(url_for("adminpanel.slugredirects.dashboard"))
+            return redirect(url_for("admin_panel.slugredirects.dashboard"))
         try:
             if action == "mark_replace":
                 self.service.bulk_update_slug_redirects(selected_ids, {"should_be_replaced": True})
@@ -147,7 +147,7 @@ class SlugBulkActionView(MethodView):
             logger.error("Error in bulk action")
             flash("An error occurred.", "danger")
 
-        return redirect(url_for("adminpanel.slugredirects.dashboard"))
+        return redirect(url_for("admin_panel.slugredirects.dashboard"))
 
 
 class SlugRedirectsRoutes:

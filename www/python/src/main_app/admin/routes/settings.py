@@ -113,7 +113,7 @@ class SettingsCreateView(SettingsFuncs, MethodView):
                 "Key must start with a lowercase letter and contain only lowercase letters, digits, and underscores.",
                 "danger",
             )
-            return redirect(url_for("adminpanel.settings.dashboard"))
+            return redirect(url_for("admin_panel.settings.dashboard"))
 
         if key and title:
             success = self.service.create_setting(key, title, value_type)
@@ -124,7 +124,7 @@ class SettingsCreateView(SettingsFuncs, MethodView):
         else:
             flash("Key and Title are required.", "danger")
 
-        return redirect(url_for("adminpanel.settings.dashboard"))
+        return redirect(url_for("admin_panel.settings.dashboard"))
 
 
 class SettingsUpdateView(SettingsFuncs, MethodView):
@@ -143,7 +143,7 @@ class SettingsUpdateView(SettingsFuncs, MethodView):
             flash("Settings updated successfully.", "success")
         else:
             flash(f"Some settings failed to update: {', '.join(failed_keys)}", "danger")
-        return redirect(url_for("adminpanel.settings.dashboard"))
+        return redirect(url_for("admin_panel.settings.dashboard"))
 
 
 class SettingsRoutes:

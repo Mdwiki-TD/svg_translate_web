@@ -64,7 +64,7 @@ class TestOwidChartsDashboard:
 
     def test_dashboard_renders_with_no_charts(self, owid_charts_admin_client):
         """Test dashboard renders when no charts exist."""
-        response = owid_charts_admin_client.get("/adminpanel/owidcharts")
+        response = owid_charts_admin_client.get("/admin_panel/owidcharts")
         assert response.status_code == 200
 
     def test_dashboard_renders_with_charts(self, owid_charts_admin_client, sample_chart_record):
@@ -83,7 +83,7 @@ class TestOwidChartsDashboard:
             has_timeline=sample_chart_record.has_timeline,
         )
 
-        response = owid_charts_admin_client.get("/adminpanel/owidcharts")
+        response = owid_charts_admin_client.get("/admin_panel/owidcharts")
         assert response.status_code == 200
 
     def test_dashboard_filter_has_template(self, owid_charts_admin_client):
@@ -92,7 +92,7 @@ class TestOwidChartsDashboard:
         svc.add_chart(slug="chart1", title="Chart 1")
         svc.add_chart(slug="chart2", title="Chart 2")
 
-        response = owid_charts_admin_client.get("/adminpanel/owidcharts?template=has_template")
+        response = owid_charts_admin_client.get("/admin_panel/owidcharts?template=has_template")
         assert response.status_code == 200
 
     def test_dashboard_filter_no_template(self, owid_charts_admin_client):
@@ -100,7 +100,7 @@ class TestOwidChartsDashboard:
         svc = OwidChartsService()
         svc.add_chart(slug="chart2", title="Chart 2")
 
-        response = owid_charts_admin_client.get("/adminpanel/owidcharts?template=no_template")
+        response = owid_charts_admin_client.get("/admin_panel/owidcharts?template=no_template")
         assert response.status_code == 200
 
 
@@ -109,7 +109,7 @@ class TestAddChartPopup:
 
     def test_add_chart_popup_renders(self, owid_charts_admin_client):
         """Test add chart popup renders."""
-        response = owid_charts_admin_client.get("/adminpanel/owidcharts/add")
+        response = owid_charts_admin_client.get("/admin_panel/owidcharts/add")
         assert response.status_code == 200
 
 
@@ -119,7 +119,7 @@ class TestAddChart:
     def test_add_chart_success(self, owid_charts_admin_client):
         """Test adding a chart successfully."""
         response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/add",
+            "/admin_panel/owidcharts/add",
             data={
                 "slug": "new-chart",
                 "title": "New Chart",
@@ -136,7 +136,7 @@ class TestAddChart:
     def test_add_chart_missing_slug(self, owid_charts_admin_client):
         """Test adding a chart without slug redirects with flash."""
         response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/add",
+            "/admin_panel/owidcharts/add",
             data={
                 "slug": "",
                 "title": "New Chart",
@@ -148,7 +148,7 @@ class TestAddChart:
     def test_add_chart_missing_title(self, owid_charts_admin_client):
         """Test adding a chart without title redirects with flash."""
         response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/add",
+            "/admin_panel/owidcharts/add",
             data={
                 "slug": "new-chart",
                 "title": "",
@@ -160,7 +160,7 @@ class TestAddChart:
     def test_add_chart_with_all_options(self, owid_charts_admin_client):
         """Test adding a chart with all options set."""
         response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/add",
+            "/admin_panel/owidcharts/add",
             data={
                 "slug": "full-chart",
                 "title": "Full Chart",
@@ -199,7 +199,7 @@ class TestUpdateChart:
         created = svc.add_chart(slug="update-me", title="Update Me")
 
         response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/update",
+            "/admin_panel/owidcharts/update",
             data={
                 "chart_id": str(created.chart_id),
                 "slug": "updated-chart",
@@ -216,7 +216,7 @@ class TestUpdateChart:
     def test_update_chart_missing_id(self, owid_charts_admin_client):
         """Test updating without chart_id redirects."""
         response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/update",
+            "/admin_panel/owidcharts/update",
             data={
                 "slug": "updated",
                 "title": "updated",
@@ -231,7 +231,7 @@ class TestUpdateChart:
         created = svc.add_chart(slug="chart-x", title="Chart X")
 
         response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/update",
+            "/admin_panel/owidcharts/update",
             data={
                 "chart_id": str(created.chart_id),
                 "slug": "",
@@ -247,7 +247,7 @@ class TestUpdateChart:
         created = svc.add_chart(slug="popup-chart", title="Popup Chart")
 
         response = owid_charts_admin_client.post(
-            "/adminpanel/owidcharts/update",
+            "/admin_panel/owidcharts/update",
             data={
                 "chart_id": str(created.chart_id),
                 "slug": "updated",
@@ -267,7 +267,7 @@ class TestDeleteChart:
         created = svc.add_chart(slug="delete-me", title="Delete Me")
 
         response = owid_charts_admin_client.post(
-            f"/adminpanel/owidcharts/{created.chart_id}/delete",
+            f"/admin_panel/owidcharts/{created.chart_id}/delete",
             follow_redirects=True,
         )
 
@@ -276,7 +276,7 @@ class TestDeleteChart:
 
     def test_delete_chart_not_found(self, owid_charts_admin_client):
         """Test deleting a non-existent chart shows error."""
-        response = owid_charts_admin_client.post("/adminpanel/owidcharts/999/delete", follow_redirects=True)
+        response = owid_charts_admin_client.post("/admin_panel/owidcharts/999/delete", follow_redirects=True)
         assert response.status_code == 200
 
     def test_delete_chart_from_popup(self, owid_charts_admin_client):
@@ -285,7 +285,7 @@ class TestDeleteChart:
         created = svc.add_chart(slug="popup-del", title="Popup Del")
 
         response = owid_charts_admin_client.post(
-            f"/adminpanel/owidcharts/{created.chart_id}/delete",
+            f"/admin_panel/owidcharts/{created.chart_id}/delete",
             data={"from_popup": "1"},
         )
         assert response.status_code == 200
@@ -299,7 +299,7 @@ class TestEditChart:
         svc = OwidChartsService()
         created = svc.add_chart(slug="edit-me", title="Edit Me")
 
-        response = owid_charts_admin_client.get(f"/adminpanel/owidcharts/{created.chart_id}/edit")
+        response = owid_charts_admin_client.get(f"/admin_panel/owidcharts/{created.chart_id}/edit")
         assert response.status_code == 200
 
 
@@ -311,7 +311,7 @@ class TestDownloadJson:
         svc = OwidChartsService()
         svc.add_chart(slug="test-chart", title="Test Chart")
 
-        response = owid_charts_admin_client.get("/adminpanel/owidcharts/download-json")
+        response = owid_charts_admin_client.get("/admin_panel/owidcharts/download-json")
 
         assert response.status_code == 200
         assert response.content_type == "application/json"
@@ -321,7 +321,7 @@ class TestDownloadJson:
 
     def test_download_json_no_charts(self, owid_charts_admin_client):
         """Test downloading JSON when no charts exist redirects."""
-        response = owid_charts_admin_client.get("/adminpanel/owidcharts/download-json", follow_redirects=True)
+        response = owid_charts_admin_client.get("/admin_panel/owidcharts/download-json", follow_redirects=True)
         assert response.status_code == 200
 
     def test_download_json_multiple_charts(self, owid_charts_admin_client):
@@ -330,7 +330,7 @@ class TestDownloadJson:
         for i in range(1, 4):
             svc.add_chart(slug=f"chart-{i}", title=f"Chart {i}")
 
-        response = owid_charts_admin_client.get("/adminpanel/owidcharts/download-json")
+        response = owid_charts_admin_client.get("/admin_panel/owidcharts/download-json")
 
         data = json.loads(response.data)
         assert len(data) == 3
@@ -342,7 +342,7 @@ class TestDownloadJson:
         svc = OwidChartsService()
         svc.add_chart(slug="test-chart", title="Test Chart")
 
-        response = owid_charts_admin_client.get("/adminpanel/owidcharts/download-json")
+        response = owid_charts_admin_client.get("/admin_panel/owidcharts/download-json")
 
         data = json.loads(response.data)[0]
         expected_fields = [

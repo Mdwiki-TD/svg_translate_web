@@ -66,7 +66,7 @@ class AddAdminView(BaseView):
         username = request.form.get("username", "").strip()
         if not username:
             flash("Username is required to add a admin.", "danger")
-            return redirect(url_for("adminpanel.admins.dashboard"))
+            return redirect(url_for("admin_panel.admins.dashboard"))
 
         try:
             record = self.service.add_admin(username)
@@ -85,7 +85,7 @@ class AddAdminView(BaseView):
         else:
             flash(f"Admin '{record.username}' added.", "success")
 
-        return redirect(url_for("adminpanel.admins.dashboard"))
+        return redirect(url_for("admin_panel.admins.dashboard"))
 
 
 class AdminStatusView(BaseView):
@@ -113,7 +113,7 @@ class AdminStatusView(BaseView):
             state = "activated" if record.is_active else "deactivated"
             flash(f"Admin '{record.username}' {state}.", "success")
 
-        return redirect(url_for("adminpanel.admins.dashboard"))
+        return redirect(url_for("admin_panel.admins.dashboard"))
 
 
 class ActivateAdminView(AdminStatusView):
@@ -151,7 +151,7 @@ class DeleteAdminView(BaseView):
         else:
             flash(f"Admin '{admin_id}' removed.", "success")
 
-        return redirect(url_for("adminpanel.admins.dashboard"))
+        return redirect(url_for("admin_panel.admins.dashboard"))
 
 
 class AdminView:

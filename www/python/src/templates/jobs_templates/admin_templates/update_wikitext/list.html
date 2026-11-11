@@ -11,7 +11,7 @@
 {% endblock %}
 {% set hide_start_button = True %}
 {% block header_actions %}
-<form method="post" action="{{ url_for('adminpanel.jobs.start_job', job_type=template_data.job_type) }}"
+<form method="post" action="{{ url_for('admin_panel.jobs.start_job', job_type=template_data.job_type) }}"
     class="row g-2 align-items-end" data-confirm-message="{{ template_data.start_confirm_message }}"
     onsubmit="return confirm(this.dataset.confirmMessage);">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />

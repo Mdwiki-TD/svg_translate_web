@@ -32,34 +32,34 @@ class TestSidebarItem:
         assert item.resolve_href() == "/x"
 
     def test_resolve_href_uses_endpoint_within_request_context(self, mock_app):
-        # mock_app.add_url_rule("/adminpanel/settings/", endpoint="adminpanel.settings.dashboard")
+        # mock_app.add_url_rule("/admin_panel/settings/", endpoint="admin_panel.settings.dashboard")
         item = SidebarItem(
             id="settings",
             title="Settings",
-            endpoint="adminpanel.settings.dashboard",
-            fallback_href="/adminpanel/settings/",
+            endpoint="admin_panel.settings.dashboard",
+            fallback_href="/admin_panel/settings/",
         )
         with mock_app.test_request_context():
-            assert item.resolve_href() == "/adminpanel/settings/"
+            assert item.resolve_href() == "/admin_panel/settings/"
 
     def test_resolve_href_falls_back_on_missing_endpoint(self, mock_app):
         item = SidebarItem(
             id="missing",
             title="Missing",
             endpoint="does.not.exist",
-            fallback_href="/adminpanel/missing",
+            fallback_href="/admin_panel/missing",
         )
         with mock_app.test_request_context():
-            assert item.resolve_href() == "/adminpanel/missing"
+            assert item.resolve_href() == "/admin_panel/missing"
 
     def test_resolve_href_uses_fallback_outside_request_context(self):
         item = SidebarItem(
             id="settings",
             title="Settings",
-            endpoint="adminpanel.settings.dashboard",
-            fallback_href="/adminpanel/settings/",
+            endpoint="admin_panel.settings.dashboard",
+            fallback_href="/admin_panel/settings/",
         )
-        assert item.resolve_href() == "/adminpanel/settings/"
+        assert item.resolve_href() == "/admin_panel/settings/"
 
 
 class TestGenerateListItem:
@@ -110,10 +110,10 @@ class TestGenerateListItem:
 
     def test_generate_list_item_basic(self) -> None:
         item = SidebarItem(
-            id="home", fallback_href="/adminpanel/home", title="Home", icon=None, link_target=None, disabled=False
+            id="home", fallback_href="/admin_panel/home", title="Home", icon=None, link_target=None, disabled=False
         )
         result = generate_list_item(item)
-        assert "/adminpanel/home" in result
+        assert "/admin_panel/home" in result
         assert "title='Home'" in result
         assert "<i class" not in result
         assert "target=" not in result
@@ -122,14 +122,14 @@ class TestGenerateListItem:
     def test_generate_list_item_with_icon(self) -> None:
         item = SidebarItem(
             id="home",
-            fallback_href="/adminpanel/home",
+            fallback_href="/admin_panel/home",
             title="Home",
             icon="bi-house",
             link_target=None,
             disabled=False,
         )
         result = generate_list_item(item)
-        assert "/adminpanel/home" in result
+        assert "/admin_panel/home" in result
         assert "title='Home'" in result
         assert "<i class='bi bi-house me-1'></i>" in result
         assert "target=" not in result

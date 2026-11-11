@@ -32,7 +32,7 @@ class AdminsRouteRegister:
 
 
 def register_bp_admin_blueprints(app: Flask) -> None:
-    bp = Blueprint("adminpanel", __name__, url_prefix="/adminpanel")
+    bp = Blueprint("admin_panel", __name__, url_prefix="/admin_panel")
     AdminPanel.register(bp)
     AdminSubRoutesRegister.register(bp)
     app.register_blueprint(bp)

@@ -4,7 +4,7 @@
 {% block title %}Admins · {{ tool_title }}{% endblock %}
 
 {%- macro update_active_form(admin) -%}
-{% set endpoint_target = 'adminpanel.admins.deactivate' if admin.is_active else 'adminpanel.admins.activate' %}
+{% set endpoint_target = 'admin_panel.admins.deactivate' if admin.is_active else 'admin_panel.admins.activate' %}
 <form method="post" action="{{ url_for(endpoint_target, admin_id=admin.id) }}" class="d-inline">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="form-check form-switch d-inline-flex align-items-center">
@@ -18,7 +18,7 @@
 {%- endmacro -%}
 
 {%- macro delete_admin_form(admin) -%}
-<form method="post" action="{{ url_for('adminpanel.admins.delete', admin_id=admin.id) }}"
+<form method="post" action="{{ url_for('admin_panel.admins.delete', admin_id=admin.id) }}"
     class="d-inline" onsubmit="return confirm('Remove {{ admin.username }} from admins?');">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -48,7 +48,7 @@
 
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
-                <form method="post" action="{{ url_for('adminpanel.admins.add') }}"
+                <form method="post" action="{{ url_for('admin_panel.admins.add') }}"
                     class="row g-2 align-items-end">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="col-sm-8 col-md-6 col-lg-4">

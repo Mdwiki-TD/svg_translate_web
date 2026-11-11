@@ -29,7 +29,7 @@ ADMIN_ROUTE_MODULES: list[RouteModule] = [
         url_prefix="/jobs",
         extra_kwargs={
             "jobs_data_infos": jobs_data_admins,
-            "bp_name": "adminpanel.jobs",
+            "bp_name": "admin_panel.jobs",
         },
     ),
     RouteModule(route_cls=CheckErrorsView, name="errors", url_prefix="/errors"),

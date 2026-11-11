@@ -60,7 +60,7 @@ def test_details_page_renders_cropped_file_update_as_final_step(admin_jobs_clien
     """The details table shows the cropped-file update column and saved-page result."""
     job = _create_job_with_result(_result_data(), tmp_path)
 
-    response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
+    response = admin_jobs_client.get(f"/admin_panel/jobs/{_JOB_TYPE}/{job.id}")
 
     assert response.status_code == 200
     page = unescape(response.get_data(as_text=True))

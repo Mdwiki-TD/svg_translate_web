@@ -1,4 +1,4 @@
-"""Tests for src/main_app/adminpanel/routes/slug_redirects.py."""
+"""Tests for src/main_app/admin_panel/routes/slug_redirects.py."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ class TestEditSlugRedirect:
         service = OwidSlugRedirectsService()
         record = service.add_new_slug_redirect(slug="test-slug", redirect_to="/target")
         assert record is not None, "failed to seed slug redirect"
-        resp = client.get(f"/adminpanel/slugredirects/{record.id}/edit")
+        resp = client.get(f"/admin_panel/slugredirects/{record.id}/edit")
 
         assert resp.status_code == 200
         html = resp.data.decode()
@@ -48,7 +48,7 @@ class TestEditSlugRedirect:
 
     def test_with_not_found_record(self, client):
         """edit should show error when record is missing."""
-        resp = client.get("/adminpanel/slugredirects/99999/edit")
+        resp = client.get("/admin_panel/slugredirects/99999/edit")
 
         assert resp.status_code == 200
         html = resp.data.decode()
@@ -78,7 +78,7 @@ class TestSlugRedirectsRoutes:
         """Dashboard should list all slug redirect records."""
         self._seed_redirects(2)
 
-        resp = client.get("/adminpanel/slugredirects/")
+        resp = client.get("/admin_panel/slugredirects/")
 
         assert resp.status_code == 200
         html = resp.data.decode()
@@ -91,7 +91,7 @@ class TestSlugRedirectsRoutes:
         """GET /<id>/edit should render the edit form with the record."""
         record = self._seed_redirect(slug="edit-test")
 
-        resp = client.get(f"/adminpanel/slugredirects/{record.id}/edit")
+        resp = client.get(f"/admin_panel/slugredirects/{record.id}/edit")
 
         assert resp.status_code == 200
         html = resp.data.decode()
@@ -99,7 +99,7 @@ class TestSlugRedirectsRoutes:
 
     def test_edit_get_not_found(self, client):
         """GET /<id>/edit for a missing record should render with an error."""
-        resp = client.get("/adminpanel/slugredirects/99999/edit")
+        resp = client.get("/admin_panel/slugredirects/99999/edit")
 
         assert resp.status_code == 200
         html = resp.data.decode()
@@ -112,7 +112,7 @@ class TestSlugRedirectsRoutes:
         record = self._seed_redirect(slug="update-test")
 
         resp = client.post(
-            "/adminpanel/slugredirects/update",
+            "/admin_panel/slugredirects/update",
             data={"id": record.id, "should_be_replaced": "on"},
         )
 
@@ -124,7 +124,7 @@ class TestSlugRedirectsRoutes:
     def test_update_missing_id(self, client):
         """POST /update without an id should not call the service and redirect."""
         resp = client.post(
-            "/adminpanel/slugredirects/update",
+            "/admin_panel/slugredirects/update",
             data={"should_be_replaced": "on"},
         )
 
@@ -133,7 +133,7 @@ class TestSlugRedirectsRoutes:
     def test_update_not_found(self, client):
         """POST /update when record does not exist should redirect."""
         resp = client.post(
-            "/adminpanel/slugredirects/update",
+            "/admin_panel/slugredirects/update",
             data={"id": 99999, "should_be_replaced": "on"},
         )
 
@@ -144,7 +144,7 @@ class TestSlugRedirectsRoutes:
         record = self._seed_redirect(slug="popup-test")
 
         resp = client.post(
-            "/adminpanel/slugredirects/update",
+            "/admin_panel/slugredirects/update",
             data={"id": record.id, "should_be_replaced": "on", "from_popup": "1"},
         )
 
@@ -158,14 +158,14 @@ class TestSlugRedirectsRoutes:
         """POST /<id>/delete should delete and redirect on success."""
         record = self._seed_redirect(slug="delete-test")
 
-        resp = client.post(f"/adminpanel/slugredirects/{record.id}/delete")
+        resp = client.post(f"/admin_panel/slugredirects/{record.id}/delete")
 
         assert resp.status_code == 302
         assert OwidSlugRedirectsService().get_slug_redirect_by_id(record.id) is None
 
     def test_delete_not_found(self, client):
         """POST /<id>/delete should redirect when the record is not found."""
-        resp = client.post("/adminpanel/slugredirects/99999/delete")
+        resp = client.post("/admin_panel/slugredirects/99999/delete")
 
         assert resp.status_code == 302
 
@@ -181,7 +181,7 @@ class TestSlugRedirectsRoutes:
             form_data.add("selected_ids", str(rid))
 
         resp = client.post(
-            "/adminpanel/slugredirects/bulk_action",
+            "/admin_panel/slugredirects/bulk_action",
             data=form_data,
         )
 
@@ -195,7 +195,7 @@ class TestSlugRedirectsRoutes:
         record = self._seed_redirect(slug="noreplace-test")
 
         resp = client.post(
-            "/adminpanel/slugredirects/bulk_action",
+            "/admin_panel/slugredirects/bulk_action",
             data={"action": "mark_no_replace", "selected_ids": [str(record.id)]},
         )
 
@@ -214,7 +214,7 @@ class TestSlugRedirectsRoutes:
             form_data.add("selected_ids", str(rid))
 
         resp = client.post(
-            "/adminpanel/slugredirects/bulk_action",
+            "/admin_panel/slugredirects/bulk_action",
             data=form_data,
         )
 
@@ -226,7 +226,7 @@ class TestSlugRedirectsRoutes:
         record = self._seed_redirect(slug="invalid-test")
 
         resp = client.post(
-            "/adminpanel/slugredirects/bulk_action",
+            "/admin_panel/slugredirects/bulk_action",
             data={"action": "invalid", "selected_ids": [str(record.id)]},
         )
 
@@ -238,7 +238,7 @@ class TestSlugRedirectsRoutes:
         self._seed_redirects(2)
 
         resp = client.post(
-            "/adminpanel/slugredirects/bulk_action",
+            "/admin_panel/slugredirects/bulk_action",
             data={"action": "mark_replace"},
         )
 
@@ -250,7 +250,7 @@ class TestSlugRedirectsRoutes:
         record = self._seed_redirect(slug="exception-test")
 
         resp = client.post(
-            "/adminpanel/slugredirects/bulk_action",
+            "/admin_panel/slugredirects/bulk_action",
             data={"action": "mark_replace", "selected_ids": [str(record.id)]},
         )
 

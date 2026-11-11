@@ -1,5 +1,5 @@
 """
-Unit tests for src/main_app/adminpanel/routes/admins.py module.
+Unit tests for src/main_app/admin_panel/routes/admins.py module.
 """
 
 from __future__ import annotations
@@ -51,7 +51,7 @@ class TestAdminDashboard:
 
     def test_dashboard_requires_auth(self, client, mock_app):
         """Dashboard should return 200 for authenticated admin."""
-        resp = client.get("/adminpanel/admins/")
+        resp = client.get("/admin_panel/admins/")
 
         assert resp.status_code == 200
 
@@ -59,7 +59,7 @@ class TestAdminDashboard:
         """Dashboard should list admins."""
         self._seed_admin("coord_active", is_active=True)
 
-        resp = client.get("/adminpanel/admins/")
+        resp = client.get("/admin_panel/admins/")
 
         assert resp.status_code == 200
         html = resp.data.decode()
@@ -67,7 +67,7 @@ class TestAdminDashboard:
 
     def test_renders_with_empty_list(self, client):
         """Dashboard should render with no admins."""
-        resp = client.get("/adminpanel/admins/")
+        resp = client.get("/admin_panel/admins/")
 
         assert resp.status_code == 200
 
@@ -82,7 +82,7 @@ class TestAddAdmin:
     def test_missing_username(self, client):
         """POST /add with empty username should redirect."""
         resp = client.post(
-            "/adminpanel/admins/add",
+            "/admin_panel/admins/add",
             data={"username": ""},
         )
 
@@ -91,7 +91,7 @@ class TestAddAdmin:
     def test_user_not_found(self, client):
         """POST /add with non-existent user should redirect."""
         resp = client.post(
-            "/adminpanel/admins/add",
+            "/admin_panel/admins/add",
             data={"username": "unknown_user"},
         )
 
@@ -104,7 +104,7 @@ class TestAddAdmin:
         admin_service.add_admin("existing_user")
 
         resp = client.post(
-            "/adminpanel/admins/add",
+            "/admin_panel/admins/add",
             data={"username": "existing_user"},
         )
 
@@ -115,7 +115,7 @@ class TestAddAdmin:
         self._seed_user("new_coord")
 
         resp = client.post(
-            "/adminpanel/admins/add",
+            "/admin_panel/admins/add",
             data={"username": "new_coord"},
         )
 
@@ -138,7 +138,7 @@ class TestSetRecordActiveStatus:
         coord = self._seed_admin("activate_coord")
         AdminService().set_admin_active(coord.id, False)
 
-        resp = client.post(f"/adminpanel/admins/{coord.id}/activate")
+        resp = client.post(f"/admin_panel/admins/{coord.id}/activate")
 
         assert resp.status_code == 302
         updated = AdminService().get_record_by_id(coord.id)
@@ -148,7 +148,7 @@ class TestSetRecordActiveStatus:
         """POST /<id>/deactivate should set is_active=False."""
         coord = self._seed_admin("deactivate_coord")
 
-        resp = client.post(f"/adminpanel/admins/{coord.id}/deactivate")
+        resp = client.post(f"/admin_panel/admins/{coord.id}/deactivate")
 
         assert resp.status_code == 302
         updated = AdminService().get_record_by_id(coord.id)
@@ -156,7 +156,7 @@ class TestSetRecordActiveStatus:
 
     def test_not_found(self, client):
         """POST /<id>/activate with nonexistent id should redirect."""
-        resp = client.post("/adminpanel/admins/99999/activate")
+        resp = client.post("/admin_panel/admins/99999/activate")
 
         assert resp.status_code == 302
 
@@ -173,13 +173,13 @@ class TestDeleteAdmin:
         """POST /<id>/delete should remove the admin."""
         coord = self._seed_admin("del_coord_ok")
 
-        resp = client.post(f"/adminpanel/admins/{coord.id}/delete")
+        resp = client.post(f"/admin_panel/admins/{coord.id}/delete")
 
         assert resp.status_code == 302
         assert AdminService().get_record_by_id(coord.id) is None
 
     def test_not_found(self, client):
         """POST /<id>/delete with nonexistent id should redirect."""
-        resp = client.post("/adminpanel/admins/99999/delete")
+        resp = client.post("/admin_panel/admins/99999/delete")
 
         assert resp.status_code == 302

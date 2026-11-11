@@ -50,7 +50,7 @@ class DownloadAllMainFilesView(MethodView):
         # If the response is an error message (not a file), flash it and redirect
         if status_code != 200:
             flash(response, "warning" if status_code == 404 else "danger")
-            return redirect(url_for("adminpanel.jobs.jobs_list", job_type="download_main_files"))
+            return redirect(url_for("admin_panel.jobs.jobs_list", job_type="download_main_files"))
 
         return response
 

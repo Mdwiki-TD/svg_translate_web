@@ -76,7 +76,7 @@ class TestUpdatedChartsSection:
         charts = [_make_chart(f"chart-{i}") for i in range(5)]
         job = _create_job_with_result(_result_data(updated=charts), tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/{_JOB_TYPE}/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Updated Charts" in page
@@ -87,7 +87,7 @@ class TestUpdatedChartsSection:
         charts = [_make_chart(f"chart-{i}") for i in range(100)]
         job = _create_job_with_result(_result_data(updated=charts), tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/{_JOB_TYPE}/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Updated Charts" in page
@@ -97,7 +97,7 @@ class TestUpdatedChartsSection:
         """When there are no updated charts, the Updated Charts section is not rendered."""
         job = _create_job_with_result(_result_data(updated=[]), tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/{_JOB_TYPE}/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Updated Charts" not in page
@@ -114,7 +114,7 @@ class TestFailedChartsSection:
         charts = [_make_failed_chart(f"chart-{i}") for i in range(3)]
         job = _create_job_with_result(_result_data(failed=charts), tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/{_JOB_TYPE}/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Failed Charts" in page
@@ -125,7 +125,7 @@ class TestFailedChartsSection:
         charts = [_make_failed_chart(f"chart-{i}") for i in range(100)]
         job = _create_job_with_result(_result_data(failed=charts), tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/{_JOB_TYPE}/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Failed Charts" in page
@@ -135,7 +135,7 @@ class TestFailedChartsSection:
         """When there are no failed charts, the Failed Charts section is not rendered."""
         job = _create_job_with_result(_result_data(failed=[]), tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/{_JOB_TYPE}/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Failed Charts" not in page
@@ -152,7 +152,7 @@ class TestSkippedChartsSection:
         charts = [_make_skipped_chart(f"chart-{i}") for i in range(4)]
         job = _create_job_with_result(_result_data(skipped=charts), tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/{_JOB_TYPE}/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Skipped Charts" in page
@@ -163,7 +163,7 @@ class TestSkippedChartsSection:
         charts = [_make_skipped_chart(f"chart-{i}") for i in range(100)]
         job = _create_job_with_result(_result_data(skipped=charts), tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/{_JOB_TYPE}/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Skipped Charts" in page
@@ -173,7 +173,7 @@ class TestSkippedChartsSection:
         """When there are no skipped charts, the Skipped Charts section is not rendered."""
         job = _create_job_with_result(_result_data(skipped=[]), tmp_path)
 
-        response = admin_jobs_client.get(f"/adminpanel/jobs/{_JOB_TYPE}/{job.id}")
+        response = admin_jobs_client.get(f"/admin_panel/jobs/{_JOB_TYPE}/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
         assert "Skipped Charts" not in page

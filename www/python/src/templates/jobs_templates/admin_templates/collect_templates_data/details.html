@@ -58,7 +58,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_added",
-    bp_name='adminpanel.jobs'
+    bp_name='admin_panel.jobs'
 ) }}
 {% endif %}
 
@@ -68,7 +68,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_updated",
-    bp_name='adminpanel.jobs'
+    bp_name='admin_panel.jobs'
 ) }}
 {% endif %}
 
@@ -78,7 +78,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_skipped",
-    bp_name='adminpanel.jobs'
+    bp_name='admin_panel.jobs'
 ) }}
 {% endif %}
 
@@ -88,7 +88,7 @@
     job_id=job.id,
     job_type=template_data.job_type,
     list_name="pages_failed",
-    bp_name='adminpanel.jobs'
+    bp_name='admin_panel.jobs'
 ) }}
 {% endif %}
 
@@ -97,7 +97,7 @@
 {% block extra_js %}
 <script>
     const WIKIDOMAIN = "{{ wiki_domain }}";
-    const EDIT_TEMPLATE_BASE = "{{ url_for('adminpanel.templates.edit_by_title', template_title='__TITLE__') }}";
+    const EDIT_TEMPLATE_BASE = "{{ url_for('admin_panel.templates.edit_by_title', template_title='__TITLE__') }}";
 
 
     /**

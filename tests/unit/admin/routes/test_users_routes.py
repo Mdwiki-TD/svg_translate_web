@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/adminpanel/routes/users.py."""
+"""Unit tests for src/main_app/admin_panel/routes/users.py."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def mock_deps(monkeypatch: pytest.MonkeyPatch) -> MockUsersDeps:
     monkeypatch.setattr("src.main_app.admin.routes.users.redirect", deps.redirect)
 
     deps.render_template.return_value = "rendered"
-    deps.url_for.return_value = "/adminpanel/users/"
+    deps.url_for.return_value = "/admin_panel/users/"
     deps.redirect.return_value = "redirect_response"
 
     return deps
@@ -93,8 +93,8 @@ class TestUpdatePermissions:
 
         mock_deps.flash.assert_called_once()
         assert "permissions updated" in mock_deps.flash.call_args[0][0]
-        mock_deps.url_for.assert_called_once_with("adminpanel.users.dashboard")
-        mock_deps.redirect.assert_called_once_with("/adminpanel/users/")
+        mock_deps.url_for.assert_called_once_with("admin_panel.users.dashboard")
+        mock_deps.redirect.assert_called_once_with("/admin_panel/users/")
         assert result == "redirect_response"
 
         record = users_service.get_user(user_id)
@@ -135,8 +135,8 @@ class TestUpdatePermissions:
             result = routes.update_can_run_jobs(999)
 
         mock_deps.flash.assert_called_once_with("User with id 999 was not found", "warning")
-        mock_deps.url_for.assert_called_once_with("adminpanel.users.dashboard")
-        mock_deps.redirect.assert_called_once_with("/adminpanel/users/")
+        mock_deps.url_for.assert_called_once_with("admin_panel.users.dashboard")
+        mock_deps.redirect.assert_called_once_with("/admin_panel/users/")
         assert result == "redirect_response"
 
     def test_update_can_run_bg_jobs_enable(self, mock_deps, mock_app, seeded_users, users_service) -> None:
@@ -160,6 +160,6 @@ class TestUpdatePermissions:
             result = routes.update_can_run_bg_jobs(999)
 
         mock_deps.flash.assert_called_once_with("User with id 999 was not found", "warning")
-        mock_deps.url_for.assert_called_once_with("adminpanel.users.dashboard")
-        mock_deps.redirect.assert_called_once_with("/adminpanel/users/")
+        mock_deps.url_for.assert_called_once_with("admin_panel.users.dashboard")
+        mock_deps.redirect.assert_called_once_with("/admin_panel/users/")
         assert result == "redirect_response"

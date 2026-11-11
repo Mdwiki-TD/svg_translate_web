@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/adminpanel/routes/templates.py module."""
+"""Unit tests for src/main_app/admin_panel/routes/templates.py module."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ class TestTemplatesUnit:
         """Download JSON should return a file with template data."""
         self._seed_template(title="T1", main_file="f.svg")
 
-        resp = client.get("/adminpanel/templates/download-json")
+        resp = client.get("/admin_panel/templates/download-json")
 
         assert resp.status_code == 200
         assert "templates.json" in resp.headers.get("Content-Disposition", "")
@@ -55,14 +55,14 @@ class TestTemplatesUnit:
 
     def test_create_json_file_no_templates(self, client):
         """Download JSON with no templates should redirect with warning."""
-        resp = client.get("/adminpanel/templates/download-json")
+        resp = client.get("/admin_panel/templates/download-json")
 
         assert resp.status_code == 302
 
     def test_add_template_missing_title(self, client):
         """POST /add with empty title should redirect."""
         resp = client.post(
-            "/adminpanel/templates/add",
+            "/admin_panel/templates/add",
             data={"title": "", "main_file": "f.svg", "last_world_file": "", "source": ""},
         )
 
@@ -71,7 +71,7 @@ class TestTemplatesUnit:
     def test_add_template_success(self, client):
         """POST /add with valid data should create the template."""
         resp = client.post(
-            "/adminpanel/templates/add",
+            "/admin_panel/templates/add",
             data={"title": "NewT", "main_file": "f.svg", "last_world_file": "", "source": ""},
         )
 
@@ -83,7 +83,7 @@ class TestTemplatesUnit:
         self._seed_template(title="Dup")
 
         resp = client.post(
-            "/adminpanel/templates/add",
+            "/admin_panel/templates/add",
             data={"title": "Dup", "main_file": "", "last_world_file": "", "source": ""},
         )
 
@@ -92,7 +92,7 @@ class TestTemplatesUnit:
     def test_update_template_missing_id(self, client):
         """POST /update without id should redirect."""
         resp = client.post(
-            "/adminpanel/templates/update",
+            "/admin_panel/templates/update",
             data={"title": "T", "main_file": "f.svg"},
         )
 
@@ -103,7 +103,7 @@ class TestTemplatesUnit:
         template = self._seed_template(title="UpdT", main_file="old.svg")
 
         resp = client.post(
-            "/adminpanel/templates/update",
+            "/admin_panel/templates/update",
             data={"id": template.id, "title": "UpdT", "main_file": "new.svg", "from_popup": "0"},
         )
 
@@ -114,7 +114,7 @@ class TestTemplatesUnit:
     def test_update_template_not_found(self, client):
         """POST /update with nonexistent id should redirect."""
         resp = client.post(
-            "/adminpanel/templates/update",
+            "/admin_panel/templates/update",
             data={"id": 99999, "title": "T", "main_file": "f.svg"},
         )
 
@@ -125,7 +125,7 @@ class TestTemplatesUnit:
         template = self._seed_template(title="PopupT")
 
         resp = client.post(
-            "/adminpanel/templates/update",
+            "/admin_panel/templates/update",
             data={"id": template.id, "title": "PopupT", "main_file": "f.svg", "from_popup": "1"},
         )
 
@@ -137,14 +137,14 @@ class TestTemplatesUnit:
         """POST /<id>/delete should remove the template."""
         template = self._seed_template(title="DelT")
 
-        resp = client.post(f"/adminpanel/templates/{template.id}/delete")
+        resp = client.post(f"/admin_panel/templates/{template.id}/delete")
 
         assert resp.status_code == 302
         assert TemplateService().get_template(template.id) is None
 
     def test_delete_template_not_found(self, client):
         """POST /<id>/delete with nonexistent id should redirect."""
-        resp = client.post("/adminpanel/templates/99999/delete")
+        resp = client.post("/admin_panel/templates/99999/delete")
 
         assert resp.status_code == 302
 
@@ -153,7 +153,7 @@ class TestTemplatesUnit:
         template = self._seed_template(title="DelPopupT")
 
         resp = client.post(
-            f"/adminpanel/templates/{template.id}/delete",
+            f"/admin_panel/templates/{template.id}/delete",
             data={"from_popup": "1"},
         )
 
@@ -165,7 +165,7 @@ class TestTemplatesUnit:
         """GET /<id>/edit should render the edit form."""
         template = self._seed_template(title="EditT")
 
-        resp = client.get(f"/adminpanel/templates/{template.id}/edit")
+        resp = client.get(f"/admin_panel/templates/{template.id}/edit")
 
         assert resp.status_code == 200
         html = resp.data.decode()
@@ -173,7 +173,7 @@ class TestTemplatesUnit:
 
     def test_edit_template_not_found(self, client):
         """GET /<id>/edit with nonexistent id should show error."""
-        resp = client.get("/adminpanel/templates/99999/edit")
+        resp = client.get("/admin_panel/templates/99999/edit")
 
         assert resp.status_code == 200
         html = resp.data.decode()
@@ -183,7 +183,7 @@ class TestTemplatesUnit:
         """GET /<title>/edit_by_title should render the edit form."""
         self._seed_template(title="TitleT")
 
-        resp = client.get("/adminpanel/templates/TitleT/edit_by_title")
+        resp = client.get("/admin_panel/templates/TitleT/edit_by_title")
 
         assert resp.status_code == 200
         html = resp.data.decode()
@@ -191,7 +191,7 @@ class TestTemplatesUnit:
 
     def test_edit_template_by_title_not_found(self, client):
         """GET /<title>/edit_by_title with nonexistent title should show error."""
-        resp = client.get("/adminpanel/templates/Missing/edit_by_title")
+        resp = client.get("/admin_panel/templates/Missing/edit_by_title")
 
         assert resp.status_code == 200
         html = resp.data.decode()

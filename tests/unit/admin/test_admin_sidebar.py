@@ -181,7 +181,7 @@ class TestCreateAdminSidebarActive:
 
     def test_second_path_segment_matching_item_id_marks_it_active(self, menu) -> None:
         # path_parts[1] == "item_three" -> matched through the active_route fallback
-        html = create_admin_sidebar("/adminpanel/item_three", is_admin=True, list_items=menu)
+        html = create_admin_sidebar("/admin_panel/item_three", is_admin=True, list_items=menu)
         assert "id='item_three' class='active'" in html
         assert 'class="collapse show" id="beta-collapse"' in html
 
@@ -277,6 +277,6 @@ class TestCreateAdminSidebarDefaultMenu:
     """Smoke test only: does not assert anything about the real menu content."""
 
     def test_default_menu_renders_valid_shell(self) -> None:
-        html = create_admin_sidebar("/adminpanel/", is_admin=True)
+        html = create_admin_sidebar("/admin_panel/", is_admin=True)
         assert isinstance(html, str)
         assert "<ul" in html
