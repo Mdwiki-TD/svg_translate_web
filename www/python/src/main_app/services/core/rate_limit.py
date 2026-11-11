@@ -1,84 +1,52 @@
-"""Simple in-memory rate limiting for authentication endpoints."""
+"""Rate limiting for authentication endpoints, built on Flask-Limiter."""
 
 from __future__ import annotations
 
-from functools import cached_property
 import logging
-from collections import deque
-from datetime import UTC, datetime, timedelta
-from threading import Lock
 
-from flask import Request
+from flask import Flask, Response, jsonify, request
+from flask_limiter import Limiter
+from flask_limiter.errors import RateLimitExceeded
+from flask_limiter.util import get_remote_address
 
 logger = logging.getLogger(__name__)
 
+LOGIN_LIMIT_STRATEGY = "5 per minute"
+CALLBACK_LIMIT_STRATEGY = "10 per minute"
 
-class RateLimiter:
-    """Track request timestamps per key and enforce a maximum rate."""
+# Storage and header behavior come from the Flask config, e.g.:
+#   RATELIMIT_STORAGE_URI = "redis://localhost:6379"  (default: "memory://")
+#   RATELIMIT_HEADERS_ENABLED = True                  (adds Retry-After etc.)
+limiter = Limiter(key_func=get_remote_address)
 
-    def __init__(self, limit: int, period: timedelta) -> None:
-        self._limit = limit
-        self._period = period
-        self._hits: dict[str, deque[datetime]] = {}
-        self._lock = Lock()
+# Reusable decorators; apply them to views or put them in MethodView.decorators.
+login_limit = limiter.limit(LOGIN_LIMIT_STRATEGY)
+callback_limit = limiter.limit(CALLBACK_LIMIT_STRATEGY)
 
-    def allow(self, key: str) -> bool:
-        """Return True if the key is allowed to proceed, False when throttled."""
-        now = datetime.now(UTC)
-        with self._lock:
-            hits = self._hits.setdefault(key, deque())
-            while hits and now - hits[0] > self._period:
-                hits.popleft()
-            if len(hits) >= self._limit:
-                logger.warning(
-                    "Rate limit exceeded for key: %s (limit=%d, period=%s)",
-                    key,
-                    self._limit,
-                    self._period,
-                )
-                return False
-            hits.append(now)
-            logger.debug(
-                "Rate limit check passed for key: %s (hits=%d/%d)",
-                key,
-                len(hits),
-                self._limit,
-            )
-            return True
 
-    def try_after(self, key: str) -> timedelta:
-        """Return the time until the key is allowed to proceed."""
-        now = datetime.now(UTC)
-        with self._lock:
-            hits = self._hits.setdefault(key, deque())
-            while hits and now - hits[0] > self._period:
-                hits.popleft()
-            if len(hits) >= self._limit:
-                return self._period - (now - hits[0])
-            return timedelta(0)
+def _handle_rate_limit_exceeded(error: RateLimitExceeded) -> tuple[Response, int]:
+    """Log the throttled request and return a JSON 429 response."""
+    logger.warning(
+        "Rate limit exceeded for key: %s (endpoint=%s, limit=%s)",
+        get_remote_address(),
+        request.endpoint,
+        error.description,
+    )
+    return jsonify(error="Too many requests", limit=error.description), 429
 
-    def get_time_left(self, key: str) -> str:
-        time_left = self.try_after(key).total_seconds()
-        return str(time_left).split(".")[0]
 
-    @classmethod
-    def client_key(cls, request: Request) -> str:
-        forwarded_for = request.headers.get("X-Forwarded-For")
-        if forwarded_for:
-            return forwarded_for.split(",")[0].strip()
-        return request.remote_addr or "anonymous"
+def init_rate_limiter(app: Flask) -> None:
+    """Attach the limiter and the 429 handler to the app.
 
-    @cached_property
-    @classmethod
-    def login_rate_limiter(cls) -> RateLimiter:
-        return RateLimiter(limit=5, period=timedelta(minutes=1))
-
-    @cached_property
-    @classmethod
-    def callback_rate_limiter(cls) -> RateLimiter:
-        return RateLimiter(limit=10, period=timedelta(minutes=1))
+    When running behind a trusted reverse proxy, wrap the app with werkzeug's
+    ProxyFix first so remote_addr reflects the real client IP.
+    """
+    limiter.init_app(app)
+    app.register_error_handler(RateLimitExceeded, _handle_rate_limit_exceeded)
 
 
 __all__ = [
-    "RateLimiter",
+    "init_rate_limiter",
+    "callback_limit",
+    "login_limit",
 ]

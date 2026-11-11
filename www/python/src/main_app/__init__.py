@@ -21,7 +21,7 @@ from .jobs_workers.cli_jobs import register_cli_jobs
 from .logger_config import configure_logging
 from .public import PublicRouteRegister
 from .public.routes_utils import context_data
-from .services.core import CookieHeaderClient, filters
+from .services.core import CookieHeaderClient, filters, init_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,7 @@ class AppFactory:
         if app.config.get("SQLALCHEMY_DATABASE_URI"):
             db_is_ok = cls.init_app_and_db(app, _db)
 
+        init_rate_limiter(app)
         if db_is_ok:
             cls._register_routes(app)
         else:
