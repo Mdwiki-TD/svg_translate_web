@@ -112,9 +112,14 @@ class SharedJobRoutes:
             return job_id
         except DuplicateRecordError:
             logger.warning(
-                "User '%s' attempted to start duplicate job type '%s'", getattr(user, "username", "N/A"), job_type
+                "User '%s' attempted to start duplicate job type '%s'",
+                getattr(user, "username", "N/A"),
+                job_type,
             )
-            flash("A job of this type is already running. Please wait for it to complete.", "warning")
+            flash(
+                "A job of this type is already running. Please wait for it to complete.",
+                "warning",
+            )
         except Exception:
             logger.exception("Failed to start job")
             flash("Failed to start job. Please try again.", "danger")
@@ -184,7 +189,10 @@ class SharedJobRoutes:
     def jobs_list_handler(self, template_data: JobData, form: Any | None = None) -> str:
         """Render the jobs list dashboard for any job type."""
         try:
-            jobs = self.job_service.list_jobs(limit=100, job_type=template_data.job_type)
+            jobs = self.job_service.list_jobs(
+                limit=100,
+                job_type=template_data.job_type,
+            )
         except Exception:  # pragma: no cover - defensive guard
             logger.exception("Unable to load jobs list.")
             flash("Unable to load jobs list.", "danger")
@@ -244,10 +252,12 @@ class BaseJobView(MethodView):
         self.settings_service = self.shared_service.settings_service
 
     def _redirect_to_job_list(self, job_type: str) -> Response:
-        return redirect(url_for(f"{self.bp_name}.jobs_list", job_type=job_type))
+        url = f"{self.bp_name}.jobs_list"
+        return redirect(url_for(url, job_type=job_type))  # pyright: ignore[reportReturnType]
 
     def _redirect_to_job_detail(self, job_type: str, job_id: int) -> Response:
-        return redirect(url_for(f"{self.bp_name}.job_detail", job_type=job_type, job_id=job_id))
+        url = f"{self.bp_name}.job_detail"
+        return redirect(url_for(url, job_type=job_type, job_id=job_id))  # pyright: ignore[reportReturnType]
 
     def load_form(self, template_data: JobData) -> FlaskForm:
         all_settings = {}
@@ -255,7 +265,10 @@ class BaseJobView(MethodView):
         if template_data.load_settings:
             all_settings = self.settings_service.get_all_settings_ready()
 
-        return template_data.form_class(all_settings=all_settings, request_args=request.args)
+        return template_data.form_class(
+            all_settings=all_settings,
+            request_args=request.args,
+        )
 
 
 class JobsListView(BaseJobView):
@@ -307,7 +320,11 @@ class StartJobView(BaseJobView):
             form_data = form.data
 
         args = request.form.to_dict()
-        job_id = self.shared_service.start_job_handler(job_type, args, form_data=form_data)
+        job_id = self.shared_service.start_job_handler(
+            job_type,
+            args,
+            form_data=form_data,
+        )
 
         if not job_id:
             return self._redirect_to_job_list(job_type)
@@ -428,7 +445,10 @@ class DrawResultFileView(BaseJobView):
 
         if list_data and not isinstance(list_data, list):
             logger.warning(
-                "Expected list for '%s' in result file '%s', got %s", list_name, result_file, type(list_data)
+                "Expected list for '%s' in result file '%s', got %s",
+                list_name,
+                result_file,
+                type(list_data),
             )
             list_data = []
 
@@ -470,7 +490,10 @@ class DrawResultFileView(BaseJobView):
         return search_value in title or search_value in status
 
     @staticmethod
-    def convert_str_list_to_dict(list_data: list[str], list_name: str) -> list[dict[str, str]] | list[str]:
+    def convert_str_list_to_dict(
+        list_data: list[str],
+        list_name: str,
+    ) -> list[dict[str, str]] | list[str]:
         """
         Convert a list of strings into a list of dictionaries with a single key
         """
