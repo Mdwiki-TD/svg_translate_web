@@ -114,9 +114,14 @@ class TestLogin:
         # One request over the limit: throttled before the view runs
         response = mock_client.get("/login")
 
-        assert response.status_code == 302
-        assert "Too" in response.headers["Location"]
-        assert "boom" not in response.headers["Location"]
+        assert response.status_code == 429
+        headers = dict(response.headers)
+
+        assert int(headers["Retry-After"]) > 0
+        assert headers["X-RateLimit-Limit"] == "5"
+        assert "X-RateLimit-Remaining" in headers
+        assert "X-RateLimit-Reset" in headers
+
         assert len(calls) == allowed
 
 
@@ -201,9 +206,14 @@ class TestCallback:
         # One request over the limit: throttled before the view runs
         response = mock_client.get("/callback?state=token&oauth_verifier=code")
 
-        assert response.status_code == 302
-        assert "error=" in response.headers["Location"]
+        assert response.status_code == 429
         assert len(calls) == allowed
+
+        headers = dict(response.headers)
+        assert int(headers["Retry-After"]) > 0
+        assert headers["X-RateLimit-Limit"] == "10"
+        assert "X-RateLimit-Remaining" in headers
+        assert "X-RateLimit-Reset" in headers
 
     def test_callback_missing_state(
         self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch

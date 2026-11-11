@@ -23,7 +23,6 @@ from flask import (
     url_for,
 )
 from flask.views import MethodView
-from flask_limiter.errors import RateLimitExceeded
 from flask_limiter.util import get_remote_address
 from werkzeug.wrappers import Response as WerkzeugResponse
 
@@ -119,25 +118,11 @@ class LogoutView(AuthBase):
         return result.response
 
 
-def handle_rate_limit_exceeded(error: RateLimitExceeded) -> WerkzeugResponse:
-    """Flash a warning and redirect home when an auth endpoint is throttled."""
-    logger.warning(
-        "OAuth rate limit exceeded, client: %s, endpoint: %s, limit: %s",
-        get_remote_address(),
-        request.endpoint,
-        error.description,
-    )
-    flash(RATE_LIMIT_MESSAGE, "warning")
-    return redirect(url_for("main.index", error=RATE_LIMIT_MESSAGE))
-
-
 class AuthView:
     @classmethod
     def register(cls, bp: Blueprint) -> None:
         # Automatically load the user before any route is processed.
         bp.before_app_request(CurrentUserResolver().set_logged_in_user)
-        # Keep the old UX (flash + redirect) instead of the app-wide JSON 429.
-        bp.register_error_handler(RateLimitExceeded, handle_rate_limit_exceeded)
         bp.add_url_rule("/login", view_func=LoginView.as_view("login"))
         bp.add_url_rule("/callback", view_func=OAuthCallbackView.as_view("callback"))
         bp.add_url_rule("/logout", view_func=LogoutView.as_view("logout"))

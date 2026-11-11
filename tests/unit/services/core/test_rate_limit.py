@@ -53,6 +53,10 @@ def client() -> Iterator[FlaskClient]:
     def callback() -> str:
         return "ok"
 
+    @app.errorhandler(429)
+    def too_many(e):
+        return {"error": "Too many requests"}, 429
+
     yield app.test_client()
 
 
