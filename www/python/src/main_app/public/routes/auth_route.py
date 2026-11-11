@@ -32,8 +32,6 @@ from ...services.core.rate_limit import callback_limit, login_limit
 
 logger = logging.getLogger(__name__)
 
-RATE_LIMIT_MESSAGE = "Too many login attempts. Please try again later."
-
 # ---------------------------------------------------------
 # Views (HTTP only)
 # ---------------------------------------------------------
