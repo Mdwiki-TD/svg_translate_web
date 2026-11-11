@@ -51,16 +51,6 @@ if sys:
     os.environ.setdefault("OAUTH_MWURI", "https://example.org/w/index.php")
     os.environ.setdefault("WIKI_DOMAIN", "test.wikipedia.org")
 
-    # ── Now safe to import third-party and src packages ──────────────────────────
-    try:
-        import CopySVGTranslation  # noqa: F401
-    except ImportError:
-        _CopySVGTranslation_PATH = os.getenv(
-            "CopySVGTranslation_PATH", "I:/TOOLFORGE_TOOLS/SVG_PY/CopySVGTranslation_repo/CopySVGTranslation"
-        )
-        if _CopySVGTranslation_PATH and Path(_CopySVGTranslation_PATH).is_dir():
-            sys.path.insert(0, str(Path(_CopySVGTranslation_PATH).parent))
-
     # Get the project root directory (parent of pytests folder)
     project_root = Path(__file__).parent.parent
 
