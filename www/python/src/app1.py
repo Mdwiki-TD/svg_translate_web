@@ -12,9 +12,13 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+# Set environment mode
 os.environ["FLASK_ENV"] = "development"
 
+# Ensure current directory is in sys.path
 sys.path.insert(0, str(Path(__file__).parent))
+
+# Register PyMySQL driver
 pymysql.install_as_MySQLdb()
 
 # Load environment variables before any other imports

@@ -40,7 +40,7 @@ class AdminService(CRUDService[AdminUserRecord]):
 
     def get_admin_by_id(self, admin_id: int) -> AdminUserRecord:
         """
-        Get a admin by ID.
+        Get an admin by ID.
         """
         record = self.get_record_by_id(admin_id)
 
@@ -53,7 +53,7 @@ class AdminService(CRUDService[AdminUserRecord]):
             raise ValueError("Username is required")
         username = username.strip()
 
-        """Add a admin."""
+        """Add an admin."""
         record = self.session.query(AdminUserRecord).filter(AdminUserRecord.username == username).first()
         if record:
             # This assumes a UNIQUE constraint on the username column

@@ -275,7 +275,7 @@ class TestAdminRoutes(TestSetup):
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        mock_flash.assert_called_once_with("Username is required to add a admin.", "danger")
+        mock_flash.assert_called_once_with("Username is required to add an admin.", "danger")
 
     def test_add_duplicate_admin_flash(self, mock_app, mock_client, monkeypatch):
         """Adding a duplicate admin should flash warning."""
@@ -300,7 +300,7 @@ class TestAdminRoutes(TestSetup):
         assert mock_flash.call_args[0][1] == "warning"
 
     def test_toggle_admin_active(self, mock_app, mock_client):
-        """Admin should be able to deactivate a admin."""
+        """Admin should be able to deactivate an admin."""
 
         with mock_app.app_context():
             self._upsert_u_token(
@@ -322,7 +322,7 @@ class TestAdminRoutes(TestSetup):
             assert result is False
 
     def test_toggle_admin_reactivate(self, mock_app, mock_client):
-        """Admin should be able to reactivate a admin."""
+        """Admin should be able to reactivate an admin."""
 
         with mock_app.app_context():
             self._upsert_u_token(
@@ -345,7 +345,7 @@ class TestAdminRoutes(TestSetup):
             assert result is True
 
     def test_delete_admin(self, mock_app, mock_client):
-        """Admin should be able to delete a admin."""
+        """Admin should be able to delete an admin."""
 
         with mock_app.app_context():
             self._upsert_u_token(

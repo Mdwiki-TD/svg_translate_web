@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import cached_property
 import logging
 from collections import deque
 from datetime import UTC, datetime, timedelta
@@ -67,10 +68,12 @@ class RateLimiter:
             return forwarded_for.split(",")[0].strip()
         return request.remote_addr or "anonymous"
 
+    @cached_property
     @classmethod
     def login_rate_limiter(cls) -> RateLimiter:
         return RateLimiter(limit=5, period=timedelta(minutes=1))
 
+    @cached_property
     @classmethod
     def callback_rate_limiter(cls) -> RateLimiter:
         return RateLimiter(limit=10, period=timedelta(minutes=1))
