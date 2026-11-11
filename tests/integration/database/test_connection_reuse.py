@@ -64,7 +64,7 @@ def test_sequential_requests_use_cached_connections(monkeypatch):
     response = client.get("/logout")
     assert response.status_code == 302
 
-    response = client.get("/jobs/copy_svg_langs")
+    response = client.get("/")
     assert response.status_code == 200
 
     with app.app_context():

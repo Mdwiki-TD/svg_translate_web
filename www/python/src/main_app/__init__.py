@@ -9,8 +9,8 @@ from typing import Any
 
 from flask import Flask, render_template, request
 
-from .admin import add_admin_dashboard, register_bp_admin_blueprints
-from .config import Config, ConfigLoader, app_settings, ensure_directories
+from .admin import AdminsRouteRegister
+from .config import Config, ConfigLoader, get_settings
 from .database import init_db
 from .database.exceptions import DatabaseInitError
 from .error_pages import register_cache_headers, register_error_pages
@@ -20,8 +20,8 @@ from .extensions import migrate
 from .jobs_workers.cli_jobs import register_cli_jobs
 from .logger_config import configure_logging
 from .public import PublicRouteRegister
-from .public.utils import context_data
-from .services.core import CookieHeaderClient, filters
+from .public.routes_utils import context_data
+from .services.core import CookieHeaderClient, filters, init_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,7 @@ class AppFactory:
         if app.config.get("SQLALCHEMY_DATABASE_URI"):
             db_is_ok = cls.init_app_and_db(app, _db)
 
+        init_rate_limiter(app)
         if db_is_ok:
             cls._register_routes(app)
         else:
@@ -78,7 +79,8 @@ class AppFactory:
 
         app.jinja_env.filters.update(filters)
 
-        ensure_directories()
+        app_settings = get_settings()
+        app_settings.ensure_directories()
         register_error_pages(app)
         register_cache_headers(app)
 
@@ -102,8 +104,7 @@ class AppFactory:
     @staticmethod
     def _register_routes(app: Flask) -> None:
         PublicRouteRegister.register(app)
-        add_admin_dashboard(app, _db)
-        register_bp_admin_blueprints(app)
+        AdminsRouteRegister.register(app, _db)
         register_cli_jobs(app)
 
     @staticmethod
@@ -112,17 +113,21 @@ class AppFactory:
             return None
         return render_template("index_db_error.html"), 503
 
-    @staticmethod
-    def _register_template_context(app: Flask):
+    @classmethod
+    def _register_template_context(cls, app: Flask):
         """Inject global variables into all templates."""
 
-        @app.context_processor
-        def inject_globals() -> dict[str, Any]:  # pragma: no cover - trivial wrapper
-            return context_data(
-                app_settings.other.wiki_domain,
-                app_settings.other.static_server,
-                tool_title=app_settings.other.tool_title,
-            )
+        app.context_processor(cls.inject_globals)
+
+    @staticmethod
+    def inject_globals() -> dict[str, Any]:  # pragma: no cover - trivial wrapper
+        app_settings = get_settings()
+
+        return context_data(
+            app_settings.other.wiki_domain,
+            app_settings.other.static_server,
+            tool_title=app_settings.other.tool_title,
+        )
 
 
 __all__ = [

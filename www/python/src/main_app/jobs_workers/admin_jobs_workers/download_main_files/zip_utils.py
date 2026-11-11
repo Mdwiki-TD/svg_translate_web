@@ -10,7 +10,7 @@ from typing import Any
 
 from flask import send_file
 
-from ....config import app_settings
+from ....config import get_settings
 
 # Zip file name constant
 MAIN_FILES_ZIP_NAME = "main_files.zip"
@@ -28,6 +28,7 @@ def create_main_files_zip() -> tuple[Any, int]:
     Returns:
         tuple: (send_file response or error message, status_code)
     """
+    app_settings = get_settings()
     main_files_path = Path(app_settings.paths.main_files_path)
     zip_file_path = main_files_path / MAIN_FILES_ZIP_NAME
 

@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-
 from src.main_app.services.copysvg_wrapper.extract_translations import extract_from_path
 from src.main_app.services.copysvg_wrapper.mapping import TranslationMapping
 

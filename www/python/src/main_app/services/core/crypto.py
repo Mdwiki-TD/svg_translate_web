@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from ...config import app_settings
+from ...config import get_settings
 
 
 class CryptoService:
@@ -15,6 +15,7 @@ class CryptoService:
     """
 
     def __init__(self) -> None:
+        app_settings = get_settings()
         if not app_settings.oauth or not app_settings.oauth.encryption_key:
             raise RuntimeError("OAUTH_ENCRYPTION_KEY must be configured before using the crypto helpers")
 
@@ -40,16 +41,6 @@ class CryptoService:
         return decrypted.decode("utf-8")
 
 
-def encrypt_value(plaintext: str) -> bytes:
-    return CryptoService().encrypt(plaintext)
-
-
-def decrypt_value(token: bytes) -> str:
-    return CryptoService().decrypt(token)
-
-
 __all__ = [
     "CryptoService",
-    "encrypt_value",
-    "decrypt_value",
 ]

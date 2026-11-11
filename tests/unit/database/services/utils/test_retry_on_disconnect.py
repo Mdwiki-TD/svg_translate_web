@@ -9,9 +9,8 @@ from __future__ import annotations
 from unittest.mock import MagicMock, call
 
 import pytest
-from sqlalchemy.exc import OperationalError
-
 import src.main_app.database.services.utils.retry_on_disconnect as decorators_module
+from sqlalchemy.exc import OperationalError
 from src.main_app.database.models import SettingRecord
 from src.main_app.database.services.utils.retry_on_disconnect import retry_on_db_disconnect
 

@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.download import download_file_for_cropping
 

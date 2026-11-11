@@ -1,23 +1,28 @@
-""" """
+"""Public Blueprints"""
+
+from __future__ import annotations
+
+from typing import Any
 
 from flask import Blueprint, Flask
 
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ..models import RouteModule
-from .api_routes import ApiRoutes
-from .auth.routes import AuthView
-from .jobs_utils_bp import UtilsJobsBpRoutes
-from .main_routes import (
+from ..templates_markups import NavigationBar, main_nav_list
+from .routes import (
+    ApiRoutes,
+    AuthView,
     ExplorerView,
     ExtractView,
     InjectView,
     MainView,
     OwidChartsRoutes,
+    ProfileView,
     TemplatesView,
     TranslateView,
+    UtilsJobsBpRoutes,
 )
-from .profile import ProfileView
-from .public_jobs import PublicJobsRoutes
+from .shared_jobs_registrar import SharedJobRoutesRegistrar
 
 PUBLIC_ROUTE_MODULES: list[RouteModule] = [
     RouteModule(route_cls=MainView, name="main", url_prefix=""),
@@ -32,7 +37,7 @@ PUBLIC_ROUTE_MODULES: list[RouteModule] = [
     RouteModule(route_cls=UtilsJobsBpRoutes, name="jobs_utils", url_prefix="/jobs_utils"),
     RouteModule(route_cls=TemplatesView, name="templates", url_prefix="/templates"),
     RouteModule(
-        route_cls=PublicJobsRoutes,
+        route_cls=SharedJobRoutesRegistrar,
         name="public_jobs",
         url_prefix="/jobs",
         extra_kwargs={
@@ -47,11 +52,22 @@ class PublicRouteRegister:
     """Registers all route blueprints on a Flask app."""
 
     @staticmethod
-    def register(app: Flask) -> None:
+    def inject_navbar() -> dict[str, Any]:
+        main_navbar = NavigationBar(main_nav_list)
+
+        return {
+            "main_navbar": main_navbar,
+        }
+
+    @classmethod
+    def register(cls, app: Flask) -> None:
+        app.context_processor(cls.inject_navbar)
+
         for module in PUBLIC_ROUTE_MODULES:
             bp = Blueprint(module.name, __name__, url_prefix=module.url_prefix)
-            instance = module.route_cls(**module.extra_kwargs)
-            instance.register(bp)
+
+            instance = module.route_cls()
+            instance.register(bp, **module.extra_kwargs)
             app.register_blueprint(bp)
 
 

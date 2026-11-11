@@ -6,7 +6,6 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.api_services.clients.objects import RawGrapherMetadataResponse
 from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import CollectMainFilesWorker
@@ -57,7 +56,7 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     }
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
         mocks["get_user_site"],
     )
 

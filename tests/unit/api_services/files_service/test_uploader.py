@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 import mwclient.errors
 import pytest
 import requests
-
 from src.main_app.api_services.files_service.objects import FileData
 from src.main_app.api_services.files_service.uploader import (
     _RETRY_DELAYS,

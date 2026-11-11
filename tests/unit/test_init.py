@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
-
 from src.main_app import register_error_pages  # noqa: F401
 from src.main_app import AppFactory
 from src.main_app.config import TestingConfig

@@ -5,9 +5,9 @@ from __future__ import annotations
 from .auth_exceptions import OAuthCallbackError, OAuthIdentityError
 from .auth_service import OAuthService
 from .current_user import CurrentUser
+from .current_user_resolver import CurrentUserResolver
 from .flow import AuthFlowService
 from .token_manager import TokenManager
-from .utils import get_current_user, set_logged_in_user
 
 __all__ = [
     "AuthFlowService",
@@ -16,6 +16,5 @@ __all__ = [
     "OAuthIdentityError",
     "OAuthService",
     "TokenManager",
-    "get_current_user",
-    "set_logged_in_user",
+    "CurrentUserResolver",
 ]

@@ -10,7 +10,7 @@ from typing import Any
 from mwclient.client import Site
 
 from ....api_services.files_service import FilesService
-from ....config import app_settings
+from ....config import get_settings
 from ....services.copysvg_wrapper import (
     ExtractResult,
     extract_from_path,
@@ -62,6 +62,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         return "copy_svg_langs"
 
     def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
+        app_settings = get_settings()
         return SvgLangsConfig.load(
             title=self.title,
             args=args,
@@ -76,7 +77,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return False
 
         stage.status = "running"
-        self._save_progress()
+        self.save_progress()
 
         try:
             step_result = extract_titles_step(
@@ -245,7 +246,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         if processfiles_stage.status in ["pending", "running"]:
             processfiles_stage.status = "completed"
@@ -279,7 +280,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         # ----------------------------------------------
         # Stage 1: Extract Text
 
-        self._save_progress()
+        self.save_progress()
 
         if not self._extract_text_step():
             return self.result

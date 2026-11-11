@@ -6,7 +6,6 @@ from datetime import datetime
 
 import pytest
 from sqlalchemy.exc import OperationalError
-
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.database.models import JobRecord
 from src.main_app.database.services import JobsService, JobStats, UserJobsStats

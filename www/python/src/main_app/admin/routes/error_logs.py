@@ -10,7 +10,7 @@ from flask import Blueprint, render_template, request
 from flask.views import MethodView
 
 from ...database.services.error_log_service import ErrorLogService
-from ..decorators import admin_required
+from ...decorators import admin_required
 
 logger = logging.getLogger(__name__)
 

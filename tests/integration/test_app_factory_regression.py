@@ -6,7 +6,6 @@ from importlib import reload
 from unittest.mock import patch
 
 import pytest
-
 from src.main_app.config import TestingConfig
 
 
@@ -40,7 +39,7 @@ def test_create_app_registers_blueprints(mock_environ):
         "main",
         "public_jobs",
         "explorer",
-        "adminpanel",
+        "admin_panel",
         "auth",
         "extract",
     ]
@@ -113,7 +112,7 @@ def test_create_app_jinja_env_configured(monkeypatch):
     monkeypatch.setenv("FLASK_SECRET_KEY", "test-secret")
 
     from src.main_app import AppFactory
-    from src.main_app.config.main_settings import get_settings
+    from src.main_app.config import get_settings
 
     get_settings.cache_clear()
     app = AppFactory.create(TestingConfig)

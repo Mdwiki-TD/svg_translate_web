@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.zip_utils import (
     MAIN_FILES_ZIP_NAME,
     create_main_files_zip,
@@ -16,8 +15,8 @@ from src.main_app.jobs_workers.admin_jobs_workers.download_main_files.zip_utils 
 def mock_settings(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.zip_utils.app_settings",
-        _mock,
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.zip_utils.get_settings",
+        MagicMock(return_value=_mock),
     )
     return _mock
 

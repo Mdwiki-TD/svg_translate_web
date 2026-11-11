@@ -1,0 +1,101 @@
+{% extends "admins/base1.html" %}
+{% from "_macros.html" import summary_card_2 %}
+
+{% block title %}Admins · {{ tool_title }}{% endblock %}
+
+{%- macro update_active_form(admin) -%}
+{% set endpoint_target = 'admin_panel.admins.deactivate' if admin.is_active else 'admin_panel.admins.activate' %}
+<form method="post" action="{{ url_for(endpoint_target, admin_id=admin.id) }}" class="d-inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="form-check form-switch d-inline-flex align-items-center">
+        <input class="form-check-input" type="checkbox" role="switch" id="admin-active-{{ admin.id }}"
+            {% if admin.is_active %}checked{% endif %} onchange="this.form.submit();">
+        <label class="visually-hidden" for="admin-active-{{ admin.id }}">
+            Toggle admin active state
+        </label>
+    </div>
+</form>
+{%- endmacro -%}
+
+{%- macro delete_admin_form(admin) -%}
+<form method="post" action="{{ url_for('admin_panel.admins.delete', admin_id=admin.id) }}"
+    class="d-inline" onsubmit="return confirm('Remove {{ admin.username }} from admins?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <button type="submit" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-trash"></i> Delete
+    </button>
+</form>
+{%- endmacro -%}
+
+{% block admin_contents %}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="headline">Admins</h3>
+    </div>
+    <div class="card-body">
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                {{ summary_card_2('Total Admins', total_admins) }}
+            </div>
+            <div class="col-md-4">
+                {{ summary_card_2('Active', total_active_admins) }}
+            </div>
+            <div class="col-md-4">
+                {{ summary_card_2('Inactive', inactive_admins) }}
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <form method="post" action="{{ url_for('admin_panel.admins.add') }}"
+                    class="row g-2 align-items-end">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <div class="col-sm-8 col-md-6 col-lg-4">
+                        <label class="form-label" for="new-admin-username">Add admin</label>
+                        <input type="text" name="username" class="form-control" id="new-admin-username"
+                            placeholder="Username" required>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-person-plus-fill"></i> Add
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-responsive shadow-sm">
+            <table class="table table-striped compact table-sm table-hover align-middle mb-0 DataTable">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 5%">ID</th>
+                        <th scope="col">User</th>
+                        <th scope="col" class="text-center" style="width: 15%">Active</th>
+                        <th scope="col" class="text-center" style="width: 10%">Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin in admins %}
+                    <tr>
+                        <td>
+                            {{ admin.id }}
+                        </td>
+                        <td>
+                            {{ admin.username }}
+                        </td>
+                        <td class="text-center">
+                            {{ update_active_form(admin) }}
+                        </td>
+                        <td class="text-center">
+                            {{ delete_admin_form(admin) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

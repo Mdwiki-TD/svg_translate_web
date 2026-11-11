@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.database.services.template_service import TemplateService
 

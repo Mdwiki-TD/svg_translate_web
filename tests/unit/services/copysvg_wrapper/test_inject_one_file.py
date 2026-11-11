@@ -5,7 +5,6 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.services.copysvg_wrapper.inject_one_file import (
     inject_step_one_file,
 )

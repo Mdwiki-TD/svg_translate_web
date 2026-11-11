@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 from flask.app import Flask
 from sqlalchemy import text
-
 from src.main_app.database.models.jobs import JobRecord
 from src.main_app.database.services.jobs_service import JobsService
 from src.main_app.extensions import db

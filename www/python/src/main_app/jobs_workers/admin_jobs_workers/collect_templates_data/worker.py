@@ -407,7 +407,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
         self.result.summary.total = 1
 
-        self._save_progress()
+        self.save_progress()
 
         logger.debug(f"Job {self.job_id}: Processing single template {template.title}")
 
@@ -456,7 +456,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
 
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
             logger.debug(f"Job {self.job_id}: Processing template {n}/{len(templates_data)}: {template.title}")
 

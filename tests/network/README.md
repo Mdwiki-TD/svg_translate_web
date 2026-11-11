@@ -59,6 +59,6 @@ If these variables are absent the write-test classes are skipped automatically.
 
 ## Cautions
 
--   Do not run write tests against production wikis.
--   Test pages created on `test-commons.wikimedia.org` are periodically purged by Wikimedia — do not rely on them persisting between runs.
--   Rate-limiting is real here; the retry logic in `_with_retry` will be exercised if you run the suite in parallel. Prefer sequential execution (`-p no:xdist`).
+- Do not run write tests against production wikis.
+- Test pages created on `test-commons.wikimedia.org` are periodically purged by Wikimedia — do not rely on them persisting between runs.
+- Rate-limiting is real here; the retry logic in `_with_retry` will be exercised if you run the suite in parallel. Prefer sequential execution (`-p no:xdist`).

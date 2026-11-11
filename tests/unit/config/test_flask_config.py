@@ -2,69 +2,16 @@
 Unit tests for src/main_app/config/flask_config.py module.
 
 Classes to test: Config, DevelopmentConfig, ProductionConfig, TestingConfig
-Functions to test: build_sqlalchemy_uri
-
 """
 
 from __future__ import annotations
 
-from src.main_app.config.classes import DbConfig
 from src.main_app.config.flask_config import (
     Config,
     DevelopmentConfig,
     ProductionConfig,
     TestingConfig,
-    build_sqlalchemy_uri,
 )
-
-
-class TestBuildSqlalchemyUri:
-    def test_basic_uri(self):
-        db_cfg = DbConfig(
-            db_name="mydb",
-            db_host="tools-db.example.org",
-            db_user="myuser",
-            db_password="mypass",
-        )
-        uri = build_sqlalchemy_uri(db_cfg)
-        assert "mysql+pymysql" in uri
-        assert "mydb" in uri
-        assert "myuser" in uri
-        assert "mypass" in uri
-        assert "tools-db.example.org" in uri
-
-    def test_password_is_url_encoded(self):
-        db_cfg = DbConfig(
-            db_name="mydb",
-            db_host="localhost",
-            db_user="user",
-            db_password="p@ss#word!",
-        )
-        uri = build_sqlalchemy_uri(db_cfg)
-        # The password should be encoded (not appear as literal p@ss#word!)
-        assert "p@ss#word!" not in uri
-        assert "mydb" in uri
-
-    def test_empty_password(self):
-        db_cfg = DbConfig(
-            db_name="mydb",
-            db_host="localhost",
-            db_user="user",
-            db_password=None,
-        )
-        uri = build_sqlalchemy_uri(db_cfg)
-        assert "mydb" in uri
-        assert "user" in uri
-
-    def test_charset_in_query(self):
-        db_cfg = DbConfig(
-            db_name="mydb",
-            db_host="localhost",
-            db_user="user",
-            db_password="pass",
-        )
-        uri = build_sqlalchemy_uri(db_cfg)
-        assert "charset=utf8mb4" in uri
 
 
 class TestTestingConfig:

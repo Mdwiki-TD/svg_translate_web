@@ -6,7 +6,6 @@ import threading
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from src.main_app.database.services import JobsService
 from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker
 from src.main_app.jobs_workers.objects import JobsRunner
@@ -24,7 +23,7 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
         "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
         "save_job_result_by_name": MagicMock(),
     }
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.get_user_site", mocks["get_user_site"])
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site", mocks["get_user_site"])
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
         mocks["save_job_result_by_name"],

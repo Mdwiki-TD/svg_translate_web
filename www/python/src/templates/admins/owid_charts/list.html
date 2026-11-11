@@ -25,11 +25,11 @@
                 <i class="bi bi-copy"></i> Copy data
             </a>
             <button type="button" class="btn btn-outline-primary"
-                pup-target="{{ url_for('adminpanel.owidcharts.add_chart_popup') }}"
+                pup-target="{{ url_for('admin_panel.owidcharts.add_chart_popup') }}"
                 onclick="pup_window_new(this, 700, 650)">
                 <i class="bi bi-plus-lg"></i> Add Chart
             </button>
-            <a href="{{ url_for('adminpanel.owidcharts.download_owid_charts_json') }}" class="btn btn-outline-success">
+            <a href="{{ url_for('admin_panel.owidcharts.download_owid_charts_json') }}" class="btn btn-outline-success">
                 <i class="bi bi-download"></i> Download Json
             </a>
         </div>
@@ -60,7 +60,7 @@
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == '' %}active{% endif %}"
-                            href="{{ url_for('adminpanel.owidcharts.dashboard') }}">
+                            href="{{ url_for('admin_panel.owidcharts.dashboard') }}">
                             All <span id="tabTotal">
                                 ({{ summary.total }})
                             </span>
@@ -68,7 +68,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'has_template' %}active{% endif %}"
-                            href="{{ url_for('adminpanel.owidcharts.dashboard_with_filter', template_filter='has_template') }}">
+                            href="{{ url_for('admin_panel.owidcharts.dashboard_with_filter', template_filter='has_template') }}">
                             With Templates <span id="tabWithTemplateTotal">
                                 ({{ summary.template.with }})
                             </span>
@@ -76,7 +76,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if selected_template == 'no_template' %}active{% endif %}"
-                            href="{{ url_for('adminpanel.owidcharts.dashboard_with_filter', template_filter='no_template') }}">
+                            href="{{ url_for('admin_panel.owidcharts.dashboard_with_filter', template_filter='no_template') }}">
                             Without Templates <span id="tabWithoutTemplateTotal">
                                 ({{ summary.template.without }})
                             </span>
@@ -165,7 +165,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% set edit_url = url_for('adminpanel.owidcharts.edit_chart', chart_id=row.chart_id) %}
+                                    {% set edit_url = url_for('admin_panel.owidcharts.edit_chart', chart_id=row.chart_id) %}
                                     <button type="button" class="btn btn-outline-primary btn-sm"
                                         pup-target="{{ edit_url }}" onclick="pup_window_new(this, 700, 650)">
                                         <i class="bi bi-pencil"></i> Edit

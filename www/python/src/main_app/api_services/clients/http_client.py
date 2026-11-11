@@ -5,14 +5,21 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from typing import Any
 
 import requests
 
+from .http_client_helper import HttpHelper
+
 logger = logging.getLogger(__name__)
 
 
-class HttpClient:
+class ApiRequestError(Exception):
+    """Raised when an API request fails after all retries or receives fatal responses."""
+
+
+class HttpClient(HttpHelper):
     """HTTP client wrapper providing standardized methods for HTTP requests.
 
     - ``get`` / ``post`` / ``request`` return a raw ``requests.Response``.
@@ -249,7 +256,61 @@ class HttpClient:
             logger.debug(f"JSON Decode Error: {e}\n{url}")
         return None
 
+    def request_with_retry(
+        self,
+        url: str,
+        params: dict[str, Any],
+        max_retries: int = 3,
+        timeout: float = 20.0,
+        backoff_factor: float = 1.0,
+    ) -> dict[str, Any]:
+        """Perform an HTTP GET request with retry and exponential backoff.
+
+        Raises ApiRequestError on failure.
+        """
+        last_error: Exception | None = None
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = self.get(url, params=params, timeout=timeout)
+                if response.status_code == 200:
+                    try:
+                        res_json: dict[str, Any] = response.json()
+                        return res_json
+                    except (json.JSONDecodeError, ValueError) as json_err:
+                        raise ApiRequestError(f"Corrupt JSON response from {url}: {json_err}") from json_err
+                elif response.status_code in (429, 500, 502, 503, 504):
+                    logger.warning(
+                        "HTTP %s from %s (attempt %d/%d)",
+                        response.status_code,
+                        url,
+                        attempt,
+                        max_retries,
+                    )
+                else:
+                    raise ApiRequestError(f"Fatal HTTP {response.status_code} from {url}")
+            except (
+                requests.Timeout,
+                requests.ConnectionError,
+                requests.RequestException,
+            ) as exc:
+                last_error = exc
+                logger.warning(
+                    "Request error for %s (attempt %d/%d): %s",
+                    url,
+                    attempt,
+                    max_retries,
+                    exc,
+                )
+
+            if attempt < max_retries:
+                time.sleep(backoff_factor * (2 ** (attempt - 1)))
+
+        error_msg = f"Request to {url} failed after {max_retries} attempts: {last_error}"
+        raise ApiRequestError(error_msg) from last_error
+
 
 __all__ = [
+    "ApiRequestError",
     "HttpClient",
 ]

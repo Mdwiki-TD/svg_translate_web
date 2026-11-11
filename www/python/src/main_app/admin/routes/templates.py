@@ -24,7 +24,7 @@ from ...database.models import TemplateRecord
 from ...database.services import (
     TemplateService,
 )
-from ..decorators import admin_required
+from ...decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class TemplatesRoutesFuncs:
         title = request_form.get("title", "").strip()
         if not title:
             flash("Title is required to add a template.", "danger")
-            return redirect(url_for("adminpanel.templates.dashboard"))
+            return redirect(url_for("admin_panel.templates.dashboard"))
 
         main_file = request_form.get("main_file", "").strip()
         last_world_file = request_form.get("last_world_file", "").strip()
@@ -69,7 +69,7 @@ class TemplatesRoutesFuncs:
         else:
             flash(f"Template '{title}' added.", "success")
 
-        return redirect(url_for("adminpanel.templates.dashboard"))
+        return redirect(url_for("admin_panel.templates.dashboard"))
 
     def _update_template(self, request_form: dict[str, Any] | ImmutableMultiDict) -> ResponseReturnValue:
         """Update main_file for a template."""
@@ -83,14 +83,14 @@ class TemplatesRoutesFuncs:
             flash("Template ID is required to update a template.", "danger")
             if from_popup:
                 return render_template("admins/popup_action.html")
-            return redirect(url_for("adminpanel.templates.dashboard"))
+            return redirect(url_for("admin_panel.templates.dashboard"))
 
         title = request_form.get("title", "").strip()
         if not title:
             flash("Title is required to update a template.", "danger")
             if from_popup:
                 return render_template("admins/popup_action.html")
-            return redirect(url_for("adminpanel.templates.dashboard"))
+            return redirect(url_for("admin_panel.templates.dashboard"))
 
         main_file = request_form.get("main_file") or None
         last_world_file = request_form.get("last_world_file") or None
@@ -117,7 +117,7 @@ class TemplatesRoutesFuncs:
 
         if from_popup:
             return render_template("admins/popup_action.html")
-        return redirect(url_for("adminpanel.templates.dashboard"))
+        return redirect(url_for("admin_panel.templates.dashboard"))
 
     def _delete_template(self, template_id: int, from_popup: bool = False) -> ResponseReturnValue:
         """Remove a template entirely."""
@@ -136,7 +136,7 @@ class TemplatesRoutesFuncs:
 
         if from_popup:
             return render_template("admins/popup_action.html")
-        return redirect(url_for("adminpanel.templates.dashboard"))
+        return redirect(url_for("admin_panel.templates.dashboard"))
 
     def edit_template(self, template_id: int) -> ResponseReturnValue:
         """Render the edit template popup page by id."""
@@ -177,7 +177,7 @@ class TemplatesRoutesFuncs:
         # If the response is an error message (not a file), flash it and redirect
         if status_code != 200:
             flash(response, "warning" if status_code == 404 else "danger")
-            return redirect(url_for("adminpanel.templates.dashboard"))
+            return redirect(url_for("admin_panel.templates.dashboard"))
 
         return response
 

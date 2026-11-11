@@ -1,5 +1,4 @@
 import pytest
-
 from src.main_app.utils.new_wikitext.svg_files import SvgFilesCollector
 
 GALLERY = (

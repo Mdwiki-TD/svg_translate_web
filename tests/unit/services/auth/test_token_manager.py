@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import pytest
 from flask import Flask
-
 from src.main_app.database.services import AdminService, UsersService, UserTokenService
 from src.main_app.services.auth.token_manager import TokenManager
 
@@ -36,9 +35,9 @@ class TestUserService:
             return user.user_id
 
     def _seed_admin(self, username: str) -> None:
-        """Create an active coordinator record."""
+        """Create an active admin record."""
         with self.app.app_context():
-            AdminService().add_coordinator(username)
+            AdminService().add_admin(username)
 
     # ── save_token ──
 
@@ -111,7 +110,7 @@ class TestUserService:
     # ── get_authenticated_user ──
 
     def test_get_authenticated_user_success(self):
-        """Seeded user + token + coordinator should return a valid CurrentUser."""
+        """Seeded user + token + admin should return a valid CurrentUser."""
         user_id = self._seed_user("authuser")
         self._seed_admin("authuser")
 

@@ -144,7 +144,7 @@ src/
       routes/      # Admin sub-routes (coordinators, jobs, etc.)
     public/          # Flask blueprints
       auth/              # OAuth authentication
-      main_routes/       # Public routes
+      routes/       # Public routes
     api_services/        # MediaWiki API clients
       clients/           # mwclient site builders (wiki_client, commons_client)
       mwclient_page/mwclient_wraper.py   # MwClientPage class (edit, move, redirect check with retry)

@@ -10,7 +10,6 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
@@ -89,7 +88,7 @@ def run_mocks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mock_base_worker,
 
     monkeypatch.setattr(f"{_BASE}.JobsService.is_job_cancelled", is_job_cancelled)
     monkeypatch.setattr(f"{_BASE}.is_job_cancelled_file_exist", is_job_cancelled_file)
-    monkeypatch.setattr(f"{_BASE}.get_user_site", get_site)
+    monkeypatch.setattr(f"{_BASE}.WikiSiteClient.get_user_site", get_site)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download)
     monkeypatch.setattr(f"{_WORKER}.NestedStructureService.analyze_file", detect)
     monkeypatch.setattr(f"{_WORKER}.NestedStructureService.repair_file", fix)

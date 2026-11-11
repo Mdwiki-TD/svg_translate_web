@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import logging
 import secrets
-from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlencode
 
@@ -18,66 +17,35 @@ from flask import g, make_response, redirect, session, url_for
 from mwoauth import AccessToken
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-from ...config import app_settings
+from ...config import get_settings
 from ...database.services import UsersService
-from ..core.cookies import (
-    extract_user_id,
-    sign_state_token,
-    sign_user_id,
-    verify_state_token,
-)
+from ..core.cookies import SignedTokenService
 from .auth_exceptions import OAuthCallbackError, OAuthIdentityError
 from .auth_service import OAuthService
+from .mapping import CallbackResult, LoginStartResult, LogoutResult
 from .token_manager import TokenManager
 
 logger = logging.getLogger(__name__)
-
-request_secret_key = app_settings.sessions.request_secret_key
-request_token_key = app_settings.sessions.request_token_key
-oauth_state_nonce = app_settings.sessions.state_key
-
-
-@dataclass(frozen=True)
-class LoginStartResult:
-    """Outcome of starting the OAuth login flow."""
-
-    success: bool
-    redirect_url: str | None = None
-    error_message: str | None = None
-    flash_category: str = "danger"
-
-
-@dataclass(frozen=True)
-class CallbackResult:
-    """Outcome of completing the OAuth callback."""
-
-    success: bool
-    response: WerkzeugResponse | None = None
-    error_message: str | None = None
-    flash_category: str = "danger"
-
-
-@dataclass(frozen=True)
-class LogoutResult:
-    """Outcome of logout."""
-
-    response: WerkzeugResponse
-    message: str
-    flash_category: str = "info"
 
 
 class AuthFlowService:
     """High-level orchestration for the OAuth login lifecycle."""
 
     def __init__(self) -> None:
+        self.app_settings = get_settings()
         self.oauth_service = OAuthService(
-            consumer_key=app_settings.oauth.consumer_key,
-            consumer_secret=app_settings.oauth.consumer_secret,
-            oauth_mwuri=app_settings.oauth.mw_uri,
-            user_agent=app_settings.other.user_agent,
+            consumer_key=self.app_settings.oauth.consumer_key,
+            consumer_secret=self.app_settings.oauth.consumer_secret,
+            oauth_mwuri=self.app_settings.oauth.mw_uri,
+            user_agent=self.app_settings.other.user_agent,
         )
         self.token_manager = TokenManager()
         self.user_svc = UsersService()
+        self.token_signer = SignedTokenService()
+
+        self.request_secret_key = self.app_settings.sessions.request_secret_key
+        self.request_token_key = self.app_settings.sessions.request_token_key
+        self.oauth_state_nonce = self.app_settings.sessions.state_key
 
     # ------------------------------------------------------------------
     # Login
@@ -98,11 +66,12 @@ class AuthFlowService:
         Stores request token + secret and state nonce in the session.
         """
         state_nonce = secrets.token_urlsafe(32)
-        session[oauth_state_nonce] = state_nonce
+        session[self.oauth_state_nonce] = state_nonce
 
-        signed_state = sign_state_token(state_nonce)
+        signed_state = self.token_signer.sign_state_token(state_nonce)
         callback_url = self.build_callback_url(signed_state)
 
+        logger.debug("callback_url: %s", callback_url)
         try:
             auth_url, request_token, request_secret = self.oauth_service.create_authorization_url(callback_url)
             logger.info("OAuth login started successfully, redirecting to MediaWiki")
@@ -116,8 +85,8 @@ class AuthFlowService:
 
         # ------------------
         # Store request token in session for the callback step
-        session[request_token_key] = request_token
-        session[request_secret_key] = request_secret
+        session[self.request_token_key] = request_token  # pyright: ignore[reportArgumentType]
+        session[self.request_secret_key] = request_secret
 
         logger.debug("OAuth request token stored in session")
         logger.info("OAuth login started successfully, redirecting to MediaWiki")
@@ -138,14 +107,14 @@ class AuthFlowService:
         persist credentials, set session + cookie.
         """
         # 1. State verification
-        state_error = self._verify_oauth_state(request_args.get(app_settings.sessions.request_token_key))
+        state_error = self._verify_oauth_state(request_args.get(self.app_settings.sessions.request_token_key))
         if state_error:
             return state_error
 
         # 2. Request token + verifier
         oauth_verifier = request_args.get("oauth_verifier")
-        request_token = session.pop(request_token_key, None)
-        request_secret = session.pop(request_secret_key, None)
+        request_token = session.pop(self.request_token_key, None)
+        request_secret = session.pop(self.request_secret_key, None)
 
         if not request_token or not request_secret or not oauth_verifier:
             logger.warning("OAuth callback failed: missing request token or verifier")
@@ -207,7 +176,7 @@ class AuthFlowService:
 
         # 5. Resolve / create user record
         try:
-            user_id = self._resolve_user_id(username)
+            user_id = self._resolve_user_id_db(username)
         except Exception as exc:
             logger.exception("Failed to resolve user ID: %s", exc)
             return CallbackResult(
@@ -252,7 +221,7 @@ class AuthFlowService:
         return CallbackResult(success=True, response=response)
 
     def _verify_oauth_state(self, returned_state: str | None) -> CallbackResult | None:
-        expected_state = session.pop(oauth_state_nonce, None)
+        expected_state = session.pop(self.oauth_state_nonce, None)
         if not expected_state or not returned_state:
             logger.warning("OAuth callback failed: missing state token")
             return CallbackResult(
@@ -261,7 +230,7 @@ class AuthFlowService:
                 flash_category="danger",
             )
 
-        verified_state = verify_state_token(returned_state)
+        verified_state = self.token_signer.verify_state_token(returned_state)
         if verified_state != expected_state:
             logger.warning("OAuth callback failed: state mismatch")
             return CallbackResult(
@@ -271,20 +240,19 @@ class AuthFlowService:
             )
         return None
 
-    def _resolve_user_id(self, username: str) -> int:
+    def _resolve_user_id_db(self, username: str) -> int:
         """Return the user_id for ``username``, creating a UserRecord if needed."""
         record = self.user_svc.ensure_exists(username)
         return record.user_id
 
-    @staticmethod
-    def _set_auth_cookie(user_id: int, response: WerkzeugResponse) -> None:
+    def _set_auth_cookie(self, user_id: int, response: WerkzeugResponse) -> None:
         response.set_cookie(
-            app_settings.cookie.name,
-            sign_user_id(user_id),
-            httponly=app_settings.cookie.httponly,
-            secure=app_settings.cookie.secure,
-            samesite=app_settings.cookie.samesite,
-            max_age=app_settings.cookie.max_age,
+            self.app_settings.cookie.name,
+            self.token_signer.sign_user_id(user_id),
+            httponly=self.app_settings.cookie.httponly,
+            secure=self.app_settings.cookie.secure,
+            samesite=self.app_settings.cookie.samesite,
+            max_age=self.app_settings.cookie.max_age,
             path="/",
         )
 
@@ -302,16 +270,16 @@ class AuthFlowService:
         user_id = session_uid
 
         session.pop("uid", None)
-        session.pop(request_token_key, None)
-        session.pop(request_secret_key, None)
-        session.pop(oauth_state_nonce, None)
+        session.pop(self.request_token_key, None)
+        session.pop(self.request_secret_key, None)
+        session.pop(self.oauth_state_nonce, None)
         session.pop("username", None)
 
         logger.info("Logout requested, user_id: %s", user_id)
 
         # extract user_id from signed cookie if needed
         if user_id is None and cookie_value:
-            user_id = extract_user_id(cookie_value)
+            user_id = self.token_signer.extract_user_id(cookie_value)
             logger.debug("Extracted user_id from cookie: %s", user_id)
 
         message = "Session cleared."
@@ -329,7 +297,7 @@ class AuthFlowService:
                 flash_category = "danger"
 
         response = make_response(redirect(index_url))
-        response.delete_cookie(app_settings.cookie.name, path="/")
+        response.delete_cookie(self.app_settings.cookie.name, path="/")
         g._current_user = None
 
         return LogoutResult(

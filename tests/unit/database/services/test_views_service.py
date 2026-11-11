@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.main_app.database.models.owid_charts import OwidChartRecord
 from src.main_app.database.models.templates import TemplateRecord
 from src.main_app.database.services import OwidChartsService, TemplateService

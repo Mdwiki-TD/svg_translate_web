@@ -114,7 +114,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
             # Save progress after check for cancellation
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         logger.info(
             "Job %s completed: %d successful, %d skipped, %d failed",

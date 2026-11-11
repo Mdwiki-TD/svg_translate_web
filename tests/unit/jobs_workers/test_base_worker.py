@@ -5,13 +5,16 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker
 from src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs_workers.shared_objects import SharedworkerObject
 
 
 class _ConcreteWorker(BaseObjectsJobWorker):
     """Minimal concrete subclass for testing base-class methods."""
+
+    def __init__(self, data: JobsRunner) -> None:
+        self.result = SharedworkerObject()
 
     def get_job_type(self) -> str:
         return "test_worker"

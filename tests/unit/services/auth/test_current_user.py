@@ -1,6 +1,6 @@
 # ruff: noqa: F401
 """
-Unit urrent_user.py module.
+Unit tests for current_user.py module.
 
 Classes to test: CurrentUser
 

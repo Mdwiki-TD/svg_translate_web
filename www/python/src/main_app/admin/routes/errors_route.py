@@ -14,8 +14,8 @@ from flask import Blueprint, flash, render_template, request
 from flask.views import MethodView
 from markupsafe import Markup, escape
 
-from ...config import app_settings
-from ..decorators import admin_required
+from ...config import get_settings
+from ...decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +31,7 @@ CHUNK_SIZE = 1024 * 1024
 
 def get_log_dir() -> Path:
     """Return configured log directory path."""
+    app_settings = get_settings()
     return Path(app_settings.paths.log_dir)
 
 

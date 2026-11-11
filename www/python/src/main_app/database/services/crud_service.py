@@ -149,7 +149,8 @@ class CRUDService[ModelT]:
             self.commit_or_rollback()
             self.session.refresh(instance)
             return instance
-        except Exception:
+
+        except (IntegrityError, Exception):
             logger.error("Error adding %s", self.model_name)
             raise
 
@@ -340,6 +341,12 @@ class CRUDService[ModelT]:
 
     def expire_all(self) -> None:
         self.session.expire_all()
+
+    @staticmethod
+    def validate_or_raise(**kwargs) -> None:
+        for x, v in kwargs.items():
+            if not v:
+                raise ValueError(f"{x.capitalize()} is required")
 
 
 __all__ = [

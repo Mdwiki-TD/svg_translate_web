@@ -6,29 +6,8 @@ from __future__ import annotations
 
 import os
 from typing import Any
-from urllib.parse import quote_plus
 
-from sqlalchemy import URL
-
-from .classes import DbConfig
-from .main_settings import app_settings
-
-
-def build_sqlalchemy_uri(db_config: DbConfig) -> str:
-    """Build a SQLAlchemy database URI from a DbConfig dataclass.
-    Used by Flask-SQLAlchemy configuration in AppFactory.create().
-    Compatible with the existing build_db_url() in engine.py.
-    """
-    password = quote_plus(db_config.db_password or "")
-    url = URL.create(
-        "mysql+pymysql",
-        username=db_config.db_user,
-        password=password,
-        host=db_config.db_host,
-        database=db_config.db_name,
-        query={"charset": "utf8mb4"},
-    ).render_as_string(hide_password=False)
-    return url
+from .classes import get_settings
 
 
 class Config:
@@ -39,6 +18,7 @@ class Config:
     module import time.
     """
 
+    app_settings = get_settings()
     # Flask core settings
     DEBUG: bool = False
     TESTING: bool = False
@@ -76,27 +56,20 @@ class Config:
     MAX_FORM_PARTS: int = app_settings.security.max_form_parts
 
     # Flask-SQLAlchemy
-    SQLALCHEMY_DATABASE_URI: str | None = os.environ.get("DATABASE_URI") or None
+    SQLALCHEMY_DATABASE_URI: str = os.environ.get("DATABASE_URI", "")
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     SQLALCHEMY_ENGINE_OPTIONS: dict[str, Any] = {}
 
     SQLALCHEMY_ECHO: bool = False
 
     def __init__(self) -> None:
+        app_settings = get_settings()
         """Initialize configuration with values from environment-based settings."""
         # Sync with the dataclass-based settings for backward compatibility
         self.SECRET_KEY = app_settings.security.secret_key
         self.SESSION_COOKIE_HTTPONLY = app_settings.cookie.httponly
         self.SESSION_COOKIE_SECURE = app_settings.cookie.secure
         self.SESSION_COOKIE_SAMESITE = app_settings.cookie.samesite
-
-        # Only set DB URI and engine options if not already defined by subclass
-        # (e.g., TestingConfig sets SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:")
-        if self.SQLALCHEMY_DATABASE_URI is None:
-            # Build SQLAlchemy database URI from environment config
-            db_cfg = app_settings.database_data
-            if db_cfg.db_host:
-                self.SQLALCHEMY_DATABASE_URI = build_sqlalchemy_uri(db_cfg)
 
         # Only set MySQL-specific engine options if URI is MySQL (not SQLite)
         uri = self.SQLALCHEMY_DATABASE_URI or ""

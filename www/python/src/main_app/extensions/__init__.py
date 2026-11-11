@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from flask_migrate import Migrate
 
-from ._csrf import (
+from .csrf_protect import (
     csrf,
     csrf_exempt,
     csrf_init_app,

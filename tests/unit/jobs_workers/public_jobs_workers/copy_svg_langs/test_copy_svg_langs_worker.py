@@ -8,7 +8,6 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
@@ -124,7 +123,7 @@ def mock_clients(
     )
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", MagicMock())
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
         mock_get_user_site,
     )
     m_session = MagicMock()
@@ -145,7 +144,7 @@ def mock_worker():
             args=args,
         )
     )
-    _worker._save_progress = MagicMock()
+    _worker.save_progress = MagicMock()
     return _worker
 
 

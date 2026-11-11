@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
@@ -83,7 +82,7 @@ def mock_worker():
             args=args,
         )
     )
-    _worker._save_progress = MagicMock()
+    _worker.save_progress = MagicMock()
     return _worker
 
 

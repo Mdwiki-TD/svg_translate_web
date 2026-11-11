@@ -76,7 +76,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
         pages = self._collect_pages()
         self.result.summary.total = len(pages)
-        self._save_progress()
+        self.save_progress()
 
         logger.info("Job %s: Found %d OWID page(s)", self.job_id, len(pages))
 
@@ -97,7 +97,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
                 break
 
             if n == 1 or n % per_item == 0:
-                self._save_progress()
+                self.save_progress()
 
         return self.result
 

@@ -57,7 +57,7 @@ class TokenManager:
 
             return CurrentUser.from_authenticated(
                 token=token,
-                is_active_admin=self.admin_service.is_active_coordinator(token.user.username),
+                is_active_admin=self.admin_service.is_active_admin(token.user.username),
             )
         except Exception as e:
             logger.error("Error loading user for ID %s: %s", user_id, e)

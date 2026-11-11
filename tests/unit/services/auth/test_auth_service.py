@@ -7,7 +7,6 @@ from typing import Any
 
 import pytest
 from mwoauth import RequestToken
-
 from src.main_app.services.auth import auth_service
 from src.main_app.services.auth.auth_service import OAuthService
 

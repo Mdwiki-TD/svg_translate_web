@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.main_app.database.services.owid_slug_redirects_service import OwidSlugRedirectsService
 
 

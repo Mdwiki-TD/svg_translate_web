@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import make_url
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -18,6 +20,37 @@ logger = logging.getLogger(__name__)
 if os.getenv("APP_ENV", os.getenv("FLASK_ENV")) not in ["production", "testing"]:
     _env_file_path = str(Path(__file__).parent.parent.parent / ".env")
     load_dotenv(_env_file_path)
+
+
+INSERT_SQL = text("""
+    INSERT INTO owid_charts (
+        slug, title, has_map_tab, max_time, min_time,
+        default_tab, is_published, single_year_data, len_years, has_timeline
+    ) VALUES (
+        :slug, :title, :has_map_tab, :max_time, :min_time,
+        :default_tab, :is_published, :single_year_data, :len_years, :has_timeline
+    )
+    ON DUPLICATE KEY UPDATE
+        title = VALUES(title),
+        has_map_tab = VALUES(has_map_tab),
+        max_time = VALUES(max_time),
+        min_time = VALUES(min_time),
+        default_tab = VALUES(default_tab),
+        is_published = VALUES(is_published),
+        single_year_data = VALUES(single_year_data),
+        len_years = VALUES(len_years),
+        has_timeline = VALUES(has_timeline)
+    """)
+
+
+def get_database_uri() -> str:
+    """Return the SQLAlchemy database URI from the environment."""
+    sqlalchemy_database_uri: str = os.environ.get("DATABASE_URI", "")
+
+    if not sqlalchemy_database_uri:
+        raise RuntimeError("DATABASE_URI environment variable is not set")
+
+    return sqlalchemy_database_uri
 
 
 def parse_bool(value: str | int) -> bool:
@@ -79,86 +112,49 @@ def read_csv_file(file_path: str) -> list[dict[str, Any]]:
 
 def import_charts_to_db(charts: list[dict[str, Any]]) -> tuple[int, int, int]:
     """
-    Import charts into the database.
+    Import charts into the database using SQLAlchemy.
 
     Returns:
         tuple: (number of inserted charts, number of updated charts, number of failed charts)
     """
-    db_name = os.getenv("TOOL_TOOLSDB_DBNAME", "")
-
-    if not db_name:
-        raise RuntimeError("TOOL_TOOLSDB_DBNAME environment variable is not set")
-
-    try:
-        import pymysql
-    except ImportError as e:
-        raise RuntimeError("PyMySQL is not installed. Run: pip install pymysql") from e
+    sqlalchemy_database_uri = get_database_uri()
+    db_name = make_url(sqlalchemy_database_uri).database
 
     logger.info(f"Connecting to database: {db_name}")
 
-    connection = pymysql.connect(
-        host=os.getenv("TOOL_TOOLSDB_HOST", "localhost"),
-        database=db_name,
-        user=os.getenv("TOOL_TOOLSDB_USER", ""),
-        password=os.getenv("TOOL_TOOLSDB_PASSWORD", ""),
-        charset="utf8mb4",
-        autocommit=True,
-    )
-
-    cursor = connection.cursor()
-
-    insert_sql = """
-    INSERT INTO owid_charts (
-        slug, title, has_map_tab, max_time, min_time,
-        default_tab, is_published, single_year_data, len_years, has_timeline
-    ) VALUES (
-        %(slug)s, %(title)s, %(has_map_tab)s, %(max_time)s, %(min_time)s,
-        %(default_tab)s, %(is_published)s, %(single_year_data)s, %(len_years)s, %(has_timeline)s
-    )
-    ON DUPLICATE KEY UPDATE
-        title = VALUES(title),
-        has_map_tab = VALUES(has_map_tab),
-        max_time = VALUES(max_time),
-        min_time = VALUES(min_time),
-        default_tab = VALUES(default_tab),
-        is_published = VALUES(is_published),
-        single_year_data = VALUES(single_year_data),
-        len_years = VALUES(len_years),
-        has_timeline = VALUES(has_timeline)
-    """
+    engine = create_engine(sqlalchemy_database_uri, pool_pre_ping=True)
 
     inserted = 0
     updated = 0
     failed = 0
 
-    logger.info("Importing charts into database...")
+    try:
+        # Load all existing slugs once instead of querying for every row
+        with engine.connect() as connection:
+            existing_slugs = {row[0] for row in connection.execute(text("SELECT slug FROM owid_charts"))}
 
-    for i, chart_data in enumerate(charts, 1):
-        try:
-            # Check if chart exists
-            cursor.execute("SELECT chart_id FROM owid_charts WHERE slug = %s", (chart_data["slug"],))
-            exists = cursor.fetchone()
+        logger.info("Importing charts into database...")
 
-            if exists:
-                # Update existing chart
-                cursor.execute(insert_sql, chart_data)
-                if cursor.rowcount > 0:
+        for i, chart_data in enumerate(charts, 1):
+            try:
+                # Each chart runs in its own transaction, so one failure doesn't affect the others
+                with engine.begin() as connection:
+                    connection.execute(INSERT_SQL, chart_data)
+
+                if chart_data["slug"] in existing_slugs:
                     updated += 1
-            else:
-                # Insert new chart
-                cursor.execute(insert_sql, chart_data)
-                if cursor.rowcount > 0:
+                else:
                     inserted += 1
+                    existing_slugs.add(chart_data["slug"])
 
-            if i % 100 == 0:
-                logger.info(f"Processed {i}/{len(charts)} charts...")
+                if i % 100 == 0:
+                    logger.info(f"Processed {i}/{len(charts)} charts...")
 
-        except Exception as e:
-            logger.error(f"Failed to import chart {chart_data['slug']}: {e}")
-            failed += 1
-
-    cursor.close()
-    connection.close()
+            except Exception as e:
+                logger.error(f"Failed to import chart {chart_data['slug']}: {e}")
+                failed += 1
+    finally:
+        engine.dispose()
 
     return inserted, updated, failed
 
@@ -175,12 +171,18 @@ def main() -> None:
         logger.error(f"CSV file not found: {csv_file}")
         sys.exit(1)
 
+    try:
+        db_url = make_url(get_database_uri())
+        db_name, db_host = db_url.database, db_url.host
+    except Exception:
+        db_name, db_host = "Not set", "Not set"
+
     print("=" * 70)
     print("OWID Charts CSV Import")
     print("=" * 70)
     print(f"CSV File: {csv_file}")
-    print(f"Database: {os.getenv('TOOL_TOOLSDB_DBNAME', 'Not set')}")
-    print(f"Host: {os.getenv('TOOL_TOOLSDB_HOST', 'localhost')}")
+    print(f"Database: {db_name}")
+    print(f"Host: {db_host}")
     print("-" * 70)
 
     try:
@@ -210,7 +212,7 @@ def main() -> None:
             logger.info("Import completed successfully!")
             print("\n✓ All charts imported successfully!")
             print("\nView charts at:")
-            print("  - Admin:  http://localhost:5000/adminpanel/owidcharts")
+            print("  - Admin:  http://localhost:5000/admin_panel/owidcharts")
             print("  - Public: http://localhost:5000/owidcharts/")
             print("  - Test:   http://localhost:5000/owidcharts/all")
 

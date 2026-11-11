@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from src.main_app.config.classes import (
     CookieConfig,
-    DbConfig,
     JobsConfig,
     OAuthConfig,
     OtherConfig,
@@ -13,21 +12,6 @@ from src.main_app.config.classes import (
     SessionConfig,
     Settings,
 )
-
-
-def test_dbconfig():
-    """Test the DbConfig dataclass."""
-    db_config = DbConfig(
-        db_name="test_db",
-        db_host="localhost",
-        db_user="user",
-        db_password="password",
-    )
-
-    assert db_config.db_name == "test_db"
-    assert db_config.db_host == "localhost"
-    assert db_config.db_user == "user"
-    assert db_config.db_password == "password"
 
 
 def test_paths():
@@ -79,7 +63,6 @@ def test_oauthconfig():
 def test_settings():
     """Test the Settings dataclass."""
     # Create a minimal settings object for testing
-    db_config = DbConfig("test", "localhost", "user", "pass")
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
     paths = Paths(
         log_dir="/logs",
@@ -120,7 +103,6 @@ def test_settings():
     )
 
     app_settings = Settings(
-        database_data=db_config,
         cookie=cookie_config,
         sessions=sessions,
         oauth=None,
@@ -131,8 +113,6 @@ def test_settings():
     )
 
     assert app_settings.other.wiki_domain == "upload.example.com"
-    assert app_settings.database_data.db_host == "localhost"
-    assert app_settings.database_data.db_name == "test"
     assert app_settings.cookie.name == "test"
     assert app_settings.paths.svg_data == "/svg"
     assert app_settings.security.max_content_length == 100 * 1024 * 1024

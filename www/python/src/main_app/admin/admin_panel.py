@@ -12,10 +12,9 @@ from flask import (
 from flask.views import MethodView
 
 from ..database.services import JobsService
+from ..decorators import admin_required
 from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
-from ..public.utils.routes_utils import get_job_detail_url
-from ..templates_markups import create_side
-from .decorators import admin_required
+from ..public.routes_utils import get_job_detail_url
 
 logger = logging.getLogger(__name__)
 
@@ -59,26 +58,16 @@ class AdminDashboardView(MethodView):
 
 
 class AdminPanel:
-    """Admin panel routes registrar using class-based views."""
+    """Admin Panel routes registrar using class-based views."""
 
     @classmethod
     def register(cls, bp: Blueprint) -> None:
         """Register the dashboard view and the sidebar context processor."""
-        # Expose the sidebar markup to every template rendered by this blueprint.
-        # Access control for the whole admin area is handled by the blueprint-level
-        # admin_guard before_request registered in main_app.admin.
-        bp.app_context_processor(cls.inject_sidebar)
-
         bp.add_url_rule(
             "/",
             view_func=AdminDashboardView.as_view("dashboard"),
             methods=["GET"],
         )
-
-    @staticmethod
-    def inject_sidebar() -> dict[str, Any]:
-        """Provide the admin sidebar markup as a template global."""
-        return {"create_side": create_side}
 
 
 __all__ = [

@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock, Mock
 
 import pytest
-
 from src.main_app.api_services.files_service.objects import FileData, UploadResult
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps import upload
 

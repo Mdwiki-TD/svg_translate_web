@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.public.shared_jobs_routes import SharedJobRoutes
 
 
@@ -22,7 +21,7 @@ class TestCanManageJob:
         assert self.service.can_manage_job(job, None) is False
 
     def test_can_manage_job_admin(self):
-        """Test can_manage_job returns True when user is admin (coordinator)."""
+        """Test can_manage_job returns True when user is admin (admin)."""
         job = MagicMock()
         job.username = "other_user"
 

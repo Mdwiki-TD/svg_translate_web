@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from unittest.mock import MagicMock
 
 import pytest
-
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs_workers.admin_jobs_workers.download_main_files import DownloadMainFilesWorker

@@ -7,7 +7,7 @@ import threading
 
 import requests
 
-from ...config import app_settings
+from ...config import get_settings
 from .objects import RawGrapherMetadataResponse
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ _thread_local = threading.local()
 def _build_session() -> requests.Session:
     if not hasattr(_thread_local, "session"):
         session = requests.Session()
-        session.headers.update({"User-Agent": app_settings.other.user_agent})
+        session.headers.update({"User-Agent": get_settings().other.user_agent})
         _thread_local.session = session
     return _thread_local.session
 

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 from src.main_app.io.jobs_files_service import (
     create_job_cancelled_file,
     get_jobs_data_dir,
@@ -18,19 +17,22 @@ from src.main_app.io.jobs_files_service import (
 
 
 @pytest.fixture
-def mock_settings(tmp_path):
-    with patch("src.main_app.io.jobs_files_service.app_settings") as m_settings:
-        m_settings.paths.jobs_path = str(tmp_path / "jobs")
-        get_jobs_data_dir.cache_clear()
-        yield m_settings
+def mock_settings(monkeypatch: pytest.MonkeyPatch, tmp_path) -> MagicMock:
+    _mock = MagicMock()
+    _mock.paths.jobs_path = str(tmp_path / "jobs")
+    monkeypatch.setattr(
+        "src.main_app.io.jobs_files_service.get_settings",
+        MagicMock(return_value=_mock),
+    )
+    get_jobs_data_dir.cache_clear()
+    return _mock
 
 
-def test_get_jobs_data_dir_no_path():
-    with patch("src.main_app.io.jobs_files_service.app_settings") as m_settings:
-        m_settings.paths.jobs_path = None
-        get_jobs_data_dir.cache_clear()
-        with pytest.raises(RuntimeError, match="jobs_path configuration is required"):
-            get_jobs_data_dir()
+def test_get_jobs_data_dir_no_path(mock_settings):
+    get_jobs_data_dir.cache_clear()
+    mock_settings.paths.jobs_path = None
+    with pytest.raises(RuntimeError, match="jobs_path configuration is required"):
+        get_jobs_data_dir()
 
 
 def test_save_job_result_by_name(mock_settings, tmp_path):
@@ -72,6 +74,8 @@ def test_create_job_cancelled_file_success(mock_settings):
 
 
 def test_is_job_cancelled_file_exist(mock_settings):
+    get_jobs_data_dir.cache_clear()
+
     path = Path(mock_settings.paths.jobs_path)
     path.mkdir(parents=True, exist_ok=True)
     cancel_file = path / "exist.cancel"

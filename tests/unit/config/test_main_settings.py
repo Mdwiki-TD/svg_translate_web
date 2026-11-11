@@ -3,39 +3,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
+from src.main_app.config import get_settings
 from src.main_app.config.classes import (
-    DbConfig,
     OAuthConfig,
     Paths,
     Settings,
     _env_bool,
     _env_int,
 )
-from src.main_app.config.main_settings import get_settings
-
-
-@patch.dict(
-    os.environ,
-    {
-        "TOOL_TOOLSDB_DBNAME": "test_db",
-        "TOOL_TOOLSDB_HOST": "test_host",
-        "TOOL_TOOLSDB_USER": "test_user",
-        "TOOL_TOOLSDB_PASSWORD": "test_pass",
-    },
-    clear=True,
-)
-@patch("os.path.exists")
-def test_load_database_config(mock_exists):
-    """Test _load_database_config function."""
-    mock_exists.return_value = True
-    result = DbConfig.load()
-
-    assert isinstance(result, DbConfig)
-    assert result.db_name == "test_db"
-    assert result.db_host == "test_host"
-    assert result.db_user == "test_user"
-    assert result.db_password == "test_pass"
 
 
 def test_get_paths(tmp_path):
@@ -153,16 +128,6 @@ def test_get_settings_missing_secret_key():
 
     # Clean up cache
     get_settings.cache_clear()
-
-
-@patch.dict(os.environ, {"TOOL_TOOLSDB_DBNAME": "", "TOOL_TOOLSDB_HOST": ""}, clear=True)
-def test_load_database_config_empty_values():
-    """Test DbConfig.load with empty environment variables."""
-    result = DbConfig.load()
-    assert result.db_name == ""
-    assert result.db_host == ""
-    assert result.db_user is None
-    assert result.db_password is None
 
 
 def test_env_bool_with_whitespace():

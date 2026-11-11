@@ -1,0 +1,228 @@
+"""Admin sidebar ."""
+
+from __future__ import annotations
+
+import functools
+import logging
+
+from ..templates_markups.sidebar import Sidebar, SidebarGroup, SidebarItem
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Menu item builders — small factories to avoid repeating the same
+# endpoint/fallback wiring for every dashboard or job-list link.
+# ---------------------------------------------------------------------------
+
+
+def dashboard_item(
+    id_: str,
+    title: str,
+    icon: str,
+    endpoint: str,
+    fallback_href: str,
+) -> SidebarItem:
+    """Build a SidebarItem pointing at a regular admin-panel dashboard endpoint."""
+    return SidebarItem(id=id_, title=title, icon=icon, endpoint=endpoint, fallback_href=fallback_href)
+
+
+def job_item(
+    job_type: str,
+    title: str,
+    icon: str,
+    *,
+    disabled: bool = False,
+) -> SidebarItem:
+    """Build a SidebarItem pointing at the job-list page for the given job type."""
+    return SidebarItem(
+        id=job_type,
+        title=title,
+        icon=icon,
+        endpoint="admin_panel.jobs.jobs_list",
+        endpoint_kwargs={"job_type": job_type},
+        fallback_href=f"/admin_panel/jobs/{job_type}",
+        disabled=disabled,
+    )
+
+
+@functools.lru_cache(maxsize=1)
+def load_admin_tools() -> list[SidebarGroup]:
+    """Build the static sidebar menu structure.
+
+    No Flask request/app context is touched here — URLs are resolved lazily
+    by `SidebarItem.resolve_href()` at render time — so this result is safe
+    to cache for the lifetime of the process.
+    """
+    main_group = SidebarGroup(
+        id="main",
+        title="Main",
+        icon="bi-file-text",
+        items=[
+            dashboard_item(
+                "templates",
+                "Templates",
+                "bi-list-columns",
+                "admin_panel.templates.dashboard",
+                "/admin_panel/templates/",
+            ),
+            dashboard_item(
+                "templates_need_update",
+                "Templates Need Update",
+                "bi-arrow-repeat",
+                "admin_panel.templates.templates_need_update",
+                "/admin_panel/templates/templates-need-update",
+            ),
+            dashboard_item(
+                "owid_charts",
+                "OWID Charts",
+                "bi-graph-up",
+                "admin_panel.owidcharts.dashboard",
+                "/admin_panel/owidcharts/",
+            ),
+            dashboard_item(
+                "slug_redirects",
+                "Slug Redirects",
+                "bi-arrow-right-circle",
+                "admin_panel.slugredirects.dashboard",
+                "/admin_panel/slugredirects/",
+            ),
+        ],
+    )
+
+    users_group = SidebarGroup(
+        id="users",
+        title="Users",
+        icon="bi-person",
+        items=[
+            dashboard_item(
+                "admins",
+                "Admins",
+                "bi-person-gear",
+                "admin_panel.admins.dashboard",
+                "/admin_panel/admins/",
+            ),
+            dashboard_item(
+                "users",
+                "Users",
+                "bi-person",
+                "admin_panel.users.dashboard",
+                "/admin_panel/users/",
+            ),
+        ],
+    )
+
+    db_jobs = SidebarGroup(
+        id="db_jobs",
+        title="DB Jobs",
+        icon="bi-database-fill",
+        items=[
+            job_item(
+                "collect_templates_data",
+                "Collect Templates data",
+                "bi-kanban",
+            ),
+            job_item(
+                "update_owid_charts",
+                "Update OWID Charts",
+                "bi-arrow-repeat",
+            ),
+        ],
+    )
+
+    files_jobs = SidebarGroup(
+        id="files_jobs",
+        title="Files Jobs",
+        icon="bi-files",
+        items=[
+            job_item("crop_main_files", "Crop Newest World Files", "bi-crop"),
+            job_item("fix_nested_main_files", "Fix Nested Main Files", "bi-tools"),
+            job_item("update_wikitext", "Update Files Wikitext", "bi-file-earmark-text"),
+            job_item(
+                "download_main_files",
+                "Download Main Files",
+                "bi-download",
+                disabled=True,
+            ),
+        ],
+    )
+
+    owid_temp_pages = SidebarGroup(
+        id="owid_temp_pages",
+        title="OWID Templates/Pages",
+        icon="bi-file-earmark-richtext",
+        items=[
+            job_item("create_owid_pages", "Create OWID Pages", "bi-file-earmark-text"),
+            job_item("rename_owid_pages", "Rename OWID Pages", "bi-fonts"),
+            job_item(
+                "add_svglanguages_template",
+                "Add {{SVGLanguages}}",
+                "bi-file-earmark-text",
+            ),
+            job_item("add_lang_categories_to_owid_pages", "Add Lang Categories", "bi-tags"),
+        ],
+    )
+
+    settings_group = SidebarGroup(
+        id="settings",
+        title="Settings",
+        icon="bi-sliders",
+        items=[
+            dashboard_item(
+                "settings",
+                "Settings",
+                "bi-gear",
+                "admin_panel.settings.dashboard",
+                "/admin_panel/settings/",
+            ),
+            SidebarItem(
+                id="db_admin",
+                requires_admin=True,
+                fallback_href="/admin_panel/db_admin",
+                title="DB admin",
+                icon="bi-database",
+            ),
+            dashboard_item(
+                "errors",
+                "App Errors",
+                "bi-exclamation-triangle",
+                "admin_panel.errors.dashboard",
+                "/admin_panel/errors/",
+            ),
+            SidebarItem(
+                id="error_logs",
+                requires_admin=True,
+                fallback_href="/admin_panel/error-logs",
+                title="Request Errors logs",
+                icon="bi-exclamation-triangle",
+            ),
+        ],
+    )
+
+    return [
+        main_group,
+        users_group,
+        db_jobs,
+        files_jobs,
+        owid_temp_pages,
+        settings_group,
+    ]
+
+
+def create_admin_sidebar(
+    path: str,
+    is_admin: bool = False,
+    list_items: list[SidebarGroup] | None = None,
+) -> str:
+    """
+    Generate sidebar HTML structure based on menu definitions.
+
+    This is the public entry point used by the Jinja template.
+    """
+    main_menu = list_items or load_admin_tools()
+    sidebar = Sidebar(main_menu)
+    return sidebar.render(path, is_admin=is_admin)
+
+
+__all__ = [
+    "create_admin_sidebar",
+]

@@ -294,7 +294,8 @@ reportMissingImports = "error"
 reportUndefinedVariable = "warning"
 
 reportReturnType = false
-reportArgumentType = "warning"
+reportArgumentType = false
+# reportArgumentType = "warning"
 reportAttributeAccessIssue = "warning"
 reportAssignmentType = "warning"
 reportOptionalMemberAccess = "warning"

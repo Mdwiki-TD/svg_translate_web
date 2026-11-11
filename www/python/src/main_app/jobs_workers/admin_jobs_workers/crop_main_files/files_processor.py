@@ -12,7 +12,7 @@ from mwclient.client import Site
 
 from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
-from ....config import app_settings
+from ....config import get_settings
 from ....database.models import TemplateRecord
 from ....database.services import ChartsAndTemplatesService
 from ....utils.new_wikitext import (
@@ -42,6 +42,7 @@ class OneFileProcessor:
         self.site = site
         self.exists: dict[str, Any] = {}
         self.args = args
+        app_settings = get_settings()
         self.original_dir = original_dir or Path(app_settings.paths.crop_main_files_path) / "original"
         self.cropped_dir = cropped_dir or Path(app_settings.paths.crop_main_files_path) / "cropped"
 

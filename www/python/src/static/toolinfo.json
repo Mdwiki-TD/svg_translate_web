@@ -1,0 +1,30 @@
+{
+  "_schema": "/toolinfo/1.2.2",
+  "_language": "en",
+  "name": "toolforge-copy-svg-langs",
+  "title": "Copy SVG Translations",
+  "description": "Copies SVG translations between different language versions on Wikimedia Commons. Helps Wikimedia editors manage multilingual SVG files by extracting translations from a source SVG and injecting them into target language versions, with task tracking and an admin dashboard.",
+  "url": "https://copy-svg-langs.toolforge.org/",
+  "author": [
+    {
+      "name": "Ibrahem Qasim",
+      "wiki_username": "Mr. Ibrahem",
+      "developer_username": "MrIbrahem"
+    }
+  ],
+  "tool_type": "web app",
+  "for_wikis": [
+    "commons.wikimedia.org"
+  ],
+  "available_ui_languages": [
+    "en"
+  ],
+  "technology_used": [
+    "Python",
+    "Flask",
+    "mwclient",
+    "lxml"
+  ],
+  "repository": "https://github.com/Mdwiki-TD/svg_translate_web",
+  "bugtracker_url": "https://github.com/Mdwiki-TD/svg_translate_web/issues"
+}

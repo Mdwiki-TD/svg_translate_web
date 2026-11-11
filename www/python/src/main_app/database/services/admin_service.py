@@ -1,6 +1,6 @@
 """
 
-SQLAlchemy-based service for managing coordinators.
+SQLAlchemy-based service for managing admins.
 
 """
 
@@ -22,8 +22,8 @@ class AdminService(CRUDService[AdminUserRecord]):
     def __init__(self) -> None:
         super().__init__(db.session, AdminUserRecord)
 
-    def is_active_coordinator(self, username: str) -> bool:
-        """Check whether a single username is an active coordinator."""
+    def is_active_admin(self, username: str) -> bool:
+        """Check whether a single username is an active admin."""
         try:
             record = (
                 self.session.query(AdminUserRecord)
@@ -32,32 +32,32 @@ class AdminService(CRUDService[AdminUserRecord]):
             )
             return record is not None
         except Exception:
-            logger.exception("Failed to check coordinator status")
+            logger.exception("Failed to check admin status")
         return False
 
-    def list_coordinators(self) -> list[AdminUserRecord]:
+    def list_admins(self) -> list[AdminUserRecord]:
         return self.list_all()
 
-    def get_coordinator_by_id(self, coordinator_id: int) -> AdminUserRecord:
+    def get_admin_by_id(self, admin_id: int) -> AdminUserRecord:
         """
-        Get a coordinator by ID.
+        Get an admin by ID.
         """
-        record = self.get_record_by_id(coordinator_id)
+        record = self.get_record_by_id(admin_id)
 
         if not record:
-            raise LookupError(f"Coordinator id {coordinator_id} was not found")
+            raise LookupError(f"Admin id {admin_id} was not found")
         return record
 
-    def add_coordinator(self, username: str) -> AdminUserRecord:
+    def add_admin(self, username: str) -> AdminUserRecord:
         if not username or not username.strip():
             raise ValueError("Username is required")
         username = username.strip()
 
-        """Add a coordinator."""
+        """Add an admin."""
         record = self.session.query(AdminUserRecord).filter(AdminUserRecord.username == username).first()
         if record:
             # This assumes a UNIQUE constraint on the username column
-            raise DuplicateRecordError(f"Coordinator '{username}' already exists") from None
+            raise DuplicateRecordError(f"Admin '{username}' already exists") from None
 
         record = AdminUserRecord(username=username, is_active=True)
         self.session.add(record)
@@ -70,16 +70,16 @@ class AdminService(CRUDService[AdminUserRecord]):
                 raise UserNotFoundError(f"User '{username}' does not exist") from exc
 
             if "Duplicate entry" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
-                raise DuplicateRecordError(f"Coordinator '{username}' already exists") from exc
+                raise DuplicateRecordError(f"Admin '{username}' already exists") from exc
 
             raise
         self.session.refresh(record)
         return record
 
-    def set_coordinator_active(self, coordinator_id: int, is_active: bool) -> AdminUserRecord | None:
-        """Toggle coordinator activity."""
-        # record = get_coordinator_by_id(coordinator_id)
-        record = self.get_record_by_id(coordinator_id)
+    def set_admin_active(self, admin_id: int, is_active: bool) -> AdminUserRecord | None:
+        """Toggle admin activity."""
+        # record = get_admin_by_id(admin_id)
+        record = self.get_record_by_id(admin_id)
         if not record:
             return None
 
