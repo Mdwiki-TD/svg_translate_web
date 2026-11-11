@@ -1,49 +1,106 @@
-from unittest.mock import patch
+"""
+Integration tests for src/main_app/public/routes/main/routes.py module.
+"""
+
+from __future__ import annotations
 
 import pytest
-from flask import Blueprint, Flask
-from src.main_app.public.routes.main_route import MainView
+from flask.testing import FlaskClient
 
 
-@pytest.fixture
-def app_main_mock():
-    app = Flask(
-        __name__,
-        template_folder="../templates",
-        static_folder="../static",
-    )
-    bp_main = Blueprint("main", __name__)
-    MainView().register(bp_main)
-    app.register_blueprint(bp_main)
-    app.secret_key = "test"
-    return app
+@pytest.mark.integration
+class TestTemplates:
+    def test_templates_page_renders_usage_instructions(self, mock_client):
+        """The templates page presents the complete translation workflow to users."""
+        response = mock_client.get("/templates/")
+
+        assert response.status_code == 200
+        assert b"How to use this page:" in response.data
+        assert b"Translate Main File" in response.data
+        assert b"Start Job" in response.data
 
 
-@patch("src.main_app.public.routes.main_route.render_template")
-def test_index(mock_render, app_main_mock):
-    mock_render.return_value = "rendered"
+@pytest.mark.integration
+class TestMainIndex:
+    """Integration tests for the main index route."""
 
-    with app_main_mock.test_client() as client:
-        resp = client.get("/")
-        assert resp.data == b"rendered"
+    def test_index_returns_200(self, mock_client: FlaskClient):
+        """Test that index route returns 200."""
+        response = mock_client.get("/")
 
-        mock_render.assert_called_once()
-        args, kwargs = mock_render.call_args
-        assert args[0] == "index.html"
+        # May redirect or return 200
+        assert response.status_code == 200
+
+    def test_index_renders_template(self, mock_client: FlaskClient):
+        """Test that index route renders template."""
+        response = mock_client.get("/")
+
+        # Check for HTML content
+        assert response.content_type in ["text/html; charset=utf-8", "text/html"]
 
 
-def test_favicon(mock_client):
+@pytest.mark.integration
+class TestMainFavicon:
+    """Integration tests for the favicon route."""
 
-    with mock_client as client:
-        resp = client.get("/favicon.ico")
-        assert resp.status_code == 200
+    def test_favicon_returns_200(self, mock_client: FlaskClient):
+        """Test that favicon route returns 200."""
+        response = mock_client.get("/favicon.ico")
+
+        assert response.status_code == 200
+
+    def test_favicon_returns_correct_mimetype(self, mock_client: FlaskClient):
+        """Test that favicon returns correct mimetype."""
+        response = mock_client.get("/favicon.ico")
+
+        if response.status_code == 200:
+            assert "icon" in response.content_type or response.content_type == "image/x-icon"
 
 
-def test_templates_page_renders_usage_instructions(mock_client):
-    """The templates page presents the complete translation workflow to users."""
-    response = mock_client.get("/templates/")
+class TestMainRouteIntegration:
+    """Integration tests for main routes."""
 
-    assert response.status_code == 200
-    assert b"How to use this page:" in response.data
-    assert b"Translate Main File" in response.data
-    assert b"Start Job" in response.data
+    def test_index_route_returns_html(self, mock_client):
+        """Test that index route returns HTML."""
+        response = mock_client.get("/")
+
+        # Should return HTML content
+        assert response.status_code == 200
+        assert response.content_type.startswith("text/html")
+
+    def test_404_for_nonexistent_route(self, mock_client):
+        """Test that nonexistent routes return 404."""
+        response = mock_client.get("/nonexistent-route")
+
+        assert response.status_code == 404
+
+
+@pytest.mark.integration
+class TestMainToolinfo:
+    """Integration tests for the toolinfo.json route."""
+
+    def test_toolinfo_returns_200(self, mock_client: FlaskClient):
+        """Test that toolinfo.json route returns 200."""
+        response = mock_client.get("/toolinfo.json")
+
+        assert response.status_code == 200
+
+    def test_toolinfo_returns_correct_mimetype(self, mock_client: FlaskClient):
+        """Test that toolinfo.json returns correct mimetype."""
+        response = mock_client.get("/toolinfo.json")
+
+        if response.status_code == 200:
+            assert response.content_type == "application/json"
+
+    def test_toolinfo_returns_valid_json(self, mock_client: FlaskClient):
+        """Test that toolinfo.json returns valid JSON with expected fields."""
+        response = mock_client.get("/toolinfo.json")
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data is not None
+        assert data["_schema"] == "/toolinfo/1.2.2"
+        assert "toolforge" in data["name"]
+        assert data["title"] != ""
+        assert "toolforge.org" in data["url"]
+        assert data["tool_type"] == "web app"
