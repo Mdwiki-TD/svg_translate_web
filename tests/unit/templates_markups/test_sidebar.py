@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.templates_markups.sidebar import (
+from src.main_app.templates_markups.sidebar.sidebar import (
     SidebarItem,
     generate_list_item,
 )
@@ -10,7 +10,12 @@ from src.main_app.templates_markups.sidebar import (
 
 class TestSidebarItem:
     def test_create(self):
-        item = SidebarItem(id="test", title="Test", fallback_href="/test", requires_admin=False)
+        item = SidebarItem(
+            id="test",
+            title="Test",
+            fallback_href="/test",
+            requires_admin=False,
+        )
         assert item.id == "test"
         assert item.requires_admin is False
         assert item.fallback_href == "/test"
@@ -65,7 +70,12 @@ class TestSidebarItem:
 class TestGenerateListItem:
     def test_basic_link(self):
         item = SidebarItem(
-            id="test", fallback_href="/test", title="Test Page", icon=None, link_target=None, disabled=False
+            id="test",
+            fallback_href="/test",
+            title="Test Page",
+            icon=None,
+            link_target=None,
+            disabled=False,
         )
         html = generate_list_item(item)
         assert "/test" in html
@@ -74,33 +84,60 @@ class TestGenerateListItem:
 
     def test_with_icon(self):
         item = SidebarItem(
-            id="test", fallback_href="/test", title="Test", icon="bi-gear", link_target=None, disabled=False
+            id="test",
+            fallback_href="/test",
+            title="Test",
+            icon="bi-gear",
+            link_target=None,
+            disabled=False,
         )
         html = generate_list_item(item)
         assert "bi-gear" in html
 
     def test_with_target_blank(self):
         item = SidebarItem(
-            id="test", fallback_href="/test", title="Test", icon="bi-gear", link_target="_blank", disabled=False
+            id="test",
+            fallback_href="/test",
+            title="Test",
+            icon="bi-gear",
+            link_target="_blank",
+            disabled=False,
         )
         html = generate_list_item(item)
         assert "target='_blank'" in html
 
     def test_with_target_blank_has_noopener_rel(self):
         item = SidebarItem(
-            id="test", fallback_href="/test", title="Test", icon="bi-gear", link_target="_blank", disabled=False
+            id="test",
+            fallback_href="/test",
+            title="Test",
+            icon="bi-gear",
+            link_target="_blank",
+            disabled=False,
         )
         html = generate_list_item(item)
         assert "rel='noopener noreferrer'" in html
 
     def test_no_target_by_default(self):
-        item = SidebarItem(id="test", fallback_href="/test", title="Test", icon=None, link_target=None, disabled=False)
+        item = SidebarItem(
+            id="test",
+            fallback_href="/test",
+            title="Test",
+            icon=None,
+            link_target=None,
+            disabled=False,
+        )
         html = generate_list_item(item)
         assert "target=" not in html
 
     def test_generate_list_item(self) -> None:
         item = SidebarItem(
-            id="home", fallback_href="/home", title="Home", icon="bi-house", link_target="_blank", disabled=False
+            id="home",
+            fallback_href="/home",
+            title="Home",
+            icon="bi-house",
+            link_target="_blank",
+            disabled=False,
         )
         html = generate_list_item(item)
         assert "/home" in html
@@ -110,7 +147,12 @@ class TestGenerateListItem:
 
     def test_generate_list_item_basic(self) -> None:
         item = SidebarItem(
-            id="home", fallback_href="/admin_panel/home", title="Home", icon=None, link_target=None, disabled=False
+            id="home",
+            fallback_href="/admin_panel/home",
+            title="Home",
+            icon=None,
+            link_target=None,
+            disabled=False,
         )
         result = generate_list_item(item)
         assert "/admin_panel/home" in result
@@ -137,7 +179,12 @@ class TestGenerateListItem:
 
     def test_generate_list_item_with_target(self) -> None:
         item = SidebarItem(
-            id="home", fallback_href="/home", title="Home", icon=None, link_target="_blank", disabled=False
+            id="home",
+            fallback_href="/home",
+            title="Home",
+            icon=None,
+            link_target="_blank",
+            disabled=False,
         )
         result = generate_list_item(item)
         assert "/home" in result
@@ -148,7 +195,12 @@ class TestGenerateListItem:
 
     def test_generate_list_item_with_icon_and_target(self) -> None:
         item = SidebarItem(
-            id="home", fallback_href="/home", title="Home", icon="bi-house", link_target="_blank", disabled=False
+            id="home",
+            fallback_href="/home",
+            title="Home",
+            icon="bi-house",
+            link_target="_blank",
+            disabled=False,
         )
         result = generate_list_item(item)
         assert "/home" in result

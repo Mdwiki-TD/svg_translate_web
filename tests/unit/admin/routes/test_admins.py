@@ -33,7 +33,7 @@ class TestAdminDashboard:
     """Tests for the admin dashboard."""
 
     def _seed_admin(self, username: str = "coord1", is_active: bool = True):
-        """Seed a admin via real services."""
+        """Seed an admin via real services."""
         UsersService().create_user(username)
         admin_service = AdminService()
         admin_service.add_admin(username)
@@ -71,7 +71,7 @@ class TestAdminDashboard:
 
 
 class TestAddAdmin:
-    """Tests for adding a admin."""
+    """Tests for adding an admin."""
 
     def _seed_user(self, username: str = "new_user"):
         """Seed a user record for foreign key."""
@@ -127,7 +127,7 @@ class TestSetRecordActiveStatus:
     """Tests for activating/deactivating admins."""
 
     def _seed_admin(self, username: str = "toggle_coord"):
-        """Seed a admin via real services."""
+        """Seed an admin via real services."""
         UsersService().create_user(username)
         return AdminService().add_admin(username)
 
@@ -160,10 +160,10 @@ class TestSetRecordActiveStatus:
 
 
 class TestDeleteAdmin:
-    """Tests for deleting a admin."""
+    """Tests for deleting an admin."""
 
     def _seed_admin(self, username: str = "del_coord"):
-        """Seed a admin via real services."""
+        """Seed an admin via real services."""
         UsersService().create_user(username)
         return AdminService().add_admin(username)
 

@@ -1,11 +1,20 @@
+# ruff: noqa: F401
+"""
+Unit tests for src/main_app/io/jobs_files_service.py module.
+"""
+
 from __future__ import annotations
 
 from unittest.mock import patch
 
 import pytest
 from src.main_app.io.jobs_files_service import (
+    create_job_cancelled_file,
     get_jobs_data_dir,
+    is_job_cancelled_file_exist,
     load_job_result,
+    save_data,
+    save_job_result_by_name,
 )
 
 

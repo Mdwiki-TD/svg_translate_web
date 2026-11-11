@@ -2,7 +2,7 @@
 Auth routes — thin HTTP layer for OAuth login, callback, logout.
 
 Responsibilities of this module:
-  - Rate limiting at the edge
+  - Rate limiting at the edge (Flask-Limiter decorators)
   - Reading request data (args, cookies, session keys needed for HTTP)
   - Calling AuthFlowService
   - Translating results into flash messages + redirects
@@ -23,12 +23,12 @@ from flask import (
     url_for,
 )
 from flask.views import MethodView
+from flask_limiter.util import get_remote_address
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from ...config import get_settings
-from ...services.auth.current_user_resolver import CurrentUserResolver
-from ...services.auth.flow import AuthFlowService
-from ...services.core.rate_limit import RateLimiter
+from ...services.auth import AuthFlowService, CurrentUserResolver
+from ...services.core.rate_limit import callback_limit, login_limit
 
 logger = logging.getLogger(__name__)
 
@@ -45,25 +45,10 @@ class AuthBase(MethodView):
 class LoginView(AuthBase):
     """Start the OAuth flow — redirect user to Meta-Wiki."""
 
+    decorators = [login_limit]
+
     def get(self) -> WerkzeugResponse:
-        # -----
-        # check rate limit
-        # -----
-        key = RateLimiter.client_key(request)
-
-        logger.info("OAuth login initiated, client: %s", key)
-        login_rate_limiter = RateLimiter.login_rate_limiter()
-
-        if not login_rate_limiter.allow(key):
-            time_left = login_rate_limiter.get_time_left(key)
-            msg = f"Too many login attempts. Please try again after {time_left}s."
-            flash(msg, "warning")
-            logger.warning(
-                "OAuth login rate limited, client: %s, try_after: %ss",
-                key,
-                time_left,
-            )
-            return redirect(url_for("main.index", error=msg))
+        logger.info("OAuth login initiated, client: %s", get_remote_address())
 
         result = self.flow.start_login()
 
@@ -82,18 +67,10 @@ class LoginView(AuthBase):
 class OAuthCallbackView(AuthBase):
     """Handle the OAuth callback from Meta-Wiki."""
 
+    decorators = [callback_limit]
+
     def get(self) -> WerkzeugResponse:
-        key = RateLimiter.client_key(request)
-
-        logger.info("OAuth callback initiated, client: %s", key)
-        # ------------------
-        # callback rate limiter
-        callback_rate_limiter = RateLimiter.callback_rate_limiter()
-
-        if not callback_rate_limiter.allow(key):
-            flash("Too many login attempts", "warning")
-            logger.warning("OAuth callback rate limit exceeded, client: %s", key)
-            return redirect(url_for("main.index", error="Too many login attempts"))
+        logger.info("OAuth callback initiated, client: %s", get_remote_address())
 
         post_login = session.pop("post_login_redirect", url_for("main.index"))
 

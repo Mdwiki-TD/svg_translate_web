@@ -1,54 +1,43 @@
 """
-Unit tests for src/main_app/sqlite_db/models/users.py module.
+Unit tests for domain.models.user_token module.
 
-Classes to test: UserRecord, AdminUserRecord, UserTokenRecord
+Tests for UserTokenRecord.
 """
 
-from __future__ import annotations
-
-from src.main_app.database.models.users import (
-    AdminUserRecord,
-    UserRecord,
-    UserTokenRecord,
-)
+import pytest
+from src.main_app.database.models import UserRecord, UserTokenRecord
 
 
-class TestUserRecord:
-    """Tests for UserRecord dataclass."""
-
-    def test_users_record(self, sqlite_db) -> None:
-
-        user = UserRecord(user_id=42, username="model_test_user")
-        sqlite_db.session.add(user)
-        sqlite_db.session.commit()
-
-        assert user.user_id == 42
-        assert user.username == "model_test_user"
-        assert user.created_at is not None
-
-
-class TestAdminUserRecord:
-    """Tests for AdminUserRecord dataclass."""
-
-    def test_admin_user_record(self, sqlite_db) -> None:
-
-        user = UserRecord(user_id=1, username="model_admin_user")
-        sqlite_db.session.add(user)
-        sqlite_db.session.commit()
-
-        admin = AdminUserRecord(username="model_admin_user", is_active=True)
-        sqlite_db.session.add(admin)
-        sqlite_db.session.commit()
-
-        assert admin.id is not None
-        assert admin.username == "model_admin_user"
-        assert admin.is_active is True
+@pytest.fixture
+def sample_token_record() -> UserTokenRecord:
+    """Fixture for a sample UserTokenRecord."""
+    return UserTokenRecord(
+        user_id=12345,
+        username="TestUser",
+        access_token=b"encrypted_token",
+        access_secret=b"encrypted_secret",
+        created_at="2024-01-01 00:00:00",
+        updated_at="2024-01-01 00:00:00",
+        last_used_at="2024-01-01 00:00:00",
+        rotated_at=None,
+    )
 
 
 class TestUserTokenRecord:
     """Tests for UserTokenRecord dataclass."""
 
-    def test_user_token_record_creation(self) -> None:
+    def test_post_init_coerces_bytes(self) -> None:
+        """Test that __post_init__ coerces access fields to bytes."""
+        record = UserTokenRecord(
+            user_id=1,
+            username="Test",
+            access_token=bytearray(b"token"),
+            access_secret=memoryview(b"secret"),
+        )
+        assert isinstance(record.access_token, bytes)
+        assert isinstance(record.access_secret, bytes)
+
+    def test_user_token_record_creation(self):
         """Test creating a UserTokenRecord."""
         record = UserTokenRecord(
             user_id=123,
@@ -64,7 +53,7 @@ class TestUserTokenRecord:
         assert record.last_used_at is None
         assert record.rotated_at is None
 
-    def test_user_token_record_with_timestamps(self) -> None:
+    def test_user_token_record_with_timestamps(self):
         """Test creating a UserTokenRecord with timestamps."""
         record = UserTokenRecord(
             user_id=456,
@@ -81,7 +70,7 @@ class TestUserTokenRecord:
         assert record.last_used_at == "2024-01-03 00:00:00"
         assert record.rotated_at == "2024-01-04 00:00:00"
 
-    def test_decrypted_success(self) -> None:
+    def test_decrypted_success(self):
         """Test decrypted method returns decrypted credentials."""
         record = UserTokenRecord(
             user_id=789,
