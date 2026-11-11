@@ -46,10 +46,10 @@ tests/
 │   │   │
 │   │   ├── main/
 │   │   │
-│   │   ├── main_routes/
+│   │   ├── routes/
 │   │   │   ├── test_explorer_routes_integration.py
 │   │   │   ├── test_extract_routes_integration.py
-│   │   │   ├── test_main_routes_integration.py
+│   │   │   ├── test_routes_integration.py
 │   │   │   └── test_owid_charts_routes_integration.py
 │   │   │
 │   │   ├── test_jobs_utils_bp_routes_integration.py
@@ -284,7 +284,7 @@ tests/
 │   │   │   ├── test_rate_limit.py
 │   │   │   └── test_routes.py
 │   │   │
-│   │   ├── main_routes/
+│   │   ├── routes/
 │   │   │   └── test_owid_charts_routes.py
 │   │   │
 │   │   ├── utils/

@@ -56,7 +56,7 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     }
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
         mocks["get_user_site"],
     )
 

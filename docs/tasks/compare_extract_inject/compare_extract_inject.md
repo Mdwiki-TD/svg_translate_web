@@ -11,7 +11,7 @@ I already have extract routes thats show extracts data
 ```
 src/templates/extract/form.html
 src/templates/extract/result.html
-src/main_app/public/main_routes/extract_routes.py
+src/main_app/public/routes/extract_routes.py
 ```
 
 so we need simmilar files for the new endpoint.

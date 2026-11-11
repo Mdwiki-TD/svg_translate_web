@@ -225,7 +225,7 @@ src/
 │   │   │   ├── rate_limit.py
 │   │   │   └── routes.py
 │   │   │
-│   │   ├── main_routes/
+│   │   ├── routes/
 │   │   │   ├── __init__.py
 │   │   │   ├── explorer_routes.py
 │   │   │   ├── extract_routes.py

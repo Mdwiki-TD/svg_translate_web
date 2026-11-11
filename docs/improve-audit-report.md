@@ -71,7 +71,7 @@ Findings ordered by leverage (impact ÷ effort, discounted by confidence).
 | # | Finding | Category | Impact | Effort | Risk | Confidence | Evidence | Planned? |
 |---|---------|----------|--------|--------|------|------------|----------|----------|
 | 1 | Unauthenticated `/api/` endpoints expose internal data | Security | M | S | LOW | HIGH | `src/main_app/public/api_routes.py:18-20` | ✅ 002 |
-| 2 | `/owidcharts/all` exposes unpublished charts without auth | Security | M | S | LOW | HIGH | `src/main_app/public/main_routes/owid_charts_routes.py:40-44` | ✅ 002 |
+| 2 | `/owidcharts/all` exposes unpublished charts without auth | Security | M | S | LOW | HIGH | `src/main_app/public/routes/owid_charts_routes.py:40-44` | ✅ 002 |
 | 3 | In-memory rate limiter is per-process, doesn't scale | Security | M | M | LOW | HIGH | `src/main_app/public/auth/rate_limit.py:13-49` | ✅ 006 |
 | 4 | `DevelopmentConfig` has `TESTING = True` | Security | M | S | LOW | HIGH | `src/main_app/config/flask_config.py:117` | ✅ 001 |
 | 5 | `read_job_result_file` lacks ownership check (IDOR) | Security | L | S | LOW | MED | `src/main_app/public/shared_jobs_routes.py:338-342` | ❌ (see note) |
@@ -103,7 +103,7 @@ While the underlying data originates from public Wikimedia Commons pages, the ag
 
 ### Finding 2: `/owidcharts/all` exposes unpublished charts [HIGH confidence]
 
-**Evidence**: `src/main_app/public/main_routes/owid_charts_routes.py:40-44`
+**Evidence**: `src/main_app/public/routes/owid_charts_routes.py:40-44`
 
 The `index()` route correctly filters to `is_published` charts, but the `all_charts()` route returns ALL charts (including unpublished) with no authentication. The route is publicly accessible.
 
@@ -244,7 +244,7 @@ conn.execute(text(f"DROP VIEW IF EXISTS {table.name}"))
 
 ### Finding 11: `compare` route lacks path traversal validation [MED confidence]
 
-**Evidence**: `src/main_app/public/main_routes/explorer_routes.py:160-170`
+**Evidence**: `src/main_app/public/routes/explorer_routes.py:160-170`
 
 The `compare()` route constructs file paths from URL parameters without the `is_relative_to()` validation used in `serve_media()` and `serve_thumb()`. However, the impact is limited because `analyze_file()` only parses XML (doesn't serve files to the client) and the route requires authentication via the blueprint's before_request hook.
 
@@ -254,7 +254,7 @@ The `compare()` route constructs file paths from URL parameters without the `is_
 
 ### Finding 12: On-demand thumbnail generation without throttling [MED confidence]
 
-**Evidence**: `src/main_app/public/main_routes/explorer_routes.py:145-153`
+**Evidence**: `src/main_app/public/routes/explorer_routes.py:145-153`
 
 `serve_thumb()` triggers `save_thumb()` on every cache miss. An attacker could request many unique thumbnails to cause CPU/disk pressure. The risk is mitigated by the fact that thumbnails are cached after first generation.
 

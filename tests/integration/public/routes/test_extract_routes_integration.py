@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
 from src.main_app.api_services.files_service import DownloadAndSaveData
-from src.main_app.public.main_routes.extract_routes import EXTRACT_FILENAME_KEY
+from src.main_app.public.routes.extract_routes import EXTRACT_FILENAME_KEY
 from src.main_app.services.copysvg_wrapper.extract_translations import TranslationMapping
 
 
@@ -17,13 +17,13 @@ def setup_tests(mocker, monkeypatch, tmp_path):
     def mock_mkdtemp():
         return str(tmp_path / "test_dir")
 
-    monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
+    monkeypatch.setattr("src.main_app.public.routes.extract_routes.tempfile.mkdtemp", mock_mkdtemp)
 
     _mock = MagicMock()
     _mock.exists = True
-    mocker.patch("src.main_app.public.main_routes.extract_routes.FilesService.get_file_info", return_value=_mock)
+    mocker.patch("src.main_app.public.routes.extract_routes.FilesService.get_file_info", return_value=_mock)
 
-    monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.shutil.rmtree", lambda *args: None)
+    monkeypatch.setattr("src.main_app.public.routes.extract_routes.shutil.rmtree", lambda *args: None)
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def mock_flash(monkeypatch):
     def fake_flash(message: str, category: str) -> None:
         flashed.append((message, category))
 
-    monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.flash", fake_flash)
+    monkeypatch.setattr("src.main_app.public.routes.extract_routes.flash", fake_flash)
     yield flashed
 
 
@@ -65,7 +65,7 @@ def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
         captured["context"] = context
         return f"rendered:{template}"
 
-    monkeypatch.setattr("src.main_app.public.main_routes.extract_routes.render_template", fake_render)
+    monkeypatch.setattr("src.main_app.public.routes.extract_routes.render_template", fake_render)
     return captured
 
 
@@ -102,7 +102,7 @@ class TestExtractPost:
             return DownloadAndSaveData(result="failed", path="")
 
         monkeypatch.setattr(
-            "src.main_app.public.main_routes.extract_routes.FilesService.download_and_save", mock_download
+            "src.main_app.public.routes.extract_routes.FilesService.download_and_save", mock_download
         )
 
         response = mock_client.post(
@@ -127,7 +127,7 @@ class TestExtractRender:
     ) -> None:
         """Test that 'File:' prefix is stripped from filename."""
 
-        mock_download = mocker.patch("src.main_app.public.main_routes.extract_routes.FilesService.download_and_save")
+        mock_download = mocker.patch("src.main_app.public.routes.extract_routes.FilesService.download_and_save")
         mock_download.return_value = DownloadAndSaveData(result="success", path=str(tmp_path / "test_dir/test.svg"))
 
         mock_extract = mocker.patch(
@@ -159,7 +159,7 @@ class TestExtractRender:
             return DownloadAndSaveData(result="success", path=str(tmp_path / "test.svg"))
 
         monkeypatch.setattr(
-            "src.main_app.public.main_routes.extract_routes.FilesService.download_and_save", mock_download
+            "src.main_app.public.routes.extract_routes.FilesService.download_and_save", mock_download
         )
         response = mock_client.post(
             "/extract/",
@@ -192,7 +192,7 @@ class TestExtractRender:
             return TranslationMapping.from_any(sample_translations)
 
         monkeypatch.setattr(
-            "src.main_app.public.main_routes.extract_routes.FilesService.download_and_save", mock_download
+            "src.main_app.public.routes.extract_routes.FilesService.download_and_save", mock_download
         )
         monkeypatch.setattr(
             "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",

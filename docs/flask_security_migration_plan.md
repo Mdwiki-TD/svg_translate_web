@@ -379,7 +379,7 @@ Once the authentication contexts are unified, we can confidently replace bespoke
 
 #### Files that need modification:
 - `src/main_app/admin/routes/*.py`
-- `src/main_app/public/main_routes/*.py`
+- `src/main_app/public/routes/*.py`
 - `src/templates/**/*.html`
 
 #### Expected code changes:

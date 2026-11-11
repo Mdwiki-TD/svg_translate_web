@@ -7,7 +7,7 @@ from ..models import RouteModule
 from .api_routes import ApiRoutes
 from .auth_route import AuthView
 from .jobs_utils_bp import UtilsJobsBpRoutes
-from .main_routes import (
+from .routes import (
     ExplorerView,
     ExtractView,
     InjectView,

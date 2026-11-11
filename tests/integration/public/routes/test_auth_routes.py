@@ -86,7 +86,7 @@ class TestLogin:
     ) -> None:
         """Login should redirect when rate limited."""
 
-        monkeypatch.setattr("src.main_app.public.routes.auth_route.RateLimiter", DummyLimiter)
+        monkeypatch.setattr("src.main_app.public.auth_route.RateLimiter", DummyLimiter)
 
         response = mock_client.get("/auth/login")
         assert response.status_code == 302
@@ -155,7 +155,7 @@ class TestCallback:
     ) -> None:
         """Callback should redirect when rate limited."""
 
-        monkeypatch.setattr("src.main_app.public.routes.auth_route.RateLimiter", DummyLimiter)
+        monkeypatch.setattr("src.main_app.public.auth_route.RateLimiter", DummyLimiter)
 
         response = mock_client.get("/auth/callback?state=token&oauth_verifier=code")
         assert response.status_code == 302

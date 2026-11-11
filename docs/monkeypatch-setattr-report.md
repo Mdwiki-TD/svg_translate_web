@@ -27,8 +27,8 @@ Generated for `tests/` directory.
 | 12  | `tests/integration/public/auth/test_auth_routes.py`                                                       | 19    | 🟠 borderline          |
 | 13  | `tests/unit/jobs_workers/admin_jobs_workers/crop_main_files/test_crop_main_files_worker.py`               | 18    | 🟠 borderline          |
 | 14  | `tests/unit/database/services/test_user_token_service.py`                                                       | 16    | 🟠 borderline          |
-| 15  | `tests/integration/public/main_routes/test_extract_routes_integration.py`                                 | 16    | 🟠 borderline          |
-| 16  | `tests/integration/public/main_routes/test_explorer_routes_integration.py`                                | 15    | 🟠 borderline          |
+| 15  | `tests/integration/public/routes/test_extract_routes_integration.py`                                 | 16    | 🟠 borderline          |
+| 16  | `tests/integration/public/routes/test_explorer_routes_integration.py`                                | 15    | 🟠 borderline          |
 | 17  | `tests/unit/jobs_workers/admin_jobs_workers/collect_templates_data/test_template_data_usage.py`           | 12    |                        |
 | 18  | `tests/unit/jobs_workers/admin_jobs_workers/collect_templates_data/conftest.py`                           | 11    |                        |
 | 19  | `tests/unit/database/services/test_owid_charts_service.py`                                                      | 11    |                        |
@@ -87,7 +87,7 @@ Generated for `tests/` directory.
 | 72  | `tests/unit/api_services/mwclient_page/test_mwclient_wraper.py`                                           | 1     |                        |
 | 73  | `tests/unit/api_services/mwclient_page/test_mwclient_page.py`                                             | 1     |                        |
 | 74  | `tests/unit/api_services/files_service/test_upload_bot.py`                                                | 1     |                        |
-| 75  | `tests/integration/public/main_routes/test_owid_charts_routes_integration.py`                             | 1     |                        |
+| 75  | `tests/integration/public/routes/test_owid_charts_routes_integration.py`                             | 1     |                        |
 | 76  | `tests/integration/public/auth/test_oauth_helpers_integration.py`                                         | 1     |                        |
 | 77  | `tests/integration/api_services/files_service/test_upload_bot_integration.py`                             | 1     |                        |
 

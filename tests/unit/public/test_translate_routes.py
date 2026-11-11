@@ -12,7 +12,7 @@ from src.main_app.api_services.files_service.objects import (
     FileInfo,
     UploadResult,
 )
-from src.main_app.public.main_routes.translate_routes import get_session_dir
+from src.main_app.public.routes.translate_routes import get_session_dir
 from src.main_app.services.copysvg_wrapper.mapping import (
     ExtractResult,
     InjectResult,
@@ -63,14 +63,14 @@ class TestTranslateRoutes:
         # Mock get_file_info
         mock_file_info = FileInfo(exists=True)
         monkeypatch.setattr(
-            "src.main_app.public.main_routes.translate_routes.FilesService.get_file_info",
+            "src.main_app.public.routes.translate_routes.FilesService.get_file_info",
             lambda self, title: mock_file_info,
         )
 
         # Mock download_and_save
         mock_download = DownloadAndSaveData(result="success", path="/tmp/Example.svg")
         monkeypatch.setattr(
-            "src.main_app.public.main_routes.translate_routes.FilesService.download_and_save",
+            "src.main_app.public.routes.translate_routes.FilesService.download_and_save",
             lambda self, title, out_dir, overwrite_download: mock_download,
         )
 
@@ -78,7 +78,7 @@ class TestTranslateRoutes:
         mapping = TranslationMapping(new={"Hello": {}})
         mock_extract = ExtractResult(success=True, mapping=mapping)
         monkeypatch.setattr(
-            "src.main_app.public.main_routes.translate_routes.extract_from_path",
+            "src.main_app.public.routes.translate_routes.extract_from_path",
             lambda path, fast_return_false: mock_extract,
         )
 
@@ -167,21 +167,21 @@ class TestTranslateRoutes:
         # Mock inject_step_one_file
         mock_inject = InjectResult(result=True)
         monkeypatch.setattr(
-            "src.main_app.public.main_routes.translate_routes.inject_step_one_file",
+            "src.main_app.public.routes.translate_routes.inject_step_one_file",
             lambda file, translations, output_file, overwrite_translations: mock_inject,
         )
 
         # Mock get_user_site
         mock_site = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.public.main_routes.translate_routes.get_user_site",
-            lambda user: mock_site,
+            "src.main_app.public.routes.translate_routes.WikiSiteClient.get_user_site",
+            lambda _, user: mock_site,
         )
 
         # Mock UploadService.upload_svg
         mock_upload = UploadResult(ok=True)
         monkeypatch.setattr(
-            "src.main_app.public.main_routes.translate_routes.UploadService.upload_svg",
+            "src.main_app.public.routes.translate_routes.UploadService.upload_svg",
             lambda self, filename, file_path, summary: mock_upload,
         )
 
@@ -230,7 +230,7 @@ class TestTranslateRoutes:
             return InjectResult(result=True)
 
         monkeypatch.setattr(
-            "src.main_app.public.main_routes.translate_routes.inject_step_one_file",
+            "src.main_app.public.routes.translate_routes.inject_step_one_file",
             fake_inject,
         )
 

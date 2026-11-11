@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from flask import Blueprint, Flask
-from src.main_app.public.main_routes.routes import MainView
+from src.main_app.public.routes.main_route import MainView
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def app_main_mock():
     return app
 
 
-@patch("src.main_app.public.main_routes.routes.render_template")
+@patch("src.main_app.public.routes.main_route.render_template")
 def test_index(mock_render, app_main_mock):
     mock_render.return_value = "rendered"
 

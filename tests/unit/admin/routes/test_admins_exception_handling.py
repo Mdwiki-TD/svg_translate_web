@@ -17,7 +17,7 @@ class TestAddAdminExceptionHandling:
     def test_catches_both_lookup_and_value_errors(self, monkeypatch, caplog):
         """Test that add catches both LookupError and ValueError in single except clause."""
         mock_add_admin = Mock()
-        monkeypatch.setattr(self.service.admin_service, "add_admin", mock_add_admin)
+        monkeypatch.setattr(self.service.service, "add_admin", mock_add_admin)
 
         # Mock Flask globals to avoid "Working outside of request context" errors
         mock_req = Mock()

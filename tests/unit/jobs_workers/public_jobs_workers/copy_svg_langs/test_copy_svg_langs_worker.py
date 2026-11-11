@@ -123,7 +123,7 @@ def mock_clients(
     )
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", MagicMock())
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
         mock_get_user_site,
     )
     m_session = MagicMock()

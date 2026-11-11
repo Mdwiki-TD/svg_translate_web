@@ -33,8 +33,8 @@ ensures every response gets hardened headers, closing the gaps.
   - Currently no `@app.after_request` hook exists
 
 - Headers are set manually on ~5 individual routes:
-  - `src/main_app/public/main_routes/explorer_routes.py:135-136` (CSP + nosniff on `serve_media`)
-  - `src/main_app/public/main_routes/explorer_routes.py:156-157` (CSP + nosniff on `serve_thumb`)
+  - `src/main_app/public/routes/explorer_routes.py:135-136` (CSP + nosniff on `serve_media`)
+  - `src/main_app/public/routes/explorer_routes.py:156-157` (CSP + nosniff on `serve_thumb`)
   - `src/main_app/public/jobs_utils_bp.py:56-57,78-79,88-89` (CSP + nosniff on file-serving routes)
 
 - Routes that currently lack headers: all HTML pages, the API JSON endpoints,

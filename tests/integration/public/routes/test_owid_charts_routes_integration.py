@@ -1,4 +1,4 @@
-"""Tests for src.main_app.public.main_routes.owid_charts_routes.py"""
+"""Tests for src.main_app.public.routes.owid_charts_routes.py"""
 
 from __future__ import annotations
 

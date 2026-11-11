@@ -75,7 +75,7 @@ def test_collect_templates_data_worker_cancellation(monkeypatch, mock_collect_se
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService", MagicMock(return_value=mock_jobs_service))
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.get_user_site",
+        "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
         lambda user: MagicMock(),
     )
 
