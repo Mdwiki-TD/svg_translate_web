@@ -1,4 +1,3 @@
-# ruff: noqa: F401
 """
 Unit tests for src/main_app/public/utils/routes_utils.py module.
 
@@ -12,10 +11,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from src.main_app.public.routes_utils import (
-    can_run_bg_jobs,
-    can_run_jobs,
-    context_data,
-    get_job_detail_url,
     load_auth_payload,
 )
 from src.main_app.services.auth.current_user import CurrentUser

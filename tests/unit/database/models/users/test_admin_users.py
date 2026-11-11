@@ -1,21 +1,19 @@
-# ruff: noqa: F401
 """
 Unit tests for src/main_app/database/models/admin_users.py module.
 
-Classes to test: CoordinatorRecord, AdminRecord
+Classes to test: AdminUserRecord
 
 TODO: write tests
 """
 
 from src.main_app.database.models import UserRecord
-from src.main_app.database.models.admin_users import (
-    AdminRecord,
-    CoordinatorRecord,
+from src.main_app.database.models.users import (
+    AdminUserRecord,
 )
 
 
 class TestAdminRecord:
-    """Tests for AdminRecord dataclass."""
+    """Tests for AdminUserRecord dataclass."""
 
     def test_admin_user_record(self, sqlite_db) -> None:
 
@@ -23,7 +21,7 @@ class TestAdminRecord:
         sqlite_db.session.add(user)
         sqlite_db.session.commit()
 
-        admin = AdminRecord(username="model_admin_user", is_active=True)
+        admin = AdminUserRecord(username="model_admin_user", is_active=True)
         sqlite_db.session.add(admin)
         sqlite_db.session.commit()
 
