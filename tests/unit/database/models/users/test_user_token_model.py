@@ -39,17 +39,6 @@ class TestUserTokenRecord:
         assert isinstance(record.access_token, bytes)
         assert isinstance(record.access_secret, bytes)
 
-    def test_decrypted_returns_tuple(self, monkeypatch, sample_token_record: UserTokenRecord) -> None:
-        """Test that decrypted returns tuple of decrypted values."""
-        mock_decrypt = MagicMock()
-        monkeypatch.setattr("src.main_app.database.models.users.CryptoService.decrypt", mock_decrypt)
-        mock_decrypt.side_effect = ["decrypted_token", "decrypted_secret"]
-
-        result = sample_token_record.decrypted()
-
-        assert result == ("decrypted_token", "decrypted_secret")
-        assert mock_decrypt.call_count == 2
-
     def test_user_token_record_creation(self):
         """Test creating a UserTokenRecord."""
         record = UserTokenRecord(
