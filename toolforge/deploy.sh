@@ -27,8 +27,8 @@ become $TOOL_NAME sh -c "
 cp -rf \"$FULL_PATH/toolforge/deploy_scripts\" $TOOL_PATH -v;
 cp -rf \"$FULL_PATH/toolforge/shs\" $TOOL_PATH -v;
 cp -rf \"$FULL_PATH/toolforge/tool-deploy.sh\" $TOOL_PATH/shs -v;
-chmod +x $TOOL_PATH/tool-deploy.sh -v;
-$TOOL_PATH/shs/tool-deploy.sh \"$FULL_PATH\"
+chmod +x $TOOL_PATH/shs/tool-deploy.sh -v;
+exec $TOOL_PATH/shs/tool-deploy.sh \"$FULL_PATH\"
 "
 
 # Run toolforge-webservice commands

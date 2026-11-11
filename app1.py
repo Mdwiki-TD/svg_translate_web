@@ -4,7 +4,6 @@ WSGI development entry point for the app.
 """
 
 from __future__ import annotations
-import logging
 import sys
 import os
 from pathlib import Path
@@ -29,7 +28,11 @@ EnvironmentInitializer.setup(_env_file_path)
 # import app here
 from main_app.logger_config import configure_logging  # noqa: E402
 
-configure_logging(logging.DEBUG, use_colorlog=True, name="CopySVGTranslation")
+configure_logging(
+    10,  # DEBUG = 10
+    use_colorlog=True,
+    name="CopySVGTranslation",
+)
 
 from main_app import AppFactory  # noqa: E402
 

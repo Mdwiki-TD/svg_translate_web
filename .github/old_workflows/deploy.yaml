@@ -26,7 +26,7 @@ jobs:
                   key: ${{ secrets.KEY }}
                   port: 22
                   source: "./"
-                  target: "~/svg_tr_repo_tmp"
+                  target: "~/www_repo_tmp"
                   rm: true
 
             - name: Deploy on Toolforge
@@ -42,7 +42,7 @@ jobs:
                       TOOL_NAME="copy-svg-langs"
 
                       # Define the full source path of the uploaded repository
-                      FULL_PATH="/home/${{ secrets.USERNAME }}/svg_tr_repo_tmp"
+                      FULL_PATH="/home/${{ secrets.USERNAME }}/www_repo_tmp"
 
                       # Define tool home path
                       TOOL_PATH="/data/project/$TOOL_NAME"
