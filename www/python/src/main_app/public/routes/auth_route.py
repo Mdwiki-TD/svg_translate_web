@@ -25,10 +25,10 @@ from flask import (
 from flask.views import MethodView
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-from ..config import get_settings
-from ..services.auth.current_user_resolver import CurrentUserResolver
-from ..services.auth.flow import AuthFlowService
-from ..services.core.rate_limit import RateLimiter
+from ...config import get_settings
+from ...services.auth.current_user_resolver import CurrentUserResolver
+from ...services.auth.flow import AuthFlowService
+from ...services.core.rate_limit import RateLimiter
 
 logger = logging.getLogger(__name__)
 

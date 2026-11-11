@@ -9,7 +9,7 @@ from .extract_routes import ExtractView
 from .inject_routes import InjectView
 from .main_route import MainView
 from .owid_charts_routes import OwidChartsRoutes
-from .templates import TemplatesView
+from .templates_view import TemplatesView
 from .translate_routes import TranslateView
 
 __all__ = [

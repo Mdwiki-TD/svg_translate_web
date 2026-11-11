@@ -18,13 +18,6 @@ class ProfileView(MethodView):
     def __init__(self) -> None:
         self.jobs_service = JobsService()
 
-    @classmethod
-    def register(cls, bp: Blueprint) -> None:
-        """Register profile routes on the provided blueprint."""
-        view = cls.as_view("dashboard")
-        bp.add_url_rule("/", view_func=view, methods=["GET"])
-        bp.add_url_rule("/<string:user_name>", view_func=view, methods=["GET"])
-
     def get(self, user_name: str = "") -> str:
         """Render user profile page with job statistics."""
         user = CurrentUserResolver.get_current_user()
@@ -60,6 +53,13 @@ class ProfileView(MethodView):
             recent_jobs=data.recent_jobs,
             jobs_data_public=list(jobs_data_public.keys()),
         )
+
+    @classmethod
+    def register(cls, bp: Blueprint) -> None:
+        """Register profile routes on the provided blueprint."""
+        view = cls.as_view("dashboard")
+        bp.add_url_rule("/", view_func=view, methods=["GET"])
+        bp.add_url_rule("/<string:user_name>", view_func=view, methods=["GET"])
 
 
 __all__ = [

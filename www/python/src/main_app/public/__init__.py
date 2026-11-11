@@ -4,8 +4,6 @@ from flask import Blueprint, Flask
 
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ..models import RouteModule
-from .api_routes import ApiRoutes
-from .auth_route import AuthView
 from .jobs_utils_bp import UtilsJobsBpRoutes
 from .profile import ProfileView
 from .public_jobs import PublicJobsRoutes
@@ -18,6 +16,8 @@ from .routes import (
     TemplatesView,
     TranslateView,
 )
+from .routes.api_routes import ApiRoutes
+from .routes.auth_route import AuthView
 
 PUBLIC_ROUTE_MODULES: list[RouteModule] = [
     RouteModule(route_cls=MainView, name="main", url_prefix=""),

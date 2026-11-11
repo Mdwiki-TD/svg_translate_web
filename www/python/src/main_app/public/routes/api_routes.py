@@ -8,16 +8,16 @@ from typing import Any
 from flask import Blueprint, jsonify
 from flask.views import MethodView
 
-from ..api_services.files_service import FilesService
-from ..database.models import TemplateRecord
-from ..database.services import (
+from ...api_services.files_service import FilesService
+from ...database.models import TemplateRecord
+from ...database.services import (
     ChartAndTemplate,
     ChartsAndTemplatesService,
     OwidChartsService,
     TemplateService,
     ViewsService,
 )
-from ..services.owid_charts_utils import make_charts_summary
+from ...services.owid_charts_utils import make_charts_summary
 
 logger = logging.getLogger(__name__)
 
