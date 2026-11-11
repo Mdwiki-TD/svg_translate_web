@@ -70,7 +70,7 @@ class TestLogin:
 
         monkeypatch.setattr("src.main_app.services.auth.flow.OAuthService.create_authorization_url", DummyStart())
 
-        response = mock_client.get("/auth/login")
+        response = mock_client.get("/login")
 
         assert response.status_code == 302
         assert response.headers["Location"] == "https://auth.example"
@@ -88,7 +88,7 @@ class TestLogin:
 
         monkeypatch.setattr("src.main_app.public.routes.auth_route.RateLimiter", DummyLimiter)
 
-        response = mock_client.get("/auth/login")
+        response = mock_client.get("/login")
         assert response.status_code == 302
 
 
@@ -157,7 +157,7 @@ class TestCallback:
 
         monkeypatch.setattr("src.main_app.public.routes.auth_route.RateLimiter", DummyLimiter)
 
-        response = mock_client.get("/auth/callback?state=token&oauth_verifier=code")
+        response = mock_client.get("/callback?state=token&oauth_verifier=code")
         assert response.status_code == 302
 
     def test_callback_missing_state(
@@ -165,7 +165,7 @@ class TestCallback:
     ) -> None:
         """Callback should fail when state is missing."""
 
-        response = mock_client.get("/auth/callback")
+        response = mock_client.get("/callback")
         assert response.status_code == 302
 
 
@@ -193,7 +193,7 @@ class TestLogout:
             sess["uid"] = user_id
             sess["username"] = "LogoutUser"
 
-        response = mock_client.get("/auth/logout")
+        response = mock_client.get("/logout")
 
         assert response.status_code == 302
         assert response.headers["Location"].endswith("/")

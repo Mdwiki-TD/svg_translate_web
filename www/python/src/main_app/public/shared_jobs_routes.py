@@ -21,6 +21,7 @@ from flask_wtf import FlaskForm
 
 from ..database.exceptions import DuplicateRecordError
 from ..database.services import JobsService, SettingsService
+from ..decorators import admin_required, oauth_required
 from ..io import load_job_result
 from ..jobs_workers.jobs_worker import (
     cancel_job_worker,
@@ -288,6 +289,8 @@ class JobDetailView(BaseJobView):
 class StartJobView(BaseJobView):
     """View to trigger and start a new job."""
 
+    decorators = [oauth_required]
+
     def post(self, job_type: str) -> ResponseReturnValue:
         template_data: JobData | None = self.jobs_data_infos.get(job_type)
         if not template_data:
@@ -315,6 +318,8 @@ class StartJobView(BaseJobView):
 class CancelJobView(BaseJobView):
     """View to cancel a running job."""
 
+    decorators = [oauth_required]
+
     def post(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             flash("Job type not found.", "warning")
@@ -331,6 +336,8 @@ class CancelJobView(BaseJobView):
 class DeleteJobView(BaseJobView):
     """View to delete a job."""
 
+    decorators = [admin_required]
+
     def post(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             abort(404)
@@ -346,6 +353,8 @@ class DeleteJobView(BaseJobView):
 class MarkJobCompletedView(BaseJobView):
     """View to mark a job as completed."""
 
+    decorators = [admin_required]
+
     def post(self, job_type: str, job_id: int) -> Response:
         if job_type not in self.jobs_data_infos:
             abort(404)
@@ -357,6 +366,8 @@ class MarkJobCompletedView(BaseJobView):
 
 class ReadJobResultFileView(BaseJobView):
     """View to retrieve raw job result JSON data."""
+
+    decorators = [oauth_required]
 
     def get(self, result_file: str, job_type: str) -> ResponseReturnValue:
         if job_type not in self.jobs_data_infos:

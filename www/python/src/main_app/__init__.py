@@ -20,7 +20,7 @@ from .extensions import migrate
 from .jobs_workers.cli_jobs import register_cli_jobs
 from .logger_config import configure_logging
 from .public import PublicRouteRegister
-from .public.routes_service import context_data
+from .public.routes_utils import context_data
 from .services.core import CookieHeaderClient, filters
 
 logger = logging.getLogger(__name__)

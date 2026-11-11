@@ -1,14 +1,11 @@
-"""Admin routes for managing background jobs using MethodViews."""
-
 from __future__ import annotations
 
 import logging
 
 from flask import Blueprint
 
-from ...decorators import admin_required
-from ...jobs_workers.objects import JobData
-from ...public.shared_jobs_routes import (
+from ..jobs_workers.objects import JobData
+from .shared_jobs_routes import (
     CancelJobView,
     DeleteJobView,
     DrawResultFileView,
@@ -22,22 +19,15 @@ from ...public.shared_jobs_routes import (
 logger = logging.getLogger(__name__)
 
 
-class AdminJobsRoutes:
-    """Registrar class for binding Admin Job MethodViews to a Blueprint."""
-
-    decorators = [admin_required]
-
-    def __init__(
-        self,
+class SharedJobRoutesRegistrar:
+    @staticmethod
+    def register(
+        bp: Blueprint,
         jobs_data_infos: dict[str, JobData],
         bp_name: str,
     ) -> None:
-        self.jobs_data_infos = jobs_data_infos
-        self.bp_name = bp_name
-
-    def register(self, bp: Blueprint) -> None:
-        """Register admin job rules on the provided blueprint with admin_required applied."""
-        view_args = (self.jobs_data_infos, self.bp_name)
+        """Register job rules on the provided blueprint."""
+        view_args = (jobs_data_infos, bp_name)
 
         bp.add_url_rule(
             "/<string:job_type>",
@@ -81,5 +71,5 @@ class AdminJobsRoutes:
 
 
 __all__ = [
-    "AdminJobsRoutes",
+    "SharedJobRoutesRegistrar",
 ]

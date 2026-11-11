@@ -11,7 +11,7 @@ from flask import Blueprint, Flask
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.database.models import JobRecord
 from src.main_app.database.services import JobsService
-from src.main_app.public.routes.public_jobs import PublicJobsRoutes
+from src.main_app.public.shared_jobs_registrar import SharedJobRoutesRegistrar
 from src.main_app.public.shared_jobs_routes import SharedJobRoutes
 
 MOCK_URL = "/redirected"
@@ -132,11 +132,11 @@ def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
     app.secret_key = "test"
 
     bp = Blueprint("public_jobs", __name__, url_prefix="/jobs")
-    module = PublicJobsRoutes(
+    SharedJobRoutesRegistrar.register(
+        bp,
         jobs_data_infos=mock_jobs_data,
         bp_name="public_jobs",
     )
-    module.register(bp)
     app.register_blueprint(bp)
     return app
 
@@ -352,7 +352,7 @@ class TestJobDetail(TestSetup):
 
 
 class TestJobsPublicRoutesRoutes(TestSetup):
-    """Integration tests for routes registered by PublicJobsRoutes.
+    """Integration tests for routes registered by SharedJobRoutesRegistrar.
 
     These tests use a standalone Flask app (mock_p_app) with custom templates
     but rely on mocked DB services because the standalone app does not have

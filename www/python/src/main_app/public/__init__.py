@@ -1,4 +1,6 @@
-""" """
+"""Public Blueprints"""
+
+from __future__ import annotations
 
 from typing import Any
 
@@ -6,22 +8,21 @@ from flask import Blueprint, Flask
 
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ..models import RouteModule
+from ..templates_markups import NavigationBar, main_nav_list
 from .routes import (
-    ProfileView,
+    ApiRoutes,
+    AuthView,
     ExplorerView,
     ExtractView,
     InjectView,
     MainView,
     OwidChartsRoutes,
+    ProfileView,
     TemplatesView,
     TranslateView,
-    ApiRoutes,
-    AuthView,
     UtilsJobsBpRoutes,
-    PublicJobsRoutes,
 )
-from ..templates_markups import NavigationBar, main_nav_list
-
+from .shared_jobs_registrar import SharedJobRoutesRegistrar
 
 PUBLIC_ROUTE_MODULES: list[RouteModule] = [
     RouteModule(route_cls=MainView, name="main", url_prefix=""),
@@ -36,7 +37,7 @@ PUBLIC_ROUTE_MODULES: list[RouteModule] = [
     RouteModule(route_cls=UtilsJobsBpRoutes, name="jobs_utils", url_prefix="/jobs_utils"),
     RouteModule(route_cls=TemplatesView, name="templates", url_prefix="/templates"),
     RouteModule(
-        route_cls=PublicJobsRoutes,
+        route_cls=SharedJobRoutesRegistrar,
         name="public_jobs",
         url_prefix="/jobs",
         extra_kwargs={
@@ -64,8 +65,9 @@ class PublicRouteRegister:
 
         for module in PUBLIC_ROUTE_MODULES:
             bp = Blueprint(module.name, __name__, url_prefix=module.url_prefix)
-            instance = module.route_cls(**module.extra_kwargs)
-            instance.register(bp)
+
+            instance = module.route_cls()
+            instance.register(bp, **module.extra_kwargs)
             app.register_blueprint(bp)
 
 

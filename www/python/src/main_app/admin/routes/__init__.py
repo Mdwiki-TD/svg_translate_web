@@ -1,4 +1,4 @@
-"""Admin blueprint package."""
+"""Admin/Coordinator blueprint package."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from flask import Blueprint
 
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ...models import RouteModule
-from .admin_jobs import AdminJobsRoutes
+from ...public.shared_jobs_registrar import SharedJobRoutesRegistrar
 from .admins import AdminView
 from .error_logs import CheckErrorLogsView
 from .errors_route import CheckErrorsView
@@ -24,7 +24,7 @@ ADMIN_ROUTE_MODULES: list[RouteModule] = [
     RouteModule(route_cls=OwidChartsRoutes, name="owidcharts", url_prefix="/owidcharts"),
     RouteModule(route_cls=SlugRedirectsRoutes, name="slugredirects", url_prefix="/slugredirects"),
     RouteModule(
-        route_cls=AdminJobsRoutes,
+        route_cls=SharedJobRoutesRegistrar,
         name="jobs",
         url_prefix="/jobs",
         extra_kwargs={
@@ -42,8 +42,8 @@ class AdminSubRoutesRegister:
     def register(bp_admin: Blueprint) -> None:
         for module in ADMIN_ROUTE_MODULES:
             bp = Blueprint(module.name, __name__, url_prefix=module.url_prefix)
-            instance = module.route_cls(**module.extra_kwargs)
-            instance.register(bp)
+            instance = module.route_cls()
+            instance.register(bp, **module.extra_kwargs)
             bp_admin.register_blueprint(bp)
 
 

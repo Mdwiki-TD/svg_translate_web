@@ -76,7 +76,7 @@ def test_collect_templates_data_worker_cancellation(monkeypatch, mock_collect_se
 
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
-        lambda user: MagicMock(),
+        lambda _, user: MagicMock(),
     )
 
     w = worker.CollectMainFilesWorker(

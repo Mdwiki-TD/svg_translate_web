@@ -228,7 +228,7 @@ class TestFileLanguages:
     @pytest.fixture(autouse=True)
     def mock_get_file_languages(self, monkeypatch: pytest.MonkeyPatch):
         mock = MagicMock(return_value=FileLanguagesMap(error=None, langs=["en"]))
-        monkeypatch.setattr("src.main_app.public.api_routes.FilesService.get_file_languages", mock)
+        monkeypatch.setattr("src.main_app.public.routes.api_routes.FilesService.get_file_languages", mock)
         return mock
 
     def test_returns_languages(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:

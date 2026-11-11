@@ -9,6 +9,10 @@ from unittest.mock import Mock
 import pytest
 from src.main_app.database.services import JobsService
 
+pytestmark = [
+    pytest.mark.integration,
+]
+
 
 @pytest.fixture
 def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
