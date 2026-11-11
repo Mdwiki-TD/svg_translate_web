@@ -7,7 +7,6 @@ All tests that check menu content pass their own known menu through
 from __future__ import annotations
 
 import pytest
-
 from src.main_app.admin.admin_sidebar import create_admin_sidebar
 from src.main_app.templates_markups.sidebar import SidebarGroup, SidebarItem
 

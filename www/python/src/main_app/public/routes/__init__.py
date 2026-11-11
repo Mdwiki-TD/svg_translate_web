@@ -7,8 +7,8 @@ from __future__ import annotations
 from .explorer_routes import ExplorerView
 from .extract_routes import ExtractView
 from .inject_routes import InjectView
-from .owid_charts_routes import OwidChartsRoutes
 from .main_route import MainView
+from .owid_charts_routes import OwidChartsRoutes
 from .templates import TemplatesView
 from .translate_routes import TranslateView
 
