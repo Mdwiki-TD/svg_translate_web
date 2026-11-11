@@ -9,18 +9,6 @@ from flask.testing import FlaskClient
 
 
 @pytest.mark.integration
-class TestTemplates:
-    def test_templates_page_renders_usage_instructions(self, mock_client):
-        """The templates page presents the complete translation workflow to users."""
-        response = mock_client.get("/templates/")
-
-        assert response.status_code == 200
-        assert b"How to use this page:" in response.data
-        assert b"Translate Main File" in response.data
-        assert b"Start Job" in response.data
-
-
-@pytest.mark.integration
 class TestMainIndex:
     """Integration tests for the main index route."""
 

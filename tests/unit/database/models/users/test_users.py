@@ -1,7 +1,5 @@
 """
-Unit tests for src/main_app/sqlite_db/models/users.py module.
-
-Classes to test: UserRecord, AdminUserRecord, UserTokenRecord
+Unit tests for src/main_app/database/models/users.py module.
 """
 
 from __future__ import annotations
