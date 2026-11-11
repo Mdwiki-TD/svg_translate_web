@@ -6,10 +6,10 @@ import logging
 
 from flask import Blueprint
 
-from ..decorators import admin_required
-from ..decorators.auth_decorators import oauth_required
-from ..jobs_workers.objects import JobData
-from .shared_jobs_routes import (
+from ...decorators import admin_required
+from ...decorators.auth_decorators import oauth_required
+from ...jobs_workers.objects import JobData
+from ..shared_jobs_routes import (
     CancelJobView,
     DeleteJobView,
     DrawResultFileView,

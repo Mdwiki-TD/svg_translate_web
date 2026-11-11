@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from src.main_app.public.utils.routes_utils import (
+from src.main_app.public.routes_utils import (
     can_run_bg_jobs,
     can_run_jobs,
     context_data,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.main_app.public.utils import compare
+from src.main_app.public.routes_service import compare
 
 
 def _write_svg(path: Path, system_languages: list[str]) -> None:

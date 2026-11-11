@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 from flask import Blueprint
-from src.main_app.public.jobs_utils_bp import UtilsJobsBpRoutes
+from src.main_app.public.routes.jobs_utils_bp import UtilsJobsBpRoutes
 
 
 class TestUtilsJobsBpRoutes:
@@ -25,7 +25,7 @@ class TestServeDownloadMainFile:
         (main_files / "test.svg").write_text("<svg/>")
         mock_settings = MagicMock()
         mock_settings.paths.main_files_path = str(main_files)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.get_settings", Mock(return_value=mock_settings))
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.get_settings", Mock(return_value=mock_settings))
         admin_user = MagicMock(is_active_admin=True)
         monkeypatch.setattr(
             "src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: admin_user
@@ -36,7 +36,7 @@ class TestServeDownloadMainFile:
             resp = WerkzeugResponse(f"content:{f}", mimetype="image/svg+xml")
             return resp
 
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.send_from_directory", _fake_send)
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.send_from_directory", _fake_send)
         resp = mock_client.get("/jobs_utils/download_main_files/file/test.svg")
         assert resp.status_code == 200
 
@@ -51,14 +51,14 @@ class TestServeCropFiles:
         bp = Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
         UtilsJobsBpRoutes().register(bp)
         mock_send = Mock()
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.send_from_directory", mock_send)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.Path", lambda p: Path(p))
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.send_from_directory", mock_send)
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.Path", lambda p: Path(p))
 
         for _rule in bp.deferred_functions:
             pass
 
     def test_compare_crop_files_renders(self, monkeypatch):
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.render_template", lambda t, **c: c)
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.render_template", lambda t, **c: c)
 
         bp = Blueprint("jobs_utils", __name__, url_prefix="/jobs_utils")
         UtilsJobsBpRoutes().register(bp)
@@ -75,10 +75,10 @@ class TestDownloadAllMainFiles:
         )
         mock_zip = Mock()
         mock_zip.return_value = ("zip_content", 200)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.create_main_files_zip", mock_zip)
         mock_settings2 = MagicMock()
         mock_settings2.paths.main_files_path = "/tmp"
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.get_settings", Mock(return_value=mock_settings2))
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.get_settings", Mock(return_value=mock_settings2))
 
         resp = mock_client.get("/jobs_utils/download_main_files/download-all")
         assert resp.status_code == 200
@@ -90,11 +90,11 @@ class TestDownloadAllMainFiles:
         )
         mock_zip = Mock()
         mock_zip.return_value = ("Not found", 404)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.create_main_files_zip", mock_zip)
         mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.flash", mock_flash)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
         resp = mock_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
         assert resp.status_code == 200
         mock_flash.assert_called_once_with("Not found", "warning")
@@ -106,11 +106,11 @@ class TestDownloadAllMainFiles:
         )
         mock_zip = Mock()
         mock_zip.return_value = ("Error", 500)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", mock_zip)
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.create_main_files_zip", mock_zip)
         mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.flash", mock_flash)
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
-        monkeypatch.setattr("src.main_app.public.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
+        monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
         resp = mock_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
         assert resp.status_code == 200
         mock_flash.assert_called_once_with("Error", "danger")

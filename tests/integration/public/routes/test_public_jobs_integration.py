@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.public.public_jobs import PublicJobsRoutes  # noqa: F401
+from src.main_app.public.routes.public_jobs import PublicJobsRoutes  # noqa: F401
 
 
 class TestJobsPublicRoutesInit:

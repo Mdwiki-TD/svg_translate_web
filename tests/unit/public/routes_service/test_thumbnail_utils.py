@@ -5,7 +5,7 @@ Tests for thumbnail generation.
 import tempfile
 from pathlib import Path
 
-from src.main_app.public.utils import thumbnail_utils
+from src.main_app.public.routes_service import thumbnail_utils
 
 
 def test_save_thumb_returns_false2():

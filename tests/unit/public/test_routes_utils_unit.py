@@ -1,6 +1,6 @@
 """Focused unit tests for routes_utils helpers (pure functions)."""
 
-from src.main_app.public.utils.routes_utils import (
+from src.main_app.public.routes_utils import (
     load_auth_payload,
 )
 

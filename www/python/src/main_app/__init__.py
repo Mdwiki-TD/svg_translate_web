@@ -9,7 +9,7 @@ from typing import Any
 
 from flask import Flask, render_template, request
 
-from .admin import add_admin_dashboard, register_bp_admin_blueprints
+from .admin import AdminsRouteRegister
 from .config import Config, ConfigLoader, get_settings
 from .database import init_db
 from .database.exceptions import DatabaseInitError
@@ -20,7 +20,7 @@ from .extensions import migrate
 from .jobs_workers.cli_jobs import register_cli_jobs
 from .logger_config import configure_logging
 from .public import PublicRouteRegister
-from .public.utils import context_data
+from .public.routes_service import context_data
 from .services.core import CookieHeaderClient, filters
 
 logger = logging.getLogger(__name__)
@@ -103,8 +103,7 @@ class AppFactory:
     @staticmethod
     def _register_routes(app: Flask) -> None:
         PublicRouteRegister.register(app)
-        add_admin_dashboard(app, _db)
-        register_bp_admin_blueprints(app)
+        AdminsRouteRegister.register(app, _db)
         register_cli_jobs(app)
 
     @staticmethod
@@ -113,18 +112,21 @@ class AppFactory:
             return None
         return render_template("index_db_error.html"), 503
 
-    @staticmethod
-    def _register_template_context(app: Flask):
+    @classmethod
+    def _register_template_context(cls, app: Flask):
         """Inject global variables into all templates."""
 
-        @app.context_processor
-        def inject_globals() -> dict[str, Any]:  # pragma: no cover - trivial wrapper
-            app_settings = get_settings()
-            return context_data(
-                app_settings.other.wiki_domain,
-                app_settings.other.static_server,
-                tool_title=app_settings.other.tool_title,
-            )
+        app.context_processor(cls.inject_globals)
+
+    @staticmethod
+    def inject_globals() -> dict[str, Any]:  # pragma: no cover - trivial wrapper
+        app_settings = get_settings()
+
+        return context_data(
+            app_settings.other.wiki_domain,
+            app_settings.other.static_server,
+            tool_title=app_settings.other.tool_title,
+        )
 
 
 __all__ = [

@@ -28,7 +28,7 @@ from ..jobs_workers.jobs_worker import (
 )
 from ..jobs_workers.objects import JobData
 from ..services.auth.current_user_resolver import CurrentUserResolver
-from .utils.routes_utils import can_run_bg_jobs, load_auth_payload
+from .routes_utils import can_run_bg_jobs, load_auth_payload
 
 logger = logging.getLogger(__name__)
 

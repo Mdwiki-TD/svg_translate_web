@@ -11,28 +11,28 @@ from werkzeug.wrappers import Response
 @pytest.fixture
 def mock_settings(monkeypatch: pytest.MonkeyPatch):
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.jobs_utils_bp.get_settings", Mock(return_value=_mock))
+    monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.get_settings", Mock(return_value=_mock))
     return _mock
 
 
 @pytest.fixture
 def mock_send_from_directory(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.jobs_utils_bp.send_from_directory", _mock)
+    monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.send_from_directory", _mock)
     return _mock
 
 
 @pytest.fixture
 def mock_create_main_files_zip(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.jobs_utils_bp.create_main_files_zip", _mock)
+    monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.create_main_files_zip", _mock)
     return _mock
 
 
 @pytest.fixture
 def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.jobs_utils_bp.flash", _mock)
+    monkeypatch.setattr("src.main_app.public.routes.jobs_utils_bp.flash", _mock)
     return _mock
 
 
@@ -99,7 +99,7 @@ class TestDownloadMainFilesRoutes:
         """Test that path traversal is handled by send_from_directory."""
 
         # send_from_directory should handle path traversal attempts
-        with patch("src.main_app.public.jobs_utils_bp.send_from_directory") as mock_send:
+        with patch("src.main_app.public.routes.jobs_utils_bp.send_from_directory") as mock_send:
             mock_send.return_value = Response("safe response")
             response = admin_jobs_client.get("/jobs_utils/download_main_files/file/../../../etc/passwd")
             assert response.status_code == 404

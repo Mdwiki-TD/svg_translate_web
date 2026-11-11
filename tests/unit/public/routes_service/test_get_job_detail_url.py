@@ -1,4 +1,4 @@
-from src.main_app.public.utils.routes_utils import get_job_detail_url
+from src.main_app.public.routes_utils import get_job_detail_url
 
 
 def test_get_job_detail_url_public(mock_app):

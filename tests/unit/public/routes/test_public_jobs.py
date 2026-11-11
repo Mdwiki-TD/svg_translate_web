@@ -11,7 +11,7 @@ from flask import Blueprint, Flask
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.database.models import JobRecord
 from src.main_app.database.services import JobsService
-from src.main_app.public.public_jobs import PublicJobsRoutes
+from src.main_app.public.routes.public_jobs import PublicJobsRoutes
 from src.main_app.public.shared_jobs_routes import SharedJobRoutes
 
 MOCK_URL = "/redirected"

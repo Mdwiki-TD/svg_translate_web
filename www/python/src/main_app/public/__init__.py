@@ -1,13 +1,13 @@
 """ """
 
+from typing import Any
+
 from flask import Blueprint, Flask
 
 from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ..models import RouteModule
-from .jobs_utils_bp import UtilsJobsBpRoutes
-from .profile import ProfileView
-from .public_jobs import PublicJobsRoutes
 from .routes import (
+    ProfileView,
     ExplorerView,
     ExtractView,
     InjectView,
@@ -15,9 +15,13 @@ from .routes import (
     OwidChartsRoutes,
     TemplatesView,
     TranslateView,
+    ApiRoutes,
+    AuthView,
+    UtilsJobsBpRoutes,
+    PublicJobsRoutes,
 )
-from .routes.api_routes import ApiRoutes
-from .routes.auth_route import AuthView
+from ..templates_markups import NavigationBar, main_nav_list
+
 
 PUBLIC_ROUTE_MODULES: list[RouteModule] = [
     RouteModule(route_cls=MainView, name="main", url_prefix=""),
@@ -47,7 +51,17 @@ class PublicRouteRegister:
     """Registers all route blueprints on a Flask app."""
 
     @staticmethod
-    def register(app: Flask) -> None:
+    def inject_navbar() -> dict[str, Any]:
+        main_navbar = NavigationBar(main_nav_list)
+
+        return {
+            "main_navbar": main_navbar,
+        }
+
+    @classmethod
+    def register(cls, app: Flask) -> None:
+        app.context_processor(cls.inject_navbar)
+
         for module in PUBLIC_ROUTE_MODULES:
             bp = Blueprint(module.name, __name__, url_prefix=module.url_prefix)
             instance = module.route_cls(**module.extra_kwargs)

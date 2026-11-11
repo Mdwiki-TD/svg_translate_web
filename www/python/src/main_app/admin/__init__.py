@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from flask import Blueprint, Flask
+from flask_sqlalchemy import SQLAlchemy
 
 from ..decorators.admin_decorators import admin_guard
 from .admin_panel import AdminPanel
@@ -30,15 +31,24 @@ class AdminsRouteRegister:
         # blueprints, so this single guard covers every admin sub-blueprint too.
         bp.before_request(admin_guard)
 
+    @classmethod
+    def register(cls, app: Flask, _db: SQLAlchemy) -> None:
+        bp = Blueprint(
+            "admin_panel",
+            __name__,
+            url_prefix="/admin_panel",
+        )
 
-def register_bp_admin_blueprints(app: Flask) -> None:
-    bp = Blueprint("admin_panel", __name__, url_prefix="/admin_panel")
-    AdminPanel.register(bp)
-    AdminSubRoutesRegister.register(bp)
-    app.register_blueprint(bp)
+        cls.register_guard(bp)
+
+        bp.app_context_processor(cls.inject_sidebar)
+
+        AdminPanel.register(bp)
+        AdminSubRoutesRegister.register(bp)
+        add_admin_dashboard(app, _db)
+        app.register_blueprint(bp)
 
 
 __all__ = [
-    "add_admin_dashboard",
-    "register_bp_admin_blueprints",
+    "AdminsRouteRegister",
 ]
