@@ -14,10 +14,11 @@ logger = logging.getLogger(__name__)
 LOGIN_LIMIT_STRATEGY = "5 per minute"
 CALLBACK_LIMIT_STRATEGY = "10 per minute"
 
-# Storage and header behavior come from the Flask config, e.g.:
-#   RATELIMIT_STORAGE_URI = "redis://localhost:6379"  (default: "memory://")
-#   RATELIMIT_HEADERS_ENABLED = True                  (adds Retry-After etc.)
-# limiter = Limiter(key_func=get_remote_address)
+# The limiter is a module-level singleton shared by every app created in the
+# process, so response headers (X-RateLimit-*, Retry-After) are enabled here
+# instead of through RATELIMIT_HEADERS_ENABLED. That way the behavior does not
+# depend on which app was initialised first. Storage still comes from the Flask
+# config: RATELIMIT_STORAGE_URI (default "memory://").
 limiter = Limiter(key_func=get_remote_address, headers_enabled=True)
 
 # Reusable decorators; apply them to views or put them in MethodView.decorators.
