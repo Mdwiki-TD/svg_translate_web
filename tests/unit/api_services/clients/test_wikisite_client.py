@@ -50,19 +50,19 @@ class TestCoerceEncrypted:
 
 class TestGetUserSite:
     def test_get_user_site_none_user(self) -> None:
-        assert WikiSiteClient.get_user_site(None, None) is None
+        assert WikiSiteClient.get_user_site("test.wikipedia.org", None) is None
 
     def test_get_user_site_missing_access_token(self) -> None:
         user = {"access_secret": b"secret"}
-        assert WikiSiteClient.get_user_site(None, user) is None
+        assert WikiSiteClient.get_user_site("test.wikipedia.org", user) is None
 
     def test_get_user_site_missing_access_secret(self) -> None:
         user = {"access_token": b"token"}
-        assert WikiSiteClient.get_user_site(None, user) is None
+        assert WikiSiteClient.get_user_site("test.wikipedia.org", user) is None
 
     def test_get_user_site_empty_tokens(self) -> None:
         user = {"access_token": b"", "access_secret": b"secret"}
-        assert WikiSiteClient.get_user_site(None, user) is None
+        assert WikiSiteClient.get_user_site("test.wikipedia.org", user) is None
 
     def test_get_user_site_success(self, monkeypatch: pytest.MonkeyPatch) -> None:
         calls: list[Any] = []
@@ -79,7 +79,7 @@ class TestGetUserSite:
             "access_token": CryptoService().encrypt("my-access-key"),
             "access_secret": CryptoService().encrypt("my-access-secret"),
         }
-        site = WikiSiteClient.get_user_site(None, user)
+        site = WikiSiteClient.get_user_site("test.wikipedia.org", user)
 
         assert site is not None
         assert len(calls) == 1
@@ -98,7 +98,7 @@ class TestGetUserSite:
             "access_token": CryptoService().encrypt("token"),
             "access_secret": CryptoService().encrypt("secret"),
         }
-        site = WikiSiteClient.get_user_site(None, user)
+        site = WikiSiteClient.get_user_site("test.wikipedia.org", user)
 
         assert site is None
 
@@ -113,14 +113,14 @@ def test_get_user_site(mock_decrypt, mock_site, mock_settings, mock_app):
 
     user = {"access_token": b"token", "access_secret": b"secret"}
 
-    site = WikiSiteClient.get_user_site(None, user)
+    site = WikiSiteClient.get_user_site("test.wikipedia.org", user)
     assert site is not None
     mock_site.assert_called_once()
 
 
 def test_get_user_site_no_user():
-    assert WikiSiteClient.get_user_site(None, None) is None
+    assert WikiSiteClient.get_user_site("test.wikipedia.org", None) is None
 
 
 def test_get_user_site_no_tokens():
-    assert WikiSiteClient.get_user_site(None, {}) is None
+    assert WikiSiteClient.get_user_site("test.wikipedia.org", {}) is None

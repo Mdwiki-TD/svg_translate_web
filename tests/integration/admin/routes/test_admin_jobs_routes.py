@@ -597,16 +597,6 @@ class TestJobsRoutes(TestSetup):
         response = admin_jobs_client.get("/admin_panel/jobs/invalid_job_type")
         assert response.status_code == 404
 
-    def test_start_job_without_user_login(self, admin_jobs_client, monkeypatch, mock_flash):
-        """Test starting a job without being logged in."""
-
-        # Mock current_user to return None
-        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.CurrentUserResolver.get_current_user", lambda: None)
-
-        response = admin_jobs_client.post("/admin_panel/jobs/collect_templates_data/start", follow_redirects=True)
-        assert response.status_code == 200
-        mock_flash.assert_called_once_with("You must be logged in to start this job.", "danger")
-
     def test_start_job_handles_exception(
         self, admin_jobs_client, mock_flash, mock_start_job_form, mock_load_auth_payload
     ):

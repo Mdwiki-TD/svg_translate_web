@@ -132,7 +132,7 @@ class TestCallback:
             sess[app_settings.sessions.request_secret_key] = "s"
 
         # The state query param must be the signed token (MediaWiki echoes it back)
-        response = mock_client.get(f"/auth/callback?state={quote(signed_state)}&oauth_verifier=code")
+        response = mock_client.get(f"/callback?state={quote(signed_state)}&oauth_verifier=code")
         cookie_header = response.headers.get("Set-Cookie", "")
 
         assert response.status_code == 302
