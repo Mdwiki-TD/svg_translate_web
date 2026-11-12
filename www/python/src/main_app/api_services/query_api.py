@@ -13,6 +13,77 @@ from mwclient.errors import APIError, MwClientError
 logger = logging.getLogger(__name__)
 
 
+class WikiQueryApi:
+    """MediaWiki API query operations."""
+
+    def __init__(self, site: Site) -> None:
+        """Initialize with a MediaWiki site instance.
+        
+        Args:
+            site: Authenticated mwclient Site instance.
+        """
+        self.site = site
+
+    def get_template_pages(
+        self,
+        title: str,
+        namespace: str | int = "*",
+    ) -> list[str]:
+        """Get pages using a template."""
+        return get_template_pages(title, self.site, namespace)
+
+    def is_pages_exists(
+        self,
+        titles: list[str],
+    ) -> dict[str, bool]:
+        """Check which pages exist."""
+        return is_pages_exists(titles, self.site)
+
+    def resolve_redirects(
+        self,
+        titles: list[str],
+    ) -> dict[str, dict[str, str]]:
+        """Resolve redirects."""
+        return resolve_redirects(titles, self.site)
+
+    def search_pages(
+        self,
+        query: str,
+        namespace: int = 0,
+        limit: int | str = "max",
+    ) -> list[str]:
+        """Search for pages."""
+        return search_pages(query, self.site, namespace, limit)
+
+    def get_double_redirects(self) -> list[dict[str, str]]:
+        """Get double redirects."""
+        return get_double_redirects(self.site)
+
+    def get_page_links(
+        self,
+        title: str,
+        namespace: int = 0,
+    ) -> dict[str, Any]:
+        """Get links on a page."""
+        return get_page_links(title, self.site, namespace)
+
+    def get_category_members_titles(
+        self,
+        category_name: str,
+        namespace: int | None = None,
+    ) -> list[str]:
+        """Get category members."""
+        return get_category_members_titles(self.site, category_name, namespace)
+
+    def import_page_from_wiki(
+        self,
+        title: str,
+        family: str = "wikipedia",
+    ) -> dict:
+        """Import a page from another wiki."""
+        return import_page_from_wiki(self.site, title, family)
+
+
 def get_template_pages(
     title: str,
     site: Site,

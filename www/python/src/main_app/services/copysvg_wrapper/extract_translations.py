@@ -15,6 +15,44 @@ from .mapping import ExtractResult, TranslationMapping
 logger = logging.getLogger(__name__)
 
 
+class SvgTranslationExtractor:
+    """SVG translation extraction service."""
+
+    def __init__(self, config: TranslationConfig | None = None) -> None:
+        """Initialize with optional configuration.
+        
+        Args:
+            config: Translation configuration. Uses defaults if None.
+        """
+        self._config = config
+
+    def _get_config(self) -> TranslationConfig:
+        """Get the translation config (lazy initialization)."""
+        if self._config is None:
+            self._config = TranslationConfig(
+                case_insensitive=True,
+                sort_switches=True,
+            )
+            if hasattr(self._config, "prepare_before_extraction"):
+                self._config.prepare_before_extraction = True
+        return self._config
+
+    def _extract_file_translations(
+        self,
+        source_file: str | Path,
+    ) -> TranslationMapping:
+        """Extract translations from a single file."""
+        return _extract_file_translations(source_file)
+
+    def extract_from_path(
+        self,
+        main_title_path: Path,
+        fast_return_false: bool = True,
+    ) -> ExtractResult:
+        """Load SVG translations from a Wikimedia Commons main file."""
+        return extract_from_path(main_title_path, fast_return_false)
+
+
 def _extract_file_translations(
     source_file: str | Path,
 ) -> TranslationMapping:

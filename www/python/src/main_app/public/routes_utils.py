@@ -11,6 +11,39 @@ from ..services.auth.current_user_resolver import CurrentUserResolver
 logger = logging.getLogger(__name__)
 
 
+class RequestContextHelper:
+    """Helper for request context, auth payload, and job permissions."""
+
+    @staticmethod
+    def _is_admin(user: Any) -> bool:
+        """Check if user is an active admin."""
+        return _is_admin(user)
+
+    @staticmethod
+    def context_data(
+        wiki_domain: str,
+        static_server: str,
+        tool_title: str = "",
+    ) -> dict[str, Any]:
+        """Inject variables into templates."""
+        return context_data(wiki_domain, static_server, tool_title)
+
+    @staticmethod
+    def load_auth_payload(user: Any | None) -> dict[str, Any]:
+        """Extract auth dict from user object."""
+        return load_auth_payload(user)
+
+    @staticmethod
+    def can_run_jobs(user: Any) -> bool:
+        """Check if user may run synchronous edit jobs."""
+        return can_run_jobs(user)
+
+    @staticmethod
+    def can_run_bg_jobs(user: Any) -> bool:
+        """Check if user may run background (daemon) jobs."""
+        return can_run_bg_jobs(user)
+
+
 def _is_admin(user: Any) -> bool:
     """Check if user is an active admin."""
     return bool(user and getattr(user, "is_active_admin", False))

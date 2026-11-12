@@ -9,6 +9,61 @@ from ...database.services import TemplateService
 logger = logging.getLogger(__name__)
 
 
+class ExplorerDataService:
+    """Service for reading SVG data files from disk."""
+
+    def __init__(
+        self,
+        svg_data_path: Path | None = None,
+        template_service: TemplateService | None = None,
+    ) -> None:
+        """Initialize with optional dependencies.
+        
+        Args:
+            svg_data_path: Path to SVG data directory. Falls back to config if None.
+            template_service: Template service instance. Falls back to default if None.
+        """
+        self._svg_data_path = svg_data_path
+        self._template_service = template_service
+
+    def _get_svg_data_path(self) -> Path:
+        """Get the SVG data path (lazy initialization)."""
+        if self._svg_data_path is None:
+            app_settings = get_settings()
+            self._svg_data_path = Path(app_settings.paths.svg_data)
+        return self._svg_data_path
+
+    def _get_template_service(self) -> TemplateService:
+        """Get the template service (lazy initialization)."""
+        if self._template_service is None:
+            self._template_service = TemplateService()
+        return self._template_service
+
+    def _validate_path_under_base(self, title: str, sub_dir: str) -> Path:
+        """Resolve and validate that title/sub_dir is confined under BASE_SVG."""
+        return _validate_path_under_base(title, sub_dir)
+
+    def get_main_data(self, title, filename: str = "files_stats.json") -> dict[str, Any]:
+        """Load JSON data file."""
+        return get_main_data(title, filename)
+
+    def get_files_full_path(self, title, sub_dir) -> tuple:
+        """List all files in subdirectory."""
+        return get_files_full_path(title, sub_dir)
+
+    def get_files(self, title, sub_dir) -> tuple:
+        """List SVG files in subdirectory."""
+        return get_files(title, sub_dir)
+
+    def get_languages(self, title: str, translations_data: dict | None = None) -> list:
+        """Extract language codes from translations."""
+        return get_languages(title, translations_data)
+
+    def get_informations(self, title: str) -> dict[str, Any]:
+        """Aggregate file/template/language info."""
+        return get_informations(title)
+
+
 def load_svg_data_path() -> Path:
     # return Path("I:/TOOLFORGE_TOOLS/copy-svg-langs.toolforge.org/data/svg_data")
     # return Path(__name__).parent.parent.parent / "svg_data"

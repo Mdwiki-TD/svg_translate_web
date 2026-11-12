@@ -65,6 +65,66 @@ USEFUL_HEADERS = (
 NO_CACHE_ENDPOINTS = ("auth.", "publish.", "fixrefs.", "cxtoken.")
 
 
+class ErrorHandler:
+    """Handles HTTP error logging and response building."""
+
+    def __init__(self, error_log_service: ErrorLogService | None = None) -> None:
+        """Initialize with optional error log service.
+        
+        Args:
+            error_log_service: Error log service instance. Falls back to default if None.
+        """
+        self._error_log_service = error_log_service
+
+    def _get_error_log_service(self) -> ErrorLogService:
+        """Get the error log service (lazy initialization)."""
+        if self._error_log_service is None:
+            self._error_log_service = ErrorLogService()
+        return self._error_log_service
+
+    def safe_headers(self, headers) -> dict[str, str]:
+        """Return headers with sensitive values redacted."""
+        return safe_headers(headers)
+
+    def safe_query(self) -> str:
+        """Return the query string with secret-looking values redacted."""
+        return safe_query()
+
+    def client_ip(self) -> str:
+        """Return the first X-Forwarded-For hop."""
+        return client_ip()
+
+    def log_error(self, label: str, e: Exception, level: int = logging.ERROR) -> None:
+        """Write a single-line, credential-free log entry for an HTTP error."""
+        log_error(label, e, level, self._get_error_log_service())
+
+    def wants_json(self) -> bool:
+        """True when the client expects a JSON error body."""
+        return wants_json()
+
+    def respond(
+        self,
+        *,
+        status: int,
+        title: str,
+        error_str: str,
+        flash_message: str,
+        json_message: str | None = None,
+        category: str = "warning",
+        error: Exception | None = None,
+    ) -> tuple[str | Response, int]:
+        """Build the JSON or HTML error response."""
+        return respond(
+            status=status,
+            title=title,
+            error_str=error_str,
+            flash_message=flash_message,
+            json_message=json_message,
+            category=category,
+            error=error,
+        )
+
+
 def safe_headers(headers) -> dict[str, str]:
     """Return headers with sensitive values redacted."""
     return {k: ("[REDACTED]" if k.lower() in SENSITIVE_HEADERS else v) for k, v in headers.items()}

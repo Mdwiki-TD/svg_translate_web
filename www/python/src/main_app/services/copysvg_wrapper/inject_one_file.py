@@ -20,6 +20,69 @@ from .mapping import (
 logger = logging.getLogger(__name__)
 
 
+class SvgInjector:
+    """SVG translation injection service."""
+
+    def __init__(self, config: TranslationConfig | None = None) -> None:
+        """Initialize with optional configuration.
+        
+        Args:
+            config: Translation configuration. Uses defaults if None.
+        """
+        self._config = config
+
+    def _get_config(self) -> TranslationConfig:
+        """Get the translation config (lazy initialization)."""
+        if self._config is None:
+            self._config = TranslationConfig(
+                case_insensitive=True,
+                overwrite_translations=False,
+                pretty_print=True,
+                sort_switches=True,
+            )
+        return self._config
+
+    def _write_svg_file(self, output_file, tree: etree._ElementTree) -> bool:
+        """Write SVG to disk."""
+        return write_svg_file(output_file, tree)
+
+    def _write_msg(self, stats: InjectorStats) -> str:
+        """Format injection result message."""
+        return write_msg(stats)
+
+    def _start_injection(
+        self,
+        *,
+        inject_file: Path | str,
+        mapping: dict[str, Any] | TranslationMapping | None = None,
+        overwrite_translations: bool = False,
+    ) -> InjectorData:
+        """Run injection."""
+        return start_svg_injection(
+            inject_file=inject_file,
+            mapping=mapping,
+            overwrite_translations=overwrite_translations,
+        )
+
+    def _inject(
+        self,
+        file_name: str,
+        data: InjectorData,
+    ) -> InjectResult:
+        """Internal injection result handler."""
+        return _inject(file_name, data)
+
+    def inject_one_file(
+        self,
+        file: Path,
+        translations: dict[str, Any] | TranslationMapping,
+        output_file: Path,
+        overwrite_translations: bool = False,
+    ) -> InjectResult:
+        """Inject translations into an SVG file and write the result."""
+        return inject_step_one_file(file, translations, output_file, overwrite_translations)
+
+
 def write_svg_file(output_file, tree: etree._ElementTree) -> bool:
     try:
         tree.write(str(output_file), encoding="utf-8", xml_declaration=True, pretty_print=True)
