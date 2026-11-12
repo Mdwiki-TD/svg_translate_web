@@ -49,7 +49,7 @@ def mock_download_main_services(monkeypatch: pytest.MonkeyPatch, mock_before_run
 
     mock_generate_main_files_zip = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.generate_main_files_zip",
+        "src.main_app.jobs_workers.admin_jobs_workers.download_main_files.worker.DownloadMainFilesWorker.generate_main_files_zip",
         mock_generate_main_files_zip,
     )
 

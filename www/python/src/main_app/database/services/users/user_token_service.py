@@ -9,9 +9,9 @@ from datetime import datetime
 
 from sqlalchemy.orm import joinedload
 
-from ...extensions import db
-from ..models import UserRecord, UserTokenRecord
-from .crud_service import CRUDService
+from ....extensions import db
+from ...models import UserRecord, UserTokenRecord
+from ..crud_service import CRUDService
 
 logger = logging.getLogger(__name__)
 

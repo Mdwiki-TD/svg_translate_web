@@ -29,9 +29,14 @@ echo ">>> Updating '$TOOL_NAME' tool core repository..."
 become $TOOL_NAME sh -c "
 cp -rf \"$FULL_PATH/toolforge/deploy_scripts\" $TOOL_PATH -v;
 cp -rf \"$FULL_PATH/toolforge/shs\" $TOOL_PATH -v;
-cp -rf \"$FULL_PATH/toolforge/tool-deploy.sh\" $TOOL_PATH/shs -v;
-chmod +x $TOOL_PATH/shs/tool-deploy.sh -v;
-$TOOL_PATH/shs/tool-deploy.sh \"$FULL_PATH\"
+
+echo \">>> Making scripts executable...\"
+chmod +x $TOOL_PATH/shs/*.sh $TOOL_PATH/deploy_scripts/*.sh;
+
+$TOOL_PATH/shs/update_local.sh \"$FULL_PATH\"
+
+echo \">>> executing file: $TOOL_PATH/shs/pip.sh\"
+$TOOL_PATH/shs/pip.sh
 "
 
 # Run toolforge-webservice commands
