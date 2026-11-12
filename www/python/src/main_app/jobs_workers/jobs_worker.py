@@ -14,7 +14,7 @@ from ..database.services import (
     JobsService,
     SettingsService,
 )
-from ..io.jobs_files_service import create_cancel_file
+from ..io.jobs_files_service import JobFilesService
 from .admin_jobs_workers.workers_list import jobs_data_admins
 from .backends.thread_backend import ThreadBackend
 from .cancel_registry import (
@@ -86,7 +86,7 @@ def cancel_job_worker(
     cancelled_file = None
     # 2. Create result_file_cancelled file
     if job and job.result_file:
-        cancelled_file = create_cancel_file(f"{job.result_file}.cancelled")
+        cancelled_file = JobFilesService().create_cancel_file(f"{job.result_file}.cancelled")
 
     # 3. Persist cancellation to DB (for cross-process detection)
     try:
@@ -134,9 +134,11 @@ def _start_job_impl(
     # Remove sensitive keys before storing
     resolved_args = _sanitize_args(resolved_args)
 
+    jobs_svc = JobsService()
+
     try:
         # Create job record
-        job = JobsService().create_job(job_type, username)
+        job = jobs_svc.create_job(job_type, username)
     except DuplicateRecordError:
         logger.warning(
             "Attempted to start duplicate job of type '%s' by user '%s'",
