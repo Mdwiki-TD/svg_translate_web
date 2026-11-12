@@ -10,7 +10,7 @@ from flask import Flask
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.jobs_workers.jobs_worker import (
     _load_job_args,
-    get_cancel_event,
+    pop_cancel_event,
     register_cancel_event,
     _runner,
     cancel_job_worker,
@@ -46,8 +46,8 @@ def mock_db_services(monkeypatch: pytest.MonkeyPatch):
 def test_register_pop_cancel_event():
     event = threading.Event()
     register_cancel_event(999, event)
-    assert get_cancel_event(999) is event
-    assert get_cancel_event(999) is None
+    assert pop_cancel_event(999) is event
+    assert pop_cancel_event(999) is None
 
 
 def test_load_job_args(mock_db_services):
@@ -75,7 +75,7 @@ def test_runner(flask_app):
     _runner(data, target, flask_app)
 
     target.assert_called_once_with(data)
-    assert get_cancel_event(1) is None  # should be popped
+    assert pop_cancel_event(1) is None  # should be popped
 
 
 def test_runner_no_form_data(flask_app):
@@ -92,7 +92,7 @@ def test_runner_no_form_data(flask_app):
     _runner(data, target, flask_app)
 
     target.assert_called_once_with(data)
-    assert get_cancel_event(1) is None  # should be popped
+    assert pop_cancel_event(1) is None  # should be popped
 
 
 def test_cancel_job_worker(mock_db_services):
