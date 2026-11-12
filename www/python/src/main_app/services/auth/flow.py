@@ -33,7 +33,6 @@ class AuthFlowService:
 
     def __init__(self) -> None:
         self.app_settings = get_settings()
-
         self.oauth_service = OAuthService(
             consumer_key=self.app_settings.oauth.consumer_key,
             consumer_secret=self.app_settings.oauth.consumer_secret,

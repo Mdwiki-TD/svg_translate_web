@@ -17,15 +17,13 @@ from ..database.services import (
 from ..io.jobs_files_service import JobFilesService
 from .admin_jobs_workers.workers_list import jobs_data_admins
 from .backends.thread_backend import ThreadBackend
-from .cancel_registry import CancelEventRegistry
+from .cancel_registry import (
+    CancelEventRegistry,
+    get_cancel_event,
+    pop_cancel_event,
+)
 from .objects import JobData, JobsRunner
 from .public_jobs_workers.workers_list_public import jobs_data_public
-
-from .cancel_registry import (
-    pop_cancel_event,
-    get_cancel_event,
-    register_cancel_event,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +37,7 @@ class JobStarter:
         backend_cls: type[ThreadBackend] | None = None,
     ) -> None:
         """Initialize with optional dependencies.
-        
+
         Args:
             jobs_service: Jobs service instance. Falls back to default if None.
             backend_cls: Backend class to use. Falls back to ThreadBackend if None.
@@ -142,7 +140,7 @@ class JobCanceller:
         jobs_service: JobsService | None = None,
     ) -> None:
         """Initialize with optional dependencies.
-        
+
         Args:
             cancel_registry: Cancel event registry. Falls back to default if None.
             jobs_files_service: Job files service. Falls back to default if None.
@@ -214,7 +212,7 @@ def cancel_job_worker(
     Returns True if the job was found and cancellation was requested.
     """
     from ..io.jobs_files_service import create_job_cancelled_file
-    
+
     # 1. Try local cancellation (if the job is in this process)
     cancel_event = get_cancel_event(job_id)
     local_cancelled = False
@@ -277,7 +275,7 @@ def _start_job_impl(
     resolved_args = _sanitize_args(resolved_args)
 
     jobs_svc = jobs_service or JobsService()
-    
+
     try:
         # Create job record
         job = jobs_svc.create_job(job_type, username)

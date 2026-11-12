@@ -19,7 +19,17 @@ logger = logging.getLogger(__name__)
 
 
 class AdminService(CRUDService[AdminUserRecord]):
+    """
+    A service class for managing admin records, providing CRUD operations and additional admin-specific functionality.
+    Inherits from CRUDService to handle basic database operations.
+    """
+
     def __init__(self) -> None:
+        """
+        Initialize the AdminService with a database session and AdminUserRecord model.
+        Args:
+            None
+        """
         super().__init__(db.session, AdminUserRecord)
 
     def is_active_admin(self, username: str) -> bool:
@@ -49,6 +59,7 @@ class AdminService(CRUDService[AdminUserRecord]):
         return record
 
     def add_admin(self, username: str) -> AdminUserRecord:
+        # self.validate_or_raise(username=username)
         if not username or not username.strip():
             raise ValueError("Username is required")
         username = username.strip()
@@ -98,6 +109,9 @@ class AdminService(CRUDService[AdminUserRecord]):
         except Exception:
             self.session.rollback()
             return None
+
+    def delete_admin(self, admin_id: int) -> bool:
+        return self.delete(admin_id)
 
 
 __all__ = [

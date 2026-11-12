@@ -35,7 +35,7 @@ class JobFilesService:
 
     def __init__(self, jobs_dir: Path | None = None) -> None:
         """Initialize with optional jobs directory.
-        
+
         Args:
             jobs_dir: Directory for job files. Falls back to get_jobs_data_dir() if None.
         """

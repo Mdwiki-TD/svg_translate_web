@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.database.models import JobRecord
-from src.main_app.jobs_workers import jobs_worker
-from src.main_app.jobs_workers import cancel_registry
+from src.main_app.jobs_workers import cancel_registry, jobs_worker
+from src.main_app.jobs_workers.cancel_registry import register_cancel_event
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -48,7 +48,7 @@ def mock_jobs_worker_services(monkeypatch: pytest.MonkeyPatch):
     }
 
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.JobsService.create_job", mocks["create_job"])
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.threading.Thread", mocks["Thread"])
+    monkeypatch.setattr("src.main_app.jobs_workers.backends.thread_backend.threading.Thread", mocks["Thread"])
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.current_app", mocks["current_app"])
 
     return mocks
@@ -108,7 +108,7 @@ def test_start_fix_nested_main_files_job(mock_jobs_worker_services):
 def test_cancel_job():
     """Test cancelling a registered job."""
     event = threading.Event()
-    jobs_worker.register_cancel_event(123, event)
+    register_cancel_event(123, event)
 
     assert not event.is_set()
     result = jobs_worker.cancel_job_worker(123)
@@ -136,7 +136,7 @@ def test_runner_calls_target_and_cleans_up():
     flask_app = MagicMock()
     flask_app.app_context = MagicMock()
 
-    jobs_worker.register_cancel_event(job_id, event)
+    register_cancel_event(job_id, event)
     assert jobs_worker.get_cancel_event(job_id) == event
 
     from src.main_app.jobs_workers.jobs_worker import _runner
@@ -194,9 +194,9 @@ def test_multiple_jobs_can_be_cancelled_independently():
     event2 = threading.Event()
     event3 = threading.Event()
 
-    jobs_worker.register_cancel_event(1, event1)
-    jobs_worker.register_cancel_event(2, event2)
-    jobs_worker.register_cancel_event(3, event3)
+    register_cancel_event(1, event1)
+    register_cancel_event(2, event2)
+    register_cancel_event(3, event3)
 
     # Cancel job 2
     assert jobs_worker.cancel_job_worker(2) is True
@@ -228,7 +228,7 @@ def test_runner_passes_args_to_target():
     flask_app = MagicMock()
     args = {"update_all": "true"}
 
-    jobs_worker.register_cancel_event(job_id, event)
+    register_cancel_event(job_id, event)
 
     from src.main_app.jobs_workers.jobs_worker import _runner
 
@@ -260,7 +260,7 @@ def test_runner_passes_none_args_by_default():
     event = threading.Event()
     flask_app = MagicMock()
 
-    jobs_worker.register_cancel_event(job_id, event)
+    register_cancel_event(job_id, event)
 
     from src.main_app.jobs_workers.jobs_worker import _runner
 

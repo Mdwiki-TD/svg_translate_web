@@ -33,7 +33,7 @@ class LoggingConfigurator:
         error_level: str | int = "ERROR",
     ) -> None:
         """Initialize with logging configuration.
-        
+
         Args:
             level: Console handler level.
             name: Logger name.

@@ -20,7 +20,7 @@ class SvgCropper:
 
     def __init__(self, footer_id: str = "footer", padding: float = 10.0) -> None:
         """Initialize with optional configuration.
-        
+
         Args:
             footer_id: ID of the footer element to remove.
             padding: Bottom padding to add after footer removal.
@@ -38,9 +38,7 @@ class SvgCropper:
         cropped_path: Path,
     ) -> bool:
         """Remove footer and adjust height."""
-        return remove_footer_and_adjust_height(
-            input_path, cropped_path, self.footer_id, self.padding
-        )
+        return remove_footer_and_adjust_height(input_path, cropped_path, self.footer_id, self.padding)
 
     def crop(
         self,

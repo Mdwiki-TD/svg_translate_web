@@ -15,12 +15,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Flask
 from src.main_app.database.services import JobsService, UsersService
+from src.main_app.jobs_workers.cancel_registry import register_cancel_event
 from src.main_app.jobs_workers.jobs_worker import (
-    get_cancel_event,
-    pop_cancel_event,
-    register_cancel_event,
     _runner,
     cancel_job_worker,
+    get_cancel_event,
+    pop_cancel_event,
     start_job,
 )
 from src.main_app.jobs_workers.objects import JobsRunner

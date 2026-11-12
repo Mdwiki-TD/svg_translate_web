@@ -18,7 +18,7 @@ class WikiQueryApi:
 
     def __init__(self, site: Site) -> None:
         """Initialize with a MediaWiki site instance.
-        
+
         Args:
             site: Authenticated mwclient Site instance.
         """

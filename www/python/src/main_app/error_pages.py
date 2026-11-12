@@ -70,7 +70,7 @@ class ErrorHandler:
 
     def __init__(self, error_log_service: ErrorLogService | None = None) -> None:
         """Initialize with optional error log service.
-        
+
         Args:
             error_log_service: Error log service instance. Falls back to default if None.
         """

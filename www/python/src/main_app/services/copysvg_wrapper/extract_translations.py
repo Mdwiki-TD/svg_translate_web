@@ -20,7 +20,7 @@ class SvgTranslationExtractor:
 
     def __init__(self, config: TranslationConfig | None = None) -> None:
         """Initialize with optional configuration.
-        
+
         Args:
             config: Translation configuration. Uses defaults if None.
         """

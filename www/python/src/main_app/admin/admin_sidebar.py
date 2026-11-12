@@ -15,7 +15,7 @@ class AdminSidebarBuilder:
 
     def __init__(self, list_items: list[SidebarGroup] | None = None) -> None:
         """Initialize with optional menu items.
-        
+
         Args:
             list_items: Custom menu items. Falls back to load_admin_tools() if None.
         """

@@ -18,7 +18,7 @@ class ExplorerDataService:
         template_service: TemplateService | None = None,
     ) -> None:
         """Initialize with optional dependencies.
-        
+
         Args:
             svg_data_path: Path to SVG data directory. Falls back to config if None.
             template_service: Template service instance. Falls back to default if None.

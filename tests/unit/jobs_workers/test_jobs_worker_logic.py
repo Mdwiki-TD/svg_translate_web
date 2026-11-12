@@ -8,12 +8,12 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Flask
 from src.main_app.database.exceptions import DuplicateRecordError
+from src.main_app.jobs_workers.cancel_registry import register_cancel_event
 from src.main_app.jobs_workers.jobs_worker import (
     _load_job_args,
-    pop_cancel_event,
-    register_cancel_event,
     _runner,
     cancel_job_worker,
+    pop_cancel_event,
     start_job,
     start_job_cli,
 )
