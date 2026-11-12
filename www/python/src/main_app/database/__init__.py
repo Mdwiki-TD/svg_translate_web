@@ -58,6 +58,14 @@ def init_db(_db: SQLAlchemy) -> None:
 
     create_views(_db)
 
+    # Clean up stale thread jobs left over from a previous run
+    from .services import JobsService
+
+    try:
+        JobsService().cleanup_stale_jobs_on_startup()
+    except Exception:
+        logger.exception("Failed to clean up stale jobs on startup")
+
 
 __all__ = [
     "init_db",

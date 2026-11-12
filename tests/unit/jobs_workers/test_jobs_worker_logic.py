@@ -8,12 +8,12 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Flask
 from src.main_app.database.exceptions import DuplicateRecordError
+from src.main_app.jobs_workers.cancel_registry import register_cancel_event
 from src.main_app.jobs_workers.jobs_worker import (
     _load_job_args,
-    _pop_cancel_event,
-    _register_cancel_event,
     _runner,
     cancel_job_worker,
+    pop_cancel_event,
     start_job,
     start_job_cli,
 )
@@ -45,9 +45,9 @@ def mock_db_services(monkeypatch: pytest.MonkeyPatch):
 
 def test_register_pop_cancel_event():
     event = threading.Event()
-    _register_cancel_event(999, event)
-    assert _pop_cancel_event(999) is event
-    assert _pop_cancel_event(999) is None
+    register_cancel_event(999, event)
+    assert pop_cancel_event(999) is event
+    assert pop_cancel_event(999) is None
 
 
 def test_load_job_args(mock_db_services):
@@ -64,7 +64,7 @@ def test_load_job_args(mock_db_services):
 def test_runner(flask_app):
     target = MagicMock()
     cancel_event = threading.Event()
-    _register_cancel_event(1, cancel_event)
+    register_cancel_event(1, cancel_event)
     data = JobsRunner(
         job_id=1,
         user={"user": "test"},
@@ -75,13 +75,13 @@ def test_runner(flask_app):
     _runner(data, target, flask_app)
 
     target.assert_called_once_with(data)
-    assert _pop_cancel_event(1) is None  # should be popped
+    assert pop_cancel_event(1) is None  # should be popped
 
 
 def test_runner_no_form_data(flask_app):
     target = MagicMock()
     cancel_event = threading.Event()
-    _register_cancel_event(1, cancel_event)
+    register_cancel_event(1, cancel_event)
     data = JobsRunner(
         job_id=1,
         user={"user": "test"},
@@ -92,12 +92,12 @@ def test_runner_no_form_data(flask_app):
     _runner(data, target, flask_app)
 
     target.assert_called_once_with(data)
-    assert _pop_cancel_event(1) is None  # should be popped
+    assert pop_cancel_event(1) is None  # should be popped
 
 
 def test_cancel_job_worker(mock_db_services):
     event = threading.Event()
-    _register_cancel_event(1, event)
+    register_cancel_event(1, event)
     job = MagicMock()
     job.result_file = "test_result"
 

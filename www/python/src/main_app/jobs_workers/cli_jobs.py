@@ -1,4 +1,4 @@
-"""Base worker infrastructure with standardized lifecycle management."""
+"""CLI commands for running and managing background jobs."""
 
 from __future__ import annotations
 
@@ -24,10 +24,10 @@ def register_cli_jobs(app: Flask) -> None:
         .venv/Scripts/activate
 
         Without update_all (False):
-        flask --app src/app1.py run-job collect_templates_data
+        flask --app "$HOME/www/python/src/app.py" run-job collect_templates_data
 
         With update_all (True):
-        flask --app src/app1.py run-job collect_templates_data --update-all
+        flask --app "$HOME/www/python/src/app.py" run-job collect_templates_data --update-all
         """
         # Convert boolean to string ("true" or "false") to match your current format
         update_all_str = "true" if update_all else "false"

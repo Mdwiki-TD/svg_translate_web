@@ -102,8 +102,11 @@ class NavigationBar:
             )
 
             a_link = """
-                <a class="btn btn-outline-secondary btn-sm" href="{url}">
-                    Logout
+                <a class="nav-link py-2 px-0 px-lg-2" href="{url}">
+                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2"></i>
+                    <span class="d-lg-none navtitles">
+                        Logout
+                    </span>
                 </a>
             """
             logout_html = Markup(a_link).format(url=escape(url_for("auth.logout")))
@@ -112,8 +115,11 @@ class NavigationBar:
             parts.append(self._wrap_li(logout_html))
         else:
             a_link = """
-                <a class="btn btn-outline-success btn-sm" href="{url}">
-                    Login
+                <a class="nav-link py-2 px-0 px-lg-2" href="{url}">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span class="navtitles">
+                        Login
+                    </span>
                 </a>
             """
             login_html = Markup(a_link).format(url=escape(url_for("auth.login")))

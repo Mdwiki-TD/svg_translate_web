@@ -15,12 +15,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Flask
 from src.main_app.database.services import JobsService, UsersService
+from src.main_app.jobs_workers.cancel_registry import register_cancel_event
 from src.main_app.jobs_workers.jobs_worker import (
-    _get_jobs_cancel_event,
-    _pop_cancel_event,
-    _register_cancel_event,
     _runner,
     cancel_job_worker,
+    get_cancel_event,
+    pop_cancel_event,
     start_job,
 )
 from src.main_app.jobs_workers.objects import JobsRunner
@@ -30,12 +30,12 @@ def test_cancel_event_management():
     job_id = 999
     event = threading.Event()
 
-    _register_cancel_event(job_id, event)
-    assert _get_jobs_cancel_event(job_id) is event
+    register_cancel_event(job_id, event)
+    assert get_cancel_event(job_id) is event
 
-    popped = _pop_cancel_event(job_id)
+    popped = pop_cancel_event(job_id)
     assert popped is event
-    assert _get_jobs_cancel_event(job_id) is None
+    assert get_cancel_event(job_id) is None
 
 
 def test_runner():
@@ -59,12 +59,12 @@ def test_runner():
         form_data=None,
     )
 
-    _register_cancel_event(job_id, cancel_event)
+    register_cancel_event(job_id, cancel_event)
 
     _runner(data, _mock, src)
 
     target_class.run.assert_called_once_with()
-    assert _get_jobs_cancel_event(job_id) is None
+    assert get_cancel_event(job_id) is None
 
 
 class TestSetup:
@@ -87,7 +87,7 @@ class TestCancelJobWorker(TestSetup):
             job = self.job_service.get_job(job_id, "test_job")
 
         event = threading.Event()
-        _register_cancel_event(job_id, event)
+        register_cancel_event(job_id, event)
         mock_create_file.return_value = MagicMock()  # Simulate file creation success
 
         with mock_app.app_context():
@@ -103,12 +103,12 @@ class TestCancelJobWorker(TestSetup):
         mock_create_file.assert_called_once()
 
         # Clean up
-        _pop_cancel_event(job_id)
+        pop_cancel_event(job_id)
 
 
 @pytest.mark.usefixtures("mock_app")
 class TestStartJob(TestSetup):
-    @patch("src.main_app.jobs_workers.jobs_worker.threading.Thread")
+    @patch("src.main_app.jobs_workers.backends.thread_backend.threading.Thread")
     @patch("src.main_app.jobs_workers.jobs_worker.jobs_data_public")
     def test_start_job(self, mock_jobs_data, mock_thread, mock_app: Flask):
         """start_job should create a DB record, register cancel event, and spawn a thread."""
@@ -129,7 +129,7 @@ class TestStartJob(TestSetup):
         assert job_id is not None
         assert job_id > 0
         mock_thread.assert_called_once()
-        assert _get_jobs_cancel_event(job_id) is not None
+        assert get_cancel_event(job_id) is not None
 
         # Verify job was persisted to the real DB
         with mock_app.app_context():
@@ -139,4 +139,4 @@ class TestStartJob(TestSetup):
             assert job.username == "test_user"
 
         # Clean up
-        _pop_cancel_event(job_id)
+        pop_cancel_event(job_id)
