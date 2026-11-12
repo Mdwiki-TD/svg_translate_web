@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 import pytest
 from src.main_app.database.models import JobRecord
 from src.main_app.jobs_workers import cancel_registry, jobs_worker
-from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.cancel_registry import register_cancel_event
+from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture(autouse=True)
