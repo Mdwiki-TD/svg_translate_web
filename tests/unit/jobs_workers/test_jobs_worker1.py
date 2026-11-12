@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from src.main_app.database.models import JobRecord
 from src.main_app.jobs_workers import jobs_worker
+from src.main_app.jobs_workers import cancel_registry
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -30,11 +31,11 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture(autouse=True)
 def clean_cancel_events():
     """Clear CANCEL_EVENTS before and after each test."""
-    with jobs_worker.JOBS_CANCEL_EVENTS_LOCK:
-        jobs_worker.JOBS_CANCEL_EVENTS.clear()
+    with cancel_registry.JOBS_CANCEL_EVENTS_LOCK:
+        cancel_registry.JOBS_CANCEL_EVENTS.clear()
     yield
-    with jobs_worker.JOBS_CANCEL_EVENTS_LOCK:
-        jobs_worker.JOBS_CANCEL_EVENTS.clear()
+    with cancel_registry.JOBS_CANCEL_EVENTS_LOCK:
+        cancel_registry.JOBS_CANCEL_EVENTS.clear()
 
 
 @pytest.fixture
