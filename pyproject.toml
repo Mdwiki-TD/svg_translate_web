@@ -60,6 +60,9 @@ skip = [
     ".pytest_cache",
     ".git",
 ]
+[tool.mutmut]
+source_paths = ["www/python/src/"]
+pytest_add_cli_args_test_selection = ["tests/"]
 
 # ============================================
 #                 RUFF
