@@ -12,7 +12,6 @@ from pathlib import Path
 from mwclient.client import Site
 
 from ....api_services.files_service import DownloadAndSaveData, FilesService
-from ....config import get_settings
 from ....services.copysvg_wrapper import (
     ExtractResult,
     extract_from_path,
