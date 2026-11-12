@@ -12,7 +12,7 @@ from src.main_app.database.models.users import (
 )
 
 
-class TestAdminRecord:
+class TestAdminUserRecord:
     """Tests for AdminUserRecord dataclass."""
 
     def test_admin_user_record(self, sqlite_db) -> None:

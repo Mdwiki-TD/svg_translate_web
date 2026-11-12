@@ -24,6 +24,7 @@ exclude = '''
       | \.venv
       | _build
       | buck-out
+      | docs
       | build
       | dist
       | typings
@@ -53,6 +54,7 @@ skip = [
     "env",
     ".venv",
     "venv",
+    "docs",
     "build",
     "dist",
     "__pycache__",
@@ -114,6 +116,7 @@ exclude = [
     "**/core8/**",
     "**/i18n/**",
     "**/MagicMock/**",
+    "docs",
 
     # Global System Paths
     "C:/**",
@@ -198,6 +201,13 @@ disable = [
     "R0913", # too-many-arguments
 ]
 
+[tool.pylint.format]
+max-line-length = 120
+disable = [
+    "C0111", # missing-docstring
+    "C0103", # invalid-name
+    "R0913", # too-many-arguments
+]
 
 [tool.pyright]
 reportIncompatibleMethodOverride = "none"
