@@ -9,6 +9,25 @@ from lxml import etree  # pyright: ignore[reportAttributeAccessIssue]
 logger = logging.getLogger(__name__)
 
 
+class SvgComparator:
+    """SVG file comparison and analysis."""
+
+    @staticmethod
+    def file_langs(file_path: Path) -> list:
+        """Extract languages from an SVG file."""
+        return file_langs(file_path)
+
+    @staticmethod
+    def analyze_file(file_path: Path) -> dict[str, Any]:
+        """Analyze one SVG file."""
+        return analyze_file(file_path)
+
+    @staticmethod
+    def compare_svg_files(file_path: Path, translated_path: Path) -> list[dict]:
+        """Compare two SVG files."""
+        return compare_svg_files(file_path, translated_path)
+
+
 def file_langs(file_path: Path) -> list:
     languages = set()
     # ---

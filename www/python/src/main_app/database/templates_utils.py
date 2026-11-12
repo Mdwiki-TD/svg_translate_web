@@ -4,6 +4,30 @@ from typing import Any
 from .models import TemplateRecord
 
 
+class TemplateDataHelper:
+    """Helper for template data manipulation."""
+
+    @staticmethod
+    def extract_slug(chart_url: str | None) -> str | None:
+        """Extracts the chart slug from a given Our World in Data URL."""
+        return extract_slug(chart_url)
+
+    @staticmethod
+    def match_last_world_year(newest_world_file: str) -> int | None:
+        """Extracts the year from a specific "World" SVG chart filename."""
+        return match_last_world_year(newest_world_file)
+
+    @staticmethod
+    def ensure_template_data(template_data: dict[str, Any]) -> dict[str, Any]:
+        """Fill missing slug/year, strip File: prefix."""
+        return ensure_template_data(template_data)
+
+    @staticmethod
+    def ensure_template_data_record(record: TemplateRecord) -> TemplateRecord:
+        """Apply ensure_template_data to a TemplateRecord."""
+        return ensure_template_data_record(record)
+
+
 def extract_slug(chart_url: str | None) -> str | None:
     """
     Extracts the chart slug from a given Our World in Data URL.
