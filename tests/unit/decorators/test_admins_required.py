@@ -8,9 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import patch  # , MagicMock
 
 import pytest
-from src.main_app.decorators.admin_decorators import (
-    admin_required,
-)
+from src.main_app.decorators import admin_required
 from werkzeug.exceptions import Forbidden
 
 

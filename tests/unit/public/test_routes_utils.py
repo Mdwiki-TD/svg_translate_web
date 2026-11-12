@@ -1,5 +1,5 @@
 """
-Unit tests for src/main_app/public/utils/routes_utils.py module.
+Unit tests for src/main_app/public/routes_utils.py module.
 
 Functions to test: context_data, load_auth_payload, get_job_detail_url
 
