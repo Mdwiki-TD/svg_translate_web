@@ -85,7 +85,11 @@ def client_ip() -> str:
     return request.remote_addr or "-"
 
 
-def log_error(label: str, e: Exception, level: int = logging.ERROR) -> None:
+def log_error(
+    label: str,
+    e: Exception,
+    level: int = logging.ERROR,
+) -> None:
     """Write a single-line, credential-free log entry for an HTTP error."""
     headers = safe_headers(request.headers)
     picked = {name: headers[name] for name in USEFUL_HEADERS if name in headers}
