@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import threading
 from collections.abc import Callable
 from typing import Any
 
@@ -17,11 +16,11 @@ from ..database.services import (
 )
 from ..io.jobs_files_service import create_job_cancelled_file
 from .admin_jobs_workers.workers_list import jobs_data_admins
+from .backends.thread_backend import ThreadBackend
 from .objects import JobData, JobsRunner
 from .public_jobs_workers.workers_list_public import jobs_data_public
 
 from .cancel_registry import (
-    register_cancel_event,
     pop_cancel_event,
     get_cancel_event,
 )
@@ -55,9 +54,7 @@ def _runner(
     target_class: Callable[[JobsRunner]],
     flask_app: Flask,
 ) -> None:
-    """
-    args=(runner_data, target_class, flask_app),
-    """
+    """Run a job in a thread with proper exception handling."""
     with flask_app.app_context():
         try:
             worker = target_class(runner_data)
@@ -66,7 +63,11 @@ def _runner(
             pop_cancel_event(runner_data.job_id)
 
 
-def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord | None = None) -> bool:
+def cancel_job_worker(
+    job_id: int,
+    job_type: str | None = None,
+    job: JobRecord | None = None,
+) -> bool:
     """
     Cancel a running job.
     Works across multiple processes by updating the database status.
@@ -98,6 +99,13 @@ def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord |
     return local_cancelled or cancelled_file is not None or db_cancelled
 
 
+def _sanitize_args(args: dict[str, Any]) -> dict[str, Any]:
+    """Remove sensitive or unnecessary keys from args before storing."""
+    cleaned = dict(args)
+    cleaned.pop("csrf_token", None)
+    return cleaned
+
+
 def _start_job_impl(
     auth_payload: dict[str, Any] | None,
     job_type: str,
@@ -121,41 +129,38 @@ def _start_job_impl(
     if args:
         resolved_args.update(args)
 
+    # Remove sensitive keys before storing
+    resolved_args = _sanitize_args(resolved_args)
+
     try:
         # Create job record
         job = JobsService().create_job(job_type, username)
     except DuplicateRecordError:
-        logger.warning("Attempted to start duplicate job of type '%s' by user '%s'", job_type, username)
+        logger.warning(
+            "Attempted to start duplicate job of type '%s' by user '%s'",
+            job_type,
+            username,
+        )
         raise
     except Exception:
         logger.exception("Failed to create job record for job type %s", job_type)
         raise
 
-    cancel_event = threading.Event()
-    register_cancel_event(job.id, cancel_event)
+    # Save payload (no user/token data — identity is rebuilt from job.username)
+    payload: dict[str, Any] = {
+        "args": resolved_args,
+        "form_data": form_data,
+        "user": auth_payload or {},
+    }
 
-    resolved_flask_app = flask_app or current_app._get_current_object()  # type: ignore[attr-defined]
+    backend = ThreadBackend()
+    backend.start(job, job_data, payload)
 
-    if "csrf_token" in resolved_args:
-        del resolved_args["csrf_token"]
-
-    runner_data = JobsRunner(
-        job_id=job.id,
-        user=auth_payload or {},
-        cancel_event=cancel_event,
-        args=resolved_args,
-        form_data=form_data,
+    logger.info(
+        "Started background job job_type: %r, job created in DB with id: %r",
+        job.job_type,
+        job.id,
     )
-
-    # Start background thread
-    thread = threading.Thread(
-        target=_runner,
-        args=(runner_data, job_class, resolved_flask_app),
-        daemon=daemon,
-    )
-    thread.start()
-
-    logger.info("Started background job job_type: %r, job created in DB with id: %r", job_type, job.id)
 
     return job.id
 
