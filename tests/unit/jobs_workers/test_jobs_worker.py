@@ -4,7 +4,7 @@ Uses real DB (TestingConfig SQLite) for JobsService calls.
 Mocks only external/non-DB dependencies:
 - threading.Thread (prevents background execution)
 - jobs_data_public (test job registry)
-- create_job_cancelled_file (filesystem)
+- create_cancel_file (filesystem)
 """
 
 from __future__ import annotations
@@ -75,7 +75,7 @@ class TestSetup:
 
 @pytest.mark.usefixtures("mock_app")
 class TestCancelJobWorker(TestSetup):
-    @patch("src.main_app.jobs_workers.jobs_worker.create_job_cancelled_file")
+    @patch("src.main_app.jobs_workers.jobs_worker.create_cancel_file")
     def test_cancel_job_worker(self, mock_create_file, mock_app: Flask):
         """cancel_job_worker should set the event, update the DB, and create a cancelled file."""
         with mock_app.app_context():

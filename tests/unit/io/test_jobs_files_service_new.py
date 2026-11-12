@@ -8,9 +8,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from src.main_app.io.jobs_files_service import (
-    create_job_cancelled_file,
+    create_cancel_file,
     get_jobs_data_dir,
-    is_job_cancelled_file_exist,
+    is_cancel_file_exist,
     load_job_result,
     save_job_result_by_name,
 )
@@ -68,7 +68,7 @@ def test_load_job_result_error(mock_settings):
 
 
 def test_create_job_cancelled_file_success(mock_settings):
-    path = create_job_cancelled_file("job.cancel")
+    path = create_cancel_file("job.cancel")
     assert path.exists()
     assert path.read_text() == "cancelled"
 
@@ -81,11 +81,11 @@ def test_is_job_cancelled_file_exist(mock_settings):
     cancel_file = path / "exist.cancel"
     cancel_file.touch()
 
-    assert is_job_cancelled_file_exist("exist.cancel") is True
-    assert is_job_cancelled_file_exist("no.cancel") is False
+    assert is_cancel_file_exist("exist.cancel") is True
+    assert is_cancel_file_exist("no.cancel") is False
 
 
 def test_is_job_cancelled_file_exist_error(mock_settings):
     with patch("src.main_app.io.jobs_files_service.Path.exists") as m_exists:
         m_exists.side_effect = OSError("Access denied")
-        assert is_job_cancelled_file_exist("any.cancel") is False
+        assert is_cancel_file_exist("any.cancel") is False

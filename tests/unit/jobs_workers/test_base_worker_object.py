@@ -44,11 +44,11 @@ def mock_base_is_cancelled(
     monkeypatch: pytest.MonkeyPatch,
 ):
     mocks = {
-        "is_job_cancelled_file_exist": MagicMock(),
+        "is_cancel_file_exist": MagicMock(),
     }
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
-        mocks["is_job_cancelled_file_exist"],
+        "src.main_app.jobs_workers.base_worker.is_cancel_file_exist",
+        mocks["is_cancel_file_exist"],
     )
     return mocks
 
@@ -123,7 +123,7 @@ class TestBaseObjectsJobWorker:
         assert worker.result.status == "cancelled"
 
     def test_is_cancelled_file(self, worker, mock_base_worker, mock_base_is_cancelled):
-        mock_base_is_cancelled["is_job_cancelled_file_exist"].return_value = True
+        mock_base_is_cancelled["is_cancel_file_exist"].return_value = True
         assert worker.is_cancelled() is True
         assert worker.result.status == "cancelled"
 

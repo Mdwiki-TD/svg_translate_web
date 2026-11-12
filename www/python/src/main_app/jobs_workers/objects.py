@@ -22,7 +22,7 @@ class JobData:
     job_class: Callable
 
     job_list_template: str = "jobs_templates/admin_templates/base_list_admin.html"
-    job_details_template: str | None = "jobs_templates/_help_templates/shared_details.html"
+    job_details_template: str = "jobs_templates/_help_templates/shared_details.html"
 
     job_args: list[dict[str, str]] = field(default_factory=list)
     load_settings: bool = False

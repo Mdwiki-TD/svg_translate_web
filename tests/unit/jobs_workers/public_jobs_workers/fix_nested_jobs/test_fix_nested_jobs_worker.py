@@ -87,7 +87,7 @@ def run_mocks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mock_base_worker,
     upload = MagicMock(return_value=UploadResult(ok=True, result={}))
 
     monkeypatch.setattr(f"{_BASE}.JobsService.is_job_cancelled", is_job_cancelled)
-    monkeypatch.setattr(f"{_BASE}.is_job_cancelled_file_exist", is_job_cancelled_file)
+    monkeypatch.setattr(f"{_BASE}.is_cancel_file_exist", is_job_cancelled_file)
     monkeypatch.setattr(f"{_BASE}.WikiSiteClient.get_user_site", get_site)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download)
     monkeypatch.setattr(f"{_WORKER}.NestedStructureService.analyze_file", detect)
@@ -528,7 +528,7 @@ class TestRun(TestSetup):
         run_mocks.is_job_cancelled.return_value = False
 
         # _run_step calls self.is_cancelled() without check_db=True, so we
-        # drive cancellation through is_job_cancelled_file_exist(file path)
+        # drive cancellation through is_cancel_file_exist(file path)
         # instead of the DB path. Trip cancellation on the 3rd check.
         call_count = [0]
 
@@ -538,7 +538,7 @@ class TestRun(TestSetup):
 
         mock_is_job_cancelled_file_exist = MagicMock()
         monkeypatch.setattr(
-            f"{_BASE}.is_job_cancelled_file_exist",
+            f"{_BASE}.is_cancel_file_exist",
             mock_is_job_cancelled_file_exist,
         )
         mock_is_job_cancelled_file_exist.return_value = False

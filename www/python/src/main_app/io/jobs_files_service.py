@@ -60,7 +60,7 @@ def load_job_result(filename: str) -> dict[str, Any] | None:
         return None
 
 
-def create_job_cancelled_file(filename: str) -> Path | None:
+def create_cancel_file(filename: str) -> Path | None:
     jobs_dir: Path = get_jobs_data_dir()
     filepath = jobs_dir / filename
     try:
@@ -72,7 +72,7 @@ def create_job_cancelled_file(filename: str) -> Path | None:
         return None
 
 
-def is_job_cancelled_file_exist(filename: str) -> bool:
+def is_cancel_file_exist(filename: str) -> bool:
     try:
         jobs_dir: Path = get_jobs_data_dir()
         filepath = jobs_dir / filename
@@ -85,8 +85,8 @@ def is_job_cancelled_file_exist(filename: str) -> bool:
 
 __all__ = [
     "get_jobs_data_dir",
-    "create_job_cancelled_file",
-    "is_job_cancelled_file_exist",
+    "create_cancel_file",
+    "is_cancel_file_exist",
     "save_job_result_by_name",
     "load_job_result",
 ]

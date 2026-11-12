@@ -14,7 +14,7 @@ from sqlalchemy.orm.exc import StaleDataError
 from ..api_services import WikiSiteClient
 from ..config import get_settings
 from ..database.services import JobsService
-from ..io import is_job_cancelled_file_exist, save_job_result_by_name
+from ..io import is_cancel_file_exist, save_job_result_by_name
 from .objects import JobsRunner
 from .shared_objects import SharedworkerObject, UpdaterOutcome
 from .utils import generate_result_file_name
@@ -165,7 +165,7 @@ class BaseObjectsJobWorker(ABC):
             self._mark_as_cancelled_in_result()
             return True
 
-        if is_job_cancelled_file_exist(self.result_file_cancelled):
+        if is_cancel_file_exist(self.result_file_cancelled):
             logger.info("Job %s: Cancelled file detected, stopping.", self.job_id)
             self._mark_as_cancelled_in_result()
             return True
