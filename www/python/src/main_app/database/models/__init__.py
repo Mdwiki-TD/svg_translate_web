@@ -4,9 +4,7 @@ from .owid_slug_redirects import OwidSlugRedirectRecord
 from .settings import SettingRecord
 from .templates import TemplateRecord
 from .users import AdminUserRecord, UserRecord, UserTokenRecord
-from .views import (
-    TemplateNeedUpdateView,
-)
+from .views import TemplateNeedUpdateView
 
 __all__ = [
     "AdminUserRecord",

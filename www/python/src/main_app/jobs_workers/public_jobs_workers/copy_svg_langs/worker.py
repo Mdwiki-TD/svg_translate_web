@@ -10,7 +10,6 @@ from typing import Any
 from mwclient.client import Site
 
 from ....api_services.files_service import FilesService
-from ....config import get_settings
 from ....services.copysvg_wrapper import (
     ExtractResult,
     extract_from_path,
@@ -45,7 +44,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             args=args,
         )
 
-        self.title = args["title"].strip() if args.get("title") else None
+        self.title = args["title"].strip() if args.get("title") else ""
         self.manual_main_title = args["manual_main_title"].strip() if args.get("manual_main_title") else None
 
         self.config = self._load_config(args)
@@ -62,11 +61,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         return "copy_svg_langs"
 
     def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
-        app_settings = get_settings()
         return SvgLangsConfig.load(
             title=self.title,
             args=args,
-            svg_data_path=app_settings.paths.svg_data,
+            svg_data_path=self.app_settings.paths.svg_data,
         )
 
     def _extract_titles_step(self) -> bool:

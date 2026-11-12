@@ -10,10 +10,10 @@ import logging
 
 from sqlalchemy.exc import IntegrityError
 
-from ...extensions import db
-from ..exceptions import DuplicateRecordError, UserNotFoundError
-from ..models import AdminUserRecord
-from .crud_service import CRUDService
+from ....extensions import db
+from ...exceptions import DuplicateRecordError, UserNotFoundError
+from ...models import AdminUserRecord
+from ..crud_service import CRUDService
 
 logger = logging.getLogger(__name__)
 
@@ -60,8 +60,9 @@ class AdminService(CRUDService[AdminUserRecord]):
             raise DuplicateRecordError(f"Admin '{username}' already exists") from None
 
         record = AdminUserRecord(username=username, is_active=True)
-        self.session.add(record)
+
         try:
+            self.session.add(record)
             self.session.commit()
         except IntegrityError as exc:
             self.session.rollback()
@@ -73,7 +74,13 @@ class AdminService(CRUDService[AdminUserRecord]):
                 raise DuplicateRecordError(f"Admin '{username}' already exists") from exc
 
             raise
-        self.session.refresh(record)
+
+        try:
+            self.session.refresh(record)
+        except Exception:
+            self.session.rollback()
+            raise
+
         return record
 
     def set_admin_active(self, admin_id: int, is_active: bool) -> AdminUserRecord | None:

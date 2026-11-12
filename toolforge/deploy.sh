@@ -22,16 +22,25 @@ echo ">>> FULL_PATH: $FULL_PATH"
 echo ">>> Fixing Windows line endings (CRLF to LF) for all shell scripts..."
 find "$FULL_PATH" -type f -name "*.sh" -exec sed -i 's/\r$//' {} +
 
+echo ">>> Updating '$TOOL_NAME' tool core repository..."
+
 # Run deployment steps inside $TOOL_NAME's toolforge context
 become $TOOL_NAME sh -c "
+echo \">>> Copying deployment scripts...\";
 cp -rf \"$FULL_PATH/toolforge/deploy_scripts\" $TOOL_PATH -v;
 cp -rf \"$FULL_PATH/toolforge/shs\" $TOOL_PATH -v;
-cp -rf \"$FULL_PATH/toolforge/tool-deploy.sh\" $TOOL_PATH/shs -v;
-chmod +x $TOOL_PATH/tool-deploy.sh -v;
-$TOOL_PATH/shs/tool-deploy.sh \"$FULL_PATH\"
+
+echo \">>> Making scripts executable...\";
+chmod +x $TOOL_PATH/shs/*.sh $TOOL_PATH/deploy_scripts/*.sh;
+
+echo \">>> Executing file: update_local.sh\";
+$TOOL_PATH/shs/update_local.sh \"$FULL_PATH\";
+
+echo \">>> Executing file: pip-install.sh\";
+$TOOL_PATH/shs/pip-install.sh;
 "
 
-# Run toolforge-webservice commands
+# Run toolforge-webservice commands safely
 become $TOOL_NAME sh -c "
 echo \">>> Checking webservice status...\";
 toolforge-webservice python3.13 status;
@@ -42,4 +51,5 @@ toolforge-webservice python3.13 stop;
 echo \">>> Starting webservice...\";
 toolforge-webservice python3.13 start;
 "
+
 echo ">>> '$TOOL_NAME' repository update completed successfully."

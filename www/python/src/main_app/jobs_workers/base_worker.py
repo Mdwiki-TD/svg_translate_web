@@ -57,12 +57,12 @@ class BaseObjectsJobWorker(ABC):
 
         self._edit_count: int = 0
         self.site: Site | None = None
-        self.result: SharedworkerObject = SharedworkerObject()
-        # self.result: WorkerMapping = WorkerMapping()
+        self.result: SharedworkerObject
         self._jobs_service = JobsService()
         self.wikisite_client = WikiSiteClient()
 
         self.app_settings = get_settings()
+        self.wiki_domain = self.app_settings.other.wiki_domain
 
     @abstractmethod
     def get_job_type(self) -> str:
@@ -255,7 +255,7 @@ class BaseObjectsJobWorker(ABC):
         return True
 
     def _check_site(self) -> bool:
-        self.site = WikiSiteClient.get_user_site(self.app_settings.other.wiki_domain, self.user)
+        self.site = self.wikisite_client.get_user_site(self.wiki_domain, self.user)
         if not self.site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
             self.log_no_site_error()

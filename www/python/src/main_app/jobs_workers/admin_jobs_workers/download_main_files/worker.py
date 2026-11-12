@@ -10,7 +10,6 @@ from pathlib import Path
 
 from ....api_services import FilesService
 from ....api_services.files_service import DownloadAndSaveData
-from ....config import get_settings
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
@@ -18,45 +17,6 @@ from ...objects import JobsRunner
 from .objects import DownloadMainFilesWorkerObject, FileInfo
 
 logger = logging.getLogger(__name__)
-
-
-def generate_main_files_zip(main_files_zip_name) -> Path:
-    """
-    Generate a zip archive of all files in the main_files_path directory.
-
-    Creates the zip file on disk in the main_files_path directory.
-    Only includes actual files (not directories), excluding the zip file itself.
-
-    Returns:
-        Path: Path to the created zip file
-
-    Raises:
-        FileNotFoundError: If main_files_path directory does not exist
-        RuntimeError: If no files are found to zip
-    """
-    app_settings = get_settings()
-    main_files_path = Path(app_settings.paths.main_files_path)
-
-    if not main_files_path.exists():
-        raise FileNotFoundError(f"Main files directory does not exist: {main_files_path}")
-
-    zip_file_path = main_files_path / main_files_zip_name
-
-    # Create the zip file
-    file_count = 0
-    with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        for file_path in main_files_path.iterdir():
-            if file_path.is_file() and file_path.name != main_files_zip_name:
-                zip_file.write(file_path, file_path.name)
-                file_count += 1
-
-    if file_count == 0:
-        # Remove empty zip file and raise error
-        zip_file_path.unlink(missing_ok=True)
-        raise RuntimeError("No files found to zip in main_files_path")
-
-    logger.info("Generated %s with %d files", zip_file_path, file_count)
-    return zip_file_path
 
 
 class DownloadMainFilesWorker(BaseObjectsJobWorker):
@@ -67,9 +27,9 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         data: JobsRunner,
         output_dir: Path | None = None,
     ) -> None:
-        app_settings = get_settings()
-        self.output_dir = output_dir or Path(app_settings.paths.main_files_path)
         super().__init__(data)
+
+        self.output_dir = output_dir or Path(self.app_settings.paths.main_files_path)
         self.args = data.args or {}
 
         self.result: DownloadMainFilesWorkerObject = DownloadMainFilesWorkerObject(
@@ -161,7 +121,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         # Generate zip file after successful completion
         if self.result.status != "cancelled":
             try:
-                generate_main_files_zip(self.main_files_zip_name)
+                self.generate_main_files_zip(self.main_files_zip_name)
                 logger.info("Job %s: Generated main_files.zip successfully", self.job_id)
             except Exception as e:
                 logger.exception("Job %s: Failed to generate main_files.zip: %s", self.job_id, e)
@@ -174,6 +134,43 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         )
 
         return self.result
+
+    def generate_main_files_zip(self, main_files_zip_name: str) -> Path:
+        """
+        Generate a zip archive of all files in the main_files_path directory.
+
+        Creates the zip file on disk in the main_files_path directory.
+        Only includes actual files (not directories), excluding the zip file itself.
+
+        Returns:
+            Path: Path to the created zip file
+
+        Raises:
+            FileNotFoundError: If main_files_path directory does not exist
+            RuntimeError: If no files are found to zip
+        """
+        main_files_path = Path(self.app_settings.paths.main_files_path)
+
+        if not main_files_path.exists():
+            raise FileNotFoundError(f"Main files directory does not exist: {main_files_path}")
+
+        zip_file_path = main_files_path / main_files_zip_name
+
+        # Create the zip file
+        file_count = 0
+        with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            for file_path in main_files_path.iterdir():
+                if file_path.is_file() and file_path.name != main_files_zip_name:
+                    zip_file.write(file_path, file_path.name)
+                    file_count += 1
+
+        if file_count == 0:
+            # Remove empty zip file and raise error
+            zip_file_path.unlink(missing_ok=True)
+            raise RuntimeError("No files found to zip in main_files_path")
+
+        logger.info("Generated %s with %d files", zip_file_path, file_count)
+        return zip_file_path
 
     def update_status(self, info: FileInfo):
         self.result.summary.processed += 1

@@ -61,6 +61,7 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS: dict[str, Any] = {}
 
     SQLALCHEMY_ECHO: bool = False
+    RATELIMIT_STORAGE_URI = "memory://"
 
     def __init__(self) -> None:
         app_settings = get_settings()
@@ -114,6 +115,7 @@ class ProductionConfig(Config):
 
     CORS_DISABLED: bool = False
     IS_PRODUCTION: bool = True
+    RATELIMIT_STORAGE_URI = "memory://"
 
 
 class TestingConfig(Config):

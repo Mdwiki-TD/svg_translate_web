@@ -195,9 +195,9 @@
 {%- endmacro -%}
 
 {# wiki domain link #}
-{% macro wiki_domain_link(domain, title) %}
+{%- macro wiki_domain_link(domain, title) -%}
 <a href="https://{{ domain }}/wiki/{{ title | replace(' ', '_') | urlencode }}" target="_blank">
-    {{ title }}
+    {{- title -}}
 </a>
 {%- endmacro -%}
 

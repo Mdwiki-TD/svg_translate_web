@@ -23,7 +23,13 @@ def dashboard_item(
     fallback_href: str,
 ) -> SidebarItem:
     """Build a SidebarItem pointing at a regular admin-panel dashboard endpoint."""
-    return SidebarItem(id=id_, title=title, icon=icon, endpoint=endpoint, fallback_href=fallback_href)
+    return SidebarItem(
+        id=id_,
+        title=title,
+        icon=icon,
+        endpoint=endpoint,
+        fallback_href=fallback_href,
+    )
 
 
 def job_item(

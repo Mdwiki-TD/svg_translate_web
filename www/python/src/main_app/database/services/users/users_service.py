@@ -8,10 +8,10 @@ import logging
 
 from sqlalchemy.exc import IntegrityError
 
-from ...extensions import db
-from ..exceptions import UserNotFoundError
-from ..models import UserRecord
-from .crud_service import CRUDService
+from ....extensions import db
+from ...exceptions import UserNotFoundError
+from ...models import UserRecord
+from ..crud_service import CRUDService
 
 logger = logging.getLogger(__name__)
 

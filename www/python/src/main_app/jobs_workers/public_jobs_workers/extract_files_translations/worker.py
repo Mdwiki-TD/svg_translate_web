@@ -12,7 +12,6 @@ from pathlib import Path
 from mwclient.client import Site
 
 from ....api_services.files_service import DownloadAndSaveData, FilesService
-from ....config import get_settings
 from ....services.copysvg_wrapper import (
     ExtractResult,
     extract_from_path,
@@ -58,10 +57,9 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self.files_service = FilesService()
         self.mapping: TranslationMapping = TranslationMapping()
 
-        app_settings = get_settings()
-        self.svg_data_path = Path(app_settings.paths.svg_data)
+        self.svg_data_path = Path(self.app_settings.paths.svg_data)
 
-    def _compute_output_dir(self, title: str) -> Path:
+    def _compute_output_dir(self, title: str | None) -> None | Path:
         if not title:
             return None
 

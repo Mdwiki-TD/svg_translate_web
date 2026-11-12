@@ -194,3 +194,32 @@ def mock_site_pages(mock_site, mock_page):
         return mock_site
 
     return _factory
+
+
+@pytest.fixture
+def mock_crypto_service():
+    service = MagicMock()
+    service.generate_key.return_value = "rand_key"
+    service.encrypt.return_value = "fallback_key"
+    service.decrypt.return_value = "fallback_key"
+    return service
+
+
+@pytest.fixture
+def mock_token_service():
+    token_service = MagicMock()
+    mock_token = MagicMock()
+    token_service.get_user_token_by_username.return_value = mock_token
+    return token_service
+
+
+@pytest.fixture
+def mock_wikidata_client():
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_mediawiki_api():
+    mw_api = MagicMock()
+    mw_api.get_title_info.return_value = {"ns": 0}
+    return mw_api
