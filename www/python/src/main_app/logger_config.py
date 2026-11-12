@@ -18,6 +18,53 @@ from pathlib import Path
 import colorlog
 
 
+class LoggingConfigurator:
+    """Configures logging for the application."""
+
+    def __init__(
+        self,
+        level: str | int = "DEBUG",
+        name: str = "main_app",
+        log_file: str | None = None,
+        error_log_file: str | None = None,
+        use_colorlog: None | bool = None,
+        daily_rotation: bool = False,
+        file_level: str | int = "INFO",
+        error_level: str | int = "ERROR",
+    ) -> None:
+        """Initialize with logging configuration.
+        
+        Args:
+            level: Console handler level.
+            name: Logger name.
+            log_file: Main log file path.
+            error_log_file: Error log file path.
+            use_colorlog: Whether to use colored output.
+            daily_rotation: Whether to rotate logs daily.
+            file_level: Main log file level.
+            error_level: Error log file level.
+        """
+        self.level = level
+        self.name = name
+        self.log_file = log_file
+        self.error_log_file = error_log_file
+        self.use_colorlog = use_colorlog
+        self.daily_rotation = daily_rotation
+        self.file_level = file_level
+        self.error_level = error_level
+
+    def configure(self) -> None:
+        """Configure console + per-logger files."""
+        configure_logging(
+            level=self.level,
+            use_colorlog=self.use_colorlog,
+            name=self.name,
+            daily_rotation=self.daily_rotation,
+            file_level=self.file_level,
+            error_level=self.error_level,
+        )
+
+
 def _daily_log_namer(default_name: str) -> str:
     """Rename rotated log from 'errors.log.2024-01-15' to 'errors.2024-01-15.log'."""
     directory = os.path.dirname(default_name)

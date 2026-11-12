@@ -145,7 +145,12 @@ def client_ip() -> str:
     return request.remote_addr or "-"
 
 
-def log_error(label: str, e: Exception, level: int = logging.ERROR) -> None:
+def log_error(
+    label: str,
+    e: Exception,
+    level: int = logging.ERROR,
+    error_log_service: ErrorLogService | None = None,
+) -> None:
     """Write a single-line, credential-free log entry for an HTTP error."""
     headers = safe_headers(request.headers)
     picked = {name: headers[name] for name in USEFUL_HEADERS if name in headers}
@@ -165,7 +170,7 @@ def log_error(label: str, e: Exception, level: int = logging.ERROR) -> None:
         e,
     )
     # Also persist to the database; the service never raises
-    ErrorLogService().log_request(
+    (error_log_service or ErrorLogService()).log_request(
         status_code=getattr(e, "code", None) or 500,
         error=e,
         query=safe_query(),
@@ -326,6 +331,7 @@ def register_error_pages(app: Flask) -> None:
 
 
 __all__ = [
+    "ErrorHandler",
     "register_error_pages",
     "register_cache_headers",
 ]
