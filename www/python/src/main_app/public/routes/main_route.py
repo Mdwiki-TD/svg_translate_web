@@ -1,6 +1,4 @@
-"""
-Defines the main routes for the application, such as the homepage.
-"""
+"""Main routes for the application (homepage and favicon), built on MethodView."""
 
 from __future__ import annotations
 
@@ -72,10 +70,22 @@ class MainView:
     @staticmethod
     def register(bp: Blueprint) -> None:
         """Register main URL rules on the provided blueprint."""
-        bp.add_url_rule("/", view_func=IndexView.as_view("index"))
-        bp.add_url_rule("/favicon.ico", view_func=FaviconView.as_view("favicon"))
-        bp.add_url_rule("/healthz", view_func=MainHealthView.as_view("healthz"))
-        bp.add_url_rule("/toolinfo.json", view_func=MainToolinfoView.as_view("toolinfo"))
+        bp.add_url_rule(
+            "/",
+            view_func=IndexView.as_view("index"),
+        )
+        bp.add_url_rule(
+            "/favicon.ico",
+            view_func=FaviconView.as_view("favicon"),
+        )
+        bp.add_url_rule(
+            "/healthz",
+            view_func=MainHealthView.as_view("healthz"),
+        )
+        bp.add_url_rule(
+            "/toolinfo.json",
+            view_func=MainToolinfoView.as_view("toolinfo"),
+        )
 
 
 __all__ = [

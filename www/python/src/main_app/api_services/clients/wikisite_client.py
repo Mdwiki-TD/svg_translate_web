@@ -72,8 +72,12 @@ class WikiSiteClient:
         return site
 
     @staticmethod
-    def get_cronjob_site(domain: str) -> Site | None:
+    def get_cronjob_site(domain: str | None = None) -> Site | None:
         app_settings = get_settings()
+
+        if domain is None:
+            domain = app_settings.other.wiki_domain
+
         try:
             site = Site(
                 domain,
