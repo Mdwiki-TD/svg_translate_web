@@ -9,6 +9,33 @@ from ..templates_markups.sidebar import Sidebar, SidebarGroup, SidebarItem
 
 logger = logging.getLogger(__name__)
 
+
+class AdminSidebarBuilder:
+    """Builds the admin sidebar menu."""
+
+    def __init__(self, list_items: list[SidebarGroup] | None = None) -> None:
+        """Initialize with optional menu items.
+        
+        Args:
+            list_items: Custom menu items. Falls back to load_admin_tools() if None.
+        """
+        self._list_items = list_items
+
+    def _get_menu_items(self) -> list[SidebarGroup]:
+        """Get the menu items (lazy initialization)."""
+        if self._list_items is None:
+            self._list_items = load_admin_tools()
+        return self._list_items
+
+    def load_menu(self) -> list[SidebarGroup]:
+        """Build the static sidebar menu structure."""
+        return self._get_menu_items()
+
+    def render(self, path: str, is_admin: bool = False) -> str:
+        """Generate sidebar HTML structure."""
+        return create_admin_sidebar(path, is_admin, self._get_menu_items())
+
+
 # ---------------------------------------------------------------------------
 # Menu item builders — small factories to avoid repeating the same
 # endpoint/fallback wiring for every dashboard or job-list link.
@@ -230,5 +257,6 @@ def create_admin_sidebar(
 
 
 __all__ = [
+    "AdminSidebarBuilder",
     "create_admin_sidebar",
 ]

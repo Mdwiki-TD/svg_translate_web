@@ -24,6 +24,7 @@ from .public_jobs_workers.workers_list_public import jobs_data_public
 from .cancel_registry import (
     pop_cancel_event,
     get_cancel_event,
+    register_cancel_event,
 )
 
 logger = logging.getLogger(__name__)

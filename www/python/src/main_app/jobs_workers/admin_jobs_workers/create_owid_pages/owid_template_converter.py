@@ -12,6 +12,20 @@ from typing import Any
 import wikitextparser as wtp
 
 
+class OwidTemplateConverter:
+    """Converts OWID template pages to gallery pages."""
+
+    @staticmethod
+    def create_svglanguages_template(file_name) -> str:
+        """Build SVGLanguages wikitext."""
+        return create_svglanguages_template(file_name)
+
+    @staticmethod
+    def create_new_text(wikitext: str, template_title: str) -> str:
+        """Create new OWID gallery page text from a template page's wikitext."""
+        return create_new_text(wikitext, template_title)
+
+
 def create_svglanguages_template(file_name) -> str:
     return f"*{{{{SVGLanguages|{file_name}}}}}"
 
@@ -173,5 +187,6 @@ def create_new_text(wikitext: str, template_title: str) -> str:
 
 
 __all__ = [
+    "OwidTemplateConverter",
     "create_new_text",
 ]

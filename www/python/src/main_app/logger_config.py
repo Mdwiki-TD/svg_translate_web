@@ -269,6 +269,7 @@ def configure_logging(
 
 
 __all__ = [
+    "LoggingConfigurator",
     "prepare_log_file",
     "setup_file_handler",
     "setup_logging",

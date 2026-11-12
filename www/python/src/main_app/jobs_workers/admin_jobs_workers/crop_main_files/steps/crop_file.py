@@ -15,6 +15,42 @@ _NUM_RE = re.compile(r"[\d.-]+")
 _HEIGHT_RE = re.compile(r"[\d.]+")
 
 
+class SvgCropper:
+    """SVG cropping service via footer removal."""
+
+    def __init__(self, footer_id: str = "footer", padding: float = 10.0) -> None:
+        """Initialize with optional configuration.
+        
+        Args:
+            footer_id: ID of the footer element to remove.
+            padding: Bottom padding to add after footer removal.
+        """
+        self.footer_id = footer_id
+        self.padding = padding
+
+    def _get_max_y_of_element(self, element) -> float:
+        """Calculate max Y boundary of an element."""
+        return get_max_y_of_element(element)
+
+    def _remove_footer_and_adjust_height(
+        self,
+        input_path: Path,
+        cropped_path: Path,
+    ) -> bool:
+        """Remove footer and adjust height."""
+        return remove_footer_and_adjust_height(
+            input_path, cropped_path, self.footer_id, self.padding
+        )
+
+    def crop(
+        self,
+        file_path: Path,
+        cropped_output_path: Path,
+    ) -> dict[str, Any]:
+        """Crop SVG using viewBox manipulation."""
+        return crop_svg_file(file_path, cropped_output_path)
+
+
 def get_max_y_of_element(element) -> float:
     """
     Get the maximum y+height value from an SVG element and all its descendants.
@@ -163,5 +199,6 @@ def crop_svg_file(
 
 
 __all__ = [
+    "SvgCropper",
     "crop_svg_file",
 ]
