@@ -76,7 +76,6 @@ def is_cancel_file_exist(filename: str) -> bool:
     try:
         jobs_dir: Path = get_jobs_data_dir()
         filepath = jobs_dir / filename
-
         return filepath.exists()
     except OSError:
         logger.exception(f"Error checking job cancelled file {filename}")
