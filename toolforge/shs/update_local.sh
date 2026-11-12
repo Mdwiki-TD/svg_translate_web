@@ -1,5 +1,5 @@
 #!/bin/bash
-# This file can not be executed directly, it is called from the toolforge/tool-deploy.sh script
+# This file can not be executed directly, it is called from the toolforge/deploy.sh script
 
 # Target local temporary path passed from the deploy steps
 CLONE_DIR=$1
