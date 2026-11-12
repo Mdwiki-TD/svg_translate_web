@@ -20,30 +20,17 @@ from .admin_jobs_workers.workers_list import jobs_data_admins
 from .objects import JobData, JobsRunner
 from .public_jobs_workers.workers_list_public import jobs_data_public
 
+from .cancel_registry import (
+    register_cancel_event,
+    pop_cancel_event,
+    get_cancel_event,
+)
+
 logger = logging.getLogger(__name__)
-
-
-JOBS_CANCEL_EVENTS: dict[int, threading.Event] = {}
-JOBS_CANCEL_EVENTS_LOCK = threading.Lock()
 
 
 def load_job_data(job_type) -> JobData | None:
     return jobs_data_admins.get(job_type) or jobs_data_public.get(job_type)
-
-
-def _register_cancel_event(job_id: int, cancel_event: threading.Event) -> None:
-    with JOBS_CANCEL_EVENTS_LOCK:
-        JOBS_CANCEL_EVENTS[job_id] = cancel_event
-
-
-def _pop_cancel_event(job_id: int) -> threading.Event | None:
-    with JOBS_CANCEL_EVENTS_LOCK:
-        return JOBS_CANCEL_EVENTS.pop(job_id, None)
-
-
-def _get_jobs_cancel_event(job_id: int) -> threading.Event | None:
-    with JOBS_CANCEL_EVENTS_LOCK:
-        return JOBS_CANCEL_EVENTS.get(job_id)
 
 
 def _load_job_args(job_args: list[dict[str, str]]) -> dict[str, Any]:
@@ -76,7 +63,7 @@ def _runner(
             worker = target_class(runner_data)
             worker.run()
         finally:
-            _pop_cancel_event(runner_data.job_id)
+            pop_cancel_event(runner_data.job_id)
 
 
 def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord | None = None) -> bool:
@@ -86,7 +73,7 @@ def cancel_job_worker(job_id: int, job_type: str | None = None, job: JobRecord |
     Returns True if the job was found and cancellation was requested.
     """
     # 1. Try local cancellation (if the job is in this process)
-    cancel_event = _get_jobs_cancel_event(job_id)
+    cancel_event = get_cancel_event(job_id)
     local_cancelled = False
     if cancel_event:
         cancel_event.set()
@@ -145,7 +132,7 @@ def _start_job_impl(
         raise
 
     cancel_event = threading.Event()
-    _register_cancel_event(job.id, cancel_event)
+    register_cancel_event(job.id, cancel_event)
 
     resolved_flask_app = flask_app or current_app._get_current_object()  # type: ignore[attr-defined]
 
@@ -154,7 +141,7 @@ def _start_job_impl(
 
     runner_data = JobsRunner(
         job_id=job.id,
-        user=auth_payload,
+        user=auth_payload or {},
         cancel_event=cancel_event,
         args=resolved_args,
         form_data=form_data,
