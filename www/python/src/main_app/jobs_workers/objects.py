@@ -19,15 +19,24 @@ class JobsRunner:
 class JobData:
     job_type: str
     job_name: str
-    job_details_template: str
-    job_list_template: str
-
     job_class: Callable
+
+    job_list_template: str = "jobs_templates/admin_templates/base_list_admin.html"
+    job_details_template: str | None = "jobs_templates/_help_templates/shared_details.html"
+
     job_args: list[dict[str, str]] = field(default_factory=list)
-    start_confirm_message: str | None = None
     load_settings: bool = False
     form_class: Callable | None = None
     used_ajax_table: bool = False
+    description: str = ""
+    start_confirm_message: str = "Run the task?"
+
+    ready: bool = False
+
+    # Toolforge resource overrides (None = use global defaults from config)
+    image: str | None = None
+    memory: str | None = None
+    cpu: str | None = None
 
 
 __all__ = [

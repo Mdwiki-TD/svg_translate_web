@@ -1,0 +1,191 @@
+{% extends "jobs_templates/base_details_public.html" %}
+{% from 'jobs_templates/_ajax_templates/_ajax_table.html' import new_pages_table %}
+
+{% block job_summary %}
+
+{% include 'jobs_templates/_help_templates/_job_summary.html' %}
+
+{% endblock %}
+
+{% block job_details %}
+{% block sub_job_details %}{% endblock %}
+
+{% set title_columns = {
+    "title": "Title"
+} %}
+{% if result_data and result_data.pages_changed %}
+
+{{ new_pages_table(
+    table_title="Changed Pages",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_changed",
+) }}
+
+{% endif %}
+
+{% if result_data and result_data.pages_processed %}
+
+{{ new_pages_table(
+    table_title="Pages Processed",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_processed",
+) }}
+
+{% endif %}
+
+{% if result_data and result_data.pages_errors %}
+
+{{ new_pages_table(
+    table_title="Pages Errors",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_errors",
+) }}
+{% endif %}
+
+{% if result_data and result_data.pages_skipped %}
+
+{{ new_pages_table(
+    table_title="Pages skipped",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_skipped",
+) }}
+
+{% endif %}
+
+{% if result_data and result_data.pages_missing %}
+
+{{ new_pages_table(
+    table_title="Pages missing",
+    job_id=job.id,
+    job_type=template_data.job_type,
+    list_name="pages_missing",
+) }}
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const WIKIDOMAIN = "{{ wiki_domain }}";
+    function createSharedTableColumns(
+        show_status = false,
+        show_message = false,
+        show_err = false,
+        show_newrevid = false,
+    ) {
+        return [
+            {
+                data: null,
+                title: "#",
+                // @ts-ignore
+                render: function (data, type, row, meta) {
+                    return meta.row + 1;
+                },
+            },
+            {
+                data: 'title',
+                title: 'Title',
+                render: function (data, type, row) {
+                    return renderWikiLink(WIKIDOMAIN, data);
+                },
+            },
+            {
+                data: null,
+                title: 'Status',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    return renderStatus(row.status) || "";
+                },
+                visible: show_status,
+            },
+            {
+                data: null,
+                title: 'Diff',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    return diffLink(WIKIDOMAIN, row?.newrevid)
+                },
+                visible: show_newrevid,
+            },
+            {
+                data: null,
+                title: 'Message',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    return `<code>${row.msg || ''}</code>`;
+                },
+                visible: show_message,
+            },
+            {
+                data: null,
+                title: 'Error',
+                orderable: false,
+                // @ts-ignore
+                render: function (row) {
+                    return `<code>${row.error || ''}</code>`;
+                },
+                visible: show_err,
+            },
+        ];
+    }
+
+    $(document).ready(function () {
+        initServerTable(
+            'table-pages_changed',
+            createSharedTableColumns(
+                show_status = false,
+                show_message = true,
+                show_err = false,
+                show_newrevid = true,
+            ),
+        );
+
+        initServerTable(
+            'table-pages_missing',
+            createSharedTableColumns(
+                show_status = false,
+                show_message = true,
+                show_err = false,
+            ),
+        );
+
+        initServerTable(
+            'table-pages_skipped',
+            createSharedTableColumns(
+                show_status = false,
+                show_message = true,
+                show_err = false,
+            ),
+        );
+
+        initServerTable(
+            'table-pages_errors',
+            createSharedTableColumns(
+                show_status = false,
+                show_message = true,
+                show_err = false,
+            ),
+        );
+
+        initServerTable(
+            'table-pages_processed',
+            createSharedTableColumns(
+                show_status = true,
+                show_message = true,
+                show_err = false,
+            ),
+        );
+    });
+
+</script>
+
+{% block sub_extra_js %}{% endblock %}
+{% endblock %}
