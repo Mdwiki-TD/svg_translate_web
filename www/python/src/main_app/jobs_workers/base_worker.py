@@ -233,7 +233,6 @@ class BaseObjectsJobWorker(ABC):
         self.log_errors(str(error), type(error).__name__)
 
     def log_errors(self, error: str, error_type: str = "") -> None:
-
         if error:
             self.result.errors.append({"error": error, "error_type": error_type})
 

@@ -26,7 +26,8 @@ callback_limit = limiter.limit(CALLBACK_LIMIT_STRATEGY)
 
 
 def init_rate_limiter(app: Flask) -> None:
-    """Attach the limiterto the app.
+    """Attach the limiter and the 429 handler to the app.
+
     When running behind a trusted reverse proxy, wrap the app with werkzeug's
     ProxyFix first so remote_addr reflects the real client IP.
     """
