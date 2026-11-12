@@ -51,6 +51,8 @@ def _normalize_limit(
 
 
 class JobsService(CRUDService[JobRecord]):
+    FINAL_STATUSES = ("completed", "failed", "cancelled", "skipped")
+
     def __init__(self) -> None:
         super().__init__(db.session, JobRecord)
 
@@ -328,7 +330,7 @@ class JobsService(CRUDService[JobRecord]):
         if status_lower == "running" and not job.started_at:
             job.started_at = datetime.now(UTC)
 
-        if status_lower in ("completed", "failed", "cancelled", "skipped"):
+        if status_lower in self.FINAL_STATUSES:
             job.completed_at = datetime.now(UTC)
             job.is_running = None
 
@@ -379,6 +381,52 @@ class JobsService(CRUDService[JobRecord]):
             job.completed_at = datetime.now(UTC)
 
         self.update(job, status="completed")
+
+    # ------------------------------------------------------------------
+    # New methods for Toolforge migration
+    # ------------------------------------------------------------------
+
+    def mark_failed(self, job: JobRecord, reason: str = "") -> JobRecord:
+        """Mark a job as failed, releasing the is_running lock."""
+        logger.warning("Job %s failed: %s", job.id, reason)
+        return self.update_job_status(job.id, "failed", job_type=job.job_type)
+
+    def list_active(self, backend: str | None = None) -> list[JobRecord]:
+        """Return all pending/running jobs, optionally filtered by backend."""
+        query = self.session.query(JobRecord).filter(JobRecord.status.in_(["pending", "running"]))
+        # if backend: query = query.filter(JobRecord.backend == backend)
+        return query.all()
+
+    def cleanup_stale_jobs_on_startup(self) -> int:
+        """Mark any pending/running jobs with backend='thread' as failed.
+
+        After a webservice restart, in-memory threads are gone but their DB
+        records may still be pending/running with is_running=1, which locks
+        the job type.  This releases them.
+        """
+        stale = (
+            self.session.query(JobRecord)
+            .filter(
+                JobRecord.status.in_(["pending", "running"]),
+                JobRecord.is_running == 1,
+                # JobRecord.backend == "thread",
+            )
+            .all()
+        )
+        count = 0
+        for job in stale:
+            try:
+                job.status = "failed"
+                job.is_running = None
+                if job.completed_at is None:
+                    job.completed_at = datetime.now(UTC)
+                count += 1
+            except Exception:
+                logger.exception("Failed to clean up stale job %s", job.id)
+        if count:
+            self.session.commit()
+            logger.info("Cleaned up %d stale thread jobs on startup", count)
+        return count
 
 
 __all__ = [
