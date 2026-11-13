@@ -83,6 +83,7 @@ class TestGetStatusClass:
             ("imported_fallback", "success"),
             ("completed", "success"),
             ("changed", "success"),
+            ("updated", "success"),
             ("missing", "warning"),
             ("skipped", "warning"),
             ("cancelled", "warning"),

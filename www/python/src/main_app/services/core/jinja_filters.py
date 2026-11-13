@@ -73,6 +73,7 @@ def get_status_class(status: str) -> str:
         "imported": "success",
         "imported_fallback": "success",
         "completed": "success",
+        "updated": "success",
         "changed": "success",
         "missing": "warning",
         "skipped": "warning",

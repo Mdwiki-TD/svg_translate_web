@@ -294,7 +294,7 @@ class BaseObjectsJobWorker(ABC):
         if info.status in ["pending", "running"]:
             info.status = "completed"
 
-        if info.status == "changed":
+        if info.status == "updated":
             self.result.pages_updated.append(info)
 
         elif info.status == "missing":
