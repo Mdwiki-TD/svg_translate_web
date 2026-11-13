@@ -20,12 +20,12 @@ class TestExtractFromPath:
         fake_svg_path = dummy_main_path / "Example.svg"
         fake_svg_path.write_text("<svg></svg>")
 
-        def fake_extract(path):
+        def fake_extract(self, path):
             assert Path(path) == fake_svg_path
             return TranslationMapping.from_any(extract_return)
 
         monkeypatch.setattr(
-            "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",
+            "src.main_app.services.copysvg_wrapper.extract_translations.SvgTranslationExtractor._extract_file_translations",
             fake_extract,
         )
 
@@ -50,11 +50,11 @@ class TestExtractFromPath:
         fake_svg_path = tmp_path / "Example.svg"
         fake_svg_path.write_text("<svg></svg>")
 
-        def fake_extract(path):
+        def fake_extract(self, path):
             return TranslationMapping(new={"en": {"text": "Hello"}, "fr": {"text": "Bonjour"}})
 
         monkeypatch.setattr(
-            "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",
+            "src.main_app.services.copysvg_wrapper.extract_translations.SvgTranslationExtractor._extract_file_translations",
             fake_extract,
         )
 
@@ -70,12 +70,12 @@ class TestExtractFromPath:
         fake_svg_path = tmp_path / "Example.svg"
         fake_svg_path.write_text("<svg></svg>")
 
-        def fake_extract(path):
+        def fake_extract(*args):
             # Simulate extraction error
             return TranslationMapping(error="parse-error")
 
         monkeypatch.setattr(
-            "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",
+            "src.main_app.services.copysvg_wrapper.extract_translations.SvgTranslationExtractor._extract_file_translations",
             fake_extract,
         )
 

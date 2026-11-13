@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from src.main_app.public.routes_service.explorer_utils import ExplorerDataService
 from src.main_app.public.routes_service import explorer_utils
 
 
@@ -14,7 +15,7 @@ def patch_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     svg_dir = tmp_path / "svg"
     svg_dir.mkdir()
 
-    monkeypatch.setattr(explorer_utils, "load_svg_data_path", lambda: svg_dir)
+    monkeypatch.setattr(explorer_utils.ExplorerDataService, "load_svg_data_path", lambda *a: svg_dir)
 
     return svg_dir
 
@@ -25,7 +26,7 @@ def test_get_files_full_path_returns_all_files(tmp_path: Path) -> None:
     (title_dir / "one.svg").write_text("<svg/>", encoding="utf-8")
     (title_dir / "two.txt").write_text("x", encoding="utf-8")
 
-    files, path = explorer_utils.get_files_full_path("folder", "files")
+    files, path = ExplorerDataService().get_files_full_path("folder", "files")
 
     assert sorted(files) == ["one.svg", "two.txt"]
     assert path == title_dir
@@ -37,7 +38,7 @@ def test_get_files_filters_svg(tmp_path: Path) -> None:
     (title_dir / "one.svg").write_text("<svg/>", encoding="utf-8")
     (title_dir / "two.png").write_text("binary", encoding="utf-8")
 
-    files, _ = explorer_utils.get_files("folder", "translated")
+    files, _ = ExplorerDataService().get_files("folder", "translated")
 
     assert files == ["one.svg"]
 
@@ -51,7 +52,7 @@ def test_get_languages_extracts_codes() -> None:
         }
     }
 
-    langs = explorer_utils.get_languages("title", translations)
+    langs = ExplorerDataService().get_languages("title", translations)
 
     assert langs == ["de", "es", "fr"]
 
@@ -77,7 +78,7 @@ def test_get_informations_compiles_summary(tmp_path: Path) -> None:
     }
     (base / "files_stats.json").write_text(json.dumps(stats), encoding="utf-8")
 
-    info = explorer_utils.get_informations("subject")
+    info = ExplorerDataService().get_informations("subject")
 
     assert info["title"] == "subject"
     assert info["len_files"]["downloaded"] == 2

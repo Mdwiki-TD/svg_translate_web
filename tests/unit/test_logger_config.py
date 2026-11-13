@@ -98,7 +98,7 @@ class TestSetupFileHandler:
         logger.handlers = []  # Clear existing handlers
         log_file = tmp_path / "test.log"
         log_file.write_text("")  # Create empty file
-        LoggingConfigurator.LoggingConfigurator.setup_file_handler(logger, log_file, logging.INFO)
+        LoggingConfigurator.setup_file_handler(logger, log_file, logging.INFO)
         file_handlers = [h for h in logger.handlers if isinstance(h, logging.FileHandler)]
         assert len(file_handlers) == 1
         assert file_handlers[0].level == logging.INFO
@@ -114,7 +114,7 @@ class TestConfigureLogging:
             "setup_logging": MagicMock(),
         }
         monkeypatch.setattr("src.logger_config.Path", mocks["Path"])
-        monkeypatch.setattr("src.logger_config.setup_logging", mocks["setup_logging"])
+        monkeypatch.setattr("src.logger_config.LoggingConfigurator.setup_logging", mocks["setup_logging"])
         return mocks
 
     def test_configure_logging_creates_log_dir(self, mock_logger_services, tmp_path):

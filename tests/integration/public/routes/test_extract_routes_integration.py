@@ -129,7 +129,7 @@ class TestExtractRender:
         mock_download.return_value = DownloadAndSaveData(result="success", path=str(tmp_path / "test_dir/test.svg"))
 
         mock_extract = mocker.patch(
-            "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations"
+            "src.main_app.services.copysvg_wrapper.extract_translations.SvgTranslationExtractor._extract_file_translations"
         )
         mock_extract.return_value = TranslationMapping(new={})
 
@@ -189,7 +189,7 @@ class TestExtractRender:
 
         monkeypatch.setattr("src.main_app.public.routes.extract_routes.FilesService.download_and_save", mock_download)
         monkeypatch.setattr(
-            "src.main_app.services.copysvg_wrapper.extract_translations._extract_file_translations",
+            "src.main_app.services.copysvg_wrapper.extract_translations.SvgTranslationExtractor._extract_file_translations",
             mock_extract,
         )
 
