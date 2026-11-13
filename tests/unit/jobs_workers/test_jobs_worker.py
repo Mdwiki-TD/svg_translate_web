@@ -111,7 +111,7 @@ class TestStartJob(TestSetup):
     @patch("src.main_app.jobs_workers.backends.thread_backend.threading.Thread")
     @patch("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.jobs_data_public")
     def test_start_job(self, mock_jobs_data, mock_thread, mock_app: Flask):
-        """JobStarter().start should create a DB record, register cancel event, and spawn a thread."""
+        """JobStarter.start should create a DB record, register cancel event, and spawn a thread."""
         with mock_app.app_context():
             UsersService().create_user("test_user")
 
