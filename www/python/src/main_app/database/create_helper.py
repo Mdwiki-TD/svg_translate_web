@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
@@ -38,6 +39,11 @@ def create_views(_db: SQLAlchemy) -> None:
                 continue
 
             create_sql = table.info["create_query"]
+
+            # Strip MySQL-specific COLLATE clauses when running on SQLite
+            if _db.engine.dialect.name != "mysql":
+                create_sql = re.sub(r"\s+COLLATE\s+\w+", "", create_sql, flags=re.IGNORECASE)
+
             if table.name in existing_views:
                 if table.info.get("replace_the_view"):
                     try:
