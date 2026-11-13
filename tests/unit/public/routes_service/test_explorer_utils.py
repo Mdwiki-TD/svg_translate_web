@@ -6,8 +6,8 @@ import json
 from pathlib import Path
 
 import pytest
-from src.main_app.public.routes_service.explorer_utils import ExplorerDataService
 from src.main_app.public.routes_service import explorer_utils
+from src.main_app.public.routes_service.explorer_utils import ExplorerDataService
 
 
 @pytest.fixture(autouse=True)
