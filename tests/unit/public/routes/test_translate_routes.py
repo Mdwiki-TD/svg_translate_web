@@ -64,14 +64,14 @@ class TestTranslateRoutes:
         mock_file_info = FileInfo(exists=True)
         monkeypatch.setattr(
             "src.main_app.public.routes.translate_routes.FilesService.get_file_info",
-            lambda self, title: mock_file_info,
+            lambda *args: mock_file_info,
         )
 
         # Mock download_and_save
         mock_download = DownloadAndSaveData(result="success", path="/tmp/Example.svg")
         monkeypatch.setattr(
             "src.main_app.public.routes.translate_routes.FilesService.download_and_save",
-            lambda self, title, out_dir, overwrite_download: mock_download,
+            lambda *args: mock_download,
         )
 
         # Mock SvgTranslationExtractor.extract
@@ -79,7 +79,7 @@ class TestTranslateRoutes:
         mock_extract = ExtractResult(success=True, mapping=mapping)
         monkeypatch.setattr(
             "src.main_app.public.routes.translate_routes.SvgTranslationExtractor.extract",
-            lambda path, fast_return_false: mock_extract,
+            lambda *args: mock_extract,
         )
 
         resp = mock_client.post(
@@ -168,21 +168,21 @@ class TestTranslateRoutes:
         mock_inject = InjectResult(result=True)
         monkeypatch.setattr(
             "src.main_app.public.routes.translate_routes.SvgInjector.inject_one_file",
-            lambda file, translations, output_file, overwrite_translations: mock_inject,
+            lambda *args: MagicMock(return_value=mock_inject),
         )
 
         # Mock get_user_site
         mock_site = MagicMock()
         monkeypatch.setattr(
             "src.main_app.public.routes.translate_routes.WikiSiteClient.get_user_site",
-            lambda _, user: mock_site,
+            lambda *args: mock_site,
         )
 
         # Mock UploadService.upload_svg
         mock_upload = UploadResult(ok=True)
         monkeypatch.setattr(
             "src.main_app.public.routes.translate_routes.UploadService.upload_svg",
-            lambda self, filename, file_path, summary: mock_upload,
+            lambda *args: mock_upload,
         )
 
         try:
@@ -225,7 +225,7 @@ class TestTranslateRoutes:
         json_path.write_text(json.dumps(session_data), encoding="utf-8")
 
         # Mock SvgInjector.inject_one_file to write a mock translated file
-        def fake_inject(file, translations, output_file, overwrite_translations):
+        def fake_inject(self, file, translations, output_file, overwrite_translations):
             output_file.write_text("<svg>Translated content</svg>", encoding="utf-8")
             return InjectResult(result=True)
 

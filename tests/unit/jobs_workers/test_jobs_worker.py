@@ -75,7 +75,7 @@ class TestSetup:
 
 @pytest.mark.usefixtures("mock_app")
 class TestCancelJobWorker(TestSetup):
-    @patch("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.create_cancel_file")
+    @patch("src.main_app.jobs_workers.jobs_lifetime.jobs_canceller.JobFilesService.create_cancel_file")
     def test_cancel_job_worker(self, mock_create_file, mock_app: Flask):
         """cancel_job_worker should set the event, update the DB, and create a cancelled file."""
         with mock_app.app_context():
