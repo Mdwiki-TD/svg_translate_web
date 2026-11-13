@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from src.main_app.database.services.settings_service import SettingsService, _serialize_value
+from src.main_app.database.services.settings_service import SettingsService
 
 
 class TestSetup:
@@ -186,20 +186,20 @@ class TestSerializeValue:
 
     def test_serialize_value_none(self) -> None:
         """Test _serialize_value handles None."""
-        result = _serialize_value(None, "string")
+        result = SettingsService.serialize_value(None, "string")
         assert result is None
 
     def test_serialize_value_boolean(self) -> None:
         """Test _serialize_value handles booleans."""
-        assert _serialize_value(True, "boolean") == "true"
-        assert _serialize_value(False, "boolean") == "false"
+        assert SettingsService.serialize_value(True, "boolean") == "true"
+        assert SettingsService.serialize_value(False, "boolean") == "false"
 
     def test_serialize_value_integer(self) -> None:
         """Test _serialize_value handles integers."""
-        assert _serialize_value(42, "integer") == "42"
-        assert _serialize_value(-10, "integer") == "-10"
+        assert SettingsService.serialize_value(42, "integer") == "42"
+        assert SettingsService.serialize_value(-10, "integer") == "-10"
 
     def test_serialize_value_string(self) -> None:
         """Test _serialize_value handles strings."""
-        assert _serialize_value("hello", "string") == "hello"
-        assert _serialize_value(123, "string") == "123"
+        assert SettingsService.serialize_value("hello", "string") == "hello"
+        assert SettingsService.serialize_value(123, "string") == "123"

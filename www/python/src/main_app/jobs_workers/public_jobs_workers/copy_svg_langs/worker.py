@@ -12,7 +12,7 @@ from mwclient.client import Site
 from ....api_services.files_service import FilesService
 from ....services.copysvg_wrapper import (
     ExtractResult,
-    extract_from_path,
+    SvgTranslationExtractor,
 )
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
@@ -132,7 +132,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         main_title_path = main_file_download.path
 
         try:
-            step_result: ExtractResult = extract_from_path(main_title_path)
+            step_result: ExtractResult = SvgTranslationExtractor().extract(main_title_path)
         except Exception as e:
             logger.exception("Error in stage translations")
             stage.status = "failed"

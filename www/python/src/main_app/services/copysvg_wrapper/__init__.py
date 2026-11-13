@@ -1,6 +1,6 @@
-from .extract_translations import extract_from_path
+from .extract_translations import SvgTranslationExtractor
 from .inject_one_file import (
-    inject_step_one_file,
+    SvgInjector,
 )
 from .mapping import (
     ExtractResult,
@@ -13,8 +13,8 @@ from .nested_fixer import NestedStructureService
 
 __all__ = [
     "NestedStructureService",
-    "extract_from_path",
-    "inject_step_one_file",
+    "SvgTranslationExtractor",
+    "SvgInjector",
     "InjectResult",
     "InjectorStats",
     "InjectorData",

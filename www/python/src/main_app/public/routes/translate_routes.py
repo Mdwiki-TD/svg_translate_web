@@ -22,9 +22,9 @@ from flask.views import MethodView
 from ...api_services import FilesService, UploadService, WikiSiteClient
 from ...config import get_settings
 from ...decorators import oauth_required
-from ...services.copysvg_wrapper import InjectResult, extract_from_path, inject_step_one_file
+from ...services.copysvg_wrapper import InjectResult, SvgInjector, SvgTranslationExtractor
 from ...services.copysvg_wrapper.mapping import TranslationMapping
-from ..routes_utils import load_auth_payload
+from ..routes_utils import RequestContextHelper
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ class TranslateDashboardView(MethodView):
         if downloaded_path.exists() and downloaded_path != svg_path:
             downloaded_path.rename(svg_path)
 
-        extract_result = extract_from_path(svg_path, fast_return_false=False)
+        extract_result = SvgTranslationExtractor().extract(svg_path, fast_return_false=False)
         mapping = extract_result.mapping
 
         if extract_result is None or mapping is None or extract_result.error:
@@ -222,7 +222,7 @@ class TranslateSaveView(MethodView):
         output_file = session_dir / f"translated_{filename}"
 
         try:
-            inject_result: InjectResult = inject_step_one_file(
+            inject_result: InjectResult = SvgInjector().inject_one_file(
                 file=svg_path,
                 translations=mapping,
                 output_file=output_file,
@@ -256,7 +256,7 @@ class TranslateSaveView(MethodView):
             return response
 
         # Handle Action: Upload
-        user_payload = load_auth_payload(g._current_user)
+        user_payload = RequestContextHelper.load_auth_payload(g._current_user)
 
         app_settings = get_settings()
         site = WikiSiteClient.get_user_site(app_settings.other.wiki_domain, user_payload)

@@ -42,7 +42,7 @@
                 {{ stats_card('Skipped', total_skipped, "secondary", "") }}
             </div>
             <div class="col">
-                {{ stats_card('Failed', result_data.summary.failed or ( result_data.pages_failed|length ), "danger", "") }}
+                {{ stats_card('Failed', result_data.summary.failed or ( result_data.pages_failed ), "danger", "") }}
             </div>
         </div>
     </div>

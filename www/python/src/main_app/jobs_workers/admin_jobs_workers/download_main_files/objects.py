@@ -8,10 +8,18 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from ....database.models import TemplateRecord
 from ...shared_objects import StandardAdminWorkerObject
+
+STATUS = Literal[
+    "pending",
+    "running",
+    "completed",
+    "downloaded",
+    "failed",
+]
 
 
 @dataclass
@@ -20,7 +28,7 @@ class FileInfo:
     template_title: str
     filename: str
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: str = ""
+    status: STATUS = "pending"
     error: None | str = None
     error_type: None | str = None
     path: None | str = None

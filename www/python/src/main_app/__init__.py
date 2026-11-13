@@ -18,9 +18,9 @@ from .extensions import csrf_init_app
 from .extensions import db as _db
 from .extensions import migrate
 from .jobs_workers.cli_jobs import register_cli_jobs
-from .logger_config import configure_logging
+from .logger_config import LoggingConfigurator
 from .public import PublicRouteRegister
-from .public.routes_utils import context_data
+from .public.routes_utils import RequestContextHelper
 from .services.core import CookieHeaderClient, filters, init_rate_limiter
 
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ class AppFactory:
         use_color = app.config["IS_PRODUCTION"] is False
         daily_rotation = app.config["IS_PRODUCTION"] is True
 
-        configure_logging(
+        LoggingConfigurator.configure_logging(
             level=level,
             name="main_app",
             use_colorlog=use_color,
@@ -123,7 +123,7 @@ class AppFactory:
     def inject_globals() -> dict[str, Any]:  # pragma: no cover - trivial wrapper
         app_settings = get_settings()
 
-        return context_data(
+        return RequestContextHelper.context_data(
             app_settings.other.wiki_domain,
             app_settings.other.static_server,
             tool_title=app_settings.other.tool_title,

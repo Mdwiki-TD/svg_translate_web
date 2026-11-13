@@ -43,6 +43,44 @@ class SidebarItem:
                 logger.warning("Could not build URL for endpoint '%s', using fallback href", self.endpoint)
         return self.fallback_href
 
+    @classmethod
+    def from_job_item(
+        cls,
+        job_type: str,
+        title: str,
+        icon: str,
+        *,
+        disabled: bool = False,
+    ) -> SidebarItem:
+        """Build a SidebarItem pointing at the job-list page for the given job type."""
+        return SidebarItem(
+            id=job_type,
+            title=title,
+            icon=icon,
+            endpoint="admin_panel.jobs.jobs_list",
+            endpoint_kwargs={"job_type": job_type},
+            fallback_href=f"/admin_panel/jobs/{job_type}",
+            disabled=disabled,
+        )
+
+    @classmethod
+    def dashboard_item(
+        cls,
+        id_: str,
+        title: str,
+        icon: str,
+        endpoint: str,
+        fallback_href: str,
+    ) -> SidebarItem:
+        """Build a SidebarItem pointing at a regular admin-panel dashboard endpoint."""
+        return SidebarItem(
+            id=id_,
+            title=title,
+            icon=icon,
+            endpoint=endpoint,
+            fallback_href=fallback_href,
+        )
+
 
 @dataclass
 class SidebarGroup:

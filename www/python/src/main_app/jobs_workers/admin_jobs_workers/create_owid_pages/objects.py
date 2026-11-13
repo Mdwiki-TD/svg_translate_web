@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LIST, OneStep, StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, OneStep, StandardAdminWorkerObject
 
 
 @dataclass
@@ -27,10 +27,10 @@ class TemplateProcessingInfo:
 
     template_id: int
     template_title: str
+    status: STATUS_LITERAL = "pending"
     new_page_title: str | None = None
     slug: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: STATUS_LIST = "pending"
     error: str | None = None
     steps: InfoSteps = field(default_factory=InfoSteps)
 

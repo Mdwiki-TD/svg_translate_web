@@ -1,3 +1,11 @@
+"""Category member queries via MediaWiki API.
+
+Provides :func:`get_category_members` for retrieving category members
+using mwclient's generator interface.
+"""
+
+from __future__ import annotations
+
 import logging
 
 import mwclient
@@ -13,9 +21,7 @@ def get_category_members(
     namespace: int = 0,
     limit: int | str | None = None,
 ) -> list[str]:
-    """
-    Retrieve all members of a specified category from a MediaWiki site.
-    """
+    """Retrieve all members of a specified category from a MediaWiki site."""
     logger.debug(f"load category members for {category_title}")
     try:
         category = site.pages[category_title]

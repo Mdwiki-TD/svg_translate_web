@@ -23,13 +23,11 @@ from ..database.exceptions import DuplicateRecordError
 from ..database.services import JobsService, SettingsService
 from ..decorators import admin_required, oauth_required
 from ..io import load_job_result
-from ..jobs_workers.jobs_worker import (
-    cancel_job_worker,
-    start_job_form,
-)
+from ..jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
+from ..jobs_workers.jobs_lifetime.jobs_starter import JobStarter
 from ..jobs_workers.objects import JobData
 from ..services.auth.current_user_resolver import CurrentUserResolver
-from .routes_utils import can_run_bg_jobs, load_auth_payload
+from .routes_utils import RequestContextHelper
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +39,7 @@ class SharedJobRoutes:
         self.bp_name = bp_name
         self.job_service = JobsService()
         self.settings_service = SettingsService()
+        self.jobs_canceller = JobCanceller()
 
     def can_manage_job(self, job: Any, user: Any) -> bool:
         """Check if the current user can manage (cancel/delete) a job."""
@@ -71,7 +70,7 @@ class SharedJobRoutes:
             return "job_detail"
 
         try:
-            if cancel_job_worker(job_id, job_type, job):
+            if self.jobs_canceller.cancel(job_id, job_type, job):
                 flash(f"Job {job_id} cancellation requested.", "success")
             else:
                 flash(f"Job {job_id} is not running or already cancelled.", "warning")
@@ -95,19 +94,19 @@ class SharedJobRoutes:
             flash("You must be logged in to start this job.", "danger")
             return None
 
-        if check_can_run_bg_jobs and not can_run_bg_jobs(user):
+        if check_can_run_bg_jobs and not RequestContextHelper.can_run_bg_jobs(user):
             flash("You do not have permission to run background jobs.", "danger")
             return None
 
         try:
-            auth_payload = load_auth_payload(user)
+            auth_payload = RequestContextHelper.load_auth_payload(user)
         except Exception:
             logger.exception("Failed to load auth payload")
             flash("Failed to load auth payload. Please try again.", "danger")
             return None
 
         try:
-            job_id = start_job_form(auth_payload, job_type, args, form_data)
+            job_id = JobStarter().start_form(auth_payload, job_type, args, form_data)
             flash(f"Job {job_id} started to {job_type}.", "success")
             return job_id
         except DuplicateRecordError:
@@ -144,7 +143,7 @@ class SharedJobRoutes:
             return "job_detail"
 
         try:
-            if cancel_job_worker(job_id, job_type, job):
+            if self.jobs_canceller.cancel(job_id, job_type, job):
                 logger.info("Cancelled running job %s before deletion", job_id)
 
             if self.job_service.delete_job_by_id_and_type(job_id, job_type):
@@ -259,9 +258,11 @@ class BaseJobView(MethodView):
         url = f"{self.bp_name}.job_detail"
         return redirect(url_for(url, job_type=job_type, job_id=job_id))  # pyright: ignore[reportReturnType]
 
-    def load_form(self, template_data: JobData) -> FlaskForm:
-        all_settings = {}
+    def load_form(self, template_data: JobData) -> FlaskForm | None:
+        if template_data.form_class is None:
+            return None
 
+        all_settings = {}
         if template_data.load_settings:
             all_settings = self.settings_service.get_all_settings_ready()
 
@@ -279,10 +280,7 @@ class JobsListView(BaseJobView):
         if not template_data:
             abort(404)
 
-        form = None
-        if template_data.form_class is not None:
-            form = self.load_form(template_data)
-
+        form = self.load_form(template_data)
         return self.shared_service.jobs_list_handler(template_data, form)
 
 
@@ -310,8 +308,8 @@ class StartJobView(BaseJobView):
             abort(404)
 
         form_data = {}
-        if template_data.form_class is not None:
-            form = self.load_form(template_data)
+        form = self.load_form(template_data)
+        if form and template_data.form_class is not None:
             if not form.validate_on_submit():
                 # return jsonify(form.errors)
                 # target = request.referrer or url_for(f"{self.bp_name}.jobs_list", job_type=job_type)
@@ -424,6 +422,27 @@ class DrawResultFileView(BaseJobView):
 
         return jsonify(data)
 
+    def _load_list(
+        self,
+        result_data: dict[str, Any],
+        result_file: str,
+        list_name: str = "files_failed",
+    ):
+        list_data = result_data.get(list_name) or []
+        if list_data and not isinstance(list_data, list):
+            logger.warning(
+                "Expected list for '%s' in result file '%s', got %s",
+                list_name,
+                result_file,
+                type(list_data),
+            )
+            list_data = []
+
+        if list_data and isinstance(list_data[0], str):
+            list_data = self.convert_str_list_to_dict(list_data, list_name)
+
+        return list_data
+
     def read_result_file(
         self,
         file_number: int,
@@ -441,19 +460,9 @@ class DrawResultFileView(BaseJobView):
         result_file = f"{job_type}_job_{file_number}.json"
 
         result_data = load_job_result(result_file)
-        list_data = (result_data.get(list_name) or []) if result_data else []
-
-        if list_data and not isinstance(list_data, list):
-            logger.warning(
-                "Expected list for '%s' in result file '%s', got %s",
-                list_name,
-                result_file,
-                type(list_data),
-            )
-            list_data = []
-
-        if list_data and isinstance(list_data[0], str):
-            list_data = self.convert_str_list_to_dict(list_data, list_name)
+        list_data = []
+        if result_data:
+            list_data = self._load_list(result_data, result_file, list_name)
 
         records_total = len(list_data)
 
@@ -486,8 +495,17 @@ class DrawResultFileView(BaseJobView):
         Extend this list if you want status/step messages searchable too.
         """
         title = str(item.get("title", "")).lower()
+        from_title = str(item.get("from_title", "")).lower()
+        redirect_to = str(item.get("redirect_to", "")).lower()
+        final_target = str(item.get("final_target", "")).lower()
         status = str(item.get("status", "")).lower()
-        return search_value in title or search_value in status
+        return (
+            search_value in title
+            or search_value in from_title
+            or search_value in redirect_to
+            or search_value in final_target
+            or search_value in status
+        )
 
     @staticmethod
     def convert_str_list_to_dict(
@@ -506,6 +524,17 @@ class DrawResultFileView(BaseJobView):
         return list_data
 
 
+class AllJobsListView(BaseJobView):
+    def get(self) -> str:
+        try:
+            jobs = self.shared_service.job_service.list_jobs(limit=100)
+        except Exception:  # pragma: no cover - defensive guard
+            logger.exception("Unable to load jobs list.")
+            flash("Unable to load jobs list.", "danger")
+            jobs = []
+        return render_template("jobs_templates/all_jobs_list.html", jobs=jobs)
+
+
 __all__ = [
     "BaseJobView",
     "CancelJobView",
@@ -517,4 +546,5 @@ __all__ = [
     "ReadJobResultFileView",
     "SharedJobRoutes",
     "StartJobView",
+    "AllJobsListView",
 ]

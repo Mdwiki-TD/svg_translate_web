@@ -7,7 +7,7 @@ import logging
 import click
 from flask import Flask
 
-from .jobs_worker import start_job_cli
+from .jobs_lifetime.jobs_starter import JobStarter
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ def register_cli_jobs(app: Flask) -> None:
         # Convert boolean to string ("true" or "false") to match your current format
         update_all_str = "true" if update_all else "false"
 
-        start_job_cli(
+        JobStarter().start_cli(
             auth_payload={"username": "Background job"},
             job_type=job_type,
             args={"update_all": update_all_str},

@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, StandardAdminSummary, WorkerMapping
+from ...shared_objects import STATUS_LITERAL, OneItem, StandardAdminSummary, WorkerMapping
 
 
 @dataclass
@@ -16,6 +16,9 @@ class StageDetail:
     status: STATUS_LITERAL = "pending"
     message: str = ""
     data: Any = None
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass
@@ -66,10 +69,8 @@ class FileSteps:
 
 
 @dataclass
-class FilesProcessedItem:
-    title: str
+class FilesProcessedItem(OneItem):
     file_path: str | None = None
-    status: STATUS_LITERAL = "pending"
     error: str | None = None
     steps: FileSteps = field(default_factory=lambda: FileSteps())
     is_mapping_merged: bool = False
@@ -98,7 +99,6 @@ class ExtractFilesTranslationsObject(WorkerMapping):
         """
         Converts the dataclass instance back to its original dictionary format.
         """
-
         return asdict(self)
 
 

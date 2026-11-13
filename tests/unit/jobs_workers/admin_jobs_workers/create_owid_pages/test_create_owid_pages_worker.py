@@ -29,7 +29,7 @@ def mock_owid_pages_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         "is_pages_exists": MagicMock(return_value={}),
         "merge_categories": MagicMock(side_effect=lambda current, new: new),
         "sort_categories": MagicMock(side_effect=lambda text: text),
-        "is_job_cancelled_file_exist": MagicMock(return_value=False),
+        "is_cancel_file_exist": MagicMock(return_value=False),
         "page_instance": mock_page_instance,
         "get_user_site": mock_base_worker["get_user_site"],
     }
@@ -41,8 +41,8 @@ def mock_owid_pages_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         mocks["is_job_cancelled"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_job_cancelled_file_exist",
-        mocks["is_job_cancelled_file_exist"],
+        "src.main_app.jobs_workers.base_worker.is_cancel_file_exist",
+        mocks["is_cancel_file_exist"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.TemplateService.list",

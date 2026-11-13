@@ -13,13 +13,13 @@
 {% set title_columns = {
     "title": "Title"
 } %}
-{% if result_data and result_data.pages_changed %}
+{% if result_data and result_data.pages_updated %}
 
 {{ new_pages_table(
     table_title="Changed Pages",
     job_id=job.id,
     job_type=template_data.job_type,
-    list_name="pages_changed",
+    list_name="pages_updated",
 ) }}
 
 {% endif %}
@@ -35,13 +35,13 @@
 
 {% endif %}
 
-{% if result_data and result_data.pages_errors %}
+{% if result_data and result_data.pages_failed %}
 
 {{ new_pages_table(
     table_title="Pages Errors",
     job_id=job.id,
     job_type=template_data.job_type,
-    list_name="pages_errors",
+    list_name="pages_failed",
 ) }}
 {% endif %}
 
@@ -139,7 +139,7 @@
 
     $(document).ready(function () {
         initServerTable(
-            'table-pages_changed',
+            'table-pages_updated',
             createSharedTableColumns(
                 show_status = false,
                 show_message = true,
@@ -167,7 +167,7 @@
         );
 
         initServerTable(
-            'table-pages_errors',
+            'table-pages_failed',
             createSharedTableColumns(
                 show_status = false,
                 show_message = true,

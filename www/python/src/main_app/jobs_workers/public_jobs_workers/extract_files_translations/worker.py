@@ -14,7 +14,7 @@ from mwclient.client import Site
 from ....api_services.files_service import DownloadAndSaveData, FilesService
 from ....services.copysvg_wrapper import (
     ExtractResult,
-    extract_from_path,
+    SvgTranslationExtractor,
 )
 from ....services.copysvg_wrapper.mapping import TranslationMapping
 from ...base_worker import BaseObjectsJobWorker
@@ -206,7 +206,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
         file_path = Path(title_info.file_path)
         try:
-            result: ExtractResult = extract_from_path(file_path, fast_return_false=False)
+            result: ExtractResult = SvgTranslationExtractor().extract(file_path, fast_return_false=False)
         except Exception as e:
             logger.error("Error in extract translations")
             mapping_step._update(result=False, details={"error": str(e)}, msg="Error in extract translations")

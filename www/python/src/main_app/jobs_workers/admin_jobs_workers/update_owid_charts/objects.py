@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any
 
 from ....database.models import OwidChartRecord
-from ...shared_objects import STATUS_LIST, STATUS_LITERAL, StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
 
 
 @dataclass
@@ -27,7 +27,7 @@ class StepInfo:
 class ChartNewInfo:
     chart_id: int
     slug: str
-    status: STATUS_LIST = "pending"  # updated | skipped | failed
+    status: STATUS_LITERAL = "pending"  # updated | skipped | failed
     skip_reason: str | None = None
     error: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())

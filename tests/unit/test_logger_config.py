@@ -4,7 +4,7 @@ import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
-from src.main_app.logger_config import configure_logging, prepare_log_file, setup_file_handler, setup_logging
+from src.main_app.logger_config import LoggingConfigurator
 
 
 class TestPrepareLogFile:
@@ -13,21 +13,21 @@ class TestPrepareLogFile:
     def test_prepare_log_file_returns_none_for_none_input(self, tmp_path):
         """Test that None input returns None."""
         mock_logger = MagicMock()
-        result = prepare_log_file(None, mock_logger)
+        result = LoggingConfigurator.prepare_log_file(None, mock_logger)
         assert result is None
 
     def test_prepare_log_file_creates_directory(self, tmp_path):
         """Test that parent directory is created."""
         mock_logger = MagicMock()
         log_file = tmp_path / "new_dir" / "test.log"
-        result = prepare_log_file(str(log_file), mock_logger)
+        result = LoggingConfigurator.prepare_log_file(str(log_file), mock_logger)
         assert result is not None
         assert log_file.parent.exists()
 
     def test_prepare_log_file_expands_user_path(self, tmp_path):
         """Test that ~ is expanded to user home."""
         mock_logger = MagicMock()
-        result = prepare_log_file("~/test.log", mock_logger)
+        result = LoggingConfigurator.prepare_log_file("~/test.log", mock_logger)
         assert result is not None
         assert "~" not in str(result)
 
@@ -38,7 +38,7 @@ class TestPrepareLogFile:
         existing_file = tmp_path / "existing_file"
         existing_file.write_text("content")
         log_file = existing_file / "test.log"
-        result = prepare_log_file(str(log_file), mock_logger)
+        result = LoggingConfigurator.prepare_log_file(str(log_file), mock_logger)
         assert result is None
         mock_logger.error.assert_called_once()
 
@@ -49,7 +49,7 @@ class TestSetupLogging:
     def test_setup_logging_with_string_level(self):
         """Test setup with string level."""
         logger_name = "test_logger_string"
-        setup_logging(level="DEBUG", name=logger_name)
+        LoggingConfigurator.setup_logging(level="DEBUG", name=logger_name)
         logger = logging.getLogger(logger_name)
         assert logger.level == logging.DEBUG
 
@@ -58,17 +58,17 @@ class TestSetupLogging:
         logger_name = "test_logger_skip"
         logger = logging.getLogger(logger_name)
         logger.handlers = []  # Clear any existing handlers
-        setup_logging(level="INFO", name=logger_name)
+        LoggingConfigurator.setup_logging(level="INFO", name=logger_name)
         first_handlers = list(logger.handlers)
         # Second call should not add new handlers
-        setup_logging(level="DEBUG", name=logger_name)
+        LoggingConfigurator.setup_logging(level="DEBUG", name=logger_name)
         assert len(logger.handlers) == len(first_handlers)
 
     def test_setup_logging_with_log_file(self, tmp_path):
         """Test setup with log file."""
         logger_name = "test_logger_file"
         log_file = tmp_path / "test.log"
-        setup_logging(level="INFO", name=logger_name, log_file=str(log_file))
+        LoggingConfigurator.setup_logging(level="INFO", name=logger_name, log_file=str(log_file))
         logger = logging.getLogger(logger_name)
         # Check that file handler was added
         file_handlers = [h for h in logger.handlers if isinstance(h, logging.FileHandler)]
@@ -77,14 +77,14 @@ class TestSetupLogging:
     def test_setup_logging_propagate_false(self):
         """Test that propagate is set to False."""
         logger_name = "test_logger_propagate"
-        setup_logging(level="INFO", name=logger_name)
+        LoggingConfigurator.setup_logging(level="INFO", name=logger_name)
         logger = logging.getLogger(logger_name)
         assert logger.propagate is False
 
     def test_setup_logging_with_invalid_level(self):
         """Test setup with invalid level string falls back to INFO."""
         logger_name = "test_logger_invalid"
-        setup_logging(level="INVALID_LEVEL", name=logger_name)
+        LoggingConfigurator.setup_logging(level="INVALID_LEVEL", name=logger_name)
         logger = logging.getLogger(logger_name)
         assert logger.level == logging.INFO
 
@@ -98,7 +98,7 @@ class TestSetupFileHandler:
         logger.handlers = []  # Clear existing handlers
         log_file = tmp_path / "test.log"
         log_file.write_text("")  # Create empty file
-        setup_file_handler(logger, log_file, logging.INFO)
+        LoggingConfigurator.setup_file_handler(logger, log_file, logging.INFO)
         file_handlers = [h for h in logger.handlers if isinstance(h, logging.FileHandler)]
         assert len(file_handlers) == 1
         assert file_handlers[0].level == logging.INFO
@@ -113,8 +113,8 @@ class TestConfigureLogging:
             "Path": MagicMock(),
             "setup_logging": MagicMock(),
         }
-        monkeypatch.setattr("src.logger_config.Path", mocks["Path"])
-        monkeypatch.setattr("src.logger_config.setup_logging", mocks["setup_logging"])
+        monkeypatch.setattr("src.main_app.logger_config.Path", mocks["Path"])
+        monkeypatch.setattr("src.main_app.logger_config.LoggingConfigurator.setup_logging", mocks["setup_logging"])
         return mocks
 
     def test_configure_logging_creates_log_dir(self, mock_logger_services, tmp_path):
@@ -125,7 +125,7 @@ class TestConfigureLogging:
         mock_path_instance.__truediv__ = MagicMock(return_value=mock_log_dir)
 
         with patch.dict("os.environ", {"MAIN_DIR": str(tmp_path / "test_main_dir")}, clear=False):
-            configure_logging(False)
+            LoggingConfigurator.configure_logging(False)
 
     @patch.dict("os.environ", {}, clear=False)
     def test_configure_logging_uses_default_main_dir(self, mock_logger_services):
@@ -135,9 +135,9 @@ class TestConfigureLogging:
         mock_log_dir = MagicMock()
         mock_path_instance.__truediv__ = MagicMock(return_value=mock_log_dir)
 
-        with patch("src.logger_config.os.path.expanduser") as mock_expanduser:
+        with patch("src.main_app.logger_config.os.path.expanduser") as mock_expanduser:
             mock_expanduser.return_value = "/home/test"
-            configure_logging(False)
+            LoggingConfigurator.configure_logging(False)
             mock_logger_services["Path"].assert_called()
 
     def test_configure_logging_sets_log_paths(self, mock_logger_services, tmp_path):
@@ -152,7 +152,7 @@ class TestConfigureLogging:
         mock_log_dir.__truediv__ = MagicMock(side_effect=[mock_all_log, mock_error_log])
 
         with patch.dict("os.environ", {"MAIN_DIR": str(tmp_path / "test")}, clear=False):
-            configure_logging(False)
+            LoggingConfigurator.configure_logging(False)
 
         mock_logger_services["setup_logging"].assert_called_once()
         call_kwargs = mock_logger_services["setup_logging"].call_args[1]

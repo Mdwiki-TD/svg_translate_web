@@ -4,7 +4,7 @@ Uses real DB (TestingConfig SQLite) for JobsService calls.
 Mocks only external/non-DB dependencies:
 - threading.Thread (prevents background execution)
 - jobs_data_public (test job registry)
-- create_job_cancelled_file (filesystem)
+- create_cancel_file (filesystem)
 """
 
 from __future__ import annotations
@@ -15,14 +15,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Flask
 from src.main_app.database.services import JobsService, UsersService
-from src.main_app.jobs_workers.cancel_registry import register_cancel_event
-from src.main_app.jobs_workers.jobs_worker import (
-    _runner,
-    cancel_job_worker,
+from src.main_app.jobs_workers.backends.thread_backend import _runner
+from src.main_app.jobs_workers.jobs_lifetime.cancel_registry import (
     get_cancel_event,
     pop_cancel_event,
-    start_job,
+    register_cancel_event,
 )
+from src.main_app.jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
+from src.main_app.jobs_workers.jobs_lifetime.jobs_starter import JobStarter
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -75,7 +75,7 @@ class TestSetup:
 
 @pytest.mark.usefixtures("mock_app")
 class TestCancelJobWorker(TestSetup):
-    @patch("src.main_app.jobs_workers.jobs_worker.create_job_cancelled_file")
+    @patch("src.main_app.jobs_workers.jobs_lifetime.jobs_canceller.JobFilesService.create_cancel_file")
     def test_cancel_job_worker(self, mock_create_file, mock_app: Flask):
         """cancel_job_worker should set the event, update the DB, and create a cancelled file."""
         with mock_app.app_context():
@@ -91,7 +91,7 @@ class TestCancelJobWorker(TestSetup):
         mock_create_file.return_value = MagicMock()  # Simulate file creation success
 
         with mock_app.app_context():
-            result = cancel_job_worker(job_id, "test_job", job)
+            result = JobCanceller().cancel(job_id, "test_job", job)
 
         assert result is True
         assert event.is_set()
@@ -109,9 +109,9 @@ class TestCancelJobWorker(TestSetup):
 @pytest.mark.usefixtures("mock_app")
 class TestStartJob(TestSetup):
     @patch("src.main_app.jobs_workers.backends.thread_backend.threading.Thread")
-    @patch("src.main_app.jobs_workers.jobs_worker.jobs_data_public")
+    @patch("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.jobs_data_public")
     def test_start_job(self, mock_jobs_data, mock_thread, mock_app: Flask):
-        """start_job should create a DB record, register cancel event, and spawn a thread."""
+        """JobStarter.start should create a DB record, register cancel event, and spawn a thread."""
         with mock_app.app_context():
             UsersService().create_user("test_user")
 
@@ -124,7 +124,7 @@ class TestStartJob(TestSetup):
         mock_jobs_data.get.return_value = mock_job_data
 
         with mock_app.app_context():
-            job_id = start_job(user_payload, job_type, {"arg": 1})
+            job_id = JobStarter().start(user_payload, job_type, {"arg": 1})
 
         assert job_id is not None
         assert job_id > 0

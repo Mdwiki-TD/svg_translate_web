@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, OneStep, StandardAdminWorkerObject
+from ...shared_objects import OneItem, OneStep, StandardAdminWorkerObject
 
 
 @dataclass
@@ -22,15 +22,13 @@ class InfoSteps:
 
 
 @dataclass
-class PageInfo:
+class PageInfo(OneItem):
     """Holds all state for a single OWID page being processed."""
 
-    page_title: str
     svg_file: str | None = None
     lang_codes: list[str] = field(default_factory=list)
     categories_added: list[str] = field(default_factory=list)
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: STATUS_LITERAL = "pending"
     error: str | None = None
     steps: InfoSteps = field(default_factory=InfoSteps)
 
@@ -40,7 +38,7 @@ class PageInfo:
 
     def to_json(self) -> dict[str, Any]:
         return {
-            "page_title": self.page_title,
+            "title": self.title,
             "svg_file": self.svg_file,
             "lang_codes": self.lang_codes,
             "categories_added": self.categories_added,

@@ -77,10 +77,13 @@
             },
             {
                 // OWID Page — commons_link (page link, not file link)
-                data: 'page_title',
+                data: null,
                 title: 'OWID Page',
-                render: renderCommonsLink,
+                render: function (row) {
+                    return renderCommonsLink(row.page_title || row.title);
+                },
             },
+            // { data: 'page_title', title: 'OWID Page', render: renderCommonsLink, },
             {
                 // SVG File — conditional File: link
                 data: 'svg_file',

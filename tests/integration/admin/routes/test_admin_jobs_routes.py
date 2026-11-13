@@ -24,22 +24,23 @@ def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
 @pytest.fixture
 def mock_start_job_form(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.start_job_form", _mock)
-    return _mock
+    _mock.start_form = Mock()
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobStarter", Mock(return_value=_mock))
+    return _mock.start_form
 
 
 @pytest.fixture
 def mock_load_auth_payload(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_auth_payload", _mock)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.RequestContextHelper.load_auth_payload", _mock)
     return _mock
 
 
 @pytest.fixture
 def mock_cancel_job_worker(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.cancel_job_worker", _mock)
-    return _mock
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobCanceller", _mock)
+    return _mock.return_value.cancel
 
 
 class TestSetup:
@@ -85,7 +86,10 @@ class TestJobsRoutes(TestSetup):
     def test_job_detail_page_handles_nonexistent_job(self, admin_jobs_client, mock_flash):
         """Test that the job detail page handles nonexistent job gracefully."""
 
-        response = admin_jobs_client.get("/admin_panel/jobs/collect_templates_data/999", follow_redirects=True)
+        response = admin_jobs_client.get(
+            "/admin_panel/jobs/collect_templates_data/999",
+            follow_redirects=True,
+        )
         assert response.status_code == 200
         mock_flash.assert_called_once_with("Job id 999 with job_type='collect_templates_data' was not found", "warning")
 
@@ -208,7 +212,10 @@ class TestJobsRoutes(TestSetup):
     def test_fix_nested_job_detail_page_handles_nonexistent_job(self, admin_jobs_client, mock_flash):
         """Test that the fix nested job detail page handles nonexistent job gracefully."""
 
-        response = admin_jobs_client.get("/admin_panel/jobs/fix_nested_main_files/999", follow_redirects=True)
+        response = admin_jobs_client.get(
+            "/admin_panel/jobs/fix_nested_main_files/999",
+            follow_redirects=True,
+        )
         assert response.status_code == 200
         mock_flash.assert_called_once_with("Job id 999 with job_type='fix_nested_main_files' was not found", "warning")
 
@@ -255,13 +262,20 @@ class TestJobsRoutes(TestSetup):
         # Count the number of "View" buttons which appear once per job row
         assert page.count("btn btn-outline-primary btn-sm") >= 2
 
-    def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(self, admin_jobs_client, mock_flash):
+    def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(
+        self,
+        admin_jobs_client,
+        mock_flash,
+    ):
         """Test that accessing a non-fix_nested job via fix_nested route redirects."""
 
         # Create a collect_templates_data job
         job = self.service.create_job(job_type="collect_templates_data", username="user")
 
-        response = admin_jobs_client.get(f"/admin_panel/jobs/fix_nested_main_files/{job.id}", follow_redirects=True)
+        response = admin_jobs_client.get(
+            f"/admin_panel/jobs/fix_nested_main_files/{job.id}",
+            follow_redirects=True,
+        )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(
             f"Job id {job.id} with job_type='fix_nested_main_files' was not found", "warning"
@@ -272,13 +286,21 @@ class TestJobsRoutes(TestSetup):
 
         job = self.service.create_job(job_type="other_job_type", username="user")
 
-        response = admin_jobs_client.get(f"/admin_panel/jobs/collect_templates_data/{job.id}", follow_redirects=True)
+        response = admin_jobs_client.get(
+            f"/admin_panel/jobs/collect_templates_data/{job.id}",
+            follow_redirects=True,
+        )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(
             f"Job id {job.id} with job_type='collect_templates_data' was not found", "warning"
         )
 
-    def test_delete_collect_templates_data_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_delete_collect_templates_data_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test deleting a collect_templates_data job."""
 
         # Create a job
@@ -288,7 +310,8 @@ class TestJobsRoutes(TestSetup):
         # Delete the job
         mock_cancel_job_worker.return_value = False
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/collect_templates_data/{job.id}/delete", follow_redirects=True
+            f"/admin_panel/jobs/collect_templates_data/{job.id}/delete",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
@@ -296,7 +319,12 @@ class TestJobsRoutes(TestSetup):
         # Verify job is deleted
         assert len(self.service.list_jobs()) == 0
 
-    def test_delete_fix_nested_main_files_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_delete_fix_nested_main_files_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test deleting a fix_nested_main_files job."""
 
         # Create a job
@@ -306,7 +334,8 @@ class TestJobsRoutes(TestSetup):
         # Delete the job
         mock_cancel_job_worker.return_value = False
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/fix_nested_main_files/{job.id}/delete", follow_redirects=True
+            f"/admin_panel/jobs/fix_nested_main_files/{job.id}/delete",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
@@ -317,7 +346,10 @@ class TestJobsRoutes(TestSetup):
     def test_delete_nonexistent_job(self, admin_jobs_client, mock_flash):
         """Test deleting a non-existent job shows appropriate error."""
         # Try to delete a job that doesn't exist
-        response = admin_jobs_client.post("/admin_panel/jobs/collect_templates_data/999/delete", follow_redirects=True)
+        response = admin_jobs_client.post(
+            "/admin_panel/jobs/collect_templates_data/999/delete",
+            follow_redirects=True,
+        )
         assert response.status_code == 200
         mock_flash.assert_called_with("Job not found.", "warning")
 
@@ -329,7 +361,8 @@ class TestJobsRoutes(TestSetup):
 
         # Try to delete it via the fix_nested endpoint
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/fix_nested_main_files/{job.id}/delete", follow_redirects=True
+            f"/admin_panel/jobs/fix_nested_main_files/{job.id}/delete",
+            follow_redirects=True,
         )
         assert response.status_code == 200
 
@@ -349,26 +382,34 @@ class TestJobsRoutes(TestSetup):
 
         # Delete first collect_templates_data job
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/collect_templates_data/{job1.id}/delete", follow_redirects=True
+            f"/admin_panel/jobs/collect_templates_data/{job1.id}/delete",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         assert len(self.service.list_jobs()) == 2
 
         # Delete second collect_templates_data job
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/collect_templates_data/{job2.id}/delete", follow_redirects=True
+            f"/admin_panel/jobs/collect_templates_data/{job2.id}/delete",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         assert len(self.service.list_jobs()) == 1
 
         # Delete fix_nested_main_files job
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/fix_nested_main_files/{job3.id}/delete", follow_redirects=True
+            f"/admin_panel/jobs/fix_nested_main_files/{job3.id}/delete",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         assert len(self.service.list_jobs()) == 0
 
-    def test_cancel_collect_templates_data_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_cancel_collect_templates_data_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test cancelling a collect_templates_data job."""
 
         # Create a job
@@ -378,12 +419,18 @@ class TestJobsRoutes(TestSetup):
         # Cancel the job
         mock_cancel_job_worker.return_value = True
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/collect_templates_data/{job.id}/cancel", follow_redirects=True
+            f"/admin_panel/jobs/collect_templates_data/{job.id}/cancel",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
 
-    def test_cancel_fix_nested_main_files_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_cancel_fix_nested_main_files_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test cancelling a fix_nested_main_files job."""
 
         # Create a job
@@ -393,7 +440,8 @@ class TestJobsRoutes(TestSetup):
         # Cancel the job
         mock_cancel_job_worker.return_value = True
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/fix_nested_main_files/{job.id}/cancel", follow_redirects=True
+            f"/admin_panel/jobs/fix_nested_main_files/{job.id}/cancel",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
@@ -402,7 +450,10 @@ class TestJobsRoutes(TestSetup):
     # download_main_files tests
     # ================================================================================
 
-    def test_download_main_files_jobs_list_page_displays_jobs(self, admin_jobs_client):
+    def test_download_main_files_jobs_list_page_displays_jobs(
+        self,
+        admin_jobs_client,
+    ):
         """Test that the download main files jobs list page displays jobs."""
 
         # Create some test jobs (complete first before creating second of same type)
@@ -415,7 +466,10 @@ class TestJobsRoutes(TestSetup):
         page = unescape(response.get_data(as_text=True))
         assert "Download Main Files" in page
 
-    def test_download_main_files_jobs_list_page_shows_no_jobs_message(self, admin_jobs_client):
+    def test_download_main_files_jobs_list_page_shows_no_jobs_message(
+        self,
+        admin_jobs_client,
+    ):
         """Test that the download main files jobs list page shows a message when there are no jobs."""
 
         response = admin_jobs_client.get("/admin_panel/jobs/download_main_files")
@@ -423,7 +477,10 @@ class TestJobsRoutes(TestSetup):
         page = unescape(response.get_data(as_text=True))
         assert "Download Main Files" in page
 
-    def test_download_main_files_job_detail_page_displays_job_info(self, admin_jobs_client):
+    def test_download_main_files_job_detail_page_displays_job_info(
+        self,
+        admin_jobs_client,
+    ):
         """Test that the download main files job detail page displays job information."""
 
         job = self.service.create_job(job_type="download_main_files", username="user")
@@ -435,7 +492,11 @@ class TestJobsRoutes(TestSetup):
         assert f"Download Main Files Job #{job.id}" in page
         assert "Completed" in page
 
-    def test_download_main_files_job_detail_page_shows_result_data(self, admin_jobs_client, tmp_path):
+    def test_download_main_files_job_detail_page_shows_result_data(
+        self,
+        admin_jobs_client,
+        tmp_path,
+    ):
         """Test that the download main files job detail page displays result data from JSON file."""
 
         job = self.service.create_job(job_type="download_main_files", username="user")
@@ -482,10 +543,17 @@ class TestJobsRoutes(TestSetup):
         # assert "test1.svg" in page
         # assert "Template:Test2" in page
 
-    def test_download_main_files_job_detail_page_handles_nonexistent_job(self, admin_jobs_client, mock_flash):
+    def test_download_main_files_job_detail_page_handles_nonexistent_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+    ):
         """Test that the download main files job detail page handles nonexistent job gracefully."""
 
-        response = admin_jobs_client.get("/admin_panel/jobs/download_main_files/999", follow_redirects=True)
+        response = admin_jobs_client.get(
+            "/admin_panel/jobs/download_main_files/999",
+            follow_redirects=True,
+        )
         assert response.status_code == 200
         mock_flash.assert_called_once_with("Job id 999 with job_type='download_main_files' was not found", "warning")
 
@@ -532,19 +600,31 @@ class TestJobsRoutes(TestSetup):
         # Count the number of "View" buttons which appear once per job row
         assert page.count("btn btn-outline-primary btn-sm") >= 2
 
-    def test_download_main_files_job_detail_page_redirects_for_wrong_job_type(self, admin_jobs_client, mock_flash):
+    def test_download_main_files_job_detail_page_redirects_for_wrong_job_type(
+        self,
+        admin_jobs_client,
+        mock_flash,
+    ):
         """Test that accessing a non-download_main_files job via download route redirects."""
 
         # Create a collect_templates_data job
         job = self.service.create_job(job_type="collect_templates_data", username="user")
 
-        response = admin_jobs_client.get(f"/admin_panel/jobs/download_main_files/{job.id}", follow_redirects=True)
+        response = admin_jobs_client.get(
+            f"/admin_panel/jobs/download_main_files/{job.id}",
+            follow_redirects=True,
+        )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(
             f"Job id {job.id} with job_type='download_main_files' was not found", "warning"
         )
 
-    def test_delete_download_main_files_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_delete_download_main_files_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test deleting a download_main_files job."""
 
         # Create a job
@@ -554,7 +634,8 @@ class TestJobsRoutes(TestSetup):
         # Delete the job
         mock_cancel_job_worker.return_value = False
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/download_main_files/{job.id}/delete", follow_redirects=True
+            f"/admin_panel/jobs/download_main_files/{job.id}/delete",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Job {job.id} deleted successfully.", "success")
@@ -562,7 +643,12 @@ class TestJobsRoutes(TestSetup):
         # Verify job is deleted
         assert len(self.service.list_jobs()) == 0
 
-    def test_cancel_download_main_files_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_cancel_download_main_files_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test cancelling a download_main_files job."""
 
         # Create a job
@@ -572,21 +658,30 @@ class TestJobsRoutes(TestSetup):
         # Cancel the job
         mock_cancel_job_worker.return_value = True
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/download_main_files/{job.id}/cancel", follow_redirects=True
+            f"/admin_panel/jobs/download_main_files/{job.id}/cancel",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
 
-    def test_cancel_job_not_running(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_cancel_job_not_running(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test cancelling a job that's not running shows appropriate message."""
 
         job = self.service.create_job(job_type="download_main_files", username="user")
         self.service.update_job_status(job.id, "completed", job_type="download_main_files")
 
+        assert job.status == "completed"
+
         # Try to cancel a completed job
         mock_cancel_job_worker.return_value = False
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/download_main_files/{job.id}/cancel", follow_redirects=True
+            f"/admin_panel/jobs/download_main_files/{job.id}/cancel",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Job {job.id} is not running or already cancelled.", "warning")
@@ -605,7 +700,10 @@ class TestJobsRoutes(TestSetup):
         mock_load_auth_payload.return_value = {"username": "admin"}
         mock_start_job_form.side_effect = Exception("Database error")
 
-        response = admin_jobs_client.post("/admin_panel/jobs/collect_templates_data/start", follow_redirects=True)
+        response = admin_jobs_client.post(
+            "/admin_panel/jobs/collect_templates_data/start",
+            follow_redirects=True,
+        )
         assert response.status_code == 200
         mock_flash.assert_called_once_with("Failed to start job. Please try again.", "danger")
 
@@ -623,7 +721,8 @@ class TestJobsRoutes(TestSetup):
         )
 
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/collect_templates_data/{job.id}/delete", follow_redirects=True
+            f"/admin_panel/jobs/collect_templates_data/{job.id}/delete",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Failed to delete job {job.id}", "danger")
@@ -673,10 +772,13 @@ class TestJobsRoutes(TestSetup):
         job = self.service.create_job(job_type="download_main_files", username="user")
         self.service.update_job_status(job.id, "cancelled", job_type="download_main_files")
 
+        assert job.status == "cancelled"
+
         # Try to cancel again
         mock_cancel_job_worker.return_value = False
         response = admin_jobs_client.post(
-            f"/admin_panel/jobs/download_main_files/{job.id}/cancel", follow_redirects=True
+            f"/admin_panel/jobs/download_main_files/{job.id}/cancel",
+            follow_redirects=True,
         )
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Job {job.id} is not running or already cancelled.", "warning")

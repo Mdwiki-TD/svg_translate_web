@@ -61,3 +61,8 @@ class JobBackend(ABC):
             The last ``tail`` lines of the job's output.
         """
         return ""
+
+
+__all__ = [
+    "JobBackend",
+]

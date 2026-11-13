@@ -14,49 +14,50 @@ from .crud_service import CRUDService
 logger = logging.getLogger(__name__)
 
 
-def _serialize_value(value: Any, value_type: str) -> str | None:
-    if value is None:
-        return None
-    if value_type == "boolean":
-        return "true" if value else "false"
-    elif value_type == "integer":
-        try:
-            return str(int(value))
-        except (ValueError, TypeError):
-            return "0"
-    return str(value)
-
-
-def format_values(records: list[SettingRecord]) -> dict[str, Any]:
-    """Fetch all settings parsed into their respective Python types."""
-    data: dict[str, Any] = {}
-
-    for x in records:
-        val = None
-        if x.value_type == "boolean":
-            val = x.value == "true"
-        elif x.value_type == "integer":
-            if isinstance(x.value, int):
-                val = x.value
-            else:
-                try:
-                    val = int(x.value)  # type: ignore
-                except (ValueError, TypeError):
-                    val = None
-        elif x.value_type == "string":
-            val = None if x.value is None else str(x.value)
-
-        if val is None:
-            logger.warning("Could not parse setting %s with value %s", x.key, x.value)
-
-        data[x.key] = val
-
-    return data
-
-
 class SettingsService(CRUDService[SettingRecord]):
     def __init__(self) -> None:
         super().__init__(db.session, SettingRecord)
+
+    @staticmethod
+    def serialize_value(value: Any, value_type: str) -> str | None:
+        """Serialize a Python value to its string representation for storage."""
+        if value is None:
+            return None
+        if value_type == "boolean":
+            return "true" if value else "false"
+        elif value_type == "integer":
+            try:
+                return str(int(value))
+            except (ValueError, TypeError):
+                return "0"
+        return str(value)
+
+    @classmethod
+    def format_values(cls, records: list[SettingRecord]) -> dict[str, Any]:
+        """Parse a list of setting records into their Python-typed values."""
+        data: dict[str, Any] = {}
+
+        for x in records:
+            val = None
+            if x.value_type == "boolean":
+                val = x.value == "true"
+            elif x.value_type == "integer":
+                if isinstance(x.value, int):
+                    val = x.value
+                else:
+                    try:
+                        val = int(x.value)  # type: ignore
+                    except (ValueError, TypeError):
+                        val = None
+            elif x.value_type == "string":
+                val = None if x.value is None else str(x.value)
+
+            if val is None:
+                logger.warning("Could not parse setting %s with value %s", x.key, x.value)
+
+            data[x.key] = val
+
+        return data
 
     def list_settings(self) -> list[SettingRecord]:
         return self.list_all()
@@ -67,7 +68,7 @@ class SettingsService(CRUDService[SettingRecord]):
 
     def get_all_settings_ready(self) -> dict[str, Any]:
         """Fetch all settings parsed into their respective Python types."""
-        return format_values(self.list_settings())
+        return self.format_values(self.list_settings())
 
     def get_setting_by_key(self, key: str) -> SettingRecord | None:
         """Fetch a setting by key."""
@@ -94,7 +95,7 @@ class SettingsService(CRUDService[SettingRecord]):
             value_type = record.value_type
 
         data = {
-            "value": _serialize_value(value, value_type),
+            "value": self.serialize_value(value, value_type),
         }
         if title:
             data["title"] = title

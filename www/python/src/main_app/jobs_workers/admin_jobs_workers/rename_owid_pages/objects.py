@@ -6,9 +6,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
-from ...shared_objects import STATUS_LIST3, StandardAdminWorkerObject
+from ...shared_objects import StandardAdminWorkerObject
+
+STATUS_LIST3 = Literal[
+    "failed",
+    "pending",
+    "redirected",
+    "renamed",
+    "skipped_target_exists",
+]
 
 
 @dataclass

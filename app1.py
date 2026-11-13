@@ -26,9 +26,9 @@ _env_file_path = str(Path(__file__).resolve().parents[1] / ".env")
 EnvironmentInitializer.setup(_env_file_path)
 
 # import app here
-from main_app.logger_config import configure_logging  # noqa: E402
+from main_app.logger_config import LoggingConfigurator  # noqa: E402
 
-configure_logging(
+LoggingConfigurator.configure_logging(
     10,  # DEBUG = 10
     use_colorlog=True,
     name="CopySVGTranslation",
