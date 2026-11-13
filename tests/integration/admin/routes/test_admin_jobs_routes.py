@@ -32,7 +32,7 @@ def mock_start_job_form(monkeypatch: pytest.MonkeyPatch) -> Mock:
 @pytest.fixture
 def mock_load_auth_payload(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_auth_payload", _mock)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.RequestContextHelper.load_auth_payload", _mock)
     return _mock
 
 
