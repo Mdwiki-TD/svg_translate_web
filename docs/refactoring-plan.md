@@ -19,12 +19,12 @@ Refactor standalone functions across the `www/python/src/main_app/` codebase int
 - `save_data(result_data, filepath)` → private helper
 - `save_job_result_by_name(filename, result_data)` → method
 - `load_job_result(filename)` → method
-- `create_job_cancelled_file(filename)` → method
-- `is_job_cancelled_file_exist(filename)` → method
+- `create_cancel_file(filename)` → method
+- `is_cancel_file_exist(filename)` → method
 
 **Callers:**
-- `jobs_workers/jobs_worker.py` imports `create_job_cancelled_file`
-- `jobs_workers/base_worker.py` imports `save_job_result_by_name`, `is_job_cancelled_file_exist`
+- `jobs_workers/jobs_worker.py` imports `create_cancel_file`
+- `jobs_workers/base_worker.py` imports `save_job_result_by_name`, `is_cancel_file_exist`
 - `public/shared_jobs_routes.py` imports `load_job_result`
 - `io/__init__.py` re-exports all public functions
 
