@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from ...shared_objects import OneItem, STATUS_LITERAL, StandardAdminSummary, WorkerMapping
+from ...shared_objects import STATUS_LITERAL, OneItem, StandardAdminSummary, WorkerMapping
 
 
 @dataclass

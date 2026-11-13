@@ -4,7 +4,7 @@ Objects for collect_templates_data worker.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import Any
 
 from ....database.models import TemplateRecord
@@ -70,6 +70,7 @@ class TemplateInfos:
     """
     Holds all state for a single template being processed.
     """
+
     id: int
     source: str
     title: str = ""

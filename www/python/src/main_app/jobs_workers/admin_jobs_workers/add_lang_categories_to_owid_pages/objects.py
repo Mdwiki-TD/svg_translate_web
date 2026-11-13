@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import OneItem, STATUS_LITERAL, OneStep, StandardAdminWorkerObject
+from ...shared_objects import OneItem, OneStep, StandardAdminWorkerObject
 
 
 @dataclass
@@ -24,6 +24,7 @@ class InfoSteps:
 @dataclass
 class PageInfo(OneItem):
     """Holds all state for a single OWID page being processed."""
+
     svg_file: str | None = None
     lang_codes: list[str] = field(default_factory=list)
     categories_added: list[str] = field(default_factory=list)

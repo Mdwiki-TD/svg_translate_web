@@ -10,7 +10,6 @@ from typing import Any, Literal
 
 from ...shared_objects import StandardAdminWorkerObject
 
-
 STATUS_LIST3 = Literal[
     "failed",
     "pending",

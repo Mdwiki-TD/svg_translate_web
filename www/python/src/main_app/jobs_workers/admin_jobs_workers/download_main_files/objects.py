@@ -13,7 +13,6 @@ from typing import Any, Literal
 from ....database.models import TemplateRecord
 from ...shared_objects import StandardAdminWorkerObject
 
-
 STATUS = Literal[
     "pending",
     "running",

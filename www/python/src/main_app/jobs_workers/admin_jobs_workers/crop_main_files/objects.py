@@ -106,6 +106,7 @@ class CropMainFilesSummary:
 @dataclass
 class CropMainFilesWorkerObject(StandardAdminWorkerObject):
     """ """
+
     summary: CropMainFilesSummary = field(default_factory=CropMainFilesSummary)
     pages_to_work: list[str] = field(default_factory=list)
     pages_processed: list[CropFileProcessingInfo] = field(default_factory=list)
