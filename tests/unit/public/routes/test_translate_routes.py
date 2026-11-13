@@ -71,7 +71,7 @@ class TestTranslateRoutes:
         mock_download = DownloadAndSaveData(result="success", path="/tmp/Example.svg")
         monkeypatch.setattr(
             "src.main_app.public.routes.translate_routes.FilesService.download_and_save",
-            lambda *args: mock_download,
+            lambda *args, **kwargs: mock_download,
         )
 
         # Mock SvgTranslationExtractor.extract
@@ -79,7 +79,7 @@ class TestTranslateRoutes:
         mock_extract = ExtractResult(success=True, mapping=mapping)
         monkeypatch.setattr(
             "src.main_app.public.routes.translate_routes.SvgTranslationExtractor.extract",
-            lambda *args: mock_extract,
+            lambda *args, **kwargs: mock_extract,
         )
 
         resp = mock_client.post(
@@ -168,7 +168,7 @@ class TestTranslateRoutes:
         mock_inject = InjectResult(result=True)
         monkeypatch.setattr(
             "src.main_app.public.routes.translate_routes.SvgInjector.inject_one_file",
-            lambda *args: MagicMock(return_value=mock_inject),
+            lambda *args, **kwargs: mock_inject,
         )
 
         # Mock get_user_site
@@ -182,7 +182,7 @@ class TestTranslateRoutes:
         mock_upload = UploadResult(ok=True)
         monkeypatch.setattr(
             "src.main_app.public.routes.translate_routes.UploadService.upload_svg",
-            lambda *args: mock_upload,
+            lambda *args, **kwargs: mock_upload,
         )
 
         try:
