@@ -13,11 +13,10 @@ from src.main_app.jobs_workers.shared_objects import SharedworkerObject
 class _ConcreteWorker(BaseObjectsJobWorker):
     """Minimal concrete subclass for testing base-class methods."""
 
+    JOB_TYPE = "test_worker"
+
     def __init__(self, data: JobsRunner) -> None:
         self.result = SharedworkerObject()
-
-    def get_job_type(self) -> str:
-        return "test_worker"
 
     def process(self):  # pragma: no cover – not exercised here
         return self.result

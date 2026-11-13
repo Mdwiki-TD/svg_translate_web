@@ -36,6 +36,8 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
     Worker for copying SVG translations from a main file to its versions.
     """
 
+    JOB_TYPE = "extract_files_translations"
+
     def __init__(self, data: JobsRunner) -> None:
         super().__init__(data)
         args = data.args or {}
@@ -280,10 +282,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
     # ------------------
     # Public API
     # ------------------
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "extract_files_translations"
 
     def process(self) -> ExtractFilesTranslationsObject:
         """Execute the full pipeline."""

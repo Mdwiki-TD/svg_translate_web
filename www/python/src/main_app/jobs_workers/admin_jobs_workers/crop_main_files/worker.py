@@ -34,6 +34,8 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         6. Update page      - point the content page at the cropped file
     """
 
+    JOB_TYPE = "crop_main_files"
+
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
         super().__init__(data)
@@ -50,10 +52,6 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         self.exists: dict[str, Any] = {}
 
         self.files_processor = OneFileProcessor(self.job_id, self.site, self.args)
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "crop_main_files"
 
     # ------------------------------------------------------------------
     # Public entry-point

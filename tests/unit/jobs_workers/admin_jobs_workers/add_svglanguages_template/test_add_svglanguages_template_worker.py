@@ -149,10 +149,10 @@ class TestAddSvgSVGLanguagesTemplateInit:
 
         assert worker.limit_items == 0
 
-    def test_get_job_type(self):
-        """Test get_job_type returns correct job type."""
+    def test_job_type(self):
+        """Test JOB_TYPE returns correct job type."""
         worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user={}))
-        assert worker.get_job_type() == "add_svglanguages_template"
+        assert worker.JOB_TYPE == "add_svglanguages_template"
 
     def test_get_initial_result(self):
         """Test initial result structure."""

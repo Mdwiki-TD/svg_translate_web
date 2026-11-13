@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 class FixNestedMainFilesWorker(BaseObjectsJobWorker):
     """Worker for fixing nested tags in main files of templates."""
 
+    JOB_TYPE = "fix_nested_main_files"
+
     def __init__(self, data: JobsRunner) -> None:
         super().__init__(data)
         self.args = data.args or {}
@@ -38,10 +40,6 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         self.fix_nested_processer = NestedStructureService(
             strategy="flatten",
         )
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "fix_nested_main_files"
 
     def _process_one_item(self, template_info: TitleInfo) -> bool:
 

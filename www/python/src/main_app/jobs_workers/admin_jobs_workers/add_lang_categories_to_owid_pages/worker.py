@@ -45,6 +45,8 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         6. Save page with new categories appended
     """
 
+    JOB_TYPE = "add_lang_categories_to_owid_pages"
+
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
 
@@ -62,9 +64,6 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
     # BaseObjectsJobWorker hooks
     # ------------------------------------------------------------------
-
-    def get_job_type(self) -> str:
-        return "add_lang_categories_to_owid_pages"
 
     # ------------------------------------------------------------------
     # Public entry-point

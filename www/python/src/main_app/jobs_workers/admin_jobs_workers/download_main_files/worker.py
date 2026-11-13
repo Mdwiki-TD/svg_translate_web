@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 class DownloadMainFilesWorker(BaseObjectsJobWorker):
     """Worker for downloading main files from Commons to local filesystem."""
 
+    JOB_TYPE = "download_main_files"
+
     def __init__(
         self,
         data: JobsRunner,
@@ -41,10 +43,6 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         self.main_files_zip_name = self.args.get("main_files_zip_name", "main_files.zip")
         self.limit_items = self.args.get("limit_items") or 0
         self.files_service = FilesService()
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "download_main_files"
 
     def _load_templates(self) -> list[TemplateRecord]:
         # Get all templates with main files

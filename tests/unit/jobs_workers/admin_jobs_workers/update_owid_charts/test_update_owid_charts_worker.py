@@ -66,7 +66,7 @@ class TestUpdateOwidChartsWorkerInitialization:
 
         assert worker.job_id == 1
         assert worker.user == {"username": "test"}
-        assert worker.get_job_type() == "update_owid_charts"
+        assert worker.JOB_TYPE == "update_owid_charts"
         assert worker.limit_items == 0
 
     def test_worker_initialization_with_limit_items(self):
@@ -108,8 +108,8 @@ class TestUpdateOwidChartsWorkerInitialization:
 
         assert worker.limit_items == 0
 
-    def test_get_job_type(self):
-        """Test get_job_type returns correct value."""
+    def test_job_type(self):
+        """Test JOB_TYPE returns correct value."""
         worker = UpdateOwidChartsWorker(
             JobsRunner(
                 job_id=1,
@@ -117,7 +117,7 @@ class TestUpdateOwidChartsWorkerInitialization:
                 cancel_event=None,
             )
         )
-        assert worker.get_job_type() == "update_owid_charts"
+        assert worker.JOB_TYPE == "update_owid_charts"
 
     def test_initial_result_structure(self):
         """Test initial result matches expected structure."""

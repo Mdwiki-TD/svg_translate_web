@@ -37,7 +37,7 @@ class BaseObjectsJobWorker(ABC):
     - Result file generation and saving
 
     Subclasses must implement:
-    - get_job_type(): Return the job type string
+    - JOB_TYPE: Class-level string identifying the job type
     - process(): Implement the actual processing logic
 
     Optional overrides:
@@ -45,11 +45,13 @@ class BaseObjectsJobWorker(ABC):
     - after_run(): Called after processing completes
     """
 
+    JOB_TYPE: str = ""
+
     def __init__(self, data: JobsRunner) -> None:
         self.job_id: Final[int] = data.job_id
         self.user: Final[dict[str, Any]] = data.user
         self.cancel_event: Final[threading.Event | None] = data.cancel_event
-        self.job_type: str = self.get_job_type()
+        self.job_type: str = self.JOB_TYPE
         self._status: str = "pending"
 
         self.result_file: str = generate_result_file_name(data.job_id, self.job_type)
@@ -63,15 +65,6 @@ class BaseObjectsJobWorker(ABC):
 
         self.app_settings = get_settings()
         self.wiki_domain = self.app_settings.other.wiki_domain
-
-    @abstractmethod
-    def get_job_type(self) -> str:
-        """Return the job type string identifier.
-
-        Returns:
-            The job type string (e.g., 'crop_main_files', 'collect_templates_data')
-        """
-        ...
 
     @abstractmethod
     def process(self) -> TResult | type[TResult]:

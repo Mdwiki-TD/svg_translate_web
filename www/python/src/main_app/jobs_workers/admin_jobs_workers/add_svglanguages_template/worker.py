@@ -30,6 +30,8 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         5. save page with new wikitext
     """
 
+    JOB_TYPE = "add_svglanguages_template"
+
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
         super().__init__(data)
@@ -41,10 +43,6 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         )
 
         self.limit_items = self.args.get("limit_items") or 0
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "add_svglanguages_template"
 
     # ------------------------------------------------------------------
     # Initialisation helpers

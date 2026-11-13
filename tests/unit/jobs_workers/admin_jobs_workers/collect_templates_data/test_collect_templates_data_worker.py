@@ -6,12 +6,12 @@ from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import 
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
-def test_worker_class_get_job_type():
-    """Test CollectMainFilesWorker.get_job_type returns correct type."""
+def test_worker_class_job_type():
+    """Test CollectMainFilesWorker.JOB_TYPE returns correct type."""
     import threading
 
     _worker = worker.CollectMainFilesWorker(JobsRunner(job_id=1, user={}, cancel_event=threading.Event()))
-    assert _worker.get_job_type() == "collect_templates_data"
+    assert _worker.JOB_TYPE == "collect_templates_data"
 
 
 def test_worker_class_get_initial_result():

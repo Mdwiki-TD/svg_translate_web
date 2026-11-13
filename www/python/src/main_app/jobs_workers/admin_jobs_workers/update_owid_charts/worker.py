@@ -84,6 +84,7 @@ def _first_value(columns: dict, key: str) -> str | Any:
 
 
 class UpdateOwidChartsWorker(BaseObjectsJobWorker):
+    JOB_TYPE = "update_owid_charts"
     """Refresh ``min_time`` / ``max_time`` / ``len_years`` for every OWID chart."""
 
     def __init__(self, data: JobsRunner) -> None:
@@ -97,10 +98,6 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
 
         self.limit_items = self.args.get("limit_items") or 0
         self.owid_charts_service = OwidChartsService()
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "update_owid_charts"
 
     # ------------------------------------------------------------------
     # Per-chart processing

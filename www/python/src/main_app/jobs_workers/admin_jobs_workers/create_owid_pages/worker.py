@@ -31,6 +31,8 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         4. create new page with new wikitext
     """
 
+    JOB_TYPE = "create_owid_pages"
+
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
 
@@ -44,10 +46,6 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
         self.limit_items = self.args.get("limit_items") or 0
         self.update_all = str(self.args.get("update_all", "")).lower() == "true"
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "create_owid_pages"
 
     def process(self) -> CreateOwidPagesWorkerObject:
 

@@ -32,8 +32,7 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
 
 
 class MockWorker(BaseObjectsJobWorker):
-    def get_job_type(self) -> str:
-        return "mock_job"
+    JOB_TYPE = "mock_job"
 
     def process(self) -> WorkerMapping:
         return self.result

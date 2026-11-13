@@ -151,7 +151,7 @@ def mock_worker():
 
 
 class TestCopySvgLangsWorker:
-    def test_get_job_type(self) -> None:
+    def test_job_type(self) -> None:
         worker = CopySvgLangsWorker(
             JobsRunner(
                 job_id=1,
@@ -159,7 +159,7 @@ class TestCopySvgLangsWorker:
                 args={"title": "Test.svg"},
             )
         )
-        assert worker.get_job_type() == "copy_svg_langs"
+        assert worker.JOB_TYPE == "copy_svg_langs"
 
     def test_initial_result_structure(self) -> None:
         worker = CopySvgLangsWorker(
