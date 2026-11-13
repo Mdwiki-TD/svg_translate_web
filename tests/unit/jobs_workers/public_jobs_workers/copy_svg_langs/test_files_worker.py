@@ -59,7 +59,8 @@ def mock_files_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
     mock_inject = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.inject_step_one_file", mock_inject
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.SvgInjector.inject_one_file",
+        mock_inject,
     )
 
     return MockServices(

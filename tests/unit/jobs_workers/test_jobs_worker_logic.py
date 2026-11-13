@@ -8,14 +8,15 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Flask
 from src.main_app.database.exceptions import DuplicateRecordError
-from src.main_app.jobs_workers.cancel_registry import register_cancel_event
-from src.main_app.jobs_workers.jobs_worker import (
-    _load_job_args,
-    _runner,
-    cancel_job_worker,
+from src.main_app.jobs_workers.backends.thread_backend import _runner
+from src.main_app.jobs_workers.jobs_lifetime.cancel_registry import (
     pop_cancel_event,
-    start_job,
-    start_job_cli,
+    register_cancel_event,
+)
+from src.main_app.jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
+from src.main_app.jobs_workers.jobs_lifetime.jobs_starter import (
+    JobStarter,
+    _load_job_args,
 )
 from src.main_app.jobs_workers.objects import JobsRunner
 
@@ -34,12 +35,17 @@ def mock_db_services(monkeypatch: pytest.MonkeyPatch):
         "settings": MagicMock(),
         "cancel_file": MagicMock(),
     }
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.JobsService.create_job", mocks["create"])
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.JobsService.cancel_job_db", mocks["cancel_db"])
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create"])
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.jobs_worker.SettingsService.get_all_settings_ready", mocks["settings"]
+        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.cancel_job_db", mocks["cancel_db"]
     )
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.create_job_cancelled_file", mocks["cancel_file"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.SettingsService.get_all_settings_ready", mocks["settings"]
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.jobs_lifetime.jobs_canceller.JobFilesService.create_cancel_file",
+        mocks["cancel_file"],
+    )
     return mocks
 
 
@@ -104,7 +110,7 @@ def test_cancel_job_worker(mock_db_services):
     mock_db_services["cancel_db"].return_value = True
     mock_db_services["cancel_file"].return_value = True
 
-    res = cancel_job_worker(1, "test_type", job)
+    res = JobCanceller().cancel(1, "test_type", job)
 
     assert res is True
     assert event.is_set()
@@ -115,7 +121,7 @@ def test_cancel_job_worker(mock_db_services):
 @pytest.fixture
 def mock_jobs_data_admins(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.jobs_data_admins", _mock)
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.jobs_data_admins", _mock)
     return _mock
 
 
@@ -126,29 +132,29 @@ class TestStartJob:
         user = {"username": "testuser"}
 
         with flask_app.app_context():
-            job_id = start_job(user, "test")
+            job_id = JobStarter().start(user, "test")
             assert job_id == 123
 
     def test_start_job_unknown_type(self):
         with pytest.raises(ValueError, match="Unknown job type"):
-            start_job({"username": "u"}, "unknown")
+            JobStarter().start({"username": "u"}, "unknown")
 
     def test_start_job_no_username(self, mock_jobs_data_admins):
         mock_jobs_data_admins.__getitem__.return_value = MagicMock()
         with pytest.raises(ValueError, match="User authentication data is required"):
-            start_job({}, "test")
+            JobStarter().start({}, "test")
 
     def test_start_job_duplicate(self, mock_db_services, mock_jobs_data_admins, flask_app):
         mock_jobs_data_admins.__getitem__.return_value = MagicMock(job_class=lambda *args, **kwargs: None, job_args=[])
         mock_db_services["create"].side_effect = DuplicateRecordError()
         with flask_app.app_context():
             with pytest.raises(DuplicateRecordError):
-                start_job({"username": "u"}, "test")
+                JobStarter().start({"username": "u"}, "test")
 
     def test_start_job_cli_success(self, mock_db_services, mock_jobs_data_admins, flask_app):
         mock_jobs_data_admins.__getitem__.return_value = MagicMock(job_class=lambda *args, **kwargs: None, job_args=[])
         mock_db_services["create"].return_value = MagicMock(id=456)
         user = {"username": "testuser"}
 
-        job_id = start_job_cli(user, "test", app=flask_app)
+        job_id = JobStarter().start_cli(user, "test", app=flask_app)
         assert job_id == 456

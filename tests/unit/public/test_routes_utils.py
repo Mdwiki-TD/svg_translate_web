@@ -1,9 +1,5 @@
 """
 Unit tests for src/main_app/public/routes_utils.py module.
-
-Functions to test: context_data, load_auth_payload, get_job_detail_url
-
-TODO: write tests
 """
 
 from __future__ import annotations
@@ -11,31 +7,36 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from src.main_app.public.routes_utils import (
-    load_auth_payload,
+    RequestContextHelper,
 )
 from src.main_app.services.auth.current_user import CurrentUser
 
 
 class TestLoadAuthPayload:
     def test_with_current_user(self):
-        user = CurrentUser(user_id=42, username="TestUser", access_token=b"token123", access_secret=b"secret456")
-        result = load_auth_payload(user)
+        user = CurrentUser(
+            user_id=42,
+            username="TestUser",
+            access_token=b"token123",
+            access_secret=b"secret456",
+        )
+        result = RequestContextHelper.load_auth_payload(user)
         assert result["id"] == 42
         assert result["username"] == "TestUser"
         assert result["access_token"] == b"token123"
         assert result["access_secret"] == b"secret456"
 
     def test_with_none(self):
-        result = load_auth_payload(None)
+        result = RequestContextHelper.load_auth_payload(None)
         assert result == {}
 
     def test_returns_dict(self):
-        result = load_auth_payload(None)
+        result = RequestContextHelper.load_auth_payload(None)
         assert isinstance(result, dict)
 
     def test_with_current_user_returns_dict(self):
         user = CurrentUser(user_id=1, username="u", access_token=b"t", access_secret=b"s")
-        result = load_auth_payload(user)
+        result = RequestContextHelper.load_auth_payload(user)
         assert isinstance(result, dict)
         assert len(result) == 4
 
@@ -46,6 +47,6 @@ class TestLoadAuthPayload:
         user.username = "TestUser"
         user.access_token = "token123"
         user.access_secret = "secret456"
-        result = load_auth_payload(user)
+        result = RequestContextHelper.load_auth_payload(user)
         assert result["id"] == 42
         assert result["username"] == "TestUser"

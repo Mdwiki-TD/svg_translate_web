@@ -7,8 +7,13 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.database.models import JobRecord
-from src.main_app.jobs_workers import cancel_registry, jobs_worker
-from src.main_app.jobs_workers.cancel_registry import register_cancel_event
+from src.main_app.jobs_workers.jobs_lifetime import cancel_registry
+from src.main_app.jobs_workers.jobs_lifetime.cancel_registry import (
+    get_cancel_event,
+    register_cancel_event,
+)
+from src.main_app.jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
+from src.main_app.jobs_workers.jobs_lifetime.jobs_starter import JobStarter
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -47,9 +52,11 @@ def mock_jobs_worker_services(monkeypatch: pytest.MonkeyPatch):
         "current_app": MagicMock(),
     }
 
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.JobsService.create_job", mocks["create_job"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create_job"]
+    )
     monkeypatch.setattr("src.main_app.jobs_workers.backends.thread_backend.threading.Thread", mocks["Thread"])
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_worker.current_app", mocks["current_app"])
+    monkeypatch.setattr("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.current_app", mocks["current_app"])
 
     return mocks
 
@@ -65,7 +72,7 @@ def test_start_collect_templates_data_job(mock_jobs_worker_services):
     mock_thread_instance = MagicMock()
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
-    job_id = jobs_worker.start_job({"username": "22"}, "collect_templates_data")
+    job_id = JobStarter().start({"username": "22"}, "collect_templates_data")
 
     assert job_id == 1
     mock_jobs_worker_services["create_job"].assert_called_once_with("collect_templates_data", "22")
@@ -80,7 +87,7 @@ def test_start_collect_templates_data_job(mock_jobs_worker_services):
     mock_thread_instance.start.assert_called_once()
 
     # Verify event was registered
-    assert jobs_worker.get_cancel_event(1) is not None
+    assert get_cancel_event(1) is not None
 
 
 def test_start_fix_nested_main_files_job(mock_jobs_worker_services):
@@ -95,14 +102,14 @@ def test_start_fix_nested_main_files_job(mock_jobs_worker_services):
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
     user = {"username": "test_user"}
-    job_id = jobs_worker.start_job(user, "fix_nested_main_files")
+    job_id = JobStarter().start(user, "fix_nested_main_files")
 
     assert job_id == 2
     mock_jobs_worker_services["create_job"].assert_called_once_with("fix_nested_main_files", "test_user")
     mock_jobs_worker_services["Thread"].assert_called_once()
 
     # Verify event was registered
-    assert jobs_worker.get_cancel_event(2) is not None
+    assert get_cancel_event(2) is not None
 
 
 def test_cancel_job():
@@ -111,14 +118,14 @@ def test_cancel_job():
     register_cancel_event(123, event)
 
     assert not event.is_set()
-    result = jobs_worker.cancel_job_worker(123)
+    result = JobCanceller().cancel(123)
     assert result is True
     assert event.is_set()
 
 
 def test_cancel_nonexistent_job():
     """Test cancelling a job that isn't registered."""
-    result = jobs_worker.cancel_job_worker(999)
+    result = JobCanceller().cancel(999)
     assert result is False
 
 
@@ -137,9 +144,9 @@ def test_runner_calls_target_and_cleans_up():
     flask_app.app_context = MagicMock()
 
     register_cancel_event(job_id, event)
-    assert jobs_worker.get_cancel_event(job_id) == event
+    assert get_cancel_event(job_id) == event
 
-    from src.main_app.jobs_workers.jobs_worker import _runner
+    from src.main_app.jobs_workers.backends.thread_backend import _runner
 
     data = JobsRunner(
         job_id=job_id,
@@ -157,7 +164,7 @@ def test_runner_calls_target_and_cleans_up():
     mock_target.run.assert_called_once_with()
     flask_app.app_context.assert_called_once()
     # After runner finishes, event should be popped from CANCEL_EVENTS
-    assert jobs_worker.get_cancel_event(job_id) is None
+    assert get_cancel_event(job_id) is None
 
 
 def test_start_download_main_files_job(mock_jobs_worker_services):
@@ -172,20 +179,20 @@ def test_start_download_main_files_job(mock_jobs_worker_services):
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
     user = {"username": "test_user"}
-    job_id = jobs_worker.start_job(user, "download_main_files")
+    job_id = JobStarter().start(user, "download_main_files")
 
     assert job_id == 3
     mock_jobs_worker_services["create_job"].assert_called_once_with("download_main_files", "test_user")
     mock_jobs_worker_services["Thread"].assert_called_once()
 
     # Verify event was registered
-    assert jobs_worker.get_cancel_event(3) is not None
+    assert get_cancel_event(3) is not None
 
 
 def test_start_job_with_invalid_job_type():
     """Test that starting a job with an invalid job type raises an error."""
     with pytest.raises(ValueError, match="Unknown job type"):
-        jobs_worker.start_job({"username": "22"}, "invalid_job_type")
+        JobStarter().start({"username": "22"}, "invalid_job_type")
 
 
 def test_multiple_jobs_can_be_cancelled_independently():
@@ -199,18 +206,18 @@ def test_multiple_jobs_can_be_cancelled_independently():
     register_cancel_event(3, event3)
 
     # Cancel job 2
-    assert jobs_worker.cancel_job_worker(2) is True
+    assert JobCanceller().cancel(2) is True
     assert event2.is_set()
     assert not event1.is_set()
     assert not event3.is_set()
 
     # Cancel job 1
-    assert jobs_worker.cancel_job_worker(1) is True
+    assert JobCanceller().cancel(1) is True
     assert event1.is_set()
     assert not event3.is_set()
 
     # Cancel job 3
-    assert jobs_worker.cancel_job_worker(3) is True
+    assert JobCanceller().cancel(3) is True
     assert event3.is_set()
 
 
@@ -230,7 +237,7 @@ def test_runner_passes_args_to_target():
 
     register_cancel_event(job_id, event)
 
-    from src.main_app.jobs_workers.jobs_worker import _runner
+    from src.main_app.jobs_workers.backends.thread_backend import _runner
 
     data = JobsRunner(
         job_id=job_id,
@@ -262,7 +269,7 @@ def test_runner_passes_none_args_by_default():
 
     register_cancel_event(job_id, event)
 
-    from src.main_app.jobs_workers.jobs_worker import _runner
+    from src.main_app.jobs_workers.backends.thread_backend import _runner
 
     data = JobsRunner(
         job_id=job_id,
@@ -291,7 +298,7 @@ def test_start_job_param(mock_jobs_worker_services):
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
     args = {"update_all": "true"}
-    job_id = jobs_worker.start_job({"username": "22"}, "collect_templates_data", args=args)
+    job_id = JobStarter().start({"username": "22"}, "collect_templates_data", args=args)
 
     assert job_id == 10
     mock_jobs_worker_services["Thread"].assert_called_once()
@@ -312,18 +319,13 @@ def test_start_job_without_args_passes_none(mock_jobs_worker_services):
     mock_thread_instance = MagicMock()
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
-    job_id = jobs_worker.start_job({"username": "22"}, "collect_templates_data")
+    job_id = JobStarter().start({"username": "22"}, "collect_templates_data")
 
     assert job_id == 11
     thread_args = mock_jobs_worker_services["Thread"].call_args[1]["args"]
     runner_data = thread_args[0]
     assert isinstance(runner_data, JobsRunner)
     assert runner_data.args == {}
-
-
-def test_start_job_is_alias_for_start_job():
-    """Test that start_job is the same callable as start_job."""
-    assert jobs_worker.start_job is jobs_worker.start_job
 
 
 def test_start_job_alias_works(mock_jobs_worker_services):
@@ -339,7 +341,7 @@ def test_start_job_alias_works(mock_jobs_worker_services):
 
     args = {"update_all": "true"}
     user = {"username": "alias_user"}
-    job_id = jobs_worker.start_job(user, "collect_templates_data", args)
+    job_id = JobStarter().start(user, "collect_templates_data", args)
 
     assert job_id == 12
     mock_jobs_worker_services["create_job"].assert_called_once_with("collect_templates_data", "alias_user")

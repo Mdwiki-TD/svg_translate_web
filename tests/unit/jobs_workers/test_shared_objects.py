@@ -56,8 +56,8 @@ class TestSharedworkerObject:
     def test_default_lists_are_empty(self):
         obj = SharedworkerObject()
         assert obj.pages_processed == []
-        assert obj.pages_changed == []
-        assert obj.pages_errors == []
+        assert obj.pages_updated == []
+        assert obj.pages_failed == []
         assert obj.pages_skipped == []
         assert obj.pages_missing == []
 
@@ -69,8 +69,8 @@ class TestSharedworkerObject:
     def test_lists_are_independent(self):
         a = SharedworkerObject()
         b = SharedworkerObject()
-        a.pages_changed.append({"title": "Test"})
-        assert b.pages_changed == []
+        a.pages_updated.append({"title": "Test"})
+        assert b.pages_updated == []
 
     def test_to_json(self):
         obj = SharedworkerObject(status="running")
