@@ -24,7 +24,7 @@ from ...config import get_settings
 from ...decorators import oauth_required
 from ...services.copysvg_wrapper import InjectResult, SvgInjector, SvgTranslationExtractor
 from ...services.copysvg_wrapper.mapping import TranslationMapping
-from ..routes_utils import load_auth_payload
+from ..routes_utils import RequestContextHelper
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +256,7 @@ class TranslateSaveView(MethodView):
             return response
 
         # Handle Action: Upload
-        user_payload = load_auth_payload(g._current_user)
+        user_payload = RequestContextHelper.load_auth_payload(g._current_user)
 
         app_settings = get_settings()
         site = WikiSiteClient.get_user_site(app_settings.other.wiki_domain, user_payload)

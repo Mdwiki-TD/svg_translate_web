@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import logging
+from datetime import date, timedelta
 from typing import Any
 
-from flask import url_for
-
-from ..jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ..services.auth.current_user_resolver import CurrentUserResolver
 
 logger = logging.getLogger(__name__)
@@ -27,13 +25,16 @@ class RequestContextHelper:
 
         username = user.username if user else None
 
+        yesterday = (date.today() - timedelta(days=1)).isoformat()
         return {
+            "tool_title": tool_title,
             "is_authenticated": user is not None,
             "current_username": username,
             "is_admin": cls._is_admin(user),
+            "is_coordinator": cls._is_coordinator(user),
             "wiki_domain": wiki_domain,
             "static_server": static_server,
-            "tool_title": tool_title,
+            "yesterday": yesterday,
         }
 
     @staticmethod
@@ -71,24 +72,11 @@ class RequestContextHelper:
         return bool(user and getattr(user, "is_active_admin", False))
 
     @staticmethod
-    def get_job_detail_url(job_id: int, job_type: str) -> str:
-        """Returns the correct job detail URL based on job type."""
-        if job_type in jobs_data_public:
-            return url_for("public_jobs.job_detail", job_type=job_type, job_id=job_id)
-        return url_for("admin_panel.jobs.job_detail", job_type=job_type, job_id=job_id)
+    def _is_coordinator(user: Any) -> bool:
+        """Check if user is an active coordinator."""
+        return bool(user and getattr(user, "is_active_coordinator", False))
 
-
-can_run_bg_jobs = RequestContextHelper.can_run_bg_jobs
-can_run_jobs = RequestContextHelper.can_run_jobs
-context_data = RequestContextHelper.context_data
-load_auth_payload = RequestContextHelper.load_auth_payload
-get_job_detail_url = RequestContextHelper.get_job_detail_url
 
 __all__ = [
     "RequestContextHelper",
-    "can_run_bg_jobs",
-    "can_run_jobs",
-    "context_data",
-    "load_auth_payload",
-    "get_job_detail_url",
 ]

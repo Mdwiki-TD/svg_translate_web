@@ -8,13 +8,13 @@ from typing import Any
 from flask import (
     Blueprint,
     render_template,
+    url_for,
 )
 from flask.views import MethodView
 
 from ..database.services import JobsService
 from ..decorators import admin_required
 from ..jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
-from ..public.routes_utils import get_job_detail_url
 
 logger = logging.getLogger(__name__)
 
@@ -37,13 +37,14 @@ class AdminDashboardView(MethodView):
         # Enhance jobs with display names and detail URLs
         enhanced_jobs: list[Any] = []
         for job in jobs:
+            detail_url = url_for("admin_panel.jobs.job_detail", job_type=job.job_type, job_id=job.id)
             enhanced_jobs.append(
                 {
                     "id": job.id,
                     "status": job.status,
                     "job_type": job.job_type,
                     "display_name": _get_display_name(job.job_type),
-                    "detail_url": get_job_detail_url(job.id, job.job_type),
+                    "detail_url": detail_url,
                     "username": job.username,
                     "created_at": job.created_at,
                     "started_at": job.started_at,

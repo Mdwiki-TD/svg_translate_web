@@ -39,9 +39,8 @@ def mock_load_auth_payload(monkeypatch: pytest.MonkeyPatch) -> Mock:
 @pytest.fixture
 def mock_cancel_job_worker(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    _mock.cancel = Mock()
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobCanceller", _mock)
-    return _mock.cancel
+    return _mock.return_value.cancel
 
 
 class TestSetup:
