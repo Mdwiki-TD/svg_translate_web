@@ -1,0 +1,67 @@
+{% extends "admins/base1.html" %}
+
+{% block admin_contents %}
+{% from "admins/tf_jobs/_job_actions.html" import job_actions, status_badge %}
+<div class="container-fluid py-3">
+    <h2 class="mb-3">Toolforge jobs</h2>
+
+    {% if not error %}
+    <div class="mb-3">
+        <span class="badge bg-secondary">Total: {{ total_jobs }}</span>
+        {% for status, count in status_summary.items() %}
+        {{ status_badge(status, count) }}
+        {% endfor %}
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Duration</th>
+                    <th>Image</th>
+                    <th>Command</th>
+                    <th>Resources</th>
+                    <th>Logs</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td><a href="{{ url_for('.job_detail', job_id=job.name) }}"><code>{{ job.name }}</code></a></td>
+                    <td>{{ job.job_type }}{% if job.schedule %}<br><small>{{ job.schedule }}</small>{% endif %}</td>
+                    <td>
+                        {{ status_badge(job.status_key) }}
+                        {% for msg in job.status_messages %}
+                        <br><small class="text-muted">{{ msg }}</small>
+                        {% endfor %}
+                        <details>
+                            <summary><small>details</small></summary>
+                            <small>{{ job.status_long }}</small>
+                        </details>
+                    </td>
+                    <td>{{ job.status.duration if job.status else "" }}</td>
+                    <td>{{ job.image }}{% if job.image_state %} <small>({{ job.image_state }})</small>{% endif %}</td>
+                    <td><code>{{ job.cmd }}</code></td>
+                    <td><small>CPU {{ job.cpu }} / Mem {{ job.memory }}</small></td>
+                    <td>
+                        {% if job.filelog %}
+                        <small>{{ job.filelog_stdout }}<br>{{ job.filelog_stderr }}</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-nowrap">{{ job_actions(job.name) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted">No jobs found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,14 +1,6 @@
 {% extends "jobs_templates/admin_templates/base_list_admin.html" %}
 {% from "_macros/forms.html" import form_start_job %}
 
-{% block list_info %}
-<div class="alert alert-info mb-3">
-    <i class="bi bi-info-circle"></i>
-    This job reads OWID template pages and generates corresponding showcase pages:
-    <br>
-    <code>Template:OWID/Some map</code> → <code>OWID/Some map</code>
-</div>
-{% endblock %}
 {% set hide_start_button = True %}
 {% block header_actions %}
 <form method="post" action="{{ url_for('admin_panel.jobs.start_job', job_type=template_data.job_type) }}"

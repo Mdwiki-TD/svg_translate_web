@@ -1,0 +1,36 @@
+{% extends "admins/base1.html" %}
+
+{% block admin_contents %}
+<div class="container-fluid py-3">
+  <p class="mb-2">
+    <a href="{{ url_for('.jobs') }}">&larr; Back to jobs</a>
+    &middot;
+    <a href="{{ url_for('.job_detail', job_id=job_id) }}">Job details</a>
+  </p>
+  <h2 class="mb-3">Logs of <code>{{ job_id }}</code></h2>
+
+  {% if not error %}
+  <form method="get" class="row g-2 align-items-center mb-3">
+    <div class="col-auto">
+      <label for="lines" class="col-form-label">Last lines</label>
+    </div>
+    <div class="col-auto">
+      <input type="number" id="lines" name="lines" class="form-control form-control-sm" min="1" max="{{ max_lines }}"
+        value="{{ lines }}">
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-sm btn-primary">Refresh</button>
+    </div>
+    <div class="col-auto text-muted">
+      <small>Showing {{ logs | length }} of {{ total_lines }} lines</small>
+    </div>
+  </form>
+
+  {% if logs %}
+  <pre class="border rounded p-2 bg-light" style="max-height: 70vh; overflow: auto;">{{ logs | join("\n") }}</pre>
+  {% else %}
+  <p class="text-muted">No log lines.</p>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

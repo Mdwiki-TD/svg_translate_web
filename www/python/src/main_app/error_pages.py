@@ -1,4 +1,9 @@
-"""Flask error handlers plus no-cache headers for form-related routes."""
+"""Flask error handlers plus no-cache headers for form-related routes.
+
+Provides :class:`ErrorHandler` for credential-safe error logging and response
+generation, plus :func:`register_error_pages` and :func:`register_cache_headers`
+for Flask app initialization.
+"""
 
 from __future__ import annotations
 
@@ -10,10 +15,9 @@ from flask_wtf.csrf import CSRFError
 
 from .database.services.error_log_service import ErrorLogService
 
-# logger = logging.getLogger(__name__)
-logger = logging.getLogger("request_debug")
-logger.propagate = False  # not linked to root handlers
-logger.addHandler(logging.StreamHandler())  # console only
+_logger = logging.getLogger("request_debug")
+_logger.propagate = False  # not linked to root handlers
+_logger.addHandler(logging.StreamHandler())  # console only
 
 # Paths that browsers/crawlers hit routinely; logging them is just noise
 SKIP_ROUTES = (
@@ -65,87 +69,97 @@ USEFUL_HEADERS = (
 NO_CACHE_ENDPOINTS = ("auth.", "publish.", "fixrefs.", "cxtoken.")
 
 
-def safe_headers(headers) -> dict[str, str]:
-    """Return headers with sensitive values redacted."""
-    return {k: ("[REDACTED]" if k.lower() in SENSITIVE_HEADERS else v) for k, v in headers.items()}
+class ErrorHandler:
+    """Credential-safe error logging and response generation for Flask.
 
+    Provides static methods for redacting sensitive data from headers and
+    query strings, and for building JSON or HTML error responses.
+    """
 
-def safe_query() -> str:
-    """Return the query string with secret-looking values redacted."""
-    raw = request.query_string.decode("utf-8", errors="replace")
-    pairs = parse_qsl(raw, keep_blank_values=True)
-    return urlencode([(k, "[REDACTED]" if k.lower() in SENSITIVE_QUERY_KEYS else v) for k, v in pairs])
+    @staticmethod
+    def safe_headers(headers) -> dict[str, str]:
+        """Return headers with sensitive values redacted."""
+        return {k: ("[REDACTED]" if k.lower() in SENSITIVE_HEADERS else v) for k, v in headers.items()}
 
+    @staticmethod
+    def safe_query() -> str:
+        """Return the query string with secret-looking values redacted."""
+        raw = request.query_string.decode("utf-8", errors="replace")
+        pairs = parse_qsl(raw, keep_blank_values=True)
+        return urlencode([(k, "[REDACTED]" if k.lower() in SENSITIVE_QUERY_KEYS else v) for k, v in pairs])
 
-def client_ip() -> str:
-    """Return the first X-Forwarded-For hop, falling back to the socket address."""
-    forwarded = request.headers.get("X-Forwarded-For", "")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.remote_addr or "-"
+    @staticmethod
+    def client_ip() -> str:
+        """Return the first X-Forwarded-For hop, falling back to the socket address."""
+        forwarded = request.headers.get("X-Forwarded-For", "")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+        return request.remote_addr or "-"
 
+    @classmethod
+    def log_error(
+        cls,
+        label: str,
+        e: Exception,
+        level: int = logging.ERROR,
+    ) -> None:
+        """Write a single-line, credential-free log entry for an HTTP error."""
+        headers = cls.safe_headers(request.headers)
+        picked = {name: headers[name] for name in USEFUL_HEADERS if name in headers}
 
-def log_error(
-    label: str,
-    e: Exception,
-    level: int = logging.ERROR,
-) -> None:
-    """Write a single-line, credential-free log entry for an HTTP error."""
-    headers = safe_headers(request.headers)
-    picked = {name: headers[name] for name in USEFUL_HEADERS if name in headers}
+        # %r escapes newlines, so user-controlled values cannot forge extra log lines
+        _logger.log(
+            level,
+            "%s | path=%r | query=%r | method=%s | ip=%s | route=%s | has_cookie=%s | headers=%r | error=%s",
+            label,
+            request.path,
+            cls.safe_query(),
+            request.method,
+            cls.client_ip(),
+            list(request.access_route),
+            "cookie" in request.headers,
+            picked,
+            e,
+        )
+        # Also persist to the database; the service never raises
+        ErrorLogService().log_request(
+            status_code=getattr(e, "code", None) or 500,
+            error=e,
+            query=cls.safe_query(),
+            ip=cls.client_ip(),
+        )
 
-    # %r escapes newlines, so user-controlled values cannot forge extra log lines
-    logger.log(
-        level,
-        "%s | path=%r | query=%r | method=%s | ip=%s | route=%s | has_cookie=%s | headers=%r | error=%s",
-        label,
-        request.path,
-        safe_query(),
-        request.method,
-        client_ip(),
-        list(request.access_route),
-        "cookie" in request.headers,
-        picked,
-        e,
-    )
-    # Also persist to the database; the service never raises
-    ErrorLogService().log_request(
-        status_code=getattr(e, "code", None) or 500,
-        error=e,
-        query=safe_query(),
-        ip=client_ip(),
-    )
+    @staticmethod
+    def wants_json() -> bool:
+        """True when the client expects a JSON error body."""
+        return request.is_json or request.path.startswith("/api/")
 
+    @classmethod
+    def respond(
+        cls,
+        *,
+        status: int,
+        title: str,
+        error_str: str,
+        flash_message: str,
+        json_message: str | None = None,
+        category: str = "warning",
+        error: Exception | None = None,
+    ) -> tuple[str | Response, int]:
+        """Build the JSON or HTML error response."""
+        json_message = json_message or str(error) if error else None
+        if cls.wants_json():
+            body = {"error": error_str}
+            if json_message is not None:
+                body["message"] = json_message
+            return jsonify(body), status
 
-def wants_json() -> bool:
-    """True when the client expects a JSON error body."""
-    return request.is_json or request.path.startswith("/api/")
+        # Extract the exact description passed via abort()
+        error_message = getattr(error, "description", None) if error else None
+        flash_message = error_message if error_message is not None else flash_message
 
-
-def respond(
-    *,
-    status: int,
-    title: str,
-    error_str: str,
-    flash_message: str,
-    json_message: str | None = None,
-    category: str = "warning",
-    error: Exception | None = None,
-) -> tuple[str | Response, int]:
-    """Build the JSON or HTML error response."""
-    json_message = json_message or str(error) if error else None
-    if wants_json():
-        body = {"error": error_str}
-        if json_message is not None:
-            body["message"] = json_message
-        return jsonify(body), status
-
-    # Extract the exact description passed via abort()
-    error_message = getattr(error, "description", None) if error else None
-    flash_message = error_message if error_message is not None else flash_message
-
-    flash(f"{title}: {flash_message}", category)
-    return render_template("error.html", title=title), status
+        flash(f"{title}: {flash_message}", category)
+        return render_template("error.html", title=title), status
 
 
 def register_cache_headers(app: Flask) -> None:
@@ -161,14 +175,13 @@ def register_cache_headers(app: Flask) -> None:
 
 
 def register_error_pages(app: Flask) -> None:
+    """Register Flask error handlers for common HTTP errors."""
+
     @app.errorhandler(400)
     def bad_request(e: Exception) -> tuple[str | Response, int]:
-        """
-        Handle 400 errors
-        """
-        log_error("400 Bad request", e)
-
-        return respond(
+        """Handle 400 errors"""
+        ErrorHandler.log_error("400 Bad request", e)
+        return ErrorHandler.respond(
             error=e,
             status=400,
             title="Bad Request",
@@ -179,8 +192,8 @@ def register_error_pages(app: Flask) -> None:
     @app.errorhandler(401)
     def unauthorized(e: Exception) -> tuple[str | Response, int]:
         """Handle 401 errors"""
-        log_error("401 Unauthorized", e, logging.WARNING)
-        return respond(
+        ErrorHandler.log_error("401 Unauthorized", e, logging.WARNING)
+        return ErrorHandler.respond(
             error=e,
             status=401,
             title="Unauthorized",
@@ -192,8 +205,8 @@ def register_error_pages(app: Flask) -> None:
     @app.errorhandler(403)
     def forbidden(e: Exception) -> tuple[str | Response, int]:
         """Handle 403 errors"""
-        log_error("403 Forbidden", e)
-        return respond(
+        ErrorHandler.log_error("403 Forbidden", e)
+        return ErrorHandler.respond(
             error=e,
             status=403,
             title="Access Denied",
@@ -207,8 +220,8 @@ def register_error_pages(app: Flask) -> None:
     def page_not_found(e: Exception) -> tuple[str | Response, int]:
         """Handle 404 errors"""
         if not request.path.startswith(SKIP_ROUTES):
-            log_error("404 Not found", e)
-        return respond(
+            ErrorHandler.log_error("404 Not found", e)
+        return ErrorHandler.respond(
             error=e,
             status=404,
             title="Page Not Found",
@@ -219,8 +232,8 @@ def register_error_pages(app: Flask) -> None:
     @app.errorhandler(405)
     def method_not_allowed(e: Exception) -> tuple[str | Response, int]:
         """Handle 405 errors"""
-        log_error("405 Method not allowed", e)
-        return respond(
+        ErrorHandler.log_error("405 Method not allowed", e)
+        return ErrorHandler.respond(
             error=e,
             status=405,
             title="Method Not Allowed",
@@ -231,8 +244,8 @@ def register_error_pages(app: Flask) -> None:
     @app.errorhandler(429)
     def too_many_requests(e: Exception) -> tuple[str | Response, int]:
         """Handle 429 rate limit errors"""
-        log_error("429 Rate limit exceeded", e, logging.WARNING)
-        return respond(
+        ErrorHandler.log_error("429 Rate limit exceeded", e, logging.WARNING)
+        return ErrorHandler.respond(
             error=e,
             status=429,
             title="Rate Limit Exceeded",
@@ -244,8 +257,8 @@ def register_error_pages(app: Flask) -> None:
     @app.errorhandler(500)
     def internal_server_error(e: Exception) -> tuple[str | Response, int]:
         """Handle 500 errors"""
-        log_error("500 Internal Server Error", e)
-        return respond(
+        ErrorHandler.log_error("500 Internal Server Error", e)
+        return ErrorHandler.respond(
             error=e,
             status=500,
             title="Internal Server Error",
@@ -258,8 +271,8 @@ def register_error_pages(app: Flask) -> None:
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e: CSRFError) -> tuple[str | Response, int]:
         """Handle CSRF token errors"""
-        log_error("400 CSRF error", e)
-        return respond(
+        ErrorHandler.log_error("400 CSRF error", e)
+        return ErrorHandler.respond(
             error=e,
             status=400,
             title="Session Expired",
@@ -270,6 +283,7 @@ def register_error_pages(app: Flask) -> None:
 
 
 __all__ = [
+    "ErrorHandler",
     "register_error_pages",
     "register_cache_headers",
 ]
