@@ -1,0 +1,72 @@
+{#
+  Shared macros for the job action icons.
+  Usage: {% from "admins/tf_jobs/_job_actions.html" import job_actions, status_badge %}
+         {{ job_actions(job.name) }}  {{ status_badge(job.status_key) }}
+  Endpoints are relative to the current blueprint (".job_detail", ".job_logs", ...).
+#}
+
+{% macro icon(name) -%}
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    {%- if name == "eye" -%}
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+    {%- elif name == "logs" -%}
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    {%- elif name == "restart" -%}
+    <polyline points="23 4 23 10 17 10" />
+    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+    {%- elif name == "delete" -%}
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6" />
+    <path d="M14 11v6" />
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    {%- endif -%}
+</svg>
+{%- endmacro %}
+
+{# Status badge. Statuses from the API: pending, running, succeeded, failed, unknown. #}
+{% macro status_badge(status, count=none) -%}
+{%- set css = {"failed": "bg-danger", "running": "bg-success", "succeeded": "bg-primary", "pending": "bg-warning text-dark"}.get(status, "bg-secondary") -%}
+<span class="badge {{ css }}">{{ status }}{% if count is not none %}: {{ count }}{% endif %}</span>
+{%- endmacro %}
+
+{# Hidden CSRF field, only rendered when CSRF protection is enabled in the app. #}
+{% macro csrf_field() -%}
+{%- if csrf_token is defined -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endif -%}
+{%- endmacro %}
+
+{% macro job_actions(name, show=True, logs=True, restart=True, delete=True) -%}
+<div class="d-inline-flex gap-1" role="group" aria-label="Actions for {{ name }}">
+    {% if show %}
+    <a href="{{ url_for('.job_detail', job_id=name) }}" class="btn btn-sm btn-outline-secondary" title="Show job"
+        aria-label="Show job {{ name }}">{{ icon("eye") }}</a>
+    {% endif %}
+    {% if logs %}
+    <a href="{{ url_for('.job_logs', job_id=name) }}" class="btn btn-sm btn-outline-secondary" title="Show logs"
+        aria-label="Show logs of job {{ name }}">{{ icon("logs") }}</a>
+    {% endif %}
+    {% if restart %}
+    <form method="post" action="{{ url_for('.job_restart', job_id=name) }}" class="d-inline"
+        data-confirm="Restart job {{ name }}?" onsubmit="return confirm(this.dataset.confirm);">
+        {{ csrf_field() }}
+        <button type="submit" class="btn btn-sm btn-outline-warning" title="Restart job"
+            aria-label="Restart job {{ name }}">{{ icon("restart") }}</button>
+    </form>
+    {% endif %}
+    {% if delete %}
+    <form method="post" action="{{ url_for('.job_delete', job_id=name) }}" class="d-inline"
+        data-confirm="Delete job {{ name }}? This cannot be undone." onsubmit="return confirm(this.dataset.confirm);">
+        {{ csrf_field() }}
+        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete job"
+            aria-label="Delete job {{ name }}">{{ icon("delete") }}</button>
+    </form>
+    {% endif %}
+</div>
+{%- endmacro %}

@@ -8,6 +8,8 @@ from .commons_client import (
 )
 from .http_client import ApiRequestError, HttpClient
 from .owid_client import fetch_grapher_metadata_raw, fetch_indicators_metadata
+from .toolforge_api_service import ToolforgeApiService
+from .toolforge_jobs_api_service import ToolforgeJobsService
 from .wikisite_client import WikiSiteClient
 
 __all__ = [
@@ -18,4 +20,6 @@ __all__ = [
     "CommonsSession",
     "fetch_indicators_metadata",
     "fetch_grapher_metadata_raw",
+    "ToolforgeApiService",
+    "ToolforgeJobsService",
 ]

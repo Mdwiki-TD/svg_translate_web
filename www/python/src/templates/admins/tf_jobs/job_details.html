@@ -1,0 +1,68 @@
+{% extends "admins/base1.html" %}
+
+{% block admin_contents %}
+{% from "admins/tf_jobs/_job_actions.html" import job_actions, status_badge %}
+<div class="container-fluid py-3">
+  <p class="mb-2"><a href="{{ url_for('.jobs') }}">&larr; Back to jobs</a></p>
+  <h2 class="mb-3">Job <code>{{ job_id }}</code></h2>
+
+  {% if not error and job %}
+  <div class="mb-3">{{ job_actions(job_id, show=False) }}</div>
+
+  {# Fields depend on the job type; rows without a value are skipped below. #}
+  {% set status = job.status or {} %}
+  {% set rows = [
+    ("Type", job.job_type),
+    ("Status", job.status_key),
+    ("Duration", status.duration),
+    ("Up to date", status.up_to_date),
+    ("Schedule", job.schedule),
+    ("Actual schedule", job.schedule_actual),
+    ("Previous run", status.previous_schedule),
+    ("Next run", status.next_schedule),
+    ("Timeout (s)", job.timeout),
+    ("Retry", job.retry),
+    ("Replicas", job.replicas),
+    ("Port", job.port),
+    ("Protocol", job.port_protocol),
+    ("Published path", job.publish),
+    ("Health check", job.health_check_text),
+    ("Image", job.image),
+    ("Image state", job.image_state),
+    ("Command", job.cmd),
+    ("CPU", job.cpu),
+    ("Memory", job.memory),
+    ("Mount", job.mount),
+    ("Emails", job.emails),
+    ("Stdout log", job.filelog_stdout),
+    ("Stderr log", job.filelog_stderr),
+    ("Details", job.status_long),
+  ] %}
+
+  <table class="table table-sm table-striped w-auto">
+    <tbody>
+      {% for label, value in rows if value is defined and value not in (none, "") %}
+      <tr>
+        <th class="pe-4">{{ label }}</th>
+        <td>
+          {% if label == "Status" %}
+          {{ status_badge(value) }}
+          {% elif label == "Command" %}
+          <code>{{ value }}</code>
+          {% else %}
+          {{ value }}
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      {% for msg in job.status_messages %}
+      <tr>
+        <th class="pe-4">{% if loop.first %}Messages{% endif %}</th>
+        <td><small>{{ msg }}</small></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endblock %}

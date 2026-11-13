@@ -161,6 +161,21 @@ def _load_admin_tools() -> list[SidebarGroup]:
         ],
     )
 
+    other_group = SidebarGroup(
+        id="other_group",
+        title="Other",
+        icon="bi-exclamation-triangle",
+        items=[
+            SidebarItem(
+                id="tf_jobs",
+                requires_admin=True,
+                fallback_href="/admin_panel/tfj",
+                title="ToolForge Jobs",
+                icon="bi-hdd-network",
+            ),
+        ],
+    )
+
     return [
         main_group,
         users_group,
@@ -168,6 +183,7 @@ def _load_admin_tools() -> list[SidebarGroup]:
         files_jobs,
         owid_temp_pages,
         settings_group,
+        other_group,
     ]
 
 
