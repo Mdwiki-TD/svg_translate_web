@@ -6,6 +6,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
+from ...api_services.clients.toolforge_jobs_types import ToolForgeJob
+
 logger = logging.getLogger(__name__)
 
 # (text, category) pair, ready to be passed to flask.flash by the view.
@@ -39,13 +41,51 @@ class JobDetailPage:
     """Everything the single job template needs, plus messages to flash."""
 
     job_id: str
-    job: dict[str, Any] | None = None
+    job: ToolForgeJob | None = None
     messages: list[Message] = field(default_factory=list)
     error: bool = False
 
     def to_context(self) -> dict[str, Any]:
         """Return the template context."""
-        return {"job_id": self.job_id, "job": self.job, "error": self.error}
+        rows = []
+
+        if self.job:
+            status = self.job.status or {}
+
+            rows = [
+                ("Type", self.job.job_type),
+                ("Status", self.job.status_key),
+                ("Duration", status.duration),
+                ("Up to date", status.up_to_date),
+                ("Schedule", self.job.schedule),
+                ("Actual schedule", self.job.schedule_actual),
+                ("Previous run", status.previous_schedule),
+                ("Next run", status.next_schedule),
+                ("Timeout (s)", self.job.timeout),
+                ("Retry", self.job.retry),
+                ("Replicas", self.job.replicas),
+                ("Port", self.job.port),
+                ("Protocol", self.job.port_protocol),
+                ("Published path", self.job.publish),
+                ("Health check", self.job.health_check_text),
+                ("Image", self.job.image),
+                ("Image state", self.job.image_state),
+                ("Command", self.job.cmd),
+                ("CPU", self.job.cpu),
+                ("Memory", self.job.memory),
+                ("Mount", self.job.mount),
+                ("Emails", self.job.emails),
+                ("Stdout log", self.job.filelog_stdout),
+                ("Stderr log", self.job.filelog_stderr),
+                ("Details", self.job.status_long),
+            ]
+
+        return {
+            "job_id": self.job_id,
+            "job": self.job,
+            "error": self.error,
+            "rows": rows,
+        }
 
 
 @dataclass

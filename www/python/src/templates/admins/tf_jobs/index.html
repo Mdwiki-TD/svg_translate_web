@@ -49,7 +49,11 @@
                     <td><small>CPU {{ job.cpu }} / Mem {{ job.memory }}</small></td>
                     <td>
                         {% if job.filelog %}
-                        <small>{{ job.filelog_stdout }}<br>{{ job.filelog_stderr }}</small>
+                        <small>
+                            {{ job.filelog_stdout }}
+                            <br>
+                            {{ job.filelog_stderr }}
+                        </small>
                         {% endif %}
                     </td>
                     <td class="text-nowrap">{{ job_actions(job.name) }}</td>

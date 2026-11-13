@@ -44,7 +44,7 @@ class HealthCheck(TypedDict, total=False):
     path: str
 
 
-class Job(TypedDict, total=False):
+class ToolForgeJob(TypedDict, total=False):
     """A defined job. The fields present depend on ``job_type`` (the spec uses oneOf).
 
     - all types: name, imagename, image, image_state, memory, cpu, emails, mount,
@@ -118,14 +118,14 @@ class NewJob(TypedDict, total=False):
 class JobListResponse(TypedDict, total=False):
     """GET /jobs."""
 
-    jobs: list[Job]
+    jobs: list[ToolForgeJob]
     messages: ResponseMessages
 
 
 class JobResponse(TypedDict, total=False):
     """GET /jobs/{id} and POST /jobs."""
 
-    job: Job
+    job: ToolForgeJob
     messages: ResponseMessages
 
 
@@ -205,7 +205,7 @@ __all__ = [
     "HealthResponse",
     "Image",
     "ImagesResponse",
-    "Job",
+    "ToolForgeJob",
     "JobListResponse",
     "JobResponse",
     "JobStatus",

@@ -47,6 +47,19 @@ class JobsView(BaseJobsView):
         )
 
 
+class JobsTestView(BaseJobsView):
+    """View to list the Toolforge jobs and their current status."""
+
+    def get(self) -> str:
+        """Render the jobs table with a status summary."""
+        page = self.service.build_jobs_page(test_page=True)
+        self._flash_all(page.messages)
+        return render_template(
+            "admins/tf_jobs/index.html",
+            **page.to_context(),
+        )
+
+
 class JobDetailView(BaseJobsView):
     """View to show a single job."""
 
@@ -101,6 +114,7 @@ class ToolforgeJobsView:
     def register(bp: Blueprint) -> None:
         """Register jobs URL rules on the provided blueprint."""
         bp.add_url_rule("/", view_func=JobsView.as_view("jobs"))
+        bp.add_url_rule("/test", view_func=JobsTestView.as_view("testjobs"))
         bp.add_url_rule("/<job_id>", view_func=JobDetailView.as_view("job_detail"))
         bp.add_url_rule("/<job_id>/logs", view_func=JobLogsView.as_view("job_logs"))
         bp.add_url_rule("/<job_id>/restart", view_func=JobRestartView.as_view("job_restart"))
@@ -109,9 +123,4 @@ class ToolforgeJobsView:
 
 __all__ = [
     "ToolforgeJobsView",
-    "JobDeleteView",
-    "JobDetailView",
-    "JobLogsView",
-    "JobRestartView",
-    "JobsView",
 ]

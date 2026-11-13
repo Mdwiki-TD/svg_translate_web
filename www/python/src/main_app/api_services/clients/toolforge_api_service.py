@@ -56,7 +56,7 @@ class ToolforgeApiService:
         internal: bool | None = None,
     ) -> None:
         self.http_client = http_client or HttpClient()
-        self.tool_name = tool_name or os.environ.get("TOOL_NAME", "copy-svg-langs")
+        self.tool_name = tool_name or os.environ.get("TOOL_NAME", "tool_name")
         self.home_dir = home_dir or str(Path.home())
         self.token = token or os.environ.get(TOKEN_ENV, "")
         # Without a deploy token we assume we run inside Toolforge.

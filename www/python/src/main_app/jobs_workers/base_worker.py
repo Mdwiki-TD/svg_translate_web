@@ -36,8 +36,9 @@ class BaseObjectsJobWorker(ABC):
     - Automatic job status updates
     - Result file generation and saving
 
+    Subclasses must define:
+    - JOB_TYPE: Class-level string identifier for the job type
     Subclasses must implement:
-    - JOB_TYPE: Class-level string identifying the job type
     - process(): Implement the actual processing logic
 
     Optional overrides:
