@@ -263,7 +263,11 @@ class TestJobsRoutes(TestSetup):
         # Count the number of "View" buttons which appear once per job row
         assert page.count("btn btn-outline-primary btn-sm") >= 2
 
-    def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(self, admin_jobs_client, mock_flash):
+    def test_fix_nested_job_detail_page_redirects_for_wrong_job_type(
+        self,
+        admin_jobs_client,
+        mock_flash,
+    ):
         """Test that accessing a non-fix_nested job via fix_nested route redirects."""
 
         # Create a collect_templates_data job
@@ -292,7 +296,12 @@ class TestJobsRoutes(TestSetup):
             f"Job id {job.id} with job_type='collect_templates_data' was not found", "warning"
         )
 
-    def test_delete_collect_templates_data_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_delete_collect_templates_data_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test deleting a collect_templates_data job."""
 
         # Create a job
@@ -311,7 +320,12 @@ class TestJobsRoutes(TestSetup):
         # Verify job is deleted
         assert len(self.service.list_jobs()) == 0
 
-    def test_delete_fix_nested_main_files_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_delete_fix_nested_main_files_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test deleting a fix_nested_main_files job."""
 
         # Create a job
@@ -391,7 +405,12 @@ class TestJobsRoutes(TestSetup):
         assert response.status_code == 200
         assert len(self.service.list_jobs()) == 0
 
-    def test_cancel_collect_templates_data_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_cancel_collect_templates_data_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test cancelling a collect_templates_data job."""
 
         # Create a job
@@ -407,7 +426,12 @@ class TestJobsRoutes(TestSetup):
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
 
-    def test_cancel_fix_nested_main_files_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_cancel_fix_nested_main_files_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test cancelling a fix_nested_main_files job."""
 
         # Create a job
@@ -427,7 +451,10 @@ class TestJobsRoutes(TestSetup):
     # download_main_files tests
     # ================================================================================
 
-    def test_download_main_files_jobs_list_page_displays_jobs(self, admin_jobs_client):
+    def test_download_main_files_jobs_list_page_displays_jobs(
+        self,
+        admin_jobs_client,
+    ):
         """Test that the download main files jobs list page displays jobs."""
 
         # Create some test jobs (complete first before creating second of same type)
@@ -440,7 +467,10 @@ class TestJobsRoutes(TestSetup):
         page = unescape(response.get_data(as_text=True))
         assert "Download Main Files" in page
 
-    def test_download_main_files_jobs_list_page_shows_no_jobs_message(self, admin_jobs_client):
+    def test_download_main_files_jobs_list_page_shows_no_jobs_message(
+        self,
+        admin_jobs_client,
+    ):
         """Test that the download main files jobs list page shows a message when there are no jobs."""
 
         response = admin_jobs_client.get("/admin_panel/jobs/download_main_files")
@@ -448,7 +478,10 @@ class TestJobsRoutes(TestSetup):
         page = unescape(response.get_data(as_text=True))
         assert "Download Main Files" in page
 
-    def test_download_main_files_job_detail_page_displays_job_info(self, admin_jobs_client):
+    def test_download_main_files_job_detail_page_displays_job_info(
+        self,
+        admin_jobs_client,
+    ):
         """Test that the download main files job detail page displays job information."""
 
         job = self.service.create_job(job_type="download_main_files", username="user")
@@ -460,7 +493,11 @@ class TestJobsRoutes(TestSetup):
         assert f"Download Main Files Job #{job.id}" in page
         assert "Completed" in page
 
-    def test_download_main_files_job_detail_page_shows_result_data(self, admin_jobs_client, tmp_path):
+    def test_download_main_files_job_detail_page_shows_result_data(
+        self,
+        admin_jobs_client,
+        tmp_path,
+    ):
         """Test that the download main files job detail page displays result data from JSON file."""
 
         job = self.service.create_job(job_type="download_main_files", username="user")
@@ -507,7 +544,11 @@ class TestJobsRoutes(TestSetup):
         # assert "test1.svg" in page
         # assert "Template:Test2" in page
 
-    def test_download_main_files_job_detail_page_handles_nonexistent_job(self, admin_jobs_client, mock_flash):
+    def test_download_main_files_job_detail_page_handles_nonexistent_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+    ):
         """Test that the download main files job detail page handles nonexistent job gracefully."""
 
         response = admin_jobs_client.get(
@@ -560,7 +601,11 @@ class TestJobsRoutes(TestSetup):
         # Count the number of "View" buttons which appear once per job row
         assert page.count("btn btn-outline-primary btn-sm") >= 2
 
-    def test_download_main_files_job_detail_page_redirects_for_wrong_job_type(self, admin_jobs_client, mock_flash):
+    def test_download_main_files_job_detail_page_redirects_for_wrong_job_type(
+        self,
+        admin_jobs_client,
+        mock_flash,
+    ):
         """Test that accessing a non-download_main_files job via download route redirects."""
 
         # Create a collect_templates_data job
@@ -575,7 +620,12 @@ class TestJobsRoutes(TestSetup):
             f"Job id {job.id} with job_type='download_main_files' was not found", "warning"
         )
 
-    def test_delete_download_main_files_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_delete_download_main_files_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test deleting a download_main_files job."""
 
         # Create a job
@@ -594,7 +644,12 @@ class TestJobsRoutes(TestSetup):
         # Verify job is deleted
         assert len(self.service.list_jobs()) == 0
 
-    def test_cancel_download_main_files_job(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_cancel_download_main_files_job(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test cancelling a download_main_files job."""
 
         # Create a job
@@ -610,11 +665,18 @@ class TestJobsRoutes(TestSetup):
         assert response.status_code == 200
         mock_flash.assert_called_once_with(f"Job {job.id} cancellation requested.", "success")
 
-    def test_cancel_job_not_running(self, admin_jobs_client, mock_flash, mock_cancel_job_worker):
+    def test_cancel_job_not_running(
+        self,
+        admin_jobs_client,
+        mock_flash,
+        mock_cancel_job_worker,
+    ):
         """Test cancelling a job that's not running shows appropriate message."""
 
         job = self.service.create_job(job_type="download_main_files", username="user")
         self.service.update_job_status(job.id, "completed", job_type="download_main_files")
+
+        assert job.status == "completed"
 
         # Try to cancel a completed job
         mock_cancel_job_worker.return_value = False
@@ -710,6 +772,8 @@ class TestJobsRoutes(TestSetup):
 
         job = self.service.create_job(job_type="download_main_files", username="user")
         self.service.update_job_status(job.id, "cancelled", job_type="download_main_files")
+
+        assert job.status == "cancelled"
 
         # Try to cancel again
         mock_cancel_job_worker.return_value = False

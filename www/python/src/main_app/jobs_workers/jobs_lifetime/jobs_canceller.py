@@ -41,7 +41,6 @@ class JobCanceller:
         Returns True if the job was found and cancellation was requested.
         """
         # if job is None: job = svc.get_by(id=job_id)
-
         # 1. Try local cancellation (if the job is in this process)
         cancel_event = get_cancel_event(job_id)
         local_cancelled = False
