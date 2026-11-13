@@ -113,8 +113,8 @@ class TestConfigureLogging:
             "Path": MagicMock(),
             "setup_logging": MagicMock(),
         }
-        monkeypatch.setattr("src.logger_config.Path", mocks["Path"])
-        monkeypatch.setattr("src.logger_config.LoggingConfigurator.setup_logging", mocks["setup_logging"])
+        monkeypatch.setattr("src.main_app.logger_config.Path", mocks["Path"])
+        monkeypatch.setattr("src.main_app.logger_config.LoggingConfigurator.setup_logging", mocks["setup_logging"])
         return mocks
 
     def test_configure_logging_creates_log_dir(self, mock_logger_services, tmp_path):
@@ -135,7 +135,7 @@ class TestConfigureLogging:
         mock_log_dir = MagicMock()
         mock_path_instance.__truediv__ = MagicMock(return_value=mock_log_dir)
 
-        with patch("src.logger_config.os.path.expanduser") as mock_expanduser:
+        with patch("src.main_app.logger_config.os.path.expanduser") as mock_expanduser:
             mock_expanduser.return_value = "/home/test"
             LoggingConfigurator.configure_logging(False)
             mock_logger_services["Path"].assert_called()
