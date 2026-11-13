@@ -40,7 +40,7 @@ class TemplateNeedUpdateView(db.Model):
                         t.last_world_year AS last_world_year
                     from
                         owid_charts c
-                        join templates t on t.slug = c.slug
+                        join templates t on t.slug COLLATE utf8mb4_unicode_ci = c.slug COLLATE utf8mb4_unicode_ci
                     where
                         t.last_world_year < c.max_time
                         AND c.max_time <= YEAR(now())

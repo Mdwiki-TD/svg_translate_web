@@ -4,11 +4,28 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
+from sqlalchemy import collate
 from sqlalchemy.exc import SQLAlchemyError
 
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
 from ..templates_utils import extract_slug
+
+
+def _slug_join_condition():
+    """Return the JOIN condition for slug columns.
+
+    On MySQL the ``owid_charts`` and ``templates`` tables may have different
+    default collations (utf8mb4_unicode_ci vs utf8mb4_general_ci), so we
+    normalise both sides explicitly.  SQLite (used in tests) does not support
+    that collation name, so we fall back to a plain equality.
+    """
+    engine = db.session.get_bind()
+    if engine.dialect.name == "mysql":
+        return collate(TemplateRecord.slug, "utf8mb4_unicode_ci") == collate(
+            OwidChartRecord.slug, "utf8mb4_unicode_ci"
+        )
+    return TemplateRecord.slug == OwidChartRecord.slug
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +79,7 @@ class ChartsAndTemplatesService:  # (CRUDService[OwidChartRecord]):
                     TemplateRecord.id.label("template_id"),
                     TemplateRecord.title.label("template_title"),
                 )
-                .outerjoin(TemplateRecord, TemplateRecord.slug == OwidChartRecord.slug)
+                .outerjoin(TemplateRecord, _slug_join_condition())
                 .order_by(OwidChartRecord.chart_id.asc())
             )
             result = query.all()

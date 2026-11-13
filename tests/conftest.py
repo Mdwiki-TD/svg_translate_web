@@ -120,11 +120,17 @@ def mock_login(mock_client):
 # ── db fixtures ───────────────────────────────────────────────────────────────────
 
 
+def _compare_strings(a: str, b: str) -> int:
+    """Simple string comparison for SQLite collation registration."""
+    return (a > b) - (a < b)
+
+
 def sqlite_view_functions(db) -> None:
-    """Register MySQL-compatible functions used by views for SQLite tests."""
+    """Register MySQL-compatible functions and collations used by views for SQLite tests."""
     raw_connection = db.engine.raw_connection()
     raw_connection.create_function("now", 0, lambda: "2026-01-01")
     raw_connection.create_function("YEAR", 1, lambda value: int(str(value)[:4]))
+    raw_connection.create_collation("utf8mb4_unicode_ci", _compare_strings)
     raw_connection.close()
 
 
