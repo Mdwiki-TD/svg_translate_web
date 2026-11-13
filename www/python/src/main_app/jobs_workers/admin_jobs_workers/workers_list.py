@@ -60,7 +60,6 @@ jobs_data_admins = {
         job_type="fix_nested_main_files",
         job_name="Fix Nested Main Files",
         job_details_template="jobs_templates/admin_templates/fix_nested_main_files/details.html",
-        job_list_template="jobs_templates/admin_templates/fix_nested_main_files/list.html",
         job_class=FixNestedMainFilesWorker,
         job_args=[
             {"key": "upload_jobs_files", "as": "upload_files"},
