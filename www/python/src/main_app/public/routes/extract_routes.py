@@ -19,7 +19,7 @@ from flask.views import MethodView
 from ...api_services import FilesService
 from ...services.copysvg_wrapper import (
     ExtractResult,
-    extract_from_path,
+    SvgTranslationExtractor,
 )
 
 logger = logging.getLogger(__name__)
@@ -128,7 +128,7 @@ class ExtractProcessView(MethodView):
 
             file_path = Path(download_result.path)
 
-            extract_result: ExtractResult = extract_from_path(file_path, fast_return_false=False)
+            extract_result: ExtractResult = SvgTranslationExtractor().extract(file_path, fast_return_false=False)
             return extract_result
 
         finally:

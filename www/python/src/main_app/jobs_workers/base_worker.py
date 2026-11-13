@@ -58,7 +58,7 @@ class BaseObjectsJobWorker(ABC):
         self._edit_count: int = 0
         self.site: Site | None = None
         self.result: SharedworkerObject
-        self._jobs_service = JobsService()
+        self.jobs_service = JobsService()
         self.wikisite_client = WikiSiteClient()
 
         self.app_settings = get_settings()
@@ -92,7 +92,7 @@ class BaseObjectsJobWorker(ABC):
             True to continue with processing, False to abort
         """
         try:
-            self._jobs_service.update_job_status(
+            self.jobs_service.update_job_status(
                 self.job_id,
                 "running",
                 self.result_file,
@@ -129,7 +129,7 @@ class BaseObjectsJobWorker(ABC):
 
     def update_final_status(self, final_status: str) -> bool:
         try:
-            self._jobs_service.update_job_status_with_retry(
+            self.jobs_service.update_job_status_with_retry(
                 self.job_id,
                 final_status,
                 self.result_file,
@@ -172,7 +172,7 @@ class BaseObjectsJobWorker(ABC):
 
         if check_db:
             # Optimize is_cancelled DB check frequency, by reducing the check frequency (to occur every N cycles).
-            if self._jobs_service.is_job_cancelled(self.job_id):
+            if self.jobs_service.is_job_cancelled(self.job_id):
                 logger.info("Job %s: Global cancellation detected, stopping.", self.job_id)
                 self._mark_as_cancelled_in_result()
                 return True

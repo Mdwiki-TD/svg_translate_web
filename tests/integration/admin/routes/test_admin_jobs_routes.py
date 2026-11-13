@@ -24,8 +24,9 @@ def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
 @pytest.fixture
 def mock_start_job_form(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.start_job_form", _mock)
-    return _mock
+    _mock.start_form = Mock()
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobStarter", _mock)
+    return _mock.start_form
 
 
 @pytest.fixture
@@ -38,8 +39,9 @@ def mock_load_auth_payload(monkeypatch: pytest.MonkeyPatch) -> Mock:
 @pytest.fixture
 def mock_cancel_job_worker(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.cancel_job_worker", _mock)
-    return _mock
+    _mock.cancel = Mock()
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobCanceller", _mock)
+    return _mock.cancel
 
 
 class TestSetup:

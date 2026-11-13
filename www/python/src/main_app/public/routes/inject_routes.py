@@ -21,8 +21,8 @@ from ...api_services.files_service import FilesService
 from ...services.copysvg_wrapper import (
     ExtractResult,
     InjectResult,
-    extract_from_path,
-    inject_step_one_file,
+    SvgInjector,
+    SvgTranslationExtractor,
 )
 from .mapping import DiffResult
 
@@ -38,7 +38,7 @@ def _extract_from_path(file_path: Path) -> dict[str, Any] | None:
     Returns:
         Translations dict or None on failure.
     """
-    step_result: ExtractResult = extract_from_path(file_path)
+    step_result: ExtractResult = SvgTranslationExtractor().extract(file_path)
 
     if not step_result.success:
         flash(f"Invalid or empty translation data in {file_path.name}.", "danger")
@@ -191,7 +191,7 @@ class InjectProcessView(MethodView):
         output_file = output_dir / target
 
         try:
-            inject_result: InjectResult = inject_step_one_file(
+            inject_result: InjectResult = SvgInjector().inject_one_file(
                 file=target_file_path,
                 translations=source_translations,
                 output_file=output_file,

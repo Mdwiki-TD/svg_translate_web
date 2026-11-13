@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from src.main_app.services.copysvg_wrapper.extract_translations import extract_from_path
+from src.main_app.services.copysvg_wrapper.extract_translations import SvgTranslationExtractor
 from src.main_app.services.copysvg_wrapper.mapping import TranslationMapping
 
 
@@ -29,7 +29,7 @@ class TestExtractFromPath:
             fake_extract,
         )
 
-        result = extract_from_path(fake_svg_path)
+        result = SvgTranslationExtractor().extract(fake_svg_path)
 
         assert result.success is False
         assert result.translations == {}
@@ -38,7 +38,7 @@ class TestExtractFromPath:
     def test_extract_translations_download_failure(self, tmp_path):
 
         fake_svg_path = tmp_path / "Example.svg"
-        result = extract_from_path(fake_svg_path)
+        result = SvgTranslationExtractor().extract(fake_svg_path)
 
         assert result.success is False
         assert result.translations == {}
@@ -58,7 +58,7 @@ class TestExtractFromPath:
             fake_extract,
         )
 
-        result = extract_from_path(fake_svg_path)
+        result = SvgTranslationExtractor().extract(fake_svg_path)
 
         assert result.success is True
         assert result.error is None
@@ -79,7 +79,7 @@ class TestExtractFromPath:
             fake_extract,
         )
 
-        result = extract_from_path(fake_svg_path, fast_return_false=False)
+        result = SvgTranslationExtractor().extract(fake_svg_path, fast_return_false=False)
 
         assert result.success is False
         assert result.error == "parse-error"

@@ -16,9 +16,9 @@ from ....services.copysvg_wrapper import (
     ExtractResult,
     InjectResult,
     NestedStructureService,
+    SvgInjector,
+    SvgTranslationExtractor,
     TranslationMapping,
-    extract_from_path,
-    inject_step_one_file,
 )
 from .objects import (
     FilesProcessedItem,
@@ -97,7 +97,7 @@ class OneFileProcessor:
         output_file = self.config.output_dir / "translated" / file_path.name
 
         try:
-            inject_result: InjectResult = inject_step_one_file(
+            inject_result: InjectResult = SvgInjector().inject_one_file(
                 file=file_path,
                 translations=self.mapping,
                 output_file=output_file,
@@ -311,7 +311,7 @@ class OneFileProcessor:
 
         file_path = Path(title_info.file_path)
         try:
-            result: ExtractResult = extract_from_path(file_path)
+            result: ExtractResult = SvgTranslationExtractor().extract(file_path)
         except Exception as e:
             logger.error("Error in stage translations")
             return

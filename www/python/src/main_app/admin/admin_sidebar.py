@@ -8,6 +8,7 @@ from ..templates_markups.sidebar import Sidebar, SidebarGroup, SidebarItem
 
 logger = logging.getLogger(__name__)
 
+
 def _load_admin_tools() -> list[SidebarGroup]:
     """Build the static sidebar menu structure.
 

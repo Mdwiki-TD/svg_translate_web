@@ -18,7 +18,7 @@ from .extensions import csrf_init_app
 from .extensions import db as _db
 from .extensions import migrate
 from .jobs_workers.cli_jobs import register_cli_jobs
-from .logger_config import configure_logging
+from .logger_config import LoggingConfigurator
 from .public import PublicRouteRegister
 from .public.routes_utils import context_data
 from .services.core import CookieHeaderClient, filters, init_rate_limiter
@@ -65,7 +65,7 @@ class AppFactory:
         use_color = app.config["IS_PRODUCTION"] is False
         daily_rotation = app.config["IS_PRODUCTION"] is True
 
-        configure_logging(
+        LoggingConfigurator.configure_logging(
             level=level,
             name="main_app",
             use_colorlog=use_color,

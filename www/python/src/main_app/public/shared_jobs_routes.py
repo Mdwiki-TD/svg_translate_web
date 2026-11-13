@@ -23,10 +23,8 @@ from ..database.exceptions import DuplicateRecordError
 from ..database.services import JobsService, SettingsService
 from ..decorators import admin_required, oauth_required
 from ..io import load_job_result
-from ..jobs_workers.jobs_worker import (
-    cancel_job_worker,
-    start_job_form,
-)
+from ..jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
+from ..jobs_workers.jobs_lifetime.jobs_starter import JobStarter
 from ..jobs_workers.objects import JobData
 from ..services.auth.current_user_resolver import CurrentUserResolver
 from .routes_utils import can_run_bg_jobs, load_auth_payload
@@ -41,6 +39,7 @@ class SharedJobRoutes:
         self.bp_name = bp_name
         self.job_service = JobsService()
         self.settings_service = SettingsService()
+        self.jobs_canceller = JobCanceller()
 
     def can_manage_job(self, job: Any, user: Any) -> bool:
         """Check if the current user can manage (cancel/delete) a job."""
@@ -71,7 +70,7 @@ class SharedJobRoutes:
             return "job_detail"
 
         try:
-            if cancel_job_worker(job_id, job_type, job):
+            if self.jobs_canceller.cancel(job_id, job_type, job):
                 flash(f"Job {job_id} cancellation requested.", "success")
             else:
                 flash(f"Job {job_id} is not running or already cancelled.", "warning")
@@ -107,7 +106,7 @@ class SharedJobRoutes:
             return None
 
         try:
-            job_id = start_job_form(auth_payload, job_type, args, form_data)
+            job_id = JobStarter().start_form(auth_payload, job_type, args, form_data)
             flash(f"Job {job_id} started to {job_type}.", "success")
             return job_id
         except DuplicateRecordError:
@@ -144,7 +143,7 @@ class SharedJobRoutes:
             return "job_detail"
 
         try:
-            if cancel_job_worker(job_id, job_type, job):
+            if self.jobs_canceller.cancel(job_id, job_type, job):
                 logger.info("Cancelled running job %s before deletion", job_id)
 
             if self.job_service.delete_job_by_id_and_type(job_id, job_type):

@@ -74,11 +74,11 @@ class TestTranslateRoutes:
             lambda self, title, out_dir, overwrite_download: mock_download,
         )
 
-        # Mock extract_from_path
+        # Mock SvgTranslationExtractor.extract
         mapping = TranslationMapping(new={"Hello": {}})
         mock_extract = ExtractResult(success=True, mapping=mapping)
         monkeypatch.setattr(
-            "src.main_app.public.routes.translate_routes.extract_from_path",
+            "src.main_app.public.routes.translate_routes.SvgTranslationExtractor.extract",
             lambda path, fast_return_false: mock_extract,
         )
 
@@ -164,10 +164,10 @@ class TestTranslateRoutes:
         json_path = session_dir / "session.json"
         json_path.write_text(json.dumps(session_data), encoding="utf-8")
 
-        # Mock inject_step_one_file
+        # Mock SvgInjector.inject_one_file
         mock_inject = InjectResult(result=True)
         monkeypatch.setattr(
-            "src.main_app.public.routes.translate_routes.inject_step_one_file",
+            "src.main_app.public.routes.translate_routes.SvgInjector.inject_one_file",
             lambda file, translations, output_file, overwrite_translations: mock_inject,
         )
 
@@ -224,13 +224,13 @@ class TestTranslateRoutes:
         json_path = session_dir / "session.json"
         json_path.write_text(json.dumps(session_data), encoding="utf-8")
 
-        # Mock inject_step_one_file to write a mock translated file
+        # Mock SvgInjector.inject_one_file to write a mock translated file
         def fake_inject(file, translations, output_file, overwrite_translations):
             output_file.write_text("<svg>Translated content</svg>", encoding="utf-8")
             return InjectResult(result=True)
 
         monkeypatch.setattr(
-            "src.main_app.public.routes.translate_routes.inject_step_one_file",
+            "src.main_app.public.routes.translate_routes.SvgInjector.inject_one_file",
             fake_inject,
         )
 
