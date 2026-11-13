@@ -10,22 +10,22 @@ from datetime import datetime
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import WorkerMapping
+from ...shared_objects import STATUS_LITERAL, WorkerMapping
 
 
 @dataclass
 class TitleInfo:
     id: int
-    title: str
     main_file: str
+    title: str = ""
+    status: STATUS_LITERAL = "pending"
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: str = ""
     error: None | str = None
     message: None | str = None
     fix_result: None | dict = None
     error_type: None | str = None
 
-    def _update(self, status: str, message: str) -> None:
+    def _update(self, status: STATUS_LITERAL, message: str) -> None:
         self.status = status
         self.message = message
 

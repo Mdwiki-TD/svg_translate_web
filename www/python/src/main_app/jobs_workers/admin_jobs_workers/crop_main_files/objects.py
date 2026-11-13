@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LIST, StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +44,8 @@ class CropFileProcessingInfo:
     template_title: str
     original_file: str
     cropped_filename: str
+    status: STATUS_LITERAL = "pending"
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    status: STATUS_LIST = "pending"
     error: str | None = None
     downloaded_path: Path | None = None
     cropped_path: Path | None = None
@@ -106,7 +106,6 @@ class CropMainFilesSummary:
 @dataclass
 class CropMainFilesWorkerObject(StandardAdminWorkerObject):
     """ """
-
     summary: CropMainFilesSummary = field(default_factory=CropMainFilesSummary)
     pages_to_work: list[str] = field(default_factory=list)
     pages_processed: list[CropFileProcessingInfo] = field(default_factory=list)
@@ -114,7 +113,6 @@ class CropMainFilesWorkerObject(StandardAdminWorkerObject):
     pages_updated: list[CropFileProcessingInfo] = field(default_factory=list)
     pages_skipped: list[CropFileProcessingInfo] = field(default_factory=list)
     pages_failed: list[CropFileProcessingInfo] = field(default_factory=list)
-    pages_errors: list[CropFileProcessingInfo] = field(default_factory=list)
 
 
 __all__ = [

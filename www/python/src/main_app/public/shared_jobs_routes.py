@@ -422,6 +422,27 @@ class DrawResultFileView(BaseJobView):
 
         return jsonify(data)
 
+    def _load_list(
+        self,
+        result_data: dict[str, Any],
+        result_file: str,
+        list_name: str = "files_failed",
+    ):
+        list_data = result_data.get(list_name) or []
+        if list_data and not isinstance(list_data, list):
+            logger.warning(
+                "Expected list for '%s' in result file '%s', got %s",
+                list_name,
+                result_file,
+                type(list_data),
+            )
+            list_data = []
+
+        if list_data and isinstance(list_data[0], str):
+            list_data = self.convert_str_list_to_dict(list_data, list_name)
+
+        return list_data
+
     def read_result_file(
         self,
         file_number: int,
@@ -439,19 +460,9 @@ class DrawResultFileView(BaseJobView):
         result_file = f"{job_type}_job_{file_number}.json"
 
         result_data = load_job_result(result_file)
-        list_data = (result_data.get(list_name) or []) if result_data else []
-
-        if list_data and not isinstance(list_data, list):
-            logger.warning(
-                "Expected list for '%s' in result file '%s', got %s",
-                list_name,
-                result_file,
-                type(list_data),
-            )
-            list_data = []
-
-        if list_data and isinstance(list_data[0], str):
-            list_data = self.convert_str_list_to_dict(list_data, list_name)
+        list_data = []
+        if result_data:
+            list_data = self._load_list(result_data, result_file, list_name)
 
         records_total = len(list_data)
 

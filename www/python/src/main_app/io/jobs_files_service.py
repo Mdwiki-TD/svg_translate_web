@@ -58,7 +58,7 @@ class JobFilesService:
         self._save_data(result_data, filepath)
         return filepath
 
-    def load_result(self, filename: str) -> dict[str, Any] | None:
+    def _load_result(self, filename: str) -> dict[str, Any] | None:
         """Load job result from a JSON file."""
         filepath = self.jobs_dir / filename
         if not filepath or not os.path.exists(filepath):
@@ -70,6 +70,20 @@ class JobFilesService:
         except Exception as e:
             logger.error(f"Error loading job result from {filename}: {e}")
             return None
+
+    def load_result(self, filename: str) -> dict[str, Any] | None:
+        """Load job result from a JSON file."""
+        data = self._load_result(filename)
+        if data is not None:
+            # replace pages_errors with pages_failed
+            if "pages_errors" in data:
+                data["pages_failed"] = data.pop("pages_errors")
+
+            # replace pages_changed with pages_updated
+            if "pages_changed" in data:
+                data["pages_updated"] = data.pop("pages_changed")
+
+        return data
 
     def create_cancel_file(self, filename: str) -> Path | None:
         """Create a cancellation marker file."""

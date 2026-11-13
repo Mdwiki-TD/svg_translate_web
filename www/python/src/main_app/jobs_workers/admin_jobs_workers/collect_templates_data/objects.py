@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LIST, StandardAdminSummary, WorkerMapping
+from ...shared_objects import STATUS_LITERAL, StandardAdminSummary, WorkerMapping
 
 
 @dataclass
@@ -70,18 +70,14 @@ class TemplateInfos:
     """
     Holds all state for a single template being processed.
     """
-
     id: int
-    title: str
     source: str
-    status: STATUS_LIST = "pending"
+    title: str = ""
+    status: STATUS_LITERAL = "pending"
     steps: CollectFileSteps = field(default_factory=lambda: CollectFileSteps())
 
     error: str | None = None
     error_type: str | None = None
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
 
     @classmethod
     def from_template(cls, template: TemplateData) -> TemplateInfos:
@@ -130,9 +126,9 @@ class CollectTemplatesDataMapping(WorkerMapping):
     summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
     pages_added: list[TemplateInfos] = field(default_factory=list)
     pages_updated: list[TemplateInfos] = field(default_factory=list)
-    pages_skipped: list[dict[str, Any]] = field(default_factory=list)
-    pages_failed: list[dict[str, Any]] = field(default_factory=list)
-    pages_processed: list[dict[str, Any]] = field(default_factory=list)
+    pages_skipped: list[TemplateInfos] = field(default_factory=list)
+    pages_failed: list[TemplateInfos] = field(default_factory=list)
+    pages_processed: list[TemplateInfos] = field(default_factory=list)
 
     args: dict[str, Any] = field(default_factory=dict)
 

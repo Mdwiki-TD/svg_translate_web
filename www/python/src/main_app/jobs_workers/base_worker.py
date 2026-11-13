@@ -295,7 +295,7 @@ class BaseObjectsJobWorker(ABC):
             info.status = "completed"
 
         if info.status == "changed":
-            self.result.pages_changed.append(info)
+            self.result.pages_updated.append(info)
 
         elif info.status == "missing":
             self.result.pages_missing.append(info)
@@ -304,7 +304,7 @@ class BaseObjectsJobWorker(ABC):
             self.result.pages_skipped.append(info)
 
         elif info.status == "failed":
-            self.result.pages_errors.append(info)
+            self.result.pages_failed.append(info)
 
         else:
             self.result.pages_processed.append(info)

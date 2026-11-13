@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, StandardAdminSummary, WorkerMapping
+from ...shared_objects import OneItem, STATUS_LITERAL, StandardAdminSummary, WorkerMapping
 
 
 @dataclass
@@ -152,10 +152,8 @@ class FileSteps:
 
 
 @dataclass
-class FilesProcessedItem:
-    title: str
+class FilesProcessedItem(OneItem):
     file_path: str | None = None
-    status: STATUS_LITERAL = "pending"
     error: str | None = None
     steps: FileSteps = field(default_factory=lambda: FileSteps())
     is_mapping_merged: bool = False
@@ -176,8 +174,8 @@ class CopySvgLangsWorkerObject(WorkerMapping):
 
     files_processed: list[FilesProcessedItem] = field(default_factory=list)
     files_success: list[FilesProcessedItem] = field(default_factory=list)
-    files_skipped: list[FilesProcessedItem] = field(default_factory=list)
     files_failed: list[FilesProcessedItem] = field(default_factory=list)
+    files_skipped: list[FilesProcessedItem] = field(default_factory=list)
 
     mapping_mereged: int = 0
     note: str = ""

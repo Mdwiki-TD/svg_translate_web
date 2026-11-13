@@ -87,7 +87,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
                 break
 
             logger.info("Job %s: Processing %d/%d: %s", self.job_id, n, len(pages), page_title)
-            info = PageInfo(page_title=page_title)
+            info = PageInfo(title=page_title)
 
             ok = self._process_one_item(info)
             self.result.update_status(info)
@@ -133,7 +133,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
     def _process_one_item(self, info: PageInfo) -> bool:
 
-        page = MwClientPage(info.page_title, self.site)
+        page = MwClientPage(info.title, self.site)
 
         # Step 1 — load_page_text
         if not self._step_load_page_text(info, page):
@@ -172,7 +172,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         """Download the page wikitext. Returns True on success."""
         text = page.get_text()
         if not text:
-            self._fail(info, info.steps.load_page_text, f"Could not retrieve text for {info.page_title}")
+            self._fail(info, info.steps.load_page_text, f"Could not retrieve text for {info.title}")
             return False
 
         info.steps.load_page_text = OneStep(result=True, msg="Loaded page text")
@@ -182,12 +182,12 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
     def _step_extract_file_name(self, info: PageInfo) -> bool:
         """Extract SVG file name from the Translate link. Returns True on success."""
         if not info._text:
-            self._fail(info, info.steps.extract_file_name, f"No text found for {info.page_title}")
+            self._fail(info, info.steps.extract_file_name, f"No text found for {info.title}")
             return False
 
         file_name = extract_svg_file_name(info._text or "")
         if not file_name:
-            self._fail(info, info.steps.extract_file_name, f"No Translate link found in {info.page_title}")
+            self._fail(info, info.steps.extract_file_name, f"No Translate link found in {info.title}")
             self.result.summary.no_file += 1
             return False
 
@@ -266,7 +266,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
         text = info._text
         if not text:
-            self._fail(info, info.steps.save_page, f"No text to save for {info.page_title}")
+            self._fail(info, info.steps.save_page, f"No text to save for {info.title}")
             return False
 
         res = page.edit(
@@ -277,7 +277,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         if res.get("success"):
             info.steps.save_page = OneStep(
                 result=True,
-                msg=f"Saved {info.page_title}",
+                msg=f"Saved {info.title}",
                 newrevid=res.get("newrevid", 0),
             )
             info.status = "success"

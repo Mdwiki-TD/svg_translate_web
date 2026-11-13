@@ -7,9 +7,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
-from ...shared_objects import OneStep, StandardAdminSummary, WorkerMapping
+from ...shared_objects import OneItem, OneStep, StandardAdminSummary, WorkerMapping
 
-STATUS_LIST = Literal["completed", "failed", "pending", "skipped", "updated"]
+STATUS_LITERAL = Literal["completed", "failed", "pending", "skipped", "updated"]
 
 
 @dataclass
@@ -21,11 +21,9 @@ class InfoSteps:
 
 
 @dataclass
-class ProcessingFileInfo:
+class ProcessingFileInfo(OneItem):
     """Holds all state for a single template being processed."""
 
-    title: str
-    status: STATUS_LIST = "pending"
     error: str | None = None
     langs: list[str] = field(default_factory=list)
     steps: InfoSteps = field(default_factory=lambda: InfoSteps())
