@@ -21,6 +21,7 @@ jobs_data_admins = {
             {"key": "template_name", "as": "template_name"},
         ],
         start_confirm_message="This will start a background job to update templates files wikitext. Continue?",
+        description="""This job update wikitext of file to include:<br> <code>Svg lang template</code>, <code>Update Author in Information template</code>""",
     ),
     # DB Jobs
     "collect_templates_data": JobData(
@@ -31,30 +32,31 @@ jobs_data_admins = {
         job_class=CollectMainFilesWorker,
         job_args=[],
         start_confirm_message="This will start a background job to collect templates data for all templates that don't have one. Continue?",
+        description="""""",
     ),
     "update_owid_charts": JobData(
         job_type="update_owid_charts",
         job_name="Update OWID Charts",
         job_details_template="jobs_templates/admin_templates/update_owid_charts/details.html",
-        job_list_template="jobs_templates/admin_templates/update_owid_charts/list.html",
         job_class=UpdateOwidChartsWorker,
         job_args=[
             {"key": "owid_charts_limit_items", "as": "limit_items"},
         ],
         start_confirm_message="This will fetch metadata from ourworldindata.org for every chart and update min_time / max_time / len_years where changed. Continue?",
+        description="""For each chart in the database this job fetches <code>https://ourworldindata.org/grapher/{slug}.metadata.json</code> and updates <strong>min_time</strong>, <strong>max_time</strong>, and <strong>len_years</strong> when the timespan has changed.""",
     ),
     # Files Jobs (jobs makes edit or upload in commons)
     "crop_main_files": JobData(
         job_type="crop_main_files",
         job_name="Crop Newest World Files",
         job_details_template="jobs_templates/admin_templates/crop_main_files/details.html",
-        job_list_template="jobs_templates/admin_templates/crop_main_files/list.html",
         job_class=CropMainFilesWorker,
         job_args=[
             {"key": "crop_newest_upload_limit", "as": "upload_limit"},
             {"key": "upload_jobs_files", "as": "upload_files"},
         ],
         start_confirm_message="This will start a background job to crop newest world files and upload them with '(cropped)' suffix. Continue?",
+        description="This job crops main SVG files and uploads them with new names like: <code>File:Example.svg</code> → <code>File:Example (cropped).svg</code>",
     ),
     "fix_nested_main_files": JobData(
         job_type="fix_nested_main_files",
@@ -65,6 +67,7 @@ jobs_data_admins = {
             {"key": "upload_jobs_files", "as": "upload_files"},
         ],
         start_confirm_message="This will start a background job to fix nested tags in all template main files. This will upload fixed versions to Commons using your credentials. Continue?",
+        description="""""",
     ),
     # OWID Templates/Pages
     "create_owid_pages": JobData(
@@ -77,6 +80,7 @@ jobs_data_admins = {
             {"key": "create_owid_pages_limit", "as": "limit_items"},
         ],
         start_confirm_message="This will start a background job to create showcase pages for OWID templates. Continue?",
+        description=""" This job reads OWID template pages and generates corresponding showcase pages: <br> <code>Template:OWID/Some map</code> → <code>OWID/Some map</code>""",
     ),
     "rename_owid_pages": JobData(
         job_type="rename_owid_pages",
@@ -86,28 +90,29 @@ jobs_data_admins = {
         job_class=RenameOwidPagesWorker,
         job_args=[],
         start_confirm_message='This will start a background job that renames every Template:OWID/* and OWID/* page whose first character after "OWID/" is lowercase. Continue?',
+        description="""""",
     ),
     "add_svglanguages_template": JobData(
         job_type="add_svglanguages_template",
         job_name="Add {{SVGLanguages}}",
         job_details_template="jobs_templates/admin_templates/add_svglanguages_template/details.html",
-        job_list_template="jobs_templates/admin_templates/add_svglanguages_template/list.html",
         job_class=AddSvgSVGLanguagesTemplate,
         job_args=[
             {"key": "add_svglanguages_limit_items", "as": "limit_items"},
         ],
         start_confirm_message="This will start a background job to add Template:SVGLanguages to OWID templates.\nContinue?",
+        description="""This job add Template:SVGLanguages to OWID templates""",
     ),
     "add_lang_categories_to_owid_pages": JobData(
         job_type="add_lang_categories_to_owid_pages",
         job_name="Add Language Categories",
         job_details_template="jobs_templates/admin_templates/add_lang_categories_to_owid_pages/details.html",
-        job_list_template="jobs_templates/admin_templates/add_lang_categories_to_owid_pages/list.html",
         job_class=AddLangCategoriesWorker,
         job_args=[
             {"key": "add_lang_categories_limit_items", "as": "limit_items"},
         ],
         start_confirm_message="This will add language categories (e.g. [[Category:English-language SVG]]) to OWID pages based on available SVG translations. Continue?",
+        description="""This job adds language categories to OWID pages (e.g. <code>[[Category:English-language SVG]]</code>)<br>based on the available SVG translations detected via the Commons file metadata API.""",
     ),
     "download_main_files": JobData(
         job_type="download_main_files",
@@ -119,6 +124,7 @@ jobs_data_admins = {
             {"key": "download_main_files_limit_items", "as": "limit_items"},
         ],
         start_confirm_message="This will start a background job to download all main files from the remote source to the local filesystem. Continue?",
+        description="""""",
     ),
 }
 
