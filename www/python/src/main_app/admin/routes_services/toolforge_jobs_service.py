@@ -270,10 +270,11 @@ class JobsPageService(JobsPageServiceHelpers):
         if is_dataclass(payload) and not isinstance(payload, type):
             inner = getattr(payload, "messages", payload)  # ResponseMessages has no `messages`
             raw = asdict(inner) if is_dataclass(inner) and not isinstance(inner, type) else {}
+
         elif isinstance(payload, dict):
             raw = payload.get("messages") or {}
             if not isinstance(raw, dict) or not raw:
-                raw = {level: payload[level] for level in ("info", "warning", "error") if payload.get(level)}
+                raw = {level: payload[level] for level in _LEVEL_TO_CATEGORY.keys() if payload.get(level)}
 
         return {level: texts for level, texts in raw.items() if texts}
 
