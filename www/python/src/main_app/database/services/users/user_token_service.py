@@ -24,52 +24,40 @@ class UserTokenService(CRUDService[UserTokenRecord]):
 
     def get_authenticated_user_token(self, user_id: int) -> None | UserTokenRecord:
         """Fetch the CurrentUser composite for session restoration."""
-        try:
-            token = (
-                self.session.query(UserTokenRecord)
-                .options(joinedload(UserTokenRecord.user))
-                .filter(UserTokenRecord.user_id == user_id)
-                .first()
-            )
-            if not token or not token.user:
-                return None
-            return token
-        except Exception as e:
-            logger.error("Error loading user for ID %s: %s", user_id, e)
+        token = (
+            self.session.query(UserTokenRecord)
+            .options(joinedload(UserTokenRecord.user))
+            .filter(UserTokenRecord.user_id == user_id)
+            .first()
+        )
+        if not token or not token.user:
             return None
+        return token
 
     def upsert_user_token(
         self,
         user_id: int,
         encrypted_token: bytes,
         encrypted_secret: bytes,
-    ) -> UserTokenRecord | None:
+    ) -> UserTokenRecord:
         """
         Upsert the encrypted OAuth credentials for a user.
         Creates a new token row if one does not exist.
         """
-        try:
-            instance, _ = self.upsert_by(
-                {"user_id": user_id},
-                access_token=encrypted_token,
-                access_secret=encrypted_secret,
-            )
-            return instance
-        except Exception as e:
-            logger.exception("Error upserting user token: %s", e)
-            return None
+        instance, _ = self.upsert_by(
+            {"user_id": user_id},
+            access_token=encrypted_token,
+            access_secret=encrypted_secret,
+        )
+        return instance
 
     def get_user_token_by_username(self, username: str) -> UserTokenRecord | None:
-        try:
-            return (
-                self.session.query(UserTokenRecord)
-                .join(UserRecord, UserTokenRecord.user_id == UserRecord.user_id)
-                .filter(UserRecord.username == username)
-                .first()
-            )
-        except Exception as exc:
-            logger.error("Error getting token by username %s: %s", username, exc)
-            return None
+        return (
+            self.session.query(UserTokenRecord)
+            .join(UserRecord, UserTokenRecord.user_id == UserRecord.user_id)
+            .filter(UserRecord.username == username)
+            .first()
+        )
 
     def update_last_used(self, user_id: int) -> UserTokenRecord | None:
         token = self.get_record_by_id(user_id)
