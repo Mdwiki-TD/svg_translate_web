@@ -33,14 +33,14 @@
         <th class="pe-4">Stdout log</th>
         <td>
           <a href="{{ url_for('admin_panel.tfj.job_logs_file', job_id=page.job.name, filelog='stdout') }}"
-            target="_blank">stdout</a>
+            target="_blank">{{ page.job.filelog_stdout }}</a>
         </td>
       </tr>
       <tr>
         <th class="pe-4">Stderr log</th>
         <td>
           <a href="{{ url_for('admin_panel.tfj.job_logs_file', job_id=page.job.name, filelog='stderr') }}"
-            target="_blank">stderr</a>
+            target="_blank">{{ page.job.filelog_stderr }}</a>
 
         </td>
       </tr>
