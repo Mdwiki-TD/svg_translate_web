@@ -127,7 +127,7 @@ class TestCreateOwidPagesWorkerInitialization:
         assert worker.job_id == 1
         assert worker.user == {"username": "test"}
         assert worker.site is None
-        assert worker.get_job_type() == "create_owid_pages"
+        assert worker.JOB_TYPE == "create_owid_pages"
 
     def test_worker_initialization_reads_limit_items_from_args(self, mock_owid_pages_services):
         """Test worker reads limit_items from args."""
@@ -168,8 +168,8 @@ class TestCreateOwidPagesWorkerInitialization:
 
         assert worker.limit_items == 0
 
-    def test_get_job_type(self, mock_owid_pages_services):
-        """Test get_job_type returns correct value."""
+    def test_job_type(self, mock_owid_pages_services):
+        """Test JOB_TYPE returns correct value."""
         worker = CreateOwidPagesWorker(
             JobsRunner(
                 job_id=1,
@@ -177,7 +177,7 @@ class TestCreateOwidPagesWorkerInitialization:
                 cancel_event=None,
             )
         )
-        assert worker.get_job_type() == "create_owid_pages"
+        assert worker.JOB_TYPE == "create_owid_pages"
 
     def test_get_initial_result(self, mock_owid_pages_services):
         """Test initial result matching expected structure."""

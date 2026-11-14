@@ -29,6 +29,8 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         4. run process_titles with self.titles.
     """
 
+    JOB_TYPE = "update_wikitext"
+
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
 
@@ -45,10 +47,6 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         self.files_processor = UpdateWikiTextProcessor(self.site)
         self.template_service = TemplateService()
         self.charts_and_tmps_service = ChartsAndTemplatesService()
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "update_wikitext"
 
     def _extract_titles_step(self) -> bool:
         self.titles = SvgFilesCollector.get_titles(self.text, with_prefix=True)

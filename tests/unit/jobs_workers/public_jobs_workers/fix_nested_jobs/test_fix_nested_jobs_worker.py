@@ -170,7 +170,7 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
 
 
 class TestFixNestedJobsProcessor(TestSetup):
-    def test_get_job_type(self) -> None:
+    def test_job_type(self) -> None:
         worker = FixNestedJobsProcessor(
             JobsRunner(
                 job_id=1,
@@ -178,7 +178,7 @@ class TestFixNestedJobsProcessor(TestSetup):
                 args={"filename": "Test.svg"},
             )
         )
-        assert worker.get_job_type() == "fix_nested_jobs"
+        assert worker.JOB_TYPE == "fix_nested_jobs"
 
     def test_result_initial_structure(self) -> None:
         worker = FixNestedJobsProcessor(

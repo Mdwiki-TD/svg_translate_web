@@ -264,6 +264,7 @@ class OneFileProcessor:
 
 
 class CollectMainFilesWorker(BaseObjectsJobWorker):
+    JOB_TYPE = "collect_templates_data"
     """Worker for collecting main files for templates."""
 
     def __init__(self, data: JobsRunner) -> None:
@@ -286,10 +287,6 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             self.site,
             self.template_service,
         )
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "collect_templates_data"
 
     # ------------------------------------------------------------------
     # pre process step

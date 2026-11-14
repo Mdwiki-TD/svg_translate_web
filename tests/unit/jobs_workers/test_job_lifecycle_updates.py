@@ -12,17 +12,16 @@ from src.main_app.jobs_workers.shared_objects import WorkerMapping
 
 
 class MockWorker(BaseObjectsJobWorker):
+    JOB_TYPE = "mock_job"
+
     def __init__(self, job_id: int, job_type_name: str = "mock_job") -> None:
         self.args = {}
         self.site = None
-        self._job_type_name = job_type_name
+        self.JOB_TYPE = job_type_name
 
         super().__init__(JobsRunner(job_id=job_id, user={}))
 
         self.result: WorkerMapping = WorkerMapping()
-
-    def get_job_type(self) -> str:
-        return self._job_type_name
 
     def process(self) -> WorkerMapping:
         return self.result

@@ -133,9 +133,9 @@ class TestWorkerInit:
         _worker = _make_worker(args={"some": "value"})
         assert _worker.args == {"some": "value"}
 
-    def test_get_job_type(self, mock_base_worker):
+    def test_job_type(self, mock_base_worker):
         _worker = _make_worker()
-        assert _worker.get_job_type() == "rename_owid_pages"
+        assert _worker.JOB_TYPE == "rename_owid_pages"
 
     def test_initial_result_structure(self, mock_base_worker):
         _worker = _make_worker()

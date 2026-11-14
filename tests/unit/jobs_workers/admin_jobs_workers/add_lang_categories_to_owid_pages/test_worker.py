@@ -118,14 +118,14 @@ class TestWorkerInit:
         assert worker.cancel_event == cancel_event
         assert worker.site is None
 
-    def test_get_job_type(self):
+    def test_job_type(self):
         worker = AddLangCategoriesWorker(
             JobsRunner(
                 job_id=1,
                 user={},
             )
         )
-        assert worker.get_job_type() == "add_lang_categories_to_owid_pages"
+        assert worker.JOB_TYPE == "add_lang_categories_to_owid_pages"
 
     def test_reads_limit_items_from_args(self):
         worker = AddLangCategoriesWorker(

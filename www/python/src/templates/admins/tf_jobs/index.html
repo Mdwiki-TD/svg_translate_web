@@ -2,13 +2,14 @@
 
 {% block admin_contents %}
 {% from "admins/tf_jobs/_job_actions.html" import job_actions, status_badge %}
+
 <div class="container-fluid py-3">
     <h2 class="mb-3">Toolforge jobs</h2>
 
-    {% if not error %}
+    {% if not page.error %}
     <div class="mb-3">
-        <span class="badge bg-secondary">Total: {{ total_jobs }}</span>
-        {% for status, count in status_summary.items() %}
+        <span class="badge bg-secondary">Total: {{ page.total_jobs }}</span>
+        {% for status, count in page.status_summary.items() %}
         {{ status_badge(status, count) }}
         {% endfor %}
     </div>
@@ -29,13 +30,14 @@
                 </tr>
             </thead>
             <tbody>
-                {% for job in jobs %}
+                {% for job in page.jobs %}
                 <tr>
-                    <td><a href="{{ url_for('.job_detail', job_id=job.name) }}"><code>{{ job.name }}</code></a></td>
+                    <td><a href="{{ url_for(job_detail_endpoint, job_id=job.name) }}"><code>{{ job.name }}</code></a>
+                    </td>
                     <td>{{ job.job_type }}{% if job.schedule %}<br><small>{{ job.schedule }}</small>{% endif %}</td>
                     <td>
                         {{ status_badge(job.status_key) }}
-                        {% for msg in job.status_messages %}
+                        {% for msg in job.status.messages %}
                         <br><small class="text-muted">{{ msg }}</small>
                         {% endfor %}
                         <details>
@@ -49,7 +51,13 @@
                     <td><small>CPU {{ job.cpu }} / Mem {{ job.memory }}</small></td>
                     <td>
                         {% if job.filelog %}
-                        <small>{{ job.filelog_stdout }}<br>{{ job.filelog_stderr }}</small>
+                        <small>
+                            <a href="{{ url_for('admin_panel.tfj.job_logs_file', job_id=job.name, filelog='stdout') }}"
+                                target="_blank">stdout</a>
+                            <br>
+                            <a href="{{ url_for('admin_panel.tfj.job_logs_file', job_id=job.name, filelog='stderr') }}"
+                                target="_blank">stderr</a>
+                        </small>
                         {% endif %}
                     </td>
                     <td class="text-nowrap">{{ job_actions(job.name) }}</td>

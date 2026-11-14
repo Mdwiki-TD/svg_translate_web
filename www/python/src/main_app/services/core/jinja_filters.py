@@ -143,6 +143,10 @@ def is_job_running(job_status: str | None) -> bool:
     return job_status.lower() in ["pending", "running"]
 
 
+def template_markup(text: str) -> str:
+    return f"{{{{{text}}}}}"
+
+
 filters = {
     "format_long_date": FormatTimestamps.format_long_date,
     "format_short_date": FormatTimestamps.format_short_date,
@@ -153,6 +157,7 @@ filters = {
     "is_job_running": is_job_running,
     "commas": commas_filter,
     "to_json": to_json_filter,
+    "template_markup": template_markup,
 }
 
 __all__ = [

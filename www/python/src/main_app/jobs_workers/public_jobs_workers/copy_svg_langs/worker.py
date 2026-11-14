@@ -35,6 +35,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
     Worker for copying SVG translations from a main file to its versions.
     """
 
+    JOB_TYPE = "copy_svg_langs"
+
     def __init__(self, data: JobsRunner) -> None:
         super().__init__(data)
         args = data.args or {}
@@ -55,10 +57,6 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.files_service = FilesService()
 
         self.files_processor = OneFileProcessor(self.config, self.files_service, self.site)
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "copy_svg_langs"
 
     def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
         return SvgLangsConfig.load(

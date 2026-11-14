@@ -14,7 +14,8 @@ from flask.views import MethodView
 from werkzeug.wrappers import Response
 
 from ...decorators import admin_required
-from ..routes_services.toolforge_jobs_service import DEFAULT_LOG_LINES, JobsPageService
+from ..routes_services.toolforge_jobs_mapping import DEFAULT_LOG_LINES, JobDetailPage, JobsPage
+from ..routes_services.toolforge_jobs_service import JobsPageService
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +40,26 @@ class JobsView(BaseJobsView):
 
     def get(self) -> str:
         """Render the jobs table with a status summary."""
-        page = self.service.build_jobs_page()
+        page: JobsPage = self.service.build_jobs_page()
         self._flash_all(page.messages)
         return render_template(
             "admins/tf_jobs/index.html",
-            **page.to_context(),
+            page=page,
+            job_detail_endpoint=".job_detail",
+        )
+
+
+class JobsTestView(BaseJobsView):
+    """View to list the Toolforge jobs and their current status."""
+
+    def get(self) -> str:
+        """Render the jobs table with a status summary."""
+        page: JobsPage = self.service.build_jobs_page(test_page=True)
+        self._flash_all(page.messages)
+        return render_template(
+            "admins/tf_jobs/index.html",
+            page=page,
+            job_detail_endpoint=".testjobs_detail",
         )
 
 
@@ -52,11 +68,34 @@ class JobDetailView(BaseJobsView):
 
     def get(self, job_id: str) -> str:
         """Render the details of one job."""
-        page = self.service.build_job_page(job_id)
+        page: JobDetailPage = self.service.build_job_page(job_id)
         self._flash_all(page.messages)
+
         return render_template(
             "admins/tf_jobs/job_details.html",
-            **page.to_context(),
+            jobs_list_endpoint=".jobs",
+            page=page,
+        )
+
+
+class JobTestDetailView(BaseJobsView):
+    """View to show a single job."""
+
+    def get(self, job_id: str) -> str:
+        """Render the details of one job."""
+        # page: JobDetailPage = self.service.build_job_page(job_id)
+        _page: JobsPage = self.service.build_jobs_page(test_page=True)
+        self._flash_all(_page.messages)
+
+        page = JobDetailPage(
+            job_id=job_id,
+            job=_page.jobs[0],
+        )
+
+        return render_template(
+            "admins/tf_jobs/job_details.html",
+            jobs_list_endpoint=".testjobs",
+            page=page,
         )
 
 
@@ -67,6 +106,21 @@ class JobLogsView(BaseJobsView):
         """Render the last lines of the job logs."""
         lines = request.args.get("lines", DEFAULT_LOG_LINES, type=int)
         page = self.service.build_logs_page(job_id, lines)
+        self._flash_all(page.messages)
+        return render_template(
+            "admins/tf_jobs/job_logs.html",
+            **page.to_context(),
+        )
+
+
+class JobLogsFileView(BaseJobsView):
+    """View to show the logs of a single job."""
+
+    def get(self, job_id: str, filelog: str) -> str:
+        """Render the last lines of the job logs."""
+        lines = request.args.get("lines", DEFAULT_LOG_LINES, type=int)
+        page = self.service.read_job_log_file(job_id, filelog, lines)
+
         self._flash_all(page.messages)
         return render_template(
             "admins/tf_jobs/job_logs.html",
@@ -103,15 +157,23 @@ class ToolforgeJobsView:
         bp.add_url_rule("/", view_func=JobsView.as_view("jobs"))
         bp.add_url_rule("/<job_id>", view_func=JobDetailView.as_view("job_detail"))
         bp.add_url_rule("/<job_id>/logs", view_func=JobLogsView.as_view("job_logs"))
+
+        # Endpoint to read error/log files like:
+        #   - /data/project/mdwiki/backup.out (filelog_stdout)
+        #   - /data/project/mdwiki/backup.err (filelog_stderr)
+        bp.add_url_rule(
+            "/<job_id>/logs/<any(stdout,stderr):filelog>",
+            view_func=JobLogsFileView.as_view("job_logs_file"),
+        )
+
         bp.add_url_rule("/<job_id>/restart", view_func=JobRestartView.as_view("job_restart"))
         bp.add_url_rule("/<job_id>/delete", view_func=JobDeleteView.as_view("job_delete"))
+
+        # "_test" is not a valid job name, so it cannot shadow a real job (unlike "/test")
+        bp.add_url_rule("/_test", view_func=JobsTestView.as_view("testjobs"))
+        bp.add_url_rule("/_test/<job_id>", view_func=JobTestDetailView.as_view("testjobs_detail"))
 
 
 __all__ = [
     "ToolforgeJobsView",
-    "JobDeleteView",
-    "JobDetailView",
-    "JobLogsView",
-    "JobRestartView",
-    "JobsView",
 ]

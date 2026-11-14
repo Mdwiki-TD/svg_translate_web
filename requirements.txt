@@ -20,5 +20,6 @@ tqdm>=4.70.0
 uvicorn>=0.52.4
 wikitextparser>=2.0.0
 WTForms>=3.2.2
+dacite>=1.9.2
 
 git+https://github.com/MrIbrahem/CopySVGTranslation.git@main

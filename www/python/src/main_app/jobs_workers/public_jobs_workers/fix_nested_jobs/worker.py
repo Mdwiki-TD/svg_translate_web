@@ -25,6 +25,8 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
     Orchestrates the pipeline for fixing nested tags in SVG files.
     """
 
+    JOB_TYPE = "fix_nested_jobs"
+
     def __init__(self, data: JobsRunner) -> None:
         super().__init__(data)
         self.args = data.args or {}
@@ -48,10 +50,6 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
     # BaseObjectsJobWorker hooks
     # ------------------------------------------------------------------
-
-    def get_job_type(self) -> str:
-        """Return the job type identifier."""
-        return "fix_nested_jobs"
 
     # ------------------------------------------------------------------
     # Per-step

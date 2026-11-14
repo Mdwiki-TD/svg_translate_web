@@ -60,6 +60,8 @@ def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:
 class RenameOwidPagesWorker(BaseObjectsJobWorker):
     """Background worker that capitalizes OWID subpage names."""
 
+    JOB_TYPE = "rename_owid_pages"
+
     def __init__(self, data: JobsRunner) -> None:
         self.site: Site | None = None
         super().__init__(data)
@@ -73,9 +75,6 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
     # ------------------------------------------------------------------
     # BaseObjectsJobWorker hooks
     # ------------------------------------------------------------------
-
-    def get_job_type(self) -> str:
-        return "rename_owid_pages"
 
     # ------------------------------------------------------------------
     # Public entry-point
