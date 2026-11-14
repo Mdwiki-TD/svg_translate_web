@@ -7,11 +7,13 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from sqlalchemy.orm import joinedload
+from sqlalchemy import exists
+from sqlalchemy.orm import contains_eager, joinedload
 
 from ....extensions import db
-from ...models import UserRecord, UserTokenRecord
+from ...models import AdminUserRecord, UserRecord, UserTokenRecord
 from ..crud_service import CRUDService
+from ..utils import retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,39 @@ class UserTokenService(CRUDService[UserTokenRecord]):
 
     def __init__(self) -> None:
         super().__init__(db.session, UserTokenRecord)
+
+    @retry_on_db_disconnect()
+    def get_authenticated_user_context(self, user_id: int) -> tuple[UserTokenRecord | None, bool]:
+        """Load the token, its user, and the admin flags in one query.
+
+        Returns:
+            (token, is_active_admin), or None if the
+            token or its user does not exist.
+        """
+        # Correlated EXISTS subqueries: evaluated per row, stop at first match,
+        # and never multiply the result rows (unlike LEFT JOINs).
+        is_admin = (
+            exists()
+            .where(
+                AdminUserRecord.username == UserRecord.username,
+                AdminUserRecord.is_active.is_(True),
+            )
+            .label("is_active_admin")
+        )
+
+        row = (
+            self.session.query(UserTokenRecord, is_admin)
+            .join(UserTokenRecord.user)  # INNER JOIN: skips tokens without a user
+            .options(contains_eager(UserTokenRecord.user))  # reuse the join, no extra SELECT
+            .filter(UserTokenRecord.user_id == user_id)
+            .first()
+        )
+
+        if row is None:
+            return None, False
+
+        token, active_admin = row
+        return token, bool(active_admin)
 
     def get_authenticated_user_token(self, user_id: int) -> None | UserTokenRecord:
         """Fetch the CurrentUser composite for session restoration."""
