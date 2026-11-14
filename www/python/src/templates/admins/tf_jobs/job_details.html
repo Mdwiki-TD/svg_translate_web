@@ -28,6 +28,23 @@
         </td>
       </tr>
       {% endfor %}
+      {% if page.job.filelog %}
+      <tr>
+        <th class="pe-4">Stdout log</th>
+        <td>
+          <a href="{{ url_for('admin_panel.tfj.job_logs_file', job_id=page.job.name, filelog='stdout') }}"
+            target="_blank">{{ page.job.filelog_stdout }}</a>
+        </td>
+      </tr>
+      <tr>
+        <th class="pe-4">Stderr log</th>
+        <td>
+          <a href="{{ url_for('admin_panel.tfj.job_logs_file', job_id=page.job.name, filelog='stderr') }}"
+            target="_blank">{{ page.job.filelog_stderr }}</a>
+
+        </td>
+      </tr>
+      {% endif %}
       {% for msg in page.job.status.messages %}
       <tr>
         <th class="pe-4">{% if loop.first %}Messages{% endif %}</th>

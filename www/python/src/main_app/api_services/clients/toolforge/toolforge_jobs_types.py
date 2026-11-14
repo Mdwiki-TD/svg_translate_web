@@ -154,8 +154,8 @@ class ToolForgeJob(Helper):
             ("Memory", self.memory),
             ("Mount", self.mount),
             ("Emails", self.emails),
-            ("Stdout log", self.filelog_stdout),
-            ("Stderr log", self.filelog_stderr),
+            # ("Stdout log", self.filelog_stdout),
+            # ("Stderr log", self.filelog_stderr),
             ("Details", self.status_long),
         ]
 

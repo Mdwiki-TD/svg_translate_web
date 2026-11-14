@@ -8,10 +8,12 @@ Response shapes follow the Toolforge OpenAPI spec (see toolforge_jobs_types.py).
 from __future__ import annotations
 
 import logging
+import os
 import re
 from collections import Counter
 from collections.abc import Callable
 from dataclasses import asdict, is_dataclass
+from pathlib import Path
 from typing import Any
 
 import requests
@@ -45,6 +47,11 @@ _LEVEL_TO_CATEGORY = {
 # Job name rules from the OpenAPI spec.
 JOB_NAME_PATTERN = re.compile(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$")
 JOB_NAME_MAX_LENGTH = 52
+
+
+LOG_FILE_STREAMS = ("stdout", "stderr")
+ALLOWED_LOG_SUFFIXES = {".out", ".err", ".log"}
+MAX_LOG_BYTES = 1_000_000  # only the end of a log file is read
 
 
 class JobsPageServiceHelpers:
@@ -185,13 +192,7 @@ class JobsPageService(JobsPageServiceHelpers):
                 error=True,
             )
 
-        all_lines = text.splitlines()
-        return JobLogsPage(
-            job_id=job_id,
-            logs=all_lines[-lines:],
-            lines=lines,
-            total_lines=len(all_lines),
-        )
+        return JobLogsPage.read(job_id, text, lines)
 
     # ------------------------------------------------------------------
     # Actions
@@ -277,6 +278,84 @@ class JobsPageService(JobsPageServiceHelpers):
                 raw = {level: payload[level] for level in _LEVEL_TO_CATEGORY.keys() if payload.get(level)}
 
         return {level: texts for level, texts in raw.items() if texts}
+
+    def read_job_log_file(self, job_id: str, filelog: str, lines: int = DEFAULT_LOG_LINES) -> JobLogsPage:
+        """Read the end of the stdout/stderr file of a job, never raising."""
+        lines = min(max(lines, 1), MAX_LOG_LINES)
+
+        if filelog not in LOG_FILE_STREAMS:
+            return JobLogsPage(
+                job_id=job_id,
+                lines=lines,
+                error=True,
+                messages=[(f"Unknown log file: {filelog[:20]!r}", "danger")],
+            )
+        invalid = self._invalid_name_message(job_id)
+        if invalid:
+            return JobLogsPage(job_id=job_id, lines=lines, messages=[invalid], error=True)
+
+        action = f"read the {filelog} file of job '{job_id}'"
+        try:
+            job = self.toolforge.show_job(job_id).job
+            file_name = None
+            if job:
+                file_name = job.filelog_stdout if filelog == "stdout" else job.filelog_stderr
+
+            if not file_name:
+                return JobLogsPage(
+                    job_id=job_id,
+                    lines=lines,
+                    filelog=filelog,
+                    messages=[(f"Job '{job_id}' has no {filelog} file (filelog is disabled).", "warning")],
+                )
+            text = self.read_file(self._log_file_path(file_name))
+        except _API_ERRORS as exc:  # includes OSError (missing file, permissions) and PermissionError below
+            return JobLogsPage(
+                job_id=job_id,
+                lines=lines,
+                filelog=filelog,
+                error=True,
+                messages=self._failure_messages(action, exc),
+            )
+
+        return JobLogsPage.read(job_id, text, lines, filelog)
+
+    def _log_file_path(self, file_name: str) -> Path:
+        """Resolve a log path from the job definition; it must stay a log file inside the tool home.
+
+        The path comes from the job definition (anyone who can create jobs controls it),
+        so it is never trusted: otherwise ``/etc/passwd`` or ``~/.toolskube/client.key`` could be shown.
+        """
+        home = Path(self.toolforge.api.home_dir).resolve()
+        path = Path(file_name)
+        if not path.is_absolute():
+            path = home / path  # "logs/my-job.out" is relative to the tool home
+        path = path.resolve()  # follows symlinks and removes ".."
+
+        if not path.is_relative_to(home):
+            raise PermissionError("the log file is outside the tool directory")
+        if path.suffix not in ALLOWED_LOG_SUFFIXES:
+            raise PermissionError(f"only {', '.join(sorted(ALLOWED_LOG_SUFFIXES))} files can be read")
+        if any(part.startswith(".") for part in path.relative_to(home).parts):
+            raise PermissionError("hidden files and directories cannot be read")
+        return path
+
+    @staticmethod
+    def read_file(path: Path, max_bytes: int = MAX_LOG_BYTES) -> str:
+        """Return the end of a file (at most ``max_bytes``), without loading it all."""
+        if not path.is_file():
+            raise FileNotFoundError(f"{path.name} does not exist")
+
+        with path.open("rb") as handle:
+            size = handle.seek(0, os.SEEK_END)
+            handle.seek(max(size - max_bytes, 0))
+            data = handle.read()
+
+        text = data.decode("utf-8", errors="replace")
+        if size > max_bytes:
+            text = text.split("\n", 1)[-1]  # drop the partial first line
+
+        return text
 
 
 __all__ = [

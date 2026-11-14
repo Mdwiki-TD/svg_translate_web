@@ -69,8 +69,21 @@ class JobLogsPage:
     logs: list[str] = field(default_factory=list)
     lines: int = DEFAULT_LOG_LINES
     total_lines: int = 0
+    filelog: str = ""  # "stdout" / "stderr" / "" for the API logs
     messages: list[Message] = field(default_factory=list)
     error: bool = False
+
+    @classmethod
+    def read(cls, job_id: str, text: str, lines: int, filelog: str = "") -> JobLogsPage:
+        """Keep the last ``lines`` lines of ``text``."""
+        all_lines = text.splitlines()
+        return cls(
+            job_id=job_id,
+            logs=all_lines[-lines:],
+            lines=lines,
+            total_lines=len(all_lines),
+            filelog=filelog,
+        )
 
     def to_context(self) -> dict[str, Any]:
         """Return the template context."""
@@ -79,6 +92,7 @@ class JobLogsPage:
             "logs": self.logs,
             "lines": self.lines,
             "total_lines": self.total_lines,
+            "filelog": self.filelog,
             "max_lines": MAX_LOG_LINES,
             "error": self.error,
         }

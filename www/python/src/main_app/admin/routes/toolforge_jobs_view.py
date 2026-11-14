@@ -113,6 +113,21 @@ class JobLogsView(BaseJobsView):
         )
 
 
+class JobLogsFileView(BaseJobsView):
+    """View to show the logs of a single job."""
+
+    def get(self, job_id: str, filelog: str) -> str:
+        """Render the last lines of the job logs."""
+        lines = request.args.get("lines", DEFAULT_LOG_LINES, type=int)
+        page = self.service.read_job_log_file(job_id, filelog, lines)
+
+        self._flash_all(page.messages)
+        return render_template(
+            "admins/tf_jobs/job_logs.html",
+            **page.to_context(),
+        )
+
+
 class JobRestartView(BaseJobsView):
     """View to restart a job (POST only)."""
 
@@ -142,6 +157,15 @@ class ToolforgeJobsView:
         bp.add_url_rule("/", view_func=JobsView.as_view("jobs"))
         bp.add_url_rule("/<job_id>", view_func=JobDetailView.as_view("job_detail"))
         bp.add_url_rule("/<job_id>/logs", view_func=JobLogsView.as_view("job_logs"))
+
+        # Endpoint to read error/log files like:
+        #   - /data/project/mdwiki/backup.out (filelog_stdout)
+        #   - /data/project/mdwiki/backup.err (filelog_stderr)
+        bp.add_url_rule(
+            "/<job_id>/logs/<any(stdout,stderr):filelog>",
+            view_func=JobLogsFileView.as_view("job_logs_file"),
+        )
+
         bp.add_url_rule("/<job_id>/restart", view_func=JobRestartView.as_view("job_restart"))
         bp.add_url_rule("/<job_id>/delete", view_func=JobDeleteView.as_view("job_delete"))
 

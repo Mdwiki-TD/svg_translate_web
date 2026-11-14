@@ -52,9 +52,11 @@
                     <td>
                         {% if job.filelog %}
                         <small>
-                            {{ job.filelog_stdout }}
+                            <a href="{{ url_for('admin_panel.tfj.job_logs_file', job_id=job.name, filelog='stdout') }}"
+                                target="_blank">{{ job.filelog_stdout }}</a>
                             <br>
-                            {{ job.filelog_stderr }}
+                            <a href="{{ url_for('admin_panel.tfj.job_logs_file', job_id=job.name, filelog='stderr') }}"
+                                target="_blank">{{ job.filelog_stderr }}</a>
                         </small>
                         {% endif %}
                     </td>
