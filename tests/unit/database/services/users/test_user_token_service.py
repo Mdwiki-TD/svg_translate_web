@@ -10,7 +10,6 @@ connection drop is needed.
 from __future__ import annotations
 
 import uuid
-from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 from unittest.mock import MagicMock
