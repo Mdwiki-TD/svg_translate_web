@@ -104,7 +104,7 @@ class TestRetryOnDbDisconnect:
         with caplog.at_level("WARNING"):
             wrapped()
 
-        assert "gone away" in caplog.text
+        assert "DB connection lost" in caplog.text
         assert "attempt 1/3" in caplog.text.lower() or "1/3" in caplog.text
 
     def test_logs_error_after_exhausting_retries(self, fake_db, caplog):
