@@ -22,10 +22,9 @@ def _slug_join_condition():
     """
     engine = db.session.get_bind()
     if engine.dialect.name == "mysql":
-        return collate(TemplateRecord.slug, "utf8mb4_unicode_ci") == collate(
-            OwidChartRecord.slug, "utf8mb4_unicode_ci"
-        )
+        return collate(TemplateRecord.slug, "utf8mb4_unicode_ci") == collate(OwidChartRecord.slug, "utf8mb4_unicode_ci")
     return TemplateRecord.slug == OwidChartRecord.slug
+
 
 logger = logging.getLogger(__name__)
 

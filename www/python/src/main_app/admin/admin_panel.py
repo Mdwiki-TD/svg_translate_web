@@ -37,9 +37,7 @@ class AdminDashboardView(MethodView):
         # Enhance jobs with display names and detail URLs
         enhanced_jobs: list[Any] = []
         for job in jobs:
-            endpoint = (
-                "admin_panel.jobs.job_detail" if job.job_type in jobs_data_admins else "public_jobs.job_detail"
-            )
+            endpoint = "admin_panel.jobs.job_detail" if job.job_type in jobs_data_admins else "public_jobs.job_detail"
             detail_url = url_for(endpoint, job_type=job.job_type, job_id=job.id)
 
             enhanced_jobs.append(

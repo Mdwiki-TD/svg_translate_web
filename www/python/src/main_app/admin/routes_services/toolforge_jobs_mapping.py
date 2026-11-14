@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from ...api_services.clients.toolforge_jobs_types import ToolForgeJob
+from ...api_services.clients.toolforge.toolforge_jobs_types import ToolForgeJob
 
 logger = logging.getLogger(__name__)
 

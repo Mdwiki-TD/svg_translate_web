@@ -13,7 +13,7 @@ import logging
 from typing import Any
 from urllib.parse import quote
 
-from .http_client import HttpClient
+from ..http_client import HttpClient
 from .toolforge_api_service import ToolforgeApiService
 from .toolforge_jobs_types import (
     ImagesResponse,

@@ -15,7 +15,7 @@ from urllib.parse import quote, quote_plus, urlencode
 
 import requests
 
-from .http_client import HttpClient
+from ..http_client import HttpClient
 
 logger = logging.getLogger(__name__)
 
