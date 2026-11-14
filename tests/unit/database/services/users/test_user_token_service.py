@@ -17,7 +17,6 @@ from unittest.mock import MagicMock
 import pymysql
 import pytest
 from sqlalchemy.exc import OperationalError
-
 from src.main_app.database.models import AdminUserRecord
 from src.main_app.database.services.users.user_token_service import UserTokenService
 from src.main_app.database.services.users.users_service import UsersService
@@ -146,7 +145,10 @@ class TestGetAuthenticatedUserToken(TestSetup):
 class TestGetAuthenticatedUserContext(TestSetup):
     def test_returns_empty_context_when_no_token(self):
         user = self.make_user()  # user exists, token does not
-        assert self.service.get_authenticated_user_context(user.user_id) == (None, False)
+        assert self.service.get_authenticated_user_context(user.user_id) == (
+            None,
+            False,
+        )
 
     def test_returns_empty_context_for_unknown_user(self):
         assert self.service.get_authenticated_user_context(999_999_999) == (None, False)
@@ -156,7 +158,10 @@ class TestGetAuthenticatedUserContext(TestSetup):
         user = self.make_user()
         self.add_admin(user.username)
 
-        assert self.service.get_authenticated_user_context(user.user_id) == (None, False)
+        assert self.service.get_authenticated_user_context(user.user_id) == (
+            None,
+            False,
+        )
 
     def test_plain_user_is_not_admin(self):
         user = self.make_user_with_token()
@@ -314,9 +319,7 @@ def make_session(side_effects: list) -> MagicMock:
 @pytest.fixture
 def retry_service(monkeypatch) -> UserTokenService:
     monkeypatch.setattr("time.sleep", lambda _s: None)  # no real backoff
-    monkeypatch.setattr(
-        db.session, "rollback", MagicMock()
-    )  # keep the shared session untouched
+    monkeypatch.setattr(db.session, "rollback", MagicMock())  # keep the shared session untouched
     return UserTokenService()
 
 
@@ -405,9 +408,7 @@ class TestRetryOnDisconnectContext:
 
     def test_multiple_retries(self, retry_service):
         row, expected = _context_success()
-        retry_service.session = make_session(
-            [make_error(GONE_AWAY), make_error(LOST_CONN), row]
-        )
+        retry_service.session = make_session([make_error(GONE_AWAY), make_error(LOST_CONN), row])
 
         assert self.call(retry_service, 8) == expected
         assert retry_service.session.query.call_count == 3
@@ -415,9 +416,7 @@ class TestRetryOnDisconnectContext:
 
     def test_raises_after_max_retries(self, retry_service):
         # 1 initial attempt + MAX_RETRIES retries, all failing
-        retry_service.session = make_session(
-            [make_error(GONE_AWAY)] * (MAX_RETRIES + 1)
-        )
+        retry_service.session = make_session([make_error(GONE_AWAY)] * (MAX_RETRIES + 1))
 
         with pytest.raises(OperationalError):
             self.call(retry_service, 8)
@@ -442,9 +441,7 @@ class TestRetryOnDisconnectContext:
         assert retry_service.session.query.call_count == 1
 
     def test_rollback_failure_does_not_stop_retry(self, retry_service, monkeypatch):
-        monkeypatch.setattr(
-            db.session, "rollback", MagicMock(side_effect=RuntimeError("dead"))
-        )
+        monkeypatch.setattr(db.session, "rollback", MagicMock(side_effect=RuntimeError("dead")))
         row, expected = _context_success()
         retry_service.session = make_session([make_error(GONE_AWAY), row])
 
