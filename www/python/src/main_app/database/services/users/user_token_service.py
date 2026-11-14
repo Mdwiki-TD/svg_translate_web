@@ -32,6 +32,7 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         )
         if not token or not token.user:
             return None
+
         return token
 
     def upsert_user_token(
@@ -63,6 +64,7 @@ class UserTokenService(CRUDService[UserTokenRecord]):
         token = self.get_record_by_id(user_id)
         if token is None:
             return None
+
         return self.update(token, last_used_at=datetime.utcnow())
 
     def delete_token_by_user_id(self, user_id: int) -> bool:
