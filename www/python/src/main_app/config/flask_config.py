@@ -72,19 +72,36 @@ class Config:
         self.SESSION_COOKIE_SECURE = app_settings.cookie.secure
         self.SESSION_COOKIE_SAMESITE = app_settings.cookie.samesite
 
-        # Only set MySQL-specific engine options if URI is MySQL (not SQLite)
+        # Only set MySQL-specific engine options if URI is MySQL/MariaDB (not SQLite)
         uri = self.SQLALCHEMY_DATABASE_URI or ""
-        if uri.startswith("mysql") and not self.SQLALCHEMY_ENGINE_OPTIONS:
+
+        # NOTE: these values must stay in sync with uwsgi.ini (processes x threads)
+        # and with the server limit max_user_connections = 20 (tools.my.cnf.erb).
+        #
+        #   max DB connections = processes * (pool_size + max_overflow)
+        #                      = 2 * (4 + 2) = 12 of 20
+        #
+        # - pool_size should equal `threads` in uwsgi.ini (one connection per thread).
+        # - If you raise `processes` or `threads` in uwsgi.ini, lower or adjust
+        #   pool_size / max_overflow here, or the pools will exceed the user limit
+        #   and new connections will be refused (error 1040/2006).
+        # - Each uWSGI worker has its own pool, which is why `lazy-apps = true`
+        #   is required (never share a pool across fork).
+        # - pool_recycle must stay below the server's wait_timeout = 600.
+        if uri.startswith(("mysql", "mariadb")) and not self.SQLALCHEMY_ENGINE_OPTIONS:
             self.SQLALCHEMY_ENGINE_OPTIONS = {
-                "pool_pre_ping": True,
-                "pool_size": 5,
-                "max_overflow": 10,
-                "pool_recycle": 3600,
+                "pool_pre_ping": True,    # validate a connection before using it
+                "pool_size": 4,           # MUST equal `threads` in uwsgi.ini
+                "max_overflow": 2,        # for background threads (e.g. JobsService)
+                "pool_recycle": 280,      # below the server's wait_timeout = 600
+                "pool_timeout": 10,       # fail fast instead of hanging
+                "pool_use_lifo": True,    # let surplus connections idle out and die
                 "connect_args": {
                     "connect_timeout": 5,
+                    "read_timeout": 120,
+                    "write_timeout": 120,
                     "init_command": 'SET time_zone = "+00:00"',
                     "charset": "utf8mb4",
-                    "collation": "utf8mb4_unicode_ci",
                 },
             }
 
