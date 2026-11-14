@@ -26,12 +26,18 @@ class JobsPage:
     messages: list[Message] = field(default_factory=list)
     error: bool = False
 
+    @property
+    def total_jobs(self) -> int:
+        """Return the total number of jobs."""
+        return len(self.jobs)
+
     def to_context(self) -> dict[str, Any]:
         """Return the template context."""
         return {
-            "jobs": [j.rows() for j in self.jobs],
+            # "jobs": [j.rows() for j in self.jobs],
+            "jobs": self.jobs,
             "status_summary": self.status_summary,
-            "total_jobs": len(self.jobs),
+            "total_jobs": self.total_jobs,
             "error": self.error,
         }
 
@@ -48,13 +54,10 @@ class JobDetailPage:
     def to_context(self) -> dict[str, Any]:
         """Return the template context."""
 
-        rows = self.job.rows() if self.job else []
-
         return {
             "job_id": self.job_id,
             "job": self.job,
             "error": self.error,
-            "rows": rows,
         }
 
 

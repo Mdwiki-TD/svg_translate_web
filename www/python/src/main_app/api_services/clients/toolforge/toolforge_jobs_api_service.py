@@ -239,7 +239,17 @@ class ToolforgeJobsService:
         return MessagesResponse.load(data)
 
     def list_jobs_test(self, include_unset: bool | None = None) -> JobListResponse:
-        simple_job = {
+        simple_job = self.simple_job()
+
+        return JobListResponse.load(
+            {
+                "jobs": [simple_job],
+                "messages": {"info": [], "warning": [], "error": []},
+            }
+        )
+
+    def simple_job(self):
+        return {
             "name": "update",
             "imagename": "python3.13",
             "mount": "all",
@@ -263,13 +273,6 @@ class ToolforgeJobsService:
                 "messages": ["exitcode 127"],
             },
         }
-
-        return JobListResponse.load(
-            {
-                "jobs": [simple_job],
-                "messages": {"info": [], "warning": [], "error": []},
-            }
-        )
 
     def healthcheck(self) -> Any:
         return self.api.healthcheck()

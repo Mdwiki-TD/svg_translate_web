@@ -2,18 +2,19 @@
 
 {% block admin_contents %}
 {% from "admins/tf_jobs/_job_actions.html" import job_actions, status_badge %}
-<div class="container-fluid py-3">
-  <p class="mb-2"><a href="{{ url_for('.jobs') }}">&larr; Back to jobs</a></p>
-  <h2 class="mb-3">Job <code>{{ job_id }}</code></h2>
 
-  {% if not error and job %}
-  <div class="mb-3">{{ job_actions(job_id, show=False) }}</div>
+<div class="container-fluid py-3">
+  <p class="mb-2"><a href="{{ url_for(jobs_list_endpoint) }}">&larr; Back to jobs</a></p>
+  <h2 class="mb-3">Job <code>{{ page.job_id }}</code></h2>
+
+  {% if not page.error and page.job %}
+  <div class="mb-3">{{ job_actions(page.job_id, show=False) }}</div>
 
   {# Fields depend on the job type; rows without a value are skipped below. #}
 
   <table class="table table-sm table-striped w-auto">
     <tbody>
-      {% for label, value in rows if value is defined and value not in (none, "") %}
+      {% for label, value in page.job.rows() if value is defined and value not in (none, "") %}
       <tr>
         <th class="pe-4">{{ label }}</th>
         <td>
@@ -27,7 +28,7 @@
         </td>
       </tr>
       {% endfor %}
-      {% for msg in job.status.messages %}
+      {% for msg in page.job.status.messages %}
       <tr>
         <th class="pe-4">{% if loop.first %}Messages{% endif %}</th>
         <td><small>{{ msg }}</small></td>
