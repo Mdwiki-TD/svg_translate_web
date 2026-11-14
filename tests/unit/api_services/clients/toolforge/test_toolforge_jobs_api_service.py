@@ -16,7 +16,17 @@ from src.main_app.api_services.clients.toolforge.toolforge_api_service import (
     TOKEN_ENV,
 )
 from src.main_app.api_services.clients.toolforge.toolforge_jobs_api_service import (
+    ToolforgeApiError,
     ToolforgeJobsService,
+)
+from src.main_app.api_services.clients.toolforge.toolforge_jobs_types import (
+    ImagesResponse,
+    JobListResponse,
+    JobResponse,
+    MessagesResponse,
+    QuotaResponse,
+    ResponseMessages,
+    UpdateResponse,
 )
 
 HTTP_METHODS = ["get", "post", "put", "patch", "delete"]
@@ -30,9 +40,7 @@ def _query(url: str) -> dict[str, list[str]]:
 
 
 @pytest.fixture(autouse=True)
-def clean_env(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """Remove the environment variables read by the service."""
     monkeypatch.delenv(TOKEN_ENV, raising=False)
     monkeypatch.delenv("TOOL_NAME", raising=False)
@@ -90,13 +98,13 @@ class TestInit:
 
     def test_route_is_jobs(
         self,
-        make_service,
+        make_service: Callable[..., ToolforgeJobsService],
     ) -> None:
         assert make_service().api.api_route == "jobs"
 
     def test_default_mode_is_internal(
         self,
-        make_service,
+        make_service: Callable[..., ToolforgeJobsService],
     ) -> None:
         service = make_service()
 
@@ -105,7 +113,7 @@ class TestInit:
 
     def test_token_switches_to_external_mode(
         self,
-        make_service,
+        make_service: Callable[..., ToolforgeJobsService],
     ) -> None:
         service = make_service(token="secret")
 
@@ -136,7 +144,7 @@ class TestInit:
 
     def test_timeout_default(
         self,
-        make_service,
+        make_service: Callable[..., ToolforgeJobsService],
     ) -> None:
         assert make_service().api.timeout == REQUEST_TIMEOUT
 
@@ -146,19 +154,19 @@ class TestJobPath:
 
     def test_integer_id(
         self,
-        make_service,
+        make_service: Callable[..., ToolforgeJobsService],
     ) -> None:
         assert make_service()._job_path(5) == "/jobs/5"
 
     def test_string_id(
         self,
-        make_service,
+        make_service: Callable[..., ToolforgeJobsService],
     ) -> None:
         assert make_service()._job_path("update") == "/jobs/update"
 
     def test_id_is_quoted(
         self,
-        make_service,
+        make_service: Callable[..., ToolforgeJobsService],
     ) -> None:
         assert make_service()._job_path("a b/c") == "/jobs/a%20b%2Fc"
 
@@ -193,26 +201,31 @@ class TestReadEndpoints:
         assert mock_http_client.request.call_args.kwargs["url"] == f"{BASE}{expected_path}"
 
     @pytest.mark.parametrize(
-        ("method_name", "args"),
+        ("method_name", "args", "expected_type"),
         [
-            ("images", ()),
-            ("quotas", ()),
-            ("list_jobs", ()),
-            ("show_job", (1,)),
+            ("images", (), ImagesResponse),
+            ("quotas", (), QuotaResponse),
+            ("list_jobs", (), JobListResponse),
+            ("show_job", (1,), JobResponse),
         ],
     )
-    def ztest_returns_decoded_payload(
+    def test_returns_loaded_dataclass(
         self,
         make_service: Callable[..., ToolforgeJobsService],
         mock_http_client,
         make_response,
         method_name: str,
         args: tuple,
+        expected_type: type,
     ) -> None:
-        mock_http_client.request.return_value = make_response(json_data={"key": "value"})
+        mock_http_client.request.return_value = make_response(json_data={"messages": {"info": ["ok"]}})
         service = make_service()
 
-        assert getattr(service, method_name)(*args) == {"key": "value"}
+        result = getattr(service, method_name)(*args)
+
+        assert isinstance(result, expected_type)
+        assert result.messages is not None
+        assert result.messages.info == ["ok"]
 
     def test_show_job_quotes_the_id(
         self,
@@ -226,20 +239,24 @@ class TestReadEndpoints:
         assert mock_http_client.request.call_args.kwargs["url"] == f"{BASE}/jobs/my%20job"
 
     def test_list_jobs_returns_the_api_payload(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client, make_response
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
     ) -> None:
-        payload = {"jobs": [{"name": "update"}], "messages": {"info": [], "warning": [], "error": []}}
+        payload = {
+            "jobs": [{"name": "update"}],
+            "messages": {"info": [], "warning": [], "error": []},
+        }
         mock_http_client.request.return_value = make_response(json_data=payload)
         service = make_service()
 
         jobs = service.list_jobs()
-        if isinstance(jobs, dict):
-            assert jobs == payload
-        else:
-            assert jobs.messages is not None
-            assert jobs.messages.to_json() == payload["messages"]
-            assert jobs.jobs is not None
-            assert jobs.jobs[0].name == "update"
+
+        assert jobs.messages is not None
+        assert jobs.messages.to_json() == payload["messages"]
+        assert jobs.jobs is not None
+        assert jobs.jobs[0].name == "update"
 
     @pytest.mark.parametrize(
         ("method_name", "args"),
@@ -264,7 +281,9 @@ class TestListJobsIncludeUnset:
     """The only query parameter of GET /jobs."""
 
     def test_no_query_string_by_default(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service()
 
@@ -274,7 +293,11 @@ class TestListJobsIncludeUnset:
 
     @pytest.mark.parametrize(("value", "expected"), [(True, "true"), (False, "false")])
     def test_include_unset_is_sent_lowercase(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client, value: bool, expected: str
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        value: bool,
+        expected: str,
     ) -> None:
         service = make_service()
 
@@ -287,7 +310,10 @@ class TestGetLogs:
     """The logs endpoint returns text/plain and takes no query parameters."""
 
     def test_returns_the_plain_text(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client, make_response
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
     ) -> None:
         mock_http_client.request.return_value = make_response(content=b"line 1\nline 2", text="line 1\nline 2")
         service = make_service()
@@ -295,7 +321,10 @@ class TestGetLogs:
         assert service.get_logs("update") == "line 1\nline 2"
 
     def test_text_that_looks_like_json_is_not_decoded(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client, make_response
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
     ) -> None:
         response = make_response(content=b"123", text="123", json_data=123)
         mock_http_client.request.return_value = response
@@ -305,7 +334,10 @@ class TestGetLogs:
         response.json.assert_not_called()
 
     def test_empty_logs_return_empty_string(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client, make_response
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
     ) -> None:
         mock_http_client.request.return_value = make_response(content=b"", text="")
         service = make_service()
@@ -324,7 +356,10 @@ class TestGetLogs:
         assert mock_http_client.request.call_args.kwargs["url"] == f"{BASE}/jobs/update/logs"
 
     def test_http_error_is_raised(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client, make_response
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
     ) -> None:
         mock_http_client.request.return_value = make_response(status_code=404)
         service = make_service()
@@ -337,7 +372,9 @@ class TestWriteEndpoints:
     """POST, PATCH and DELETE endpoints."""
 
     def test_create_job_posts_the_data(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service()
         data = {"name": "update", "imagename": "python3.13", "cmd": "./run.sh"}
@@ -350,7 +387,9 @@ class TestWriteEndpoints:
         assert mock_http_client.request.call_args.kwargs["json"] == data
 
     def test_update_job_patches_the_data(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service()
         data = {"name": "update", "cpu": "0.2"}
@@ -363,7 +402,9 @@ class TestWriteEndpoints:
         assert mock_http_client.request.call_args.kwargs["json"] == data
 
     def test_flush_jobs_deletes_the_collection(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service()
 
@@ -375,7 +416,9 @@ class TestWriteEndpoints:
         assert "json" not in mock_http_client.request.call_args.kwargs
 
     def test_delete_job_deletes_one_job(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service()
 
@@ -386,7 +429,9 @@ class TestWriteEndpoints:
         assert mock_http_client.request.call_args.kwargs["url"] == f"{BASE}/jobs/update"
 
     def test_restart_job_posts_to_the_restart_path(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service()
 
@@ -398,28 +443,32 @@ class TestWriteEndpoints:
         assert "json" not in mock_http_client.request.call_args.kwargs
 
     @pytest.mark.parametrize(
-        ("method_name", "args", "client_method"),
+        ("method_name", "args", "expected_type"),
         [
-            ("create_job", ({"name": "x"},), "POST"),
-            ("update_job", ({"name": "x"},), "PATCH"),
-            ("flush_jobs", (), "DELETE"),
-            ("delete_job", ("x",), "DELETE"),
-            ("restart_job", ("x",), "POST"),
+            ("create_job", ({"name": "x"},), JobResponse),
+            ("update_job", ({"name": "x"},), UpdateResponse),
+            ("flush_jobs", (), MessagesResponse),
+            ("delete_job", ("x",), MessagesResponse),
+            ("restart_job", ("x",), MessagesResponse),
         ],
     )
-    def ztest_returns_decoded_payload(
+    def test_returns_loaded_dataclass(
         self,
-        make_service,
+        make_service: Callable[..., ToolforgeJobsService],
         mock_http_client,
         make_response,
         method_name: str,
         args: tuple,
-        client_method: str,
+        expected_type: type,
     ) -> None:
         mock_http_client.request.return_value = make_response(json_data={"messages": {"info": ["ok"]}})
         service = make_service()
 
-        assert getattr(service, method_name)(*args) == {"messages": {"info": ["ok"]}}
+        result = getattr(service, method_name)(*args)
+
+        assert isinstance(result, expected_type)
+        assert result.messages is not None
+        assert result.messages.info == ["ok"]
 
     @pytest.mark.parametrize(
         ("method_name", "args", "client_method"),
@@ -433,7 +482,7 @@ class TestWriteEndpoints:
     )
     def test_http_error_is_raised(
         self,
-        make_service,
+        make_service: Callable[..., ToolforgeJobsService],
         mock_http_client,
         make_response,
         method_name: str,
@@ -441,7 +490,7 @@ class TestWriteEndpoints:
         client_method: str,
     ) -> None:
         mock_http_client.request.return_value = make_response(status_code=400)
-        service = make_service(check=True)
+        service = make_service()
 
         with pytest.raises(requests.HTTPError):
             getattr(service, method_name)(*args)
@@ -451,19 +500,26 @@ class TestAuthentication:
     """Internal certificate versus external token."""
 
     def test_internal_request_sends_the_client_cert(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service()
 
         service.list_jobs()
 
         kwargs = mock_http_client.request.call_args.kwargs
-        assert kwargs["cert"] == ("/home/tester/.toolskube/client.crt", "/home/tester/.toolskube/client.key")
+        assert kwargs["cert"] == (
+            "/home/tester/.toolskube/client.crt",
+            "/home/tester/.toolskube/client.key",
+        )
         assert kwargs["verify"] is False
         assert kwargs["timeout"] == REQUEST_TIMEOUT
 
     def test_internal_request_has_no_token_in_the_url(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service()
 
@@ -472,7 +528,9 @@ class TestAuthentication:
         assert "token" not in mock_http_client.request.call_args.kwargs["url"]
 
     def test_external_request_appends_the_token(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service(token="secret")
 
@@ -483,7 +541,9 @@ class TestAuthentication:
         )
 
     def test_external_request_sends_no_cert(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service(token="secret")
 
@@ -494,7 +554,9 @@ class TestAuthentication:
         assert kwargs["verify"] is True
 
     def test_token_and_include_unset_are_combined(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service(token="secret")
 
@@ -506,7 +568,9 @@ class TestAuthentication:
         }
 
     def test_write_requests_also_carry_the_token(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service(token="secret")
 
@@ -515,7 +579,9 @@ class TestAuthentication:
         assert mock_http_client.request.call_args.kwargs["url"].endswith("/jobs?token=secret")
 
     def test_external_mode_without_token_raises(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         service = make_service(internal=False)
 
@@ -529,16 +595,21 @@ class TestErrors:
     """Error propagation."""
 
     def test_list_jobs_raises_on_server_error(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client, make_response
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
     ) -> None:
         mock_http_client.request.return_value = make_response(status_code=500)
-        service = make_service(check=True)
+        service = make_service()
 
         with pytest.raises(requests.HTTPError):
             service.list_jobs()
 
     def test_connection_errors_are_not_swallowed(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         mock_http_client.request.side_effect = requests.ConnectionError("down")
         service = make_service()
@@ -547,7 +618,9 @@ class TestErrors:
             service.list_jobs()
 
     def test_missing_cert_oserror_is_not_swallowed(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
     ) -> None:
         mock_http_client.request.side_effect = OSError("Could not find the TLS certificate file")
         service = make_service()
@@ -571,7 +644,10 @@ class TestInheritedEndpoints:
         assert mock_http_client.request.call_args.kwargs["url"] == f"{API_URL}/jobs/v1/healthz"
 
     def test_healthcheck_returns_payload(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client, make_response
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
     ) -> None:
         mock_http_client.request.return_value = make_response(json_data={"status": "ok"})
         service = make_service()
@@ -590,7 +666,10 @@ class TestInheritedEndpoints:
         assert mock_http_client.request.call_args.kwargs["url"] == f"{API_URL}/jobs/v1/metrics"
 
     def test_metrics_returns_text(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client, make_response
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
     ) -> None:
         mock_http_client.request.return_value = make_response(content=b"# HELP x", text="# HELP x")
         service = make_service()
@@ -599,7 +678,7 @@ class TestInheritedEndpoints:
 
     def test_redact_hides_the_token(
         self,
-        make_service,
+        make_service: Callable[..., ToolforgeJobsService],
     ) -> None:
         service = make_service(token="secret")
 
@@ -610,7 +689,10 @@ class TestRawRequest:
     """request() gives access to the raw response."""
 
     def test_returns_response_with_status_code(
-        self, make_service: Callable[..., ToolforgeJobsService], mock_http_client, make_response
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
     ) -> None:
         response = make_response(status_code=404)
         mock_http_client.request.return_value = response
@@ -623,7 +705,7 @@ class TestRawRequest:
 
 
 def test_restart_job_handles_api_error_response3(
-    make_service,
+    make_service: Callable[..., ToolforgeJobsService],
     mock_http_client,
     make_response,
 ) -> None:
@@ -633,7 +715,7 @@ def test_restart_job_handles_api_error_response3(
     mock_response = make_response(status_code=400, json_data=error_payload)
     mock_http_client.request.return_value = mock_response
 
-    service = make_service(check=True)
+    service = make_service()
 
     # 2. Execute and assert that HTTPError is raised by default
     with pytest.raises(requests.HTTPError):
@@ -646,7 +728,7 @@ def test_restart_job_handles_api_error_response3(
 
 
 def test_restart_job_returns_error_response_when_check_false(
-    make_service,
+    make_service: Callable[..., ToolforgeJobsService],
     mock_http_client,
     make_response,
 ) -> None:
@@ -665,3 +747,138 @@ def test_restart_job_returns_error_response_when_check_false(
     # 3. Assertions
     assert result.status_code == 400
     assert result.json() == error_payload
+
+
+class TestStatusCodeDecidesTheShape:
+    """The status code, not the shape of the body, tells success from error."""
+
+    ERROR_BODY = {"error": ["Unable to restart a one-off job"], "warning": ["careful"]}
+
+    @pytest.mark.parametrize("status_code", [400, 401, 404])
+    def test_error_status_raises_with_the_bare_body_parsed(
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
+        status_code: int,
+    ) -> None:
+        mock_http_client.request.return_value = make_response(status_code=status_code, json_data=self.ERROR_BODY)
+        service = make_service()
+
+        with pytest.raises(ToolforgeApiError) as exc_info:
+            service.restart_job("one-off-job")
+
+        error = exc_info.value
+        assert isinstance(error, requests.HTTPError)  # old `except HTTPError` code keeps working
+        assert error.status_code == status_code
+        assert error.response is not None
+        assert isinstance(error.messages, ResponseMessages)
+        assert error.messages.error == ["Unable to restart a one-off job"]
+        assert error.messages.warning == ["careful"]
+        assert "Unable to restart a one-off job" in str(error)
+
+    @pytest.mark.parametrize(
+        ("method_name", "args"),
+        [
+            ("images", ()),
+            ("quotas", ()),
+            ("list_jobs", ()),
+            ("show_job", ("x",)),
+            ("create_job", ({"name": "x"},)),
+            ("update_job", ({"name": "x"},)),
+            ("flush_jobs", ()),
+            ("delete_job", ("x",)),
+            ("restart_job", ("x",)),
+            ("get_logs", ("x",)),
+        ],
+    )
+    def test_every_endpoint_raises_on_error_status(
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
+        method_name: str,
+        args: tuple,
+    ) -> None:
+        mock_http_client.request.return_value = make_response(status_code=404, json_data={"error": ["nope"]})
+        service = make_service()
+
+        with pytest.raises(ToolforgeApiError) as exc_info:
+            getattr(service, method_name)(*args)
+
+        assert exc_info.value.messages.error == ["nope"]
+
+    def test_success_body_with_an_error_list_is_not_an_exception(
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
+    ) -> None:
+        """A 200 keeps the wrapped shape, even if it carries error messages."""
+        mock_http_client.request.return_value = make_response(
+            status_code=200, json_data={"messages": {"error": ["something odd"]}}
+        )
+        service = make_service()
+
+        result = service.restart_job("x")
+
+        assert isinstance(result, MessagesResponse)
+        assert result.messages is not None
+        assert result.messages.error == ["something odd"]
+
+    def test_success_body_in_the_bare_shape_is_not_reinterpreted(
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
+    ) -> None:
+        """The shape is never guessed: a 200 body is always loaded as the success type."""
+        mock_http_client.request.return_value = make_response(status_code=200, json_data={"error": ["x"]})
+        service = make_service()
+
+        assert service.restart_job("x").messages is None
+
+    def test_error_status_with_non_json_body_still_raises(
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
+    ) -> None:
+        mock_http_client.request.return_value = make_response(
+            status_code=502, content=b"<html>", text="<html>", json_error=True
+        )
+        service = make_service()
+
+        with pytest.raises(ToolforgeApiError) as exc_info:
+            service.list_jobs()
+
+        assert exc_info.value.status_code == 502
+        assert exc_info.value.messages == ResponseMessages()
+
+    def test_error_status_with_unexpected_body_shape_still_raises(
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
+    ) -> None:
+        mock_http_client.request.return_value = make_response(status_code=400, json_data={"error": "not a list"})
+        service = make_service()
+
+        with pytest.raises(ToolforgeApiError) as exc_info:
+            service.list_jobs()
+
+        assert exc_info.value.messages == ResponseMessages()
+
+    def test_error_status_with_json_list_body_still_raises(
+        self,
+        make_service: Callable[..., ToolforgeJobsService],
+        mock_http_client,
+        make_response,
+    ) -> None:
+        mock_http_client.request.return_value = make_response(status_code=500, json_data=["boom"])
+        service = make_service()
+
+        with pytest.raises(ToolforgeApiError) as exc_info:
+            service.list_jobs()
+
+        assert exc_info.value.messages == ResponseMessages()

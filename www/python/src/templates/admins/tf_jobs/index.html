@@ -35,7 +35,7 @@
                     <td>{{ job.job_type }}{% if job.schedule %}<br><small>{{ job.schedule }}</small>{% endif %}</td>
                     <td>
                         {{ status_badge(job.status_key) }}
-                        {% for msg in job.status_messages %}
+                        {% for msg in job.status.messages %}
                         <br><small class="text-muted">{{ msg }}</small>
                         {% endfor %}
                         <details>

@@ -439,7 +439,12 @@ class TestHealthcheck:
 
         assert mock_http_client.request.call_args.kwargs["url"] == f"{API_URL}/{route}/v1/healthz"
 
-    def ztest_returns_decoded_payload(self, make_service, mock_http_client, make_response) -> None:
+    def test_returns_decoded_payload(
+        self,
+        make_service,
+        mock_http_client,
+        make_response,
+    ) -> None:
         mock_http_client.request.return_value = make_response(json_data={"status": "ok"})
         service = make_service()
 

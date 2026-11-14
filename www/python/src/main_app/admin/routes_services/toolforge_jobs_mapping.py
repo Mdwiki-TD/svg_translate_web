@@ -21,7 +21,7 @@ MAX_LOG_LINES = 2000
 class JobsPage:
     """Everything the jobs table template needs, plus messages to flash."""
 
-    jobs: list[dict[str, Any]] = field(default_factory=list)
+    jobs: list[ToolForgeJob] = field(default_factory=list)
     status_summary: dict[str, int] = field(default_factory=dict)
     messages: list[Message] = field(default_factory=list)
     error: bool = False
@@ -29,7 +29,7 @@ class JobsPage:
     def to_context(self) -> dict[str, Any]:
         """Return the template context."""
         return {
-            "jobs": self.jobs,
+            "jobs": [j.rows() for j in self.jobs],
             "status_summary": self.status_summary,
             "total_jobs": len(self.jobs),
             "error": self.error,
@@ -47,38 +47,8 @@ class JobDetailPage:
 
     def to_context(self) -> dict[str, Any]:
         """Return the template context."""
-        rows = []
 
-        if self.job:
-            status = self.job.status or {}
-
-            rows = [
-                ("Type", self.job.job_type),
-                ("Status", self.job.status_key),
-                ("Duration", status.duration),
-                ("Up to date", status.up_to_date),
-                ("Schedule", self.job.schedule),
-                ("Actual schedule", self.job.schedule_actual),
-                ("Previous run", status.previous_schedule),
-                ("Next run", status.next_schedule),
-                ("Timeout (s)", self.job.timeout),
-                ("Retry", self.job.retry),
-                ("Replicas", self.job.replicas),
-                ("Port", self.job.port),
-                ("Protocol", self.job.port_protocol),
-                ("Published path", self.job.publish),
-                ("Health check", self.job.health_check_text),
-                ("Image", self.job.image),
-                ("Image state", self.job.image_state),
-                ("Command", self.job.cmd),
-                ("CPU", self.job.cpu),
-                ("Memory", self.job.memory),
-                ("Mount", self.job.mount),
-                ("Emails", self.job.emails),
-                ("Stdout log", self.job.filelog_stdout),
-                ("Stderr log", self.job.filelog_stderr),
-                ("Details", self.job.status_long),
-            ]
+        rows = self.job.rows() if self.job else []
 
         return {
             "job_id": self.job_id,

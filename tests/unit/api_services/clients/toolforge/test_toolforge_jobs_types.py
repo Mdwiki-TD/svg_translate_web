@@ -8,14 +8,12 @@ import pytest
 import src.main_app.api_services.clients.toolforge.toolforge_jobs_types as t
 from dacite import DaciteError
 
+# Helper is the shared base class, not one of the API shapes.
 ALL_CLASSES = [
     obj
     for obj in vars(t).values()
-    if dataclasses.is_dataclass(obj) and isinstance(obj, type)
-    if obj.__name__ != "Config"
+    if dataclasses.is_dataclass(obj) and isinstance(obj, type) and obj is not t.Helper and obj.__name__ != "Config"
 ]
-
-pytestmark = pytest.mark.skip
 
 
 # ---------------------------------------------------------------------------
@@ -24,8 +22,7 @@ pytestmark = pytest.mark.skip
 
 
 def test_all_dataclasses_were_discovered() -> None:
-    names = [x.__name__ for x in ALL_CLASSES]
-    assert len(names) == 18
+    assert len(ALL_CLASSES) == 17
 
 
 @pytest.mark.parametrize("cls", ALL_CLASSES, ids=lambda c: c.__name__)
@@ -38,7 +35,10 @@ def test_load_empty_dict_gives_all_none(cls: type) -> None:
     obj = cls.load({})
     assert isinstance(obj, cls)
     for field in dataclasses.fields(cls):
-        assert getattr(obj, field.name) is None
+        if field.default_factory is not dataclasses.MISSING:  # e.g. ToolForgeJob.status
+            assert getattr(obj, field.name) == field.default_factory()
+        else:
+            assert getattr(obj, field.name) is None
 
 
 @pytest.mark.parametrize("cls", ALL_CLASSES, ids=lambda c: c.__name__)
@@ -58,6 +58,20 @@ def test_response_messages() -> None:
     assert obj.info == ["a"]
     assert obj.warning == ["b", "c"]
     assert obj.error == []
+
+
+def test_tool_forge_job_status_defaults_to_an_empty_job_status() -> None:
+    job = t.ToolForgeJob.load({"name": "x"})
+    assert job.status == t.JobStatus()
+    assert job.status_key == "unknown"
+
+
+def test_bare_error_body_is_a_response_messages_not_a_messages_response() -> None:
+    """4xx bodies are a bare ResponseMessages; MessagesResponse would silently drop them."""
+    body = {"error": ["Unable to restart a one-off job"]}
+
+    assert t.ResponseMessages.load(body).error == ["Unable to restart a one-off job"]
+    assert t.MessagesResponse.load(body).messages is None  # the shape is not guessed
 
 
 def test_job_status_scheduled() -> None:
@@ -108,9 +122,7 @@ def test_wrong_field_type_raises() -> None:
 
 
 def test_image() -> None:
-    obj = t.Image.load(
-        {"shortname": "python3.11", "image": "docker-registry/python:3.11"}
-    )
+    obj = t.Image.load({"shortname": "python3.11", "image": "docker-registry/python:3.11"})
     assert obj.shortname == "python3.11"
     assert obj.image == "docker-registry/python:3.11"
 
@@ -210,11 +222,7 @@ def test_tool_forge_job_nullable_fields_accept_none() -> None:
 
 
 def test_tool_forge_job_invalid_enum_values() -> None:
-    for field, bad in [
-        ("job_type", "cron"),
-        ("emails", "sometimes"),
-        ("mount", "some"),
-    ]:
+    for field, bad in [("job_type", "cron"), ("emails", "sometimes"), ("mount", "some")]:
         with pytest.raises(DaciteError):
             t.ToolForgeJob.load({field: bad})
 
@@ -243,10 +251,7 @@ def test_new_job_webservice() -> None:
 def test_job_list_response() -> None:
     resp = t.JobListResponse.load(
         {
-            "jobs": [
-                SCHEDULED_JOB,
-                {"name": "other", "job_type": "one-off", "cmd": "ls"},
-            ],
+            "jobs": [SCHEDULED_JOB, {"name": "other", "job_type": "one-off", "cmd": "ls"}],
             "messages": {"warning": ["deprecated"]},
         }
     )
@@ -325,10 +330,7 @@ def test_quota_item_requires_string_values() -> None:
 
 def test_health_response() -> None:
     resp = t.HealthResponse.load(
-        {
-            "health": {"status": "ERROR", "message": "db down"},
-            "messages": {"error": ["db down"]},
-        }
+        {"health": {"status": "ERROR", "message": "db down"}, "messages": {"error": ["db down"]}}
     )
     assert isinstance(resp.health, t.Health)
     assert resp.health.status == "ERROR"

@@ -27,7 +27,7 @@
         </td>
       </tr>
       {% endfor %}
-      {% for msg in job.status_messages %}
+      {% for msg in job.status.messages %}
       <tr>
         <th class="pe-4">{% if loop.first %}Messages{% endif %}</th>
         <td><small>{{ msg }}</small></td>

@@ -1,17 +1,16 @@
 from unittest.mock import MagicMock
 
+import pytest
 import requests
 from src.main_app.admin.routes_services.toolforge_jobs_service import JobsPageService
 from src.main_app.api_services.clients.toolforge.toolforge_jobs_api_service import (
+    ToolforgeApiError,
     ToolforgeJobsService,
 )
 
 
-def test_json_handles_400_error_with_json_body():
-    """Test that _json correctly parses and returns the JSON error body
-
-    when receiving a 400 Bad Request status code.
-    """
+def test_json_raises_with_the_parsed_body_on_a_400():
+    """The status code decides: a 400 raises ToolforgeApiError carrying the bare error body."""
     # 1. Initialize the service with dummy parameters to avoid real network calls
     service = ToolforgeJobsService(tool_name="test-tool")
 
@@ -19,22 +18,24 @@ def test_json_handles_400_error_with_json_body():
     mock_response = MagicMock(spec=requests.Response)
     mock_response.status_code = 400
     # Simulate the JSON error body returned by the API
-    error_payload = {"error": ["Unable to restart a one-off job"]}
+
+    error_payload = {"error": ["Unable to restart a one-off job"]}  # The real response from API
+
     mock_response.json.return_value = error_payload
 
     # Attach the mock to service.api.request
     service.api.request = MagicMock(return_value=mock_response)
 
     # 3. Call the method under test
-    result = service._json("POST", "/jobs/some-job/restart")
+    with pytest.raises(ToolforgeApiError) as exc_info:
+        service._json("POST", "/jobs/some-job/restart")
 
-    # 4. Assert that the error dictionary was successfully returned despite the 400 status
-    assert result == error_payload
-    # service.api.request.assert_called_once_with("POST", "/jobs/some-job/restart", params=None, json=None, check=True)
+    assert exc_info.value.messages.error == error_payload["error"]
 
-    result2 = service.restart_job("some-job")
-    # assert result2.to_json() == error_payload
-    assert result2 == error_payload
+    with pytest.raises(ToolforgeApiError) as exc_info2:
+        service.restart_job("some-job")
+    assert exc_info2.value.status_code == 400
+    assert exc_info2.value.messages.error == error_payload["error"]
 
 
 def test_restart_job_success():
@@ -114,7 +115,10 @@ def test_restart_job_handles_http_400_error():
 
     # 3. Assertions
     assert result.ok is False
-    assert ("Failed to restart job 'some-job': bad request (400).", "danger") in result.messages
+    assert (
+        "Failed to restart job 'some-job': bad request (400).",
+        "danger",
+    ) in result.messages
     mock_toolforge.restart_job.assert_called_once_with("some-job")
 
 
@@ -131,7 +135,7 @@ def test_restart_job_handles_api_error_response():
     mock_response = MagicMock(spec=requests.Response)
     mock_response.status_code = 400
     # Simulate the JSON error body returned by the API
-    error_payload = {"error": ["Unable to restart a one-off job"]}
+    error_payload = {"error": ["Unable to restart a one-off job"]}  # The real response from API
     mock_response.json.return_value = error_payload
 
     service = ToolforgeJobsService(tool_name="test-tool")
@@ -179,3 +183,67 @@ def test_restart_job_handles_http_exception():
 
     assert result.ok is False
     assert any("unauthorized (401)" in msg[0] for msg in result.messages)
+
+
+def test_restart_job_api_error_flows_through_the_typed_exception():
+    """End to end: a 404 with a bare body becomes flash messages, never a success."""
+    mock_response = MagicMock(spec=requests.Response)
+    mock_response.status_code = 404
+    mock_response.json.return_value = {"error": ["Job 'x' does not exist"]}
+
+    service = ToolforgeJobsService(tool_name="test-tool")
+    service.api.request = MagicMock(return_value=mock_response)
+    page_service = JobsPageService(toolforge=service)
+
+    result = page_service.restart_job("x")
+
+    assert result.ok is False
+    assert ("Job 'x' does not exist", "danger") in result.messages
+    assert any("not found (404)" in text for text, _ in result.messages)
+
+
+def test_server_error_does_not_flash_an_empty_message():
+    """A status code without specific text (500) must not add a ("", "") message."""
+    response = MagicMock(spec=requests.Response)
+    response.status_code = 500
+    response.json.return_value = {}
+    mock_toolforge = MagicMock()
+    mock_toolforge.api.redact.side_effect = lambda text: text
+    mock_toolforge.restart_job.side_effect = requests.HTTPError("boom", response=response)
+
+    result = JobsPageService(toolforge=mock_toolforge).restart_job("some-job")
+
+    assert result.ok is False
+    assert ("", "") not in result.messages
+    assert result.messages[0][1] == "danger"
+    assert "Failed to restart job 'some-job'" in result.messages[0][0]
+
+
+def test_unexpected_api_shape_is_a_flash_message_not_a_crash():
+    """DaciteError (shape the types do not expect) is handled like any API failure."""
+    from dacite import DaciteError
+
+    mock_toolforge = MagicMock()
+    mock_toolforge.api.redact.side_effect = lambda text: text
+    mock_toolforge.list_jobs.side_effect = DaciteError("wrong type for job_type")
+
+    page = JobsPageService(toolforge=mock_toolforge).build_jobs_page()
+
+    assert page.error is True
+    assert page.messages and page.messages[0][1] == "danger"
+
+
+def test_extract_messages_accepts_dataclasses_and_dicts():
+    from src.main_app.api_services.clients.toolforge.toolforge_jobs_types import (
+        MessagesResponse,
+        ResponseMessages,
+    )
+
+    extract = JobsPageService._extract_messages
+    assert extract(MessagesResponse(messages=ResponseMessages(info=["a"], error=[]))) == {"info": ["a"]}
+    assert extract(ResponseMessages(error=["boom"])) == {"error": ["boom"]}
+    assert extract(MessagesResponse()) == {}
+    assert extract({"messages": {"warning": ["w"]}}) == {"warning": ["w"]}
+    assert extract({"error": ["bare"]}) == {"error": ["bare"]}
+    assert extract({"messages": []}) == {}
+    assert extract("not a payload") == {}

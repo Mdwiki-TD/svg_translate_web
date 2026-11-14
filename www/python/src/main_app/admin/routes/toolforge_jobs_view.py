@@ -115,7 +115,8 @@ class ToolforgeJobsView:
     def register(bp: Blueprint) -> None:
         """Register jobs URL rules on the provided blueprint."""
         bp.add_url_rule("/", view_func=JobsView.as_view("jobs"))
-        bp.add_url_rule("/test", view_func=JobsTestView.as_view("testjobs"))
+        # "_test" is not a valid job name, so it cannot shadow a real job (unlike "/test")
+        bp.add_url_rule("/_test", view_func=JobsTestView.as_view("testjobs"))
         bp.add_url_rule("/<job_id>", view_func=JobDetailView.as_view("job_detail"))
         bp.add_url_rule("/<job_id>/logs", view_func=JobLogsView.as_view("job_logs"))
         bp.add_url_rule("/<job_id>/restart", view_func=JobRestartView.as_view("job_restart"))
