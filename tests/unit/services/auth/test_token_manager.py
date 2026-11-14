@@ -42,7 +42,7 @@ class TestUserService:
     # ── save_token ──
 
     def test_save_and_get_user_empty_username(self):
-        assert self.service.save_token("", "key", "secret") is None
+        assert self.service.save_token(0, "key", "secret") is None
 
     def test_save_and_get_user_existing_user(self):
         """Existing user (already resolved to a user_id) gets its token upserted and admin status checked."""
