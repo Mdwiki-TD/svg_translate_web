@@ -67,6 +67,7 @@ class JobDetailView(BaseJobsView):
         """Render the details of one job."""
         page = self.service.build_job_page(job_id)
         self._flash_all(page.messages)
+
         return render_template(
             "admins/tf_jobs/job_details.html",
             **page.to_context(),
