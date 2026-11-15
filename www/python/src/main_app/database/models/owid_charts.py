@@ -61,11 +61,6 @@ class OwidChartRecord(TimestampMixin, db.Model):  # type: ignore
     # Table-level indexes as requested by the original CREATE TABLE DDL
     # __table_args__ = ( Index("idx_slug", "slug"), Index("idx_published", "is_published"), )
 
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
     def to_json(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
         return {

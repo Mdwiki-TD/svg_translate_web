@@ -13,7 +13,7 @@ def sample_token_record() -> UserTokenRecord:
     """Fixture for a sample UserTokenRecord."""
     return UserTokenRecord(
         user_id=12345,
-        username="TestUser",
+        # username="TestUser",
         access_token=b"encrypted_token",
         access_secret=b"encrypted_secret",
         created_at="2024-01-01 00:00:00",
@@ -30,7 +30,7 @@ class TestUserTokenRecord:
         """Test that __post_init__ coerces access fields to bytes."""
         record = UserTokenRecord(
             user_id=1,
-            username="Test",
+            # username="Test",
             access_token=bytearray(b"token"),
             access_secret=memoryview(b"secret"),
         )

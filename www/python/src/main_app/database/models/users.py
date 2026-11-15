@@ -37,11 +37,6 @@ class UserRecord(db.Model):
     # One-to-One relationship with UserTokenRecord using the modern SQLAlchemy 2.0 style
     token: Mapped[UserTokenRecord | None] = relationship(back_populates="user", uselist=False)
 
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
     def to_json(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
         data: dict[str, Any] = {}
@@ -77,11 +72,6 @@ class AdminUserRecord(TimestampMixin, db.Model):
 
     # Python application default and database-level server default configuration
     is_active: Mapped[bool] = mapped_column(nullable=False, default=True, server_default=text("1"))
-
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
 
     def to_json(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
@@ -130,11 +120,6 @@ class UserTokenRecord(TimestampMixin, db.Model):
     @validates("access_token", "access_secret")
     def validate_bytes(self, key, value) -> bytes:
         return coerce_bytes(value)
-
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
 
     def to_json(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""

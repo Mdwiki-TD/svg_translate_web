@@ -55,11 +55,6 @@ class JobRecord(TimestampMixin, db.Model):
 
     is_running: Mapped[int | None] = mapped_column(nullable=True)
 
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
     def to_json(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""
         data: dict[str, Any] = {}

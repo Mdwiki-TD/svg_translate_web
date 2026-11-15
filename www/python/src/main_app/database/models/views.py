@@ -52,11 +52,6 @@ class TemplateNeedUpdateView(db.Model):
         },
     )
 
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
     def to_json(self) -> dict[str, Any]:
         difference = 0
         if self.max_time and self.last_world_year:

@@ -26,12 +26,6 @@ class MockModel(db.Model):
 
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
 
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-
 def test_base_model_to_dict(mock_app: Flask) -> None:
     with mock_app.app_context():
         now = datetime(2025, 1, 1, 12, 0, 0)

@@ -45,11 +45,6 @@ class TemplateRecord(TimestampMixin, db.Model):
     source: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
     files: Mapped[int | None] = mapped_column(nullable=True)
 
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
     def to_json(self) -> dict[str, Any]:
         return {
             "id": self.id,
