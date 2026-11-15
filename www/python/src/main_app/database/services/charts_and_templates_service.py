@@ -60,7 +60,7 @@ class ChartAndTemplate:
         return {}
 
 
-class ChartsAndTemplatesService:  # (CRUDService[OwidChartRecord]):
+class ChartsAndTemplatesService:
     def __init__(self) -> None:
         # super().__init__(db.session, OwidChartRecord)
         self.session = db.session

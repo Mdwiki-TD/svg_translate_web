@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from ....extensions import db
 from ...exceptions import UserNotFoundError
@@ -19,8 +20,10 @@ logger = logging.getLogger(__name__)
 class UsersService(CRUDService[UserRecord]):
     """CRUD + domain-specific queries for user records."""
 
-    def __init__(self) -> None:
-        super().__init__(db.session, UserRecord)
+    model = UserRecord
+
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     def list_users(self) -> list[UserRecord]:
         """Return all user identity records."""

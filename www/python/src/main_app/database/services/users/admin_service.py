@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from ....extensions import db
 from ...exceptions import DuplicateRecordError, UserNotFoundError
@@ -24,13 +25,10 @@ class AdminService(CRUDService[AdminUserRecord]):
     Inherits from CRUDService to handle basic database operations.
     """
 
-    def __init__(self) -> None:
-        """
-        Initialize the AdminService with a database session and AdminUserRecord model.
-        Args:
-            None
-        """
-        super().__init__(db.session, AdminUserRecord)
+    model = AdminUserRecord
+
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     def is_active_admin(self, username: str) -> bool:
         """Check whether a single username is an active admin."""

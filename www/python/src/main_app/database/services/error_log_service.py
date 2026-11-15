@@ -36,7 +36,7 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
     model = ErrorLogRecord
 
     def __init__(self):
-        super().__init__(db.session, ErrorLogRecord)
+        super().__init__(db.session)
 
     def log_request(
         self,

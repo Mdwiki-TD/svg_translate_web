@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 from sqlalchemy import String, cast, func, select
+from sqlalchemy.orm import Session
 
 from ...extensions import db
 from ..exceptions import DuplicateRecordError
@@ -15,8 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 class TemplateService(CRUDService[TemplateRecord]):
-    def __init__(self) -> None:
-        super().__init__(db.session, TemplateRecord)
+    model = TemplateRecord
+
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     def list(self, limit: int | None = None) -> list[TemplateRecord]:
         return super().list(

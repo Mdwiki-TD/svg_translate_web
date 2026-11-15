@@ -7,6 +7,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from sqlalchemy.orm import Session
+
 from ...extensions import db
 from ..models import SettingRecord
 from .crud_service import CRUDService
@@ -15,8 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class SettingsService(CRUDService[SettingRecord]):
-    def __init__(self) -> None:
-        super().__init__(db.session, SettingRecord)
+    model = SettingRecord
+
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     @staticmethod
     def serialize_value(value: Any, value_type: str) -> str | None:

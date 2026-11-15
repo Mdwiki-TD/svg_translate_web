@@ -23,13 +23,23 @@ PKT = TypeVar("PKT")  # primary key type, e.g. int, str, uuid.UUID
 class CRUDService[ModelT]:
     """
     Generic CRUD service wrapping a single SQLAlchemy model.
+
+    The model class is resolved automatically from the generic argument
+    of the subclass, e.g. ``class AdminService(CRUDService[AdminUserRecord, int])``.
     """
 
     model: type[ModelT]
 
-    def __init__(self, session: Session | Any, model: type[ModelT]) -> None:
+    def __init__(self, session: Session | Any, model: type[ModelT] | None = None) -> None:
         self.session = session
-        self.model = model
+
+        # Temporarily allow model to be passed in, but prefer the generic
+        if not getattr(self, "model", None) and model:
+            self.model = model
+
+        if getattr(self, "model", None) is None:
+            raise ValueError("CRUDService requires a model class")
+
         self.model_name = getattr(self.model, "__name__", None)
 
     # ------------------------------------------------------------------ #

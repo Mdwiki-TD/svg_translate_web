@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from sqlalchemy.orm import Session
+
 from ...extensions import db
 from ..models.owid_slug_redirects import OwidSlugRedirectRecord
 from .crud_service import CRUDService
@@ -11,8 +13,10 @@ logger = logging.getLogger(__name__)
 
 
 class OwidSlugRedirectsService(CRUDService[OwidSlugRedirectRecord]):
-    def __init__(self) -> None:
-        super().__init__(db.session, OwidSlugRedirectRecord)
+    model = OwidSlugRedirectRecord
+
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     def list_slug_redirects(self, limit: int | None = None, offset: int | None = None) -> list[OwidSlugRedirectRecord]:
         return self.list(

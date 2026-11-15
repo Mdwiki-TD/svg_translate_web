@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from ...extensions import db
 from ..models import OwidChartRecord
@@ -14,8 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class OwidChartsService(CRUDService[OwidChartRecord]):
-    def __init__(self) -> None:
-        super().__init__(db.session, OwidChartRecord)
+    model = OwidChartRecord
+
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     def list_charts(self, limit: int | None = None) -> list[OwidChartRecord]:
         return self.list(

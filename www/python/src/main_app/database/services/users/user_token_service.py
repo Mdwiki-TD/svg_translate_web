@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 
 from sqlalchemy import exists
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm import Session, contains_eager, joinedload
 
 from ....extensions import db
 from ...models import AdminUserRecord, UserRecord, UserTokenRecord
@@ -21,8 +21,10 @@ logger = logging.getLogger(__name__)
 class UserTokenService(CRUDService[UserTokenRecord]):
     """Stores and retrieves already-encrypted OAuth tokens."""
 
-    def __init__(self) -> None:
-        super().__init__(db.session, UserTokenRecord)
+    model = UserTokenRecord
+
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     @retry_on_db_disconnect()
     def get_authenticated_user_context(self, user_id: int) -> tuple[UserTokenRecord | None, bool]:
