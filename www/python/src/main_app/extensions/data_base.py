@@ -8,13 +8,13 @@ import logging
 from typing import Any
 
 from flask_sqlalchemy import SQLAlchemy
-from flask_sqlalchemy.model import Model
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import MetaData
 
 logger = logging.getLogger(__name__)
 
 
-class BaseModel(Model):
+class BaseModel(DeclarativeBase):
     """Base model providing a generic to_json() for all records."""
 
     def to_json(self) -> dict[str, Any]:
@@ -30,6 +30,11 @@ class BaseModel(Model):
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
+
+    @classmethod
+    def load(cls, **kwargs: Any):
+        args = {key: value for key, value in kwargs.items() if hasattr(cls, key)}
+        return cls(**args)
 
 
 # expire_on_commit=False preserves current behavior where objects
