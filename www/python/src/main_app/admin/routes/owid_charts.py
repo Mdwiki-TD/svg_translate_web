@@ -43,8 +43,8 @@ class OwidCharts:
             string with appropriate status code (404 for no charts, 500 for errors).
         """
         try:
-            # Optimize: use single-query list_all() to fetch charts and template relationships
-            charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
+            # Optimize: use single-query list_all_charts() to fetch charts and template relationships
+            charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all_charts()
 
             if not charts_with_templates:
                 return "No charts found to export.", 404
@@ -68,8 +68,11 @@ class OwidCharts:
 
     def dashboard(self, template_filter: str = "") -> str:
         """Render the admin charts list, optionally filtered by template."""
-        # Optimize: use single-query list_all() with fallback
-        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
+        charts_with_templates = []
+        try:
+            charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all_charts()
+        except Exception as e:
+            logger.error(f"Error while querying charts and templates: {e}")
 
         summary = make_charts_summary(charts_with_templates)
 
@@ -111,7 +114,7 @@ class OwidCharts:
 
         save_error = None
         try:
-            record = self.owid_charts_service.add_chart(
+            self.owid_charts_service.add_chart(
                 slug=slug,
                 title=title,
                 has_map_tab=has_map_tab,

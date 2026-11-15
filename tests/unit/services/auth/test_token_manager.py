@@ -42,7 +42,7 @@ class TestUserService:
     # ── save_token ──
 
     def test_save_and_get_user_empty_username(self):
-        assert self.service.save_token("", "key", "secret") is None
+        assert self.service.save_token(0, "key", "secret") is None
 
     def test_save_and_get_user_existing_user(self):
         """Existing user (already resolved to a user_id) gets its token upserted and admin status checked."""
@@ -131,13 +131,17 @@ class TestUserService:
             assert self.service.get_authenticated_user(99999) is None
 
     def test_get_authenticated_user_error(self, monkeypatch: pytest.MonkeyPatch):
-        """When get_authenticated_user_token raises, should return None."""
+        """When get_authenticated_user_context raises, should return None."""
+        boom = False
 
         def raise_error(*args, **kwargs):
+            nonlocal boom  # Allows modifying the outer scope variable
+            boom = True
             raise Exception("Load error")
 
         monkeypatch.setattr(
-            "src.main_app.services.auth.token_manager.UserTokenService.get_authenticated_user_token",
+            "src.main_app.services.auth.token_manager.UserTokenService.get_authenticated_user_context",
             raise_error,
         )
         assert self.service.get_authenticated_user(123) is None
+        assert boom is True

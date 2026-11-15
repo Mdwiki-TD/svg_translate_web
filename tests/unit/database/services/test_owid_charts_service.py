@@ -127,8 +127,8 @@ class TestAddChart(TestSetup):
 
     def test_filters_out_none_values(self) -> None:
         """Exclude None values from chart creation data and fail if required fields are missing."""
-        result = self.service.add_chart(slug="test-chart", title=None, max_time=None)
-        assert result is None
+        with pytest.raises(ValueError):
+            self.service.add_chart(slug="test-chart", title=None, max_time=None)
 
     def test_filters_out_non_existent_attributes(self) -> None:
         """Exclude unknown attributes from chart creation data."""

@@ -7,12 +7,12 @@ from typing import Any
 from sqlalchemy import DateTime, Index, String, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import db
+from ...extensions import Model
 
 logger = logging.getLogger(__name__)
 
 
-class OwidSlugRedirectRecord(db.Model):
+class OwidSlugRedirectRecord(Model):
     """
     CREATE TABLE `owid_slug_redirects` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -41,11 +41,6 @@ class OwidSlugRedirectRecord(db.Model):
     redirect_to: Mapped[str] = mapped_column(String(255), nullable=False)
     should_be_replaced: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=text("0"))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
-
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
 
     def to_json(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""

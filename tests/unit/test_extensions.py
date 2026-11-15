@@ -7,7 +7,6 @@ Classes to test: BaseModel
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 from flask.app import Flask
@@ -15,21 +14,16 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column
-from src.main_app.extensions import BaseModel, db, migrate
+from src.main_app.extensions import BaseModel, Model, db, migrate
 
 
-class MockModel(db.Model):
+class MockModel(Model):
     __tablename__ = "mock_model"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
-
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
 
 
 def test_base_model_to_dict(mock_app: Flask) -> None:
@@ -81,34 +75,9 @@ def test_base_model_to_dict_isoformat():
     assert result == {"created_at": "2025-10-27T04:41:07"}
 
 
-def test_base_model_init_sets_kwargs():
-    """Test that __init__ sets provided kwargs as instance attributes when the attribute exists."""
-    model = BaseModel()
-    model.foo = "original"  # type: ignore
-
-    BaseModel.__init__(model, foo="updated", bar="new")
-
-    assert model.foo == "updated"  # type: ignore
-    assert not hasattr(model, "bar")
-
-
-def test_base_model_init_skips_nonexistent_attributes():
-    """Test that __init__ ignores kwargs for attributes that don't exist on the model."""
-    model = BaseModel()
-
-    BaseModel.__init__(model, nonexistent="val")
-
-    assert not hasattr(model, "nonexistent")
-
-
 def test_db_is_sqlalchemy_instance():
     """Test that db is a SQLAlchemy instance."""
     assert isinstance(db, SQLAlchemy)
-
-
-def test_db_uses_base_model_class():
-    """Test that db.Model inherits from BaseModel, confirming BaseModel was used as model_class."""
-    assert issubclass(db.Model, BaseModel)
 
 
 def test_db_session_options():

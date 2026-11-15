@@ -35,8 +35,8 @@ def _cut(value: Any, limit: int) -> str | None:
 class ErrorLogService(CRUDService[ErrorLogRecord]):
     model = ErrorLogRecord
 
-    def __init__(self):
-        super().__init__(db.session, ErrorLogRecord)
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     def log_request(
         self,
@@ -54,7 +54,7 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
         """
         try:
             headers = request.headers
-            record = ErrorLogRecord.load(
+            record = self.model.load(
                 status_code=status_code,
                 method=_cut(request.method, 10) or "",
                 path=_cut(request.path, 500) or "",
@@ -90,14 +90,14 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
         since = _utcnow() - timedelta(days=days)
         stmt = (
             select(
-                ErrorLogRecord.path,
-                ErrorLogRecord.status_code,
+                self.model.path,
+                self.model.status_code,
                 func.count().label("hits"),
-                func.sum(ErrorLogRecord.suspected_bot).label("bot_hits"),
-                func.max(ErrorLogRecord.created_at).label("last_seen"),
+                func.sum(self.model.suspected_bot).label("bot_hits"),
+                func.max(self.model.created_at).label("last_seen"),
             )
-            .where(ErrorLogRecord.created_at >= since)
-            .group_by(ErrorLogRecord.path, ErrorLogRecord.status_code)
+            .where(self.model.created_at >= since)
+            .group_by(self.model.path, self.model.status_code)
             .order_by(func.count().desc())
             .limit(limit)
         )
@@ -128,18 +128,18 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
         since = _utcnow() - timedelta(days=days)
         stmt = (
             select(ErrorLogRecord)
-            .where(ErrorLogRecord.created_at >= since)
-            .order_by(ErrorLogRecord.created_at.desc(), ErrorLogRecord.id.desc())
+            .where(self.model.created_at >= since)
+            .order_by(self.model.created_at.desc(), self.model.id.desc())
         )
         if status_code is not None:
-            stmt = stmt.where(ErrorLogRecord.status_code == status_code)
+            stmt = stmt.where(self.model.status_code == status_code)
         if path:
             # autoescape stops user-typed % and _ from acting as wildcards
-            stmt = stmt.where(ErrorLogRecord.path.contains(path, autoescape=True))
+            stmt = stmt.where(self.model.path.contains(path, autoescape=True))
         if ip:
-            stmt = stmt.where(ErrorLogRecord.ip == ip)
+            stmt = stmt.where(self.model.ip == ip)
         if suspected_bot is not None:
-            stmt = stmt.where(ErrorLogRecord.suspected_bot.is_(suspected_bot))
+            stmt = stmt.where(self.model.suspected_bot.is_(suspected_bot))
 
         return db.paginate(stmt, page=page, per_page=per_page, max_per_page=200, error_out=False)
 
@@ -148,13 +148,13 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
         since = _utcnow() - timedelta(days=days)
         stmt = (
             select(
-                ErrorLogRecord.status_code,
+                self.model.status_code,
                 func.count().label("hits"),
-                func.sum(ErrorLogRecord.suspected_bot).label("bot_hits"),
+                func.sum(self.model.suspected_bot).label("bot_hits"),
             )
-            .where(ErrorLogRecord.created_at >= since)
-            .group_by(ErrorLogRecord.status_code)
-            .order_by(ErrorLogRecord.status_code)
+            .where(self.model.created_at >= since)
+            .group_by(self.model.status_code)
+            .order_by(self.model.status_code)
         )
         return [
             {"status_code": r.status_code, "hits": r.hits, "bot_hits": int(r.bot_hits or 0)}
@@ -164,7 +164,7 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
     def purge_older_than(self, days: int = 30) -> int:
         """Delete old rows to keep the table small; returns the number of deleted rows."""
         cutoff = _utcnow() - timedelta(days=days)
-        result = self.session.execute(delete(ErrorLogRecord).where(ErrorLogRecord.created_at < cutoff))
+        result = self.session.execute(delete(ErrorLogRecord).where(self.model.created_at < cutoff))
         # CRUDService.commit() rolls back on failure, so the session stays usable
         self.commit_or_rollback()
         return result.rowcount or 0  # pyright: ignore[reportAttributeAccessIssue]

@@ -99,15 +99,6 @@ def test_job_record_to_dict_handles_none() -> None:
     assert result["is_running"] is None
 
 
-def test_job_record_ignores_unknown_kwargs() -> None:
-    """Test __init__ silently ignores unknown keyword arguments."""
-    rec = JobRecord(id=1, job_type="test", username="user", status="pending", non_existent="ignored")
-
-    assert rec.id == 1
-    assert rec.job_type == "test"
-    assert not hasattr(rec, "non_existent")
-
-
 def test_job_record_table_name() -> None:
     """Test that JobRecord points to the 'jobs' table."""
     assert JobRecord.__tablename__ == "jobs"

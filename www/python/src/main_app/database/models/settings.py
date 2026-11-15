@@ -7,7 +7,7 @@ from typing import Any
 from sqlalchemy import String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import db
+from ...extensions import Model
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class ValueType(StrEnum):
     integer = "integer"
 
 
-class SettingRecord(db.Model):
+class SettingRecord(Model):
     """
     CREATE TABLE `settings` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -40,11 +40,6 @@ class SettingRecord(db.Model):
     value_type: Mapped[ValueType] = mapped_column(nullable=False, server_default=text("'boolean'"))
 
     value: Mapped[str | None] = mapped_column(Text, nullable=True)
-
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
 
     def to_json(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""

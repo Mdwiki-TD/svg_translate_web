@@ -6,13 +6,13 @@ from typing import Any
 from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import db
+from ...extensions import Model
 from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)
 
 
-class OwidChartRecord(TimestampMixin, db.Model):  # type: ignore
+class OwidChartRecord(TimestampMixin, Model):  # type: ignore
     """
     Represents the main pure owid_charts table, completely decoupled from template logic.
     CREATE TABLE `owid_charts` (
@@ -60,11 +60,6 @@ class OwidChartRecord(TimestampMixin, db.Model):  # type: ignore
 
     # Table-level indexes as requested by the original CREATE TABLE DDL
     # __table_args__ = ( Index("idx_slug", "slug"), Index("idx_published", "is_published"), )
-
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
 
     def to_json(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""

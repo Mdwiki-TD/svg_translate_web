@@ -6,13 +6,13 @@ from typing import Any
 from sqlalchemy import String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import db
+from ...extensions import Model
 from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)
 
 
-class TemplateRecord(TimestampMixin, db.Model):
+class TemplateRecord(TimestampMixin, Model):
     """
     CREATE TABLE templates (
         id int (11) NOT NULL AUTO_INCREMENT,
@@ -44,11 +44,6 @@ class TemplateRecord(TimestampMixin, db.Model):
     slug: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
     source: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
     files: Mapped[int | None] = mapped_column(nullable=True)
-
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
 
     def to_json(self) -> dict[str, Any]:
         return {

@@ -90,12 +90,12 @@ class Config:
         # - pool_recycle must stay below the server's wait_timeout = 600.
         if uri.startswith(("mysql", "mariadb")) and not self.SQLALCHEMY_ENGINE_OPTIONS:
             self.SQLALCHEMY_ENGINE_OPTIONS = {
-                "pool_pre_ping": True,    # validate a connection before using it
-                "pool_size": 4,           # MUST equal `threads` in uwsgi.ini
-                "max_overflow": 2,        # for background threads (e.g. JobsService)
-                "pool_recycle": 280,      # below the server's wait_timeout = 600
-                "pool_timeout": 10,       # fail fast instead of hanging
-                "pool_use_lifo": True,    # let surplus connections idle out and die
+                "pool_pre_ping": True,  # validate a connection before using it
+                "pool_size": 4,  # MUST equal `threads` in uwsgi.ini
+                "max_overflow": 2,  # for background threads (e.g. JobsService)
+                "pool_recycle": 280,  # below the server's wait_timeout = 600
+                "pool_timeout": 10,  # fail fast instead of hanging
+                "pool_use_lifo": True,  # let surplus connections idle out and die
                 "connect_args": {
                     "connect_timeout": 5,
                     "read_timeout": 120,

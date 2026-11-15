@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 from sqlalchemy import String, cast, func, select
+from sqlalchemy.orm import Session
 
 from ...extensions import db
 from ..exceptions import DuplicateRecordError
@@ -15,8 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 class TemplateService(CRUDService[TemplateRecord]):
-    def __init__(self) -> None:
-        super().__init__(db.session, TemplateRecord)
+    model = TemplateRecord
+
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     def list(self, limit: int | None = None) -> list[TemplateRecord]:
         return super().list(
@@ -57,9 +60,9 @@ class TemplateService(CRUDService[TemplateRecord]):
 
     def add_template_data(self, data: dict[str, Any]) -> TemplateRecord | None:
         title = data.get("title", "")
-        if not title or not title.strip():
-            raise ValueError("Title is required")
-
+        self.validate_or_raise(
+            title=title.strip(),
+        )
         existing = self.get_template_by_title(title)
         if existing:
             raise DuplicateRecordError(f"Template '{title}' already exists")

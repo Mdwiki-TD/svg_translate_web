@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from ...extensions import db
 from ..models import OwidChartRecord
@@ -14,8 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class OwidChartsService(CRUDService[OwidChartRecord]):
-    def __init__(self) -> None:
-        super().__init__(db.session, OwidChartRecord)
+    model = OwidChartRecord
+
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     def list_charts(self, limit: int | None = None) -> list[OwidChartRecord]:
         return self.list(
@@ -54,15 +57,19 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         """
         return self.session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug).first()
 
-    def add_chart(self, **chart_data: Any) -> OwidChartRecord | None:
+    def add_chart(self, **chart_data: Any) -> OwidChartRecord:
         """
         Add a new chart.
         """
-        chart_data = {
-            key: value for key, value in chart_data.items() if value is not None and hasattr(OwidChartRecord, key)
-        }
+        data = {key: value for key, value in chart_data.items() if value is not None and hasattr(OwidChartRecord, key)}
+
+        self.validate_or_raise(
+            slug=data.get("slug"),
+            title=data.get("title"),
+        )
+
         try:
-            chart = OwidChartRecord(**chart_data)
+            chart = OwidChartRecord(**data)
             self.session.add(chart)
             self.session.commit()
             self.session.refresh(chart)
@@ -70,7 +77,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         except Exception as e:
             self.session.rollback()
             logger.error(f"Error adding chart: {e}")
-            return None
+            raise
 
     def update_chart_data(
         self,

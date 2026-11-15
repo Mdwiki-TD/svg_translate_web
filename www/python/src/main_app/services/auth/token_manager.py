@@ -7,7 +7,6 @@ from __future__ import annotations
 import logging
 
 from ...database.services import (
-    AdminService,
     UsersService,
     UserTokenService,
 )
@@ -21,7 +20,6 @@ class TokenManager:
     def __init__(self) -> None:
         self.users_service = UsersService()
         self.user_token_service = UserTokenService()
-        self.admin_service = AdminService()
         self._crypto = CryptoService()
 
     def save_token(
@@ -51,13 +49,13 @@ class TokenManager:
     def get_authenticated_user(self, user_id: int) -> CurrentUser | None:
         """Fetch the CurrentUser composite for session restoration."""
         try:
-            token = self.user_token_service.get_authenticated_user_token(user_id)
+            token, is_active = self.user_token_service.get_authenticated_user_context(user_id)
             if not token:
                 return None
 
             return CurrentUser.from_authenticated(
                 token=token,
-                is_active_admin=self.admin_service.is_active_admin(token.user.username),
+                is_active_admin=is_active,
             )
         except Exception as e:
             logger.error("Error loading user for ID %s: %s", user_id, e)

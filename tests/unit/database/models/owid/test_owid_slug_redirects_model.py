@@ -64,16 +64,6 @@ def test_owid_slug_redirect_record_to_dict_datetime_isoformat() -> None:
     assert result["created_at"] == "2024-12-25T08:15:30"
 
 
-def test_owid_slug_redirect_record_ignores_unknown_kwargs() -> None:
-    """Test __init__ silently ignores unknown keyword arguments."""
-    rec = OwidSlugRedirectRecord(id=1, slug="test", redirect_to="dest", unknown_field="ignored")
-
-    assert rec.id == 1
-    assert rec.slug == "test"
-    assert rec.redirect_to == "dest"
-    assert not hasattr(rec, "unknown_field")
-
-
 def test_owid_slug_redirect_record_table_name() -> None:
     """Test that OwidSlugRedirectRecord points to the 'owid_slug_redirects' table."""
     assert OwidSlugRedirectRecord.__tablename__ == "owid_slug_redirects"

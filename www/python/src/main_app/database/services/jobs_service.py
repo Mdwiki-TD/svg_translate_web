@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from ...extensions import db
 from ..exceptions import DuplicateRecordError
@@ -51,10 +52,12 @@ def _normalize_limit(
 
 
 class JobsService(CRUDService[JobRecord]):
+    model = JobRecord
+
     FINAL_STATUSES = ("completed", "failed", "cancelled", "skipped")
 
-    def __init__(self) -> None:
-        super().__init__(db.session, JobRecord)
+    def __init__(self, session: Session | None = None) -> None:
+        super().__init__(session=session or db.session)
 
     def is_job_cancelled_old(self, job_id: int) -> bool:
         """

@@ -23,18 +23,27 @@ PKT = TypeVar("PKT")  # primary key type, e.g. int, str, uuid.UUID
 class CRUDService[ModelT]:
     """
     Generic CRUD service wrapping a single SQLAlchemy model.
+
+    The model class is resolved automatically from the generic argument
+    of the subclass, e.g. ``class AdminService(CRUDService[AdminUserRecord, int])``.
     """
 
     model: type[ModelT]
 
-    def __init__(self, session: Session | Any, model: type[ModelT]) -> None:
+    def __init__(self, session: Session | Any) -> None:
         self.session = session
-        self.model = model
+
+        if getattr(self, "model", None) is None:
+            raise ValueError("CRUDService requires a model class")
+
         self.model_name = getattr(self.model, "__name__", None)
 
     # ------------------------------------------------------------------ #
     # Read
     # ------------------------------------------------------------------ #
+
+    def get(self, pk: PKT) -> ModelT | None:  # pyright: ignore[reportInvalidTypeVarUse]
+        return self.get_record_by_id(pk)
 
     def get_record_by_id(self, pk: PKT) -> ModelT | None:  # pyright: ignore[reportInvalidTypeVarUse]
         """Fetch a single row by primary key, or None if it doesn't exist."""
@@ -43,9 +52,6 @@ class CRUDService[ModelT]:
         except Exception as exc:
             logger.error("Error getting %s id=%s: %s", self.model_name, pk, exc)
             return None
-
-    def get(self, pk: PKT) -> ModelT | None:  # pyright: ignore[reportInvalidTypeVarUse]
-        return self.get_record_by_id(pk)
 
     def get_by(self, **filters: Any) -> ModelT | None:
         """Fetch a single row matching the given column=value filters."""

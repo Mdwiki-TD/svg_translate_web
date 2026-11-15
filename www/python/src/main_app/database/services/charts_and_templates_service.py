@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from sqlalchemy import collate
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
@@ -61,33 +61,25 @@ class ChartAndTemplate:
         return {}
 
 
-class ChartsAndTemplatesService:  # (CRUDService[OwidChartRecord]):
-    def __init__(self) -> None:
-        # super().__init__(db.session, OwidChartRecord)
-        self.session = db.session
+class ChartsAndTemplatesService:
+    def __init__(self, session: Session | None = None) -> None:
+        self.session = session or db.session
 
-    def list_all(self) -> list[ChartAndTemplate]:
+    def list_all_charts(self) -> list[ChartAndTemplate]:
         """
         Retrieve all charts, whether they have a matching template or not (LEFT OUTER JOIN).
         If there is no matching template, template_id and template_title will be None.
         """
-        try:
-            query = (
-                self.session.query(
-                    OwidChartRecord,
-                    TemplateRecord.id.label("template_id"),
-                    TemplateRecord.title.label("template_title"),
-                )
-                .outerjoin(TemplateRecord, _slug_join_condition())
-                .order_by(OwidChartRecord.chart_id.asc())
+        query = (
+            self.session.query(
+                OwidChartRecord,
+                TemplateRecord.id.label("template_id"),
+                TemplateRecord.title.label("template_title"),
             )
-            result = query.all()
-        except SQLAlchemyError:
-            logger.exception("Error while querying charts and templates")
-            return []
-        except Exception as e:
-            logger.error(f"Error while querying charts and templates: {e}")
-            return []
+            .outerjoin(TemplateRecord, _slug_join_condition())
+            .order_by(OwidChartRecord.chart_id.asc())
+        )
+        result = query.all()
 
         return [
             ChartAndTemplate(
@@ -102,13 +94,13 @@ class ChartsAndTemplatesService:  # (CRUDService[OwidChartRecord]):
         """
         Retrieve charts that have a matching template only (INNER JOIN).
         """
-        return [x for x in self.list_all() if x.template_id is not None]
+        return [x for x in self.list_all_charts() if x.template_id is not None]
 
     def list_charts_without_templates(self) -> list[OwidChartRecord]:
         """
         Retrieve charts that have no matching template.
         """
-        return [x.chart for x in self.list_all() if x.template_id is None]
+        return [x.chart for x in self.list_all_charts() if x.template_id is None]
 
     def get_author_citation(self, template: TemplateRecord | None) -> str | None:
         """Read the OWID source citation persisted for the template's chart."""

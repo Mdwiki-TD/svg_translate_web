@@ -6,12 +6,12 @@ from typing import Any
 from sqlalchemy import Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import db
+from ...extensions import Model
 
 logger = logging.getLogger(__name__)
 
 
-class TemplateNeedUpdateView(db.Model):
+class TemplateNeedUpdateView(Model):
     """ """
 
     __tablename__ = "templates_need_update"
@@ -51,11 +51,6 @@ class TemplateNeedUpdateView(db.Model):
             }
         },
     )
-
-    def __init__(self, **kwargs: Any) -> None:
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
 
     def to_json(self) -> dict[str, Any]:
         difference = 0
