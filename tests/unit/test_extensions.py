@@ -7,7 +7,6 @@ Classes to test: BaseModel
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 from flask.app import Flask
@@ -25,6 +24,7 @@ class MockModel(db.Model):
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
+
 
 def test_base_model_to_dict(mock_app: Flask) -> None:
     with mock_app.app_context():
