@@ -36,6 +36,9 @@ class CRUDService[ModelT]:
     # Read
     # ------------------------------------------------------------------ #
 
+    def get(self, pk: PKT) -> ModelT | None:
+        return self.get_record_by_id(pk)
+
     def get_record_by_id(self, pk: PKT) -> ModelT | None:  # pyright: ignore[reportInvalidTypeVarUse]
         """Fetch a single row by primary key, or None if it doesn't exist."""
         try:
@@ -43,9 +46,6 @@ class CRUDService[ModelT]:
         except Exception as exc:
             logger.error("Error getting %s id=%s: %s", self.model_name, pk, exc)
             return None
-
-    def get(self, pk: PKT) -> ModelT | None:  # pyright: ignore[reportInvalidTypeVarUse]
-        return self.get_record_by_id(pk)
 
     def get_by(self, **filters: Any) -> ModelT | None:
         """Fetch a single row matching the given column=value filters."""
