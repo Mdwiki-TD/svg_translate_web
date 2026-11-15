@@ -115,8 +115,8 @@ def test_job_record_table_args() -> None:
 
     index = JobRecord.__table_args__[1]
     assert isinstance(index, Index)
-    assert index.name == "username"
-    assert tuple(c.key for c in index.columns) == ("username",)
+    assert index.name == "idx_status_created"
+    assert tuple(c.key for c in index.columns) == ("status", "created_at",)
 
 
 def test_job_record_creation(sqlite_db) -> None:
