@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates

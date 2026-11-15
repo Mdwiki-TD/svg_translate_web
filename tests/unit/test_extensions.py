@@ -100,7 +100,6 @@ def test_db_is_sqlalchemy_instance():
     assert isinstance(db, SQLAlchemy)
 
 
-
 def test_db_session_options():
     """Test that session_options includes expire_on_commit=False in the session factory kwargs."""
     sf_kw = db.session.session_factory.kw

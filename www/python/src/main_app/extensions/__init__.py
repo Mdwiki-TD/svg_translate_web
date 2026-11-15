@@ -21,8 +21,8 @@ from .csrf_protect import (
     csrf_init_app,
 )
 from .data_base import (
-    Model,
     BaseModel,
+    Model,
     db,
     metadata,
 )

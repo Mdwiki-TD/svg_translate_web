@@ -3,12 +3,13 @@ Flask data base initialization.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
 import logging
-from typing import Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
+
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import MetaData
+from sqlalchemy.orm import DeclarativeBase
 
 logger = logging.getLogger(__name__)
 
