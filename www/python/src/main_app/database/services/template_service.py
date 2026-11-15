@@ -57,9 +57,9 @@ class TemplateService(CRUDService[TemplateRecord]):
 
     def add_template_data(self, data: dict[str, Any]) -> TemplateRecord | None:
         title = data.get("title", "")
-        if not title or not title.strip():
-            raise ValueError("Title is required")
-
+        self.validate_or_raise(
+            title=title.strip(),
+        )
         existing = self.get_template_by_title(title)
         if existing:
             raise DuplicateRecordError(f"Template '{title}' already exists")

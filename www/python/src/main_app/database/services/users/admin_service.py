@@ -56,8 +56,9 @@ class AdminService(CRUDService[AdminUserRecord]):
 
     def add_admin(self, username: str) -> AdminUserRecord:
         # self.validate_or_raise(username=username)
-        if not username or not username.strip():
-            raise ValueError("Username is required")
+        self.validate_or_raise(
+            username=username.strip(),
+        )
         username = username.strip()
 
         """Add an admin."""

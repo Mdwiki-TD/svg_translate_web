@@ -118,10 +118,11 @@ class SettingsService(CRUDService[SettingRecord]):
         """
         key = key.strip()
         title = title.strip()
-        if not key:
-            raise ValueError("Key is required")
-        if not title:
-            raise ValueError("Title is required")
+
+        self.validate_or_raise(
+            key=key,
+            title=title,
+        )
 
         default_value_types = {
             "boolean": "false",

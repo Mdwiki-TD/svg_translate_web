@@ -58,11 +58,15 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         """
         Add a new chart.
         """
-        chart_data = {
-            key: value for key, value in chart_data.items() if value is not None and hasattr(OwidChartRecord, key)
-        }
+        data = {key: value for key, value in chart_data.items() if value is not None and hasattr(OwidChartRecord, key)}
+
+        self.validate_or_raise(
+            slug=data.get("slug"),
+            title=data.get("title"),
+        )
+
         try:
-            chart = OwidChartRecord(**chart_data)
+            chart = OwidChartRecord(**data)
             self.session.add(chart)
             self.session.commit()
             self.session.refresh(chart)
