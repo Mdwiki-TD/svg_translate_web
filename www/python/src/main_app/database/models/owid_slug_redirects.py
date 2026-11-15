@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, Index, String, UniqueConstraint, func, text
+from sqlalchemy import DateTime, String, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import Model
@@ -31,15 +31,13 @@ class OwidSlugRedirectRecord(Model):
 
     # Explicit table arguments to match indices and unique constraints from raw SQL
     __table_args__ = (
-        UniqueConstraint("slug", "redirect_to", name="unique_slug_redirect"),
-        Index("idx_slug", "slug"),
-        Index("idx_redirect_to", "redirect_to"),
+        UniqueConstraint("slug", name="slug"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     slug: Mapped[str] = mapped_column(String(255), nullable=False)
     redirect_to: Mapped[str] = mapped_column(String(255), nullable=False)
-    should_be_replaced: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=text("0"))
+    should_be_replaced: Mapped[bool | None] = mapped_column(nullable=True, default=False, server_default=text("0"))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
 
     def to_json(self) -> dict[str, Any]:

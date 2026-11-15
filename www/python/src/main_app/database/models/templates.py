@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy import String, text
+from sqlalchemy import Index, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import Model
@@ -37,13 +37,22 @@ class TemplateRecord(TimestampMixin, Model):
     __tablename__ = "templates"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
     main_file: Mapped[str | None] = mapped_column(String(255), nullable=True)
     last_world_file: Mapped[str | None] = mapped_column(String(255), nullable=True)
     last_world_year: Mapped[int | None] = mapped_column(nullable=True)
     slug: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
     source: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
     files: Mapped[int | None] = mapped_column(nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("title", name="title"),
+        Index("title_index", "title"),
+        Index("main_file", "main_file"),
+        Index("last_world_file", "last_world_file"),
+        Index("source", "source"),
+        Index("last_world_year", "last_world_year"),
+    )
 
     def to_json(self) -> dict[str, Any]:
         return {

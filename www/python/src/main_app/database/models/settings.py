@@ -16,6 +16,7 @@ class ValueType(StrEnum):
     boolean = "boolean"
     string = "string"
     integer = "integer"
+    json = "json"
 
 
 class SettingRecord(Model):

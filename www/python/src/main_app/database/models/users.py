@@ -75,7 +75,7 @@ class UserTokenRecord(TimestampMixin, Model):
     access_token: Mapped[bytes] = mapped_column(db.LargeBinary(1024), nullable=False)
     access_secret: Mapped[bytes] = mapped_column(db.LargeBinary(1024), nullable=False)
 
-    last_used_at: Mapped[datetime | None] = mapped_column(nullable=True, server_default=func.current_timestamp())
+    last_used_at: Mapped[datetime | None] = mapped_column(nullable=True)
     rotated_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     # Clean explicit relationship mapping matching SQLAlchemy 2.0 recommendations via back_populates

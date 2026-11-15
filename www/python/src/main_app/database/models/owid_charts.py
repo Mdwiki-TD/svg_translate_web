@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy import Boolean, Integer, String
+from sqlalchemy import Boolean, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import Model
@@ -43,7 +43,7 @@ class OwidChartRecord(TimestampMixin, Model):  # type: ignore
 
     # Core Columns
     chart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    slug: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    slug: Mapped[str] = mapped_column(String(255), nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     source: Mapped[str] = mapped_column(String(2048), nullable=False, default="", server_default="")
 
@@ -58,8 +58,11 @@ class OwidChartRecord(TimestampMixin, Model):  # type: ignore
     has_timeline: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
     status_404: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    # Table-level indexes as requested by the original CREATE TABLE DDL
-    # __table_args__ = ( Index("idx_slug", "slug"), Index("idx_published", "is_published"), )
+    __table_args__ = (
+        UniqueConstraint("slug", name="unique_slug"),
+        Index("idx_slug", "slug"),
+        Index("idx_published", "is_published"),
+    )
 
     def to_json(self) -> dict[str, Any]:
         """Serializes the pure model instance into a dictionary."""

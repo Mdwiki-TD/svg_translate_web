@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from sqlalchemy import Index, String, UniqueConstraint, text
+from sqlalchemy import Index, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import Model
@@ -38,13 +38,13 @@ class JobRecord(TimestampMixin, Model):
     __table_args__ = (
         # Unique constraint combining job_type and is_running
         UniqueConstraint("job_type", "is_running", name="idx_unique_active_job"),
-        # Keep the standard index for username if needed
-        Index("username", "username"),
+        # Composite index for status + created_at ordering
+        Index("idx_status_created", "status", "created_at"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     job_type: Mapped[str] = mapped_column(String(255), nullable=False)
-    username: Mapped[str] = mapped_column(String(255), nullable=False)
+    username: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     status: Mapped[str] = mapped_column(String(50), nullable=False, server_default=text("'pending'"))
 
