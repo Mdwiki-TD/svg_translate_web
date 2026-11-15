@@ -10,12 +10,12 @@ from datetime import datetime
 from sqlalchemy import BigInteger, DateTime, Index, Integer, SmallInteger, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import db
+from ...extensions import Model
 
 logger = logging.getLogger(__name__)
 
 
-class ErrorLogRecord(db.Model):
+class ErrorLogRecord(Model):
     """
     CREATE TABLE IF NOT EXISTS error_logs (
         id bigint unsigned NOT NULL AUTO_INCREMENT,

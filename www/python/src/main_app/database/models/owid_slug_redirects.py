@@ -7,12 +7,12 @@ from typing import Any
 from sqlalchemy import DateTime, Index, String, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import db
+from ...extensions import Model
 
 logger = logging.getLogger(__name__)
 
 
-class OwidSlugRedirectRecord(db.Model):
+class OwidSlugRedirectRecord(Model):
     """
     CREATE TABLE `owid_slug_redirects` (
         `id` int(11) NOT NULL AUTO_INCREMENT,

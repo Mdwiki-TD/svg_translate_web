@@ -21,6 +21,7 @@ from .csrf_protect import (
     csrf_init_app,
 )
 from .data_base import (
+    Model,
     BaseModel,
     db,
     metadata,
@@ -30,6 +31,7 @@ from .data_base import (
 migrate = Migrate()
 
 __all__ = [
+    "Model",
     "db",
     "BaseModel",
     "migrate",

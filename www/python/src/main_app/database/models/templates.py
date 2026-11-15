@@ -6,13 +6,13 @@ from typing import Any
 from sqlalchemy import String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import db
+from ...extensions import Model
 from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)
 
 
-class TemplateRecord(TimestampMixin, db.Model):
+class TemplateRecord(TimestampMixin, Model):
     """
     CREATE TABLE templates (
         id int (11) NOT NULL AUTO_INCREMENT,

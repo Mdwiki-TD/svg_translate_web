@@ -7,7 +7,7 @@ from typing import Any
 from sqlalchemy import String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import db
+from ...extensions import Model
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class ValueType(StrEnum):
     integer = "integer"
 
 
-class SettingRecord(db.Model):
+class SettingRecord(Model):
     """
     CREATE TABLE `settings` (
         `id` int(11) NOT NULL AUTO_INCREMENT,

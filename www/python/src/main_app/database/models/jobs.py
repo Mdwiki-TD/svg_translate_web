@@ -2,18 +2,17 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any
 
 from sqlalchemy import Index, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import db
+from ...extensions import Model
 from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)
 
 
-class JobRecord(TimestampMixin, db.Model):
+class JobRecord(TimestampMixin, Model):
     """
     CREATE TABLE `jobs` (
         `id` int NOT NULL AUTO_INCREMENT,

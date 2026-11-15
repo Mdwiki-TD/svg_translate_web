@@ -7,14 +7,14 @@ from typing import Any
 from sqlalchemy import DateTime, ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from ...extensions import db
+from ...extensions import Model, db
 from ...services.utils.decode_bytes import coerce_bytes
 from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)
 
 
-class UserRecord(db.Model):
+class UserRecord(Model):
     """
     Stable user identity — source of truth for user_id and username.
     """
@@ -37,26 +37,8 @@ class UserRecord(db.Model):
     # One-to-One relationship with UserTokenRecord using the modern SQLAlchemy 2.0 style
     token: Mapped[UserTokenRecord | None] = relationship(back_populates="user", uselist=False)
 
-    def to_json(self) -> dict[str, Any]:
-        """Serializes the pure model instance into a dictionary."""
-        data: dict[str, Any] = {}
-        table_keys = [
-            "user_id",
-            "username",
-            "can_run_jobs",
-            "can_run_bg_jobs",
-            "created_at",
-        ]
-        for column in table_keys:
-            value = getattr(self, column)
-            if hasattr(value, "isoformat"):
-                value = value.isoformat()
-            data[column] = value
 
-        return data
-
-
-class AdminUserRecord(TimestampMixin, db.Model):
+class AdminUserRecord(TimestampMixin, Model):
     """
     Admin/admin role — username references users.username.
     """
@@ -73,34 +55,17 @@ class AdminUserRecord(TimestampMixin, db.Model):
     # Python application default and database-level server default configuration
     is_active: Mapped[bool] = mapped_column(nullable=False, default=True, server_default=text("1"))
 
-    def to_json(self) -> dict[str, Any]:
-        """Serializes the pure model instance into a dictionary."""
-        data: dict[str, Any] = {}
-        table_keys = [
-            "id",
-            "username",
-            "is_active",
-            "created_at",
-            "updated_at",
-        ]
-        for column in table_keys:
-            value = getattr(self, column)
-            if hasattr(value, "isoformat"):
-                value = value.isoformat()
-            data[column] = value
-
-        return data
-
     def __repr__(self) -> str:
         return f"<Admin id={self.id} username={self.username!r} is_active={self.is_active}>"
 
 
-class UserTokenRecord(TimestampMixin, db.Model):
+class UserTokenRecord(TimestampMixin, Model):
     """
     OAuth credentials — child of users table.
     """
 
     __tablename__ = "user_tokens"
+    __json_exclude__ = frozenset({"access_token", "access_secret"})
 
     # Modern consolidated syntax for a field acting as both a Primary Key and a Foreign Key
     user_id: Mapped[int] = mapped_column(
@@ -120,26 +85,6 @@ class UserTokenRecord(TimestampMixin, db.Model):
     @validates("access_token", "access_secret")
     def validate_bytes(self, key, value) -> bytes:
         return coerce_bytes(value)
-
-    def to_json(self) -> dict[str, Any]:
-        """Serializes the pure model instance into a dictionary."""
-        data: dict[str, Any] = {}
-        table_keys = [
-            "user_id",
-            # "access_token",
-            # "access_secret",
-            "created_at",
-            "updated_at",
-            "last_used_at",
-            "rotated_at",
-        ]
-        for column in table_keys:
-            value = getattr(self, column)
-            if hasattr(value, "isoformat"):
-                value = value.isoformat()
-            data[column] = value
-
-        return data
 
 
 __all__ = [
