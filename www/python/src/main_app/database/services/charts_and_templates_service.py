@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from sqlalchemy import collate
+from sqlalchemy.orm import Session
 
 from ...extensions import db
 from ..models import OwidChartRecord, TemplateRecord
@@ -61,9 +62,8 @@ class ChartAndTemplate:
 
 
 class ChartsAndTemplatesService:
-    def __init__(self) -> None:
-        # super().__init__(db.session, OwidChartRecord)
-        self.session = db.session
+    def __init__(self, session: Session | None = None) -> None:
+        self.session = session or db.session
 
     def list_all_charts(self) -> list[ChartAndTemplate]:
         """

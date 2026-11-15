@@ -42,7 +42,7 @@ class CRUDService[ModelT]:
     # Read
     # ------------------------------------------------------------------ #
 
-    def get(self, pk: PKT) -> ModelT | None:
+    def get(self, pk: PKT) -> ModelT | None:  # pyright: ignore[reportInvalidTypeVarUse]
         return self.get_record_by_id(pk)
 
     def get_record_by_id(self, pk: PKT) -> ModelT | None:  # pyright: ignore[reportInvalidTypeVarUse]
