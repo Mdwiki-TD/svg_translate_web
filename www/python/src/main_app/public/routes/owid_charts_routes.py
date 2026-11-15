@@ -26,10 +26,15 @@ class OwidChartsIndexView(MethodView):
     def get(self) -> str:
         """Render the published charts page."""
         # charts = self.owid_charts_service.list_published_charts()
-        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
-        charts = [x.to_dict_joined() for x in charts_with_templates if x.chart.is_published]
+        charts = []
+        try:
+            charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all_charts()
+            charts = [x.to_dict_joined() for x in charts_with_templates if x.chart.is_published]
 
-        logger.info(f"Public charts page: {len(charts)} published")
+            logger.info(f"Public charts page: {len(charts)} published")
+
+        except Exception as e:
+            logger.error(f"Error while querying charts and templates: {e}")
 
         return render_template(
             "owid_charts/index.html",
@@ -47,7 +52,12 @@ class OwidChartsAllView(MethodView):
     def get(self) -> str:
         """Render the all charts page."""
         # charts = self.owid_charts_service.list_charts()
-        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
+        charts_with_templates = []
+        try:
+            charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all_charts()
+        except Exception as e:
+            logger.error(f"Error while querying charts and templates: {e}")
+
         charts = [x.to_dict_joined() for x in charts_with_templates]
         logger.info(f"All charts page: {len(charts)} total charts")
         return render_template(

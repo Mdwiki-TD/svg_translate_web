@@ -34,16 +34,12 @@ class AdminService(CRUDService[AdminUserRecord]):
 
     def is_active_admin(self, username: str) -> bool:
         """Check whether a single username is an active admin."""
-        try:
-            record = (
-                self.session.query(AdminUserRecord)
-                .filter(AdminUserRecord.username == username, AdminUserRecord.is_active)
-                .first()
-            )
-            return record is not None
-        except Exception:
-            logger.exception("Failed to check admin status")
-        return False
+        record = (
+            self.session.query(AdminUserRecord)
+            .filter(AdminUserRecord.username == username, AdminUserRecord.is_active)
+            .first()
+        )
+        return record is not None
 
     def list_admins(self) -> list[AdminUserRecord]:
         return self.list_all()

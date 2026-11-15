@@ -54,7 +54,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         """
         return self.session.query(OwidChartRecord).filter(OwidChartRecord.slug == slug).first()
 
-    def add_chart(self, **chart_data: Any) -> OwidChartRecord | None:
+    def add_chart(self, **chart_data: Any) -> OwidChartRecord:
         """
         Add a new chart.
         """
@@ -70,7 +70,7 @@ class OwidChartsService(CRUDService[OwidChartRecord]):
         except Exception as e:
             self.session.rollback()
             logger.error(f"Error adding chart: {e}")
-            return None
+            raise
 
     def update_chart_data(
         self,

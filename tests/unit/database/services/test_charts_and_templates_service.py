@@ -51,12 +51,12 @@ class TestListChartsWithoutTemplates(TestSetup):
 
 
 class TestListAll(TestSetup):
-    """Tests for list_all function."""
+    """Tests for list_all_charts function."""
 
     def test_returns_chart_without_template(self) -> None:
         chart_record = self.service.create(slug="test-chart", title="Test Chart", is_published=True, max_time=2024)
 
-        result: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
+        result: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all_charts()
 
         assert len(result) == 1
         x = result[0]

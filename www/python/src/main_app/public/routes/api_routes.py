@@ -125,8 +125,11 @@ class OwidChartsListView(MethodView):
 
     def get(self, template_filter: str = "") -> str:
         """Return charts and summary counts as JSON."""
-        # Optimize: use single-query list_all() with fallback
-        charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all()
+        charts_with_templates = []
+        try:
+            charts_with_templates: list[ChartAndTemplate] = self.charts_and_tmps_service.list_all_charts()
+        except Exception as e:
+            logger.error(f"Error while querying charts and templates: {e}")
 
         charts_data: list[dict[str, Any]] = [x.to_dict_joined(template_filter) for x in charts_with_templates]
         summary = make_charts_summary(charts_with_templates)
