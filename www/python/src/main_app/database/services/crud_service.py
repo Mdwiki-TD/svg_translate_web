@@ -30,12 +30,8 @@ class CRUDService[ModelT]:
 
     model: type[ModelT]
 
-    def __init__(self, session: Session | Any, model: type[ModelT] | None = None) -> None:
+    def __init__(self, session: Session | Any) -> None:
         self.session = session
-
-        # Temporarily allow model to be passed in, but prefer the generic
-        if not getattr(self, "model", None) and model:
-            self.model = model
 
         if getattr(self, "model", None) is None:
             raise ValueError("CRUDService requires a model class")
