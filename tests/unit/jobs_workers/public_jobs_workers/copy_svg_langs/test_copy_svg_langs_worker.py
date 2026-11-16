@@ -339,14 +339,14 @@ class TestCopySvgLangsWorkerProcess:
 
 
 class TestCopySvgLangsWorkerInjectStepFile:
-    """tests for the inject_step_file function"""
+    """tests for the _step_inject function"""
 
     def test_no_file_path(
         self,
         mock_worker: CopySvgLangsWorker,
     ):
         title_info = FilesProcessedItem(title="File:Test.svg")
-        new_path = mock_worker.files_processor.inject_step_file(title_info, "")
+        new_path = mock_worker.files_processor._step_inject(title_info, "")
         step_result = title_info.steps.inject
 
         assert step_result.result is False
@@ -366,7 +366,7 @@ class TestCopySvgLangsWorkerInjectStepFile:
 
         title_info = FilesProcessedItem(title="File:Test.svg")
 
-        new_path = mock_worker.files_processor.inject_step_file(title_info, tmp_path / "test.svg")
+        new_path = mock_worker.files_processor._step_inject(title_info, tmp_path / "test.svg")
         step_result = title_info.steps.inject
 
         assert step_result.result is None
@@ -384,7 +384,7 @@ class TestCopySvgLangsWorkerInjectStepFile:
         mock_copylangs_services.inject.return_value = MagicMock(result=False, msg="Nested tspan error")
 
         title_info = FilesProcessedItem(title="File:Test.svg")
-        new_path = mock_worker.files_processor.inject_step_file(title_info, tmp_path / "test.svg")
+        new_path = mock_worker.files_processor._step_inject(title_info, tmp_path / "test.svg")
         step_result = title_info.steps.inject
 
         assert step_result.result is False
@@ -414,7 +414,7 @@ class TestCopySvgLangsWorkerInjectStepFile:
         file_path = tmp_path / file_name
         file_path.write_text("")
         title_info = FilesProcessedItem(title="File:Test.svg")
-        new_path = mock_worker.files_processor.inject_step_file(title_info, file_path)
+        new_path = mock_worker.files_processor._step_inject(title_info, file_path)
         step_result = title_info.steps.inject
 
         assert step_result.result is True
@@ -438,7 +438,7 @@ class TestCopySvgLangsWorkerUploadStep:
 
         title_info = FilesProcessedItem("")
 
-        result = mock_worker.files_processor._upload_step(title_info, "summary", Path("test.svg"))
+        result = mock_worker.files_processor._step_upload(title_info, "summary", Path("test.svg"))
 
         assert result is False
         assert title_info.steps.upload.result is None
@@ -456,7 +456,7 @@ class TestCopySvgLangsWorkerUploadStep:
         mock_worker.files_processor.upload_done = 5
         title_info = FilesProcessedItem("")
 
-        result = mock_worker.files_processor._upload_step(title_info, "summary", Path("test.svg"))
+        result = mock_worker.files_processor._step_upload(title_info, "summary", Path("test.svg"))
 
         assert result is False
         assert title_info.steps.upload.msg == "skipped"
@@ -481,7 +481,7 @@ class TestCopySvgLangsWorkerUploadStep:
         mock_copylangs_services.upload_svg.return_value = UploadResult(ok=True, error="", msg="uploaded")
         title_info = FilesProcessedItem(title="File:Test.svg")
 
-        result = mock_worker.files_processor._upload_step(title_info, "Adding translations", Path("test.svg"))
+        result = mock_worker.files_processor._step_upload(title_info, "Adding translations", Path("test.svg"))
 
         assert result is True
         assert title_info.steps.upload.result is True
@@ -504,7 +504,7 @@ class TestCopySvgLangsWorkerUploadStep:
         )
         title_info = FilesProcessedItem(title="File:Test.svg")
 
-        result = mock_worker.files_processor._upload_step(title_info, "Adding translations", Path("test.svg"))
+        result = mock_worker.files_processor._step_upload(title_info, "Adding translations", Path("test.svg"))
 
         assert result is False
         assert title_info.steps.upload.result is None
@@ -525,7 +525,7 @@ class TestCopySvgLangsWorkerUploadStep:
         )
         title_info = FilesProcessedItem(title="File:Test.svg")
 
-        result = mock_worker.files_processor._upload_step(title_info, "Adding translations", Path("test.svg"))
+        result = mock_worker.files_processor._step_upload(title_info, "Adding translations", Path("test.svg"))
 
         assert result is False
         assert title_info.steps.upload.result is False
