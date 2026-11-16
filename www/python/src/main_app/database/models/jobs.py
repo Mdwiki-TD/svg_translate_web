@@ -38,8 +38,8 @@ class JobRecord(TimestampMixin, Model):
     __table_args__ = (
         # Unique constraint combining job_type and is_running
         UniqueConstraint("job_type", "is_running", name="idx_unique_active_job"),
-        # Keep the standard index for username if needed
-        Index("username", "username"),
+        # Composite index for status + username ordering
+        Index("status_username", "status", "username"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
