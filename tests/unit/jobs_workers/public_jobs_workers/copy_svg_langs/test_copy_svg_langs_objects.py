@@ -48,6 +48,7 @@ class TestFileSteps:
         assert fs.nested.result is None
         assert fs.inject.result is None
         assert fs.upload.result is None
+        assert fs.update_langs.result is None
 
 
 class TestFilesProcessedItem:

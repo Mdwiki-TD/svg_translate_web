@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.api_services.files_service import DownloadAndSaveData
-from src.main_app.api_services.files_service.objects import UploadResult
+from src.main_app.api_services.files_service.objects import FileLanguagesMap, UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
@@ -33,6 +33,8 @@ class MockServices:
     detect: MagicMock
     inject: MagicMock
     upload_svg: MagicMock
+    get_file_languages: MagicMock
+    mw_page: MagicMock
 
 
 @pytest.fixture
@@ -100,6 +102,21 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
         mock_inject,
     )
 
+    mock_get_langs = MagicMock()
+    mock_get_langs.return_value = FileLanguagesMap(langs=["en", "de", "fr"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.FilesService.get_file_languages",
+        mock_get_langs,
+    )
+
+    mw_page = MagicMock()
+    mw_page.get_text.return_value = "{{Information\n|other versions={{Svg lang|en}}\n}}"
+    mw_page.edit.return_value = {"success": True, "newrevid": 999}
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.MwClientPage",
+        MagicMock(return_value=mw_page),
+    )
+
     return MockServices(
         check_cancel_db_periodic=mock_check_cancel_db_periodic,
         is_cancelled=mock_is_cancelled,
@@ -107,6 +124,8 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
         detect=mock_detect,
         inject=mock_inject,
         upload_svg=mock_upload,
+        get_file_languages=mock_get_langs,
+        mw_page=mw_page,
     )
 
 

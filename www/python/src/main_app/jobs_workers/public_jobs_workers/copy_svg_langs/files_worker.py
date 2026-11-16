@@ -10,7 +10,7 @@ from pathlib import Path
 
 from mwclient.client import Site
 
-from ....api_services import UploadService
+from ....api_services import MwClientPage, UploadService
 from ....api_services.files_service import DownloadAndSaveData, FilesService
 from ....services.copysvg_wrapper import (
     ExtractResult,
@@ -20,6 +20,7 @@ from ....services.copysvg_wrapper import (
     SvgTranslationExtractor,
     TranslationMapping,
 )
+from ....utils.new_wikitext.other_versions import OtherVersionsUpdater
 from .objects import (
     FilesProcessedItem,
     StepResult,
@@ -37,6 +38,7 @@ class OneFileProcessor:
         self.upload_service = UploadService(self.site)
         self.mapping: TranslationMapping | None = None
         self.upload_done = 0
+        self.other_versions_updater = OtherVersionsUpdater()
         self.nested_processer = NestedStructureService(
             strategy="flatten",
         )
@@ -243,6 +245,121 @@ class OneFileProcessor:
         title_info.error = upload_result.error or ""
         return False
 
+    def _update_langs_step(self, title_info: FilesProcessedItem) -> bool:
+        """Update the `Svg lang` template of the file description page after a successful upload.
+
+        Mirrors the `Update langs` logic of the admin `update_wikitext` job (without the author update).
+
+        Args:
+            title_info: Item holding the per file steps results.
+
+        Returns:
+            True when the page was saved, False otherwise.
+        """
+        try:
+            return self._run_update_langs(title_info)
+        except Exception as exc:
+            logger.exception("Error updating Svg lang template for %s", title_info.title)
+            title_info.steps.update_langs._update(
+                result=False,
+                msg="Error updating langs",
+                details={"error": str(exc)},
+            )
+            title_info.status = "failed"
+            title_info.error = str(exc)
+            return False
+
+    def _run_update_langs(self, title_info: FilesProcessedItem) -> bool:
+        """Run the `Update langs` steps:
+            1. load the file wikitext
+            2. load the file languages (without `en`)
+            3. merge them into `{{Svg lang|...}}` inside `|other versions=`
+            4. save the page with summary `Insert Svg lang (de,fr,...)`
+        """
+        step = title_info.steps.update_langs
+        page = MwClientPage(title_info.title, self.site)
+
+        # ----------------------------------
+        # Step 1 - load file wikitext
+        text = page.get_text()
+        if not text:
+            step._update(result=False, msg=f"Could not retrieve text for {title_info.title}")
+            title_info.status = "failed"
+            title_info.error = f"Could not retrieve text for {title_info.title}"
+            return False
+
+        # ----------------------------------
+        # Step 2 - load file languages
+        file_langs = self.files_service.get_file_languages(title_info.title)
+        langs: list[str] = list(file_langs.langs or [])
+
+        if "en" in langs:
+            langs.remove("en")
+
+        if not langs:
+            step._update(
+                result=None,
+                msg="Skipped - no languages found",
+                details={"error": file_langs.error or "", "langs": langs},
+            )
+            return False
+
+        # ----------------------------------
+        # Step 3 - update `Svg lang` template
+        new_wikitext = self.other_versions_updater.add_svg_langs(
+            text,
+            langs,
+            sort=False,
+            delete_values=["en"],
+        )
+
+        if new_wikitext.strip() == text.strip():
+            step._update(result=None, msg="Skipped - page content is already identical", details={"langs": langs})
+            return False
+
+        # ----------------------------------
+        # Step 4 - save new text
+        row = ",".join(langs)
+        summary = f"Insert Svg lang ({row})"
+
+        res = page.edit(new_wikitext, summary=summary)
+
+        if res.get("success"):
+            step._update(
+                result=True,
+                msg=f"Updated page: {title_info.title}",
+                details={"summary": summary, "langs": langs, "newrevid": res.get("newrevid", 0)},
+            )
+            return True
+
+        error = res.get("error", "Unknown error")
+        step._update(
+            result=False,
+            msg="Failed to save page",
+            details={"error": error, "summary": summary, "langs": langs},
+        )
+        title_info.status = "failed"
+        title_info.error = error
+        return False
+
+    def _upload_step_with_langs(
+        self,
+        title_info: FilesProcessedItem,
+        summary: str,
+        new_path: Path | None,
+    ) -> bool:
+        """Upload the file then update the `Svg lang` template of its description page."""
+        uploaded = self._upload_step(title_info, summary, new_path)
+
+        if not uploaded:
+            # upload skipped or failed, nothing to update
+            return False
+
+        self._update_langs_step(title_info)
+
+        # The file is already uploaded, report the file as success unless the wikitext update failed
+        return title_info.status == "success"
+
     def _create_language_summary(self, main_title: str, translation_details: dict[str, int]) -> str:
         new_count = translation_details.get("new", 0)
         updated = translation_details.get("updated", 0)
@@ -363,6 +480,7 @@ class OneFileProcessor:
             # We can't inject file that has nested tags
             title_info.steps.inject.msg = "skipped"
             title_info.steps.upload.msg = "skipped"
+            title_info.steps.update_langs.msg = "skipped"
             return False
 
         # ----------------------------------------------
@@ -381,13 +499,13 @@ class OneFileProcessor:
             # inject success
             translation_details = title_info.steps.translations.details or {}
             summary = self._create_language_summary(main_title, translation_details)
-            return self._upload_step(title_info, summary, new_path)
+            return self._upload_step_with_langs(title_info, summary, new_path)
 
         # ----------------------------------------------
         elif verify_fixed > 0:
             # Here we need to upload the orignal file because we fix nested tags.
             summary = f"{verify_fixed} nested tags fixed"
-            return self._upload_step(title_info, summary, file_path)
+            return self._upload_step_with_langs(title_info, summary, file_path)
 
         # ----------------------------------------------
         # No nested tags were fixed

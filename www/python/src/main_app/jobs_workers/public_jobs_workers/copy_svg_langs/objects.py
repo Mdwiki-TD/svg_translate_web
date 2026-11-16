@@ -149,6 +149,7 @@ class FileSteps:
     )
     inject: StepResult = field(default_factory=lambda: StepResult())
     upload: StepResult = field(default_factory=lambda: StepResult())
+    update_langs: StepResult = field(default_factory=lambda: StepResult())
 
 
 @dataclass
