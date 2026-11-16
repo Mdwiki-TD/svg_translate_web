@@ -41,21 +41,21 @@ A Flask-based web application for copying SVG translations between different lan
     Copy the example environment file and configure it:
 
     ```bash
-    cp src/example.env src/.env
+    cp www/python/src/example.env www/python/src/.env
     ```
 
-    Edit `src/.env` with your configuration (see [Configuration](#configuration) section below).
+    Edit `www/python/src/.env` with your configuration (see [Configuration](#configuration) section below).
 
 4. **Run the application**
 
     ```bash
-    python -m flask --app src.app run
+    python -m flask --app www.python.src.app run
     ```
 
     Or for debug mode:
 
     ```bash
-    python src/app.py debug
+    python www/python/src/app.py debug
     ```
 
     The application will be available at `http://localhost:5000`
@@ -64,7 +64,7 @@ A Flask-based web application for copying SVG translations between different lan
 
 ### Required Environment Variables
 
-Create a `.env` file in the `src/` directory with the following variables:
+Create a `.env` file in the `www/python/src/` directory with the following variables:
 
 #### Flask Configuration
 
@@ -82,10 +82,9 @@ MAIN_DIR=/path/to/svg/storage
 #### Database Configuration
 
 ```bash
-TOOL_TOOLSDB_DBNAME=svg_langs
-TOOL_TOOLSDB_HOST=127.0.0.1
-TOOL_TOOLSDB_USER=your_db_user
-TOOL_TOOLSDB_PASSWORD=your_db_password
+# SQLAlchemy database URI
+DATABASE_URI=mysql+pymysql://user:pass@host/dbname
+# Or for SQLite: DATABASE_URI=sqlite:///instance.db
 ```
 
 #### OAuth Configuration
@@ -162,25 +161,31 @@ Configuration files:
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (excludes network and todo markers by default)
 pytest
 
 # Run specific test file
 pytest tests/test_task_routes.py
 
+# Run single test function
+pytest tests/test_file.py::test_func
+
 # Run with coverage
-pytest --cov=src
+pytest --cov=www/python/src
+
+# Skip network tests explicitly
+pytest -m "not network"
 ```
 
 ### Linting & Formatting
 
 ```bash
-ruff check src/           # Lint
-ruff check --fix src/     # Lint with auto-fix
-mypy src/                 # Type check
-black .                   # Format
-isort .                   # Sort imports
-pyright src/              # Type check
+ruff check www/python/src/           # Lint
+ruff check --fix www/python/src/     # Lint with auto-fix
+mypy www/python/src/                 # Type check
+black .                              # Format
+isort .                              # Sort imports
+pyright www/python/src/              # Type check
 ```
 
 Line length is 120 across all tools.
@@ -189,7 +194,7 @@ Line length is 120 across all tools.
 
 ```bash
 mypy --install-types
-autotyping --none-return src
+autotyping --none-return www/python/src
 ```
 
 ## Deployment
