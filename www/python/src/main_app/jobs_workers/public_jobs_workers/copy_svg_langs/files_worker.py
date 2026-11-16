@@ -250,6 +250,9 @@ class OneFileProcessor:
 
         Mirrors the `Update langs` logic of the admin `update_wikitext` job (without the author update).
 
+        A failure here does not fail the whole file (it is already uploaded), only this step
+        is marked as failed/skipped and `title_info.status` is left untouched.
+
         Args:
             title_info: Item holding the per file steps results.
 
@@ -265,8 +268,6 @@ class OneFileProcessor:
                 msg="Error updating langs",
                 details={"error": str(exc)},
             )
-            title_info.status = "failed"
-            title_info.error = str(exc)
             return False
 
     def _run_update_langs(self, title_info: FilesProcessedItem) -> bool:
@@ -284,8 +285,6 @@ class OneFileProcessor:
         text = page.get_text()
         if not text:
             step._update(result=False, msg=f"Could not retrieve text for {title_info.title}")
-            title_info.status = "failed"
-            title_info.error = f"Could not retrieve text for {title_info.title}"
             return False
 
         # ----------------------------------
@@ -338,8 +337,6 @@ class OneFileProcessor:
             msg="Failed to save page",
             details={"error": error, "summary": summary, "langs": langs},
         )
-        title_info.status = "failed"
-        title_info.error = error
         return False
 
     def _upload_step_with_langs(
@@ -355,10 +352,10 @@ class OneFileProcessor:
             # upload skipped or failed, nothing to update
             return False
 
+        # The file is already uploaded, a failure of update_langs does not fail the file
         self._update_langs_step(title_info)
 
-        # The file is already uploaded, report the file as success unless the wikitext update failed
-        return title_info.status == "success"
+        return True
 
     def _create_language_summary(self, main_title: str, translation_details: dict[str, int]) -> str:
         new_count = translation_details.get("new", 0)

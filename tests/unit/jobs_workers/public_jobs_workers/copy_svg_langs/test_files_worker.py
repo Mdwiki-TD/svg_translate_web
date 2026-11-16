@@ -342,10 +342,11 @@ class TestUpdateLangsStep:
 
         result = mock_worker._process_one_item(title_info, "File:Main.svg")
 
-        assert result is False
+        assert result is True
+        assert title_info.status == "success"
         assert title_info.steps.upload.result is True
         assert title_info.steps.update_langs.result is False
-        assert title_info.status == "failed"
+        assert title_info.error is None
 
     def test_update_langs_no_langs(self, mock_worker: CopySvgLangsWorker, mock_files_services: MockServices, tmp_path):
         self._prepare_upload_success(mock_files_services, tmp_path)
@@ -383,7 +384,25 @@ class TestUpdateLangsStep:
 
         result = mock_worker._process_one_item(title_info, "File:Main.svg")
 
-        assert result is False
+        # a failed update_langs step does not fail the file itself
+        assert result is True
+        assert title_info.status == "success"
+        assert title_info.error is None
         assert title_info.steps.update_langs.result is False
-        assert title_info.status == "failed"
-        assert title_info.error == "ratelimited"
+        assert title_info.steps.update_langs.details["error"] == "ratelimited"
+
+    def test_update_langs_exception_does_not_fail_file(
+        self, mock_worker: CopySvgLangsWorker, mock_files_services: MockServices, tmp_path
+    ):
+        self._prepare_upload_success(mock_files_services, tmp_path)
+        mock_files_services.get_file_languages.side_effect = ValueError("API error")
+        title_info = FilesProcessedItem(title="File:Test.svg")
+
+        result = mock_worker._process_one_item(title_info, "File:Main.svg")
+
+        assert result is True
+        assert title_info.status == "success"
+        assert title_info.error is None
+        assert title_info.steps.update_langs.result is False
+        assert title_info.steps.update_langs.msg == "Error updating langs"
+        assert "API error" in title_info.steps.update_langs.details["error"]
