@@ -90,14 +90,17 @@ function renderCommonsLink(title, _type, _row) {
  * value: string;
  * result: string | boolean | null;
  * newrevid: number | null;
+ * details: { newrevid?: number | null } | null;
  * }} step
  */
 function renderStep(step) {
     if (!step) return '<span class="text-muted">-</span>';
     const title = step.msg || step.message || step.new_value || step.value || '';
+    // some steps keep the revision id inside `details`
+    const newrevid = step.newrevid ?? step.details?.newrevid ?? null;
     if (step.result === true || step.result === 'updated') {
-        if (step.newrevid && step.newrevid !== 0) {
-            return diffLink("commons.wikimedia.org", step.newrevid, title);
+        if (newrevid && newrevid !== 0) {
+            return diffLink("commons.wikimedia.org", newrevid, title);
         }
         return `<span class="badge bg-success" title="${title}"><i class="bi bi-check-lg"></i></span>`;
     }
