@@ -39,6 +39,7 @@ pytest -m "not network and not todo"  # Skip network and todo tests
 ```
 
 Test markers:
+
 - `unit`: unit tests
 - `integration`: integration tests
 - `network`: tests requiring network access
@@ -132,16 +133,16 @@ Translation tasks run through a sequential pipeline defined in `www/python/src/m
 
 ### Key Route Blueprints
 
-| Blueprint       | Prefix        | Location                          |
-| --------------- | ------------- | --------------------------------- |
-| `bp_main`       | `/`           | `public/main/`                    |
-| `bp_auth`       | `/auth`       | `public/auth/`                    |
-| `bp_tasks`      | `/tasks`      | `public/tasks/`                   |
-| `bp_explorer`   | `/explorer`   | `public/explorer/`                |
-| `bp_admin`      | `/admin`      | `public/admin/`                   |
-| `bp_templates`  | `/templates`  | `public/templates/`               |
-| `bp_fix_nested` | `/fix-nested` | `public/fix_nested/`              |
-| `bp_extract`    | `/extract`    | `public/extract/`                 |
+| Blueprint       | Prefix        | Location             |
+| --------------- | ------------- | -------------------- |
+| `bp_main`       | `/`           | `public/main/`       |
+| `bp_auth`       | `/auth`       | `public/auth/`       |
+| `bp_tasks`      | `/tasks`      | `public/tasks/`      |
+| `bp_explorer`   | `/explorer`   | `public/explorer/`   |
+| `bp_admin`      | `/admin`      | `public/admin/`      |
+| `bp_templates`  | `/templates`  | `public/templates/`  |
+| `bp_fix_nested` | `/fix-nested` | `public/fix_nested/` |
+| `bp_extract`    | `/extract`    | `public/extract/`    |
 
 ### Configuration
 
