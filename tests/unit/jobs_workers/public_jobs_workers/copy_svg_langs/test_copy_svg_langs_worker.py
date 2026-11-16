@@ -352,6 +352,8 @@ class TestCopySvgLangsWorkerInjectStepFile:
         assert step_result.result is False
         assert step_result.msg == "No file path found"
         assert new_path is None
+        assert title_info.status == "failed"
+        assert title_info.error == "No file path found"
 
     def test_inject_result_none(
         self,
@@ -388,6 +390,8 @@ class TestCopySvgLangsWorkerInjectStepFile:
         assert step_result.result is False
         assert step_result.msg == "Nested tspan error"
         assert new_path is None
+        assert title_info.status == "failed"
+        assert title_info.error == "Nested tspan error"
 
     def test_inject_result_true(
         self,

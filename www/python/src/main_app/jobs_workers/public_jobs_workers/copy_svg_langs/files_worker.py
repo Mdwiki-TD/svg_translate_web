@@ -94,6 +94,7 @@ class OneFileProcessor:
     def inject_step_file(self, title_info: FilesProcessedItem, file_path: Path | str) -> Path | None:
         if not file_path:
             title_info.steps.inject._update(result=False, msg="No file path found")
+            self._fail_inject(title_info, "No file path found")
             return None
 
         file_path = Path(file_path)
@@ -129,6 +130,7 @@ class OneFileProcessor:
                 result=False,
                 msg=inject_result.msg,
             )
+            self._fail_inject(title_info, inject_result.msg)
             return None
 
         if inject_result.result is not True:
@@ -136,6 +138,7 @@ class OneFileProcessor:
                 result=False,
                 msg="Unknown error",
             )
+            self._fail_inject(title_info, "Unknown error")
             return None
 
         # inject_result.result is True definitely
@@ -160,6 +163,16 @@ class OneFileProcessor:
         )
 
         return output_file
+
+    @staticmethod
+    def _fail_inject(title_info: FilesProcessedItem, error: str) -> None:
+        """Mark the file as failed when the inject step failed.
+
+        Without this the file keeps the default status and is normalized to `completed`
+        by the worker even though nothing was injected or uploaded.
+        """
+        title_info.status = "failed"
+        title_info.error = error or "Failed to inject translations"
 
     def _upload_step(
         self,
@@ -361,6 +374,11 @@ class OneFileProcessor:
         """Upload the file then update the `Svg lang` template of its description page."""
         uploaded = self._upload_step(title_info, summary, new_path)
 
+        if title_info.status != "failed":
+            # a previous step (inject) may have left an error behind while the file was
+            # still uploaded (nested tags fixed) or skipped
+            title_info.error = None
+
         if not uploaded:
             # upload skipped or failed, nothing to update
             return False
@@ -520,6 +538,8 @@ class OneFileProcessor:
         # ----------------------------------------------
         # No nested tags were fixed
         # inject_result.result is one of (None/False)
+        title_info.steps.upload._update(result=None, msg="skipped")
+        title_info.steps.update_langs._update(result=None, msg="skipped")
         return False
 
     # ----

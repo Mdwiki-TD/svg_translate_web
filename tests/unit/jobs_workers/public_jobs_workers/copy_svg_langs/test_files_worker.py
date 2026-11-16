@@ -231,6 +231,8 @@ class TestCopySvgLangsWorkerProcessOne:
         result = mock_worker._process_one_item(title_info, "")
 
         assert result is False
+        assert title_info.status == "failed"
+        assert title_info.error == "Failed"
 
     def test_inject_false_but_nested_fixed(
         self, mock_worker: CopySvgLangsWorker, mock_files_services: MockServices, tmp_path
@@ -253,6 +255,9 @@ class TestCopySvgLangsWorkerProcessOne:
         assert title_info.steps.inject.result is False
         assert title_info.steps.inject.msg == "Failed"
         assert result is True
+        # the original file was still uploaded, so the inject error must not fail the file
+        assert title_info.status == "success"
+        assert title_info.error is None
 
     def test_upload_disabled(self, mock_worker: CopySvgLangsWorker, mock_files_services: MockServices, tmp_path):
         mock_worker.config = mock_worker._load_config({"upload": False})
