@@ -3,10 +3,10 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
+from sqlalchemy import Index, String, UniqueConstraint, text
 from sqlalchemy import DateTime, FetchedValue, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from sqlalchemy import Index, String, UniqueConstraint, text
 
 from ...extensions import Model
 from .base import TimestampMixin
