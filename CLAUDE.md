@@ -125,11 +125,10 @@ Translation tasks run through a sequential pipeline defined in `www/python/src/m
 
 ### Database Layer
 
-- `TaskStorePyMysql` (composed via mixins: `CreateUpdateTask`, `StageStore`, `TasksListDB`) handles task persistence
-- `UserTokenRecord` manages encrypted OAuth token storage
-- Connection wrapper in `www/python/src/main_app/database/db_class.py` provides retry logic
-- Use parameterized queries with `%s` placeholders
-- Lazy import DB modules to avoid circular dependencies
+- Uses Flask-SQLAlchemy for database operations
+- Database URI configured via `DATABASE_URI` environment variable
+- Models and services located in `www/python/src/main_app/sqlalchemy_db/`
+- Connection pooling configured in `www/python/src/main_app/config/flask_config.py`
 
 ### Key Route Blueprints
 
@@ -146,9 +145,10 @@ Translation tasks run through a sequential pipeline defined in `www/python/src/m
 
 ### Configuration
 
-- Environment variables loaded via `www/python/src/svg_config.py` using python-dotenv (expects `.env` file in `www/python/src/`)
-- Dataclasses define typed config: `Settings`, `DbConfig`, `OAuthConfig`, `Paths`, `CookieConfig`, `JobsConfig`, `SecurityConfig`
-- Settings cached via `@lru_cache` in `www/python/src/main_app/config.py`
+- Environment variables loaded via `www/python/src/main_app/config/classes.py` using python-dotenv (expects `.env` file in `www/python/src/`)
+- Dataclasses define typed config: `Settings`, `SecurityConfig`, `OAuthConfig`, `Paths`, `CookieConfig`, `JobsConfig`, `OtherConfig`, `SessionConfig`
+- Settings cached via `@lru_cache` in `get_settings()` function
+- Flask-SQLAlchemy configuration in `www/python/src/main_app/config/flask_config.py`
 
 #### Required Environment Variables
 
@@ -156,11 +156,8 @@ Translation tasks run through a sequential pipeline defined in `www/python/src/m
 # Flask
 FLASK_SECRET_KEY=           # Generate: python -c "import secrets; print(secrets.token_hex(16))"
 
-# Database
-TOOL_TOOLSDB_DBNAME=svg_langs
-TOOL_TOOLSDB_HOST=127.0.0.1
-TOOL_TOOLSDB_USER=
-TOOL_TOOLSDB_PASSWORD=
+# Database (SQLAlchemy)
+DATABASE_URI=               # e.g., mysql+pymysql://user:pass@host/dbname or sqlite:///instance.db
 
 # OAuth
 OAUTH_MWURI=https://commons.wikimedia.org/w/index.php

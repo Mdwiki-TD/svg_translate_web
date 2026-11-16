@@ -82,10 +82,9 @@ MAIN_DIR=/path/to/svg/storage
 #### Database Configuration
 
 ```bash
-TOOL_TOOLSDB_DBNAME=svg_langs
-TOOL_TOOLSDB_HOST=127.0.0.1
-TOOL_TOOLSDB_USER=your_db_user
-TOOL_TOOLSDB_PASSWORD=your_db_password
+# SQLAlchemy database URI
+DATABASE_URI=mysql+pymysql://user:pass@host/dbname
+# Or for SQLite: DATABASE_URI=sqlite:///instance.db
 ```
 
 #### OAuth Configuration
