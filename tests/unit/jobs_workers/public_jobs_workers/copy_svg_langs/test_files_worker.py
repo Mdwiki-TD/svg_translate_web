@@ -368,9 +368,7 @@ class TestUpdateLangsStep:
         assert title_info.steps.update_langs.msg == "Skipped - no languages found"
         mock_files_services.mw_page.edit.assert_not_called()
 
-    def test_update_langs_identical(
-        self, mock_worker: CopySvgLangsWorker, mock_files_services: MockServices, tmp_path
-    ):
+    def test_update_langs_identical(self, mock_worker: CopySvgLangsWorker, mock_files_services: MockServices, tmp_path):
         self._prepare_upload_success(mock_files_services, tmp_path)
         mock_files_services.mw_page.get_text.return_value = "{{Information\n|other versions={{Svg lang|de|fr}}\n}}"
         title_info = FilesProcessedItem(title="File:Test.svg")
