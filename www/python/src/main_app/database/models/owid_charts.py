@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy import Boolean, Index, Integer, String, UniqueConstraint
+from sqlalchemy import Index, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import Model
@@ -46,21 +46,21 @@ class OwidChartRecord(TimestampMixin, Model):  # type: ignore
         Index("idx_published", "is_published"),
     )
 
-    chart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chart_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     slug: Mapped[str] = mapped_column(String(255), unique=True)
     title: Mapped[str] = mapped_column(String(500))
     source: Mapped[str] = mapped_column(String(2048), default="", server_default="")
 
-    has_map_tab: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
-    max_time: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    min_time: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    has_map_tab: Mapped[bool] = mapped_column(server_default="0", default=False)
+    max_time: Mapped[int | None] = mapped_column(nullable=True)
+    min_time: Mapped[int | None] = mapped_column(nullable=True)
     default_tab: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    owid_variable_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    is_published: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
-    single_year_data: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
-    len_years: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    has_timeline: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
-    status_404: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    owid_variable_id: Mapped[int | None] = mapped_column(nullable=True)
+    is_published: Mapped[bool] = mapped_column(server_default="0", default=False)
+    single_year_data: Mapped[bool] = mapped_column(server_default="0", default=False)
+    len_years: Mapped[int | None] = mapped_column(nullable=True)
+    has_timeline: Mapped[bool] = mapped_column(server_default="0", default=False)
+    status_404: Mapped[int | None] = mapped_column(nullable=True)
 
 
 __all__ = [
