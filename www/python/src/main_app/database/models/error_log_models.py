@@ -7,7 +7,8 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, Index, Integer, SmallInteger, String, Text, func, text
+from sqlalchemy import BigInteger, Index, Integer, SmallInteger, String, Text, func, text
+from sqlalchemy.dialects import mysql
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import Model
@@ -48,25 +49,31 @@ class ErrorLogRecord(Model):
 
     __tablename__ = "error_logs"
     __table_args__ = (
+        Index("idx_created_at", "created_at"),
         Index("idx_status_path", "status_code", "path", mysql_length={"path": 191}),
+        Index("idx_request_id", "request_id"),
         {"mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_unicode_ci"},
     )
 
     # BigInteger on MySQL, plain Integer on SQLite so autoincrement works in tests
-    id: Mapped[int] = mapped_column(BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), index=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(mysql.BIGINT(unsigned=True), "mysql").with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     # What was requested
-    status_code: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    method: Mapped[str] = mapped_column(String(10), nullable=False, default="", server_default=text("''"))
-    path: Mapped[str] = mapped_column(String(500), nullable=False)
+    status_code: Mapped[int] = mapped_column(SmallInteger)
+    method: Mapped[str] = mapped_column(String(10), default="", server_default=text("''"))
+    path: Mapped[str] = mapped_column(String(500))
     query_str: Mapped[str | None] = mapped_column(Text)
 
     # Who asked (the ip is usually the ingress; access_route keeps the proxy chain)
-    ip: Mapped[str] = mapped_column(String(45), nullable=False, default="", server_default=text("''"))
+    ip: Mapped[str] = mapped_column(String(45), default="", server_default=text("''"))
     access_route: Mapped[str | None] = mapped_column(String(255))
-    has_cookie: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=text("0"))
-    suspected_bot: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=text("0"))
+    has_cookie: Mapped[bool] = mapped_column(default=False, server_default=text("0"))
+    suspected_bot: Mapped[bool] = mapped_column(default=False, server_default=text("0"))
     username: Mapped[str | None] = mapped_column(String(120))
 
     # Headers that help tell bots from real browsers (never cookies or tokens)
@@ -78,7 +85,7 @@ class ErrorLogRecord(Model):
     sec_fetch_mode: Mapped[str | None] = mapped_column(String(30))
     sec_fetch_dest: Mapped[str | None] = mapped_column(String(30))
     sec_ch_ua: Mapped[str | None] = mapped_column(String(255))
-    request_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    request_id: Mapped[str | None] = mapped_column(String(64))
 
     error: Mapped[str | None] = mapped_column(String(500))
 

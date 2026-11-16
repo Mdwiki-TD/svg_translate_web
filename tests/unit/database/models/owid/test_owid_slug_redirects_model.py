@@ -80,7 +80,7 @@ def test_owid_slug_redirect_record_table_args() -> None:
 
     slug_index = OwidSlugRedirectRecord.__table_args__[1]
     assert isinstance(slug_index, Index)
-    assert slug_index.name == "idx_slug"
+    assert slug_index.name == "idx_slug_n"
     assert tuple(c.key for c in slug_index.columns) == ("slug",)
 
     redirect_index = OwidSlugRedirectRecord.__table_args__[2]

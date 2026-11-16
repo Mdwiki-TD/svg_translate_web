@@ -195,7 +195,7 @@ class AuthFlowService:
             logger.error("OAuth callback failed while saving user credentials")
             return CallbackResult(
                 success=False,
-                error_message="Failed to process user credentials",
+                error_message="Failed to save user credentials",
                 flash_category="danger",
             )
 
@@ -204,7 +204,7 @@ class AuthFlowService:
             logger.error("OAuth callback failed while saving user credentials")
             return CallbackResult(
                 success=False,
-                error_message="Failed to process user credentials",
+                error_message="Failed to load user credentials",
                 flash_category="danger",
             )
 

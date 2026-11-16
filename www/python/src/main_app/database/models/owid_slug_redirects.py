@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any
 
-from sqlalchemy import DateTime, Index, String, UniqueConstraint, func, text
+from sqlalchemy import Index, String, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import Model
@@ -22,7 +21,7 @@ class OwidSlugRedirectRecord(Model):
         `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
         PRIMARY KEY (`id`),
         UNIQUE KEY `unique_slug_redirect` (`slug`, `redirect_to`),
-        KEY `idx_slug` (`slug`),
+        KEY `idx_slug_n` (`slug`),
         KEY `idx_redirect_to` (`redirect_to`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """
@@ -32,32 +31,21 @@ class OwidSlugRedirectRecord(Model):
     # Explicit table arguments to match indices and unique constraints from raw SQL
     __table_args__ = (
         UniqueConstraint("slug", "redirect_to", name="unique_slug_redirect"),
-        Index("idx_slug", "slug"),
+        Index("idx_slug_n", "slug"),
         Index("idx_redirect_to", "redirect_to"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    slug: Mapped[str] = mapped_column(String(255), nullable=False)
-    redirect_to: Mapped[str] = mapped_column(String(255), nullable=False)
-    should_be_replaced: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=text("0"))
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
-
-    def to_json(self) -> dict[str, Any]:
-        """Serializes the pure model instance into a dictionary."""
-        data: dict[str, Any] = {}
-        table_keys = [
-            "id",
-            "slug",
-            "redirect_to",
-            "should_be_replaced",
-            "created_at",
-        ]
-        for column in table_keys:
-            value = getattr(self, column)
-            if hasattr(value, "isoformat"):
-                value = value.isoformat()
-            data[column] = value
-        return data
+    slug: Mapped[str] = mapped_column(String(255))
+    redirect_to: Mapped[str] = mapped_column(String(255))
+    should_be_replaced: Mapped[bool | None] = mapped_column(
+        nullable=True,
+        default=False,
+        server_default=text("0"),
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        server_default=func.current_timestamp(),
+    )
 
 
 __all__ = [

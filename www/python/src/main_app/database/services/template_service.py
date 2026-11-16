@@ -28,29 +28,19 @@ class TemplateService(CRUDService[TemplateRecord]):
         )
 
     def list_templates_mismatched_years(self) -> list[TemplateRecord]:
-        """
-        Fetches all template records where the 'last_world_file'
-        does not contain the 'last_world_year', resolving collation conflicts.
-        """
-        # Define the target collation causing the issue
-        target_collation = "utf8mb4_unicode_ci"
+        """Templates whose 'last_world_file' does not contain 'last_world_year'."""
+        year_text = cast(TemplateRecord.last_world_year, String)
 
-        # Cast and force the collation on the concatenated string
-        search_pattern = func.concat("%", cast(TemplateRecord.last_world_year, String), "%")
+        # Apply the collation only on MySQL/MariaDB (SQLite has no such collations).
+        if self.dialect_name in ("mysql", "mariadb"):
+            year_text = year_text.collate("utf8mb4_unicode_ci")
 
-        # SQLite does not support mysql collations, so only apply collate on mysql/mariadb
-        if db.engine.dialect.name == "mysql":
-            search_pattern = search_pattern.collate(target_collation)
-
-        # Construct the query, ensuring we only compare non-null values
         stmt = select(TemplateRecord).where(
             TemplateRecord.last_world_file.is_not(None),
             TemplateRecord.last_world_year.is_not(None),
-            TemplateRecord.last_world_file.not_like(search_pattern),
+            TemplateRecord.last_world_file.not_like(func.concat("%", year_text, "%")),
         )
-
-        results = self.session.scalars(stmt).all()
-        return list(results)
+        return list(self.session.scalars(stmt).all())
 
     def get_template(self, template_id: int) -> TemplateRecord | None:
         return self.get_record_by_id(template_id)

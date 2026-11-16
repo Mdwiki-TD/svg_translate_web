@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, func
+from sqlalchemy import FetchedValue, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -18,18 +18,14 @@ class TimestampMixin:
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        nullable=False,
         server_default=func.current_timestamp(),
         default=func.current_timestamp(),
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        nullable=False,
         server_default=func.current_timestamp(),
         default=func.current_timestamp(),
-        server_onupdate=func.current_timestamp(),
+        server_onupdate=FetchedValue(),  # MySQL handles ON UPDATE CURRENT_TIMESTAMP
         onupdate=func.current_timestamp(),
     )
 

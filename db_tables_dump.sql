@@ -25,7 +25,7 @@ CREATE TABLE
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
     PRIMARY KEY (`id`),
     UNIQUE KEY `username` (`username`)
-  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE
   `jobs` (
@@ -40,7 +40,7 @@ CREATE TABLE
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
     PRIMARY KEY (`id`),
     KEY `idx_status_created` (`status`, `created_at`)
-  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE
   `owid_charts` (
@@ -62,7 +62,7 @@ CREATE TABLE
     UNIQUE KEY `unique_slug` (`slug`),
     KEY `idx_slug` (`slug`),
     KEY `idx_published` (`is_published`)
-  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE
   `settings` (
@@ -93,7 +93,7 @@ CREATE TABLE
     KEY `last_world_file` (`last_world_file`),
     KEY `source` (`source`),
     KEY `last_world_year` (`last_world_year`)
-  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE
   `user_tokens` (
@@ -107,7 +107,7 @@ CREATE TABLE
     `rotated_at` datetime DEFAULT NULL,
     PRIMARY KEY (`user_id`),
     KEY `idx_user_tokens_username` (`username`)
-  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE
   `templates_need_update` (
