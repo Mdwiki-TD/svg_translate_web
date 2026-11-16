@@ -33,7 +33,7 @@ def test_job_record_with_all_fields() -> None:
         result_file="/path/to/result.json",
         created_at=dt,
         updated_at=dt,
-        is_running=0,
+        is_running=None,
     )
 
     assert rec.id == 10
@@ -45,7 +45,7 @@ def test_job_record_with_all_fields() -> None:
     assert rec.result_file == "/path/to/result.json"
     assert rec.created_at == dt
     assert rec.updated_at == dt
-    assert rec.is_running == 0
+    assert rec.is_running is None
 
 
 def test_job_record_to_dict() -> None:

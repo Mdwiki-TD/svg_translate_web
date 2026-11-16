@@ -21,9 +21,9 @@ class MockModel(Model):
     __tablename__ = "mock_model"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(50), unique=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp())
 
 
 def test_base_model_to_dict(mock_app: Flask) -> None:

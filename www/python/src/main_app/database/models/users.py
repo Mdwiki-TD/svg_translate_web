@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, func, text
+from sqlalchemy import ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from ...extensions import Model, db
@@ -27,7 +27,6 @@ class UserRecord(Model):
     can_run_bg_jobs: Mapped[int] = mapped_column(nullable=False, server_default=text("0"), default=0)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
         nullable=False,
         server_default=func.current_timestamp(),
         default=func.current_timestamp(),
