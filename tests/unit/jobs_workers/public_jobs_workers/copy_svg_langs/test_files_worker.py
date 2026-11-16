@@ -406,3 +406,22 @@ class TestUpdateLangsStep:
         assert title_info.steps.update_langs.result is False
         assert title_info.steps.update_langs.msg == "Error updating langs"
         assert "API error" in title_info.steps.update_langs.details["error"]
+
+    def test_update_langs_load_langs_error(
+        self, mock_worker: CopySvgLangsWorker, mock_files_services: MockServices, tmp_path
+    ):
+        self._prepare_upload_success(mock_files_services, tmp_path)
+        mock_files_services.get_file_languages.return_value = FileLanguagesMap(
+            langs=None, error="Metadata not found for File:Test.svg"
+        )
+        title_info = FilesProcessedItem(title="File:Test.svg")
+
+        result = mock_worker._process_one_item(title_info, "File:Main.svg")
+
+        assert result is True
+        assert title_info.status == "success"
+        assert title_info.error is None
+        assert title_info.steps.update_langs.result is False
+        assert title_info.steps.update_langs.msg == "Could not load file languages"
+        assert title_info.steps.update_langs.details["error"] == "Metadata not found for File:Test.svg"
+        mock_files_services.mw_page.edit.assert_not_called()

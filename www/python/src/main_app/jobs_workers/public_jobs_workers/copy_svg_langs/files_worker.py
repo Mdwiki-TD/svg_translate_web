@@ -290,6 +290,15 @@ class OneFileProcessor:
         # ----------------------------------
         # Step 2 - load file languages
         file_langs = self.files_service.get_file_languages(title_info.title)
+
+        if file_langs.error:
+            step._update(
+                result=False,
+                msg="Could not load file languages",
+                details={"error": file_langs.error},
+            )
+            return False
+
         langs: list[str] = list(file_langs.langs or [])
 
         if "en" in langs:
@@ -299,7 +308,7 @@ class OneFileProcessor:
             step._update(
                 result=None,
                 msg="Skipped - no languages found",
-                details={"error": file_langs.error or "", "langs": langs},
+                details={"langs": langs},
             )
             return False
 
