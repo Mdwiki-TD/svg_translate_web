@@ -130,6 +130,7 @@ class SvgInjector:
         return inject_result
 
     def start_svg_injection(
+        self,
         *,
         inject_file: Path | str,
         mapping: dict[str, Any] | TranslationMapping | None = None,
