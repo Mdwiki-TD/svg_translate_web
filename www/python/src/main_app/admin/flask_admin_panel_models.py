@@ -40,7 +40,6 @@ categories: list[AdminCategory] = [
         icon_value="fa-cubes",
         models=[
             TemplateRecord,
-            # ModelItem(model=TemplateNeedUpdateView, name="Templates Need Update"),
         ],
     ),
     AdminCategory(

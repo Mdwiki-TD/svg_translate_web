@@ -17,8 +17,8 @@ class TemplateNeedUpdateView(Model):
     __tablename__ = "templates_need_update"
 
     template_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    template_title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    slug: Mapped[str] = mapped_column(String(255), nullable=False, server_default=text("''"))
+    template_title: Mapped[str] = mapped_column(String(255), unique=True)
+    slug: Mapped[str] = mapped_column(String(255), server_default=text("''"))
     owid_variable_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     last_world_year: Mapped[int | None] = mapped_column(nullable=True)
     max_time: Mapped[int | None] = mapped_column(nullable=True)

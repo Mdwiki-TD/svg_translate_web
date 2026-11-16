@@ -34,10 +34,10 @@ class SettingRecord(Model):
     __tablename__ = "settings"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    key: Mapped[str] = mapped_column(String(190), unique=True, nullable=False)
-    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    key: Mapped[str] = mapped_column(String(190), unique=True)
+    title: Mapped[str] = mapped_column(String(500))
 
-    value_type: Mapped[ValueType] = mapped_column(nullable=False, server_default=text("'boolean'"))
+    value_type: Mapped[ValueType] = mapped_column(server_default=text("'boolean'"))
 
     value: Mapped[str | None] = mapped_column(Text, nullable=True)
 
