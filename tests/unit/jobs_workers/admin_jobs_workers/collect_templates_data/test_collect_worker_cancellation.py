@@ -55,7 +55,7 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch):
         "find_newest_world_file",
         lambda x, remove_prefix=False: None,
     )
-    monkeypatch.setattr(worker, "get_category_members", MagicMock(return_value=[]))
+    monkeypatch.setattr(worker.CategoryMembersService, "get_category_members", MagicMock(return_value=[]))
 
     return mocks
 

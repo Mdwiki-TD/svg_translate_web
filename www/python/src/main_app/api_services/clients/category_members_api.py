@@ -1,0 +1,198 @@
+"""
+MediaWiki API query operations for categories
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+import logging
+import time
+
+from mwclient.client import Site
+from mwclient.errors import APIError
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class CategoryMember:
+    title: str
+    ns: int | None = None
+    revid: int | None = None
+
+
+class CategoryMembersService:
+    """
+    Query a MediaWiki site for categories.
+    The ``site`` collaborator is injected once at construction time and reused for every query method.
+    """
+
+    MAX_ITERATIONS = 100
+
+    def __init__(self, site: Site) -> None:
+        self.site = site
+
+    def get_category_members(
+        self,
+        category_title: str,
+        namespace: int = 0,
+        limit: int | str | None = None,
+    ) -> list[str]:
+        """Retrieve all members of a specified category from a MediaWiki site."""
+        logger.debug(f"load category members for {category_title}")
+        try:
+            category = self.site.pages[category_title]
+            # Use list comprehension for efficiency - consumes the generator
+            members = category.members(
+                prop="ids|title",
+                namespace=namespace,
+                sort="sortkey",
+                dir="asc",
+                start=None,
+                end=None,
+                generator=True,
+            )
+            list_members = list(members)
+            return [p if isinstance(p, str) else p.name for p in list_members]
+        except APIError as e:
+            logger.warning(f"API error getting category members for {category_title}: {e}")
+            return []
+        except KeyError as e:
+            logger.warning(f"Key error in API response for {category_title}: {e}")
+            return []
+
+    def get_category_members_titles(
+        self,
+        category_name: str,
+        namespace: int | None = None,
+    ) -> list[str]:
+        """Fetch all member titles from *category_name* with pagination."""
+        page_count = 0
+        delay = 0.1  # seconds
+        max_delay = 8.0
+
+        logger.info(f"Starting to fetch files from {category_name}")
+
+        params = {
+            # "action": "query",
+            "format": "json",
+            "list": "categorymembers",
+            "cmtitle": category_name,
+            # "cmtype": "file",
+            "cmlimit": "max",
+        }
+
+        if namespace is not None:
+            if namespace == 14:
+                params["cmtype"] = "subcat"
+            elif namespace == 6:
+                params["cmtype"] = "file"
+            else:
+                params["cmnamespace"] = str(namespace)
+
+        all_files: list[str] = []
+        first_request = True
+        cmcontinue = None
+        while first_request or cmcontinue is not None:
+            first_request = False
+            if len(all_files) % 1000 == 0:
+                logger.info(f"loaded {len(all_files)} members")
+
+            if cmcontinue:
+                params["cmcontinue"] = cmcontinue
+
+            try:
+                data = self.site.get("query", **params)
+                members = data.get("query", {}).get("categorymembers", [])
+                all_files.extend([x.get("title", "") for x in members])
+                page_count += 1
+
+                logger.debug(f"Fetched category members {page_count}: {len(members)} page, (total: {len(all_files)})")
+
+                if "continue" in data:
+                    cmcontinue = data["continue"].get("cmcontinue")
+                    time.sleep(delay)
+                else:
+                    break
+
+            except APIError as e:
+                if e.code == "invalidcategory":
+                    logger.warning(f"Invalid category: {category_name}")
+                    break
+
+            except Exception:
+                logger.error("API request failed")
+                if delay < max_delay:
+                    delay = min(delay * 2, max_delay)
+                    time.sleep(delay)
+                    continue
+
+        logger.info(f"Finished fetching {len(all_files)} files in {page_count} pages")
+        return all_files
+
+    def fetch_cats_members_api(
+        self,
+        cat: str,
+        depth: int = 0,
+        ns: int | None = None,
+    ) -> list[CategoryMember]:
+        if not cat.startswith("Category:"):
+            cat = f"Category:{cat}"
+
+        params: dict[str, str] = {
+            "list": "categorymembers",
+            "cmtitle": cat,
+            "cmlimit": "max",
+            "cmtype": "page|subcat",
+            "prop": "revisions",
+            "rvprop": "ids",
+            "rvdir": "newer",
+            "format": "json",
+        }
+
+        titles: list[CategoryMember] = []
+        # Empty on the first request; afterwards holds the API's own continuation data
+        continuation: dict[str, str] = {}
+
+        for _ in range(self.MAX_ITERATIONS):
+            data = self.site.get("query", **params, **continuation)
+
+            members = data.get("query", {}).get("categorymembers", [])
+            for page in members:
+                title = page.get("title", "")
+                if not title:
+                    continue
+
+                item = CategoryMember(
+                    title=title,
+                    ns=page.get("ns"),
+                )
+
+                revisions = page.get("revisions") or []
+
+                if revisions:
+                    revid = revisions[0].get("revid", "")
+                    if revid:
+                        item.revid = int(revid)
+
+                if ns is None or item.ns == ns:
+                    titles.append(item)
+
+            # The API signals "more results" by returning a "continue" dict
+            continuation = data.get("continue") or {}
+            if not continuation:
+                break
+        else:
+            # Reached only if the loop never hit `break`
+            logger.warning("fetch_cats_members_api: Hit maximum iterations for '%s'", cat)
+
+        return titles
+
+    @classmethod
+    def load(cls, site: Site) -> CategoryMembersService:
+        return cls(site=site)
+
+
+__all__ = [
+    "CategoryMembersService",
+]

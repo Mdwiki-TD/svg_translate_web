@@ -57,7 +57,7 @@ def mock_owid_pages_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         mocks["create_new_text"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.is_pages_exists",
+        "src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.worker.MediaWikiQueryService.is_pages_exists",
         mocks["is_pages_exists"],
     )
     monkeypatch.setattr(

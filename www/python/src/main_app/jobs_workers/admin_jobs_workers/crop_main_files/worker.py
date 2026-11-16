@@ -9,7 +9,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import is_pages_exists
+from ....api_services import MediaWikiQueryService
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
@@ -93,11 +93,12 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
     # Initialisation helpers
     # ------------------------------------------------------------------
 
-    def _check_exists(self, templates) -> None:
+    def _check_exists(self, templates: list[TemplateRecord]) -> None:
         cropped_filenames = [
             CropMainFilesSteps.generate_cropped_filename(template.last_world_file) for template in templates
         ]
-        exists_files = is_pages_exists(cropped_filenames, self.site)
+
+        exists_files = MediaWikiQueryService(self.site).is_pages_exists(cropped_filenames)
 
         for file in exists_files:
             self.exists[file.removeprefix("File:")] = exists_files[file]

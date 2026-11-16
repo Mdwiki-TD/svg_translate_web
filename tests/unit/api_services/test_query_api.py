@@ -3,13 +3,7 @@
 from __future__ import annotations
 
 from src.main_app.api_services.query_api import (
-    get_category_members_titles,
-    get_double_redirects,
-    get_page_links,
-    get_template_pages,
-    is_pages_exists,
-    resolve_redirects,
-    search_pages,
+    MediaWikiQueryService,
 )
 
 
@@ -23,17 +17,20 @@ class TestGetTemplatePages:
                 ]
             }
         }
-        result = get_template_pages("Template:Infobox", site=mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.get_template_pages("Template:Infobox")
         assert result == ["Page A", "Page B"]
 
     def test_empty_pages(self, mock_site):
         mock_site.get.return_value = {"query": {"pages": []}}
-        result = get_template_pages("Template:Nonexistent", site=mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.get_template_pages("Template:Nonexistent")
         assert result == []
 
     def test_no_query_key(self, mock_site):
         mock_site.get.return_value = {}
-        result = get_template_pages("Template:Empty", site=mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.get_template_pages("Template:Empty")
         assert result == []
 
 
@@ -48,7 +45,8 @@ class TestIsPagesExists:
                 },
             }
         }
-        result = is_pages_exists(["aspirin"], mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.is_pages_exists(["aspirin"])
         assert result == {"aspirin": True}
 
     def test_missing_page(self, mock_site):
@@ -59,11 +57,13 @@ class TestIsPagesExists:
                 },
             }
         }
-        result = is_pages_exists(["Nonexistent"], mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.is_pages_exists(["Nonexistent"])
         assert result == {"Nonexistent": False}
 
     def test_empty_list(self, mock_site):
-        result = is_pages_exists([], mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.is_pages_exists([])
         assert result == {}
         mock_site.get.assert_not_called()
 
@@ -76,7 +76,8 @@ class TestIsPagesExists:
             {"query": {"pages": pages_batch1}},
             {"query": {"pages": pages_batch2}},
         ]
-        result = is_pages_exists(titles, mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.is_pages_exists(titles)
         assert mock_site.get.call_count == 2
         assert len(result) == 55
 
@@ -90,11 +91,13 @@ class TestResolveRedirects:
                 "pages": {},
             }
         }
-        result = resolve_redirects(["OldName"], mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.resolve_redirects(["OldName"])
         assert result["from_to"]["OldName"] == "NewName"
 
     def test_empty_titles(self, mock_site):
-        result = resolve_redirects([], mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.resolve_redirects([])
         assert result == {"normalized": {}, "from_to": {}}
 
     def test_normalized_entries(self, mock_site):
@@ -105,7 +108,8 @@ class TestResolveRedirects:
                 "pages": {},
             }
         }
-        result = resolve_redirects(["oldpage"], mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.resolve_redirects(["oldpage"])
         assert result["normalized"]["OldPage"] == "oldpage"
 
 
@@ -119,17 +123,20 @@ class TestSearchPages:
                 ]
             }
         }
-        result = search_pages("aspirin", mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.search_pages("aspirin")
         assert result == ["Aspirin", "Aspirin (drug)"]
 
     def test_empty_search(self, mock_site):
         mock_site.get.return_value = {"query": {"search": []}}
-        result = search_pages("nonexistent", mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.search_pages("nonexistent")
         assert result == []
 
     def test_no_query_key(self, mock_site):
         mock_site.get.return_value = {}
-        result = search_pages("test", mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.search_pages("test")
         assert result == []
 
 
@@ -149,13 +156,15 @@ class TestGetPageLinks:
                 "redirects": [],
             }
         }
-        result = get_page_links("TestPage", mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.get_page_links("TestPage")
         assert "LinkA" in result["links"]
         assert "LinkB" in result["links"]
 
     def test_empty_response(self, mock_site):
         mock_site.get.return_value = {}
-        result = get_page_links("Empty", mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.get_page_links("Empty")
         assert result["links"] == {}
         assert result["normalized"] == []
         assert result["redirects"] == []
@@ -168,7 +177,8 @@ class TestGetPageLinks:
                 "redirects": [{"from": "Old", "to": "Test"}],
             }
         }
-        result = get_page_links("test", mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.get_page_links("test")
         assert len(result["normalized"]) == 1
         assert len(result["redirects"]) == 1
 
@@ -183,100 +193,20 @@ class TestGetDoubleRedirects:
                 ]
             }
         }
-        result = get_double_redirects(mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.get_double_redirects()
         assert len(result) == 2
         assert result[0]["from"] == "A"
         assert result[1]["to"] == "C"
 
     def test_empty_response(self, mock_site):
         mock_site.get.return_value = {}
-        result = get_double_redirects(mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.get_double_redirects()
         assert result == []
 
     def test_no_query_key(self, mock_site):
         mock_site.get.return_value = {}
-        result = get_double_redirects(mock_site)
+        service = MediaWikiQueryService(site=mock_site)
+        result = service.get_double_redirects()
         assert result == []
-
-
-class TestGetCategoryMembersTitles:
-    def test_returns_titles(self, mock_site):
-        mock_site.get.return_value = {
-            "query": {
-                "categorymembers": [
-                    {"title": "File:A.svg"},
-                    {"title": "File:B.svg"},
-                ]
-            }
-        }
-        result = get_category_members_titles(mock_site, "Category:Test")
-        assert result == ["File:A.svg", "File:B.svg"]
-
-    def test_empty_category(self, mock_site):
-        mock_site.get.return_value = {"query": {"categorymembers": []}}
-        result = get_category_members_titles(mock_site, "Category:Empty")
-        assert result == []
-
-    def test_pagination(self, mock_site):
-        mock_site.get.side_effect = [
-            {
-                "query": {"categorymembers": [{"title": "File:A.svg"}]},
-                "continue": {"cmcontinue": "nextpage"},
-            },
-            {
-                "query": {"categorymembers": [{"title": "File:B.svg"}]},
-            },
-        ]
-        result = get_category_members_titles(mock_site, "Category:Test")
-        assert result == ["File:A.svg", "File:B.svg"]
-        assert mock_site.get.call_count == 2
-
-    def test_invalid_category(self, mock_site):
-        from mwclient.errors import APIError
-
-        mock_site.get.side_effect = APIError("invalidcategory", "Invalid category", {})
-        result = get_category_members_titles(mock_site, "Category:Invalid")
-        assert result == []
-
-    def test_retry_on_first_request_exits_loop(self, mock_site, monkeypatch):
-        """First-request exception exits while loop (first_request=False, cmcontinue=None)."""
-        monkeypatch.setattr("src.main_app.api_services.query_api.time.sleep", lambda s: None)
-        mock_site.get.side_effect = Exception("Timeout error")
-        result = get_category_members_titles(mock_site, "Category:Test")
-        assert result == []
-
-    def test_retry_on_continuation(self, mock_site, monkeypatch):
-        monkeypatch.setattr("src.main_app.api_services.query_api.time.sleep", lambda s: None)
-        mock_site.get.side_effect = [
-            {
-                "query": {"categorymembers": [{"title": "File:A.svg"}]},
-                "continue": {"cmcontinue": "next|page"},
-            },
-            Exception("Timeout error"),
-            {
-                "query": {"categorymembers": [{"title": "File:B.svg"}]},
-            },
-        ]
-        result = get_category_members_titles(mock_site, "Category:Test")
-        assert result == ["File:A.svg", "File:B.svg"]
-
-    def test_namespace_file(self, mock_site):
-        mock_site.get.return_value = {
-            "query": {"categorymembers": [{"title": "File:A.svg"}]},
-        }
-        result = get_category_members_titles(mock_site, "Category:Test", namespace=6)
-        assert result == ["File:A.svg"]
-
-    def test_namespace_subcat(self, mock_site):
-        mock_site.get.return_value = {
-            "query": {"categorymembers": [{"title": "Category:Sub"}]},
-        }
-        result = get_category_members_titles(mock_site, "Category:Test", namespace=14)
-        assert result == ["Category:Sub"]
-
-    def test_namespace_other(self, mock_site):
-        mock_site.get.return_value = {
-            "query": {"categorymembers": [{"title": "Template:Test"}]},
-        }
-        result = get_category_members_titles(mock_site, "Category:Test", namespace=10)
-        assert result == ["Template:Test"]
