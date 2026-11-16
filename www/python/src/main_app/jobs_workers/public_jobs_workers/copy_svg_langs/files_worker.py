@@ -20,6 +20,7 @@ from ....services.copysvg_wrapper import (
     SvgTranslationExtractor,
     TranslationMapping,
 )
+from ....utils.new_wikitext.file_references import FileReferenceUpdater
 from ....utils.new_wikitext.other_versions import OtherVersionsUpdater
 from .objects import (
     FilesProcessedItem,
@@ -278,18 +279,21 @@ class OneFileProcessor:
             4. save the page with summary `Insert Svg lang (de,fr,...)`
         """
         step = title_info.steps.update_langs
-        page = MwClientPage(title_info.title, self.site)
+
+        # titles are stored without the namespace prefix, the description page needs `File:`
+        file_title = FileReferenceUpdater.ensure_prefix(title_info.title)
+        page = MwClientPage(file_title, self.site)
 
         # ----------------------------------
         # Step 1 - load file wikitext
         text = page.get_text()
         if not text:
-            step._update(result=False, msg=f"Could not retrieve text for {title_info.title}")
+            step._update(result=False, msg=f"Could not retrieve text for {file_title}")
             return False
 
         # ----------------------------------
         # Step 2 - load file languages
-        file_langs = self.files_service.get_file_languages(title_info.title)
+        file_langs = self.files_service.get_file_languages(file_title)
 
         if file_langs.error:
             step._update(
@@ -335,7 +339,7 @@ class OneFileProcessor:
         if res.get("success"):
             step._update(
                 result=True,
-                msg=f"Updated page: {title_info.title}",
+                msg=f"Updated page: {file_title}",
                 details={"summary": summary, "langs": langs, "newrevid": res.get("newrevid", 0)},
             )
             return True

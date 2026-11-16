@@ -30,6 +30,7 @@ class MockServices:
     upload_svg: MagicMock
     get_file_languages: MagicMock
     mw_page: MagicMock
+    mw_client_page: MagicMock
 
 
 @pytest.fixture
@@ -90,6 +91,7 @@ def mock_files_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
         upload_svg=mock_upload,
         get_file_languages=mock_get_langs,
         mw_page=mw_page,
+        mw_client_page=mock_mw_client_page,
     )
 
 
@@ -425,3 +427,19 @@ class TestUpdateLangsStep:
         assert title_info.steps.update_langs.msg == "Could not load file languages"
         assert title_info.steps.update_langs.details["error"] == "Metadata not found for File:Test.svg"
         mock_files_services.mw_page.edit.assert_not_called()
+
+    def test_update_langs_prefixes_file_title(
+        self, mock_worker: CopySvgLangsWorker, mock_files_services: MockServices, tmp_path
+    ):
+        # titles in this job are stored without the `File:` namespace prefix
+        self._prepare_upload_success(mock_files_services, tmp_path)
+        title_info = FilesProcessedItem(title="Total daily covid deaths, Africa, Apr 13, 2024.svg")
+
+        result = mock_worker._process_one_item(title_info, "File:Main.svg")
+
+        assert result is True
+        assert title_info.steps.update_langs.result is True
+
+        used_title = mock_files_services.mw_client_page.call_args.args[0]
+        assert used_title == "File:Total daily covid deaths, Africa, Apr 13, 2024.svg"
+        assert mock_files_services.get_file_languages.call_args.args[0] == used_title
