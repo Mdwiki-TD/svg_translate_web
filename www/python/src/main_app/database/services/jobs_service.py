@@ -401,34 +401,35 @@ class JobsService(CRUDService[JobRecord]):
         return query.all()
 
     def cleanup_stale_jobs_on_startup(self) -> int:
-        """Mark any pending/running jobs with backend='thread' as failed.
+        """Release job locks left behind by a previous process.
 
-        After a webservice restart, in-memory threads are gone but their DB
-        records may still be pending/running with is_running=1, which locks
-        the job type.  This releases them.
+        Safe only when run once, before any worker starts executing jobs.
         """
-        stale = (
-            self.session.query(JobRecord)
-            .filter(
-                JobRecord.status.in_(["pending", "running"]),
-                JobRecord.is_running == 1,
-                # JobRecord.backend == "thread",
+        try:
+            count = (
+                self.session.query(JobRecord)
+                .filter(
+                    # JobRecord.status.in_(["pending", "running"]),
+                    JobRecord.is_running.is_(True),
+                    # JobRecord.backend == "thread",
+                )
+                .update(
+                    {
+                        JobRecord.status: "failed",
+                        JobRecord.is_running: None,  # NULL releases the unique lock
+                        JobRecord.completed_at: func.coalesce(JobRecord.completed_at, func.utc_timestamp()),
+                    },
+                    synchronize_session=False,
+                )
             )
-            .all()
-        )
-        count = 0
-        for job in stale:
-            try:
-                job.status = "failed"
-                job.is_running = None
-                if job.completed_at is None:
-                    job.completed_at = datetime.now(UTC)
-                count += 1
-            except Exception:
-                logger.exception("Failed to clean up stale job %s", job.id)
-        if count:
             self.session.commit()
-            logger.info("Cleaned up %d stale thread jobs on startup", count)
+        except Exception:
+            self.session.rollback()
+            logger.exception("Failed to clean up stale jobs on startup")
+            return 0
+
+        if count:
+            logger.info("Cleaned up %d stale jobs on startup", count)
         return count
 
 

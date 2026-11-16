@@ -100,7 +100,7 @@ class Config:
                     "connect_timeout": 5,
                     "read_timeout": 120,
                     "write_timeout": 120,
-                    "init_command": 'SET time_zone = "+00:00"',
+                    "init_command": 'SET time_zone = "+00:00", NAMES utf8mb4 COLLATE utf8mb4_unicode_ci',
                     "charset": "utf8mb4",
                     "collation": "utf8mb4_unicode_ci",
                 },

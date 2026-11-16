@@ -3,8 +3,10 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from sqlalchemy import Index, String, Text, UniqueConstraint, text
+from sqlalchemy import DateTime, FetchedValue, func
 from sqlalchemy.orm import Mapped, mapped_column
+
+from sqlalchemy import Index, String, UniqueConstraint, text
 
 from ...extensions import Model
 from .base import TimestampMixin
@@ -38,13 +40,13 @@ class JobRecord(TimestampMixin, Model):
     __table_args__ = (
         # Unique constraint combining job_type and is_running
         UniqueConstraint("job_type", "is_running", name="idx_unique_active_job"),
-        # Composite index for status + created_at ordering
-        Index("idx_status_created", "status", "created_at"),
+        # Composite index for status + username ordering
+        Index("status_username", "status", "username"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     job_type: Mapped[str] = mapped_column(String(255), nullable=False)
-    username: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    username: Mapped[str] = mapped_column(String(255), nullable=False)
 
     status: Mapped[str] = mapped_column(String(50), nullable=False, server_default=text("'pending'"))
 
@@ -53,6 +55,23 @@ class JobRecord(TimestampMixin, Model):
     result_file: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     is_running: Mapped[int | None] = mapped_column(nullable=True)
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        default=func.current_timestamp(),
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        default=func.current_timestamp(),
+        server_onupdate=FetchedValue(),  # MySQL handles ON UPDATE CURRENT_TIMESTAMP
+        onupdate=func.current_timestamp(),
+    )
 
 
 __all__ = [

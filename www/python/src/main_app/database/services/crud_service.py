@@ -354,6 +354,28 @@ class CRUDService[ModelT]:
             if not v:
                 raise ValueError(f"{x.capitalize()} is required")
 
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    @property
+    def dialect_name(self):
+        return self.session.get_bind().dialect.name
+
+    def _is_sqlite(self) -> bool:
+        return self.session.get_bind().dialect.name == "sqlite"
+
+    def _year_sql(self, column: str) -> str:
+        """
+        Return a raw SQL fragment that extracts the year of ``column``.
+
+        Raw SQL passed to ``text()`` cannot use ``YEAR()`` on SQLite, so the
+        fragment is chosen according to the active engine.
+        """
+        if self._is_sqlite():
+            return f"CAST(strftime('%Y', {column}) AS INTEGER)"
+        return f"YEAR({column})"
+
 
 __all__ = [
     "CRUDService",
