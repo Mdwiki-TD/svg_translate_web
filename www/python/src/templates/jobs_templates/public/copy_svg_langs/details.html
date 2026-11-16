@@ -207,6 +207,14 @@
                 render: renderStep
             },
             {
+                data: null,
+                title: 'Update langs',
+                orderable: false,
+                // @ts-ignore
+                // older jobs have no `update_langs` step -> render "-"
+                render: (row) => renderStep(row?.steps?.update_langs ?? { result: null, msg: '-' }),
+            },
+            {
                 data: 'error',
                 title: 'Error',
                 render: undefined,
