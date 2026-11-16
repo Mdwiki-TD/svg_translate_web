@@ -4,15 +4,15 @@ import logging
 from datetime import datetime
 
 from sqlalchemy import Index, String, UniqueConstraint, text
+from sqlalchemy import DateTime, FetchedValue, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import Model
-from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)
 
 
-class JobRecord(TimestampMixin, Model):
+class JobRecord(Model):
     """
     CREATE TABLE `jobs` (
         `id` int NOT NULL AUTO_INCREMENT,
@@ -53,6 +53,23 @@ class JobRecord(TimestampMixin, Model):
     result_file: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     is_running: Mapped[int | None] = mapped_column(nullable=True)
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        default=func.current_timestamp(),
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        default=func.current_timestamp(),
+        server_onupdate=FetchedValue(),  # MySQL handles ON UPDATE CURRENT_TIMESTAMP
+        onupdate=func.current_timestamp(),
+    )
 
 
 __all__ = [
