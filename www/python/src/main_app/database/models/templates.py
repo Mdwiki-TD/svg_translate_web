@@ -54,20 +54,6 @@ class TemplateRecord(TimestampMixin, Model):
         Index("last_world_year", "last_world_year"),
     )
 
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "id": self.id,
-            "title": self.title,
-            "main_file": self.main_file,
-            "last_world_file": self.last_world_file,
-            "last_world_year": self.last_world_year,
-            "source": self.source,
-            "slug": self.slug,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-            "files": self.files,
-        }
-
     def validate(self) -> None:
         if not self.title or not self.title.strip():
             raise ValueError("Title is required")

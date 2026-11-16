@@ -41,9 +41,9 @@ class OwidChartRecord(TimestampMixin, Model):  # type: ignore
 
     __tablename__ = "owid_charts"
 
-    # Core Columns
+    # Core Columns (slug is unique via __table_args__ below, no inline unique needed)
     chart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    slug: Mapped[str] = mapped_column(String(255), nullable=False)
+    slug: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     source: Mapped[str] = mapped_column(String(2048), nullable=False, default="", server_default="")
 
@@ -63,27 +63,6 @@ class OwidChartRecord(TimestampMixin, Model):  # type: ignore
         Index("idx_slug", "slug"),
         Index("idx_published", "is_published"),
     )
-
-    def to_json(self) -> dict[str, Any]:
-        """Serializes the pure model instance into a dictionary."""
-        return {
-            "chart_id": self.chart_id,
-            "slug": self.slug,
-            "title": self.title,
-            "source": self.source,
-            "has_map_tab": self.has_map_tab,
-            "max_time": self.max_time,
-            "min_time": self.min_time,
-            "default_tab": self.default_tab,
-            "owid_variable_id": self.owid_variable_id,
-            "is_published": self.is_published,
-            "single_year_data": self.single_year_data,
-            "len_years": self.len_years,
-            "has_timeline": self.has_timeline,
-            "status_404": self.status_404,
-            "created_at": self.created_at.isoformat() if hasattr(self.created_at, "isoformat") else self.created_at,
-            "updated_at": self.updated_at.isoformat() if hasattr(self.updated_at, "isoformat") else self.updated_at,
-        }
 
 
 __all__ = [

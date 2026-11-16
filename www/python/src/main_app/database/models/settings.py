@@ -42,17 +42,6 @@ class SettingRecord(Model):
 
     value: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    def to_json(self) -> dict[str, Any]:
-        """Serializes the pure model instance into a dictionary."""
-        return {
-            "id": self.id,
-            "key": self.key,
-            "title": self.title,
-            "value_type": self.value_type,
-            "value": self.value,
-        }
-
-
 __all__ = [
     "SettingRecord",
 ]
