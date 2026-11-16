@@ -59,6 +59,20 @@ class TestFilesProcessedItem:
         assert item.error is None
         assert isinstance(item.steps, FileSteps)
 
+    def test_mark_failed(self):
+        item = FilesProcessedItem(title="File.svg")
+        item.mark_failed("This file contains CSS that is too complicated to parse.")
+
+        assert item.status == "failed"
+        assert item.error == "This file contains CSS that is too complicated to parse."
+
+    def test_mark_failed_without_error(self):
+        item = FilesProcessedItem(title="File.svg")
+        item.mark_failed()
+
+        assert item.status == "failed"
+        assert item.error == "Failed to process the file"
+
 
 class TestCopySvgLangsWorkerObject:
     def test_defaults(self):

@@ -94,7 +94,7 @@ class OneFileProcessor:
     def inject_step_file(self, title_info: FilesProcessedItem, file_path: Path | str) -> Path | None:
         if not file_path:
             title_info.steps.inject._update(result=False, msg="No file path found")
-            self._fail_inject(title_info, "No file path found")
+            title_info.mark_failed("No file path found")
             return None
 
         file_path = Path(file_path)
@@ -130,7 +130,7 @@ class OneFileProcessor:
                 result=False,
                 msg=inject_result.msg,
             )
-            self._fail_inject(title_info, inject_result.msg)
+            title_info.mark_failed(inject_result.msg or "Failed to inject translations")
             return None
 
         if inject_result.result is not True:
@@ -138,7 +138,7 @@ class OneFileProcessor:
                 result=False,
                 msg="Unknown error",
             )
-            self._fail_inject(title_info, "Unknown error")
+            title_info.mark_failed("Unknown error")
             return None
 
         # inject_result.result is True definitely
@@ -163,16 +163,6 @@ class OneFileProcessor:
         )
 
         return output_file
-
-    @staticmethod
-    def _fail_inject(title_info: FilesProcessedItem, error: str) -> None:
-        """Mark the file as failed when the inject step failed.
-
-        Without this the file keeps the default status and is normalized to `completed`
-        by the worker even though nothing was injected or uploaded.
-        """
-        title_info.status = "failed"
-        title_info.error = error or "Failed to inject translations"
 
     def _upload_step(
         self,

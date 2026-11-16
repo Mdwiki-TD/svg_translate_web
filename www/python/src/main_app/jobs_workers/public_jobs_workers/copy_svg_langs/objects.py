@@ -159,6 +159,18 @@ class FilesProcessedItem(OneItem):
     steps: FileSteps = field(default_factory=lambda: FileSteps())
     is_mapping_merged: bool = False
 
+    def mark_failed(self, error: str = "") -> None:
+        """Mark this file as failed.
+
+        Without this the item keeps its default status and is normalized to `completed`
+        by the worker even though nothing was injected or uploaded.
+
+        Args:
+            error: Reason of the failure, stored as the item error message.
+        """
+        self.status = "failed"
+        self.error = error or "Failed to process the file"
+
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
 
