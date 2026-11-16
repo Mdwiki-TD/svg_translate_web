@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from sqlalchemy import Boolean, Integer, String
+from sqlalchemy import Boolean, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import Model
@@ -41,7 +41,12 @@ class OwidChartRecord(TimestampMixin, Model):  # type: ignore
 
     __tablename__ = "owid_charts"
 
-    # Core Columns
+    __table_args__ = (
+        UniqueConstraint("slug", name="unique_slug"),
+        Index("idx_slug", "slug"),
+        Index("idx_published", "is_published"),
+    )
+
     chart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     slug: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -58,29 +63,6 @@ class OwidChartRecord(TimestampMixin, Model):  # type: ignore
     has_timeline: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
     status_404: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    # Table-level indexes as requested by the original CREATE TABLE DDL
-    # __table_args__ = ( Index("idx_slug", "slug"), Index("idx_published", "is_published"), )
-
-    def to_json(self) -> dict[str, Any]:
-        """Serializes the pure model instance into a dictionary."""
-        return {
-            "chart_id": self.chart_id,
-            "slug": self.slug,
-            "title": self.title,
-            "source": self.source,
-            "has_map_tab": self.has_map_tab,
-            "max_time": self.max_time,
-            "min_time": self.min_time,
-            "default_tab": self.default_tab,
-            "owid_variable_id": self.owid_variable_id,
-            "is_published": self.is_published,
-            "single_year_data": self.single_year_data,
-            "len_years": self.len_years,
-            "has_timeline": self.has_timeline,
-            "status_404": self.status_404,
-            "created_at": self.created_at.isoformat() if hasattr(self.created_at, "isoformat") else self.created_at,
-            "updated_at": self.updated_at.isoformat() if hasattr(self.updated_at, "isoformat") else self.updated_at,
-        }
 
 
 __all__ = [
