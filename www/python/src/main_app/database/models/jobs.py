@@ -3,8 +3,15 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from sqlalchemy import Index, String, UniqueConstraint, text
-from sqlalchemy import DateTime, FetchedValue, func
+from sqlalchemy import (
+    DateTime,
+    FetchedValue,
+    Index,
+    String,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...extensions import Model
