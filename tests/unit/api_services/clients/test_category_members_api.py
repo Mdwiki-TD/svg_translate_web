@@ -213,14 +213,14 @@ class TestGetCategoryMembersTitles:
 
     def test_retry_on_first_request_exits_loop(self, mock_site, monkeypatch):
         """First-request exception exits while loop (first_request=False, cmcontinue=None)."""
-        monkeypatch.setattr("src.main_app.api_services.query_api.time.sleep", lambda s: None)
+        monkeypatch.setattr("src.main_app.api_services.clients.category_members_api.time.sleep", lambda s: None)
         mock_site.get.side_effect = Exception("Timeout error")
         service = CategoryMembersService(site=mock_site)
         result = service.get_category_members_titles("Category:Test")
         assert result == []
 
     def test_retry_on_continuation(self, mock_site, monkeypatch):
-        monkeypatch.setattr("src.main_app.api_services.query_api.time.sleep", lambda s: None)
+        monkeypatch.setattr("src.main_app.api_services.clients.category_members_api.time.sleep", lambda s: None)
         mock_site.get.side_effect = [
             {
                 "query": {"categorymembers": [{"title": "File:A.svg"}]},
