@@ -21,19 +21,21 @@ class UserRecord(Model):
     __tablename__ = "users"
 
     user_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    username: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    username: Mapped[str] = mapped_column(String(255), unique=True)
 
-    can_run_jobs: Mapped[int] = mapped_column(nullable=False, server_default=text("0"), default=0)
-    can_run_bg_jobs: Mapped[int] = mapped_column(nullable=False, server_default=text("0"), default=0)
+    can_run_jobs: Mapped[int] = mapped_column(server_default=text("0"), default=0)
+    can_run_bg_jobs: Mapped[int] = mapped_column(server_default=text("0"), default=0)
 
     created_at: Mapped[datetime] = mapped_column(
-        nullable=False,
         server_default=func.current_timestamp(),
         default=func.current_timestamp(),
     )
 
     # One-to-One relationship with UserTokenRecord using the modern SQLAlchemy 2.0 style
-    token: Mapped[UserTokenRecord | None] = relationship(back_populates="user", uselist=False)
+    token: Mapped[UserTokenRecord | None] = relationship(
+        back_populates="user",
+        uselist=False,
+    )
 
 
 class AdminUserRecord(TimestampMixin, Model):
@@ -47,11 +49,12 @@ class AdminUserRecord(TimestampMixin, Model):
 
     # Modern approach for defining foreign keys
     username: Mapped[str] = mapped_column(
-        ForeignKey("users.username", ondelete="CASCADE", onupdate="CASCADE"), unique=True, nullable=False
+        ForeignKey("users.username", ondelete="CASCADE", onupdate="CASCADE"),
+        unique=True,
     )
 
     # Python application default and database-level server default configuration
-    is_active: Mapped[bool] = mapped_column(nullable=False, default=True, server_default=text("1"))
+    is_active: Mapped[bool] = mapped_column(default=True, server_default=text("1"))
 
     def __repr__(self) -> str:
         return f"<Admin id={self.id} username={self.username!r} is_active={self.is_active}>"
@@ -67,14 +70,18 @@ class UserTokenRecord(TimestampMixin, Model):
 
     # Modern consolidated syntax for a field acting as both a Primary Key and a Foreign Key
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.user_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True
+        ForeignKey("users.user_id", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
     )
 
     # LargeBinary maps strictly to Python bytes
-    access_token: Mapped[bytes] = mapped_column(db.LargeBinary(1024), nullable=False)
-    access_secret: Mapped[bytes] = mapped_column(db.LargeBinary(1024), nullable=False)
+    access_token: Mapped[bytes] = mapped_column(db.LargeBinary(1024))
+    access_secret: Mapped[bytes] = mapped_column(db.LargeBinary(1024))
 
-    last_used_at: Mapped[datetime | None] = mapped_column(nullable=True, server_default=func.current_timestamp())
+    last_used_at: Mapped[datetime | None] = mapped_column(
+        nullable=True,
+        server_default=func.current_timestamp(),
+    )
     rotated_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     # Clean explicit relationship mapping matching SQLAlchemy 2.0 recommendations via back_populates

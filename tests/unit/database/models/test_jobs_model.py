@@ -106,7 +106,7 @@ def test_job_record_table_name() -> None:
 
 def test_job_record_table_args() -> None:
     """Test that JobRecord has the expected unique constraint and index."""
-    assert len(JobRecord.__table_args__) == 2
+    assert len(JobRecord.__table_args__) == 3
 
     unique_constraint = JobRecord.__table_args__[0]
     assert isinstance(unique_constraint, UniqueConstraint)
@@ -115,8 +115,11 @@ def test_job_record_table_args() -> None:
 
     index = JobRecord.__table_args__[1]
     assert isinstance(index, Index)
-    assert index.name == "username"
-    assert tuple(c.key for c in index.columns) == ("username",)
+    assert index.name == "status_username"
+    assert tuple(c.key for c in index.columns) == (
+        "status",
+        "username",
+    )
 
 
 def test_job_record_creation(sqlite_db) -> None:

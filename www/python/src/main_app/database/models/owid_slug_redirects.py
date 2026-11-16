@@ -21,7 +21,7 @@ class OwidSlugRedirectRecord(Model):
         `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
         PRIMARY KEY (`id`),
         UNIQUE KEY `unique_slug_redirect` (`slug`, `redirect_to`),
-        KEY `idx_slug` (`slug`),
+        KEY `idx_slug_n` (`slug`),
         KEY `idx_redirect_to` (`redirect_to`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """
@@ -31,7 +31,7 @@ class OwidSlugRedirectRecord(Model):
     # Explicit table arguments to match indices and unique constraints from raw SQL
     __table_args__ = (
         UniqueConstraint("slug", "redirect_to", name="unique_slug_redirect"),
-        Index("idx_slug", "slug"),
+        Index("idx_slug_n", "slug"),
         Index("idx_redirect_to", "redirect_to"),
     )
 

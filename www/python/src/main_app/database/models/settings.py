@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from enum import StrEnum
-from typing import Any
 
 from sqlalchemy import String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -16,6 +15,7 @@ class ValueType(StrEnum):
     boolean = "boolean"
     string = "string"
     integer = "integer"
+    # json = "json"
 
 
 class SettingRecord(Model):
@@ -40,16 +40,6 @@ class SettingRecord(Model):
     value_type: Mapped[ValueType] = mapped_column(nullable=False, server_default=text("'boolean'"))
 
     value: Mapped[str | None] = mapped_column(Text, nullable=True)
-
-    def to_json(self) -> dict[str, Any]:
-        """Serializes the pure model instance into a dictionary."""
-        return {
-            "id": self.id,
-            "key": self.key,
-            "title": self.title,
-            "value_type": self.value_type,
-            "value": self.value,
-        }
 
 
 __all__ = [

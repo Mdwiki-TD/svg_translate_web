@@ -417,7 +417,7 @@ class JobsService(CRUDService[JobRecord]):
                     {
                         JobRecord.status: "failed",
                         JobRecord.is_running: None,  # NULL releases the unique lock
-                        JobRecord.completed_at: func.coalesce(JobRecord.completed_at, func.utc_timestamp()),
+                        JobRecord.completed_at: func.coalesce(JobRecord.completed_at, func.current_timestamp()),
                     },
                     synchronize_session=False,
                 )

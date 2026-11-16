@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from sqlalchemy import Boolean, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
@@ -62,7 +61,6 @@ class OwidChartRecord(TimestampMixin, Model):  # type: ignore
     len_years: Mapped[int | None] = mapped_column(Integer, nullable=True)
     has_timeline: Mapped[bool] = mapped_column(Boolean, server_default="0", default=False)
     status_404: Mapped[int | None] = mapped_column(Integer, nullable=True)
-
 
 
 __all__ = [
