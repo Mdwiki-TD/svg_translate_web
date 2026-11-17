@@ -301,6 +301,46 @@ class MediaWikiQueryService:
             logger.error("import_page_from_wiki failed for %s", title)
             return {"error": str(exc)}
 
+    def get_page_assessments(self, titles_list: str | list[str]) -> list[Any]:
+
+        titles = "|".join(titles_list) if isinstance(titles_list, list) else titles_list
+
+        params: dict[str, Any] = {
+            "action": "query",
+            "format": "json",
+            "prop": "pageassessments",
+            "titles": titles,
+            "utf8": 1,
+            "ellimit": "max",
+            "formatversion": 2,
+        }
+
+        results = []
+        continue_param = None
+
+        # Handle pagination
+        while True:
+            if continue_param:
+                params["continue"] = continue_param
+
+            try:
+                response = self.site.api(**params)
+            except Exception as e:
+                logger.error("Error fetching assessments: %s", e)
+                break
+
+            pages = response.get("query", {}).get("pages", [])
+            results.extend(pages)
+
+            # Check for continuation
+            continue_data = response.get("continue")
+            if not continue_data:
+                break
+
+            continue_param = continue_data.get("continue")
+
+        return results
+
 
 __all__ = [
     "MediaWikiQueryService",

@@ -95,7 +95,7 @@ class CategoryMembersService:
 
                 item = CategoryMember(
                     title=title,
-                    ns=page.get("ns"),
+                    ns=int(page.get("ns")) if page.get("ns") else None,
                 )
 
                 revisions = page.get("revisions") or []
