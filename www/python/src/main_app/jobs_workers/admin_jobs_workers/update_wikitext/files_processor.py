@@ -108,7 +108,7 @@ class UpdateWikiTextProcessor:
             text,
             info.langs,
             sort=False,
-            delete_values=["en"],
+            values_to_delete=["en"],
         )
 
         if text.strip() == new_wikitext.strip():

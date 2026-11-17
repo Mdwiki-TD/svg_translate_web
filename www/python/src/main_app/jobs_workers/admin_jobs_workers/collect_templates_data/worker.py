@@ -224,7 +224,7 @@ class OneFileProcessor:
         except Exception as e:
             template_info.status = "failed"
             template_info.error = f"Exception: {str(e)}"
-            template_info.error_type = type(e).__name__
+            template_info.error_type = type(e).__name__  # pyright: ignore[reportCallIssue]
 
             logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
 

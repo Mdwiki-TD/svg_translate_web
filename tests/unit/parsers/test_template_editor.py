@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 import wikitextparser as wtp
-from src.main_app.utils.new_wikitext.template_editor import TemplateEditor
+from src.main_app.parsers.template_editor import TemplateEditor
 
 
 @pytest.fixture
@@ -556,3 +556,32 @@ class TestCombinedOperations:
         text = editor.merge_positional(text, "Svg lang", ["de"])
         text = editor.merge_positional(text, "Other", ["y"])
         assert text == "{{Svg lang|ar|de}}\n{{Other|x|y}}"
+
+
+class TestGetArgs:
+    """Tests for the _get_argument function."""
+
+    def test_basic(self) -> None:
+        text_raw = """{{Information |description={{en|1=Daily per capita supply of all meat, World}} |author = Our World In Data |date= 2022 |Other_versions={{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}}}"""
+        template = wtp.Template(text_raw)
+        args_in = TemplateEditor._get_argument(template, ["other versions", "other_versions"])
+        assert args_in is not None
+        assert args_in.value == "{{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}"
+        assert args_in.name == "Other_versions"
+
+    def test_basic_args(self) -> None:
+        text_raw = """{{Extracted from| 1 =  Daily meat consumption per person, World, 2022.svg}}"""
+        template = wtp.Template(text_raw)
+        args_in = TemplateEditor._get_argument(template, ["1"])
+        assert args_in is not None
+        assert args_in.value == "  Daily meat consumption per person, World, 2022.svg"
+        assert args_in.name == " 1 "
+
+    def test_basic_args_not_named(self) -> None:
+        text_raw = """ hello? {{Extracted from | Daily meat consumption per person, World, 2022.svg}} zz"""
+        template = wtp.WikiText(text_raw).templates[0]
+        assert template.name.strip() == "Extracted from"
+        args_in = TemplateEditor._get_argument(template, ["1"])
+        assert args_in is not None
+        assert args_in.value.strip() == "Daily meat consumption per person, World, 2022.svg"
+        assert args_in.name == "1"

@@ -36,15 +36,27 @@ logger = logging.getLogger(__name__)
 
 
 class OneFileProcessor:
-    def __init__(self, config: SvgLangsConfig, files_service: FilesService, site: Site) -> None:
+    def __init__(
+        self,
+        config: SvgLangsConfig,
+        files_service: FilesService,
+        site: Site,
+        upload_service: UploadService | None = None,
+        mw_client_cls: MwClientPage | None = None,
+        svg_injector: SvgInjector | None = None,
+        nested_processor: NestedStructureService | None = None,
+    ) -> None:
         self.config = config
         self.files_service = files_service
         self.site = site
-        self.upload_service = UploadService(self.site)
         self.mapping: TranslationMapping | None = None
         self.upload_done = 0
         self.other_versions_updater = OtherVersionsUpdater()
-        self.nested_processor = NestedStructureService(strategy="flatten")
+
+        self.nested_processor = nested_processor or NestedStructureService(strategy="flatten")
+        self.upload_service = upload_service or UploadService(self.site)
+        self.mw_client_cls = mw_client_cls or MwClientPage
+        self.svg_injector = svg_injector or SvgInjector()
 
     # ==================================================================
     # Public API
@@ -227,7 +239,7 @@ class OneFileProcessor:
         output_file = self.config.output_dir / "translated" / file_path.name
 
         try:
-            inject_result: InjectResult = SvgInjector().inject_one_file(
+            inject_result: InjectResult = self.svg_injector.inject_one_file(
                 file=file_path,
                 translations=self.mapping,
                 output_file=output_file,
@@ -384,7 +396,7 @@ class OneFileProcessor:
         file_title = FileReferenceUpdater.ensure_prefix(title_info.title)
 
         try:
-            page = MwClientPage(file_title, self.site)
+            page = self.mw_client_cls.load(file_title, self.site)
 
             text = page.get_text()
             if not text:
@@ -404,7 +416,7 @@ class OneFileProcessor:
                 text,
                 langs,
                 sort=False,
-                delete_values=["en"],
+                values_to_delete=["en"],
             )
             if new_wikitext.strip() == text.strip():
                 step._update(

@@ -9,7 +9,7 @@ from typing import Literal
 
 import wikitextparser as wtp
 
-from .template_editor import TemplateEditor
+from ...parsers.template_editor import TemplateEditor
 
 logger = logging.getLogger(__name__)
 
@@ -114,18 +114,6 @@ class OtherVersionsUpdater:
             ),
         )
 
-    def delete_values(
-        self,
-        text: str,
-        template_name: str,
-        values: list[str],
-    ) -> str:
-        """Remove parameters whose value is in ``values`` from the template."""
-        return self._update(
-            text,
-            lambda cur: self.editor.delete_values(cur, template_name, values),
-        )
-
     def remove_named_param(
         self,
         text: str,
@@ -136,44 +124,6 @@ class OtherVersionsUpdater:
         return self._update(
             text,
             lambda cur: self.editor.remove_named(cur, template_name, param_name),
-        )
-
-    # ---- presets (add more here for other templates) ---------------- #
-
-    def delete_params(self, text: str, delete_values: list[str]) -> str:
-        """Remove language codes from ``{{Svg lang|...}}``."""
-        return self.delete_values(text, SVG_LANG_TEMPLATE, delete_values)
-
-    def add_svg_langs(
-        self,
-        text: str,
-        langs: list[str],
-        *,
-        sort: bool = False,
-        delete_values: list[str] | None = None,
-        dl_position: Literal["start", "end"] = "start",
-        replace_dl: bool = False,
-        dedupe_named: bool = True,
-    ) -> str:
-        """Add language codes to ``{{Svg lang|...}}`` and ensure ``dl=en`` is present."""
-        filtered_langs = [lang.lower() for lang in langs if lang]
-
-        if delete_values:
-            delete_values = [x.lower() for x in delete_values if x]
-            text = self.delete_params(text, delete_values)
-            filtered_langs = [lang for lang in filtered_langs if lang not in delete_values]
-
-        if filtered_langs:
-            text = self.merge_values(text, SVG_LANG_TEMPLATE, filtered_langs, sort=sort)
-
-        return self.ensure_named_param(
-            text,
-            SVG_LANG_TEMPLATE,
-            "dl",
-            "en",
-            position=dl_position,
-            replace=replace_dl,
-            dedupe=dedupe_named,
         )
 
     # ---------------------------------------------------------------- #
@@ -192,7 +142,7 @@ class OtherVersionsUpdater:
             logger.debug("Main template %r not found", self.main_template_name)
             return text
 
-        arg = self._get_argument(main, self.param_names)
+        arg = self.editor._get_argument(main, self.param_names)
         raw = arg.value if arg else ""
         current = raw.strip()
 
@@ -213,23 +163,41 @@ class OtherVersionsUpdater:
 
         return parsed.string
 
-    @staticmethod
-    def _get_argument(
-        template: wtp.Template,
-        params: list[str],
-    ) -> wtp.Argument | None:
-        return TemplateEditor._get_argument(template, params)
+    # ---- presets (add more here for other templates) ---------------- #
 
+    def add_svg_langs(
+        self,
+        text: str,
+        langs: list[str],
+        *,
+        sort: bool = False,
+        values_to_delete: list[str] | None = None,
+        dl_position: Literal["start", "end"] = "start",
+        replace_dl: bool = False,
+        dedupe_named: bool = True,
+    ) -> str:
+        """Add language codes to ``{{Svg lang|...}}`` and ensure ``dl=en`` is present."""
+        filtered_langs = [lang.lower() for lang in langs if lang]
 
-def add_svg_langs_to_other_versions(*, text: str, langs: list[str]) -> str:
-    """Functional wrapper around :meth:`OtherVersionsUpdater.add_svg_langs`."""
-    return OtherVersionsUpdater().add_svg_langs(
-        text,
-        langs,
-    )
+        if values_to_delete:
+            values_to_delete = [x.lower() for x in values_to_delete if x]
+            text = self.editor.delete_values(text, SVG_LANG_TEMPLATE, values_to_delete)
+            filtered_langs = [lang for lang in filtered_langs if lang not in values_to_delete]
+
+        if filtered_langs:
+            text = self.merge_values(text, SVG_LANG_TEMPLATE, filtered_langs, sort=sort)
+
+        return self.ensure_named_param(
+            text,
+            SVG_LANG_TEMPLATE,
+            "dl",
+            "en",
+            position=dl_position,
+            replace=replace_dl,
+            dedupe=dedupe_named,
+        )
 
 
 __all__ = [
     "OtherVersionsUpdater",
-    "add_svg_langs_to_other_versions",
 ]

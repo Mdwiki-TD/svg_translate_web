@@ -183,6 +183,7 @@ class TemplateEditor:
         text: str,
         template_name: str,
         values: list[str],
+        only_first: bool = True,
     ) -> str:
         """Remove every parameter of the template whose value is in ``values``."""
         unwanted = {self._key(v) for v in values if v}
@@ -190,13 +191,17 @@ class TemplateEditor:
             return text
 
         parsed = wtp.parse(text)
-        tpl = self.find(parsed, template_name)
-        if tpl is None:
+        tpls = self.find_all(parsed, template_name)
+        if not tpls:
             return text
 
-        for param in tpl.arguments:
-            if param.value and self._key(param.value) in unwanted:
-                param.string = ""
+        for tpl in tpls:
+            for param in tpl.arguments:
+                if param.value and self._key(param.value) in unwanted:
+                    param.string = ""
+
+            if only_first:
+                break
 
         return parsed.string
 
@@ -223,13 +228,15 @@ class TemplateEditor:
     # Helpers
     # ---------------------------------------------------------------- #
 
+    def find_all(self, parsed: wtp.WikiText, name: str) -> list[wtp.Template]:
+        """Return all template called ``name``."""
+        target = self.norm_name(name)
+        return [t for t in parsed.templates if self.norm_name(t.name) == target]
+
     def find(self, parsed: wtp.WikiText, name: str) -> wtp.Template | None:
         """Return the first template called ``name`` (or None)."""
-        target = self.norm_name(name)
-        for t in parsed.templates:
-            if self.norm_name(t.name) == target:
-                return t
-        return None
+        temps = self.find_all(parsed, name)
+        return temps[0] if temps else None
 
     @staticmethod
     def norm_name(name: str) -> str:

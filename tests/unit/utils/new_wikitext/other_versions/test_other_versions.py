@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import wikitextparser as wtp
 from src.main_app.utils.new_wikitext.other_versions import OtherVersionsUpdater
 
 
@@ -26,33 +25,8 @@ def add_other_versions(
     )
 
 
-class TestGetArgs:
-    """Tests for the _get_argument function."""
-
-    def test_basic(self) -> None:
-        text_raw = """{{Information |description={{en|1=Daily per capita supply of all meat, World}} |author = Our World In Data |date= 2022 |Other_versions={{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}}}"""
-        template = wtp.Template(text_raw)
-        args_in = OtherVersionsUpdater._get_argument(template, ["other versions", "other_versions"])
-        assert args_in is not None
-        assert args_in.value == "{{Extracted from|1=Daily meat consumption per person, World, 2022.svg}}"
-        assert args_in.name == "Other_versions"
-
-    def test_basic_args(self) -> None:
-        text_raw = """{{Extracted from| 1 =  Daily meat consumption per person, World, 2022.svg}}"""
-        template = wtp.Template(text_raw)
-        args_in = OtherVersionsUpdater._get_argument(template, ["1"])
-        assert args_in is not None
-        assert args_in.value == "  Daily meat consumption per person, World, 2022.svg"
-        assert args_in.name == " 1 "
-
-    def test_basic_args_not_named(self) -> None:
-        text_raw = """ hello? {{Extracted from | Daily meat consumption per person, World, 2022.svg}} zz"""
-        template = wtp.WikiText(text_raw).templates[0]
-        assert template.name.strip() == "Extracted from"
-        args_in = OtherVersionsUpdater._get_argument(template, ["1"])
-        assert args_in is not None
-        assert args_in.value.strip() == "Daily meat consumption per person, World, 2022.svg"
-        assert args_in.name == "1"
+class TestAddOtherVersionsNew:
+    """Tests for the OtherVersionsUpdater.add_template function."""
 
     def test_with_add_other_versions_new(self) -> None:
         """Test that template is added to existing content."""
@@ -72,10 +46,6 @@ class TestGetArgs:
         assert result == text, "text should be equal to text"
 
         assert result.count("{{Extracted from|") == 1
-
-
-class TestAddOtherVersionsNew:
-    """Tests for the OtherVersionsUpdater.add_template function."""
 
     def test_basic(self) -> None:
         text_input = """{{Information |description={{en|1=Daily per capita supply of all meat, World}} |author = Our World In Data |date= 2022 }}"""

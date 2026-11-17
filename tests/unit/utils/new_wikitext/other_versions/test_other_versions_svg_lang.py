@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from src.main_app.utils.new_wikitext.other_versions import (
-    OtherVersionsUpdater,
-    add_svg_langs_to_other_versions,
-)
+from src.main_app.utils.new_wikitext.other_versions import OtherVersionsUpdater
 
 
 @pytest.fixture
@@ -103,6 +100,11 @@ class TestMergeIntoExisting:
         assert "{{Extracted from|1=A.svg}}" in result
         assert "{{Svg lang|dl=en|ar|de}}" in result
 
+    def test_template_before_other_templates_keeps_its_position(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar}}\n{{Extracted from|1=A.svg}}")
+        result = updater.add_svg_langs(text, ["de"])
+        assert "{{Svg lang|dl=en|ar|de}}\n{{Extracted from|1=A.svg}}" in result
+
 
 class TestDuplicates:
     """No duplicates and no change when nothing new is added."""
@@ -149,6 +151,14 @@ class TestInputNormalization:
         result = updater.add_svg_langs(make_info(), (lang for lang in ["ar", "de"]))
         assert "{{Svg lang|dl=en|ar|de}}" in result
 
+    def test_tuple_input_is_accepted(self, updater: OtherVersionsUpdater) -> None:
+        result = updater.add_svg_langs(make_info(), ("ar", "de"))
+        assert "{{Svg lang|dl=en|ar|de}}" in result
+
+    def test_none_items_are_ignored(self, updater: OtherVersionsUpdater) -> None:
+        result = updater.add_svg_langs(make_info(), [None, "ar"])
+        assert "{{Svg lang|dl=en|ar}}" in result
+
 
 class TestSorting:
     def test_sort_false_keeps_insertion_order(self, updater: OtherVersionsUpdater) -> None:
@@ -163,6 +173,10 @@ class TestSorting:
         text = make_info("{{Svg lang|dl=en|fr|ar}}")
         result = updater.add_svg_langs(text, ["de"], sort=True)
         assert "{{Svg lang|dl=en|ar|de|fr}}" in result
+
+    def test_sort_does_not_move_dl(self, updater: OtherVersionsUpdater) -> None:
+        result = updater.add_svg_langs(make_info(), ["fr", "ar"], sort=True)
+        assert "{{Svg lang|dl=en|ar|fr}}" in result
 
 
 class TestMainTemplateLookup:
@@ -198,14 +212,11 @@ class TestMainTemplateLookup:
         assert result.startswith("== {{int:filedesc}} ==")
         assert result.endswith("{{cc-by-4.0}}")
 
-
-class TestFunctionalWrapper:
-    def test_wrapper_adds_languages(self):
-        result = add_svg_langs_to_other_versions(text=make_info("{{Svg lang|dl=en|ar}}"), langs=["de"])
+    def test_svg_lang_outside_the_main_template_is_not_touched(self, updater: OtherVersionsUpdater) -> None:
+        page = make_info("{{Svg lang|dl=en|ar}}") + "\n{{Svg lang|fa}}"
+        result = updater.add_svg_langs(page, ["de"])
         assert "{{Svg lang|dl=en|ar|de}}" in result
-
-    def test_wrapper_without_main_template(self):
-        assert add_svg_langs_to_other_versions(text="plain", langs=["ar"]) == "plain"
+        assert result.endswith("{{Svg lang|fa}}")
 
 
 class TestDefaultLanguage:
@@ -215,12 +226,12 @@ class TestDefaultLanguage:
         result = updater.add_svg_langs(make_info(), ["ar", "de", "fr"])
         assert "{{Svg lang|dl=en|ar|de|fr}}" in result
 
-    def test_moves_existing_dl_to_first_position(self, updater: OtherVersionsUpdater) -> None:
+    def test_keeps_existing_dl_value_and_moves_it_to_first_position(self, updater: OtherVersionsUpdater) -> None:
         text = make_info("{{Svg lang|ar|dl=fr|de}}")
         result = updater.add_svg_langs(text, ["fr"])
         assert "{{Svg lang|dl=fr|ar|de|fr}}" in result
 
-    def test_replace_dl(self, updater: OtherVersionsUpdater) -> None:
+    def test_replace_dl_overwrites_existing_value(self, updater: OtherVersionsUpdater) -> None:
         text = make_info("{{Svg lang|ar|dl=fr|de}}")
         result = updater.add_svg_langs(text, ["fr"], replace_dl=True)
         assert "{{Svg lang|dl=en|ar|de|fr}}" in result
@@ -231,16 +242,199 @@ class TestDefaultLanguage:
         assert result.count("dl=") == 1
         assert "{{Svg lang|dl=en|ar|fr}}" in result
 
-    def test_dl_at_end(self, updater: OtherVersionsUpdater) -> None:
-        result = updater.add_svg_langs(make_info(), ["ar", "de"], dl_position="end")
-        assert "{{Svg lang|ar|de|dl=en}}" in result
+    def test_duplicate_dl_without_replace_keeps_last_non_empty_value(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=fr|ar|dl=de}}")
+        result = updater.add_svg_langs(text, ["fr"])
+        assert result.count("dl=") == 1
+        assert "{{Svg lang|dl=de|ar|fr}}" in result
 
-    def test_dedupe_other_named(self, updater: OtherVersionsUpdater) -> None:
-        text = make_info("{{Svg lang|ar|foo=1|foo=2}}")
+    def test_empty_dl_is_filled_with_en(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=|ar}}")
         result = updater.add_svg_langs(text, ["de"])
-        assert "{{Svg lang|dl=en|ar|de|foo=2}}" in result
+        assert "{{Svg lang|dl=en|ar|de}}" in result
 
     def test_adds_dl_en_when_no_new_languages_are_needed(self, updater: OtherVersionsUpdater) -> None:
         text = make_info("{{Svg lang|ar|de}}")
         result = updater.add_svg_langs(text, ["ar", "de"])
         assert "{{Svg lang|dl=en|ar|de}}" in result
+
+    def test_adds_dl_en_when_language_list_is_empty(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|ar|de}}")
+        result = updater.add_svg_langs(text, [])
+        assert "{{Svg lang|dl=en|ar|de}}" in result
+
+    def test_does_not_create_svg_lang_when_there_is_nothing_to_add(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info()
+        assert updater.add_svg_langs(text, []) == text
+
+    def test_does_not_create_svg_lang_when_other_versions_has_only_other_templates(
+        self, updater: OtherVersionsUpdater
+    ) -> None:
+        text = make_info("{{Extracted from|1=A.svg}}")
+        assert updater.add_svg_langs(text, []) == text
+
+
+class TestDlPosition:
+    def test_dl_at_start_is_the_default(self, updater: OtherVersionsUpdater) -> None:
+        result = updater.add_svg_langs(make_info(), ["ar", "de"], dl_position="start")
+        assert "{{Svg lang|dl=en|ar|de}}" in result
+
+    def test_dl_at_end_on_new_template(self, updater: OtherVersionsUpdater) -> None:
+        result = updater.add_svg_langs(make_info(), ["ar", "de"], dl_position="end")
+        assert "{{Svg lang|ar|de|dl=en}}" in result
+
+    def test_dl_at_end_on_existing_template(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar}}")
+        result = updater.add_svg_langs(text, ["de"], dl_position="end")
+        assert "{{Svg lang|ar|de|dl=en}}" in result
+
+    def test_dl_at_end_keeps_other_named_params_before_it(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar|foo=bar}}")
+        result = updater.add_svg_langs(text, ["de"], dl_position="end")
+        assert "{{Svg lang|ar|de|foo=bar|dl=en}}" in result
+
+    def test_dl_at_end_when_nothing_new_is_added(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar}}")
+        result = updater.add_svg_langs(text, ["ar"], dl_position="end")
+        assert "{{Svg lang|ar|dl=en}}" in result
+
+    def test_dl_at_end_is_idempotent(self, updater: OtherVersionsUpdater) -> None:
+        once = updater.add_svg_langs(make_info(), ["ar", "de"], dl_position="end")
+        assert updater.add_svg_langs(once, ["ar", "de"], dl_position="end") == once
+
+    def test_dl_at_end_with_replace(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=fr|ar}}")
+        result = updater.add_svg_langs(text, ["de"], dl_position="end", replace_dl=True)
+        assert "{{Svg lang|ar|de|dl=en}}" in result
+
+
+class TestReplaceDl:
+    def test_default_keeps_existing_value(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=fr|ar}}")
+        assert updater.add_svg_langs(text, ["ar"]) == text
+
+    def test_replace_overwrites_value_even_without_new_languages(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=fr|ar}}")
+        result = updater.add_svg_langs(text, ["ar"], replace_dl=True)
+        assert "{{Svg lang|dl=en|ar}}" in result
+
+    def test_replace_has_no_effect_when_value_is_already_en(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar}}")
+        assert updater.add_svg_langs(text, ["ar"], replace_dl=True) == text
+
+    def test_replace_is_idempotent(self, updater: OtherVersionsUpdater) -> None:
+        once = updater.add_svg_langs(make_info("{{Svg lang|dl=fr|ar}}"), ["de"], replace_dl=True)
+        assert updater.add_svg_langs(once, ["de"], replace_dl=True) == once
+
+
+class TestDedupeNamed:
+    def test_other_named_duplicates_are_collapsed_by_default(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|ar|foo=1|foo=2}}")
+        result = updater.add_svg_langs(text, ["de"])
+        assert "{{Svg lang|dl=en|ar|de|foo=2}}" in result
+
+    def test_other_named_duplicates_are_kept_when_disabled(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|ar|foo=1|foo=2}}")
+        result = updater.add_svg_langs(text, ["de"], dedupe_named=False)
+        assert "{{Svg lang|dl=en|ar|de|foo=1|foo=2}}" in result
+
+    def test_dl_is_unique_even_when_dedupe_is_disabled(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=fr|ar|dl=de}}")
+        result = updater.add_svg_langs(text, ["fr"], dedupe_named=False, replace_dl=True)
+        assert result.count("dl=") == 1
+        assert "{{Svg lang|dl=en|ar|fr}}" in result
+
+
+class TestDeleteValues:
+    def test_removes_given_language_codes(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar|de|fr}}")
+        result = updater.add_svg_langs(text, [], values_to_delete=["de"])
+        assert "{{Svg lang|dl=en|ar|fr}}" in result
+
+    def test_removes_several_codes(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar|de|fr}}")
+        result = updater.add_svg_langs(text, [], values_to_delete=["ar", "fr"])
+        assert "{{Svg lang|dl=en|de}}" in result
+
+    def test_deletion_is_case_insensitive(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar|de}}")
+        result = updater.add_svg_langs(text, [], values_to_delete=["DE"])
+        assert "{{Svg lang|dl=en|ar}}" in result
+
+    def test_removed_codes_are_not_added_back(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar|fr}}")
+        result = updater.add_svg_langs(text, ["es", "de"], values_to_delete=["de"])
+        assert "{{Svg lang|dl=en|ar|fr|es}}" in result
+
+    def test_deleting_and_adding_the_same_code_removes_it(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar|de}}")
+        result = updater.add_svg_langs(text, ["ar"], values_to_delete=["ar"])
+        assert "{{Svg lang|dl=en|de}}" in result
+
+    def test_deleting_every_code_keeps_the_template_with_dl(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar}}")
+        result = updater.add_svg_langs(text, [], values_to_delete=["ar"])
+        assert "{{Svg lang|dl=en}}" in result
+
+    def test_unknown_code_changes_nothing(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=en|ar}}")
+        assert updater.add_svg_langs(text, [], values_to_delete=["xx"]) == text
+
+    @pytest.mark.parametrize("values_to_delete", [[], [""], None])
+    def test_blank_values_to_delete_change_nothing(self, updater: OtherVersionsUpdater, values_to_delete) -> None:
+        text = make_info("{{Svg lang|dl=en|ar}}")
+        assert updater.add_svg_langs(text, [], values_to_delete=values_to_delete) == text
+
+    def test_deleting_en_does_not_lose_the_default_language(self, updater: OtherVersionsUpdater) -> None:
+        # ``dl=en`` has the value "en", so it matches the deletion, but it is put back afterwards.
+        text = make_info("{{Svg lang|dl=en|ar}}")
+        assert updater.add_svg_langs(text, [], values_to_delete=["en"]) == text
+
+    def test_deletion_works_without_main_template_but_nothing_is_added(self, updater: OtherVersionsUpdater) -> None:
+        # editor.delete_values works on the whole text; adding/ensuring still needs the main template.
+        text = "{{Svg lang|dl=en|ar}}"
+        assert updater.add_svg_langs(text, ["de"], values_to_delete=["ar"]) == "{{Svg lang|dl=en}}"
+
+
+class TestCombinedOptions:
+    def test_all_options_together(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|dl=fr|ar|de|foo=1|foo=2}}")
+        result = updater.add_svg_langs(
+            text,
+            ["es", "AR", "it"],
+            sort=True,
+            values_to_delete=["de"],
+            dl_position="end",
+            replace_dl=True,
+            dedupe_named=True,
+        )
+        assert "{{Svg lang|ar|es|it|foo=2|dl=en}}" in result
+
+    @pytest.mark.parametrize("position", ["start", "end"])
+    @pytest.mark.parametrize("replace_dl", [False, True])
+    @pytest.mark.parametrize("dedupe_named", [False, True])
+    @pytest.mark.parametrize("sort", [False, True])
+    def test_every_option_combination_is_idempotent(
+        self,
+        updater: OtherVersionsUpdater,
+        position: str,
+        replace_dl: bool,
+        dedupe_named: bool,
+        sort: bool,
+    ) -> None:
+        text = make_info("{{Svg lang|fr|dl=fa|ar|foo=1|foo=2}}")
+        kwargs = {
+            "sort": sort,
+            "dl_position": position,
+            "replace_dl": replace_dl,
+            "dedupe_named": dedupe_named,
+        }
+        once = updater.add_svg_langs(text, ["de", "es"], **kwargs)
+        twice = updater.add_svg_langs(once, ["de", "es"], **kwargs)
+        assert once == twice
+
+    @pytest.mark.parametrize("position", ["start", "end"])
+    def test_dl_has_exactly_one_value_in_every_mode(self, updater: OtherVersionsUpdater, position: str) -> None:
+        text = make_info("{{Svg lang|dl=a|ar|dl=b|dl=}}")
+        result = updater.add_svg_langs(text, ["de"], dl_position=position)
+        assert result.count("dl=") == 1
