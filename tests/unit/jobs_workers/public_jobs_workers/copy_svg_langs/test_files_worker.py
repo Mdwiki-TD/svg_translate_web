@@ -18,18 +18,6 @@ from src.main_app.services.copysvg_wrapper import InjectResult
 from src.main_app.services.copysvg_wrapper.mapping import RepairResult
 
 
-@dataclass
-class MockServices:
-    download_and_save: MagicMock
-    detect: MagicMock
-    fix: MagicMock
-    inject: MagicMock
-    upload_svg: MagicMock
-    get_file_languages: MagicMock
-    mw_page: MagicMock
-    mw_client_page: MagicMock
-
-
 @pytest.fixture
 def mock_http_client() -> MagicMock:
     client = MagicMock()
@@ -79,6 +67,18 @@ def mock_mw_page() -> MagicMock:
     mock_mw_client_page.load.return_value = mw_page
 
     return mock_mw_client_page
+
+
+@dataclass
+class MockServices:
+    download_and_save: MagicMock
+    detect: MagicMock
+    fix: MagicMock
+    inject: MagicMock
+    upload_svg: MagicMock
+    get_file_languages: MagicMock
+    mw_page: MagicMock
+    mw_client_page: MagicMock
 
 
 @pytest.fixture
@@ -132,9 +132,8 @@ class TestCopySvgLangsWorkerProcessOne:
     def test_download_exception(
         self,
         mock_files_processor: OneFileProcessor,
-        mock_services: MockServices,
     ):
-        mock_services.download_and_save.side_effect = ValueError("Network error")
+        mock_files_processor.files_service.download_and_save.side_effect = ValueError("Network error")
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_files_processor.process_one_item(title_info, "")
@@ -149,7 +148,9 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_files_processor: OneFileProcessor,
         mock_services: MockServices,
     ):
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="failed", path=None)
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="failed", path=None
+        )
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_files_processor.process_one_item(title_info, "")
@@ -163,7 +164,9 @@ class TestCopySvgLangsWorkerProcessOne:
         mock_files_processor: OneFileProcessor,
         mock_services: MockServices,
     ):
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="error", path=None)
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="error", path=None
+        )
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_files_processor.process_one_item(title_info, "")
@@ -180,7 +183,9 @@ class TestCopySvgLangsWorkerProcessOne:
     ):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="success", path=str(dl_path)
+        )
         mock_services.detect.return_value = []
         mock_services.inject.return_value = InjectResult(result=None, msg="No changes")
 
@@ -199,7 +204,9 @@ class TestCopySvgLangsWorkerProcessOne:
     ):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="success", path=str(dl_path)
+        )
         mock_services.detect.return_value = [1, 2]
         mock_services.fix.return_value = RepairResult(success=False, len_tags_before_fix=2, len_tags_after_fix=2)
         title_info = FilesProcessedItem(title="File:Test.svg")
@@ -220,7 +227,9 @@ class TestCopySvgLangsWorkerProcessOne:
     ):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="success", path=str(dl_path)
+        )
         mock_services.detect.return_value = [1, 2]
         mock_services.fix.return_value = RepairResult(success=True, len_tags_before_fix=2, len_tags_after_fix=2)
         title_info = FilesProcessedItem(title="File:Test.svg")
@@ -239,7 +248,9 @@ class TestCopySvgLangsWorkerProcessOne:
     ):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="success", path=str(dl_path)
+        )
         mock_services.detect.return_value = []
         mock_services.inject.return_value = InjectResult(
             result=True, msg="ok", new_languages_count=1, updated_translations=0
@@ -261,7 +272,9 @@ class TestCopySvgLangsWorkerProcessOne:
     ):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="success", path=str(dl_path)
+        )
         mock_services.detect.return_value = []
         mock_services.inject.return_value = InjectResult(result=None, msg="No changes")
         title_info = FilesProcessedItem(title="File:Test.svg")
@@ -278,7 +291,9 @@ class TestCopySvgLangsWorkerProcessOne:
     ):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="success", path=str(dl_path)
+        )
         mock_services.detect.return_value = []
         mock_services.inject.return_value = InjectResult(result=False, msg="Failed")
         title_info = FilesProcessedItem(title="File:Test.svg", steps=MagicMock(inject=MagicMock(result=False)))
@@ -297,7 +312,9 @@ class TestCopySvgLangsWorkerProcessOne:
     ):
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="success", path=str(dl_path)
+        )
         mock_services.detect.return_value = [1, 2]
         mock_services.fix.return_value = RepairResult(success=True, len_tags_before_fix=2, len_tags_after_fix=0)
         mock_services.inject.return_value = InjectResult(result=False, msg="Failed")
@@ -328,7 +345,9 @@ class TestCopySvgLangsWorkerProcessOne:
 
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="success", path=str(dl_path)
+        )
         mock_services.detect.return_value = []
         mock_services.inject.return_value = InjectResult(
             result=True, msg="ok", new_languages_count=1, updated_translations=0
@@ -351,7 +370,10 @@ class TestUpdateLangsStep:
     """Tests for the `update_langs` step that runs after a successful upload."""
 
     @staticmethod
-    def _prepare_upload_success(mock_services: MockServices, tmp_path) -> None:
+    def _prepare_upload_success(
+        mock_services: MockServices,
+        tmp_path,
+    ) -> None:
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
         mock_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
@@ -396,7 +418,9 @@ class TestUpdateLangsStep:
 
         dl_path = tmp_path / "test.svg"
         dl_path.write_text("<svg></svg>")
-        mock_services.download_and_save.return_value = DownloadAndSaveData(result="success", path=str(dl_path))
+        mock_files_processor.files_service.download_and_save.return_value = DownloadAndSaveData(
+            result="success", path=str(dl_path)
+        )
         mock_services.detect.return_value = []
         mock_services.inject.return_value = InjectResult(
             result=True, msg="ok", new_languages_count=1, updated_translations=0
@@ -527,7 +551,7 @@ class TestUpdateLangsStep:
         assert result is True
         assert title_info.steps.update_langs.result is True
 
-        used_title = mock_services.mw_client_page.call_args.args[0]
+        used_title = mock_services.mw_client_page.load.call_args.args[0]
         assert used_title == "File:Total daily covid deaths, Africa, Apr 13, 2024.svg"
         assert mock_services.get_file_languages.call_args.args[0] == used_title
 
@@ -538,7 +562,12 @@ class TestUpdateLangsStep:
         tmp_path,
     ):
         self._prepare_upload_success(mock_services, tmp_path)
-        mock_services.mw_page.get_text.return_value = "{{Information\n|other versions={{Svg lang|de|fr}}\n}}"
+        original_text = "{{Information\n|other versions={{Svg lang|de|fr}}\n}}"
+        mock_services.mw_page.get_text.return_value = original_text
+
+        # FIXED: Mock add_svg_langs to return identical text, isolating the test from internal formatting rules
+        mock_files_processor.other_versions_updater.add_svg_langs = MagicMock(return_value=original_text)
+
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = mock_files_processor.process_one_item(title_info, "File:Main.svg")
