@@ -161,11 +161,14 @@ class OtherVersionsUpdater:
                 named.append(f"{name}={arg.value}")
 
         positional.sort(key=lambda item: item[0])
-        rendered = self._render(
-            tpl.name.strip(),
-            ["dl=en", *[value for _, value in positional]],
-            named,
-        )
+        rendered = "{{" + "|".join(
+            [
+                tpl.name.strip(),
+                "dl=en",
+                *[value for _, value in positional],
+                *named,
+            ]
+        ) + "}}"
         return parsed.string.replace(tpl.string, rendered, 1)
 
     # ---------------------------------------------------------------- #
