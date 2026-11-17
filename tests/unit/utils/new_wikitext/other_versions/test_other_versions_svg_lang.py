@@ -208,7 +208,6 @@ class TestFunctionalWrapper:
         assert add_svg_langs_to_other_versions(text="plain", langs=["ar"]) == "plain"
 
 
-
 class TestDefaultLanguage:
     """The English default language is always explicit and comes first."""
 
@@ -219,13 +218,27 @@ class TestDefaultLanguage:
     def test_moves_existing_dl_to_first_position(self, updater: OtherVersionsUpdater) -> None:
         text = make_info("{{Svg lang|ar|dl=fr|de}}")
         result = updater.add_svg_langs(text, ["fr"])
+        assert "{{Svg lang|dl=fr|ar|de|fr}}" in result
+
+    def test_replace_dl(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|ar|dl=fr|de}}")
+        result = updater.add_svg_langs(text, ["fr"], replace_dl=True)
         assert "{{Svg lang|dl=en|ar|de|fr}}" in result
 
     def test_does_not_duplicate_dl_parameter(self, updater: OtherVersionsUpdater) -> None:
         text = make_info("{{Svg lang|dl=fr|ar|dl=de}}")
-        result = updater.add_svg_langs(text, ["fr"])
+        result = updater.add_svg_langs(text, ["fr"], replace_dl=True)
         assert result.count("dl=") == 1
         assert "{{Svg lang|dl=en|ar|fr}}" in result
+
+    def test_dl_at_end(self, updater: OtherVersionsUpdater) -> None:
+        result = updater.add_svg_langs(make_info(), ["ar", "de"], dl_position="end")
+        assert "{{Svg lang|ar|de|dl=en}}" in result
+
+    def test_dedupe_other_named(self, updater: OtherVersionsUpdater) -> None:
+        text = make_info("{{Svg lang|ar|foo=1|foo=2}}")
+        result = updater.add_svg_langs(text, ["de"])
+        assert "{{Svg lang|dl=en|ar|de|foo=2}}" in result
 
     def test_adds_dl_en_when_no_new_languages_are_needed(self, updater: OtherVersionsUpdater) -> None:
         text = make_info("{{Svg lang|ar|de}}")
