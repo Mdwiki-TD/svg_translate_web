@@ -112,7 +112,6 @@ class OtherVersionsUpdater:
         return parsed.string
 
     # ---- presets (add more here for other templates) ---------------- #
-
     def add_svg_langs(
         self,
         text: str,
@@ -121,7 +120,7 @@ class OtherVersionsUpdater:
         sort: bool = False,
         delete_values: list[str] | None = None,
     ) -> str:
-        """Add language codes to ``{{Svg lang|...}}``."""
+        """Add language codes to ``{{Svg lang|...}}`` and ensure ``dl=en`` is present."""
         filtered_langs = [lang.lower() for lang in langs if lang]
 
         if delete_values:
@@ -129,15 +128,67 @@ class OtherVersionsUpdater:
             text = self.delete_params(text, delete_values)
             filtered_langs = [lang.lower() for lang in filtered_langs if lang.lower() not in delete_values]
 
-        if not filtered_langs:
-            return text
+        if filtered_langs:
+            text = self.merge_values(
+                text,
+                "Svg lang",
+                filtered_langs,
+                sort=sort,
+            )
 
-        return self.merge_values(
+        return self.ensure_leading_named_param(text, "Svg lang", "dl", "en")
+
+    def ensure_leading_named_param(
+        self,
+        text: str,
+        template_name: str,
+        param_name: str,
+        default_value: str,
+    ) -> str:
+        """Make ``param_name=default_value`` the first parameter of the template.
+
+        Does nothing if the template is missing or if the parameter already
+        exists with a non-empty value.
+        """
+        return self._update(
             text,
-            "Svg lang",
-            filtered_langs,
-            sort=sort,
+            lambda cur: self._ensure_leading_named(
+                cur,
+                template_name,
+                param_name,
+                default_value,
+            ),
         )
+
+    def _ensure_leading_named(
+        self,
+        current: str,
+        template_name: str,
+        param_name: str,
+        default_value: str,
+    ) -> str:
+        parsed = wtp.parse(current)
+        tpl = self._find_template(parsed, template_name)
+        if tpl is None:
+            return current
+
+        wanted = param_name.strip().lower()
+        parts: list[str] = []
+        for arg in tpl.arguments:
+            name = arg.name.strip()
+            value = arg.value.strip()
+            if name.lower() == wanted:
+                if value:
+                    return current  # already set with a value: keep as is
+                continue  # drop the empty one, it is re-added first below
+            if arg.positional:
+                if value:
+                    parts.append(value)
+            else:
+                parts.append(f"{name}={value}")
+
+        new_tpl = "{{" + "|".join([tpl.name.strip(), f"{param_name}={default_value}", *parts]) + "}}"
+        return current.replace(tpl.string, new_tpl, 1)
 
     # ---------------------------------------------------------------- #
     # Core
