@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from unittest.mock import MagicMock
 
 import pytest
-from src.main_app.api_services import FilesService
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import FileLanguagesMap, UploadResult
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker import OneFileProcessor
@@ -67,7 +66,7 @@ def mock_nested_processor() -> MagicMock:
     _mock = MagicMock()
     _mock.analyze_file.return_value = MagicMock()
     _mock.repair_file.return_value = MagicMock()
-    return MagicMock(return_value=_mock)
+    return _mock
 
 
 @pytest.fixture
@@ -109,6 +108,8 @@ def mock_files_processor(
     mock_files_service,
     mock_upload_service,
     mock_mw_page,
+    mock_nested_processor,
+    mock_svg_injector,
 ) -> OneFileProcessor:
     args = {"title": "File:Test.svg", "upload": True}
     _processor = OneFileProcessor(
