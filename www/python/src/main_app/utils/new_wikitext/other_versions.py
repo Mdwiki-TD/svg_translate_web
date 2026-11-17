@@ -172,23 +172,18 @@ class OtherVersionsUpdater:
         if tpl is None:
             return current
 
-        wanted = param_name.strip().lower()
-        parts: list[str] = []
-        for arg in tpl.arguments:
-            name = arg.name.strip()
-            value = arg.value.strip()
-            if name.lower() == wanted:
-                if value:
-                    return current  # already set with a value: keep as is
-                continue  # drop the empty one, it is re-added first below
-            if arg.positional:
-                if value:
-                    parts.append(value)
-            else:
-                parts.append(f"{name}={value}")
+        already_in = tpl.get_arg(param_name)
 
-        new_tpl = "{{" + "|".join([tpl.name.strip(), f"{param_name}={default_value}", *parts]) + "}}"
-        return current.replace(tpl.string, new_tpl, 1)
+        if already_in:
+            # already set with a value: keep as is
+            if already_in.value:
+                return current
+
+            already_in.value = default_value
+        else:
+            tpl.set_arg(param_name, default_value, before="1")
+
+        return parsed.string
 
     # ---------------------------------------------------------------- #
     # Core
