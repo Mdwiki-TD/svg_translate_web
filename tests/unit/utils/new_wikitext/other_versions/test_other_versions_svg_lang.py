@@ -217,17 +217,17 @@ class TestDefaultLanguage:
         assert "{{Svg lang|dl=en|ar|de|fr}}" in result
 
     def test_moves_existing_dl_to_first_position(self, updater):
-        text = make_info("{{Svg lang|dl=en|ar|dl=fr|de}}")
+        text = make_info("{{Svg lang|ar|dl=fr|de}}")
         result = updater.add_svg_langs(text, ["fr"])
         assert "{{Svg lang|dl=en|ar|de|fr}}" in result
 
     def test_does_not_duplicate_dl_parameter(self, updater):
-        text = make_info("{{Svg lang|dl=en|dl=fr|ar|dl=de}}")
+        text = make_info("{{Svg lang|dl=fr|ar|dl=de}}")
         result = updater.add_svg_langs(text, ["fr"])
         assert result.count("dl=") == 1
         assert "{{Svg lang|dl=en|ar|fr}}" in result
 
     def test_adds_dl_en_when_no_new_languages_are_needed(self, updater):
-        text = make_info("{{Svg lang|dl=en|ar|de}}")
+        text = make_info("{{Svg lang|ar|de}}")
         result = updater.add_svg_langs(text, ["ar", "de"])
         assert "{{Svg lang|dl=en|ar|de}}" in result
