@@ -206,3 +206,28 @@ class TestFunctionalWrapper:
 
     def test_wrapper_without_main_template(self):
         assert add_svg_langs_to_other_versions(text="plain", langs=["ar"]) == "plain"
+
+
+
+class TestDefaultLanguage:
+    """The English default language is always explicit and comes first."""
+
+    def test_adds_dl_en_before_language_codes(self, updater):
+        result = updater.add_svg_langs(make_info(), ["ar", "de", "fr"])
+        assert "{{Svg lang|dl=en|ar|de|fr}}" in result
+
+    def test_moves_existing_dl_to_first_position(self, updater):
+        text = make_info("{{Svg lang|ar|dl=fr|de}}")
+        result = updater.add_svg_langs(text, ["fr"])
+        assert "{{Svg lang|dl=en|ar|de|fr}}" in result
+
+    def test_does_not_duplicate_dl_parameter(self, updater):
+        text = make_info("{{Svg lang|dl=fr|ar|dl=de}}")
+        result = updater.add_svg_langs(text, ["fr"])
+        assert result.count("dl=") == 1
+        assert "{{Svg lang|dl=en|ar|fr}}" in result
+
+    def test_adds_dl_en_when_no_new_languages_are_needed(self, updater):
+        text = make_info("{{Svg lang|ar|de}}")
+        result = updater.add_svg_langs(text, ["ar", "de"])
+        assert "{{Svg lang|dl=en|ar|de}}" in result
