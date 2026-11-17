@@ -1,4 +1,4 @@
-"""Tests for adding ``{{Svg lang|dl=en|xx}}`` to ``|other versions =`` via OtherVersionsUpdater."""
+"""Tests for adding ``{{Svg lang|xx}}`` to ``|other versions =`` via OtherVersionsUpdater."""
 
 from __future__ import annotations
 
@@ -142,7 +142,7 @@ class TestInputNormalization:
 
     @pytest.mark.parametrize("langs", [[], [""], ["  "]])
     def test_no_valid_languages_returns_text_unchanged(self, updater, langs):
-        text = make_info("{{Svg lang|dl=en|ar}}")
+        text = make_info("{{Svg lang|ar}}")
         assert updater.add_svg_langs(text, langs) == text
 
     def test_accepts_any_iterable(self, updater):
