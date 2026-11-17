@@ -132,12 +132,41 @@ class OtherVersionsUpdater:
         if not filtered_langs:
             return text
 
-        return self.merge_values(
+        merged_text = self.merge_values(
             text,
             "Svg lang",
             filtered_langs,
             sort=sort,
         )
+        return self._ensure_svg_lang_default(merged_text)
+
+    def _ensure_svg_lang_default(self, text: str) -> str:
+        """Ensure dl=en is the first parameter in the Svg lang template."""
+        parsed = wtp.parse(text)
+        tpl = self._find_template(parsed, "Svg lang")
+        if tpl is None:
+            return text
+
+        positional: list[tuple[int, str]] = []
+        named: list[str] = []
+        for arg in tpl.arguments:
+            name = arg.name.strip()
+            value = arg.value.strip()
+            if self._norm_name(name) == "dl":
+                continue
+            if name.isdigit():
+                if value:
+                    positional.append((int(name), value))
+            else:
+                named.append(f"{name}={arg.value}")
+
+        positional.sort(key=lambda item: item[0])
+        rendered = self._render(
+            tpl.name.strip(),
+            ["dl=en", *[value for _, value in positional]],
+            named,
+        )
+        return parsed.string.replace(tpl.string, rendered, 1)
 
     # ---------------------------------------------------------------- #
     # Core
