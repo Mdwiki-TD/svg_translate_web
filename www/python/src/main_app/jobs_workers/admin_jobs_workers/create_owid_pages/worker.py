@@ -8,7 +8,7 @@ import logging
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, MediaWikiQueryService
+from ....api_services import MediaWikiQueryService, MwClientPage
 from ....data import get_slug_categories
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService

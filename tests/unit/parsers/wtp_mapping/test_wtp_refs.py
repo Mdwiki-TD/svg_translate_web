@@ -2,8 +2,6 @@
 Unit tests for wtp_mapping module.
 """
 
-from pathlib import Path
-
 import wikitextparser as wtp
 from src.main_app.parsers.wtp_mapping import WtpRef, WtpRefs
 

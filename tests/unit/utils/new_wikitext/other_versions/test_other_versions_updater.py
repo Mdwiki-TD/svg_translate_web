@@ -7,8 +7,8 @@ main template) and delegates the template logic to :class:`TemplateEditor`.
 from __future__ import annotations
 
 import pytest
-from src.main_app.utils.new_wikitext.other_versions import OtherVersionsUpdater
 from src.main_app.parsers.template_editor import TemplateEditor
+from src.main_app.utils.new_wikitext.other_versions import OtherVersionsUpdater
 
 
 @pytest.fixture

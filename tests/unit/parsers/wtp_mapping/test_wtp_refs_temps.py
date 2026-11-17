@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from src.main_app.parsers.wtp_mapping.wtp_refs_temps import WtpRefsTemps
-
 import wikitextparser as wtp
+from src.main_app.parsers.wtp_mapping.wtp_refs_temps import WtpRefsTemps
 
 BASIC = (
     "{{Infobox\n"

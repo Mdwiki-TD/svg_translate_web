@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable, Sequence
 from typing import Any, TypeVar
+
 from sqlalchemy import Select, func, inspect, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session

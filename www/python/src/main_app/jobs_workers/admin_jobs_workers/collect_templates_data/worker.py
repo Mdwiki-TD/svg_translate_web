@@ -10,9 +10,8 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services.clients import CategoryMembersService
-
 from ....api_services import MwClientPage, fetch_grapher_metadata_raw
+from ....api_services.clients import CategoryMembersService
 from ....database.exceptions import DuplicateRecordError
 from ....database.models import TemplateRecord
 from ....database.services import (

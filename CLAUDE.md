@@ -218,7 +218,7 @@ Thin wrappers in `pages_api.py`:
 
 ```python
 is_page_exists(title, site)  # Check if page exists
-is_redirect(title, site)     # Check if page is a redirect
+is_redirect(title, site)  # Check if page is a redirect
 edit_page(site, title, text, summary)  # Edit page content
 move_page(site, title, new_title, reason, ...)  # Move/rename page
 ```
