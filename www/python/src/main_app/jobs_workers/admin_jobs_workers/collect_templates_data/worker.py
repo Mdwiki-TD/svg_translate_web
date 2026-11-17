@@ -268,7 +268,10 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     JOB_TYPE = "collect_templates_data"
     """Worker for collecting main files for templates."""
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.site: Site | None = None
 
         super().__init__(data)

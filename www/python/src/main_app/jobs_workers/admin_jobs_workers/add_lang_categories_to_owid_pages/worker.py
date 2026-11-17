@@ -47,7 +47,10 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
 
     JOB_TYPE = "add_lang_categories_to_owid_pages"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.site: Site | None = None
 
         super().__init__(data)

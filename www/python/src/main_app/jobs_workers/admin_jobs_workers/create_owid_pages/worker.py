@@ -33,7 +33,10 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
     JOB_TYPE = "create_owid_pages"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.site: Site | None = None
 
         super().__init__(data)

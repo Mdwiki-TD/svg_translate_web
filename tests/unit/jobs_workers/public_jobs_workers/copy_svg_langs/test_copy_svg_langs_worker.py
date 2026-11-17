@@ -8,12 +8,11 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from src.main_app.api_services.files_service import DownloadAndSaveData
-from src.main_app.api_services.files_service.objects import FileLanguagesMap, UploadResult
+from src.main_app.api_services.files_service import DownloadAndSaveData, FileLanguagesMap, UploadResult
 from src.main_app.jobs_workers.objects import JobsRunner
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.objects import FilesProcessedItem
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker import (
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs import (
     CopySvgLangsWorker,
+    FilesProcessedItem,
 )
 from src.main_app.services.copysvg_wrapper import ExtractResult, InjectResult
 
@@ -42,12 +41,14 @@ def mock_steps(monkeypatch: pytest.MonkeyPatch) -> MockSteps:
 
     mock_text = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_text_step", mock_text
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.ExtractSteps.extract_text_step",
+        mock_text,
     )
 
     mock_titles = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.extract_titles_step", mock_titles
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.ExtractSteps.extract_titles_step",
+        mock_titles,
     )
 
     mock_translations = MagicMock()
