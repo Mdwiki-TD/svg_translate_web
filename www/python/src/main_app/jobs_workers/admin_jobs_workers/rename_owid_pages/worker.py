@@ -55,7 +55,7 @@ def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:
     return False, title
 
 
-class RenameOwidPagesWorker(BaseObjectsJobWorker):
+class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
     """Background worker that capitalizes OWID subpage names."""
 
     JOB_TYPE = "rename_owid_pages"
@@ -65,7 +65,10 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.result: RenameOwidPagesWorkerObject = RenameOwidPagesWorkerObject(
+
+    def create_result(self) -> RenameOwidPagesWorkerObject:
+        """Create and return the specific result object instance."""
+        return RenameOwidPagesWorkerObject(
             job_id=self.job_id,
             args=self.args,
         )

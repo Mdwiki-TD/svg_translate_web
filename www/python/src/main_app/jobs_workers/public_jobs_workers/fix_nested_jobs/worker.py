@@ -18,7 +18,7 @@ from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
 logger = logging.getLogger(__name__)
 
 
-class FixNestedJobsProcessor(BaseObjectsJobWorker):
+class FixNestedJobsProcessor(BaseObjectsJobWorker[FixNestedJobsWorkerObject]):
     """
     Orchestrates the pipeline for fixing nested tags in SVG files.
     """
@@ -30,11 +30,6 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject(
-            job_id=self.job_id,
-            args=self.args,
-        )
-
         self.upload_limit = self.args.get("upload_limit") or 0
 
         self.filename = self.args.get("filename")
@@ -43,6 +38,13 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.upload_service = UploadService(self.site)
         self.fix_nested_processer = NestedStructureService(
             strategy="flatten",
+        )
+
+    def create_result(self) -> FixNestedJobsWorkerObject:
+        """Create and return the specific result object instance."""
+        return FixNestedJobsWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
         )
 
     # ------------------------------------------------------------------

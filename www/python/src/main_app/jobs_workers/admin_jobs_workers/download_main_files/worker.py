@@ -19,7 +19,7 @@ from .objects import DownloadMainFilesWorkerObject, FileInfo
 logger = logging.getLogger(__name__)
 
 
-class DownloadMainFilesWorker(BaseObjectsJobWorker):
+class DownloadMainFilesWorker(BaseObjectsJobWorker[DownloadMainFilesWorkerObject]):
     """Worker for downloading main files from Commons to local filesystem."""
 
     JOB_TYPE = "download_main_files"
@@ -31,16 +31,17 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
     ) -> None:
         super().__init__(data)
         self.output_dir = output_dir or Path(self.app_settings.paths.main_files_path)
+        self.main_files_zip_name = self.args.get("main_files_zip_name", "main_files.zip")
+        self.limit_items = self.args.get("limit_items") or 0
+        self.files_service = FilesService()
 
-        self.result: DownloadMainFilesWorkerObject = DownloadMainFilesWorkerObject(
+    def create_result(self) -> DownloadMainFilesWorkerObject:
+        """Create and return the specific result object instance."""
+        return DownloadMainFilesWorkerObject(
             job_id=self.job_id,
             args=self.args,
             output_path=str(self.output_dir),
         )
-
-        self.main_files_zip_name = self.args.get("main_files_zip_name", "main_files.zip")
-        self.limit_items = self.args.get("limit_items") or 0
-        self.files_service = FilesService()
 
     def _load_templates(self) -> list[TemplateRecord]:
         # Get all templates with main files

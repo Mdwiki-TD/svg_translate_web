@@ -17,7 +17,7 @@ from .utils import RE_SVG_LANG, add_template_to_text, extract_svg_file_name
 logger = logging.getLogger(__name__)
 
 
-class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
+class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker[AddSvgLanguagesWorkerObject]):
     """
     Worker for add_svglanguages_template.
     Steps:
@@ -35,12 +35,14 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject(
+        self.limit_items = self.args.get("limit_items") or 0
+
+    def create_result(self) -> AddSvgLanguagesWorkerObject:
+        """Create and return the specific result object instance."""
+        return AddSvgLanguagesWorkerObject(
             job_id=self.job_id,
             args=self.args,
         )
-
-        self.limit_items = self.args.get("limit_items") or 0
 
     # ------------------------------------------------------------------
     # Initialisation helpers

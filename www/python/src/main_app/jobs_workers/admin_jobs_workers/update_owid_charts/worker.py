@@ -83,7 +83,7 @@ def _first_value(columns: dict, key: str) -> str | Any:
 # ---------------------------------------------------------------------------
 
 
-class UpdateOwidChartsWorker(BaseObjectsJobWorker):
+class UpdateOwidChartsWorker(BaseObjectsJobWorker[UpdateOwidChartsWorkerObject]):
     JOB_TYPE = "update_owid_charts"
     """Refresh ``min_time`` / ``max_time`` / ``len_years`` for every OWID chart."""
 
@@ -92,13 +92,15 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject(
+        self.limit_items = self.args.get("limit_items") or 0
+        self.owid_charts_service = OwidChartsService()
+
+    def create_result(self) -> UpdateOwidChartsWorkerObject:
+        """Create and return the specific result object instance."""
+        return UpdateOwidChartsWorkerObject(
             job_id=self.job_id,
             args=self.args,
         )
-
-        self.limit_items = self.args.get("limit_items") or 0
-        self.owid_charts_service = OwidChartsService()
 
     # ------------------------------------------------------------------
     # Per-chart processing

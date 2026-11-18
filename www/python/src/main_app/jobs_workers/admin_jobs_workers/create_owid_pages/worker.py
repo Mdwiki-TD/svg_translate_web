@@ -19,7 +19,7 @@ from .owid_template_converter import create_new_text
 logger = logging.getLogger(__name__)
 
 
-class CreateOwidPagesWorker(BaseObjectsJobWorker):
+class CreateOwidPagesWorker(BaseObjectsJobWorker[CreateOwidPagesWorkerObject]):
     """
     Worker for create_owid_pages.
     Steps:
@@ -36,13 +36,15 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject(
+        self.limit_items = self.args.get("limit_items") or 0
+        self.update_all = str(self.args.get("update_all", "")).lower() == "true"
+
+    def create_result(self) -> CreateOwidPagesWorkerObject:
+        """Create and return the specific result object instance."""
+        return CreateOwidPagesWorkerObject(
             job_id=self.job_id,
             args=self.args,
         )
-
-        self.limit_items = self.args.get("limit_items") or 0
-        self.update_all = str(self.args.get("update_all", "")).lower() == "true"
 
     def process(self) -> CreateOwidPagesWorkerObject:
 

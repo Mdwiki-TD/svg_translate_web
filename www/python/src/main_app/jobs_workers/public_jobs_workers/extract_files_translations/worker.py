@@ -29,7 +29,7 @@ from .objects import (
 logger = logging.getLogger(__name__)
 
 
-class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
+class ExtractFilesTranslationsWorker(BaseObjectsJobWorker[ExtractFilesTranslationsObject]):
     """
     Worker for copying SVG translations from a main file to its versions.
     """
@@ -41,11 +41,6 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.result: ExtractFilesTranslationsObject = ExtractFilesTranslationsObject(
-            job_id=self.job_id,
-            args=self.args,
-        )
-
         self.title = self.args["title"].strip() if self.args.get("title") else None
 
         self.output_dir = self._compute_output_dir(self.title)
@@ -58,6 +53,13 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         self.mapping: TranslationMapping = TranslationMapping()
 
         self.svg_data_path = Path(self.app_settings.paths.svg_data)
+
+    def create_result(self) -> ExtractFilesTranslationsObject:
+        """Create and return the specific result object instance."""
+        return ExtractFilesTranslationsObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
 
     def _compute_output_dir(self, title: str | None) -> None | Path:
         if not title:

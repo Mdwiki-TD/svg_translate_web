@@ -31,7 +31,7 @@ def get_missing_categories_list(cats_list: list[str], text: str) -> list[str]:
     return CategoryMerger().get_missing_categories_list(cats_list, text)
 
 
-class AddLangCategoriesWorker(BaseObjectsJobWorker):
+class AddLangCategoriesWorker(BaseObjectsJobWorker[AddLangCategoriesWorkerObject]):
     """Background worker that adds language categories to OWID pages.
 
     Steps per page:
@@ -50,13 +50,15 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.result: AddLangCategoriesWorkerObject = AddLangCategoriesWorkerObject(
+        self.limit_items = self.args.get("limit_items") or 0
+        self.files_service = FilesService()
+
+    def create_result(self) -> AddLangCategoriesWorkerObject:
+        """Create and return the specific result object instance."""
+        return AddLangCategoriesWorkerObject(
             job_id=self.job_id,
             args=self.args,
         )
-
-        self.limit_items = self.args.get("limit_items") or 0
-        self.files_service = FilesService()
 
     # ------------------------------------------------------------------
     # BaseObjectsJobWorker hooks

@@ -19,7 +19,7 @@ from .steps import CropMainFilesSteps
 logger = logging.getLogger(__name__)
 
 
-class CropMainFilesWorker(BaseObjectsJobWorker):
+class CropMainFilesWorker(BaseObjectsJobWorker[CropMainFilesWorkerObject]):
     """
     Orchestrates the full pipeline for cropping SVG files and uploading them to Commons.
 
@@ -39,17 +39,19 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject(
-            job_id=self.job_id,
-            args=self.args,
-        )
-
         self.upload_limit = self.args.get("upload_limit") or 0
         self.template_service = TemplateService()
 
         self.exists: dict[str, Any] = {}
 
         self.files_processor = OneFileProcessor(self.job_id, self.site, self.args)
+
+    def create_result(self) -> CropMainFilesWorkerObject:
+        """Create and return the specific result object instance."""
+        return CropMainFilesWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
 
     # ------------------------------------------------------------------
     # Public entry-point
