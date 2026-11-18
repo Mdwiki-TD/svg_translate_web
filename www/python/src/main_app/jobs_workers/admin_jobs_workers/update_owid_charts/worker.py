@@ -251,7 +251,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker[UpdateOwidChartsWorkerObject])
         info = ChartNewInfo.from_chart(chart)
 
         _changed = self._process_one_item(chart, info)
-        self.update_status(chart.slug, info)
+        self.update_status(info)
 
         self.save_progress()
 
@@ -274,7 +274,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker[UpdateOwidChartsWorkerObject])
             info = ChartNewInfo.from_chart(chart)
 
             changed = self._process_one_item(chart, info)
-            self.update_status(chart.slug, info)
+            self.update_status(info)
 
             if changed and self.check_cancel_db_periodic():
                 logger.info("Job %s: Cancelled due to periodic check", self.job_id)
@@ -301,30 +301,16 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker[UpdateOwidChartsWorkerObject])
         # Default mode: process all charts
         return self.process_all()
 
-    def update_status(self, slug: str, info: ChartNewInfo) -> None:
+    def update_status(self, info: ChartNewInfo) -> None:
         self.result.summary.processed += 1
-
         if info.status == "failed":
-            if info.error:
-                self.result.failed_charts.append(
-                    {
-                        "status": "failed",
-                        "slug": slug,
-                        "error": info.error,
-                    }
-                )
-            else:
-                self.result.failed_charts.append(info.to_json())
+            self.result.failed_charts.append(info)
         elif info.status == "skipped":
-            self.result.skipped_charts.append(
-                {
-                    "status": "skipped",
-                    "slug": slug,
-                    "skip_reason": info.skip_reason,
-                }
-            )
+            self.result.skipped_charts.append(info)
         elif info.status == "updated":
-            self.result.updated_charts.append(info.to_json())
+            self.result.updated_charts.append(info)
+        else:
+            self.result.pages_processed.append(info)
 
 
 __all__ = [

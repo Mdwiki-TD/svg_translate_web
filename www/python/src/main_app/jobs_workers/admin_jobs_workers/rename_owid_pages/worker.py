@@ -46,12 +46,15 @@ def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:
     """
     if not title.startswith(full_prefix):
         return False, title
+
     rest = title[len(full_prefix) :]
     if not rest:
         return False, title
+
     first = rest[0]
     if first.isalpha() and first.islower():
         return True, full_prefix + first.upper() + rest[1:]
+
     return False, title
 
 
@@ -88,15 +91,22 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
         # First pass: collect candidates so progress is bounded and we can
         # compute a sane save-progress interval.
         candidates: list[tuple[int, str, str, str]] = []
+
         for namespace, prefix, full_prefix in PREFIXES:
             if self.is_cancelled():
                 return self.result
 
             logger.info("Job %s: Listing pages with prefix '%s' (ns=%d)", self.job_id, full_prefix, namespace)
             ns_count = 0
-            for page in self._iter_owid_pages(namespace, prefix):
-                ns_count += 1
+
+            owid_pages = self._iter_owid_pages(namespace, prefix)
+            if not owid_pages:
+                logger.info("No pages found with prefix %r (namespace %d)", full_prefix, namespace)
+                continue
+
+            for page in owid_pages:
                 self.result.summary.checked += 1
+                ns_count += 1
                 title = page.name
                 yes, new_title = needs_rename(title, full_prefix)
                 if not yes:
@@ -142,16 +152,16 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
 
         if info.status == "skipped_target_exists":
             self.result.summary.skipped_target_exists += 1
-            self.result.pages_skipped.append(info.to_json())
+            self.result.pages_skipped.append(info)
 
         elif info.status == "redirected":
-            self.result.pages_redirected.append(info.to_json())
+            self.result.pages_redirected.append(info)
 
         elif info.status == "renamed":
-            self.result.pages_renamed.append(info.to_json())
+            self.result.pages_renamed.append(info)
 
         elif info.status == "failed":
-            self.result.pages_failed.append(info.to_json())
+            self.result.pages_failed.append(info)
 
     # ------------------------------------------------------------------
     # Internal helpers

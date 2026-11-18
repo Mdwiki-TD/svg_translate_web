@@ -137,7 +137,12 @@ def process(
         logger.info("Listing pages with prefix %r (namespace %d)", full_prefix, namespace)
         ns_count = 0
 
-        for page in iter_owid_pages(site, namespace, prefix):
+        owid_pages = iter_owid_pages(site, namespace, prefix)
+        if not owid_pages:
+            logger.info("No pages found with prefix %r (namespace %d)", full_prefix, namespace)
+            continue
+
+        for page in owid_pages:
             stats["checked"] += 1
             ns_count += 1
             title = page.name
@@ -180,7 +185,11 @@ def process(
                 stats["failed"] += 1
                 logger.exception("  FAILED: %s -> %s : %s", title, new_title, exc)
 
-        logger.info("  scanned %d page(s) under %s", ns_count, full_prefix)
+        logger.info("scanned %d page(s) under %s", ns_count, full_prefix)
+
+    logger.info("=== STATS ===")
+    for key, value in stats.items():
+        logger.info("%s: %d", key, value)
 
     return stats
 
