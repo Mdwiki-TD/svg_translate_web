@@ -264,24 +264,16 @@ class OneFileProcessor:
         return None
 
 
-class CollectMainFilesWorker(BaseObjectsJobWorker):
-    JOB_TYPE = "collect_templates_data"
+class CollectMainFilesWorker(BaseObjectsJobWorker[CollectTemplatesDataMapping]):
     """Worker for collecting main files for templates."""
+
+    JOB_TYPE = "collect_templates_data"
 
     def __init__(
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
-
         super().__init__(data)
-
-        self.args = data.args or {}
-        self.result: CollectTemplatesDataMapping = CollectTemplatesDataMapping(
-            job_id=self.job_id,
-            args=self.args,  # pyright: ignore[reportCallIssue]
-        )
-
         self.template_service = TemplateService()
         self.views_service = ViewsService()
 
@@ -292,6 +284,13 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             self.template_service,
         )
         self.category_client = CategoryMembersService(self.site)
+
+    def create_result(self) -> CollectTemplatesDataMapping:
+        """Create and return the specific result object instance."""
+        return CollectTemplatesDataMapping(
+            job_id=self.job_id,
+            args=self.args,
+        )
 
     # ------------------------------------------------------------------
     # pre process step

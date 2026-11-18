@@ -6,8 +6,6 @@ from __future__ import annotations
 
 import logging
 
-from mwclient.client import Site
-
 from ....api_services import MwClientPage
 from ....database.services import ChartsAndTemplatesService, TemplateService
 from ....utils.new_wikitext import SvgFilesCollector
@@ -19,7 +17,7 @@ from .objects import ProcessingFileInfo, UpdateFilesWikiTextObject
 logger = logging.getLogger(__name__)
 
 
-class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
+class UpdateFilesWikiTextWorker(BaseObjectsJobWorker[UpdateFilesWikiTextObject]):
     """
     Worker for update_wikitext.
     Steps:
@@ -35,21 +33,19 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
-
         super().__init__(data)
-        self.args = data.args or {}
-
-        self.result: UpdateFilesWikiTextObject = UpdateFilesWikiTextObject(
-            job_id=self.job_id,
-            args=self.args,
-        )
-
         self.title = self.args.get("template_name") or ""
         self.titles: list[str] = []
         self.files_processor = UpdateWikiTextProcessor(self.site)
         self.template_service = TemplateService()
         self.charts_and_tmps_service = ChartsAndTemplatesService()
+
+    def create_result(self) -> UpdateFilesWikiTextObject:
+        """Create and return the specific result object instance."""
+        return UpdateFilesWikiTextObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
 
     def _extract_titles_step(self) -> bool:
         self.titles = SvgFilesCollector.get_titles(self.text, with_prefix=True)

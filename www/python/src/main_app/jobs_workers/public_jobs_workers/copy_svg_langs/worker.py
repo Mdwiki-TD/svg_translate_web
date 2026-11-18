@@ -7,8 +7,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from mwclient.client import Site
-
 from ....api_services.files_service import FilesService
 from ....services.copysvg_wrapper import (
     ExtractResult,
@@ -27,7 +25,7 @@ from .steps import ExtractSteps
 logger = logging.getLogger(__name__)
 
 
-class CopySvgLangsWorker(BaseObjectsJobWorker):
+class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
     """
     Worker for copying SVG translations from a main file to its versions.
     """
@@ -39,24 +37,23 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        args = data.args or {}
+        self.title = self.args["title"].strip() if self.args.get("title") else ""
+        self.manual_main_title = self.args["manual_main_title"].strip() if self.args.get("manual_main_title") else None
 
-        self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject(
-            job_id=self.job_id,
-            args=args,
-        )
-
-        self.title = args["title"].strip() if args.get("title") else ""
-        self.manual_main_title = args["manual_main_title"].strip() if args.get("manual_main_title") else None
-
-        self.config = self._load_config(args)
-        self.site: Site | None = None
+        self.config = self._load_config(self.args)
         self.text: str = ""
         self.main_title: str = ""
         self.titles: list[str] = []
 
         self.files_service = FilesService()
         self.files_processor = OneFileProcessor(self.config, self.files_service, self.site)
+
+    def create_result(self) -> CopySvgLangsWorkerObject:
+        """Create and return the specific result object instance."""
+        return CopySvgLangsWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
 
     def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
         return SvgLangsConfig.load(

@@ -8,8 +8,6 @@ import logging
 import tempfile
 from pathlib import Path
 
-from mwclient.client import Site
-
 from ....api_services import FilesService
 from ....api_services.files_service import UploadService
 from ....services.copysvg_wrapper import NestedStructureService
@@ -20,7 +18,7 @@ from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
 logger = logging.getLogger(__name__)
 
 
-class FixNestedJobsProcessor(BaseObjectsJobWorker):
+class FixNestedJobsProcessor(BaseObjectsJobWorker[FixNestedJobsWorkerObject]):
     """
     Orchestrates the pipeline for fixing nested tags in SVG files.
     """
@@ -32,22 +30,21 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.args = data.args or {}
-
-        self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject(
-            job_id=self.job_id,
-            args=self.args,
-        )
-
         self.upload_limit = self.args.get("upload_limit") or 0
 
         self.filename = self.args.get("filename")
-        self.site: Site | None = None
         self.file_path: Path | None = None
         self.files_service = FilesService()
         self.upload_service = UploadService(self.site)
         self.fix_nested_processer = NestedStructureService(
             strategy="flatten",
+        )
+
+    def create_result(self) -> FixNestedJobsWorkerObject:
+        """Create and return the specific result object instance."""
+        return FixNestedJobsWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
         )
 
     # ------------------------------------------------------------------

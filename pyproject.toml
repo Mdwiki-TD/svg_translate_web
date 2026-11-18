@@ -272,8 +272,8 @@ exclude = [
 typeCheckingMode = "standard"
 
 # Automatically find virtual environments
-venvPath = "."
-venv = ".venv"
+# venvPath = "."
+# venv = ".venv"
 
 reportPrivateUsage = false
 reportMissingTypeArgument = false

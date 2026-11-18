@@ -34,7 +34,7 @@ def _load_job_args(job_args: list[dict[str, str]]) -> dict[str, Any]:
     return _args
 
 
-def load_job_data(job_type) -> JobData | None:
+def load_job_data(job_type: str) -> JobData | None:
     return jobs_data_admins.get(job_type) or jobs_data_public.get(job_type)
 
 

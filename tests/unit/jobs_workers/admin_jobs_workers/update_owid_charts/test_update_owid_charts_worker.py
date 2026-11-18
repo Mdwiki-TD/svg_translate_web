@@ -244,13 +244,13 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
-        assert worker.result.failed_charts[0]["status"] == "failed"
-        assert worker.result.failed_charts[0]["error"] == "Chart not found"
-        assert worker.result.failed_charts[0]["slug"] == "test-chart"
+        assert worker.result.failed_charts[0].status == "failed"
+        assert worker.result.failed_charts[0].error == "Chart not found"
+        assert worker.result.failed_charts[0].slug == "test-chart"
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
             1, {"status_404": 404}
         )
@@ -275,12 +275,12 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
-        assert worker.result.failed_charts[0]["status"] == "failed"
-        assert worker.result.failed_charts[0]["error"] == "Could not fetch metadata JSON"
+        assert worker.result.failed_charts[0].status == "failed"
+        assert worker.result.failed_charts[0].error == "Could not fetch metadata JSON"
 
     def test_process_one_item_nothing_to_update(self, mock_update_owid_services: MockServices):
         """When metadata has no timespan AND no owidVariableId -> skipped."""
@@ -305,12 +305,12 @@ class TestProcessChart:
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
 
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.skipped_charts) == 1
-        assert worker.result.skipped_charts[0]["status"] == "skipped"
-        assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
+        assert worker.result.skipped_charts[0].status == "skipped"
+        assert worker.result.skipped_charts[0].skip_reason == "nothing to update"
 
     def test_process_one_item_updates_source_from_citation_short(self, mock_update_owid_services: MockServices):
         """A citation-only metadata update is persisted to the chart source field."""
@@ -384,7 +384,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -415,11 +415,11 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
-        assert "Could not parse timespan" in worker.result.failed_charts[0]["error"]
+        assert "Could not parse timespan" in worker.result.failed_charts[0].error
 
     def test_process_one_item_full_update(self, mock_update_owid_services: MockServices):
         """When both timespan parsed and owid_variable_id changed -> full update."""
@@ -444,7 +444,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -475,11 +475,11 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.skipped_charts) == 1
-        assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
+        assert worker.result.skipped_charts[0].skip_reason == "nothing to update"
 
     def test_process_one_item_db_update_exception(self, mock_update_owid_services: MockServices):
         """When update_chart_data_with_retry raises -> status failed."""
@@ -505,12 +505,12 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
-        assert worker.result.failed_charts[0]["status"] == "failed"
-        assert worker.result.failed_charts[0]["error"] == "DB error"
+        assert worker.result.failed_charts[0].status == "failed"
+        assert worker.result.failed_charts[0].error == "DB error"
 
     def test_process_one_item_timespan_no_owid_variable_id(self, mock_update_owid_services: MockServices):
         """When owid_variable_id is None and chart has none -> no variable update."""
@@ -535,7 +535,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -566,12 +566,12 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_not_called()
         assert len(worker.result.skipped_charts) == 1
-        assert worker.result.skipped_charts[0]["skip_reason"] == "nothing to update"
+        assert worker.result.skipped_charts[0].skip_reason == "nothing to update"
 
 
 class TestProcess:

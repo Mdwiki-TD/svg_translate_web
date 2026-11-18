@@ -13,8 +13,6 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable
 
-from mwclient.client import Site
-
 from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
 from ....utils.new_wikitext import CategoryMerger
@@ -33,7 +31,7 @@ def get_missing_categories_list(cats_list: list[str], text: str) -> list[str]:
     return CategoryMerger().get_missing_categories_list(cats_list, text)
 
 
-class AddLangCategoriesWorker(BaseObjectsJobWorker):
+class AddLangCategoriesWorker(BaseObjectsJobWorker[AddLangCategoriesWorkerObject]):
     """Background worker that adds language categories to OWID pages.
 
     Steps per page:
@@ -51,18 +49,16 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
-
         super().__init__(data)
-        self.args = data.args or {}
+        self.limit_items = self.args.get("limit_items") or 0
+        self.files_service = FilesService()
 
-        self.result: AddLangCategoriesWorkerObject = AddLangCategoriesWorkerObject(
+    def create_result(self) -> AddLangCategoriesWorkerObject:
+        """Create and return the specific result object instance."""
+        return AddLangCategoriesWorkerObject(
             job_id=self.job_id,
             args=self.args,
         )
-
-        self.limit_items = self.args.get("limit_items") or 0
-        self.files_service = FilesService()
 
     # ------------------------------------------------------------------
     # BaseObjectsJobWorker hooks

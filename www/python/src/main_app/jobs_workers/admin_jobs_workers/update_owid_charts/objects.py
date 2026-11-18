@@ -71,10 +71,9 @@ class UpdateOwidChartsSummary:
 @dataclass
 class UpdateOwidChartsWorkerObject(StandardAdminWorkerObject):
     summary: UpdateOwidChartsSummary = field(default_factory=UpdateOwidChartsSummary)
-    updated_charts: list[dict] = field(default_factory=list)
-    skipped_charts: list[dict] = field(default_factory=list)
-    failed_charts: list[dict] = field(default_factory=list)
-
+    updated_charts: list[ChartNewInfo] = field(default_factory=list)
+    skipped_charts: list[ChartNewInfo] = field(default_factory=list)
+    failed_charts: list[ChartNewInfo] = field(default_factory=list)
     metadata_keys: set[str] = field(default_factory=set)
 
 

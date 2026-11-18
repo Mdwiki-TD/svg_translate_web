@@ -63,30 +63,34 @@ class SharedMapToJson:
         return asdict(self)
 
 
+
+@dataclass
+class OneItem(SharedMapToJson):
+    title: str = ""
+    status: STATUS_LITERAL = "pending"
+
+
 @dataclass
 class UpdaterOutcome(SharedMapToJson):
     """Result of running the updater on one page."""
-
-    status: OUTCOME_STATUS = "pending"
     title: str = ""
+    status: OUTCOME_STATUS = "pending"
     msg: str = ""
     newrevid: int = 0
     error_data: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
-class StandardAdminSummary(SharedMapToJson):
-    total: int = 0
-    processed: int = 0
-    success: int = 0
-    failed: int = 0
-    skipped: int = 0
-
-
-@dataclass
 class Summary(SharedMapToJson):
     total: int = 0
     processed: int = 0
+
+
+@dataclass
+class StandardAdminSummary(Summary):
+    success: int = 0
+    failed: int = 0
+    skipped: int = 0
 
 
 @dataclass
@@ -108,22 +112,15 @@ class WorkerMapping(SharedMapToJson):
     error: str | None = None
     error_type: str | None = None
 
-
-@dataclass
-class OneItem(SharedMapToJson):
-    title: str = ""
-    status: STATUS_LITERAL = "pending"
-
-
 @dataclass
 class SharedworkerObject(WorkerMapping):
     summary: Summary = field(default_factory=Summary)
 
-    pages_processed: list[OneItem] = field(default_factory=list)
-    pages_missing: list[OneItem] = field(default_factory=list)
-    pages_skipped: list[OneItem] = field(default_factory=list)
-    pages_updated: list[OneItem] = field(default_factory=list)
-    pages_failed: list[OneItem] = field(default_factory=list)
+    pages_processed: list[UpdaterOutcome] = field(default_factory=list)
+    pages_missing: list[UpdaterOutcome] = field(default_factory=list)
+    pages_skipped: list[UpdaterOutcome] = field(default_factory=list)
+    pages_updated: list[UpdaterOutcome] = field(default_factory=list)
+    pages_failed: list[UpdaterOutcome] = field(default_factory=list)
 
 
 @dataclass

@@ -6,8 +6,6 @@ from __future__ import annotations
 
 import logging
 
-from mwclient.client import Site
-
 from ....api_services import MediaWikiQueryService, MwClientPage
 from ....data import get_slug_categories
 from ....database.models import TemplateRecord
@@ -21,7 +19,7 @@ from .owid_template_converter import create_new_text
 logger = logging.getLogger(__name__)
 
 
-class CreateOwidPagesWorker(BaseObjectsJobWorker):
+class CreateOwidPagesWorker(BaseObjectsJobWorker[CreateOwidPagesWorkerObject]):
     """
     Worker for create_owid_pages.
     Steps:
@@ -37,18 +35,16 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
-
         super().__init__(data)
-        self.args = data.args or {}
+        self.limit_items = self.args.get("limit_items") or 0
+        self.update_all = str(self.args.get("update_all", "")).lower() == "true"
 
-        self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject(
+    def create_result(self) -> CreateOwidPagesWorkerObject:
+        """Create and return the specific result object instance."""
+        return CreateOwidPagesWorkerObject(
             job_id=self.job_id,
             args=self.args,
         )
-
-        self.limit_items = self.args.get("limit_items") or 0
-        self.update_all = str(self.args.get("update_all", "")).lower() == "true"
 
     def process(self) -> CreateOwidPagesWorkerObject:
 

@@ -9,8 +9,6 @@ import logging
 import re
 from pathlib import Path
 
-from mwclient.client import Site
-
 from ....api_services.files_service import DownloadAndSaveData, FilesService
 from ....services.copysvg_wrapper import (
     ExtractResult,
@@ -31,7 +29,7 @@ from .objects import (
 logger = logging.getLogger(__name__)
 
 
-class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
+class ExtractFilesTranslationsWorker(BaseObjectsJobWorker[ExtractFilesTranslationsObject]):
     """
     Worker for copying SVG translations from a main file to its versions.
     """
@@ -43,26 +41,25 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        args = data.args or {}
-
-        self.result: ExtractFilesTranslationsObject = ExtractFilesTranslationsObject(
-            job_id=self.job_id,
-            args=args,
-        )
-
-        self.title = args["title"].strip() if args.get("title") else None
+        self.title = self.args["title"].strip() if self.args.get("title") else None
 
         self.output_dir = self._compute_output_dir(self.title)
         self.output_dir_files = (self.output_dir / "files") if self.output_dir else None
 
         self.overwrite_download = True
-        self.site: Site | None = None
         self.text: str = ""
         self.titles: list[str] = []
         self.files_service = FilesService()
         self.mapping: TranslationMapping = TranslationMapping()
 
         self.svg_data_path = Path(self.app_settings.paths.svg_data)
+
+    def create_result(self) -> ExtractFilesTranslationsObject:
+        """Create and return the specific result object instance."""
+        return ExtractFilesTranslationsObject(
+            job_id=self.job_id,
+            args=self.args,
+        )
 
     def _compute_output_dir(self, title: str | None) -> None | Path:
         if not title:

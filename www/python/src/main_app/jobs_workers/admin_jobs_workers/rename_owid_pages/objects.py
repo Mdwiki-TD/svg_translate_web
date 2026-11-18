@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Literal
 
-from ...shared_objects import StandardAdminWorkerObject
+from ...shared_objects import SharedMapToJson, StandardAdminWorkerObject
 
 STATUS_LIST3 = Literal[
     "failed",
@@ -20,7 +20,7 @@ STATUS_LIST3 = Literal[
 
 
 @dataclass
-class RenameInfo:
+class RenameInfo(SharedMapToJson):
     """Holds the outcome of attempting to rename a single page."""
 
     namespace: int
@@ -28,22 +28,43 @@ class RenameInfo:
     new_title: str | None = None
     newrevid: int | None = None
     status: STATUS_LIST3 = "pending"
+    full_prefix: str = ""
     msg: str = ""
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "namespace": self.namespace,
-            "old_title": self.old_title,
-            "new_title": self.new_title,
-            "status": self.status,
-            "msg": self.msg,
-            "timestamp": self.timestamp,
-        }
+    def make_new_title(self) -> str:
+        if not self.old_title.startswith(self.full_prefix):
+            return self.old_title
+
+        rest = self.old_title[len(self.full_prefix) :]
+        if not rest:
+            return self.old_title
+
+        first = rest[0]
+
+        if first.isalpha() and first.islower():
+            return self.full_prefix + first.upper() + rest[1:]
+
+        return self.old_title
+
+    def needs_rename(self) -> bool:
+        """
+        Decide whether *title* needs a rename.
+
+        Only the first character after ``full_prefix`` is changed; everything
+        else (including spaces / underscores) is preserved as-is.
+        """
+        new = self.make_new_title()
+
+        if new != self.old_title:
+            self.new_title = new
+            return True
+
+        return False
 
 
 @dataclass
-class RenameOwidPagesSummary:
+class RenameOwidPagesSummary(SharedMapToJson):
     total: int = 0
     processed: int = 0
     checked: int = 0

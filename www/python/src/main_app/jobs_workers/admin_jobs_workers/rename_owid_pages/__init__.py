@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from .worker import RenameOwidPagesWorker, needs_rename
+from .worker import RenameOwidPagesWorker
 
 __all__ = [
     "RenameOwidPagesWorker",
-    "needs_rename",
 ]

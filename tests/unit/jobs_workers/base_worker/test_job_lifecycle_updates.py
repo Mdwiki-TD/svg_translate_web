@@ -8,10 +8,10 @@ from src.main_app.database.services.jobs_service import JobsService
 from src.main_app.extensions import db
 from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker
 from src.main_app.jobs_workers.objects import JobsRunner
-from src.main_app.jobs_workers.shared_objects import WorkerMapping
+from src.main_app.jobs_workers.shared_objects import SharedworkerObject
 
 
-class MockWorker(BaseObjectsJobWorker):
+class MockWorker(BaseObjectsJobWorker[SharedworkerObject]):
     JOB_TYPE = "mock_job"
 
     def __init__(self, job_id: int, job_type_name: str = "mock_job") -> None:
@@ -21,9 +21,7 @@ class MockWorker(BaseObjectsJobWorker):
 
         super().__init__(JobsRunner(job_id=job_id, user={}))
 
-        self.result: WorkerMapping = WorkerMapping()
-
-    def process(self) -> WorkerMapping:
+    def process(self) -> SharedworkerObject:
         return self.result
 
 

@@ -9,8 +9,6 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from mwclient.client import Site
-
 from ....api_services import FilesService, UploadService
 from ....database.services import TemplateService
 from ....services.copysvg_wrapper import NestedStructureService
@@ -21,7 +19,7 @@ from .objects import FixNestedMainFilesWorkerObject, TitleInfo
 logger = logging.getLogger(__name__)
 
 
-class FixNestedMainFilesWorker(BaseObjectsJobWorker):
+class FixNestedMainFilesWorker(BaseObjectsJobWorker[FixNestedMainFilesWorkerObject]):
     """Worker for fixing nested tags in main files of templates."""
 
     JOB_TYPE = "fix_nested_main_files"
@@ -31,17 +29,17 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.args = data.args or {}
-
-        self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject(
-            job_id=self.job_id,
-            args=self.args,
-        )
-        self.site: Site | None = None
         self.files_service = FilesService()
         self.upload_service = UploadService(self.site)
         self.fix_nested_processer = NestedStructureService(
             strategy="flatten",
+        )
+
+    def create_result(self) -> FixNestedMainFilesWorkerObject:
+        """Create and return the specific result object instance."""
+        return FixNestedMainFilesWorkerObject(
+            job_id=self.job_id,
+            args=self.args,
         )
 
     def _process_one_item(self, template_info: TitleInfo) -> bool:
