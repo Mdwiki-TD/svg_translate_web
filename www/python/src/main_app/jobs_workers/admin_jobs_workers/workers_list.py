@@ -36,8 +36,7 @@ jobs_data_admins = {
         job_class=CollectMainFilesWorker,
         job_args=[],
         start_confirm_message=(
-            "This will start a background job to collect templates data for all"
-            " templates that don't have one. Continue?"
+            "This will start a background job to collect templates data for all templates that don't have one. Continue?"
         ),
         description="""""",
     ),
@@ -72,8 +71,7 @@ jobs_data_admins = {
             {"key": "upload_jobs_files", "as": "upload_files"},
         ],
         start_confirm_message=(
-            "This will start a background job to crop newest world files and"
-            " upload them with '(cropped)' suffix. Continue?"
+            "This will start a background job to crop newest world files and upload them with '(cropped)' suffix. Continue?"
         ),
         description=(
             "This job crops main SVG files and uploads them with new names"
