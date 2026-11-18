@@ -279,20 +279,23 @@ class TranslateSaveView(MethodView):
 
         if upload_res.ok:
             commons_link = f"https://commons.wikimedia.org/wiki/File:{filename}"
-            flash(
-                f"Successfully uploaded to <a href='{commons_link}' target='_blank' rel='noopener noreferrer'>Wikimedia Commons</a>!",
-                "success",
-            )
+            msg = f"""
+                Successfully uploaded to <a href='{commons_link}' target='_blank' rel='noopener noreferrer'>
+                Wikimedia Commons
+                </a>!"""
+            flash(msg, "success")
+
             return redirect(url_for("translate.dashboard"))
-        elif upload_res.error == "skipped" or upload_res.msg == "File already exists with same content":
+
+        if upload_res.error == "skipped" or upload_res.msg == "File already exists with same content":
             flash("No translation changes detected or file already exists with identical content.", "warning")
             return redirect(url_for("translate.dashboard"))
-        else:
-            flash(
-                f"Failed to upload file: {upload_res.error or 'unknown'} - {upload_res.error_details or ''}",
-                "danger",
-            )
-            return redirect(url_for("translate.dashboard"))
+
+        flash(
+            f"Failed to upload file: {upload_res.error or 'unknown'} - {upload_res.error_details or ''}",
+            "danger",
+        )
+        return redirect(url_for("translate.dashboard"))
 
 
 class TranslateView:

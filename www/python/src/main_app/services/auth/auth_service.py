@@ -109,12 +109,11 @@ class OAuthService:
             "email_verified": true, "confirmed_email": true,
             "blocked": false,
             "registered": "20110101133631",
-            "groups": [ "autopatrolled", "*", "user", "autoconfirmed" ],
-            "rights": [ "read", "edit" ],
-            "grants": [ "basic", "editpage", "createeditmovepage", "uploadfile", "uploadeditmovefile", "editmywatchlist" ],
+            "groups": ["autopatrolled","*","user","autoconfirmed" ],
+            "rights": ["read","edit" ],
+            "grants": ["basic","editpage","createeditmovepage","uploadfile","uploadeditmovefile","editmywatchlist"],
             "nonce": ""
         }
-
         Returns:
             dict with at least ``username`` key.
         """
