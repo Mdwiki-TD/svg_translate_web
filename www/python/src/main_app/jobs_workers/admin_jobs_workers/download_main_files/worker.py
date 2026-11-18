@@ -35,12 +35,13 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker[DownloadMainFilesWorkerObject
         self.limit_items = self.args.get("limit_items") or 0
         self.files_service = FilesService()
 
+        self.result.output_path = str(self.output_dir)
+
     def create_result(self) -> DownloadMainFilesWorkerObject:
         """Create and return the specific result object instance."""
         return DownloadMainFilesWorkerObject(
             job_id=self.job_id,
             args=self.args,
-            output_path=str(self.output_dir),
         )
 
     def _load_templates(self) -> list[TemplateRecord]:
