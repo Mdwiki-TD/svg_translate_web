@@ -6,8 +6,6 @@ from __future__ import annotations
 
 import logging
 
-from mwclient.client import Site
-
 from ....api_services import MwClientPage
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
@@ -36,10 +34,7 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
         super().__init__(data)
-        self.args = data.args or {}
-
         self.result: AddSvgLanguagesWorkerObject = AddSvgLanguagesWorkerObject(
             job_id=self.job_id,
             args=self.args,

@@ -6,8 +6,6 @@ from __future__ import annotations
 
 import logging
 
-from mwclient.client import Site
-
 from ....api_services import MwClientPage
 from ....database.services import ChartsAndTemplatesService, TemplateService
 from ....utils.new_wikitext import SvgFilesCollector
@@ -35,11 +33,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
-
         super().__init__(data)
-        self.args = data.args or {}
-
         self.result: UpdateFilesWikiTextObject = UpdateFilesWikiTextObject(
             job_id=self.job_id,
             args=self.args,

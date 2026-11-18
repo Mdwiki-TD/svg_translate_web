@@ -92,8 +92,6 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.args = data.args or {}
-
         self.result: UpdateOwidChartsWorkerObject = UpdateOwidChartsWorkerObject(
             job_id=self.job_id,
             args=self.args,

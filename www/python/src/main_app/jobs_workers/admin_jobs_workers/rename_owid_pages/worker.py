@@ -19,8 +19,6 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable
 
-from mwclient.client import Site
-
 from ....api_services import MwClientPage
 from ....database.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
@@ -66,10 +64,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker):
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
         super().__init__(data)
-        self.args = data.args or {}
-
         self.result: RenameOwidPagesWorkerObject = RenameOwidPagesWorkerObject(
             job_id=self.job_id,
             args=self.args,

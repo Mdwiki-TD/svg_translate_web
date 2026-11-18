@@ -1,4 +1,4 @@
-"""Unit tests for BaseObjectsJobWorker and WorkerMapping."""
+"""Unit tests for BaseObjectsJobWorker and SharedworkerObject."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import pytest
 from src.main_app.database.services import JobsService
 from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker
 from src.main_app.jobs_workers.objects import JobsRunner
-from src.main_app.jobs_workers.shared_objects import WorkerMapping
+from src.main_app.jobs_workers.shared_objects import SharedworkerObject
 
 
 @pytest.fixture
@@ -31,10 +31,10 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
     return mocks
 
 
-class MockWorker(BaseObjectsJobWorker):
+class MockWorker(BaseObjectsJobWorker[SharedworkerObject]):
     JOB_TYPE = "mock_job"
 
-    def process(self) -> WorkerMapping:
+    def process(self) -> SharedworkerObject:
         return self.result
 
 
@@ -69,7 +69,7 @@ def worker(seeded_job):
             user=user,
         )
     )
-    worker.result = WorkerMapping()
+    worker.result = SharedworkerObject()
     return worker
 
 
@@ -83,12 +83,12 @@ def worker_no_job():
             user=user,
         )
     )
-    worker.result = WorkerMapping()
+    worker.result = SharedworkerObject()
     return worker
 
 
 def test_worker_object_to_json():
-    obj = WorkerMapping(status="running", error="some error")
+    obj = SharedworkerObject(status="running", error="some error")
     data = obj.to_json()
     assert data["status"] == "running"
     assert data["error"] == "some error"

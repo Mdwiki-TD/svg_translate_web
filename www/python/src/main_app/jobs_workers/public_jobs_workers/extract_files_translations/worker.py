@@ -9,8 +9,6 @@ import logging
 import re
 from pathlib import Path
 
-from mwclient.client import Site
-
 from ....api_services.files_service import DownloadAndSaveData, FilesService
 from ....services.copysvg_wrapper import (
     ExtractResult,
@@ -43,20 +41,17 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        args = data.args or {}
-
         self.result: ExtractFilesTranslationsObject = ExtractFilesTranslationsObject(
             job_id=self.job_id,
-            args=args,
+            args=self.args,
         )
 
-        self.title = args["title"].strip() if args.get("title") else None
+        self.title = self.args["title"].strip() if self.args.get("title") else None
 
         self.output_dir = self._compute_output_dir(self.title)
         self.output_dir_files = (self.output_dir / "files") if self.output_dir else None
 
         self.overwrite_download = True
-        self.site: Site | None = None
         self.text: str = ""
         self.titles: list[str] = []
         self.files_service = FilesService()

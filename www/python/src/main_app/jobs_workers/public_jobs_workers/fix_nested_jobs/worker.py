@@ -8,8 +8,6 @@ import logging
 import tempfile
 from pathlib import Path
 
-from mwclient.client import Site
-
 from ....api_services import FilesService
 from ....api_services.files_service import UploadService
 from ....services.copysvg_wrapper import NestedStructureService
@@ -32,8 +30,6 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.args = data.args or {}
-
         self.result: FixNestedJobsWorkerObject = FixNestedJobsWorkerObject(
             job_id=self.job_id,
             args=self.args,
@@ -42,7 +38,6 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker):
         self.upload_limit = self.args.get("upload_limit") or 0
 
         self.filename = self.args.get("filename")
-        self.site: Site | None = None
         self.file_path: Path | None = None
         self.files_service = FilesService()
         self.upload_service = UploadService(self.site)

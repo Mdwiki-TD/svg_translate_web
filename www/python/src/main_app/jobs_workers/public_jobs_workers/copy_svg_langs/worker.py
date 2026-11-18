@@ -7,8 +7,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from mwclient.client import Site
-
 from ....api_services.files_service import FilesService
 from ....services.copysvg_wrapper import (
     ExtractResult,
@@ -39,18 +37,15 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        args = data.args or {}
-
         self.result: CopySvgLangsWorkerObject = CopySvgLangsWorkerObject(
             job_id=self.job_id,
-            args=args,
+            args=self.args,
         )
 
-        self.title = args["title"].strip() if args.get("title") else ""
-        self.manual_main_title = args["manual_main_title"].strip() if args.get("manual_main_title") else None
+        self.title = self.args["title"].strip() if self.args.get("title") else ""
+        self.manual_main_title = self.args["manual_main_title"].strip() if self.args.get("manual_main_title") else None
 
-        self.config = self._load_config(args)
-        self.site: Site | None = None
+        self.config = self._load_config(self.args)
         self.text: str = ""
         self.main_title: str = ""
         self.titles: list[str] = []

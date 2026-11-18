@@ -265,21 +265,18 @@ class OneFileProcessor:
 
 
 class CollectMainFilesWorker(BaseObjectsJobWorker):
-    JOB_TYPE = "collect_templates_data"
     """Worker for collecting main files for templates."""
+
+    JOB_TYPE = "collect_templates_data"
 
     def __init__(
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
-
         super().__init__(data)
-
-        self.args = data.args or {}
         self.result: CollectTemplatesDataMapping = CollectTemplatesDataMapping(
             job_id=self.job_id,
-            args=self.args,  # pyright: ignore[reportCallIssue]
+            args=self.args,
         )
 
         self.template_service = TemplateService()

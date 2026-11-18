@@ -13,8 +13,6 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable
 
-from mwclient.client import Site
-
 from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
 from ....utils.new_wikitext import CategoryMerger
@@ -51,11 +49,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker):
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
-
         super().__init__(data)
-        self.args = data.args or {}
-
         self.result: AddLangCategoriesWorkerObject = AddLangCategoriesWorkerObject(
             job_id=self.job_id,
             args=self.args,

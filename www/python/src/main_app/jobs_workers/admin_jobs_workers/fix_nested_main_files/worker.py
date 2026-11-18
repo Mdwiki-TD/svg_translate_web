@@ -9,8 +9,6 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from mwclient.client import Site
-
 from ....api_services import FilesService, UploadService
 from ....database.services import TemplateService
 from ....services.copysvg_wrapper import NestedStructureService
@@ -31,13 +29,10 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
         data: JobsRunner,
     ) -> None:
         super().__init__(data)
-        self.args = data.args or {}
-
         self.result: FixNestedMainFilesWorkerObject = FixNestedMainFilesWorkerObject(
             job_id=self.job_id,
             args=self.args,
         )
-        self.site: Site | None = None
         self.files_service = FilesService()
         self.upload_service = UploadService(self.site)
         self.fix_nested_processer = NestedStructureService(

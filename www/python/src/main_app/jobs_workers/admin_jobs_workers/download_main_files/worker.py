@@ -30,9 +30,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker):
         output_dir: Path | None = None,
     ) -> None:
         super().__init__(data)
-
         self.output_dir = output_dir or Path(self.app_settings.paths.main_files_path)
-        self.args = data.args or {}
 
         self.result: DownloadMainFilesWorkerObject = DownloadMainFilesWorkerObject(
             job_id=self.job_id,

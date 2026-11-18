@@ -7,8 +7,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from mwclient.client import Site
-
 from ....api_services import MediaWikiQueryService
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
@@ -40,10 +38,7 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
         super().__init__(data)
-
-        self.args = data.args or {}
         self.result: CropMainFilesWorkerObject = CropMainFilesWorkerObject(
             job_id=self.job_id,
             args=self.args,

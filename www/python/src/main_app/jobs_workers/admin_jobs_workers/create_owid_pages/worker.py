@@ -6,8 +6,6 @@ from __future__ import annotations
 
 import logging
 
-from mwclient.client import Site
-
 from ....api_services import MediaWikiQueryService, MwClientPage
 from ....data import get_slug_categories
 from ....database.models import TemplateRecord
@@ -37,11 +35,7 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
         self,
         data: JobsRunner,
     ) -> None:
-        self.site: Site | None = None
-
         super().__init__(data)
-        self.args = data.args or {}
-
         self.result: CreateOwidPagesWorkerObject = CreateOwidPagesWorkerObject(
             job_id=self.job_id,
             args=self.args,
