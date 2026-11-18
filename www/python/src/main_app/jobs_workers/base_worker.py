@@ -296,7 +296,6 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
 
     def update_status(self, info: UpdaterOutcome) -> None:
         self.result.summary.processed += 1
-
         if info.status in ["pending", "running"]:
             info.status = "completed"
 
