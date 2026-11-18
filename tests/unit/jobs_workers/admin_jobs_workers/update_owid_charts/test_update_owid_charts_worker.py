@@ -244,11 +244,11 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
-        assert worker.result.failed_charts[0]["status"] == "failed"
+        assert worker.result.failed_charts[0].status == "failed"
         assert worker.result.failed_charts[0]["error"] == "Chart not found"
         assert worker.result.failed_charts[0]["slug"] == "test-chart"
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -275,7 +275,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
@@ -305,7 +305,7 @@ class TestProcessChart:
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
 
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.skipped_charts) == 1
@@ -384,7 +384,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -415,7 +415,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
@@ -444,7 +444,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -475,7 +475,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.skipped_charts) == 1
@@ -505,7 +505,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         assert len(worker.result.failed_charts) == 1
@@ -535,7 +535,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is True
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_called_once_with(
@@ -566,7 +566,7 @@ class TestProcessChart:
 
         info = ChartNewInfo.from_chart(chart)
         result = worker._process_one_item(chart, info)
-        worker.update_status(chart.slug, info)
+        worker.update_status(info)
 
         assert result is False
         mock_update_owid_services.owid_charts_service.update_chart_data_with_retry.assert_not_called()

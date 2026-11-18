@@ -75,18 +75,16 @@ class UpdaterOutcome(SharedMapToJson):
 
 
 @dataclass
-class StandardAdminSummary(SharedMapToJson):
-    total: int = 0
-    processed: int = 0
-    success: int = 0
-    failed: int = 0
-    skipped: int = 0
-
-
-@dataclass
 class Summary(SharedMapToJson):
     total: int = 0
     processed: int = 0
+
+
+@dataclass
+class StandardAdminSummary(Summary):
+    success: int = 0
+    failed: int = 0
+    skipped: int = 0
 
 
 @dataclass
