@@ -12,7 +12,7 @@ from .update_wikitext import UpdateFilesWikiTextWorker
 
 jobs_data_admins = {
     "update_wikitext": JobData(
-        job_type="update_wikitext",
+        job_type=UpdateFilesWikiTextWorker.JOB_TYPE,
         job_name="Update Files Wikitext",
         job_details_template="jobs_templates/admin_templates/update_wikitext/details.html",
         job_list_template="jobs_templates/admin_templates/update_wikitext/list.html",
@@ -25,7 +25,7 @@ jobs_data_admins = {
     ),
     # DB Jobs
     "collect_templates_data": JobData(
-        job_type="collect_templates_data",
+        job_type=CollectMainFilesWorker.JOB_TYPE,
         job_name="Collect Templates data",
         job_details_template="jobs_templates/admin_templates/collect_templates_data/details.html",
         job_list_template="jobs_templates/admin_templates/collect_templates_data/list.html",
@@ -35,7 +35,7 @@ jobs_data_admins = {
         description="""""",
     ),
     "update_owid_charts": JobData(
-        job_type="update_owid_charts",
+        job_type=UpdateOwidChartsWorker.JOB_TYPE,
         job_name="Update OWID Charts",
         job_details_template="jobs_templates/admin_templates/update_owid_charts/details.html",
         job_class=UpdateOwidChartsWorker,
@@ -47,7 +47,7 @@ jobs_data_admins = {
     ),
     # Files Jobs (jobs makes edit or upload in commons)
     "crop_main_files": JobData(
-        job_type="crop_main_files",
+        job_type=CropMainFilesWorker.JOB_TYPE,
         job_name="Crop Newest World Files",
         job_details_template="jobs_templates/admin_templates/crop_main_files/details.html",
         job_class=CropMainFilesWorker,
@@ -59,7 +59,7 @@ jobs_data_admins = {
         description="This job crops main SVG files and uploads them with new names like: <code>File:Example.svg</code> → <code>File:Example (cropped).svg</code>",
     ),
     "fix_nested_main_files": JobData(
-        job_type="fix_nested_main_files",
+        job_type=FixNestedMainFilesWorker.JOB_TYPE,
         job_name="Fix Nested Main Files",
         job_details_template="jobs_templates/admin_templates/fix_nested_main_files/details.html",
         job_class=FixNestedMainFilesWorker,
@@ -71,7 +71,7 @@ jobs_data_admins = {
     ),
     # OWID Templates/Pages
     "create_owid_pages": JobData(
-        job_type="create_owid_pages",
+        job_type=CreateOwidPagesWorker.JOB_TYPE,
         job_name="Create OWID Pages",
         job_details_template="jobs_templates/admin_templates/create_owid_pages/details.html",
         job_list_template="jobs_templates/admin_templates/create_owid_pages/list.html",
@@ -83,7 +83,7 @@ jobs_data_admins = {
         description=""" This job reads OWID template pages and generates corresponding showcase pages: <br> <code>Template:OWID/Some map</code> → <code>OWID/Some map</code>""",
     ),
     "rename_owid_pages": JobData(
-        job_type="rename_owid_pages",
+        job_type=RenameOwidPagesWorker.JOB_TYPE,
         job_name="Rename OWID Pages",
         job_details_template="jobs_templates/admin_templates/rename_owid_pages/details.html",
         job_list_template="jobs_templates/admin_templates/rename_owid_pages/list.html",
@@ -93,7 +93,7 @@ jobs_data_admins = {
         description="""""",
     ),
     "add_svglanguages_template": JobData(
-        job_type="add_svglanguages_template",
+        job_type=AddSvgSVGLanguagesTemplate.JOB_TYPE,
         job_name="Add {{SVGLanguages}}",
         job_details_template="jobs_templates/admin_templates/add_svglanguages_template/details.html",
         job_class=AddSvgSVGLanguagesTemplate,
@@ -104,7 +104,7 @@ jobs_data_admins = {
         description="""This job add Template:SVGLanguages to OWID templates""",
     ),
     "add_lang_categories_to_owid_pages": JobData(
-        job_type="add_lang_categories_to_owid_pages",
+        job_type=AddLangCategoriesWorker.JOB_TYPE,
         job_name="Add Language Categories",
         job_details_template="jobs_templates/admin_templates/add_lang_categories_to_owid_pages/details.html",
         job_class=AddLangCategoriesWorker,
@@ -115,7 +115,7 @@ jobs_data_admins = {
         description="""This job adds language categories to OWID pages (e.g. <code>[[Category:English-language SVG]]</code>)<br>based on the available SVG translations detected via the Commons file metadata API.""",
     ),
     "download_main_files": JobData(
-        job_type="download_main_files",
+        job_type=DownloadMainFilesWorker.JOB_TYPE,
         job_name="Download Main Files",
         job_details_template="jobs_templates/admin_templates/download_main_files/details.html",
         job_list_template="jobs_templates/admin_templates/download_main_files/list.html",
