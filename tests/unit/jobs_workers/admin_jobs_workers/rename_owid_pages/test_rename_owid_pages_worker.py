@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import threading
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -39,6 +38,7 @@ def _make_mwclient_page_mock(*, exists: bool = True, is_redirect: bool = False) 
     mock_page.title = "Test_Page"
     return mock_page
 
+
 @pytest.fixture
 def mock_mw_client_cls():
     _mock = MagicMock(name="MwClientPage_class")
@@ -46,6 +46,7 @@ def mock_mw_client_cls():
     _mock.load.return_value = _mock
 
     return _mock
+
 
 @pytest.fixture
 def mock_worker(
@@ -61,6 +62,7 @@ def mock_worker(
         template_service=mock_template_service,
         mw_client_cls=mock_mw_client_cls,
     )
+
 
 # ── tests: RenameOwidPagesWorker.__init__ ─────────────────────────────────────
 
@@ -129,6 +131,7 @@ class TestRenameOne:
 
         # Attach side_effect to .load instead of the class mock directly
         self._mock_page_cls.load.side_effect = [self._mock_new_page, self._mock_old_page]
+
     # ── branch: new_title does NOT exist → move ──────────────────────────
 
     def test_move_success(self, mock_worker: RenameOwidPagesWorker) -> None:

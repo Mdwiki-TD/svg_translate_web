@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Literal
 
-from ...shared_objects import StandardAdminWorkerObject, SharedMapToJson
+from ...shared_objects import SharedMapToJson, StandardAdminWorkerObject
 
 STATUS_LIST3 = Literal[
     "failed",
@@ -18,9 +18,11 @@ STATUS_LIST3 = Literal[
     "skipped_target_exists",
 ]
 
+
 @dataclass
 class RenameInfo(SharedMapToJson):
     """Holds the outcome of attempting to rename a single page."""
+
     namespace: int
     old_title: str
     new_title: str | None = None
@@ -70,6 +72,7 @@ class RenameOwidPagesSummary(SharedMapToJson):
     skipped_target_exists: int = 0
     redirected: int = 0
     failed: int = 0
+
 
 @dataclass
 class RenameOwidPagesWorkerObject(StandardAdminWorkerObject):

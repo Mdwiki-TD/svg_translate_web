@@ -18,8 +18,10 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable
+
 import mwclient
 import mwclient.page
+
 from ....api_services import MwClientPage
 from ....database.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
@@ -35,6 +37,7 @@ PREFIXES: tuple[tuple[int, str, str], ...] = (
 )
 
 MOVE_REASON = "Capitalize first letter of OWID subpage name"
+
 
 class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
     """Background worker that capitalizes OWID subpage names."""

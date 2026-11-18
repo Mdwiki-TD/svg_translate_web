@@ -8,7 +8,7 @@ from typing import Any
 
 from CopySVGTranslation import SVGTranslationService, TranslationConfig  # type: ignore
 from CopySVGTranslation.exceptions import CopySVGTranslationError  # type: ignore
-from lxml import etree # pyright: ignore[reportAttributeAccessIssue]
+from lxml import etree  # pyright: ignore[reportAttributeAccessIssue]
 
 from .mapping import (
     InjectorData,
