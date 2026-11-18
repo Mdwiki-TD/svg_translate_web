@@ -26,7 +26,10 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker):
 
     JOB_TYPE = "fix_nested_main_files"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         super().__init__(data)
         self.args = data.args or {}
 

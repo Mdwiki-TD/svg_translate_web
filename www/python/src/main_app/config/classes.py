@@ -380,7 +380,8 @@ def get_settings() -> Settings:
     """
     Assemble and return the application's Settings populated from environment variables.
 
-    Reads and validates required environment variables, builds cookie, OAuth, path, and database configurations, and returns a consolidated Settings instance.
+    Reads and validates required environment variables, builds cookie, OAuth, path, and database configurations,
+    and returns a consolidated Settings instance.
 
     Returns:
         Settings: The populated application settings.

@@ -8,7 +8,7 @@ import logging
 from collections.abc import Iterable, Sequence
 from typing import Any, TypeVar
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, inspect, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -273,15 +273,6 @@ class CRUDService[ModelT]:
             # constraint on `fields`) -> re-raise the original error rather than masking it.
             raise
 
-    def bulk_create(self, items: Iterable[dict[str, Any]]) -> Sequence[ModelT]:
-        instances = [self.model(**fields) for fields in items]
-        self.session.add_all(instances)
-        try:
-            self.commit_or_rollback()
-        except Exception as exc:
-            logger.error("Error bulk creating %s: %s", self.model_name, exc)
-        return instances
-
     def delete(self, pk: PKT) -> bool:  # pyright: ignore[reportInvalidTypeVarUse]
         """Delete a record by primary key.
 
@@ -307,6 +298,64 @@ class CRUDService[ModelT]:
         except Exception as e:
             logger.error(f"Error deleting {self.model_name} {e}")
             return False
+
+    # ------------------------------------------------------------------ #
+    # bulk insert/update
+    # ------------------------------------------------------------------ #
+
+    def bulk_create(self, items: Iterable[dict[str, Any]]) -> Sequence[ModelT]:
+        instances = [self.model(**fields) for fields in items]
+        try:
+            self.session.add_all(instances)
+            self.commit_or_rollback()
+        except Exception as exc:
+            logger.error("Error bulk creating %s: %s", self.model_name, exc)
+            raise
+        return instances
+
+    def bulk_update(self, items: Iterable[dict[str, Any]], *, commit: bool = True) -> int:
+        """Update many rows by primary key in a single executemany call.
+
+        Each item must contain the primary key attribute(s) of the model plus the
+        columns to change, e.g. ``[{"id": 1, "status": "done"}, {"id": 2, "status": "failed"}]``.
+        Items may update different columns; they are grouped by SQLAlchemy.
+
+        Args:
+            items: Mappings of primary key + new values.
+            commit: Commit after the update. Pass False to let the caller control the transaction.
+
+        Returns:
+            The number of items submitted for update.
+
+        Raises:
+            ValueError: If an item is missing a primary key attribute or has nothing to update.
+        """
+        rows = list(items)
+        if not rows:
+            return 0
+
+        mapper = inspect(self.model)
+        pk_names = [mapper.get_property_by_column(col).key for col in mapper.primary_key]  # pyright: ignore[reportOptionalMemberAccess]
+
+        for row in rows:
+            missing = [name for name in pk_names if name not in row]
+            if missing:
+                raise ValueError(f"bulk_update: item is missing primary key field(s) {missing}: {row}")
+
+            if len(row) == len(pk_names):
+                raise ValueError(f"bulk_update: item has no fields to update: {row}")
+
+        try:
+            # ORM bulk UPDATE by primary key (SQLAlchemy 2.0)
+            self.session.execute(update(self.model), rows)
+            if commit:
+                self.session.commit()
+        except Exception as exc:
+            self.session.rollback()
+            logger.error("Error bulk updating %s: %s", self.model_name, exc)
+            raise
+
+        return len(rows)
 
     # ------------------------------------------------------------------ #
     # or 404

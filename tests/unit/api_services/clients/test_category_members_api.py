@@ -1,6 +1,5 @@
-"""Unit tests for src/main_app/api_services/category.py module.
-
-Functions to test: get_category_members
+"""
+Unit tests for category.py module.
 """
 
 from __future__ import annotations
@@ -9,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import mwclient.errors
 import pytest
-from src.main_app.api_services.category import get_category_members
+from src.main_app.api_services.clients.category_members_api import CategoryMembersService
 
 # ── Helpers ────────────────────────────────────────────────────────────────────────────
 
@@ -24,7 +23,7 @@ def _make_page(name: str) -> MagicMock:
 
 
 class TestGetCategoryMembers:
-    """Tests for get_category_members()."""
+    """Tests for CategoryMembersService.get_category_members."""
 
     @staticmethod
     def _setup_pages(mock_site: MagicMock, category: MagicMock) -> None:
@@ -42,7 +41,7 @@ class TestGetCategoryMembers:
         category.members.return_value = members_iter
         self._setup_pages(mock_site, category)
 
-        result = get_category_members(mock_site, "Category:Test cat")
+        result = CategoryMembersService(mock_site).get_category_members(category_title="Category:Test cat")
 
         assert result == expected
         category.members.assert_called_once_with(
@@ -65,7 +64,7 @@ class TestGetCategoryMembers:
         category.members.return_value = members_iter
         self._setup_pages(mock_site, category)
 
-        result = get_category_members(mock_site, "Category:Mixed")
+        result = CategoryMembersService(mock_site).get_category_members(category_title="Category:Mixed")
 
         assert result == ["File:StrA.svg", "File:ObjA.svg", "File:ObjB.svg"]
 
@@ -79,7 +78,7 @@ class TestGetCategoryMembers:
         )
         self._setup_pages(mock_site, category)
 
-        result = get_category_members(mock_site, "Category:Broken")
+        result = CategoryMembersService(mock_site).get_category_members(category_title="Category:Broken")
 
         assert result == []
         assert "cat-member-fetch-failed" in caplog.text
@@ -91,7 +90,7 @@ class TestGetCategoryMembers:
         pages.__getitem__.side_effect = KeyError("Category:Missing")
         mock_site.pages = pages
 
-        result = get_category_members(mock_site, "Category:Missing")
+        result = CategoryMembersService(mock_site).get_category_members(category_title="Category:Missing")
 
         assert result == []
         assert "Key error" in caplog.text
@@ -104,7 +103,7 @@ class TestGetCategoryMembers:
         self._setup_pages(mock_site, category)
 
         with caplog.at_level("DEBUG"):
-            get_category_members(mock_site, "Category:Empty")
+            CategoryMembersService(mock_site).get_category_members(category_title="Category:Empty")
 
         assert "load category members for Category:Empty" in caplog.text
 
@@ -114,7 +113,7 @@ class TestGetCategoryMembers:
         category.members.return_value = iter([])
         self._setup_pages(mock_site, category)
 
-        get_category_members(mock_site, "Category:NS14", namespace=14, limit=100)
+        CategoryMembersService(mock_site).get_category_members(category_title="Category:NS14", namespace=14, limit=100)
 
         category.members.assert_called_once_with(
             prop="ids|title",
@@ -132,11 +131,11 @@ class TestGetCategoryMembers:
         category.members.return_value = iter([])
         self._setup_pages(mock_site, category)
 
-        result = get_category_members(mock_site, "Category:Empty")
+        result = CategoryMembersService(mock_site).get_category_members(category_title="Category:Empty")
 
         assert result == []
 
-    @patch("src.main_app.api_services.category.logger")
+    @patch("src.main_app.api_services.clients.category_members_api.logger")
     def test_logger_exception_on_api_error(self, mock_logger: MagicMock, mock_site: MagicMock):
         """APIError triggers logger.warning with the error info."""
         category = MagicMock()
@@ -147,21 +146,21 @@ class TestGetCategoryMembers:
         )
         self._setup_pages(mock_site, category)
 
-        result = get_category_members(mock_site, "Category:Err")
+        result = CategoryMembersService(mock_site).get_category_members(category_title="Category:Err")
 
         assert result == []
         mock_logger.warning.assert_called_once()
         args, _ = mock_logger.warning.call_args
         assert "api-error-code" in args[0]
 
-    @patch("src.main_app.api_services.category.logger")
+    @patch("src.main_app.api_services.clients.category_members_api.logger")
     def test_logger_exception_on_key_error(self, mock_logger: MagicMock, mock_site: MagicMock):
         """KeyError triggers logger.warning with the error message."""
         pages = MagicMock()
         pages.__getitem__.side_effect = KeyError("bogus-key")
         mock_site.pages = pages
 
-        result = get_category_members(mock_site, "Category:NoKey")
+        result = CategoryMembersService(mock_site).get_category_members(category_title="Category:NoKey")
 
         assert result == []
         mock_logger.warning.assert_called_once()

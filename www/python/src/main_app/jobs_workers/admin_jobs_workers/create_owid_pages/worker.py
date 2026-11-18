@@ -8,7 +8,7 @@ import logging
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, is_pages_exists
+from ....api_services import MediaWikiQueryService, MwClientPage
 from ....data import get_slug_categories
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
@@ -33,7 +33,10 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
     JOB_TYPE = "create_owid_pages"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.site: Site | None = None
 
         super().__init__(data)
@@ -95,9 +98,10 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
     # Initialisation helpers
     # ------------------------------------------------------------------
 
-    def filter_created(self, templates) -> list[TemplateRecord]:
+    def filter_created(self, templates: list[TemplateRecord]) -> list[TemplateRecord]:
         owid_pages = [t.title.removeprefix("Template:") for t in templates]
-        pages_created = is_pages_exists(owid_pages, self.site)
+        wiki_query_service = MediaWikiQueryService(self.site)
+        pages_created = wiki_query_service.is_pages_exists(owid_pages)
 
         # Optimize: use set for O(1) membership lookups instead of list scan (O(N*M) -> O(N+M))
         already_created = {x for x, v in pages_created.items() if v is True}

@@ -1,27 +1,28 @@
-"""Generic utilities for adding/updating templates inside the ``other versions``
+"""Utilities for adding/updating templates inside the ``other versions``
 parameter of a main template (e.g. ``{{Information}}``) in wikitext."""
 
 from __future__ import annotations
 
 import logging
 from collections.abc import Callable
+from typing import Literal
 
 import wikitextparser as wtp
 
+from ...parsers.template_editor import TemplateEditor
+
 logger = logging.getLogger(__name__)
+
+SVG_LANG_TEMPLATE = "Svg lang"
 
 
 class OtherVersionsUpdater:
-    """Adds or updates templates inside the "other versions" parameter.
+    """Applies :class:`TemplateEditor` operations to the "other versions" parameter.
 
-    Two generic operations are supported, and new template types can be
-    supported by adding a thin method on top of them:
-
-    * :meth:`merge_values`: a template whose positional parameters are a
-      list of values (``{{Svg lang|ar|de|fr}}``). New values are merged into
-      the existing template instead of adding a second one.
-    * :meth:`add_template`: a single-instance template with ``1=`` value
-      (``{{Extracted from|1=File.svg}}``). Skipped if already present.
+    This class only knows *where* to work: it finds the parameter of the main
+    template, hands its value to the editor, and writes the result back
+    (creating the parameter when needed). All template-level logic lives in
+    :class:`TemplateEditor`, which can be reused for any other template.
 
     Example::
 
@@ -35,6 +36,8 @@ class OtherVersionsUpdater:
             parameter has to be created). Matching ignores case and
             treats ``_`` as a space.
         case_insensitive: Whether duplicate detection ignores case.
+        editor: Custom editor instance (a default one is created from
+            ``case_insensitive`` when omitted).
     """
 
     DEFAULT_MAIN_TEMPLATE = "Information"
@@ -45,13 +48,15 @@ class OtherVersionsUpdater:
         main_template_name: str = DEFAULT_MAIN_TEMPLATE,
         param_names: list[str] | None = None,
         case_insensitive: bool = True,
+        editor: TemplateEditor | None = None,
     ) -> None:
         self.main_template_name = main_template_name
         self.param_names = list(param_names) if param_names else list(self.DEFAULT_PARAM_NAMES)
         self.case_insensitive = case_insensitive
+        self.editor = editor or TemplateEditor(case_insensitive=case_insensitive)
 
     # ---------------------------------------------------------------- #
-    # Public API
+    # Generic operations (any template inside "other versions")
     # ---------------------------------------------------------------- #
 
     def merge_values(
@@ -62,25 +67,10 @@ class OtherVersionsUpdater:
         *,
         sort: bool = False,
     ) -> str:
-        """Merge ``values`` into ``{{template_name|v1|v2|...}}``.
-
-        Creates the template (and the parameter) if missing, otherwise adds
-        only the values that are not already present, keeping the existing
-        order. Returns ``text`` unchanged when nothing needs to change or
-        the main template is not found.
-        """
-        clean = [v.strip() for v in values if v and v.strip()]
-        if not clean:
-            return text
-
+        """Merge ``values`` into ``{{template_name|v1|v2|...}}``."""
         return self._update(
             text,
-            lambda cur: self._merge_positional(
-                cur,
-                template_name,
-                clean,
-                sort,
-            ),
+            lambda cur: self.editor.merge_positional(cur, template_name, values, sort=sort),
         )
 
     def add_template(
@@ -92,55 +82,52 @@ class OtherVersionsUpdater:
         """Append ``{{template_name|1=first_param_value}}`` unless already present."""
         return self._update(
             text,
-            lambda cur: self._append_unique(
+            lambda cur: self.editor.add_unique(
                 cur,
                 template_name,
                 first_param_value,
             ),
         )
 
-    def delete_params(self, text: str, delete_values: list[str]) -> str:
-        parsed = wtp.parse(text)
-        tpl = self._find_template(parsed, "Svg lang")
-        if tpl is None:
-            return text
-
-        for param in tpl.arguments:
-            if param.value and param.value.strip().lower() in delete_values:
-                param.string = ""
-
-        return parsed.string
-
-    # ---- presets (add more here for other templates) ---------------- #
-
-    def add_svg_langs(
+    def ensure_named_param(
         self,
         text: str,
-        langs: list[str],
+        template_name: str,
+        param_name: str,
+        default_value: str,
         *,
-        sort: bool = False,
-        delete_values: list[str] | None = None,
+        position: Literal["start", "end"] = "start",
+        replace: bool = False,
+        dedupe: bool = True,
     ) -> str:
-        """Add language codes to ``{{Svg lang|...}}``."""
-        filtered_langs = [lang.lower() for lang in langs if lang]
-
-        if delete_values:
-            delete_values = [x.lower() for x in delete_values if x]
-            text = self.delete_params(text, delete_values)
-            filtered_langs = [lang.lower() for lang in filtered_langs if lang.lower() not in delete_values]
-
-        if not filtered_langs:
-            return text
-
-        return self.merge_values(
+        """Ensure a named parameter exists in the template (see :meth:`TemplateEditor.ensure_named`)."""
+        return self._update(
             text,
-            "Svg lang",
-            filtered_langs,
-            sort=sort,
+            lambda cur: self.editor.ensure_named(
+                cur,
+                template_name,
+                param_name,
+                default_value,
+                position=position,
+                replace=replace,
+                dedupe=dedupe,
+            ),
+        )
+
+    def remove_named_param(
+        self,
+        text: str,
+        template_name: str,
+        param_name: str,
+    ) -> str:
+        """Remove a named parameter from the template."""
+        return self._update(
+            text,
+            lambda cur: self.editor.remove_named(cur, template_name, param_name),
         )
 
     # ---------------------------------------------------------------- #
-    # Core
+    # Core: locate the parameter, apply the transform, write back
     # ---------------------------------------------------------------- #
 
     def _update(
@@ -150,12 +137,12 @@ class OtherVersionsUpdater:
     ) -> str:
         parsed = wtp.parse(text)
 
-        main = self._find_template(parsed, self.main_template_name)
+        main = self.editor.find(parsed, self.main_template_name)
         if main is None:
             logger.debug("Main template %r not found", self.main_template_name)
             return text
 
-        arg = self._get_argument(main, self.param_names)
+        arg = self.editor._get_argument(main, self.param_names)
         raw = arg.value if arg else ""
         current = raw.strip()
 
@@ -176,122 +163,41 @@ class OtherVersionsUpdater:
 
         return parsed.string
 
-    # ---------------------------------------------------------------- #
-    # Transforms (operate on the parameter value only)
-    # ---------------------------------------------------------------- #
+    # ---- presets (add more here for other templates) ---------------- #
 
-    def _merge_positional(
+    def add_svg_langs(
         self,
-        current: str,
-        template_name: str,
-        values: list[str],
-        sort: bool,
+        text: str,
+        langs: list[str],
+        *,
+        sort: bool = False,
+        values_to_delete: list[str] | None = None,
+        dl_position: Literal["start", "end"] = "start",
+        replace_dl: bool = False,
+        dedupe_named: bool = True,
     ) -> str:
-        parsed = wtp.parse(current)
-        tpl = self._find_template(parsed, template_name)
+        """Add language codes to ``{{Svg lang|...}}`` and ensure ``dl=en`` is present."""
+        filtered_langs = [lang.lower() for lang in langs if lang]
 
-        if tpl is None:
-            merged = self._dedupe(values)
-            if sort:
-                merged.sort(key=self._key)
-            new_tpl = self._render(template_name, merged, [])
-            return f"{current}\n{new_tpl}" if current else new_tpl
+        if values_to_delete:
+            values_to_delete = [x.lower() for x in values_to_delete if x]
+            text = self.editor.delete_values(text, SVG_LANG_TEMPLATE, values_to_delete)
+            filtered_langs = [lang for lang in filtered_langs if lang not in values_to_delete]
 
-        existing: list[tuple[int, str]] = []
-        named: list[str] = []
-        for a in tpl.arguments:
-            name = a.name.strip()
-            value = a.value.strip()
-            if name.isdigit():
-                if value:
-                    existing.append((int(name), value))
-            else:
-                named.append(f"{name}={a.value}")
+        if filtered_langs:
+            text = self.merge_values(text, SVG_LANG_TEMPLATE, filtered_langs, sort=sort)
 
-        old = [v for _, v in sorted(existing)]
-        merged = self._dedupe(old + values)
-        if len(merged) == len(self._dedupe(old)):
-            return current  # nothing new
-        if sort:
-            merged.sort(key=self._key)
-
-        new_tpl = self._render(tpl.name.strip(), merged, named)
-        return current.replace(tpl.string, new_tpl, 1)
-
-    def _append_unique(
-        self,
-        current: str,
-        template_name: str,
-        first_param_value: str,
-    ) -> str:
-        new_tpl = f"{{{{{template_name}|1={first_param_value}}}}}"
-        if not current:
-            return new_tpl
-
-        wanted = self._key(first_param_value)
-        for t in wtp.parse(current).templates:
-            if self._norm_name(t.name) != self._norm_name(template_name):
-                continue
-            arg = next((a for a in t.arguments if a.name.strip() == "1"), None)
-            if arg and self._key(arg.value) == wanted:
-                return current
-        return f"{current}\n{new_tpl}"
-
-    # ---------------------------------------------------------------- #
-    # Helpers
-    # ---------------------------------------------------------------- #
-
-    @staticmethod
-    def _get_argument(
-        template: wtp.Template,
-        params: list[str],
-    ) -> wtp.Argument | None:
-        """Return the first argument matching one of ``params`` (in order).
-
-        Matching ignores case and surrounding spaces, and treats ``_`` as a space.
-        """
-        args_map = {OtherVersionsUpdater._norm_name(a.name): a for a in template.arguments}
-        for param in params:
-            found = args_map.get(OtherVersionsUpdater._norm_name(param))
-            if found:
-                return found
-        return None
-
-    def _find_template(self, parsed: wtp.WikiText, name: str) -> wtp.Template | None:
-        target = self._norm_name(name)
-        for t in parsed.templates:
-            if self._norm_name(t.name) == target:
-                return t
-        return None
-
-    def _dedupe(self, values: list[str]) -> list[str]:
-        seen: dict[str, str] = {}
-        for v in values:
-            seen.setdefault(self._key(v), v)
-        return list(seen.values())
-
-    def _key(self, value: str) -> str:
-        result = value.replace("_", " ").strip()
-        return result.lower() if self.case_insensitive else result
-
-    @staticmethod
-    def _norm_name(name: str) -> str:
-        return name.replace("_", " ").strip().lower()
-
-    @staticmethod
-    def _render(name: str, positional: list[str], named: list[str]) -> str:
-        return "{{" + "|".join([name, *positional, *named]) + "}}"
-
-
-def add_svg_langs_to_other_versions(*, text: str, langs: list[str]) -> str:
-    """Functional wrapper around :meth:`OtherVersionsUpdater.add_svg_langs`."""
-    return OtherVersionsUpdater().add_svg_langs(
-        text,
-        langs,
-    )
+        return self.ensure_named_param(
+            text,
+            SVG_LANG_TEMPLATE,
+            "dl",
+            "en",
+            position=dl_position,
+            replace=replace_dl,
+            dedupe=dedupe_named,
+        )
 
 
 __all__ = [
     "OtherVersionsUpdater",
-    "add_svg_langs_to_other_versions",
 ]

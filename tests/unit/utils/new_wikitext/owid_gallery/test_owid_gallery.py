@@ -1,12 +1,6 @@
 from src.main_app.utils.new_wikitext.owid_gallery import SlidersGalleryReader
 
-GALLERY = (
-    "{{owidslidersrcs|id=gallery\n"
-    "|gallery-World=\n"
-    "File:a, World, 1950.svg!year=1950\n"
-    "File:a, World, 1951.svg!year=1951\n"
-    "}}"
-)
+GALLERY = "{{owidslidersrcs|id=gallery\n|gallery-World=\nFile:a, World, 1950.svg!year=1950\nFile:a, World, 1951.svg!year=1951\n}}"
 
 
 class TestSlidersGalleryReaderMatch:

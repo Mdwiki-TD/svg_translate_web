@@ -48,7 +48,10 @@ class BaseObjectsJobWorker(ABC):
 
     JOB_TYPE: str = ""
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.job_id: Final[int] = data.job_id
         self.user: Final[dict[str, Any]] = data.user
         self.cancel_event: Final[threading.Event | None] = data.cancel_event

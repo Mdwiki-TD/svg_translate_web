@@ -10,7 +10,8 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, fetch_grapher_metadata_raw, get_category_members
+from ....api_services import MwClientPage, fetch_grapher_metadata_raw
+from ....api_services.clients import CategoryMembersService
 from ....database.exceptions import DuplicateRecordError
 from ....database.models import TemplateRecord
 from ....database.services import (
@@ -222,7 +223,7 @@ class OneFileProcessor:
         except Exception as e:
             template_info.status = "failed"
             template_info.error = f"Exception: {str(e)}"
-            template_info.error_type = type(e).__name__
+            template_info.error_type = type(e).__name__  # pyright: ignore[reportCallIssue]
 
             logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
 
@@ -267,7 +268,10 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     JOB_TYPE = "collect_templates_data"
     """Worker for collecting main files for templates."""
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.site: Site | None = None
 
         super().__init__(data)
@@ -287,6 +291,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             self.site,
             self.template_service,
         )
+        self.category_client = CategoryMembersService(self.site)
 
     # ------------------------------------------------------------------
     # pre process step
@@ -304,7 +309,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
         existing_titles = {t.title for t in templates}
 
         # Get templates from category
-        category_templates = self._get_category_members()
+        category_templates = self.load_category_members()
 
         logger.info(f"Job {self.job_id}: Found {len(category_templates)} templates in category")
 
@@ -347,10 +352,9 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     # Helpers
     # ------------------------------------------------------------------
 
-    def _get_category_members(self) -> list:
+    def load_category_members(self) -> list:
         category = "Category:Pages using gadget owidslider"
-        result = get_category_members(
-            site=self.site,
+        result = self.category_client.get_category_members(
             category_title=category,
             namespace=10,
         )
@@ -480,6 +484,7 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
             raise ValueError("Site is not set")
 
         self.files_processor.site = self.site
+        self.category_client.site = self.site
 
         # Single template mode: if a title arg is provided, process only that one
         if self.args.get("title"):

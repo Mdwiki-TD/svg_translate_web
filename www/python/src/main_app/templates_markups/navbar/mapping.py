@@ -58,10 +58,7 @@ class NavLink:
         url = self.get_url()
 
         return Markup(
-            '<a class="nav-link{active_class}" href="{url}"{aria}{target}'
-            ' title="{title}">'
-            '<i class="bi {icon}"></i> {text}'
-            "</a>"
+            '<a class="nav-link{active_class}" href="{url}"{aria}{target} title="{title}"><i class="bi {icon}"></i> {text}</a>'
         ).format(
             active_class=active_class,
             url=escape(url),

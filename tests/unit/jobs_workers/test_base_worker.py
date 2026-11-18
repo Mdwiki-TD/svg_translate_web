@@ -15,7 +15,10 @@ class _ConcreteWorker(BaseObjectsJobWorker):
 
     JOB_TYPE = "test_worker"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.result = SharedworkerObject()
 
     def process(self):  # pragma: no cover – not exercised here

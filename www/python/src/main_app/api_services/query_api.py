@@ -8,12 +8,11 @@ legacy functions that accept a ``Site`` parameter.
 from __future__ import annotations
 
 import logging
-import time
 from typing import Any
 
 import requests
 from mwclient.client import Site
-from mwclient.errors import APIError, MwClientError
+from mwclient.errors import MwClientError
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +26,61 @@ class MediaWikiQueryService:
 
     def __init__(self, site: Site) -> None:
         self.site = site
+
+    def get_page_assessments(
+        self,
+        titles_list: list[str] | str,
+    ) -> list[dict[str, Any]]:
+        """
+        Fetch page assessments for a list of titles.
+
+        Args:
+            titles_list: List of page titles or pipe-separated string
+
+        Returns:
+            List of page dictionaries with assessment data
+        """
+        if not self.site:
+            logger.warning("No site available for fetching assessments")
+            return []
+
+        titles = "|".join(titles_list) if isinstance(titles_list, list) else titles_list
+
+        params: dict[str, Any] = {
+            "action": "query",
+            "format": "json",
+            "prop": "pageassessments",
+            "titles": titles,
+            "utf8": 1,
+            "ellimit": "max",
+            "formatversion": 2,
+        }
+
+        results = []
+        continue_param = None
+
+        # Handle pagination
+        while True:
+            if continue_param:
+                params["continue"] = continue_param
+
+            try:
+                response = self.site.api(**params)
+            except Exception as e:
+                logger.error("Error fetching assessments: %s", e)
+                break
+
+            pages = response.get("query", {}).get("pages", [])
+            results.extend(pages)
+
+            # Check for continuation
+            continue_data = response.get("continue")
+            if not continue_data:
+                break
+
+            continue_param = continue_data.get("continue")
+
+        return results
 
     # ------------------------------------------------------------------
     # Template queries
@@ -276,108 +330,6 @@ class MediaWikiQueryService:
         return out
 
     # ------------------------------------------------------------------
-    # Category members
-    # ------------------------------------------------------------------
-
-    def get_category_members_titles(
-        self,
-        category_name: str,
-        namespace: int | None = None,
-    ) -> list[str]:
-        """Fetch all member titles from *category_name* with pagination."""
-        page_count = 0
-        delay = 0.1  # seconds
-        max_delay = 8.0
-
-        logger.info(f"Starting to fetch files from {category_name}")
-
-        params = {
-            # "action": "query",
-            "format": "json",
-            "list": "categorymembers",
-            "cmtitle": category_name,
-            # "cmtype": "file",
-            "cmlimit": "max",
-        }
-
-        if namespace is not None:
-            if namespace == 14:
-                params["cmtype"] = "subcat"
-            elif namespace == 6:
-                params["cmtype"] = "file"
-            else:
-                params["cmnamespace"] = str(namespace)
-
-        all_files: list[str] = []
-        first_request = True
-        cmcontinue = None
-        while first_request or cmcontinue is not None:
-            first_request = False
-            if len(all_files) % 1000 == 0:
-                logger.info(f"loaded {len(all_files)} members")
-
-            if cmcontinue:
-                params["cmcontinue"] = cmcontinue
-
-            try:
-                data = self.site.get("query", **params)
-                members = data.get("query", {}).get("categorymembers", [])
-                all_files.extend([x.get("title", "") for x in members])
-                page_count += 1
-
-                logger.debug(f"Fetched category members {page_count}: {len(members)} page, (total: {len(all_files)})")
-
-                if "continue" in data:
-                    cmcontinue = data["continue"].get("cmcontinue")
-                    time.sleep(delay)
-                else:
-                    break
-
-            except APIError as e:
-                if e.code == "invalidcategory":
-                    logger.warning(f"Invalid category: {category_name}")
-                    break
-
-            except Exception:
-                logger.error("API request failed")
-                if delay < max_delay:
-                    delay = min(delay * 2, max_delay)
-                    time.sleep(delay)
-                    continue
-
-        logger.info(f"Finished fetching {len(all_files)} files in {page_count} pages")
-        return all_files
-
-    def get_category_members(
-        self,
-        category_title: str,
-        namespace: int = 0,
-        limit: int | str | None = None,
-    ) -> list[str]:
-        """Retrieve all members of a specified category from a MediaWiki site."""
-        logger.debug(f"load category members for {category_title}")
-        try:
-            category = self.site.pages[category_title]
-            # Use list comprehension for efficiency - consumes the generator
-            members = category.members(
-                prop="ids|title",
-                namespace=namespace,
-                sort="sortkey",
-                dir="asc",
-                start=None,
-                end=None,
-                generator=True,
-            )
-            list_members = list(members)
-            return [p if isinstance(p, str) else p.name for p in list_members]
-        except APIError as e:
-            logger.warning(f"API error getting category members for {category_title}: {e}")
-            return []
-        except KeyError as e:
-            logger.warning(f"Key error in API response for {category_title}: {e}")
-            return []
-
-    # ------------------------------------------------------------------
     # Import
     # ------------------------------------------------------------------
 
@@ -405,86 +357,6 @@ class MediaWikiQueryService:
             return {"error": str(exc)}
 
 
-# ---------------------------------------------------------------------------
-# Legacy compatibility layer — no business logic, delegates to MediaWikiQueryService
-# ---------------------------------------------------------------------------
-
-
-def get_template_pages(
-    title: str,
-    site: Site,
-    namespace: str | int = "*",
-) -> list[str]:
-    """Legacy entry point. Use :meth:`MediaWikiQueryService.get_template_pages` instead."""
-    return MediaWikiQueryService(site=site).get_template_pages(title, namespace)
-
-
-def is_pages_exists(
-    titles: list[str],
-    site: Site,
-) -> dict[str, bool]:
-    """Legacy entry point. Use :meth:`MediaWikiQueryService.is_pages_exists` instead."""
-    return MediaWikiQueryService(site=site).is_pages_exists(titles)
-
-
-def resolve_redirects(
-    titles: list[str],
-    site: Site,
-) -> dict[str, dict[str, str]]:
-    """Legacy entry point. Use :meth:`MediaWikiQueryService.resolve_redirects` instead."""
-    return MediaWikiQueryService(site=site).resolve_redirects(titles)
-
-
-def search_pages(
-    query: str,
-    site: Site,
-    namespace: int = 0,
-    limit: int | str = "max",
-) -> list[str]:
-    """Legacy entry point. Use :meth:`MediaWikiQueryService.search_pages` instead."""
-    return MediaWikiQueryService(site=site).search_pages(query, namespace, limit)
-
-
-def get_double_redirects(site: Site) -> list[dict[str, str]]:
-    """Legacy entry point. Use :meth:`MediaWikiQueryService.get_double_redirects` instead."""
-    return MediaWikiQueryService(site=site).get_double_redirects()
-
-
-def get_page_links(
-    title: str,
-    site: Site,
-    namespace: int = 0,
-) -> dict[str, Any]:
-    """Legacy entry point. Use :meth:`MediaWikiQueryService.get_page_links` instead."""
-    return MediaWikiQueryService(site=site).get_page_links(title, namespace)
-
-
-def get_category_members_titles(
-    site: Site,
-    category_name: str,
-    namespace: int | None = None,
-) -> list[str]:
-    """Legacy entry point. Use :meth:`MediaWikiQueryService.get_category_members_titles` instead."""
-    return MediaWikiQueryService(site=site).get_category_members_titles(category_name, namespace)
-
-
-def import_page_from_wiki(
-    site: Site,
-    title: str,
-    family: str = "wikipedia",
-) -> dict:
-    """Legacy entry point. Use :meth:`MediaWikiQueryService.import_page_from_wiki` instead."""
-    return MediaWikiQueryService(site=site).import_page_from_wiki(title, family)
-
-
 __all__ = [
     "MediaWikiQueryService",
-    "get_template_pages",
-    "get_page_links",
-    "is_pages_exists",
-    "resolve_redirects",
-    "search_pages",
-    "get_double_redirects",
-    "get_category_members_titles",
-    "import_page_from_wiki",
 ]

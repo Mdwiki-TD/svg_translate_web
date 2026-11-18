@@ -73,7 +73,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         mocks["template_service_list"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.is_pages_exists",
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker.MediaWikiQueryService.is_pages_exists",
         MagicMock(return_value={}),
     )
 
