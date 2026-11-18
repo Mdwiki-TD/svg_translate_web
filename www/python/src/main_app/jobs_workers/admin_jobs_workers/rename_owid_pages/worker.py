@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable
-
+import mwclient
+import mwclient.page
 from ....api_services import MwClientPage
 from ....database.services import TemplateService
 from ...base_worker import BaseObjectsJobWorker
@@ -35,29 +36,6 @@ PREFIXES: tuple[tuple[int, str, str], ...] = (
 
 MOVE_REASON = "Capitalize first letter of OWID subpage name"
 
-
-def needs_rename(title: str, full_prefix: str) -> tuple[bool, str]:
-    """Decide whether *title* needs a rename.
-
-    Only the first character after ``full_prefix`` is changed; everything
-    else (including spaces / underscores) is preserved as-is.
-
-    Returns ``(needs_rename, new_title)``.
-    """
-    if not title.startswith(full_prefix):
-        return False, title
-
-    rest = title[len(full_prefix) :]
-    if not rest:
-        return False, title
-
-    first = rest[0]
-    if first.isalpha() and first.islower():
-        return True, full_prefix + first.upper() + rest[1:]
-
-    return False, title
-
-
 class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
     """Background worker that capitalizes OWID subpage names."""
 
@@ -66,8 +44,12 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
     def __init__(
         self,
         data: JobsRunner,
+        template_service: TemplateService | None = None,
+        mw_client_cls: MwClientPage | None = None,
     ) -> None:
         super().__init__(data)
+        self.template_service = template_service or TemplateService()
+        self.mw_client_cls = mw_client_cls or MwClientPage
 
     def create_result(self) -> RenameOwidPagesWorkerObject:
         """Create and return the specific result object instance."""
@@ -77,25 +59,16 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
         )
 
     # ------------------------------------------------------------------
-    # BaseObjectsJobWorker hooks
-    # ------------------------------------------------------------------
-
-    # ------------------------------------------------------------------
     # Public entry-point
     # ------------------------------------------------------------------
 
-    def process(self) -> RenameOwidPagesWorkerObject:
-        if not self._check_site():
-            return self.result
-
+    def _get_candidates(self) -> list[RenameInfo]:
+        """Return a list of pages that need renaming."""
         # First pass: collect candidates so progress is bounded and we can
         # compute a sane save-progress interval.
-        candidates: list[tuple[int, str, str, str]] = []
+        candidates: list[RenameInfo] = []
 
         for namespace, prefix, full_prefix in PREFIXES:
-            if self.is_cancelled():
-                return self.result
-
             logger.info("Job %s: Listing pages with prefix '%s' (ns=%d)", self.job_id, full_prefix, namespace)
             ns_count = 0
 
@@ -108,31 +81,57 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
                 self.result.summary.checked += 1
                 ns_count += 1
                 title = page.name
-                yes, new_title = needs_rename(title, full_prefix)
-                if not yes:
-                    continue
-                candidates.append((namespace, full_prefix, title, new_title))
+
+                item = RenameInfo(
+                    namespace=namespace,
+                    full_prefix=full_prefix,
+                    old_title=title,
+                )
+                if item.needs_rename():
+                    candidates.append(item)
 
             logger.info("Job %s: Scanned %d page(s) under '%s'", self.job_id, ns_count, full_prefix)
 
-        total = len(candidates)
-        logger.info("Job %s: %d page(s) need renaming", self.job_id, total)
+        return candidates
 
+    def process(self) -> RenameOwidPagesWorkerObject:
+        if not self._check_site():
+            return self.result
+
+        candidates = self._get_candidates()
+
+        total = len(candidates)
         # Save progress immediately so the UI reflects the discovery phase.
         self.result.summary.total = total
 
+        if not candidates:
+            logger.info("Job %s: No pages need renaming", self.job_id)
+            self.result.status = "skipped"
+            self.result.note = "No pages need renaming"
+            return self.result
+
+        if self.is_cancelled():
+            return self.result
+
+        logger.info("Job %s: %d page(s) need renaming", self.job_id, total)
+
         self.save_progress()
 
-        per_item = self.get_priority(total) if total else 1
+        self.rename_candidates(candidates)
+
+        return self.result
+
+    def rename_candidates(self, candidates: list[RenameInfo]) -> None:
+        total = len(candidates)
+
+        per_item = self.get_priority(total)
 
         # Second pass: actually move.
-        for n, (namespace, _full_prefix, old_title, new_title) in enumerate(candidates, start=1):
+        for n, info in enumerate(candidates, start=1):
             if self.is_cancelled():
                 break
 
-            logger.info("Job %s: Renaming %d/%d: %s -> %s", self.job_id, n, total, old_title, new_title)
-
-            info = RenameInfo(namespace=namespace, old_title=old_title, new_title=new_title)
+            logger.info("Job %s: Renaming %d/%d: %s -> %s", self.job_id, n, total, info.old_title, info.new_title)
 
             changed = self._process_one_item(info)
 
@@ -144,8 +143,6 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
 
             if n == 1 or n % per_item == 0:
                 self.save_progress()
-
-        return self.result
 
     def update_status(self, info: RenameInfo) -> None:
         self.result.summary.processed += 1
@@ -167,7 +164,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _iter_owid_pages(self, namespace: int, prefix: str) -> Iterable:
+    def _iter_owid_pages(self, namespace: int, prefix: str) -> Iterable[mwclient.page.Page]:
         """Yield non-redirect pages with *prefix* in *namespace*.
 
         ``filterredir='nonredirects'`` means redirects left behind by previous
@@ -186,8 +183,8 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
         new_title = info.new_title
 
         # Pre-flight: don't even try to move if the target already exists.
-        new_title_page = MwClientPage(new_title, self.site)
-        old_title_page = MwClientPage(old_title, self.site)
+        new_title_page = self.mw_client_cls.load(new_title, self.site)
+        old_title_page = self.mw_client_cls.load(old_title, self.site)
 
         if new_title_page.exists():
             # Both old_title and new_title exist on the wiki.
@@ -260,9 +257,9 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
     def _update_template_title(self, old_title: str, new_title: str) -> None:
         """Update TemplateRecord.title in the database after a successful move."""
         try:
-            record = TemplateService().get_template_by_title(old_title)
+            record = self.template_service.get_template_by_title(old_title)
             if record:
-                TemplateService().update_template_data(record.id, {"title": new_title})
+                self.template_service.update_template_data(record.id, {"title": new_title})
                 logger.info("Job %s: Updated DB template title: %s -> %s", self.job_id, old_title, new_title)
             else:
                 logger.debug("Job %s: No TemplateRecord found for '%s', skipping DB update", self.job_id, old_title)
@@ -272,5 +269,4 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
 
 __all__ = [
     "RenameOwidPagesWorker",
-    "needs_rename",
 ]
