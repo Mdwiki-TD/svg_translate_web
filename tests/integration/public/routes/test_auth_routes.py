@@ -25,8 +25,6 @@ from src.main_app.services.core.rate_limit import (
     limiter,
 )
 
-app_settings = get_settings()
-
 
 def _hits_allowed(limit: str) -> int:
     """Extract the numeric part of a limit string such as '5 per minute'."""
@@ -80,6 +78,8 @@ class TestLogin:
 
         assert response.status_code == 302
         assert response.headers["Location"] == "https://auth.example"
+
+        app_settings = get_settings()
 
         with mock_client.session_transaction() as sess:
             # Real session key from app_settings (oauth_state_nonce)
@@ -157,6 +157,8 @@ class TestCallback:
         # Sign a state nonce using the real signing utility
         state_nonce = "test-nonce"
         signed_state = SignedTokenService().sign_state_token(state_nonce)
+
+        app_settings = get_settings()
 
         # Seed session with state nonce + request token (real session keys)
         with mock_client.session_transaction() as sess:

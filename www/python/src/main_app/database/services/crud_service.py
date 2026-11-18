@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable, Sequence
 from typing import Any, TypeVar
+
 from sqlalchemy import Select, func, inspect, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -304,11 +305,12 @@ class CRUDService[ModelT]:
 
     def bulk_create(self, items: Iterable[dict[str, Any]]) -> Sequence[ModelT]:
         instances = [self.model(**fields) for fields in items]
-        self.session.add_all(instances)
         try:
+            self.session.add_all(instances)
             self.commit_or_rollback()
         except Exception as exc:
             logger.error("Error bulk creating %s: %s", self.model_name, exc)
+            raise
         return instances
 
     def bulk_update(self, items: Iterable[dict[str, Any]], *, commit: bool = True) -> int:
@@ -333,7 +335,7 @@ class CRUDService[ModelT]:
             return 0
 
         mapper = inspect(self.model)
-        pk_names = [mapper.get_property_by_column(col).key for col in mapper.primary_key]
+        pk_names = [mapper.get_property_by_column(col).key for col in mapper.primary_key]  # pyright: ignore[reportOptionalMemberAccess]
 
         for row in rows:
             missing = [name for name in pk_names if name not in row]

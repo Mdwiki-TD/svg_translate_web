@@ -16,77 +16,83 @@ from ....utils.new_wikitext import SvgFilesCollector
 logger = logging.getLogger(__name__)
 
 
-def extract_text_step(title: str, site: Site | None = None) -> dict[str, Any]:
-    """Fetch wikitext for a Commons file.
+class ExtractSteps:
+    @staticmethod
+    def extract_text_step(title: str, site: Site | None = None) -> dict[str, Any]:
+        """Fetch wikitext for a Commons file.
 
-    Args:
-        title: Commons title whose wikitext should be retrieved.
+        Args:
+            title: Commons title whose wikitext should be retrieved.
 
-    Returns:
-        dict with keys: success (bool), text (str), error (str|None)
-    """
-    logger.info(f"Extracting wikitext for: {title}")
-    if not title:
-        logger.error("No title found")
-        return {"success": False, "text": "", "error": "No title found"}
+        Returns:
+            dict with keys: success (bool), text (str), error (str|None)
+        """
+        logger.info(f"Extracting wikitext for: {title}")
+        if not title:
+            logger.error("No title found")
+            return {"success": False, "text": "", "error": "No title found"}
 
-    try:
-        text = MwClientPage(title, site).get_text()
-    except Exception:
-        logger.exception(f"Failed to fetch wikitext for title: {title}")
-        return {"success": False, "text": "", "error": "Failed to fetch wikitext"}
+        try:
+            text = MwClientPage(title, site).get_text()
+        except Exception:
+            logger.exception(f"Failed to fetch wikitext for title: {title}")
+            return {"success": False, "text": "", "error": "Failed to fetch wikitext"}
 
-    if not text:
-        logger.error(f"No wikitext found for title: {title}")
-        return {"success": False, "text": "", "error": "No wikitext found"}
+        if not text:
+            logger.error(f"No wikitext found for title: {title}")
+            return {"success": False, "text": "", "error": "No wikitext found"}
 
-    return {"success": True, "text": text, "error": None}
+        return {"success": True, "text": text, "error": None}
 
+    @staticmethod
+    def extract_titles_step(
+        text: str,
+        manual_main_title: str | None = None,
+    ) -> dict[str, Any]:
+        """Extract SVG titles from wikitext.
 
-def extract_titles_step(
-    text: str,
-    manual_main_title: str | None = None,
-) -> dict[str, Any]:
-    """Extract SVG titles from wikitext.
+        Args:
+            text: Wikitext retrieved from the main Commons page.
+            manual_main_title: Optional title to use instead of the extracted main_title.
 
-    Args:
-        text: Wikitext retrieved from the main Commons page.
-        manual_main_title: Optional title to use instead of the extracted main_title.
+        Returns:
+            dict with keys: success (bool), main_title (str|None), titles (list[str]), error (str|None)
+        """
+        data = SvgFilesCollector().get_files_list_data(text)
 
-    Returns:
-        dict with keys: success (bool), main_title (str|None), titles (list[str]), error (str|None)
-    """
-    data = SvgFilesCollector().get_files_list_data(text)
+        main_title = data["main_title"]
+        titles = data["titles"]
 
-    main_title = data["main_title"]
-    titles = data["titles"]
+        if manual_main_title:
+            main_title = manual_main_title
 
-    if manual_main_title:
-        main_title = manual_main_title
+        if not titles or not main_title:
+            error = f"No titles or main title found. Manual main title was: '{manual_main_title}'"
+            logger.error(error)
+            return {
+                "success": False,
+                "main_title": main_title,
+                "titles": titles or [],
+                "error": error,
+                "message": "",
+            }
 
-    if not titles or not main_title:
-        error = f"No titles or main title found. Manual main title was: '{manual_main_title}'"
-        logger.error(error)
+        message = f"Found {len(titles)} titles"
+
         return {
-            "success": False,
+            "success": True,
             "main_title": main_title,
-            "titles": titles or [],
-            "error": error,
-            "message": "",
+            "titles": titles,
+            "error": None,
+            "message": message,
         }
 
-    message = f"Found {len(titles)} titles"
 
-    return {
-        "success": True,
-        "main_title": main_title,
-        "titles": titles,
-        "error": None,
-        "message": message,
-    }
-
+extract_titles_step = ExtractSteps.extract_titles_step
+extract_text_step = ExtractSteps.extract_text_step
 
 __all__ = [
+    "ExtractSteps",
     "extract_titles_step",
     "extract_text_step",
 ]

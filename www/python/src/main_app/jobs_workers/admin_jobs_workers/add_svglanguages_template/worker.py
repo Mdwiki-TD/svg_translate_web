@@ -32,7 +32,10 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker):
 
     JOB_TYPE = "add_svglanguages_template"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.site: Site | None = None
         super().__init__(data)
         self.args = data.args or {}

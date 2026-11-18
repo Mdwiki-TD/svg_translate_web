@@ -1,10 +1,92 @@
-"""Unit tests for src/main_app/api_services/query_api.py module."""
+"""
+Unit tests for MediaWikiQueryService.
+"""
 
 from __future__ import annotations
 
-from src.main_app.api_services.query_api import (
-    MediaWikiQueryService,
-)
+from unittest.mock import MagicMock
+
+from src.main_app.api_services.query_api import MediaWikiQueryService
+
+
+class TestGetPageAssessments:
+    """Tests for MediaWikiQueryService class."""
+
+    def test_get_page_assessments_with_string_input(self):
+        """Test get_page_assessments accepts string input."""
+        mock_site = MagicMock()
+        mock_site.api.return_value = {
+            "query": {
+                "pages": [
+                    {
+                        "title": "Test Article",
+                        "pageassessments": {"Medicine": {"importance": "High"}},
+                    }
+                ]
+            }
+        }
+
+        client = MediaWikiQueryService(site=mock_site)
+        result = client.get_page_assessments("Test Article")
+
+        assert len(result) == 1
+        assert result[0]["title"] == "Test Article"
+        mock_site.api.assert_called()
+
+    def test_get_page_assessments_with_list_input(self):
+        """Test get_page_assessments accepts list input."""
+        mock_site = MagicMock()
+        mock_site.api.return_value = {
+            "query": {
+                "pages": [
+                    {
+                        "title": "Article 1",
+                        "pageassessments": {"Medicine": {"importance": "High"}},
+                    },
+                    {
+                        "title": "Article 2",
+                        "pageassessments": {"Medicine": {"importance": "Low"}},
+                    },
+                ]
+            }
+        }
+
+        client = MediaWikiQueryService(site=mock_site)
+        result = client.get_page_assessments(["Article 1", "Article 2"])
+
+        assert len(result) == 2
+        mock_site.api.assert_called()
+
+    def test_get_page_assessments_handles_api_error(self):
+        """Test get_page_assessments handles API errors gracefully."""
+        mock_site = MagicMock()
+        mock_site.api.side_effect = Exception("API Error")
+
+        client = MediaWikiQueryService(site=mock_site)
+        result = client.get_page_assessments(["Test Article"])
+
+        assert result == []
+
+    def test_get_page_assessments_pagination(self):
+        """Test get_page_assessments handles pagination."""
+        mock_site = MagicMock()
+
+        # First page
+        first_response = {
+            "query": {"pages": [{"title": "Article 1", "pageassessments": {}}]},
+            "continue": {"continue": "token123"},
+        }
+
+        # Second page
+        second_response = {"query": {"pages": [{"title": "Article 2", "pageassessments": {}}]}}
+
+        mock_site.api.side_effect = [first_response, second_response]
+
+        client = MediaWikiQueryService(site=mock_site)
+        result = client.get_page_assessments(["Article 1", "Article 2"])
+
+        assert len(result) == 2
+        assert mock_site.api.call_count == 2
 
 
 class TestGetTemplatePages:

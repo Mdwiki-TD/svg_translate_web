@@ -38,7 +38,10 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker):
 
     JOB_TYPE = "extract_files_translations"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         super().__init__(data)
         args = data.args or {}
 

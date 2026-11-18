@@ -22,10 +22,7 @@ from .objects import (
     FilesProcessedItem,
     SvgLangsConfig,
 )
-from .steps import (
-    extract_text_step,
-    extract_titles_step,
-)
+from .steps import ExtractSteps
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +34,10 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
 
     JOB_TYPE = "copy_svg_langs"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         super().__init__(data)
         args = data.args or {}
 
@@ -54,8 +54,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.text: str = ""
         self.main_title: str = ""
         self.titles: list[str] = []
-        self.files_service = FilesService()
 
+        self.files_service = FilesService()
         self.files_processor = OneFileProcessor(self.config, self.files_service, self.site)
 
     def _load_config(self, args: dict[str, Any]) -> SvgLangsConfig:
@@ -76,7 +76,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
         self.save_progress()
 
         try:
-            step_result = extract_titles_step(
+            step_result = ExtractSteps.extract_titles_step(
                 self.text,
                 manual_main_title=self.manual_main_title,
             )
@@ -168,7 +168,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker):
             return False
 
         try:
-            step_result = extract_text_step(
+            step_result = ExtractSteps.extract_text_step(
                 self.title,
                 self.site,
             )

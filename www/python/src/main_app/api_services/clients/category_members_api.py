@@ -4,9 +4,8 @@ MediaWiki API query operations for categories
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
-import time
+from dataclasses import dataclass
 
 from mwclient.client import Site
 from mwclient.errors import APIError
@@ -96,7 +95,7 @@ class CategoryMembersService:
 
                 item = CategoryMember(
                     title=title,
-                    ns=page.get("ns"),
+                    ns=int(page.get("ns")) if page.get("ns") else None,
                 )
 
                 revisions = page.get("revisions") or []

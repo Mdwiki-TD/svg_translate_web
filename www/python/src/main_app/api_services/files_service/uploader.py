@@ -266,9 +266,13 @@ class FileUploader:
 
 
 class UploadService:
-    def __init__(self, site: Site) -> None:
+    def __init__(
+        self,
+        site: Site,
+        uploader: FileUploader | None = None,
+    ) -> None:
         self._site: Site = site
-        self.uploader: FileUploader = FileUploader(site)
+        self.uploader = uploader or FileUploader(site)
 
     @property
     def site(self) -> Site:

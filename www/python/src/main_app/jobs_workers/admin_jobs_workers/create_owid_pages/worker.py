@@ -8,7 +8,7 @@ import logging
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, MediaWikiQueryService
+from ....api_services import MediaWikiQueryService, MwClientPage
 from ....data import get_slug_categories
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
@@ -33,7 +33,10 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker):
 
     JOB_TYPE = "create_owid_pages"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.site: Site | None = None
 
         super().__init__(data)

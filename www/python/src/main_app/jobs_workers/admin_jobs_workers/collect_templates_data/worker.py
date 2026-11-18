@@ -10,9 +10,8 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services.clients import CategoryMembersService
-
 from ....api_services import MwClientPage, fetch_grapher_metadata_raw
+from ....api_services.clients import CategoryMembersService
 from ....database.exceptions import DuplicateRecordError
 from ....database.models import TemplateRecord
 from ....database.services import (
@@ -224,7 +223,7 @@ class OneFileProcessor:
         except Exception as e:
             template_info.status = "failed"
             template_info.error = f"Exception: {str(e)}"
-            template_info.error_type = type(e).__name__
+            template_info.error_type = type(e).__name__  # pyright: ignore[reportCallIssue]
 
             logger.exception(f"Job {self.job_id}: Error processing template {template.title}")
 
@@ -269,7 +268,10 @@ class CollectMainFilesWorker(BaseObjectsJobWorker):
     JOB_TYPE = "collect_templates_data"
     """Worker for collecting main files for templates."""
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.site: Site | None = None
 
         super().__init__(data)

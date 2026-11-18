@@ -26,6 +26,10 @@ class MwClientPage:
         self.load_page_error: str = ""
         self.page: Page | None = None
 
+    @classmethod
+    def load(cls, title: str, site: Site) -> MwClientPage:
+        return cls(title, site)
+
     # ------------------------------------------------------------------
     # Core operations
     # ------------------------------------------------------------------

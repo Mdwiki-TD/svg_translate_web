@@ -36,7 +36,10 @@ class CropMainFilesWorker(BaseObjectsJobWorker):
 
     JOB_TYPE = "crop_main_files"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.site: Site | None = None
         super().__init__(data)
 

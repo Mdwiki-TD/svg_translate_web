@@ -134,10 +134,11 @@ class LoggingConfigurator:
         project_logger.setLevel(min(console_level, app_file_level, errors_file_level))
         project_logger.propagate = False
 
+        fmt = "%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(funcName)s:%(lineno)d] - %(message)s"
         if use_colorlog:
             console_formatter = colorlog.ColoredFormatter(
                 # Standard format: Time - Name - Level - [Func:Line] - Message
-                fmt="%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(funcName)s:%(lineno)d] - %(message)s",
+                fmt=fmt,
                 datefmt="%H:%M:%S",
                 log_colors={
                     "DEBUG": "cyan",

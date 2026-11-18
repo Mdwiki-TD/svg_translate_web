@@ -31,7 +31,10 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker):
 
     JOB_TYPE = "update_wikitext"
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         self.site: Site | None = None
 
         super().__init__(data)

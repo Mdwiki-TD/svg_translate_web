@@ -87,7 +87,10 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker):
     JOB_TYPE = "update_owid_charts"
     """Refresh ``min_time`` / ``max_time`` / ``len_years`` for every OWID chart."""
 
-    def __init__(self, data: JobsRunner) -> None:
+    def __init__(
+        self,
+        data: JobsRunner,
+    ) -> None:
         super().__init__(data)
         self.args = data.args or {}
 

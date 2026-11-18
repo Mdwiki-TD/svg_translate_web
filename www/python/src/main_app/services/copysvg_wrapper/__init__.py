@@ -7,11 +7,13 @@ from .mapping import (
     InjectorData,
     InjectorStats,
     InjectResult,
+    RepairResult,
     TranslationMapping,
 )
 from .nested_fixer import NestedStructureService
 
 __all__ = [
+    "RepairResult",
     "NestedStructureService",
     "SvgTranslationExtractor",
     "SvgInjector",
