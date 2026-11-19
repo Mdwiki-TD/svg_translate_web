@@ -29,7 +29,7 @@ def test_crop_file_steps_defaults():
     assert isinstance(steps.update_cropped, FileStep)
 
 
-def test_crop_file_processing_info_to_dict(tmp_path):
+def test_crop_file_processing_info_to_json(tmp_path):
     info = CropFileProcessingInfo(
         template_id=1,
         template_title="Template:Test",

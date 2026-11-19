@@ -90,7 +90,7 @@ class TestTemplateProcessingInfo:
         assert hasattr(info.steps, "create_new_text")
         assert hasattr(info.steps, "create_new_page")
 
-    def test_to_dict(self):
+    def test_to_json(self):
         """Test to_json serialization."""
         info = TemplateProcessingInfo(
             template_id=1,

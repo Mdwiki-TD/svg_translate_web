@@ -105,7 +105,7 @@ def test_owid_chart_record_stores_source_citation():
     assert rec.to_json()["source"] == source
 
 
-def test_owid_chart_record_to_dict():
+def test_owid_chart_record_to_json():
     """Test conversion to dictionary."""
     rec = OwidChartRecord(
         chart_id=1,
@@ -147,7 +147,7 @@ def test_owid_chart_record_to_dict():
     assert result == expected
 
 
-def test_owid_chart_record_to_dict_with_none_values():
+def test_owid_chart_record_to_json_with_none_values():
     """Test conversion to dictionary with None values."""
     rec = OwidChartRecord(
         chart_id=1,

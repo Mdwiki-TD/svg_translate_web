@@ -34,7 +34,7 @@ class TestUserRecord:
         assert record.username == "TestUser"
         assert record.created_at == now
 
-    def test_to_dict(self):
+    def test_to_json(self):
         """Test converting UserRecord to dictionary."""
         record = UserRecord(
             user_id=1,

@@ -79,7 +79,7 @@ class TestPageInfo:
             assert step.result is None
             assert step.msg is None
 
-    def test_page_info_to_dict(self):
+    def test_page_info_to_json(self):
         info = PageInfo(title="OWID/test_page")
         info.status = "completed"
         info.svg_file = "test.svg"

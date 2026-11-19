@@ -83,7 +83,7 @@ class TestTemplateInfo:
             assert step.result is None
             assert step.msg is None
 
-    def test_template_info_to_dict(self):
+    def test_template_info_to_json(self):
         """Test TemplateInfo.to_json() returns correct structure."""
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info.status = "completed"

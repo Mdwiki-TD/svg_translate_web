@@ -39,7 +39,7 @@ class TestListSettings(TestSetup):
 class TestGetAllSettingsRaw(TestSetup):
     """Tests for get_all_settings_raw."""
 
-    def test_returns_to_dict_of_all_settings(self) -> None:
+    def test_returns_to_json_of_all_settings(self) -> None:
         self.service.create_setting("setting1", "Setting 1", "string", "val1")
         self.service.create_setting("setting2", "Setting 2", "string", "val2")
 

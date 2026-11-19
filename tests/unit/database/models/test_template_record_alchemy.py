@@ -76,7 +76,7 @@ def test_template_record_last_world_year_none():
     assert rec.last_world_year is None
 
 
-def test_template_record_to_dict():
+def test_template_record_to_json():
     """Test conversion to dictionary."""
     rec = TemplateRecord(
         id=1,
@@ -108,7 +108,7 @@ def test_template_record_to_dict():
     assert result == expected
 
 
-def test_template_record_to_dict_with_none_values():
+def test_template_record_to_json_with_none_values():
     """Test conversion to dictionary with None values."""
     rec = TemplateRecord(
         id=1,

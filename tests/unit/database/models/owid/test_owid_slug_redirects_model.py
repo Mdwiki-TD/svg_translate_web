@@ -34,7 +34,7 @@ def test_owid_slug_redirect_record_with_all_fields() -> None:
     assert rec.created_at == dt
 
 
-def test_owid_slug_redirect_record_to_dict() -> None:
+def test_owid_slug_redirect_record_to_json() -> None:
     """Test to_json returns all expected keys with correct values."""
     dt = datetime(2025, 6, 1, 10, 30, 0)
     rec = OwidSlugRedirectRecord(
@@ -54,7 +54,7 @@ def test_owid_slug_redirect_record_to_dict() -> None:
     assert result["created_at"] == "2025-06-01T10:30:00"
 
 
-def test_owid_slug_redirect_record_to_dict_datetime_isoformat() -> None:
+def test_owid_slug_redirect_record_to_json_datetime_isoformat() -> None:
     """Test to_json converts datetime to ISO format string."""
     dt = datetime(2024, 12, 25, 8, 15, 30)
     rec = OwidSlugRedirectRecord(id=1, slug="s", redirect_to="r", created_at=dt)

@@ -59,7 +59,7 @@ class TestAdminUserRecord:
         assert rec.created_at is None
         assert rec.updated_at is None
 
-    def test_admin_record_to_dict(self, sqlite_db) -> None:
+    def test_admin_record_to_json(self, sqlite_db) -> None:
         """Test conversion to dictionary."""
         rec = AdminUserRecord(
             id=1, username="testuser", is_active=True, created_at="2023-01-01", updated_at="2023-01-02"
@@ -77,7 +77,7 @@ class TestAdminUserRecord:
 
         assert result == expected
 
-    def test_admin_record_to_dict_with_none_values(self, sqlite_db) -> None:
+    def test_admin_record_to_json_with_none_values(self, sqlite_db) -> None:
         """Test conversion to dictionary with None values."""
         rec = AdminUserRecord(id=1, username="testuser", is_active=True, created_at=None, updated_at=None)
 

@@ -112,6 +112,7 @@ def get_jobs_data_dir() -> Path:
     """Legacy entry point. Returns the jobs data directory path."""
     return JobFilesService().jobs_dir
 
+
 __all__ = [
     "JobFilesService",
     "get_jobs_data_dir",
