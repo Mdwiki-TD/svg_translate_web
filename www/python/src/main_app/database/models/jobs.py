@@ -8,6 +8,7 @@ from sqlalchemy import (
     FetchedValue,
     Index,
     String,
+    Text,
     UniqueConstraint,
     func,
 )
@@ -21,19 +22,22 @@ logger = logging.getLogger(__name__)
 class JobRecord(Model):
     """
     CREATE TABLE `jobs` (
-        `id` int NOT NULL AUTO_INCREMENT,
-        `job_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-        `username` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-        `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `job_type` varchar(255) NOT NULL,
+        `username` varchar(255) NOT NULL,
+        `status` varchar(50) NOT NULL DEFAULT 'pending',
+        `backend` varchar(50) NOT NULL DEFAULT 'thread',
         `started_at` datetime DEFAULT NULL,
         `completed_at` datetime DEFAULT NULL,
-        `result_file` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+        `result_file` varchar(500) DEFAULT NULL,
+        `error_message` text DEFAULT NULL,
         `is_running` tinyint(1) DEFAULT NULL,
-        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+        `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
         PRIMARY KEY (`id`),
         UNIQUE KEY `idx_unique_active_job` (`job_type`,`is_running`),
-        KEY `status_username` (`status`,`username`)
+        KEY `status_username` (`status`,`username`),
+        CONSTRAINT `chk_jobs_is_running_null_or_one` CHECK (`is_running` is null or `is_running` = 1)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
     Notes:
@@ -65,9 +69,19 @@ class JobRecord(Model):
         default="pending",
         server_default="pending",
     )
+
+    # Execution backend that runs the job (e.g. "thread")
+    backend: Mapped[str] = mapped_column(
+        String(50),
+        default="thread",
+        server_default="thread",
+    )
     started_at: Mapped[datetime | None] = mapped_column(default=None)
     completed_at: Mapped[datetime | None] = mapped_column(default=None)
     result_file: Mapped[str | None] = mapped_column(String(500), default=None)
+
+    # Human-readable reason when the job ends in a failed state
+    error_message: Mapped[str | None] = mapped_column(Text, default=None)
 
     # 1 = running (holds the lock), NULL = not running. Never store 0.
     is_running: Mapped[bool | None] = mapped_column(default=None)
