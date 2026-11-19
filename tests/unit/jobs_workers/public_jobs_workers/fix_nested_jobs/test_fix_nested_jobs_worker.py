@@ -86,7 +86,9 @@ def run_mocks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mock_base_worker,
     upload = MagicMock(return_value=UploadResult(ok=True, result={}))
 
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled", is_job_cancelled)
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobFilesService.is_cancel_file_exist", is_job_cancelled_file)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.JobFilesService.is_cancel_file_exist", is_job_cancelled_file
+    )
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site", get_site)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download)
     monkeypatch.setattr(f"{_WORKER}.NestedStructureService.analyze_file", detect)

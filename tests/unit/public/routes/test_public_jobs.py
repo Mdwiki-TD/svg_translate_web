@@ -307,7 +307,10 @@ class TestJobsList(TestSetup):
 
 class TestJobDetail(TestSetup):
     def test_job_found_without_result(
-        self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord
+        self,
+        mock_deps: MockJobRoutesDeps,
+        mock_template_data: MagicMock,
+        seeded_job: JobRecord,
     ) -> None:
         mock_deps.load_job_result.return_value = None
 
