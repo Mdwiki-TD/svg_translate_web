@@ -32,7 +32,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "get_user_site": mock_base_worker["get_user_site"],
         "is_job_cancelled": MagicMock(return_value=False),
         "MwClientPage": MagicMock(),
-        "save_job_result_by_name": MagicMock(),
+        "save_result": MagicMock(),
         "settings": mock_settings,
         "template_service_list": MagicMock(),
         "update_information_author": MagicMock(side_effect=lambda text, author_citation: text),
@@ -61,8 +61,8 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         mocks["update_job_status"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
-        mocks["save_job_result_by_name"],
+        "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
+        mocks["save_result"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled",
@@ -1095,11 +1095,11 @@ class TestCropMainFilesProcessorRun:
             mock_update_job_status,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+            "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
             mock_save_job_result,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.is_cancel_file_exist",
+            "src.main_app.jobs_workers.base_worker.JobFilesService.is_cancel_file_exist",
             mock_is_job_cancelled_file_exist,
         )
         mock_update_job_status.side_effect = LookupError("Job not found")

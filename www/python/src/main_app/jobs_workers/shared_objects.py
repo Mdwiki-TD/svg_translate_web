@@ -63,7 +63,6 @@ class SharedMapToJson:
         return asdict(self)
 
 
-
 @dataclass
 class OneItem(SharedMapToJson):
     title: str = ""
@@ -73,6 +72,7 @@ class OneItem(SharedMapToJson):
 @dataclass
 class UpdaterOutcome(SharedMapToJson):
     """Result of running the updater on one page."""
+
     title: str = ""
     status: OUTCOME_STATUS = "pending"
     msg: str = ""
@@ -111,6 +111,7 @@ class WorkerMapping(SharedMapToJson):
 
     error: str | None = None
     error_type: str | None = None
+
 
 @dataclass
 class SharedworkerObject(WorkerMapping):

@@ -30,7 +30,7 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
     """
     mocks = {
         "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
-        "save_job_result_by_name": MagicMock(),
+        "save_result": MagicMock(),
         "update_job_status": MagicMock(),
         "update_job_status_with_retry": MagicMock(),
     }
@@ -42,8 +42,8 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
         mocks["update_job_status_with_retry"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
-        mocks["save_job_result_by_name"],
+        "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
+        mocks["save_result"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",

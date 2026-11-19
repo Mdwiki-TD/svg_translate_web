@@ -20,7 +20,7 @@ def mock_fix_nested_admin_services(mock_before_run, monkeypatch: pytest.MonkeyPa
     mocks = {
         "list": MagicMock(),
         "update_job_status": MagicMock(),
-        "save_job_result_by_name": MagicMock(),
+        "save_result": MagicMock(),
         "download_and_save": MagicMock(),
         "analyze_file": MagicMock(),
         "repair_file": MagicMock(),
@@ -31,9 +31,7 @@ def mock_fix_nested_admin_services(mock_before_run, monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.JobsService.update_job_status", mocks["update_job_status"]
     )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name", mocks["save_job_result_by_name"]
-    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobFilesService.save_result", mocks["save_result"])
 
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.TemplateService.list",

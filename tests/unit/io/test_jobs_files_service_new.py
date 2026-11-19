@@ -7,13 +7,13 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from src.main_app.io.jobs_files_service import (
-    create_cancel_file,
-    get_jobs_data_dir,
-    is_cancel_file_exist,
-    load_job_result,
-    save_job_result_by_name,
-)
+from src.main_app.io.jobs_files_service import JobFilesService, get_jobs_data_dir
+
+svc = JobFilesService()
+save_result = svc.save_result
+load_job_result = svc.load_result
+create_cancel_file = svc.create_cancel_file
+is_cancel_file_exist = svc.is_cancel_file_exist
 
 
 @pytest.fixture
@@ -37,7 +37,7 @@ def test_get_jobs_data_dir_no_path(mock_settings):
 
 def test_save_job_result_by_name(mock_settings, tmp_path):
     data = {"status": "ok"}
-    path = save_job_result_by_name("test.json", data)
+    path = save_result("test.json", data)
     assert path.name == "test.json"
     assert path.exists()
     with open(path, "r") as f:
@@ -69,6 +69,7 @@ def test_load_job_result_error(mock_settings):
 
 def test_create_job_cancelled_file_success(mock_settings):
     path = create_cancel_file("job.cancel")
+    assert path is not None
     assert path.exists()
     assert path.read_text() == "cancelled"
 

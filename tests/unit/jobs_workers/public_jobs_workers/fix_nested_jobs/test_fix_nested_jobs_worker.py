@@ -25,7 +25,7 @@ _WORKER = "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker"
 
 @dataclass
 class MockFixNestedServices:
-    save_job_result_by_name: MagicMock
+    save_result: MagicMock
     download_and_save: MagicMock
     analyze_file: MagicMock
     repair_file: MagicMock
@@ -37,14 +37,14 @@ class MockFixNestedServices:
 def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker) -> MockFixNestedServices:
     """Mock the services used by fix_nested_jobs worker."""
 
-    save_job_result_by_name = MagicMock()
+    save_result = MagicMock()
     download_and_save = MagicMock()
     analyze_file = MagicMock()
     repair_file = MagicMock()
     upload_svg = MagicMock()
     is_job_cancelled = MagicMock()
 
-    monkeypatch.setattr(f"{_BASE}.save_job_result_by_name", save_job_result_by_name)
+    monkeypatch.setattr(f"{_BASE}..JobFilesService.save_result", save_result)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download_and_save)
     monkeypatch.setattr(f"{_WORKER}.NestedStructureService.analyze_file", analyze_file)
     monkeypatch.setattr(f"{_WORKER}.NestedStructureService.repair_file", repair_file)
@@ -52,7 +52,7 @@ def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker) 
     monkeypatch.setattr(f"{_BASE}.JobsService.is_job_cancelled", is_job_cancelled)
 
     return MockFixNestedServices(
-        save_job_result_by_name=save_job_result_by_name,
+        save_result=save_result,
         download_and_save=download_and_save,
         analyze_file=analyze_file,
         repair_file=repair_file,

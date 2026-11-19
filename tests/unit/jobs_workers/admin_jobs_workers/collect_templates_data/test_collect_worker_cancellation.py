@@ -69,7 +69,9 @@ def test_collect_templates_data_worker_cancellation(monkeypatch, mock_collect_se
     mock_collect_services["list"].return_value = templates
 
     mock_save_job_result_by_name = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", mock_save_job_result_by_name)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.JobFilesService.save_result", mock_save_job_result_by_name
+    )
 
     mock_jobs_service = MagicMock()
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService", MagicMock(return_value=mock_jobs_service))

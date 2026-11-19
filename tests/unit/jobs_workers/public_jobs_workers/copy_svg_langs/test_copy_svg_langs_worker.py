@@ -143,7 +143,7 @@ def mock_clients(
         "src.main_app.jobs_workers.base_worker.JobsService.update_job_status_with_retry",
         MagicMock(),
     )
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.save_job_result_by_name", MagicMock())
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobFilesService.save_result", MagicMock())
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
         mock_get_user_site,

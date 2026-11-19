@@ -80,7 +80,7 @@ class TestJobsRoutes(TestSetup):
         response = admin_jobs_client.get(f"/admin_panel/jobs/collect_templates_data/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
-        assert f"Collect Templates data Job #{job.id}" in page
+        assert f"Collect Templates data #{job.id}" in page
         assert "Completed" in page
 
     def test_job_detail_page_handles_nonexistent_job(self, admin_jobs_client, mock_flash):
@@ -166,7 +166,7 @@ class TestJobsRoutes(TestSetup):
         response = admin_jobs_client.get(f"/admin_panel/jobs/fix_nested_main_files/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
-        assert f"Fix Nested Main Files Job #{job.id}" in page
+        assert f"Fix Nested Main Files #{job.id}" in page
         assert "Completed" in page
 
     def test_fix_nested_job_detail_page_shows_result_data(self, admin_jobs_client, tmp_path):
@@ -489,7 +489,7 @@ class TestJobsRoutes(TestSetup):
         response = admin_jobs_client.get(f"/admin_panel/jobs/download_main_files/{job.id}")
         assert response.status_code == 200
         page = unescape(response.get_data(as_text=True))
-        assert f"Download Main Files Job #{job.id}" in page
+        assert f"Download Main Files #{job.id}" in page
         assert "Completed" in page
 
     def test_download_main_files_job_detail_page_shows_result_data(

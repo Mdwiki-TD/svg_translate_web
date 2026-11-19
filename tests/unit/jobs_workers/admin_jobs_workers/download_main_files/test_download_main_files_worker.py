@@ -74,8 +74,8 @@ def test_download_main_files_with_no_templates(
     )
     worker.run()
 
-    assert mock_base_worker["save_job_result_by_name"].called
-    result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
+    assert mock_base_worker["save_result"].called
+    result_dict = mock_base_worker["save_result"].call_args[0][1]
     assert result_dict["summary"]["total"] == 0
 
 
@@ -98,7 +98,7 @@ def test_download_main_files_skips_templates_without_main_file(
     )
     worker.run()
 
-    result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
+    result_dict = mock_base_worker["save_result"].call_args[0][1]
     assert result_dict["summary"]["total"] == 1
     assert mock_download_main_services.download_and_save.call_count == 1
 
@@ -123,7 +123,7 @@ def test_download_main_files_downloads_template_with_main_file(
     )
     worker.run()
 
-    result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
+    result_dict = mock_base_worker["save_result"].call_args[0][1]
     assert len(result_dict["files_downloaded"]) == 1
     assert result_dict["files_downloaded"][0]["filename"] == "file1.svg"
 
@@ -144,7 +144,7 @@ def test_download_main_files_handles_download_failure(
     )
     worker.run()
 
-    result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
+    result_dict = mock_base_worker["save_result"].call_args[0][1]
     assert len(result_dict["files_failed"]) == 1
     assert result_dict["files_failed"][0]["error"] == "NotFound"
 
@@ -165,7 +165,7 @@ def test_download_main_files_handles_exception(
     )
     worker.run()
 
-    result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
+    result_dict = mock_base_worker["save_result"].call_args[0][1]
     assert len(result_dict["files_failed"]) == 1
     assert "Fatal error" in result_dict["files_failed"][0]["error"]
 
@@ -195,7 +195,7 @@ def test_download_main_files_processes_multiple_templates(
     )
     worker.run()
 
-    result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
+    result_dict = mock_base_worker["save_result"].call_args[0][1]
     assert len(result_dict["files_downloaded"]) == 1
     assert len(result_dict["files_failed"]) == 1
 
@@ -228,7 +228,7 @@ def test_download_main_files_respects_cancellation(
     )
     worker.run()
 
-    result_dict = mock_base_worker["save_job_result_by_name"].call_args[0][1]
+    result_dict = mock_base_worker["save_result"].call_args[0][1]
     assert result_dict["summary"]["processed"] == 1
     assert result_dict["status"] == "cancelled"
 
@@ -315,7 +315,7 @@ def test_download_main_files_saves_progress_periodically(
     )
     worker.run()
 
-    assert mock_base_worker["save_job_result_by_name"].call_count >= 2
+    assert mock_base_worker["save_result"].call_count >= 2
 
 
 def test_download_main_files_creates_output_directory(

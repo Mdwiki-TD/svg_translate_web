@@ -46,7 +46,7 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
         "add_template_data": MagicMock(),
         "update_template_data": MagicMock(),
         "update_job_status": MagicMock(),
-        "save_job_result_by_name": MagicMock(return_value=str(tmp_path / "job_1.json")),
+        "save_result": MagicMock(return_value=str(tmp_path / "job_1.json")),
         "get_category_members": MagicMock(),
         "MwClientPage": MagicMock(),
         "find_main_title": MagicMock(),
@@ -87,8 +87,8 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
         mocks["update_job_status"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
-        mocks["save_job_result_by_name"],
+        "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
+        mocks["save_result"],
     )
 
     monkeypatch.setattr(
@@ -140,9 +140,9 @@ class TestRunner:
         self.collect_runner(job_id=1, user={})
 
         # Should save result
-        self.services["save_job_result_by_name"].assert_called()
+        self.services["save_result"].assert_called()
         # last call
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert result_dict["summary"]["total"] == 0
         assert len(result_dict["pages_added"]) == 0
 
@@ -165,7 +165,7 @@ class TestRunner:
         self.services["MwClientPage"].return_value.get_text.assert_not_called()
 
         # Should save result with skipped templates
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert result_dict["summary"]["total"] == 2
         assert len(result_dict["pages_added"]) == 0
 
@@ -207,7 +207,7 @@ class TestRunner:
         )
 
         # Should save result with updated template
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
         assert len(result_dict["pages_updated"]) == 1
         assert result_dict["pages_updated"][0]["steps"]["main_file"]["new_value"] == "test.svg"
@@ -227,7 +227,7 @@ class TestRunner:
         self.services["find_main_title"].assert_not_called()
 
         # Should save result with failed template
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
         assert len(result_dict["pages_failed"]) == 1
         assert len(result_dict["pages_failed"]) == 1
@@ -249,7 +249,7 @@ class TestRunner:
         self.services["update_template_data"].assert_not_called()
 
         # Should save result with failed template
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
         assert len(result_dict["pages_failed"]) == 1
         assert len(result_dict["pages_failed"]) == 1
@@ -268,7 +268,7 @@ class TestRunner:
         self.collect_runner(job_id=1, user={})
 
         # Should save result with failed template
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
         assert len(result_dict["pages_failed"]) == 1
         assert len(result_dict["pages_failed"]) == 1
@@ -312,7 +312,7 @@ class TestRunner:
         assert self.services["update_template_data"].call_count == 2
 
         # Should save result with correct counts
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert result_dict["summary"]["total"] == 3
         assert len(result_dict["pages_updated"]) == 2
         assert len(result_dict["pages_skipped"]) == 0
@@ -343,7 +343,7 @@ class TestRunner:
         self.services["add_template_data"].assert_any_call({"title": "Template:New2"})
 
         # Should save result with added templates
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert len(result_dict["pages_added"]) == 2
 
     def test_collect_templates_data_handles_add_template_value_error(self):
@@ -366,7 +366,7 @@ class TestRunner:
         self.collect_runner(job_id=1, user={})
 
         # Should continue processing without error
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert len(result_dict["pages_added"]) == 0
         assert len(result_dict["pages_failed"]) == 0  # ValueError is handled gracefully (race condition)
 
@@ -416,7 +416,7 @@ class TestRunner:
         )
 
         # Should save result with correct counts
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert len(result_dict["pages_added"]) == 1
         assert len(result_dict["pages_updated"]) == 1
 
@@ -458,7 +458,7 @@ class TestRunner:
         )
 
         # Should save result with correct data
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert len(result_dict["pages_updated"]) == 1
         assert result_dict["pages_updated"][0]["steps"]["main_file"]["new_value"] == "test.svg"
         assert result_dict["pages_updated"][0]["steps"]["last_world_file"]["new_value"] == "test, World, 2021.svg"
@@ -477,7 +477,7 @@ class TestRunner:
 
         # Should stop early and not add all templates
         # The exact behavior depends on when the cancellation is checked
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         # Job should be cancelled before processing templates
         assert len(result_dict["pages_updated"]) == 0
 
@@ -514,7 +514,7 @@ class TestRunner:
         self.collect_runner(job_id=1, user={}, cancel_event=cancel_event)
 
         # Should have processed at least one template before cancellation
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         # Exact count depends on when cancellation is detected
         assert len(result_dict["pages_updated"]) == 2  # Should process 2 templates before cancellation
 
@@ -531,13 +531,13 @@ class TestRunner:
 
         # Track save_progress calls
         save_progress_calls: list = []
-        original_save = self.services["save_job_result_by_name"]
+        original_save = self.services["save_result"]
 
         def track_save(*args, **kwargs):
             save_progress_calls.append(args)
             return original_save(*args, **kwargs)
 
-        self.services["save_job_result_by_name"].side_effect = track_save
+        self.services["save_result"].side_effect = track_save
 
         self.collect_runner(job_id=1, user={})
 
@@ -580,7 +580,7 @@ class TestRunner:
         )
 
         # Should save result as updated
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert len(result_dict["pages_updated"]) == 1
 
     def test_collect_templates_data_template_with_existing_main_file_only(self):
@@ -598,7 +598,7 @@ class TestRunner:
         # Should process template because last_world_file is missing
         self.services["MwClientPage"].return_value.get_text.assert_called_once()
 
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
 
     def test_collect_templates_data_add_template_generic_exception(self):
@@ -613,7 +613,7 @@ class TestRunner:
         self.collect_runner(job_id=1, user={})
 
         # Should track in pages_failed but not increment summary["failed"] (that's for processing phase)
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert len(result_dict["pages_added"]) == 0
         assert len(result_dict["pages_failed"]) >= 1
         assert "Database connection failed" in result_dict["pages_failed"][0]["error"]
@@ -730,7 +730,7 @@ class TestRunner:
         self.collect_runner(job_id=1, user={}, cancel_event=cancel_event)
 
         # last call
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         assert result_dict["summary"]["total"] == 0
 
     def test_collect_templates_data_entry_update_all_summary_counts(self, mock_find_source):
@@ -748,7 +748,7 @@ class TestRunner:
 
         self.collect_runner(job_id=1, user={}, args={"update_all": "true"})
 
-        result_dict = self.services["save_job_result_by_name"].call_args[0][1]
+        result_dict = self.services["save_result"].call_args[0][1]
         # Total is 2, 1 already had all data
         assert result_dict["summary"]["total"] == 2
         # With update_all, both templates are processed
