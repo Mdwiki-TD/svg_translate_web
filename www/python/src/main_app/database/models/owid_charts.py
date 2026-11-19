@@ -11,7 +11,7 @@ from .base import TimestampMixin
 logger = logging.getLogger(__name__)
 
 
-class OwidChartRecord(TimestampMixin, Model):  # type: ignore
+class OwidChartRecord(TimestampMixin, Model):
     """
     Represents the main pure owid_charts table, completely decoupled from template logic.
     CREATE TABLE `owid_charts` (

@@ -54,7 +54,7 @@
                         <div class="col-md-6">
                             <table class="table table-striped table-sm table_text_left">
                                 <tr>
-                                    <th style="width: 40%">Status:</th>
+                                    <th>Status:</th>
                                     <td>
                                         <div
                                             class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
@@ -89,14 +89,14 @@
                         <div class="col-md-6">
                             <table class="table table-striped table-sm">
                                 <tr>
-                                    <th style="width: 40%">Completed:</th>
+                                    <th>Completed:</th>
                                     <td>
                                         {{ (job.completed_at or result_data.completed_at) | format_short_date("-") }}
                                     </td>
                                 </tr>
                                 {% if job.failed_at or (result_data and result_data.failed_at) %}
                                 <tr>
-                                    <th style="width: 40%">Failed At:</th>
+                                    <th>Failed At:</th>
                                     <td>
                                         {{ (job.failed_at or result_data.failed_at) | format_long_date("-") }}
                                     </td>
@@ -104,7 +104,7 @@
                                 {% endif %}
                                 {% if job.cancelled_at or (result_data and result_data.cancelled_at) %}
                                 <tr>
-                                    <th style="width: 40%">Cancelled At:</th>
+                                    <th>Cancelled At:</th>
                                     <td>
                                         {{ (job.cancelled_at or result_data.cancelled_at)| format_long_date("-") }}
                                     </td>
@@ -141,10 +141,12 @@
             {% block job_results %}
             <div class="card mb-3">
                 <div class="card-header">
-                    {{ card_header("Job Summary") }}
+                    {{ card_header(job_summary_title | default("Job Summary")) }}
                 </div>
                 <div class="card-body">
-                    {% block job_summary %}{% endblock %}
+                    {% block job_summary %}
+                    {% include 'jobs_templates/_help_templates/_job_summary.html' %}
+                    {% endblock %}
 
                     {% if result_data.error %}
                     <div class="alert alert-danger" role="alert">

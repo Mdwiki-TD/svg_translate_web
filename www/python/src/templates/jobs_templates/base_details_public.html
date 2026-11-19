@@ -146,10 +146,12 @@
 
             <div class="card mb-3">
                 <div class="card-header">
-                    {{ card_header("Job Summary") }}
+                    {{ card_header(job_summary_title | default("Job Summary")) }}
                 </div>
                 <div class="card-body">
-                    {% block job_summary %}{% endblock %}
+                    {% block job_summary %}
+                    {% include 'jobs_templates/_help_templates/_job_summary.html' %}
+                    {% endblock %}
 
                     {% if result_data.error %}
                     <div class="alert alert-danger" role="alert">
