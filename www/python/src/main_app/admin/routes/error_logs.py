@@ -57,7 +57,7 @@ class ErrorLogsView(MethodView):
         }
 
         return render_template(
-            "admin/error_logs.html",
+            "admins/error_logs.html",
             pagination=pagination,
             summary=summary,
             total_hits=sum(row["hits"] for row in summary),

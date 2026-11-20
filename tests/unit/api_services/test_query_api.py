@@ -12,27 +12,6 @@ from src.main_app.api_services.query_api import MediaWikiQueryService
 class TestGetPageAssessments:
     """Tests for MediaWikiQueryService class."""
 
-    def test_get_page_assessments_with_string_input(self):
-        """Test get_page_assessments accepts string input."""
-        mock_site = MagicMock()
-        mock_site.api.return_value = {
-            "query": {
-                "pages": [
-                    {
-                        "title": "Test Article",
-                        "pageassessments": {"Medicine": {"importance": "High"}},
-                    }
-                ]
-            }
-        }
-
-        client = MediaWikiQueryService(site=mock_site)
-        result = client.get_page_assessments("Test Article")
-
-        assert len(result) == 1
-        assert result[0]["title"] == "Test Article"
-        mock_site.api.assert_called()
-
     def test_get_page_assessments_with_list_input(self):
         """Test get_page_assessments accepts list input."""
         mock_site = MagicMock()

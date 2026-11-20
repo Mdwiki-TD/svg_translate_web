@@ -29,22 +29,25 @@ class MediaWikiQueryService:
 
     def get_page_assessments(
         self,
-        titles_list: list[str] | str,
+        titles_list: list[str],
     ) -> list[dict[str, Any]]:
         """
         Fetch page assessments for a list of titles.
 
         Args:
-            titles_list: List of page titles or pipe-separated string
+            titles_list: List of page titles
 
         Returns:
             List of page dictionaries with assessment data
         """
+        logger.debug("get_page_assessments called with %s", type(titles_list).__name__)
         if not self.site:
             logger.warning("No site available for fetching assessments")
             return []
 
-        titles = "|".join(titles_list) if isinstance(titles_list, list) else titles_list
+        titles = "|".join(titles_list)
+
+        logger.debug("Fetching assessments for %s title", len(titles_list))
 
         params: dict[str, Any] = {
             "action": "query",
@@ -80,6 +83,7 @@ class MediaWikiQueryService:
 
             continue_param = continue_data.get("continue")
 
+        logger.info("get_page_assessments returned %d pages", len(results))
         return results
 
     # ------------------------------------------------------------------
@@ -127,6 +131,7 @@ class MediaWikiQueryService:
         individually before creating a page - see filter_created() /
         _process_one_item() in CreateOwidPagesWorker, which already does this.
         """
+        logger.debug("is_pages_exists called with %d titles", len(titles))
         result: dict[str, Any] = {}
 
         for i in range(0, len(titles), 50):
@@ -146,6 +151,7 @@ class MediaWikiQueryService:
                 if title:
                     original_title = normalized.get(title) or title
                     result[original_title] = "missing" not in kk
+            logger.info("is_pages_exists found %d/%d titles exist", sum(result.values()), len(titles))
 
         return result
 
@@ -158,6 +164,7 @@ class MediaWikiQueryService:
 
         Returns ``{"normalized": {to: from}, "from_to": {from: to}}``.
         """
+        logger.debug("resolve_redirects called with %d titles", len(titles))
         normalized: dict[str, Any] = {}
         from_to: dict[str, Any] = {}
 
@@ -192,6 +199,11 @@ class MediaWikiQueryService:
                 target = page.get("title", "")
                 for t in page.get("redirects", []) or []:
                     from_to[t["title"]] = target
+        logger.info(
+            "resolve_redirects found %d normalizations and %d redirects",
+            len(normalized),
+            len(from_to),
+        )
 
         return {
             "normalized": normalized,
@@ -209,6 +221,8 @@ class MediaWikiQueryService:
         limit: int | str = "max",
     ) -> list[str]:
         """Return page titles matching *query* via the MediaWiki search API."""
+        logger.debug("search_pages called with query=%r, namespace=%s, limit=%s", query, namespace, limit)
+
         params = {
             "list": "search",
             "srsearch": query,
@@ -230,6 +244,8 @@ class MediaWikiQueryService:
         query_data = data.get("query") or {}
         for item in query_data.get("search") or []:
             titles.append(item["title"])
+
+        logger.info("search_pages found %d results for query=%r", len(titles), query)
 
         return titles
 
@@ -263,6 +279,7 @@ class MediaWikiQueryService:
             }
         }
         """
+        logger.debug("get_double_redirects called")
         params = {
             # "action": "query",
             "format": "json",
@@ -321,6 +338,7 @@ class MediaWikiQueryService:
         query = data.get("query", {}) or {}
 
         out["normalized"] = query.get("normalized", []) or []
+        logger.info("get_page_links found %d links for title=%r", len(out["links"]), title)
         out["redirects"] = query.get("redirects", []) or []
 
         for page in (query.get("pages", {}) or {}).values():
