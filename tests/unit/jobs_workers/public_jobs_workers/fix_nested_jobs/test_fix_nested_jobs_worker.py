@@ -19,13 +19,12 @@ from src.main_app.services.copysvg_wrapper.mapping import RepairResult
 
 # ── jobs_workers fixtures ───────────────────────────────────────────────────────────────────
 
-_BASE = "src.main_app.jobs_workers.base_worker"
 _WORKER = "src.main_app.jobs_workers.public_jobs_workers.fix_nested_jobs.worker"
 
 
 @dataclass
 class MockFixNestedServices:
-    save_job_result_by_name: MagicMock
+    save_result: MagicMock
     download_and_save: MagicMock
     analyze_file: MagicMock
     repair_file: MagicMock
@@ -37,22 +36,22 @@ class MockFixNestedServices:
 def mock_fix_nested_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker) -> MockFixNestedServices:
     """Mock the services used by fix_nested_jobs worker."""
 
-    save_job_result_by_name = MagicMock()
+    save_result = MagicMock()
     download_and_save = MagicMock()
     analyze_file = MagicMock()
     repair_file = MagicMock()
     upload_svg = MagicMock()
     is_job_cancelled = MagicMock()
 
-    monkeypatch.setattr(f"{_BASE}.save_job_result_by_name", save_job_result_by_name)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobFilesService.save_result", save_result)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download_and_save)
     monkeypatch.setattr(f"{_WORKER}.NestedStructureService.analyze_file", analyze_file)
     monkeypatch.setattr(f"{_WORKER}.NestedStructureService.repair_file", repair_file)
     monkeypatch.setattr(f"{_WORKER}.UploadService.upload_svg", upload_svg)
-    monkeypatch.setattr(f"{_BASE}.JobsService.is_job_cancelled", is_job_cancelled)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled", is_job_cancelled)
 
     return MockFixNestedServices(
-        save_job_result_by_name=save_job_result_by_name,
+        save_result=save_result,
         download_and_save=download_and_save,
         analyze_file=analyze_file,
         repair_file=repair_file,
@@ -86,9 +85,11 @@ def run_mocks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, mock_base_worker,
     fix = MagicMock(return_value=RepairResult(success=True, len_tags_before_fix=2, len_tags_after_fix=0))
     upload = MagicMock(return_value=UploadResult(ok=True, result={}))
 
-    monkeypatch.setattr(f"{_BASE}.JobsService.is_job_cancelled", is_job_cancelled)
-    monkeypatch.setattr(f"{_BASE}.is_cancel_file_exist", is_job_cancelled_file)
-    monkeypatch.setattr(f"{_BASE}.WikiSiteClient.get_user_site", get_site)
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled", is_job_cancelled)
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.base_worker.JobFilesService.is_cancel_file_exist", is_job_cancelled_file
+    )
+    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site", get_site)
     monkeypatch.setattr(f"{_WORKER}.FilesService.download_and_save", download)
     monkeypatch.setattr(f"{_WORKER}.NestedStructureService.analyze_file", detect)
     monkeypatch.setattr(f"{_WORKER}.NestedStructureService.repair_file", fix)
@@ -538,7 +539,7 @@ class TestRun(TestSetup):
 
         mock_is_job_cancelled_file_exist = MagicMock()
         monkeypatch.setattr(
-            f"{_BASE}.is_cancel_file_exist",
+            "src.main_app.jobs_workers.base_worker.JobFilesService.is_cancel_file_exist",
             mock_is_job_cancelled_file_exist,
         )
         mock_is_job_cancelled_file_exist.return_value = False

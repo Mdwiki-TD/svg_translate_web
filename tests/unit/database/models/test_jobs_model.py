@@ -48,7 +48,7 @@ def test_job_record_with_all_fields() -> None:
     assert rec.is_running is None
 
 
-def test_job_record_to_dict() -> None:
+def test_job_record_to_json() -> None:
     """Test to_json returns all expected keys with correct values."""
     dt = datetime(2025, 6, 1, 10, 30, 0)
     rec = JobRecord(
@@ -78,7 +78,7 @@ def test_job_record_to_dict() -> None:
     assert result["is_running"] == 1
 
 
-def test_job_record_to_dict_handles_none() -> None:
+def test_job_record_to_json_handles_none() -> None:
     """Test to_json correctly serializes None values."""
     rec = JobRecord(
         id=1,

@@ -59,7 +59,7 @@ class TestRenameInfo:
         assert info.newrevid is None
         assert info.timestamp
 
-    def test_to_dict(self):
+    def test_to_json(self):
         info = RenameInfo(namespace=10, old_title="Old", new_title="New", status="renamed", msg="ok")
         d = info.to_json()
         assert d["namespace"] == 10

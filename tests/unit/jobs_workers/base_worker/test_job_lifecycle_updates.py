@@ -21,6 +21,9 @@ class MockWorker(BaseObjectsJobWorker[SharedworkerObject]):
 
         super().__init__(JobsRunner(job_id=job_id, user={}))
 
+    def create_result(self):
+        return SharedworkerObject()
+
     def process(self) -> SharedworkerObject:
         return self.result
 

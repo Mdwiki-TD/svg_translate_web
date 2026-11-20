@@ -21,18 +21,21 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
     """
     mocks = {
         "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
-        "save_job_result_by_name": MagicMock(),
+        "save_result": MagicMock(),
     }
     monkeypatch.setattr("src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site", mocks["get_user_site"])
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
-        mocks["save_job_result_by_name"],
+        "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
+        mocks["save_result"],
     )
     return mocks
 
 
 class MockWorker(BaseObjectsJobWorker[SharedworkerObject]):
     JOB_TYPE = "mock_job"
+
+    def create_result(self):
+        return SharedworkerObject()
 
     def process(self) -> SharedworkerObject:
         return self.result
@@ -46,7 +49,7 @@ def mock_base_is_cancelled(
         "is_cancel_file_exist": MagicMock(),
     }
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_cancel_file_exist",
+        "src.main_app.jobs_workers.base_worker.JobFilesService.is_cancel_file_exist",
         mocks["is_cancel_file_exist"],
     )
     return mocks

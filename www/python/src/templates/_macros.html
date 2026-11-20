@@ -83,15 +83,19 @@
 {%- endmacro -%}
 
 {# Card header macro for collapsible cards #}
-{% macro card_header(title) %}
+{% macro card_header(title, sub_title="") %}
 <div class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
     <h5 class="mb-0">{{ title|safe }}</h5>
-    <div class="card-tools">
-        <button type="button" class="btn-tool" data-card-widget="collapse" aria-label="Toggle card">
+    {% if sub_title %} <span>{{ sub_title }}</span> {% endif %}
+    {{ card_tools() }}
+</div>
+{% endmacro %}
 
-            <i class="fas fa-minus"></i>
-        </button>
-    </div>
+{% macro card_tools() %}
+<div class="card-tools">
+    <button type="button" class="btn-tool" data-card-widget="collapse" aria-label="Toggle card">
+        <i class="fas fa-minus"></i>
+    </button>
 </div>
 {% endmacro %}
 
@@ -202,51 +206,52 @@
 {%- endmacro -%}
 
 {# Errors alerts #}
-{% macro autopatrol_err_macro(username) %}
-<div class="card shadow-sm border-danger mb-3">
-    <div class="card-header card-danger">
-        <h4 class="alert-heading">Autopatrol permission error!</h4>
-    </div>
-    <div class="card-body p-4">
-        <p class="mb-3">
 
-            {% if username %}
-            <a href="https://commons.wikimedia.org/wiki/Special:UserRights/{{ username }}" target="_blank"
-                rel="noopener noreferrer">
-                User:{{ username }}
-            </a>
-            {% else %}
-            User
-            {% endif %}
-            needs <strong>Autopatrol</strong> permission to run this task.
-            <a href="https://commons.wikimedia.org/wiki/Commons:Requests_for_rights#Autopatrol" target="_blank"
-                rel="noopener noreferrer">
-                Request Autopatrol permission
-            </a>
-        </p>
-    </div>
-</div>
+{# Autopatrol permission message (inner content only, no card wrapper) #}
+{% macro autopatrol_err_macro(username) %}
+<p class="mb-0">
+    {% if username %}
+    <a href="https://commons.wikimedia.org/wiki/Special:UserRights/{{ username }}" target="_blank"
+        rel="noopener noreferrer">
+        User:{{ username }}
+    </a>
+    {% else %}
+    User
+    {% endif %}
+    needs <strong>Autopatrol</strong> permission to run this task.
+    <a href="https://commons.wikimedia.org/wiki/Commons:Requests_for_rights#Autopatrol" target="_blank"
+        rel="noopener noreferrer">
+        Request Autopatrol permission
+    </a>
+</p>
 {%- endmacro -%}
 
 {% macro job_errors_div(errors, username="") %}
 {# Filter out errors where 'error' is empty, null, or whitespace #}
 {% set valid_errors = errors | selectattr("error") | list %}
 
-{# Only render the alert if there is at least one valid error message #}
+{# Render a single card containing all errors #}
 {% if valid_errors | length > 0 %}
-{% for err in valid_errors %}
-{% if err.error_type == "AutopatrolPermissionError" %}
-{{ autopatrol_err_macro(username) }}
-{% else %}
-<div class="alert alert-danger" role="alert">
-    <h5 class="alert-heading">Error!</h5>
-    <div>
-        <strong>{{ err.error_type if err.error_type else 'Error' }}:</strong>
-        {{ err.error }}
+<div class="card shadow-sm border-danger mb-3">
+    <div class="card-header card-danger">
+        <h4 class="alert-heading mb-0">
+            {% if valid_errors | length == 1 %}Error!{% else %}Errors ({{ valid_errors | length }}){% endif %}
+        </h4>
     </div>
+    <ul class="list-group list-group-flush">
+        {% for err in valid_errors %}
+        <li class="list-group-item p-3">
+            {% if err.error_type == "AutopatrolPermissionError" %}
+            <strong>Autopatrol permission error:</strong>
+            {{ autopatrol_err_macro(username) }}
+            {% else %}
+            <strong>{{ err.error_type if err.error_type else 'Error' }}:</strong>
+            {{ err.error }}
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
 </div>
-{% endif %}
-{% endfor %}
 {% endif %}
 {%- endmacro -%}
 

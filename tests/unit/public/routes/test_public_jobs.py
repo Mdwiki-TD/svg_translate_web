@@ -57,7 +57,7 @@ def mock_deps(
         "src.main_app.public.shared_jobs_routes.RequestContextHelper.load_auth_payload", deps.load_auth_payload
     )
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobStarter.start_form", deps.start_job)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.load_job_result", deps.load_job_result)
+    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobFilesService.load_result", deps.load_job_result)
 
     deps.redirect.return_value = "redirected"
     deps.url_for.return_value = MOCK_URL
@@ -307,7 +307,10 @@ class TestJobsList(TestSetup):
 
 class TestJobDetail(TestSetup):
     def test_job_found_without_result(
-        self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock, seeded_job: JobRecord
+        self,
+        mock_deps: MockJobRoutesDeps,
+        mock_template_data: MagicMock,
+        seeded_job: JobRecord,
     ) -> None:
         mock_deps.load_job_result.return_value = None
 
@@ -317,7 +320,7 @@ class TestJobDetail(TestSetup):
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job,
-            result_data=None,
+            result_data={"errors": {}, "summary": {}},
             template_data=mock_template_data,
             bp_name="public_jobs",
         )
@@ -336,7 +339,7 @@ class TestJobDetail(TestSetup):
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job_with_result,
-            result_data={"key": "value"},
+            result_data={"key": "value", "errors": {}, "summary": {}},
             template_data=mock_template_data,
             bp_name="public_jobs",
         )

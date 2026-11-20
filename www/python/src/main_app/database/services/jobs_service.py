@@ -56,6 +56,8 @@ class JobsService(CRUDService[JobRecord]):
 
     FINAL_STATUSES = ("completed", "failed", "cancelled", "skipped")
 
+    STALE_JOB_ERROR = "Interrupted: the process restarted while the job was running; stale lock released on startup"
+
     def __init__(self, session: Session | None = None) -> None:
         super().__init__(session=session or db.session)
 
@@ -403,20 +405,38 @@ class JobsService(CRUDService[JobRecord]):
     def cleanup_stale_jobs_on_startup(self) -> int:
         """Release job locks left behind by a previous process.
 
-        Safe only when run once, before any worker starts executing jobs.
+        Only thread-backed jobs are affected, since they cannot survive a
+        process restart. Safe only when run once, before any worker starts
+        executing jobs. Each released job is marked as failed with an
+        explanatory error_message.
         """
         try:
+            # Fetch the affected rows first so they can be logged and updated by id
+            stale = (
+                self.session.query(
+                    JobRecord.id,
+                    JobRecord.job_type,
+                    JobRecord.username,
+                    JobRecord.started_at,
+                )
+                .filter(
+                    JobRecord.is_running.is_(True),
+                    JobRecord.backend == "thread",
+                )
+                .with_for_update()
+                .all()
+            )
+            if not stale:
+                return 0
+
             count = (
                 self.session.query(JobRecord)
-                .filter(
-                    # JobRecord.status.in_(["pending", "running"]),
-                    JobRecord.is_running.is_(True),
-                    # JobRecord.backend == "thread",
-                )
+                .filter(JobRecord.id.in_([row.id for row in stale]))
                 .update(
                     {
                         JobRecord.status: "failed",
                         JobRecord.is_running: None,  # NULL releases the unique lock
+                        JobRecord.error_message: self.STALE_JOB_ERROR,
                         JobRecord.completed_at: func.coalesce(JobRecord.completed_at, func.current_timestamp()),
                     },
                     synchronize_session=False,
@@ -428,8 +448,7 @@ class JobsService(CRUDService[JobRecord]):
             logger.exception("Failed to clean up stale jobs on startup")
             return 0
 
-        if count:
-            logger.info("Cleaned up %d stale jobs on startup", count)
+        logger.info("Cleaned up %d stale jobs on startup: %s", count, self.STALE_JOB_ERROR)
         return count
 
 

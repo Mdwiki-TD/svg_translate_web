@@ -14,7 +14,7 @@ from sqlalchemy.orm.exc import StaleDataError
 from ..api_services import WikiSiteClient
 from ..config import get_settings
 from ..database.services import JobsService
-from ..io import is_cancel_file_exist, save_job_result_by_name
+from ..io.jobs_files_service import JobFilesService
 from .objects import JobsRunner
 from .shared_objects import SharedworkerObject, UpdaterOutcome
 from .utils import generate_result_file_name
@@ -72,11 +72,12 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
         self.wiki_domain = self.app_settings.other.wiki_domain
 
         self.result: TResult = self.create_result()
+        self.jobs_files_service = JobFilesService()
 
-    # @abstractmethod
+    @abstractmethod
     def create_result(self) -> TResult:
         """Create and return the specific result object instance."""
-        return SharedworkerObject()
+        # return SharedworkerObject()
 
     @abstractmethod
     def process(self) -> TResult:
@@ -155,7 +156,7 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
 
         result = self.result.to_json()
         try:
-            save_job_result_by_name(self.result_file, result)
+            self.jobs_files_service.save_result(self.result_file, result)
         except Exception:
             logger.exception("Job %s: Failed to save job result", self.job_id)
 
@@ -170,7 +171,7 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
             self._mark_as_cancelled_in_result()
             return True
 
-        if is_cancel_file_exist(self.result_file_cancelled):
+        if self.jobs_files_service.is_cancel_file_exist(self.result_file_cancelled):
             logger.info("Job %s: Cancelled file detected, stopping.", self.job_id)
             self._mark_as_cancelled_in_result()
             return True

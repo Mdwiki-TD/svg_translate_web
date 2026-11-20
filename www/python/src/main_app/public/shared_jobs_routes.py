@@ -22,7 +22,7 @@ from flask_wtf import FlaskForm
 from ..database.exceptions import DuplicateRecordError
 from ..database.services import JobsService, SettingsService
 from ..decorators import admin_required, oauth_required
-from ..io import load_job_result
+from ..io.jobs_files_service import JobFilesService
 from ..jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
 from ..jobs_workers.jobs_lifetime.jobs_starter import JobStarter
 from ..jobs_workers.objects import JobData
@@ -40,6 +40,7 @@ class SharedJobRoutes:
         self.job_service = JobsService()
         self.settings_service = SettingsService()
         self.jobs_canceller = JobCanceller()
+        self.jobs_files_service = JobFilesService()
 
     def can_manage_job(self, job: Any, user: Any) -> bool:
         """Check if the current user can manage (cancel/delete) a job."""
@@ -223,10 +224,20 @@ class SharedJobRoutes:
             )  # pyright: ignore[reportReturnType]
 
         # Load job result if available
-        result_data = None
+        result_data = (self.jobs_files_service.load_result(job.result_file) or {}) if job.result_file else {}
+        result_data.setdefault("errors", {})
+        result_data.setdefault("summary", {})
 
-        if job.result_file:
-            result_data = load_job_result(job.result_file)
+        if job.error_message:
+            result_data["errors"].append({"error": job.error_message, "error_type": "DB error"})
+
+        if result_data.get("error"):
+            result_data["errors"].append(
+                {
+                    "error": result_data["error"],
+                    "error_type": result_data.get("error_type") or "Error",
+                }
+            )
 
         return render_template(
             template_data.job_details_template,
@@ -249,6 +260,7 @@ class BaseJobView(MethodView):
         self.bp_name = bp_name
         self.shared_service = SharedJobRoutes(bp_name)
         self.settings_service = self.shared_service.settings_service
+        self.jobs_files_service = self.shared_service.jobs_files_service
 
     def _redirect_to_job_list(self, job_type: str) -> Response:
         url = f"{self.bp_name}.jobs_list"
@@ -388,7 +400,7 @@ class ReadJobResultFileView(BaseJobView):
         if job_type not in self.jobs_data_infos:
             abort(404)
 
-        result_data = load_job_result(result_file)
+        result_data = self.jobs_files_service.load_result(result_file)
         return jsonify(result_data)
 
 
@@ -459,7 +471,7 @@ class DrawResultFileView(BaseJobView):
         # copy_svg_langs_job_439.json
         result_file = f"{job_type}_job_{file_number}.json"
 
-        result_data = load_job_result(result_file)
+        result_data = self.jobs_files_service.load_result(result_file)
         list_data = []
         if result_data:
             list_data = self._load_list(result_data, result_file, list_name)

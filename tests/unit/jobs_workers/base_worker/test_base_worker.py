@@ -15,6 +15,9 @@ class _ConcreteWorker(BaseObjectsJobWorker[SharedworkerObject]):
 
     JOB_TYPE = "test_worker"
 
+    def create_result(self):
+        return SharedworkerObject()
+
     def process(self):  # pragma: no cover – not exercised here
         return self.result
 

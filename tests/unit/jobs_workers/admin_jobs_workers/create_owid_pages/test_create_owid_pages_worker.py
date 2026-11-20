@@ -41,7 +41,7 @@ def mock_owid_pages_services(monkeypatch: pytest.MonkeyPatch, mock_base_worker):
         mocks["is_job_cancelled"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.is_cancel_file_exist",
+        "src.main_app.jobs_workers.base_worker.JobFilesService.is_cancel_file_exist",
         mocks["is_cancel_file_exist"],
     )
     monkeypatch.setattr(
@@ -90,7 +90,7 @@ class TestTemplateProcessingInfo:
         assert hasattr(info.steps, "create_new_text")
         assert hasattr(info.steps, "create_new_page")
 
-    def test_to_dict(self):
+    def test_to_json(self):
         """Test to_json serialization."""
         info = TemplateProcessingInfo(
             template_id=1,

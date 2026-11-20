@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from ..config import get_settings
+from ..config import Settings, get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +25,18 @@ class JobFilesService:
     overridden for testing.
     """
 
-    def __init__(self, base_dir: Path | None = None) -> None:
-        self._base_dir = base_dir
+    def __init__(
+        self,
+        base_dir: Path | None = None,
+        settings: Settings | None = None,
+    ) -> None:
+        self.settings = settings or get_settings()
+        self.jobs_dir = base_dir or self._load_jobs_dir()
 
-    @property
-    def jobs_dir(self) -> Path:
+    def _load_jobs_dir(self) -> Path:
         """Resolve and cache the jobs data directory."""
-        if self._base_dir is not None:
-            return self._base_dir
-        app_settings = get_settings()
         # Use jobs_path from settings paths
-        jobs_dir = app_settings.paths.jobs_path
+        jobs_dir = self.settings.paths.jobs_path
 
         if not jobs_dir:
             raise RuntimeError("jobs_path configuration is required for job result storage")
@@ -112,18 +113,7 @@ def get_jobs_data_dir() -> Path:
     return JobFilesService().jobs_dir
 
 
-svc = JobFilesService()
-save_data = svc._save_data
-save_job_result_by_name = svc.save_result
-load_job_result = svc.load_result
-create_cancel_file = svc.create_cancel_file
-is_cancel_file_exist = svc.is_cancel_file_exist
-
 __all__ = [
     "JobFilesService",
     "get_jobs_data_dir",
-    "create_cancel_file",
-    "is_cancel_file_exist",
-    "save_job_result_by_name",
-    "load_job_result",
 ]

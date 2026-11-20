@@ -1,16 +1,16 @@
 {% extends "admins/base1.html" %}
-{% from "_macros.html" import card_header, status_icon, csrf, job_errors_div, auto_refresh_status %}
+{% from "_macros.html" import card_header, status_icon, job_errors_div, auto_refresh_status %}
 {% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job, form_mark_job_as_completed %}
 
 {% block title %}
-{{ template_data.job_name }} Job #{{ job.id }} · {{ tool_title }}
+{{ template_data.job_name }} #{{ job.id }} · {{ tool_title }}
 {% endblock %}
 
 {% block admin_contents %}
 <div>
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h3 class="headline mb-0">{{ template_data.job_name }} Job #{{ job.id }}</h3>
+            <h3 class="headline mb-0">{{ template_data.job_name }} #{{ job.id }}</h3>
             <div class="d-flex gap-2">
                 {% if (job.status | is_job_running) and is_admin %}
                 {% if (result_data and result_data.get("final_status_updated") == False) %}
@@ -54,7 +54,7 @@
                         <div class="col-md-6">
                             <table class="table table-striped table-sm table_text_left">
                                 <tr>
-                                    <th style="width: 40%">Status:</th>
+                                    <th>Status:</th>
                                     <td>
                                         <div
                                             class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
@@ -89,14 +89,14 @@
                         <div class="col-md-6">
                             <table class="table table-striped table-sm">
                                 <tr>
-                                    <th style="width: 40%">Completed:</th>
+                                    <th>Completed:</th>
                                     <td>
                                         {{ (job.completed_at or result_data.completed_at) | format_short_date("-") }}
                                     </td>
                                 </tr>
                                 {% if job.failed_at or (result_data and result_data.failed_at) %}
                                 <tr>
-                                    <th style="width: 40%">Failed At:</th>
+                                    <th>Failed At:</th>
                                     <td>
                                         {{ (job.failed_at or result_data.failed_at) | format_long_date("-") }}
                                     </td>
@@ -104,7 +104,7 @@
                                 {% endif %}
                                 {% if job.cancelled_at or (result_data and result_data.cancelled_at) %}
                                 <tr>
-                                    <th style="width: 40%">Cancelled At:</th>
+                                    <th>Cancelled At:</th>
                                     <td>
                                         {{ (job.cancelled_at or result_data.cancelled_at)| format_long_date("-") }}
                                     </td>
@@ -139,20 +139,19 @@
             <!-- Job Results -->
             {% if result_data %}
             {% block job_results %}
+
+            {% if result_data.errors %}
+            {{ job_errors_div(result_data.errors, job.username) }}
+            {% endif %}
+
             <div class="card mb-3">
                 <div class="card-header">
-                    {{ card_header("Job Summary") }}
+                    {{ card_header(job_summary_title | default("Job Summary")) }}
                 </div>
                 <div class="card-body">
-                    {% block job_summary %}{% endblock %}
-
-                    {% if result_data.error %}
-                    <div class="alert alert-danger" role="alert">
-                        <h5 class="alert-heading">Error!</h5>
-                        <strong>{{ result_data.error_type if result_data.error_type else 'Error' }}:</strong>
-                        {{ result_data.error }}
-                    </div>
-                    {% endif %}
+                    {% block job_summary %}
+                    {% include 'jobs_templates/_help_templates/_job_summary.html' %}
+                    {% endblock %}
 
                     {% if result_data.note %}
                     <div class="alert alert-warning" role="alert">
@@ -161,10 +160,6 @@
                             {{ result_data.note }}
                         </div>
                     </div>
-                    {% endif %}
-
-                    {% if result_data.errors %}
-                    {{ job_errors_div(result_data.errors, job.username) }}
                     {% endif %}
                 </div>
             </div>
@@ -184,4 +179,5 @@
 {% if job.status | is_job_running %}
 <script src="{{ url_for('static', filename='js/auto-refresh.js') }}"></script>
 {% endif %}
+
 {% endblock %}

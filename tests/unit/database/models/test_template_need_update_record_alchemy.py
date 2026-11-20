@@ -68,7 +68,7 @@ def test_template_need_update_record_difference_with_zero_values():
     assert rec.to_json()["difference"] == 0  # 0 - 0
 
 
-def test_template_need_update_record_to_dict():
+def test_template_need_update_record_to_json():
     """Test conversion to dictionary."""
     rec = TemplateNeedUpdateView(
         template_id=1, template_title="Test Template", slug="test-slug", max_time=2023, last_world_year=2020
@@ -89,7 +89,7 @@ def test_template_need_update_record_to_dict():
     assert result == expected
 
 
-def test_template_need_update_record_to_dict_with_none_values():
+def test_template_need_update_record_to_json_with_none_values():
     """Test conversion to dictionary with None values."""
     rec = TemplateNeedUpdateView(template_id=1, template_title=None, slug=None, max_time=None, last_world_year=None)
 

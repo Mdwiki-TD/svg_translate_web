@@ -3,14 +3,14 @@
 {% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job, form_mark_job_as_completed %}
 
 {% block title %}
-{{ template_data.job_name }} Job #{{ job.id }} · {{ tool_title }}
+{{ template_data.job_name }} #{{ job.id }} · {{ tool_title }}
 {% endblock %}
 
 {% block content_fluid %}
 <div class="container">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h3 class="headline mb-0">{{ template_data.job_name }} Job #{{ job.id }}</h3>
+            <h3 class="headline mb-0">{{ template_data.job_name }} #{{ job.id }}</h3>
             <div class="d-flex gap-2">
                 {% if (job.status | is_job_running) and (is_admin or current_username == job.username) %}
                 {% if (result_data and result_data.get("final_status_updated") == False) %}
@@ -146,18 +146,12 @@
 
             <div class="card mb-3">
                 <div class="card-header">
-                    {{ card_header("Job Summary") }}
+                    {{ card_header(job_summary_title | default("Job Summary")) }}
                 </div>
                 <div class="card-body">
-                    {% block job_summary %}{% endblock %}
-
-                    {% if result_data.error %}
-                    <div class="alert alert-danger" role="alert">
-                        <h5 class="alert-heading">Error!</h5>
-                        <strong>{{ result_data.error_type if result_data.error_type else 'Error' }}:</strong>
-                        {{ result_data.error }}
-                    </div>
-                    {% endif %}
+                    {% block job_summary %}
+                    {% include 'jobs_templates/_help_templates/_job_summary.html' %}
+                    {% endblock %}
 
                     {% if result_data.note %}
                     <div class="alert alert-warning" role="alert">

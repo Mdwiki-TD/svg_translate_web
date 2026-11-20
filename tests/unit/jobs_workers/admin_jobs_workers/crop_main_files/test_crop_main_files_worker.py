@@ -32,7 +32,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         "get_user_site": mock_base_worker["get_user_site"],
         "is_job_cancelled": MagicMock(return_value=False),
         "MwClientPage": MagicMock(),
-        "save_job_result_by_name": MagicMock(),
+        "save_result": MagicMock(),
         "settings": mock_settings,
         "template_service_list": MagicMock(),
         "update_information_author": MagicMock(side_effect=lambda text, author_citation: text),
@@ -61,8 +61,8 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
         mocks["update_job_status"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
-        mocks["save_job_result_by_name"],
+        "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
+        mocks["save_result"],
     )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled",
@@ -210,7 +210,7 @@ class TestFileProcessingInfo:
         assert hasattr(info.steps, "update_page")
         assert hasattr(info.steps, "update_cropped")
 
-    def test_to_dict(self, tmp_path):
+    def test_to_json(self, tmp_path):
         """Test to_json serialization."""
         info = CropFileProcessingInfo(
             template_id=1,
@@ -234,7 +234,7 @@ class TestFileProcessingInfo:
         assert result["downloaded_path"] == str(Path(tmp_path / "test.svg"))
         assert result["cropped_path"] == str(Path(tmp_path / "test_cropped.svg"))
 
-    def test_to_dict_with_none_paths(self):
+    def test_to_json_with_none_paths(self):
         """Test to_json with None paths."""
         info = CropFileProcessingInfo(
             template_id=1,
@@ -1095,11 +1095,11 @@ class TestCropMainFilesProcessorRun:
             mock_update_job_status,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.save_job_result_by_name",
+            "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
             mock_save_job_result,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.is_cancel_file_exist",
+            "src.main_app.jobs_workers.base_worker.JobFilesService.is_cancel_file_exist",
             mock_is_job_cancelled_file_exist,
         )
         mock_update_job_status.side_effect = LookupError("Job not found")

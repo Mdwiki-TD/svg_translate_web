@@ -23,7 +23,7 @@ class MockModel(Model):
     created_at: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
 
 
-def test_base_model_to_dict(mock_app: Flask) -> None:
+def test_base_model_to_json(mock_app: Flask) -> None:
     # with mock_app.app_context():
     now = datetime(2025, 1, 1, 12, 0, 0)
     obj = MockModel(id=1, name="test", created_at=now)
@@ -34,7 +34,7 @@ def test_base_model_to_dict(mock_app: Flask) -> None:
     assert data["created_at"] == "2025-01-01T12:00:00"
 
 
-def test_base_model_to_dict_isoformat():
+def test_base_model_to_json_isoformat():
     """Test that datetime values are converted to ISO format in to_json."""
     model = MockModel(
         created_at=datetime(2025, 10, 27, 4, 41, 7),

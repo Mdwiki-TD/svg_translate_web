@@ -39,7 +39,7 @@ class CommonsSession:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            logger.error(f"Request failed: {e}")
+            logger.error("Request failed: %s", e)
             raise
 
     def post(self, data: dict[str, Any]) -> dict[str, Any]:
@@ -48,7 +48,7 @@ class CommonsSession:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            logger.error(f"Request failed: {e}")
+            logger.error("Request failed: %s", e)
             raise
 
     def request(
