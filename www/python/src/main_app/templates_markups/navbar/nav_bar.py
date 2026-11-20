@@ -87,7 +87,7 @@ class NavigationBar:
         if current_username:
             profile_url = url_for("profile.dashboard", user_name=current_username)
             active = bool(request and quote(request.path) == profile_url)
-            logger.debug(f"render_user_links: {profile_url=} {request.path=}")
+            # logger.debug(f"render_user_links: {profile_url=} {request.path=}")
             active_class = " active" if active else ""
 
             profile_html = Markup(
