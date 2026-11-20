@@ -431,17 +431,17 @@ class MediaWikiQueryService:
                 "query": {
                     "redirects": [
                         {"from": "WPM:Wiki Project Med/Board", "to": "WikiProjectMed:Wiki Project Med/Board"},
-                        {"from": "WikiProjectMed:Wiki Project Med/Board", "to": "WikiProjectMed:Board"}
+                        {"from": "WikiProjectMed:Wiki Project Med/Board", "to": "WikiProjectMed:Board"},
                     ],
-                    "pages": [{
-                        "pageid": 4669,
-                        "ns": 4,
-                        "title": "WikiProjectMed:Board",
-                        "redirects": [
-                            {"pageid": 4846, "ns": 4, "title": "WikiProjectMed:Wiki Project Med/Board"}
-                        ]
-                    }]
-                }
+                    "pages": [
+                        {
+                            "pageid": 4669,
+                            "ns": 4,
+                            "title": "WikiProjectMed:Board",
+                            "redirects": [{"pageid": 4846, "ns": 4, "title": "WikiProjectMed:Wiki Project Med/Board"}],
+                        }
+                    ],
+                },
             }
         """
         logger.debug("get_double_redirects called")
