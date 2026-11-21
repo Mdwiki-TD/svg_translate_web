@@ -230,6 +230,20 @@ class TestDeleteJob(TestSetup):
 
 
 class TestStartJob(TestSetup):
+    def test_queued_job_reports_position(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.start_job.return_value = EnqueueResult(job_id=43, queued=True, position=3)
+        result = self.service.start_job_handler("test_job", {})
+        assert result == 43
+        mock_deps.flash.assert_called_once_with(
+            "Your job has been added to the queue. Its current position is 3.", "info"
+        )
+
+    def test_queued_job_next_in_line(self, mock_deps: MockJobRoutesDeps) -> None:
+        mock_deps.start_job.return_value = EnqueueResult(job_id=44, queued=True, position=1)
+        result = self.service.start_job_handler("test_job", {})
+        assert result == 44
+        mock_deps.flash.assert_called_once_with("Job 44 is next in the queue for test_job.", "success")
+
     def test_not_logged_in(self, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.get_current_user.return_value = None
         result = self.service.start_job_handler("test_job", {})
@@ -249,20 +263,6 @@ class TestStartJob(TestSetup):
         mock_deps.flash.assert_called_once_with(
             "A job of this type is already running. Please wait for it to complete.", "warning"
         )
-
-    def test_queued_job_reports_position(self, mock_deps: MockJobRoutesDeps) -> None:
-        mock_deps.start_job.return_value = EnqueueResult(job_id=43, queued=True, position=3)
-        result = self.service.start_job_handler("test_job", {})
-        assert result == 43
-        mock_deps.flash.assert_called_once_with(
-            "Your job has been added to the queue. Its current position is 3.", "info"
-        )
-
-    def test_queued_job_next_in_line(self, mock_deps: MockJobRoutesDeps) -> None:
-        mock_deps.start_job.return_value = EnqueueResult(job_id=44, queued=True, position=1)
-        result = self.service.start_job_handler("test_job", {})
-        assert result == 44
-        mock_deps.flash.assert_called_once_with("Job 44 is next in the queue for test_job.", "success")
 
     def test_generic_exception(self, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.start_job.side_effect = ValueError("unexpected")
