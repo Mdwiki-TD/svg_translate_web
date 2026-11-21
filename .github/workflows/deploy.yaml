@@ -44,7 +44,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: 22
           request_pty: true
-          script_stop: true
+          
           key: ${{ secrets.KEY }}
           script: |
             set -euo pipefail
