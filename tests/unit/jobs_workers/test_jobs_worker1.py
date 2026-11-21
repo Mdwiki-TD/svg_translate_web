@@ -7,12 +7,14 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.database.models import JobRecord
+from src.main_app.database.services import JobsService
 from src.main_app.jobs_workers.jobs_lifetime import cancel_registry
 from src.main_app.jobs_workers.jobs_lifetime.cancel_registry import (
     get_cancel_event,
     register_cancel_event,
 )
 from src.main_app.jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
+from src.main_app.jobs_workers.jobs_lifetime.jobs_queue import JobIdentityResolver
 from src.main_app.jobs_workers.jobs_lifetime.jobs_starter import JobStarter
 from src.main_app.jobs_workers.objects import JobsRunner
 
@@ -45,71 +47,76 @@ def clean_cancel_events():
 
 @pytest.fixture
 def mock_jobs_worker_services(monkeypatch: pytest.MonkeyPatch):
-    """Mock create_job, Thread, and current_app for job worker tests."""
+    """Mock the thread backend and the identity resolver; use the real sqlite DB.
+
+    JobStarter now submits jobs through JobsQueue, so the queue really enqueues
+    and claims rows in the test database while the thread itself stays mocked.
+    Payloads are written to the temporary jobs directory, exactly like in prod.
+    """
     mocks = {
-        "create_job": MagicMock(),
         "Thread": MagicMock(),
-        "current_app": MagicMock(),
+        "resolve": MagicMock(),
     }
 
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create_job"]
-    )
+    def _resolve(username: str) -> dict:
+        return {"username": username}
+
+    mocks["resolve"].side_effect = _resolve
+
     monkeypatch.setattr("src.main_app.jobs_workers.backends.thread_backend.threading.Thread", mocks["Thread"])
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.current_app", mocks["current_app"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.jobs_lifetime.jobs_queue.JobIdentityResolver.resolve", mocks["resolve"]
+    )
 
     return mocks
 
 
+def _runner_data(mocks: dict) -> JobsRunner:
+    """Return the JobsRunner the mocked thread was started with."""
+    mocks["Thread"].assert_called_once()
+    thread_args = mocks["Thread"].call_args[1]["args"]
+    return thread_args[0]
+
+
 def test_start_collect_templates_data_job(mock_jobs_worker_services):
     """Test starting a collect templates data job."""
-    mock_job = JobRecord(id=1, job_type="collect_templates_data", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
-
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
-
     mock_thread_instance = MagicMock()
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
     job_id = JobStarter().start({"username": "22"}, "collect_templates_data")
 
-    assert job_id == 1
-    mock_jobs_worker_services["create_job"].assert_called_once_with("collect_templates_data", "22")
+    assert job_id > 0
     mock_jobs_worker_services["Thread"].assert_called_once()
     # Verify the thread was started with correct arguments
-    thread_args = mock_jobs_worker_services["Thread"].call_args[1]["args"]
-    runner_data = thread_args[0]
+    runner_data = _runner_data(mock_jobs_worker_services)
     assert isinstance(runner_data, JobsRunner)
-    assert runner_data.job_id == 1
+    assert runner_data.job_id == job_id
     assert runner_data.user == {"username": "22"}
     assert isinstance(runner_data.cancel_event, threading.Event)
     mock_thread_instance.start.assert_called_once()
 
     # Verify event was registered
-    assert get_cancel_event(1) is not None
+    assert get_cancel_event(job_id) is not None
+
+    # The job was claimed by the queue and holds the active slot
+    job = JobsService().get_job(job_id, "collect_templates_data")
+    assert job.status == "running"
+    assert job.is_running == 1
 
 
 def test_start_fix_nested_main_files_job(mock_jobs_worker_services):
     """Test starting a fix nested main files job."""
-    mock_job = JobRecord(id=2, job_type="fix_nested_main_files", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
-
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
-
     mock_thread_instance = MagicMock()
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
     user = {"username": "test_user"}
     job_id = JobStarter().start(user, "fix_nested_main_files")
 
-    assert job_id == 2
-    mock_jobs_worker_services["create_job"].assert_called_once_with("fix_nested_main_files", "test_user")
+    assert job_id > 0
     mock_jobs_worker_services["Thread"].assert_called_once()
 
     # Verify event was registered
-    assert get_cancel_event(2) is not None
+    assert get_cancel_event(job_id) is not None
 
 
 def test_cancel_job():
@@ -169,24 +176,17 @@ def test_runner_calls_target_and_cleans_up():
 
 def test_start_download_main_files_job(mock_jobs_worker_services):
     """Test starting a download main files job."""
-    mock_job = JobRecord(id=3, job_type="download_main_files", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
-
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
-
     mock_thread_instance = MagicMock()
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
     user = {"username": "test_user"}
     job_id = JobStarter().start(user, "download_main_files")
 
-    assert job_id == 3
-    mock_jobs_worker_services["create_job"].assert_called_once_with("download_main_files", "test_user")
+    assert job_id > 0
     mock_jobs_worker_services["Thread"].assert_called_once()
 
     # Verify event was registered
-    assert get_cancel_event(3) is not None
+    assert get_cancel_event(job_id) is not None
 
 
 def test_start_job_with_invalid_job_type():
@@ -288,54 +288,33 @@ def test_runner_passes_none_args_by_default():
 
 def test_start_job_param(mock_jobs_worker_services):
     """Test that start_job passes args to the background thread."""
-    mock_job = JobRecord(id=10, job_type="collect_templates_data", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
-
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
-
     mock_thread_instance = MagicMock()
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
     args = {"update_all": "true"}
     job_id = JobStarter().start({"username": "22"}, "collect_templates_data", args=args)
 
-    assert job_id == 10
-    mock_jobs_worker_services["Thread"].assert_called_once()
-    thread_args = mock_jobs_worker_services["Thread"].call_args[1]["args"]
-    runner_data = thread_args[0]
+    assert job_id > 0
+    runner_data = _runner_data(mock_jobs_worker_services)
     assert isinstance(runner_data, JobsRunner)
     assert runner_data.args == args
 
 
 def test_start_job_without_args_passes_none(mock_jobs_worker_services):
     """Test that start_job passes args=None to the thread when no args given."""
-    mock_job = JobRecord(id=11, job_type="collect_templates_data", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
-
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
-
     mock_thread_instance = MagicMock()
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
     job_id = JobStarter().start({"username": "22"}, "collect_templates_data")
 
-    assert job_id == 11
-    thread_args = mock_jobs_worker_services["Thread"].call_args[1]["args"]
-    runner_data = thread_args[0]
+    assert job_id > 0
+    runner_data = _runner_data(mock_jobs_worker_services)
     assert isinstance(runner_data, JobsRunner)
     assert runner_data.args == {}
 
 
 def test_start_job_alias_works(mock_jobs_worker_services):
     """Test that the start_job alias behaves identically to start_job."""
-    mock_job = JobRecord(id=12, job_type="collect_templates_data", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
-
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
-
     mock_thread_instance = MagicMock()
     mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
 
@@ -343,9 +322,9 @@ def test_start_job_alias_works(mock_jobs_worker_services):
     user = {"username": "alias_user"}
     job_id = JobStarter().start(user, "collect_templates_data", args)
 
-    assert job_id == 12
-    mock_jobs_worker_services["create_job"].assert_called_once_with("collect_templates_data", "alias_user")
-    thread_args = mock_jobs_worker_services["Thread"].call_args[1]["args"]
-    runner_data = thread_args[0]
+    assert job_id > 0
+    stored = JobsService().get_job(job_id, "collect_templates_data")
+    assert stored.username == "alias_user"
+    runner_data = _runner_data(mock_jobs_worker_services)
     assert isinstance(runner_data, JobsRunner)
     assert runner_data.args == args

@@ -66,6 +66,20 @@ def init_db(_db: SQLAlchemy) -> None:
     except Exception:
         logger.exception("Failed to clean up stale jobs on startup")
 
+    # Recover the job queue: release stale active slots and start eligible
+    # pending jobs that were persisted before the process restarted.
+    try:
+        from flask import current_app
+
+        if current_app.config.get("JOBS_QUEUE_STARTUP_DISPATCH", True):
+            from ..jobs_workers.jobs_lifetime.jobs_queue import JobsQueue
+
+            dispatched = JobsQueue().recover(force=True)
+            if dispatched:
+                logger.info("Startup queue recovery dispatched jobs: %s", dispatched)
+    except Exception:
+        logger.exception("Failed to recover the job queue on startup")
+
 
 __all__ = [
     "init_db",

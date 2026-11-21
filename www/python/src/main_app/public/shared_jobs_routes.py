@@ -24,6 +24,7 @@ from ..database.services import JobsService, SettingsService
 from ..decorators import admin_required, oauth_required
 from ..io.jobs_files_service import JobFilesService
 from ..jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
+from ..jobs_workers.jobs_lifetime.jobs_queue import JobsQueue
 from ..jobs_workers.jobs_lifetime.jobs_starter import JobStarter
 from ..jobs_workers.objects import JobData
 from ..services.auth.current_user_resolver import CurrentUserResolver
@@ -41,6 +42,7 @@ class SharedJobRoutes:
         self.settings_service = SettingsService()
         self.jobs_canceller = JobCanceller()
         self.jobs_files_service = JobFilesService()
+        self.jobs_queue = JobsQueue(jobs_service=self.job_service)
 
     def can_manage_job(self, job: Any, user: Any) -> bool:
         """Check if the current user can manage (cancel/delete) a job."""
@@ -107,10 +109,8 @@ class SharedJobRoutes:
             return None
 
         try:
-            job_id = JobStarter().start_form(auth_payload, job_type, args, form_data)
-            flash(f"Job {job_id} started to {job_type}.", "success")
-            return job_id
-        except DuplicateRecordError:
+            result = JobStarter().submit_form(auth_payload, job_type, args, form_data)
+        except DuplicateRecordError:  # pragma: no cover - kept for safety
             logger.warning(
                 "User '%s' attempted to start duplicate job type '%s'",
                 getattr(user, "username", "N/A"),
@@ -120,11 +120,27 @@ class SharedJobRoutes:
                 "A job of this type is already running. Please wait for it to complete.",
                 "warning",
             )
+            return None
         except Exception:
             logger.exception("Failed to start job")
             flash("Failed to start job. Please try again.", "danger")
+            return None
 
-        return None
+        if result.queued:
+            if result.position > 1:
+                flash(
+                    f"Your job has been added to the queue. Its current position is {result.position}.",
+                    "info",
+                )
+            else:
+                flash(
+                    f"Job {result.job_id} is next in the queue for {job_type}.",
+                    "success",
+                )
+        else:
+            flash(f"Job {result.job_id} started to {job_type}.", "success")
+
+        return result.job_id
 
     def delete_job_handler(self, job_id: int, job_type: str) -> str:
         """Delete a job by ID and job type."""
@@ -203,8 +219,17 @@ class SharedJobRoutes:
             template_data=template_data,
             form=form,
             jobs=jobs,
+            queue_positions=self._queue_positions(template_data.job_type),
             bp_name=self.bp_name,
         )
+
+    def _queue_positions(self, job_type: str) -> dict[int, int]:
+        """Map pending job ids of ``job_type`` to their 1-based queue position."""
+        try:
+            return self.jobs_queue.queue_positions(job_type)
+        except Exception:  # pragma: no cover - defensive guard
+            logger.exception("Unable to load queue positions for %s", job_type)
+            return {}
 
     def job_detail_handler(
         self,
@@ -244,6 +269,7 @@ class SharedJobRoutes:
             template_data=template_data,
             job=job,
             result_data=result_data,
+            queue_position=self.jobs_queue.queue_position(job.id),
             bp_name=self.bp_name,
         )
 
