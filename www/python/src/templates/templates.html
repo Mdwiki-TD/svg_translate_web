@@ -10,6 +10,10 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h3 class="headline mb-0">Templates</h3>
+            <!-- Loads languages only for the rows currently visible on screen -->
+            <button id="loadVisibleLangs" class="btn btn-sm btn-primary" type="button">
+                Load languages (visible rows)
+            </button>
         </div>
         <div class="card-body">
             <div class="alert alert-info" role="alert">
@@ -43,6 +47,12 @@
 {% block extra_js %}
 <script>
     const WIKIDOMAIN = "{{ wiki_domain }}";
+
+    // Number of requests sent in parallel when loading visible rows
+    const BATCH_SIZE = 5;
+    const LOAD_BTN_LABEL = "Load languages (visible rows)";
+
+    // Fetch languages for one row and replace the button with the result
     function getLanguages(button) {
         const file = button.data('file');
         const span = button.parent();
@@ -62,6 +72,7 @@
             });
     }
 
+    // Per-row "load" button
     $("#templatesTable").on("click", 'button[data-file]', function () {
         getLanguages($(this));
     });
@@ -147,6 +158,35 @@
                     }
                 },
             ],
+        });
+
+        // Load languages for the rows visible on the current page only
+        // (respects the active search filter and sort order)
+        $("#loadVisibleLangs").on("click", async function () {
+            const $btn = $(this);
+            const buttons = [];
+
+            // Collect the still-unloaded "load" buttons of the visible rows.
+            // Already-loaded rows no longer contain a button, so they are skipped.
+            table.rows({ page: 'current', search: 'applied' }).nodes().to$()
+                .find('button[data-file]')
+                .each(function () { buttons.push($(this)); });
+
+            if (!buttons.length) return;
+
+            $btn.prop('disabled', true);
+            const total = buttons.length;
+            let done = 0;
+
+            // Send requests in small batches to avoid flooding the server
+            for (let i = 0; i < total; i += BATCH_SIZE) {
+                const batch = buttons.slice(i, i + BATCH_SIZE);
+                await Promise.all(batch.map(b => getLanguages(b)));
+                done += batch.length;
+                $btn.text(`Loading ${done}/${total}`);
+            }
+
+            $btn.prop('disabled', false).text(LOAD_BTN_LABEL);
         });
     });
 </script>
