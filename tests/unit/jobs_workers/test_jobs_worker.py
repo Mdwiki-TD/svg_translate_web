@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
-from src.main_app.database.services import JobsService, UsersService
+from src.main_app.database.services import JobsService, QueueJobsService, UsersService
 from src.main_app.jobs_workers.backends.thread_backend import _runner
 from src.main_app.jobs_workers.jobs_lifetime.cancel_registry import (
     get_cancel_event,
@@ -72,6 +72,7 @@ class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
         self.job_service = JobsService()
+        self.queue_jobs_service = QueueJobsService()
 
 
 @pytest.mark.usefixtures("mock_app")
@@ -174,6 +175,6 @@ class TestStartJob(TestSetup):
             assert first.status == "running"
             assert second.status == "pending"
             assert second.is_running is None
-            assert self.job_service.get_queue_position(second_id) == 1
+            assert self.queue_jobs_service.get_queue_position(second_id) == 1
 
         pop_cancel_event(first_id)

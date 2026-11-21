@@ -7,7 +7,7 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from src.main_app.database.services import JobsService
+from src.main_app.database.services import JobsService, QueueJobsService
 from src.main_app.jobs_workers.backends.thread_backend import _runner
 from src.main_app.jobs_workers.jobs_lifetime import cancel_registry, jobs_starter
 from src.main_app.jobs_workers.jobs_lifetime.cancel_registry import (
@@ -78,6 +78,11 @@ def jobs_service() -> JobsService:
     return JobsService()
 
 
+@pytest.fixture
+def queue_jobs_service() -> QueueJobsService:
+    return QueueJobsService()
+
+
 @pytest.fixture(autouse=True)
 def clean_cancel_events():
     """Clear the cancel-event registry around each test."""
@@ -90,7 +95,7 @@ def clean_cancel_events():
 
 class TestPendingCancellation:
     def test_cancel_pending_job_never_touches_backend(
-        self, queue: JobsQueue, backend: RecordingBackend, jobs_service: JobsService, monkeypatch
+        self, queue: JobsQueue, backend: RecordingBackend, jobs_service: JobsService, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         queue.enqueue(JOB_TYPE, "user")
         queued = queue.enqueue(JOB_TYPE, "user")
@@ -126,22 +131,22 @@ class TestPendingCancellation:
         assert queue.dispatch_next(JOB_TYPE) == third.job_id
         assert backend.started == [first.job_id, third.job_id]
 
-    def test_queue_positions_update_after_cancel(self, queue: JobsQueue, jobs_service: JobsService) -> None:
+    def test_queue_positions_update_after_cancel(self, queue: JobsQueue, queue_jobs_service: QueueJobsService) -> None:
         queue.enqueue(JOB_TYPE, "user")
         second = queue.enqueue(JOB_TYPE, "user")
         third = queue.enqueue(JOB_TYPE, "user")
 
-        assert jobs_service.get_queue_position(third.job_id) == 2
+        assert queue_jobs_service.get_queue_position(third.job_id) == 2
 
         queue.cancel_pending(second.job_id, JOB_TYPE)
 
-        assert jobs_service.get_queue_position(third.job_id) == 1
-        assert jobs_service.get_queue_position(second.job_id) == 0
+        assert queue_jobs_service.get_queue_position(third.job_id) == 1
+        assert queue_jobs_service.get_queue_position(second.job_id) == 0
 
 
 class TestRunningCancellation:
     def test_running_job_slot_not_released_on_cancel_request(
-        self, queue: JobsQueue, backend: RecordingBackend, jobs_service: JobsService
+        self, queue: JobsQueue, backend: RecordingBackend, jobs_service, queue_jobs_service: QueueJobsService
     ) -> None:
         running = queue.enqueue(JOB_TYPE, "user")
         queued = queue.enqueue(JOB_TYPE, "user")
@@ -151,7 +156,7 @@ class TestRunningCancellation:
 
         # Cancellation was requested but the execution may still be winding down
         assert get_cancel_event(running.job_id) is not None
-        assert jobs_service.has_running_job(JOB_TYPE) is True
+        assert queue_jobs_service.has_running_job(JOB_TYPE) is True
         assert backend.started == [running.job_id]
         assert jobs_service.get_job(queued.job_id, JOB_TYPE).status == "pending"
 
@@ -195,7 +200,7 @@ class TestBackendFinishHook:
         dispatch_spy.assert_called_once_with(JOB_TYPE)
         assert second.job_id > 0
 
-    def test_runner_without_job_type_does_not_dispatch(self, monkeypatch) -> None:
+    def test_runner_without_job_type_does_not_dispatch(self, monkeypatch: pytest.MonkeyPatch) -> None:
         dispatch_spy = MagicMock()
         monkeypatch.setattr(
             "src.main_app.jobs_workers.jobs_lifetime.jobs_queue.JobsQueue.on_job_finished", dispatch_spy
@@ -210,10 +215,14 @@ class TestBackendFinishHook:
 
 class TestStartupRecovery:
     def test_recover_starts_pending_jobs_left_by_previous_process(
-        self, queue: JobsQueue, backend: RecordingBackend, jobs_service: JobsService
+        self,
+        queue: JobsQueue,
+        backend: RecordingBackend,
+        jobs_service: JobsService,
+        queue_jobs_service: QueueJobsService,
     ) -> None:
         # A pending job persisted before a restart, no active job of its type
-        pending = jobs_service.enqueue_job(JOB_TYPE, "user")
+        pending = queue_jobs_service.enqueue_job(JOB_TYPE, "user")
         queue.files_service.save_payload(pending.id, JOB_TYPE, {"args": {}, "form_data": None, "username": "user"})
 
         dispatched = queue.recover(force=True)
@@ -223,7 +232,7 @@ class TestStartupRecovery:
         assert jobs_service.get_job(pending.id, JOB_TYPE).status == "running"
 
     def test_recover_does_not_touch_running_jobs(
-        self, queue: JobsQueue, backend: RecordingBackend, jobs_service: JobsService
+        self, queue: JobsQueue, backend: RecordingBackend, jobs_service
     ) -> None:
         running = queue.enqueue(JOB_TYPE, "user")
 
@@ -233,13 +242,13 @@ class TestStartupRecovery:
         assert backend.started == [running.job_id]
         assert jobs_service.get_job(running.job_id, JOB_TYPE).status == "running"
 
-    def test_recover_is_throttled(self, queue: JobsQueue, jobs_service: JobsService) -> None:
-        pending = jobs_service.enqueue_job(JOB_TYPE, "user")
+    def test_recover_is_throttled(self, queue: JobsQueue, queue_jobs_service: QueueJobsService) -> None:
+        pending = queue_jobs_service.enqueue_job(JOB_TYPE, "user")
         queue.files_service.save_payload(pending.id, JOB_TYPE, {"args": {}, "form_data": None, "username": "user"})
 
         assert queue.recover(force=True) == [pending.id]
 
-        other = jobs_service.enqueue_job(OTHER_JOB_TYPE, "user")
+        other = queue_jobs_service.enqueue_job(OTHER_JOB_TYPE, "user")
         queue.files_service.save_payload(other.id, OTHER_JOB_TYPE, {"args": {}, "form_data": None, "username": "user"})
 
         # Throttled: nothing happens within the interval

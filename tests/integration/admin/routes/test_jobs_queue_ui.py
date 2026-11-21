@@ -6,7 +6,7 @@ from html import unescape
 from unittest.mock import Mock
 
 import pytest
-from src.main_app.database.services import JobsService
+from src.main_app.database.services import JobsService, QueueJobsService
 from src.main_app.jobs_workers.jobs_lifetime.jobs_queue import EnqueueResult
 
 pytestmark = [pytest.mark.integration]
@@ -48,15 +48,16 @@ def mock_cancel_event(monkeypatch: pytest.MonkeyPatch) -> Mock:
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:
-        self.service = JobsService()
+        self.job_service = JobsService()
+        self.queue_jobs_service = QueueJobsService()
 
 
 class TestQueueUi(TestSetup):
     def test_list_shows_running_and_queued_positions(self, admin_jobs_client) -> None:
-        running = self.service.enqueue_job(JOB_TYPE, "admin_user")
-        self.service.claim_pending_job(running.id)
-        second = self.service.enqueue_job(JOB_TYPE, "admin_user")
-        third = self.service.enqueue_job(JOB_TYPE, "admin_user")
+        running = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
+        self.queue_jobs_service.claim_pending_job(running.id)
+        second = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
+        third = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
 
         response = admin_jobs_client.get(f"/admin_panel/jobs/{JOB_TYPE}")
 
@@ -69,9 +70,9 @@ class TestQueueUi(TestSetup):
         assert str(third.id) in page
 
     def test_list_without_pending_jobs_shows_no_queue_labels(self, admin_jobs_client) -> None:
-        job = self.service.enqueue_job(JOB_TYPE, "admin_user")
-        self.service.claim_pending_job(job.id)
-        self.service.update_job_status(job.id, "completed", job_type=JOB_TYPE)
+        job = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
+        self.queue_jobs_service.claim_pending_job(job.id)
+        self.job_service.update_job_status(job.id, "completed", job_type=JOB_TYPE)
 
         response = admin_jobs_client.get(f"/admin_panel/jobs/{JOB_TYPE}")
 
@@ -80,9 +81,9 @@ class TestQueueUi(TestSetup):
         assert "Completed" in page
 
     def test_detail_page_shows_queue_position(self, admin_jobs_client) -> None:
-        running = self.service.enqueue_job(JOB_TYPE, "admin_user")
-        self.service.claim_pending_job(running.id)
-        queued = self.service.enqueue_job(JOB_TYPE, "admin_user")
+        running = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
+        self.queue_jobs_service.claim_pending_job(running.id)
+        queued = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
 
         response = admin_jobs_client.get(f"/admin_panel/jobs/{JOB_TYPE}/{queued.id}")
 
@@ -91,30 +92,30 @@ class TestQueueUi(TestSetup):
         assert "Queued · #1" in page
 
     def test_queued_job_can_be_cancelled(self, admin_jobs_client, mock_flash, mock_cancel_event) -> None:
-        running = self.service.enqueue_job(JOB_TYPE, "admin_user")
-        self.service.claim_pending_job(running.id)
-        queued = self.service.enqueue_job(JOB_TYPE, "admin_user")
+        running = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
+        self.queue_jobs_service.claim_pending_job(running.id)
+        queued = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
 
         response = admin_jobs_client.post(f"/admin_panel/jobs/{JOB_TYPE}/{queued.id}/cancel")
 
         assert response.status_code == 302
         mock_flash.assert_any_call(f"Job {queued.id} cancellation requested.", "success")
 
-        cancelled = self.service.get_job(queued.id, JOB_TYPE)
+        cancelled = self.job_service.get_job(queued.id, JOB_TYPE)
         assert cancelled.status == "cancelled"
         # The running job keeps executing and keeps the active slot
-        assert self.service.get_job(running.id, JOB_TYPE).status == "running"
+        assert self.job_service.get_job(running.id, JOB_TYPE).status == "running"
 
     def test_cancel_pending_job_moves_queue_positions(self, admin_jobs_client, mock_flash, mock_cancel_event) -> None:
-        running = self.service.enqueue_job(JOB_TYPE, "admin_user")
-        self.service.claim_pending_job(running.id)
-        second = self.service.enqueue_job(JOB_TYPE, "admin_user")
-        third = self.service.enqueue_job(JOB_TYPE, "admin_user")
+        running = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
+        self.queue_jobs_service.claim_pending_job(running.id)
+        second = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
+        third = self.queue_jobs_service.enqueue_job(JOB_TYPE, "admin_user")
 
         admin_jobs_client.post(f"/admin_panel/jobs/{JOB_TYPE}/{second.id}/cancel")
 
-        assert self.service.get_queue_position(second.id) == 0
-        assert self.service.get_queue_position(third.id) == 1
+        assert self.queue_jobs_service.get_queue_position(second.id) == 0
+        assert self.queue_jobs_service.get_queue_position(third.id) == 1
 
 
 class TestSubmissionFeedback(TestSetup):

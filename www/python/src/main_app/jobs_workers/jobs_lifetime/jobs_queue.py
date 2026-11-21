@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ...database.models import JobRecord
-from ...database.services import JobsService
+from ...database.services import JobsService, QueueJobsService
 from ...io.jobs_files_service import JobFilesService
 from ..objects import JobData
 
@@ -145,6 +145,7 @@ class JobsQueue:
         files_service: JobFilesService | None = None,
         backend: Any | None = None,
         identity_resolver: JobIdentityResolver | None = None,
+        queue_jobs_service: QueueJobsService | None = None,
     ) -> None:
         """Initialize with optional dependencies.
 
@@ -155,6 +156,7 @@ class JobsQueue:
             identity_resolver: Rebuilds the job owner identity at dispatch.
         """
         self.jobs_service = jobs_service or JobsService()
+        self.queue_jobs_service = queue_jobs_service or QueueJobsService()
         self.files_service = files_service or JobFilesService()
         self._backend = backend
         self.identity_resolver = identity_resolver or JobIdentityResolver()
@@ -214,7 +216,7 @@ class JobsQueue:
         if not username:
             raise ValueError("User authentication data is required")
 
-        job = self.jobs_service.enqueue_job(job_type, username)
+        job = self.queue_jobs_service.enqueue_job(job_type, username)
 
         payload = {
             "args": sanitize_payload(args),
@@ -226,19 +228,19 @@ class JobsQueue:
             self.files_service.save_payload(job.id, job.job_type, payload)
         except Exception:
             logger.exception("Failed to persist payload for job %s", job.id)
-            self.jobs_service.fail_job(job.id, job.job_type, "Failed to store the job payload")
+            self.queue_jobs_service.fail_job(job.id, job.job_type, "Failed to store the job payload")
             raise RuntimeError(f"Failed to store the payload of job {job.id}") from None
 
         started_id = self.dispatch_next(job.job_type)
         if started_id == job.id:
             return EnqueueResult(job_id=job.id, queued=False)
 
-        position = self.jobs_service.get_queue_position(job.id)
+        position = self.queue_jobs_service.get_queue_position(job.id)
         return EnqueueResult(job_id=job.id, queued=True, position=position)
 
     def get_next_pending(self, job_type: str) -> JobRecord | None:
         """Return the oldest queued job of ``job_type`` (FIFO)."""
-        pending = self.jobs_service.list_pending_jobs(job_type, limit=1)
+        pending = self.queue_jobs_service.list_pending_jobs(job_type, limit=1)
         return pending[0] if pending else None
 
     def claim_job(self, job: JobRecord) -> bool:
@@ -250,7 +252,7 @@ class JobsQueue:
         Returns:
             True when this caller now owns the active slot for the job type.
         """
-        return self.jobs_service.claim_pending_job(job.id)
+        return self.queue_jobs_service.claim_pending_job(job.id)
 
     def dispatch_next(self, job_type: str) -> int | None:
         """Claim and submit the next eligible job of ``job_type``.
@@ -265,7 +267,7 @@ class JobsQueue:
             return None
 
         try:
-            if self.jobs_service.has_running_job(job_type):
+            if self.queue_jobs_service.has_running_job(job_type):
                 return None
         except Exception:
             logger.exception("Unable to check the active slot of %s", job_type)
@@ -278,7 +280,7 @@ class JobsQueue:
 
             if not self.claim_job(job):
                 # Lost race, or the slot got taken: stop or try the next row.
-                if self.jobs_service.has_running_job(job_type):
+                if self.queue_jobs_service.has_running_job(job_type):
                     return None
                 continue
 
@@ -286,11 +288,11 @@ class JobsQueue:
                 self._start_claimed(job)
             except JobCredentialsError as exc:
                 logger.error("Job %s cannot start: %s", job.id, exc)
-                self.jobs_service.fail_job(job.id, job.job_type, str(exc))
+                self.queue_jobs_service.fail_job(job.id, job.job_type, str(exc))
                 continue
             except Exception as exc:
                 logger.exception("Backend submission failed for job %s", job.id)
-                self.jobs_service.fail_job(job.id, job.job_type, self._failure_message(exc))
+                self.queue_jobs_service.fail_job(job.id, job.job_type, self._failure_message(exc))
                 continue
 
             logger.info("Dispatched queued job %s (type=%s)", job.id, job.job_type)
@@ -305,7 +307,7 @@ class JobsQueue:
             Ids of the jobs that were dispatched.
         """
         dispatched: list[int] = []
-        for job_type in self.jobs_service.list_pending_job_types():
+        for job_type in self.queue_jobs_service.list_pending_job_types():
             try:
                 job_id = self.dispatch_next(job_type)
             except Exception:
@@ -328,15 +330,15 @@ class JobsQueue:
         Returns:
             True when the pending job was cancelled.
         """
-        return self.jobs_service.cancel_pending_job(job_id, job_type)
+        return self.queue_jobs_service.cancel_pending_job(job_id, job_type)
 
     def queue_position(self, job_id: int) -> int:
         """Return the 1-based position of a queued job, 0 when not queued."""
-        return self.jobs_service.get_queue_position(job_id)
+        return self.queue_jobs_service.get_queue_position(job_id)
 
     def queue_positions(self, job_type: str) -> dict[int, int]:
         """Map pending job ids of ``job_type`` to their queue position."""
-        return self.jobs_service.get_queue_positions(job_type)
+        return self.queue_jobs_service.get_queue_positions(job_type)
 
     def on_job_finished(self, job_id: int, job_type: str) -> int | None:
         """Advance the queue after a job reached a terminal state.
@@ -380,7 +382,7 @@ class JobsQueue:
             self._last_recover_at = now
 
         try:
-            self.jobs_service.release_stale_active_slots()
+            self.queue_jobs_service.release_stale_active_slots()
         except Exception:
             logger.exception("Stale active slot recovery failed")
 

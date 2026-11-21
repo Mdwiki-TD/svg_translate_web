@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 from src.main_app.database.models import JobRecord
-from src.main_app.database.services import JobsService
+from src.main_app.database.services import JobsService, QueueJobsService
 from src.main_app.jobs_workers.jobs_lifetime import jobs_starter
 from src.main_app.jobs_workers.jobs_lifetime.jobs_queue import (
     EnqueueResult,
@@ -98,6 +98,11 @@ def queue(fake_backend: FakeBackend, monkeypatch: pytest.MonkeyPatch) -> JobsQue
 @pytest.fixture
 def jobs_service() -> JobsService:
     return JobsService()
+
+
+@pytest.fixture
+def queue_jobs_service() -> QueueJobsService:
+    return QueueJobsService()
 
 
 class TestEnqueue:
@@ -213,7 +218,7 @@ class TestFifoOrdering:
 
         assert sorted(fake_backend.started_ids) == sorted([first.job_id, other.job_id])
 
-    def test_queue_positions_are_per_job_type(self, queue: JobsQueue, jobs_service: JobsService) -> None:
+    def test_queue_positions_are_per_job_type(self, queue: JobsQueue, queue_jobs_service: QueueJobsService) -> None:
         queue.enqueue(QUEUE_JOB_TYPE, "user")
         queued_a = queue.enqueue(QUEUE_JOB_TYPE, "user")
         queue.enqueue(OTHER_JOB_TYPE, "user")
@@ -223,25 +228,29 @@ class TestFifoOrdering:
 
         assert positions == {queued_a.job_id: 1}
         assert queue.queue_position(queued_b.job_id) == 1
-        assert jobs_service.get_queue_positions(OTHER_JOB_TYPE) == {queued_b.job_id: 1}
+        assert queue_jobs_service.get_queue_positions(OTHER_JOB_TYPE) == {queued_b.job_id: 1}
 
 
 class TestClaiming:
-    def test_claim_is_atomic_and_single_winner(self, queue: JobsService, jobs_service: JobsService) -> None:
+    def test_claim_is_atomic_and_single_winner(self, queue: JobsQueue, queue_jobs_service: QueueJobsService) -> None:
         jobs_queue = queue
         jobs_queue.enqueue(QUEUE_JOB_TYPE, "user")
         pending = jobs_queue.enqueue(QUEUE_JOB_TYPE, "user")
 
         # Simulate a second dispatcher claiming the same pending job
-        assert jobs_service.claim_pending_job(pending.job_id) is False
+        assert queue_jobs_service.claim_pending_job(pending.job_id) is False
 
-    def test_unique_constraint_prevents_second_active_job(self, jobs_service: JobsService) -> None:
-        running = jobs_service.enqueue_job(QUEUE_JOB_TYPE, "user")
-        assert jobs_service.claim_pending_job(running.id) is True
+    def test_unique_constraint_prevents_second_active_job(
+        self,
+        jobs_service: JobsService,
+        queue_jobs_service: QueueJobsService,
+    ) -> None:
+        running = queue_jobs_service.enqueue_job(QUEUE_JOB_TYPE, "user")
+        assert queue_jobs_service.claim_pending_job(running.id) is True
 
-        other = jobs_service.enqueue_job(QUEUE_JOB_TYPE, "other")
+        other = queue_jobs_service.enqueue_job(QUEUE_JOB_TYPE, "other")
         # The active slot is taken: the claim loses without raising
-        assert jobs_service.claim_pending_job(other.id) is False
+        assert queue_jobs_service.claim_pending_job(other.id) is False
 
         refreshed = jobs_service.get_job(other.id, QUEUE_JOB_TYPE)
         assert refreshed.status == "pending"
@@ -378,7 +387,9 @@ class TestCancellation:
         assert queue.dispatch_next(QUEUE_JOB_TYPE) == third.job_id
         assert fake_backend.started_ids == [first.job_id, third.job_id]
 
-    def test_cancel_running_job_keeps_active_slot(self, queue: JobsQueue, jobs_service: JobsService) -> None:
+    def test_cancel_running_job_keeps_active_slot(
+        self, queue: JobsQueue, jobs_service: JobsService, queue_jobs_service: QueueJobsService
+    ) -> None:
         result = queue.enqueue(QUEUE_JOB_TYPE, "user")
 
         assert jobs_service.cancel_job_db(result.job_id, QUEUE_JOB_TYPE) is True
@@ -387,7 +398,7 @@ class TestCancellation:
         assert job.status == "cancelled"
         # The slot is still held until the execution really stopped
         assert job.is_running == 1
-        assert jobs_service.has_running_job(QUEUE_JOB_TYPE) is True
+        assert queue_jobs_service.has_running_job(QUEUE_JOB_TYPE) is True
 
         queued = queue.enqueue(QUEUE_JOB_TYPE, "user")
         assert queued.queued is True
@@ -429,25 +440,32 @@ class TestRecovery:
         assert dispatched == [queued.job_id]
         assert fake_backend.started_ids[-1] == queued.job_id
 
-    def test_recover_releases_stale_slot_of_terminal_job(self, queue: JobsQueue, jobs_service: JobsService) -> None:
+    def test_recover_releases_stale_slot_of_terminal_job(
+        self,
+        queue: JobsQueue,
+        jobs_service: JobsService,
+        queue_jobs_service: QueueJobsService,
+    ) -> None:
         result = queue.enqueue(QUEUE_JOB_TYPE, "user")
         # Cancellation marked the job terminal but the worker disappeared
         jobs_service.cancel_job_db(result.job_id, QUEUE_JOB_TYPE)
-        assert jobs_service.has_running_job(QUEUE_JOB_TYPE) is True
+        assert queue_jobs_service.has_running_job(QUEUE_JOB_TYPE) is True
 
-        released = jobs_service.release_stale_active_slots(grace_seconds=-1)
+        released = queue_jobs_service.release_stale_active_slots(grace_seconds=-1)
 
         assert released == 1
-        assert jobs_service.has_running_job(QUEUE_JOB_TYPE) is False
+        assert queue_jobs_service.has_running_job(QUEUE_JOB_TYPE) is False
 
-    def test_recover_keeps_slot_of_recent_terminal_job(self, queue: JobsQueue, jobs_service: JobsService) -> None:
+    def test_recover_keeps_slot_of_recent_terminal_job(
+        self, queue: JobsQueue, jobs_service: JobsService, queue_jobs_service: QueueJobsService
+    ) -> None:
         result = queue.enqueue(QUEUE_JOB_TYPE, "user")
         jobs_service.cancel_job_db(result.job_id, QUEUE_JOB_TYPE)
 
-        released = jobs_service.release_stale_active_slots(grace_seconds=300)
+        released = queue_jobs_service.release_stale_active_slots(grace_seconds=300)
 
         assert released == 0
-        assert jobs_service.has_running_job(QUEUE_JOB_TYPE) is True
+        assert queue_jobs_service.has_running_job(QUEUE_JOB_TYPE) is True
 
     def test_repeated_recover_is_safe(self, queue: JobsQueue, fake_backend: FakeBackend) -> None:
         result = queue.enqueue(QUEUE_JOB_TYPE, "user")
