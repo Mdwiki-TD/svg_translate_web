@@ -23,15 +23,15 @@ STATUS_LITERAL = Literal[
 ]
 
 OUTCOME_STATUS = Literal[
-    "pending",
-    "running",
-    "updated",
     "changed",
     "completed",
-    "missing",
-    "skipped",
+    "created",
     "error",
     "failed",
+    "missing",
+    "pending",
+    "running",
+    "skipped",
     "updated",
 ]
 

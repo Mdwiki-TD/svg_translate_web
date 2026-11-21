@@ -1,0 +1,263 @@
+{% extends "admins/base1.html" %}
+{% from "_macros.html" import card_header %}
+
+{% block admin_contents %}
+
+{# ---- helpers ---- #}
+{% macro num(v) %}{{ "{:,}".format(v or 0) }}{% endmacro %}
+{% macro pct(part, whole) %}{{ ((part / whole * 100) | round(1)) if whole else 0 }}%{% endmacro %}
+{% macro tile(label, value, cls='') %}
+<div class="col-6 col-md-3">
+  <div class="border rounded p-2 text-center bg-body-tertiary h-100">
+    <div class="small text-body-secondary">{{ label }}</div>
+    <div class="fs-4 fw-semibold {{ cls }}">{{ value }}</div>
+  </div>
+</div>
+{% endmacro %}
+{% macro status_badge(code) %}
+<span class="badge text-bg-{{ 'danger' if code >= 500 else 'secondary' }}">{{ code }}</span>
+{% endmacro %}
+
+<div class="container-fluid py-3">
+  <h3 class="mb-3">Request Errors logs</h3>
+
+  {# ================= 3. Filters ================= #}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">
+      {{ card_header('Filters') }}
+    </div>
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-6 col-md-auto">
+          <label class="form-label mb-0" for="days">Days</label>
+          <input class="form-control form-control-sm" type="number" min="1" max="365" id="days" name="days"
+            value="{{ filters.days }}">
+        </div>
+        <div class="col-6 col-md-auto">
+          <label class="form-label mb-0" for="status">Status</label>
+          <input class="form-control form-control-sm" type="number" id="status" name="status"
+            value="{{ filters.status or '' }}" placeholder="404">
+        </div>
+        <div class="col-6 col-md-auto">
+          <label class="form-label mb-0" for="path">Path contains</label>
+          <input class="form-control form-control-sm" type="text" id="path" name="path" value="{{ filters.path or '' }}"
+            placeholder=".php">
+        </div>
+        <div class="col-6 col-md-auto">
+          <label class="form-label mb-0" for="ip">IP</label>
+          <input class="form-control form-control-sm" type="text" id="ip" name="ip" value="{{ filters.ip or '' }}">
+        </div>
+        <div class="col-6 col-md-auto">
+          <label class="form-label mb-0" for="bot">Client</label>
+          <select class="form-select form-select-sm" id="bot" name="bot">
+            <option value="" {{ 'selected' if not filters.bot }}>All</option>
+            <option value="1" {{ 'selected' if filters.bot == '1' }}>Suspected bots</option>
+            <option value="0" {{ 'selected' if filters.bot == '0' }}>Browsers</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-auto">
+          <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+          <a class="btn btn-outline-secondary btn-sm" href="{{ url_for(request.endpoint) }}">Reset</a>
+        </div>
+      </form>
+      <div class="form-text mt-2">
+        Days applies to the statistics above. Status, path, IP and client filters apply to the detailed rows below.
+      </div>
+    </div>
+  </div>
+
+  {# ================= 2. Selected period ================= #}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span class="fw-semibold">Last {{ filters.days }} day{{ 's' if filters.days != 1 }}</span>
+      <span class="text-body-secondary small">Calendar days, including today</span>
+    </div>
+    <div class="card-body">
+      <div class="row g-2 mb-3">
+        {{ tile('Total errors', num(total_hits)) }}
+        {{ tile('Suspected bots', num(total_bot_hits), 'text-warning-emphasis') }}
+        {{ tile('Bot share', pct(total_bot_hits, total_hits)) }}
+        {{ tile('Status codes', summary | length) }}
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        {% for row in summary %}
+        <a class="badge bg-body-secondary text-body border fs-6 fw-normal text-decoration-none"
+          href="{{ url_for(request.endpoint, **dict(filters, status=row.status_code)) }}">
+          {{ row.status_code }}: {{ num(row.hits) }}
+        </a>
+        {% endfor %}
+      </div>
+
+      <h6 class="mb-2">Top failing paths</h6>
+      {% if top_paths %}
+      <div class="table-responsive">
+        <table id="periodTable" class="table table-sm table-striped align-middle w-100">
+          <thead>
+            <tr>
+              <th>Path</th>
+              <th>Status</th>
+              <th class="text-end">Hits</th>
+              <th class="text-end">Bot hits</th>
+              <th class="text-end">Bot %</th>
+              <th>Last seen (UTC)</th>
+              <th>Open</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in top_paths %}
+            <tr>
+              <td class="text-break">
+                {{ p.path }}
+              </td>
+              <td>{{ status_badge(p.status_code) }}</td>
+              <td class="text-end" data-order="{{ p.hits }}">{{ num(p.hits) }}</td>
+              <td class="text-end" data-order="{{ p.bot_hits }}">{{ num(p.bot_hits) }}</td>
+              <td class="text-end" data-order="{{ (p.bot_hits / p.hits * 100) if p.hits else 0 }}">
+                {{ pct(p.bot_hits, p.hits) }}</td>
+              <td class="text-nowrap" data-order="{{ p.last_seen.strftime('%Y%m%d%H%M%S') }}">
+                {{ p.last_seen.strftime("%Y-%m-%d %H:%M") }}</td>
+              <td>
+                <a class="btn btn-outline-secondary btn-sm py-0"
+                  href="{{ url_for(request.endpoint, **dict(filters, path=p.path, status=p.status_code)) }}">Rows</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-body-secondary mb-0">No errors in this period.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ================= 4. Detailed rows ================= #}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span class="fw-semibold">Detailed rows</span>
+      <span class="text-body-secondary small">{{ num(pagination.total) }} rows match</span>
+    </div>
+    <div class="card-body">
+      {% if detail_limited %}
+      <div class="alert alert-info py-2 small">
+        Detailed rows are kept only for the last {{ detail_days }} days, so this table shows at most
+        {{ detail_days }} days even though the statistics cover {{ filters.days }}.
+      </div>
+      {% endif %}
+
+      {% if pagination.items %}
+      <div class="table-responsive">
+        <table id="rowsTable" class="table table-sm table-striped align-middle w-100">
+          <thead>
+            <tr>
+              <th>Time (UTC)</th>
+              <th>Status</th>
+              <th>Request</th>
+              <th>IP</th>
+              <th>Flags</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in pagination.items %}
+            <tr>
+              <td class="text-nowrap" data-order="{{ r.created_at.strftime('%Y%m%d%H%M%S') }}">
+                {{ r.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+              <td data-order="{{ r.status_code }}">{{ status_badge(r.status_code) }}</td>
+              <td class="text-break">
+                <span class="text-body-secondary">{{ r.method }}</span>
+                {{ r.path }}{% if r.query_str %}?{{ r.query_str }}{% endif %}
+              </td>
+              <td class="text-nowrap">{{ r.ip }}</td>
+              <td class="text-nowrap">
+                {% if r.suspected_bot %}<span class="badge text-bg-warning">bot?</span>{% endif %}
+                {% if r.has_cookie %}<span class="badge text-bg-info">cookie</span>{% endif %}
+                {% if r.username %}<span class="badge text-bg-success">{{ r.username }}</span>{% endif %}
+              </td>
+              <td>
+                <details>
+                  <summary>headers</summary>
+                  <dl class="mb-0 small">
+                    <dt>User-Agent</dt>
+                    <dd class="text-break">{{ r.user_agent or '-' }}</dd>
+                    <dt>Accept</dt>
+                    <dd class="text-break">{{ r.accept or '-' }}</dd>
+                    <dt>Accept-Language</dt>
+                    <dd>{{ r.accept_language or '-' }}</dd>
+                    <dt>Accept-Encoding</dt>
+                    <dd>{{ r.accept_encoding or '-' }}</dd>
+                    <dt>Referer</dt>
+                    <dd class="text-break">{{ r.referer or '-' }}</dd>
+                    <dt>Sec-Fetch (mode / dest)</dt>
+                    <dd>{{ r.sec_fetch_mode or '-' }} / {{ r.sec_fetch_dest or '-' }}</dd>
+                    <dt>Sec-Ch-Ua</dt>
+                    <dd class="text-break">{{ r.sec_ch_ua or '-' }}</dd>
+                    <dt>Route</dt>
+                    <dd>{{ r.access_route or '-' }}</dd>
+                    <dt>Request ID</dt>
+                    <dd>{{ r.request_id or '-' }}</dd>
+                    <dt>Error</dt>
+                    <dd class="text-break">{{ r.error or '-' }}</dd>
+                  </dl>
+                </details>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {# Pagination is server-side (Flask); DataTables only sorts the current page #}
+      <nav class="d-flex justify-content-between align-items-center mt-2">
+        <span class="text-body-secondary small">
+          Page {{ pagination.page }} of {{ pagination.pages or 1 }} ({{ num(pagination.total) }} rows)
+        </span>
+        <div class="btn-group btn-group-sm">
+          {% if pagination.has_prev %}
+          <a class="btn btn-outline-secondary"
+            href="{{ url_for(request.endpoint, **dict(filters, page=pagination.prev_num)) }}">Previous</a>
+          {% endif %}
+          {% if pagination.has_next %}
+          <a class="btn btn-outline-secondary"
+            href="{{ url_for(request.endpoint, **dict(filters, page=pagination.next_num)) }}">Next</a>
+          {% endif %}
+        </div>
+      </nav>
+      {% else %}
+      <p class="text-body-secondary mb-0">No rows match these filters.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    if (!window.DataTable) return;
+
+    // Path tables: client-side search / sort / paging, hits descending by default
+    ['#overallTable', '#periodTable'].forEach(function (selector) {
+      var el = document.querySelector(selector);
+      if (!el) return;
+      new DataTable(el, {
+        order: [[2, 'desc']],
+        pageLength: 10,
+        lengthMenu: [10, 25, 50, 100],
+        columnDefs: [{ targets: -1, orderable: false, searchable: false }],
+      });
+    });
+
+    // Detailed rows: paging is done by the server, so DataTables only sorts the visible page
+    var rows = document.querySelector('#rowsTable');
+    if (rows) {
+      new DataTable(rows, {
+        paging: false,
+        info: false,
+        searching: false,
+        order: [], // keep the server order (newest first)
+        columnDefs: [{ targets: [4, 5], orderable: false }],
+      });
+    }
+  })();
+</script>
+{% endblock %}

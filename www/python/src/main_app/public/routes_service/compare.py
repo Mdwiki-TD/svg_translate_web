@@ -30,10 +30,10 @@ class SvgComparator:
 
 def file_langs(file_path: Path) -> list:
     languages = set()
-    # ---
+
     # Default
     languages.add("en")
-    # ---
+
     try:
         parser = etree.XMLParser(remove_blank_text=True)
         tree = etree.parse(str(file_path), parser)
@@ -47,7 +47,7 @@ def file_langs(file_path: Path) -> list:
                 languages.add(text.get("systemLanguage"))
     except (etree.XMLSyntaxError, OSError):
         logger.exception(f"Error parsing SVG file: {file_path}")
-    # ---
+
     return list(languages)
 
 
@@ -61,7 +61,7 @@ def analyze_file(file_path: Path) -> dict[str, Any]:
 
 
 def compare_svg_files(file_path: Path, translated_path: Path) -> list[dict]:
-    # ---
+
     file_result = analyze_file(file_path)
     translated_result = analyze_file(translated_path)
 

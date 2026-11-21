@@ -17,7 +17,7 @@ from flask import g, make_response, redirect, session, url_for
 from mwoauth import AccessToken
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-from ...config import get_settings
+from ...config import Settings, get_settings
 from ...database.services import UsersService
 from ..core.cookies import SignedTokenService
 from .auth_exceptions import OAuthCallbackError, OAuthIdentityError
@@ -31,17 +31,24 @@ logger = logging.getLogger(__name__)
 class AuthFlowService:
     """High-level orchestration for the OAuth login lifecycle."""
 
-    def __init__(self) -> None:
-        self.app_settings = get_settings()
-        self.oauth_service = OAuthService(
+    def __init__(
+        self,
+        app_settings: Settings | None = None,
+        oauth_service: OAuthService | None = None,
+        token_manager: TokenManager | None = None,
+        user_svc: UsersService | None = None,
+        token_signer: SignedTokenService | None = None,
+    ) -> None:
+        self.app_settings = app_settings or get_settings()
+        self.oauth_service = oauth_service or OAuthService(
             consumer_key=self.app_settings.oauth.consumer_key,
             consumer_secret=self.app_settings.oauth.consumer_secret,
             oauth_mwuri=self.app_settings.oauth.mw_uri,
             user_agent=self.app_settings.other.user_agent,
         )
-        self.token_manager = TokenManager()
-        self.user_svc = UsersService()
-        self.token_signer = SignedTokenService()
+        self.token_manager = token_manager or TokenManager()
+        self.user_svc = user_svc or UsersService()
+        self.token_signer = token_signer or SignedTokenService()
 
         self.request_secret_key = self.app_settings.sessions.request_secret_key
         self.request_token_key = self.app_settings.sessions.request_token_key
@@ -309,7 +316,4 @@ class AuthFlowService:
 
 __all__ = [
     "AuthFlowService",
-    "CallbackResult",
-    "LoginStartResult",
-    "LogoutResult",
 ]

@@ -162,7 +162,7 @@ class ErrorDashboardView(MethodView):
         page = min(page, total_pages) if not query else page
 
         return render_template(
-            "admin/errors.html",
+            "admins/errors.html",
             files=files,
             selected_file=selected_file,
             rows=rows,

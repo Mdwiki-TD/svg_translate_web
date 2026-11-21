@@ -92,23 +92,23 @@ class ExplorerDataService:
         return files, title_path
 
     def get_languages(self, title: str, translations_data: dict | None = None) -> list:
-        # ---
+
         languages: list[Any] = []
-        # ---
+
         if not translations_data:
             translations_data = self.get_main_data(title, "translations.json") or {}
-        # ---
+
         if not translations_data:
             return []
-        # ---
+
         new = translations_data.get("new", {})
-        # ---
+
         for key, v in new.items():
             if key == "default_tspans_by_id":
                 continue
             if isinstance(v, dict):
                 languages.extend(v.keys())
-        # ---
+
         return sorted(set(languages))
 
     def get_informations(self, title: str) -> dict[str, Any]:

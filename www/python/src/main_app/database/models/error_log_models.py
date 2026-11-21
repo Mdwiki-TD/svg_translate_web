@@ -7,7 +7,16 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Index, Integer, SmallInteger, String, Text, func, text
+from sqlalchemy import (
+    BigInteger,
+    Index,
+    Integer,
+    SmallInteger,
+    String,
+    Text,
+    func,
+    text,
+)
 from sqlalchemy.dialects import mysql
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,6 +27,9 @@ logger = logging.getLogger(__name__)
 
 class ErrorLogRecord(Model):
     """
+    Detailed log: one row per failed request. Old rows are purged periodically
+    (see ErrorLogService.purge_older_than); totals live in error_log_daily.
+
     CREATE TABLE IF NOT EXISTS error_logs (
         id bigint unsigned NOT NULL AUTO_INCREMENT,
         created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

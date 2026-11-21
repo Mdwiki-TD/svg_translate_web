@@ -401,6 +401,9 @@ class ReadJobResultFileView(BaseJobView):
             abort(404)
 
         result_data = self.jobs_files_service.load_result(result_file)
+        if result_data is None:
+            result_data = {"errors": [{"error": "Job file not found"}]}
+
         return jsonify(result_data)
 
 

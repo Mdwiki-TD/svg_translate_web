@@ -1,0 +1,178 @@
+{{#unlinkedwikibase:id=Q4688818}}{{distinguish|apatinib}}
+{{Use dmy dates|date=February 2015}}
+{{Drugbox
+| Verifiedfields    = changed
+| verifiedrevid     = 645735594
+| image             = Afatinib2DACS.svg
+| image2            = Afatinib 3D ball-and-stick 4G5P.png
+
+<!-- Names -->
+| pronounce         =
+| tradename         = Gilotrif, Giotrif, Afanix
+| synonyms          = BIBW 2992
+| IUPAC_name        = ''N''-[4-[(3-Chloro-4-fluorophenyl)amino]-7-<nowiki>[[</nowiki>(3''S'')-tetrahydro-3-furanyl]oxy]-6-quinazolinyl]-4(dimethylamino)-2-butenamide
+
+<!-- Clinical data -->
+| class             = [[Tyrosine kinase inhibitor]]<ref name=AHFS2022/>
+| uses              = [[Non-small-cell lung cancer|Non-small cell lung carcinoma]] (NSCLC)<ref name=PI2022/>
+| side_effects      = Diarrhea, rash, mouth inflammation, dry skin, nausea, itchiness<ref name=PI2022/>
+| interactions      = <!-- notable interactions -->
+| pregnancy_AU      = C
+| pregnancy_category=
+| breastfeeding     =
+| routes_of_administration= [[Oral administration|By mouth]]
+| onset             =
+| duration_of_action=
+| defined_daily_dose=
+| typical_dose      = 40 mg OD<ref name=PI2022/>
+
+<!-- External links -->
+| Drugs.com         = {{Drugs.com|monograph|afatinib-dimaleate}}
+| MedlinePlus       = a613044
+
+<!-- Legal data -->
+| legal_AU          = S4
+| legal_CA          = Rx-only
+| legal_EU          = Rx-only
+| legal_UK          = POM
+| legal_US          = Rx-only
+| legal_US_comment  = <ref name = PI2022/>
+| legal_status      =
+| DailyMedID        = Afatinib
+| licence_EU        = yes
+
+<!-- Pharmacokinetic data -->
+| bioavailability   =
+| protein_bound     = 95%
+| metabolism        = [[Cytochrome P450|CYP]] not involved
+| elimination_half-life= 37 hours
+| excretion         = Faeces (85%), urine (4%)
+
+<!-- Chemical and physical data -->
+| C= 24 | Cl= 1 | F= 1 | H= 25 | N= 5
+| O= 3
+| SMILES            = CN(C)C\C=C\C(=O)Nc3cc1c(Nc(cc2Cl)ccc2F)ncnc1cc3OC4COCC4
+| StdInChI          = 1S/C24H25ClFN5O3/c1-31(2)8-3-4-23(32)30-21-11-17-20(12-22(21)34-16-7-9-33-13-16)27-14-28-24(17)29-15-5-6-19(26)18(25)10-15/h3-6,10-12,14,16H,7-9,13H2,1-2H3,(H,30,32)(H,27,28,29)/b4-3+/t16-/m0/s1
+| StdInChI_Ref      = {{stdinchicite|correct|chemspider}}
+| StdInChIKey       = ULXXDDBFHOBEHA-CWDCEQMOSA-N
+| StdInChIKey_Ref   = {{stdinchicite|correct|chemspider}}
+
+| index2_label      = as salt
+}}
+<!-- Definition and medical uses -->
+'''Afatinib''', sold under the brand name '''Gilotrif''' among others, is a medication used to treat [[non-small cell lung carcinoma]] (NSCLC).<ref name=PI2022/> It is mainly used in advanced cases with a non-resistant [[epidermal growth factor receptor]] (EGFR) mutation.<ref name=PI2022/> It is taken [[Oral administration|by mouth]].<ref name = PI2022/>
+
+<!-- Side effects and mechanism -->
+Common side effects include diarrhea, rash, mouth inflammation, dry skin, nausea, and itchiness.<ref name=PI2022/> Other side effects may include [[interstitial lung disease]], liver problems, [[gastrointestinal perforation]], and [[corneal inflammation]].<ref name=PI2022/> Use in pregnancy may harm the baby.<ref name=PI2022/> It is a [[tyrosine kinase inhibitor]] which blocks a family of proteins known as [[ErbB]].<ref name=EPAR2022/><ref name=AHFS2022>{{cite web |title=Afatinib Monograph for Professionals |url=https://www.drugs.com/monograph/afatinib.html |website=Drugs.com |access-date=13 January 2022 |language=en |archive-date=10 December 2021 |archive-url=https://web.archive.org/web/20211210204157/https://www.drugs.com/monograph/afatinib.html |url-status=live }} {{Webarchive|url=https://web.archive.org/web/20211210204157/https://www.drugs.com/monograph/afatinib.html |date=10 December 2021 }}</ref>
+
+<!-- History and culture -->
+Afatinib was approved for medical use in the United States and Europe in 2013.<ref name = PI2022>{{cite web|title=Gilotrif (afatinib) tablet, film coated|work=DailyMed|publisher=Boehringer Ingelheim Pharmaceuticals, Inc.|date=18 October 2019|access-date=4 November 2020|url=http://dailymed.nlm.nih.gov/dailymed/lookup.cfm?setid=fd638e5e-8032-e7ca-0179-95e96ab5d387|archive-date=2 February 2014|archive-url=https://web.archive.org/web/20140202100631/http://dailymed.nlm.nih.gov/dailymed/lookup.cfm?setid=fd638e5e-8032-e7ca-0179-95e96ab5d387|url-status=live}} {{Webarchive|url=https://web.archive.org/web/20140202100631/http://dailymed.nlm.nih.gov/dailymed/lookup.cfm?setid=fd638e5e-8032-e7ca-0179-95e96ab5d387 |date=2 February 2014 }}</ref><ref name=EPAR2022>{{cite web |title=Giotrif |url=https://www.ema.europa.eu/en/medicines/human/EPAR/giotrif |access-date=13 January 2022 |archive-date=22 November 2021 |archive-url=https://web.archive.org/web/20211122105016/https://www.ema.europa.eu/en/medicines/human/EPAR/giotrif |url-status=live }} {{Webarchive|url=https://web.archive.org/web/20211122105016/https://www.ema.europa.eu/en/medicines/human/EPAR/giotrif |date=22 November 2021 }}</ref> It is on the [[WHO Model List of Essential Medicines|World Health Organization's List of Essential Medicines]] as an alternative to [[erlotinib]].<ref name="WHO22nd">{{cite book | vauthors = ((World Health Organization)) | title = World Health Organization model list of essential medicines: 22nd list (2021) | year = 2021 | hdl = 10665/345533 | author-link = World Health Organization | publisher = World Health Organization | location = Geneva | id = WHO/MHP/HPS/EML/2021.02 | hdl-access=free }}</ref> In the United Kingdom 4 weeks costs the [[National Health Service|NHS]] about £2,000 as of 2021.<ref name=BNF81>{{cite book |title=BNF 81: March-September 2021 |date=2021 |publisher=BMJ Group and the Pharmaceutical Press |isbn=978-0857114105 |page=1011}}</ref> This amount in the United States costs about 9,800 USD.<ref>{{cite web |title=Gilotrif Prices, Coupons & Patient Assistance Programs |url=https://www.drugs.com/price-guide/gilotrif |website=Drugs.com |access-date=13 January 2022 |language=en |archive-date=15 January 2021 |archive-url=https://web.archive.org/web/20210115195621/https://www.drugs.com/price-guide/gilotrif |url-status=live }} {{Webarchive|url=https://web.archive.org/web/20210115195621/https://www.drugs.com/price-guide/gilotrif |date=15 January 2021 }}</ref>
+
+==Medical uses==
+It has received regulatory approval for use as a treatment for non-small cell lung cancer,<ref name = PI2022/><ref name=TGA>{{cite web|title=Giotrif Afatinib (as afatinib dimaleate)|work=TGA eBusiness Services|publisher=Boehringer Ingelheim Pty Limited|date=7 November 2013|access-date=28 January 2014|url=https://www.ebs.tga.gov.au/ebs/picmi/picmirepository.nsf/pdf?OpenAgent&id=CP-2013-PI-02417-1|format=PDF|archive-date=28 August 2018|archive-url=https://web.archive.org/web/20180828102425/https://www.ebs.tga.gov.au/ebs/picmi/picmirepository.nsf/pdf?OpenAgent&id=CP-2013-PI-02417-1|url-status=live}} {{Webarchive|url=https://web.archive.org/web/20180828102425/https://www.ebs.tga.gov.au/ebs/picmi/picmirepository.nsf/pdf?OpenAgent&id=CP-2013-PI-02417-1 |date=28 August 2018 }}</ref><ref name =EMC/><ref name = EMA/> although there is emerging evidence to support its use in other cancers such as breast cancer.<ref name = Lin/>
+
+===Dosage===
+It is taken at a dose of 40 mg once per day.<ref name=PI2022/> This may be increased to 50 mg per day.<ref name=BNF81/>
+
+==Side effects==
+Side effects by frequency include:<ref name = PI2022/><ref name = TGA/><ref name = EMC>{{cite web|title=Giotrif 20 mg film-coated tablets – Summary of Product Characteristics (SPC)|work=electronic Medicines Compendium|publisher=Boehringer Ingelheim Limited|date=20 January 2014|access-date=28 January 2014|url=http://www.medicines.org.uk/emc/medicine/28353/SPC/Giotrif+20+mg+film-coated+tablets/|archive-date=1 February 2014|archive-url=https://web.archive.org/web/20140201214338/http://www.medicines.org.uk/emc/medicine/28353/SPC/Giotrif+20+mg+film-coated+tablets/|url-status=live}} {{Webarchive|url=https://web.archive.org/web/20140201214338/http://www.medicines.org.uk/emc/medicine/28353/SPC/Giotrif+20+mg+film-coated+tablets/ |date=1 February 2014 }}</ref><ref name = EMA>{{cite web|title=Giotrif : EPAR -Product Information|work=European Medicines Agency|publisher=Boehringer Ingelheim International GmbH|date=16 October 2013|access-date=28 January 2014|url=http://www.ema.europa.eu/docs/en_GB/document_library/EPAR_-_Product_Information/human/002280/WC500152392.pdf|archive-date=4 February 2014|archive-url=https://web.archive.org/web/20140204050504/http://www.ema.europa.eu/docs/en_GB/document_library/EPAR_-_Product_Information/human/002280/WC500152392.pdf|url-status=live}} {{Webarchive|url=https://web.archive.org/web/20140204050504/http://www.ema.europa.eu/docs/en_GB/document_library/EPAR_-_Product_Information/human/002280/WC500152392.pdf |date=4 February 2014 }}</ref><ref name = MSR>{{cite web|title=Gilotrif (afatinib) dosing, indications, interactions, adverse effects, and more|work=Medscape Reference|publisher=WebMD|access-date=28 January 2014|url=http://reference.medscape.com/drug/gilotrif-afatinib-999864#showall|archive-date=7 March 2021|archive-url=https://web.archive.org/web/20210307080105/https://reference.medscape.com/drug/gilotrif-afatinib-999864#showall|url-status=live}} {{Webarchive|url=https://web.archive.org/web/20210307080105/https://reference.medscape.com/drug/gilotrif-afatinib-999864#showall |date=7 March 2021 }}</ref>
+
+;Very common (>10% frequency):
+{{div col|colwidth=18em}}
+* Diarrhea (>90%)
+* Rash/dermatitis acneform
+* [[Stomatitis]]
+* [[Paronychia]]
+* Decreased appetite
+* [[Nosebleed|Nose bleed]]
+* [[Itch|Itchiness]]
+* Dry skin
+{{div col end}}
+
+;Common (1–10% frequency):
+{{div col|colwidth=18em}}
+* Dehydration
+* [[Dysgeusia|Taste changes]]
+* Dry eye
+* [[Urinary tract infection|Cystitis]]
+* [[Cheilitis]]
+* [[Fever|Fever]]
+* [[Runny nose|Runny/stuffy nose]]
+* [[Hypokalemia|Low amount of potassium in the blood]]
+* [[Conjunctivitis]]
+* Increased ALT
+* Increased AST
+* [[Chemotherapy-induced acral erythema|Hand-foot syndrome]]
+* Muscle spasms
+* Kidney impairment and/or failure
+{{div col end}}
+
+;Uncommon (0.1-1% frequency):
+* [[Keratitis]]
+* [[Interstitial lung disease]]
+
+== Mechanism of action ==
+Like [[lapatinib]] and [[neratinib]], afatinib is a [[protein kinase inhibitor]] that also irreversibly inhibits human epidermal growth factor receptor 2 (Her2) and [[epidermal growth factor receptor]] (EGFR) kinases. Afatinib is not only active against EGFR mutations targeted by first generation [[tyrosine-kinase inhibitor]]s (TKIs) like [[erlotinib]] or [[gefitinib]], but also against less common mutations which are resistant to these drugs. However, it is not active against the T790M mutation which generally requires third generation drugs like [[osimertinib]].<ref>{{cite journal | vauthors = Li D, Ambrogio L, Shimamura T, Kubo S, Takahashi M, Chirieac LR, Padera RF, Shapiro GI, Baum A, Himmelsbach F, Rettig WJ, Meyerson M, Solca F, Greulich H, Wong KK | display-authors = 6 | title = BIBW2992, an irreversible EGFR/HER2 inhibitor highly effective in preclinical lung cancer models | journal = Oncogene | volume = 27 | issue = 34 | pages = 4702–11 | date = August 2008 | pmid = 18408761 | pmc = 2748240 | doi = 10.1038/onc.2008.109 }}</ref> Because of its additional activity against Her2, it is being investigated for breast cancer as well as other EGFR and Her2 driven cancers.<ref name="Minkovsky"/>
+
+== Society and culture ==
+=== Brand names ===
+In [[Bangladesh]] under the trade name Afanix. <ref name="not_exists_ref_should_be_deleted"/>
+
+== References ==
+{{reflist|refs=
+
+<ref name="Minkovsky">{{cite journal | vauthors = Minkovsky N, Berezov A | title = BIBW-2992, a dual receptor tyrosine kinase inhibitor for the treatment of solid tumors | journal = Current Opinion in Investigational Drugs | volume = 9 | issue = 12 | pages = 1336–46 | date = December 2008 | pmid = 19037840 }}</ref>
+
+<ref name="Lin">{{cite journal | vauthors = Lin NU, Winer EP, Wheatley D, Carey LA, Houston S, Mendelson D, Munster P, Frakes L, Kelly S, Garcia AA, Cleator S, Uttenreuther-Fischer M, Jones H, Wind S, Vinisko R, Hickish T | display-authors = 6 | title = A phase II study of afatinib (BIBW 2992), an irreversible ErbB family blocker, in patients with HER2-positive metastatic breast cancer progressing after trastuzumab | journal = Breast Cancer Research and Treatment | volume = 133 | issue = 3 | pages = 1057–65 | date = June 2012 | pmid = 22418700 | pmc = 3387495 | doi = 10.1007/s10549-012-2003-y }}</ref>
+
+}}
+
+== External links ==
+{{drug resources
+<!--External links-->
+| NLM = {{PAGENAME}}
+
+<!--Identifiers-->
+| ChemSpiderID_Ref = {{chemspidercite|correct|chemspider}}
+| ATC_supplemental =
+| CAS_supplemental =
+| ChEBI_Ref = {{ebicite|correct|EBI}}
+| DrugBank_Ref = {{drugbankcite|correct|drugbank}}
+| KEGG2_Ref = {{keggcite|changed|kegg}}
+| PubChem = 10184653
+| CAS_number_Ref = {{cascite|correct|Drugbank}}
+| ATC_prefix = L01
+| ChEMBL_Ref = {{ebicite|correct|EBI}}
+| DrugBank = DB08916
+| ChEBI = 61390
+| UNII_Ref = {{fdacite|correct|FDA}}
+| IUPHAR_ligand = 5667
+| UNII = 41UD74L59M
+| ChemSpiderID = 8360155
+| KEGG2 = D09733
+| KEGG = D09724
+| ATC_suffix = EB03
+| ChEMBL = 1173655
+| CAS_number = 850140-72-6
+| KEGG_Ref = {{keggcite|changed|kegg}}
+}}
+
+* {{cite web | url = https://druginfo.nlm.nih.gov/drugportal/name/afatinib%20dimaleate | publisher = U.S. National Library of Medicine | work = Drug Information Portal | title = Afatinib dimaleate | access-date = 4 October 2021 | archive-date = 4 November 2021 | archive-url = https://web.archive.org/web/20211104142033/https://druginfo.nlm.nih.gov/drugportal/name/afatinib%20dimaleate | url-status = live }} {{Webarchive|url=https://web.archive.org/web/20211104142033/https://druginfo.nlm.nih.gov/drugportal/name/afatinib%20dimaleate |date=4 November 2021 }}
+{{Targeted cancer therapeutic agents}}
+{{Growth factor receptor modulators}}
+{{RTT}}
+[[Category:Receptor tyrosine kinase inhibitors]]
+[[Category:Chloroarenes]]
+[[Category:Fluoroarenes]]
+[[Category:Quinazolines]]
+[[Category:Phenol ethers]]
+[[Category:Tetrahydrofurans]]
+[[Category:Aromatic amines]]
+[[Category:Carboxamides]]
+[[Category:Covalent inhibitors]]
+[[Category:Dimethylamino compounds]]
+[[Category:Enones]]
+[[Category:RTT]]
+[[Category:World Health Organization essential medicines (alternatives)]]
+[[or:ଆଫାଟିନିବ]]
+[[ar:أفاتينيب]]

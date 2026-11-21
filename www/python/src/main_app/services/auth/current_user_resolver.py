@@ -17,34 +17,17 @@ logger = logging.getLogger(__name__)
 
 
 class CurrentUserResolver:
-    """Resolve the authenticated user of the current request.
-
-    Collaborators are optional constructor arguments. They are created lazily
-    (only when needed) so anonymous requests incur no extra work.
-    """
+    """Resolve the authenticated user of the current request."""
 
     def __init__(
         self,
         signer: SignedTokenService | None = None,
         token_manager: TokenManager | None = None,
+        cookie_name: str | None = None,
     ) -> None:
-        self._signer = signer
-        self._token_manager = token_manager
-        self.cookie_name = get_settings().cookie.name
-
-    @property
-    def signer(self) -> SignedTokenService:
-        # Lazy default: only built when a signed cookie is actually present
-        if self._signer is None:
-            self._signer = SignedTokenService()
-        return self._signer
-
-    @property
-    def token_manager(self) -> TokenManager:
-        # Lazy default: only built when a user id needs to be loaded from the DB
-        if self._token_manager is None:
-            self._token_manager = TokenManager()
-        return self._token_manager
+        self.signer = signer or SignedTokenService()
+        self.token_manager = token_manager or TokenManager()
+        self.cookie_name = cookie_name or get_settings().cookie.name
 
     @staticmethod
     def resolve_user_id(uid) -> int | None:

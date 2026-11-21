@@ -2,6 +2,8 @@
 Unit tests for wtp_mapping module.
 """
 
+from pathlib import Path
+
 import wikitextparser as wtp
 from src.main_app.parsers.wtp_mapping import WtpRef, WtpRefs
 
@@ -273,6 +275,50 @@ class TestGetFullRefs:
         assert [x.name for x in result] == ["dup", "dup"]
         assert result[0].tag_str == '<ref name="dup">First</ref>'
         assert result[1].tag_str == '<ref name="dup">Second</ref>'
+
+
+class TestGetShortAndFullRefs:
+    def test_refs(self, load_fixture) -> None:
+        source = load_fixture("unit/parsers/wtp_mapping/data/source-1.wiki")
+
+        full_refs = WtpRefs.load(source).full_refs
+        full_named_refs = WtpRefs.load(source).full_named_refs
+        full_refs_keys = {x.name for x in full_refs}
+
+        assert full_refs_keys == {
+            "",
+            "AHFS2022",
+            "BNF81",
+            "EMA",
+            "EMC",
+            "EPAR2022",
+            "Lin",
+            "MSR",
+            "Minkovsky",
+            "PI2022",
+            "TGA",
+            "WHO22nd",
+        }
+
+        short_refs = WtpRefs.load(source).short_refs
+        short_refs_by_name = {x.name: x for x in short_refs}
+
+        assert set(short_refs_by_name.keys()) == {
+            "AHFS2022",
+            "BNF81",
+            "EMA",
+            "EMC",
+            "EPAR2022",
+            "Lin",
+            "Minkovsky",
+            "PI2022",
+            "TGA",
+            "not_exists_ref_should_be_deleted",
+        }
+
+        assert len(full_refs) == 13
+        assert len(full_named_refs) == 11
+        assert len(short_refs) == 22
 
 
 # ---------------- WtpRefs ----------------
