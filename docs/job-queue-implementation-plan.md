@@ -21,40 +21,44 @@ of the same type reaches a terminal state.
 
 ### Scope and constraints
 
--   Do not modify `main`.
--   Do not deploy changes to production as part of this work.
--   Implement the feature on a dedicated branch created from the latest
-    `main`.
--   Submit the work through a Pull Request for review.
--   Preserve the existing job execution backend and cancellation
-    behavior wherever possible.
--   Avoid introducing Redis, Celery, or another external queueing
-    dependency in the initial implementation.
+- Do not modify `main`.
+- Do not deploy changes to production as part of this work.
+- Implement the feature on a dedicated branch created from the latest
+  `main`.
+- Submit the work through a Pull Request for review.
+- Preserve the existing job execution backend and cancellation
+  behavior wherever possible.
+- Avoid introducing Redis, Celery, or another external queueing
+  dependency in the initial implementation.
 
 ## 2. Current Architecture and Problem
 
 The relevant existing components include:
 
-  ----------------------------------------------------------------------------------
-  Component                                      Current responsibility
-  ---------------------------------------------- -----------------------------------
-  `database/models/jobs.py`                      SQLAlchemy job model and database
-                                                 constraints
+---
 
-  `database/services/jobs_service.py`            Job persistence and status
-                                                 management
+Component Current responsibility
 
-  `jobs_workers/jobs_lifetime/jobs_starter.py`   Job creation and execution startup
+---
 
-  `jobs_workers/backends/`                       Background execution backends
+`database/models/jobs.py` SQLAlchemy job model and database
+constraints
 
-  `public/shared_jobs_routes.py`                 Shared request handling for
-                                                 starting and managing jobs
-  ----------------------------------------------------------------------------------
+`database/services/jobs_service.py` Job persistence and status
+management
+
+`jobs_workers/jobs_lifetime/jobs_starter.py` Job creation and execution startup
+
+`jobs_workers/backends/` Background execution backends
+
+`public/shared_jobs_routes.py` Shared request handling for
+starting and managing jobs
+
+---
 
 The `jobs` table currently has a unique constraint:
 
-``` python
+```python
 UniqueConstraint("job_type", "is_running", name="idx_unique_active_job")
 ```
 
@@ -104,30 +108,34 @@ application's existing resource and backend limits.
 Reuse the existing `jobs` table. A separate queue table should not be
 necessary for the initial implementation.
 
-  ------------------------------------------------------------------------
-  State            `status`                  `is_running` Meaning
-  ---------------- ---------------- --------------------- ----------------
-  Waiting          `pending`                       `NULL` Accepted and
-                                                          waiting for its
-                                                          turn
+---
 
-  Running          `running`                          `1` Holds the active
-                                                          slot for its job
-                                                          type
+State `status` `is_running` Meaning
 
-  Completed        `completed`                     `NULL` Finished
-                                                          successfully
+---
 
-  Failed           `failed`                        `NULL` Execution failed
+Waiting `pending` `NULL` Accepted and
+waiting for its
+turn
 
-  Cancelled        `cancelled`                     `NULL` Cancelled before
-                                                          or during
-                                                          execution
-  ------------------------------------------------------------------------
+Running `running` `1` Holds the active
+slot for its job
+type
+
+Completed `completed` `NULL` Finished
+successfully
+
+Failed `failed` `NULL` Execution failed
+
+Cancelled `cancelled` `NULL` Cancelled before
+or during
+execution
+
+---
 
 The existing unique constraint can remain in place:
 
-``` python
+```python
 UniqueConstraint("job_type", "is_running", name="idx_unique_active_job")
 ```
 
@@ -159,32 +167,36 @@ queue-ordering and locking details.
 
 Suggested operations:
 
-  -----------------------------------------------------------------------
-  Method                              Responsibility
-  ----------------------------------- -----------------------------------
-  `enqueue()`                         Persist a new pending job and its
-                                      execution payload
+---
 
-  `get_next_pending()`                Select the oldest eligible pending
-                                      job for a job type
+Method Responsibility
 
-  `claim_job()`                       Atomically reserve the active slot
-                                      and transition the job to running
+---
 
-  `dispatch_next()`                   Claim and submit the next eligible
-                                      job to the backend
+`enqueue()` Persist a new pending job and its
+execution payload
 
-  `dispatch_pending()`                Scan for pending work and attempt
-                                      dispatch
+`get_next_pending()` Select the oldest eligible pending
+job for a job type
 
-  `cancel_pending()`                  Cancel a job that has not started
-  -----------------------------------------------------------------------
+`claim_job()` Atomically reserve the active slot
+and transition the job to running
+
+`dispatch_next()` Claim and submit the next eligible
+job to the backend
+
+`dispatch_pending()` Scan for pending work and attempt
+dispatch
+
+`cancel_pending()` Cancel a job that has not started
+
+---
 
 ### FIFO ordering
 
 Use a deterministic ordering:
 
-``` sql
+```sql
 ORDER BY created_at ASC, id ASC
 ```
 
@@ -201,14 +213,14 @@ processes run simultaneously.
 
 The implementation should:
 
--   Use a short database transaction for selecting and claiming a job.
--   Ensure only one process can claim a given active slot.
--   Rely on the database unique constraint as a final integrity guard.
--   Handle an `IntegrityError` or the project's equivalent
-    duplicate-record exception as a normal claim race where appropriate.
--   Avoid holding database locks while the actual job executes.
--   Ensure a failed backend submission releases the active slot and
-    records a failure state.
+- Use a short database transaction for selecting and claiming a job.
+- Ensure only one process can claim a given active slot.
+- Rely on the database unique constraint as a final integrity guard.
+- Handle an `IntegrityError` or the project's equivalent
+  duplicate-record exception as a normal claim race where appropriate.
+- Avoid holding database locks while the actual job executes.
+- Ensure a failed backend submission releases the active slot and
+  records a failure state.
 
 Choose the simplest transaction and locking approach supported by the
 project's current database engine and SQLAlchemy version. Document any
@@ -218,13 +230,13 @@ database-specific behavior relied upon.
 
 Change the job startup flow from direct execution:
 
-``` text
+```text
 JobStarter -> Backend
 ```
 
 to queue-based submission:
 
-``` text
+```text
 JobStarter -> JobsQueue -> Backend
 ```
 
@@ -263,10 +275,10 @@ a live HTTP request to retain the job's payload.
 
 Persist the data required to reconstruct execution, including:
 
--   Job arguments (`args`).
--   Form data (`form_data`), after removing CSRF tokens and other
-    non-persistent or sensitive fields.
--   The username associated with the job record.
+- Job arguments (`args`).
+- Form data (`form_data`), after removing CSRF tokens and other
+  non-persistent or sensitive fields.
+- The username associated with the job record.
 
 Do not store OAuth access tokens or secrets as plaintext in the queue
 payload.
@@ -305,11 +317,11 @@ terminate after a job is persisted but before dispatch is triggered.
 
 Recovery must distinguish between:
 
--   A legitimate pending job.
--   A running job whose worker is still alive.
--   A stale running record whose execution has disappeared.
--   A job whose backend submission failed.
--   A terminal job that no longer holds an active slot.
+- A legitimate pending job.
+- A running job whose worker is still alive.
+- A stale running record whose execution has disappeared.
+- A job whose backend submission failed.
+- A terminal job that no longer holds an active slot.
 
 Do not automatically mark a running job as failed merely because a web
 process restarted. The job may be executing in another process. Recovery
@@ -327,20 +339,20 @@ started.
 
 ### Pending job
 
--   Verify that the requesting user is authorized to cancel it.
--   Transition it directly to `cancelled`.
--   Do not invoke the execution backend.
--   Ensure it never becomes eligible for dispatch.
--   Update the queue position of remaining pending jobs in the UI.
+- Verify that the requesting user is authorized to cancel it.
+- Transition it directly to `cancelled`.
+- Do not invoke the execution backend.
+- Ensure it never becomes eligible for dispatch.
+- Update the queue position of remaining pending jobs in the UI.
 
 ### Running job
 
--   Preserve the existing cancellation mechanism.
--   Do not release the active slot until the previous execution has
-    actually stopped, or until the existing cancellation lifecycle can
-    safely guarantee that it has stopped.
--   Dispatch the next job only after the active slot is safely
-    available.
+- Preserve the existing cancellation mechanism.
+- Do not release the active slot until the previous execution has
+  actually stopped, or until the existing cancellation lifecycle can
+  safely guarantee that it has stopped.
+- Dispatch the next job only after the active slot is safely
+  available.
 
 **Critical race condition:** Releasing the unique active slot
 immediately when cancellation is requested may allow a second job of the
@@ -353,13 +365,13 @@ Update the job list and job detail views to make queue state visible.
 
 Suggested status labels:
 
--   `Running`
--   `Queued · #1`
--   `Queued · #2`
--   `Queued · #3`
--   `Completed`
--   `Failed`
--   `Cancelled`
+- `Running`
+- `Queued · #1`
+- `Queued · #2`
+- `Queued · #3`
+- `Completed`
+- `Failed`
+- `Cancelled`
 
 For pending jobs, display their current position within the queue for
 their `job_type`.
@@ -384,34 +396,38 @@ information.
 
 The queue must handle failures at each stage.
 
-  -----------------------------------------------------------------------
-  Failure                             Expected behavior
-  ----------------------------------- -----------------------------------
-  Job record creation fails           Return an error; do not create a
-                                      phantom queue entry
+---
 
-  Payload persistence fails           Mark or roll back the job safely;
-                                      do not dispatch without a complete
-                                      payload
+Failure Expected behavior
 
-  Another dispatcher claims the slot  Treat as a normal concurrency race;
-                                      leave the job pending
+---
 
-  Backend submission fails            Mark the claimed job failed and
-                                      release its active slot
+Job record creation fails Return an error; do not create a
+phantom queue entry
 
-  Job execution fails                 Preserve the failure details,
-                                      release the slot, and dispatch the
-                                      next job
+Payload persistence fails Mark or roll back the job safely;
+do not dispatch without a complete
+payload
 
-  User credentials are unavailable    Fail safely without logging secrets
+Another dispatcher claims the slot Treat as a normal concurrency race;
+leave the job pending
 
-  Dispatcher is interrupted           Recover pending work through
-                                      startup or periodic dispatch
+Backend submission fails Mark the claimed job failed and
+release its active slot
 
-  Cancellation is requested           Do not start the next job until the
-                                      previous execution has stopped
-  -----------------------------------------------------------------------
+Job execution fails Preserve the failure details,
+release the slot, and dispatch the
+next job
+
+User credentials are unavailable Fail safely without logging secrets
+
+Dispatcher is interrupted Recover pending work through
+startup or periodic dispatch
+
+Cancellation is requested Do not start the next job until the
+previous execution has stopped
+
+---
 
 A failure in one job must not permanently block the remaining queue.
 
@@ -473,65 +489,65 @@ current test structure.
 
 ### Phase 1 --- Inspect and document current lifecycle
 
--   Trace job creation, status transitions, backend startup, completion,
-    failure, and cancellation.
--   Identify every place where the active slot is acquired or released.
--   Confirm how job payloads are currently persisted and reconstructed.
--   Confirm the database engine and transaction behavior.
--   Identify existing startup hooks and periodic jobs that can support
-    recovery.
+- Trace job creation, status transitions, backend startup, completion,
+  failure, and cancellation.
+- Identify every place where the active slot is acquired or released.
+- Confirm how job payloads are currently persisted and reconstructed.
+- Confirm the database engine and transaction behavior.
+- Identify existing startup hooks and periodic jobs that can support
+  recovery.
 
 **Deliverable:** A verified lifecycle map and a list of integration
 points.
 
 ### Phase 2 --- Implement the queue service
 
--   Add `jobs_queue.py`.
--   Implement FIFO selection.
--   Implement atomic active-slot claiming.
--   Implement pending-job cancellation.
--   Add safe handling for concurrent dispatch attempts.
--   Keep the existing unique constraint as the final active-slot guard.
+- Add `jobs_queue.py`.
+- Implement FIFO selection.
+- Implement atomic active-slot claiming.
+- Implement pending-job cancellation.
+- Add safe handling for concurrent dispatch attempts.
+- Keep the existing unique constraint as the final active-slot guard.
 
 **Deliverable:** Queue service with unit tests.
 
 ### Phase 3 --- Integrate job creation and execution
 
--   Change `JobStarter` to enqueue instead of directly rejecting
-    duplicate job types.
--   Persist the execution payload durably.
--   Dispatch immediately when the type is available.
--   Preserve backend compatibility and public startup interfaces.
--   Handle backend startup failures without leaving a stuck active slot.
+- Change `JobStarter` to enqueue instead of directly rejecting
+  duplicate job types.
+- Persist the execution payload durably.
+- Dispatch immediately when the type is available.
+- Preserve backend compatibility and public startup interfaces.
+- Handle backend startup failures without leaving a stuck active slot.
 
 **Deliverable:** End-to-end queue execution using the existing backend.
 
 ### Phase 4 --- Integrate completion, failure, and cancellation
 
--   Trigger the next dispatch after terminal state transitions.
--   Ensure the active slot is released consistently.
--   Prevent overlap during cancellation.
--   Add startup and periodic recovery.
+- Trigger the next dispatch after terminal state transitions.
+- Ensure the active slot is released consistently.
+- Prevent overlap during cancellation.
+- Add startup and periodic recovery.
 
 **Deliverable:** Reliable queue progression and recovery.
 
 ### Phase 5 --- Update the UI
 
--   Display queued status and queue position.
--   Show a suitable submission confirmation.
--   Support cancellation of pending jobs.
--   Preserve existing permissions and job detail behavior.
+- Display queued status and queue position.
+- Show a suitable submission confirmation.
+- Support cancellation of pending jobs.
+- Preserve existing permissions and job detail behavior.
 
 **Deliverable:** User-visible queue state.
 
 ### Phase 6 --- Verification and Pull Request
 
--   Run focused unit tests.
--   Run relevant existing regression tests.
--   Run integration tests for sequential execution and concurrency.
--   Review transaction boundaries and cancellation races.
--   Verify that no production deployment is triggered.
--   Open a Pull Request from `feature/job-queue` to `main`.
+- Run focused unit tests.
+- Run relevant existing regression tests.
+- Run integration tests for sequential execution and concurrency.
+- Review transaction boundaries and cancellation races.
+- Verify that no production deployment is triggered.
+- Open a Pull Request from `feature/job-queue` to `main`.
 
 **Deliverable:** Reviewed Pull Request with test results and
 implementation notes.
@@ -540,30 +556,30 @@ implementation notes.
 
 The feature is ready for review when all of the following are true:
 
--   Users can submit multiple jobs of the same type.
--   Jobs are persisted and remain queued across web process restarts.
--   Only one job per `job_type` holds the active slot at a time.
--   Pending jobs execute in FIFO order within their job type.
--   Different job types can execute concurrently.
--   Completion, failure, and cancellation advance the queue correctly.
--   A pending job can be cancelled without invoking a backend.
--   A running job's active slot is not released prematurely during
-    cancellation.
--   Concurrent dispatchers cannot start duplicate jobs of the same type.
--   Backend startup failures do not leave permanently locked job types.
--   Queue status and position are visible in the UI.
--   Existing job permissions and authentication rules remain enforced.
--   Existing backend behavior and unrelated job types are not regressed.
--   Automated tests cover queue ordering, concurrency, recovery, and
-    cancellation.
--   All changes are contained in the dedicated feature branch and
-    delivered through a Pull Request.
+- Users can submit multiple jobs of the same type.
+- Jobs are persisted and remain queued across web process restarts.
+- Only one job per `job_type` holds the active slot at a time.
+- Pending jobs execute in FIFO order within their job type.
+- Different job types can execute concurrently.
+- Completion, failure, and cancellation advance the queue correctly.
+- A pending job can be cancelled without invoking a backend.
+- A running job's active slot is not released prematurely during
+  cancellation.
+- Concurrent dispatchers cannot start duplicate jobs of the same type.
+- Backend startup failures do not leave permanently locked job types.
+- Queue status and position are visible in the UI.
+- Existing job permissions and authentication rules remain enforced.
+- Existing backend behavior and unrelated job types are not regressed.
+- Automated tests cover queue ordering, concurrency, recovery, and
+  cancellation.
+- All changes are contained in the dedicated feature branch and
+  delivered through a Pull Request.
 
 ## 15. Branching and Production Safety
 
 All implementation work must follow this workflow:
 
-``` text
+```text
 main
  |
  +-- feature/job-queue
@@ -599,14 +615,14 @@ Rules:
 To keep the implementation focused, the first version should not
 include:
 
--   Redis or Celery integration.
--   Distributed priority scheduling.
--   User-configurable queue priorities.
--   A global concurrency limit across all job types.
--   Automatic retries of failed jobs.
--   A separate queue-management dashboard for administrators beyond the
-    existing job UI.
--   Changes to unrelated job execution logic.
+- Redis or Celery integration.
+- Distributed priority scheduling.
+- User-configurable queue priorities.
+- A global concurrency limit across all job types.
+- Automatic retries of failed jobs.
+- A separate queue-management dashboard for administrators beyond the
+  existing job UI.
+- Changes to unrelated job execution logic.
 
 These can be considered later if actual workload or operational
 requirements justify them.
@@ -619,19 +635,19 @@ execution mechanism.
 
 The key architectural separation is:
 
--   **JobStarter:** validates and submits jobs.
--   **JobsQueue:** orders, claims, and dispatches jobs.
--   **Backend:** executes a claimed job.
--   **JobsService:** persists and updates job state.
--   **Lifecycle hooks and recovery:** advance the queue and recover
-    missed dispatches.
+- **JobStarter:** validates and submits jobs.
+- **JobsQueue:** orders, claims, and dispatches jobs.
+- **Backend:** executes a claimed job.
+- **JobsService:** persists and updates job state.
+- **Lifecycle hooks and recovery:** advance the queue and recover
+  missed dispatches.
 
 This approach addresses the current duplicate-job rejection with
 relatively limited architectural change. It preserves the existing
 one-active-job-per-type invariant while allowing any number of pending
 jobs, and avoids adding external infrastructure before it is needed.
 
-------------------------------------------------------------------------
+---
 
 **Document status:** Implementation plan only. No code, branch, database
 schema, or production environment has been modified.

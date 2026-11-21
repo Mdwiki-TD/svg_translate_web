@@ -1,64 +1,62 @@
-
 name: Auto Update Toolforge
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  update:
-    name: Deploy to Toolforge
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    update:
+        name: Deploy to Toolforge
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
 
-    environment:
-      name: production
+        environment:
+            name: production
 
-    concurrency:
-      group: toolforge-deploy
-      cancel-in-progress: false
+        concurrency:
+            group: toolforge-deploy
+            cancel-in-progress: false
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
 
-      - name: Copy files to server
-        uses: appleboy/scp-action@v1.0.0
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
-          port: 22
-          source: "./"
-          target: "~/www_svgrepo_tmp"
-          rm: true
+            - name: Copy files to server
+              uses: appleboy/scp-action@v1.0.0
+              with:
+                  host: ${{ secrets.HOST }}
+                  username: ${{ secrets.USERNAME }}
+                  key: ${{ secrets.KEY }}
+                  port: 22
+                  source: "./"
+                  target: "~/www_svgrepo_tmp"
+                  rm: true
 
-      - name: Deploy on Toolforge
-        uses: appleboy/ssh-action@v1.2.4
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          port: 22
-          request_pty: true
-          
-          key: ${{ secrets.KEY }}
-          script: |
-            set -euo pipefail
+            - name: Deploy on Toolforge
+              uses: appleboy/ssh-action@v1.2.4
+              with:
+                  host: ${{ secrets.HOST }}
+                  username: ${{ secrets.USERNAME }}
+                  port: 22
+                  request_pty: true
+                  key: ${{ secrets.KEY }}
+                  script: |
+                      set -euo pipefail
 
-            FULL_PATH="/home/${{ secrets.USERNAME }}/www_svgrepo_tmp"
+                      FULL_PATH="/home/${{ secrets.USERNAME }}/www_svgrepo_tmp"
 
-            if [ ! -f "$FULL_PATH/toolforge/deploy.sh" ]; then
-              echo "ERROR: Deployment script not found."
-              exit 1
-            fi
+                      if [ ! -f "$FULL_PATH/toolforge/deploy.sh" ]; then
+                        echo "ERROR: Deployment script not found."
+                        exit 1
+                      fi
 
-            trap 'rm -rf -- "$FULL_PATH"' EXIT
+                      trap 'rm -rf -- "$FULL_PATH"' EXIT
 
-            chmod +x "$FULL_PATH/toolforge/deploy.sh"
-            bash "$FULL_PATH/toolforge/deploy.sh" "$FULL_PATH"
+                      chmod +x "$FULL_PATH/toolforge/deploy.sh"
+                      bash "$FULL_PATH/toolforge/deploy.sh" "$FULL_PATH"
 
-            echo "Deployment completed successfully."
+                      echo "Deployment completed successfully."
