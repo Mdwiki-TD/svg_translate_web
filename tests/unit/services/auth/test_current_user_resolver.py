@@ -55,9 +55,7 @@ class TestLoadLoggedInUser:
                 "src.main_app.services.auth.current_user_resolver.get_settings",
                 return_value=mock_settings,
             ),
-            mock_app.test_request_context(
-                environ_overrides={"HTTP_COOKIE": "default_auth_cookie=signed-token"}
-            ),
+            mock_app.test_request_context(environ_overrides={"HTTP_COOKIE": "default_auth_cookie=signed-token"}),
         ):
             CurrentUserResolver(
                 signer=signer,
@@ -104,9 +102,7 @@ class TestLoadLoggedInUser:
             signer=signer,
             cookie_name="auth_cookie",
         )
-        with mock_app.test_request_context(
-            environ_overrides={"HTTP_COOKIE": "auth_cookie=malformed-uid"}
-        ):
+        with mock_app.test_request_context(environ_overrides={"HTTP_COOKIE": "auth_cookie=malformed-uid"}):
             session["username"] = "stale-user"
             resolver.set_logged_in_user()
             assert g._current_user is None
@@ -126,9 +122,7 @@ class TestLoadLoggedInUser:
             token_manager=token_manager,
             cookie_name="auth_cookie",
         )
-        with mock_app.test_request_context(
-            environ_overrides={"HTTP_COOKIE": "auth_cookie=signed-token"}
-        ):
+        with mock_app.test_request_context(environ_overrides={"HTTP_COOKIE": "auth_cookie=signed-token"}):
             resolver.set_logged_in_user()
             assert g._current_user is mock_user
             assert session.get("uid") == 99
@@ -138,9 +132,7 @@ class TestLoadLoggedInUser:
         signer = MagicMock()
         signer.extract_user_id.return_value = None
 
-        with mock_app.test_request_context(
-            environ_overrides={"HTTP_COOKIE": "auth_cookie=bad-token"}
-        ):
+        with mock_app.test_request_context(environ_overrides={"HTTP_COOKIE": "auth_cookie=bad-token"}):
             CurrentUserResolver(
                 signer=signer,
                 cookie_name="auth_cookie",

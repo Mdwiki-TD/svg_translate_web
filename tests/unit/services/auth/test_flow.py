@@ -8,7 +8,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Blueprint, Flask, g, session
 from mwoauth import AccessToken
-
 from src.main_app.services.auth.auth_exceptions import (
     OAuthCallbackError,
     OAuthIdentityError,
