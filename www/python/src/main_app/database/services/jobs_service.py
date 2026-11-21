@@ -174,7 +174,7 @@ class JobsService(CRUDService[JobRecord]):
 
     def has_active_job(self, job_type: str) -> bool:
         """
-        Check if there is an active (pending or running) job of the given type.
+        Check if there is an active (running) job of the given type.
 
         This is an auxiliary application-level check that works on all database backends
         (MySQL, SQLite, PostgreSQL). Note that the primary enforcement mechanism for
@@ -186,7 +186,7 @@ class JobsService(CRUDService[JobRecord]):
                 self.session.query(JobRecord.id)
                 .filter(
                     JobRecord.job_type == job_type,
-                    JobRecord.status.in_(["pending", "running"]),
+                    JobRecord.status.in_(["running"]),
                     JobRecord.is_running == 1,
                 )
                 .first()
