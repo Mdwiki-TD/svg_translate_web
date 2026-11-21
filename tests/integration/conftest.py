@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
-from src.main_app.extensions import db as _db
+from src.main_app.database import db as _db
 
 
 @pytest.fixture

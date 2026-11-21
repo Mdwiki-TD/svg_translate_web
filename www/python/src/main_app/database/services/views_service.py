@@ -4,7 +4,7 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from ...extensions import db
+from ..db_base import db
 from ..models.views import TemplateNeedUpdateView
 
 logger = logging.getLogger(__name__)

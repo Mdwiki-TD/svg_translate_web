@@ -1,6 +1,7 @@
 """ """
 
 from __future__ import annotations
+
 import wikitextparser as wtp
 from src.main_app.parsers.wtp_mapping.wtp_temps import WtpTemplates
 

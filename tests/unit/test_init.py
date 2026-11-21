@@ -94,7 +94,7 @@ class TestErrorHandlers:
 
 
 class TestInitAppAndDb:
-    @patch("src.main_app.init_db")
+    @patch("src.main_app.DatabaseBuilder.init_db")
     def test_init_app_and_db_success(self, mock_init_db, mock_environ):
         mock_db = MagicMock()
         mock_app = AppFactory.create(TestingConfig)
@@ -102,7 +102,7 @@ class TestInitAppAndDb:
         result = AppFactory.init_app_and_db(mock_app, mock_db)
         assert result is True
 
-    @patch("src.main_app.init_db", side_effect=Exception("DB error"))
+    @patch("src.main_app.DatabaseBuilder.init_db", side_effect=Exception("DB error"))
     def test_init_app_and_db_exception(self, mock_init_db, mock_environ):
         mock_db = MagicMock()
         mock_app = AppFactory.create(TestingConfig)

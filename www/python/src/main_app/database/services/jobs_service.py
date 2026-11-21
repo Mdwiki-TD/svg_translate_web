@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from ...extensions import db
+from ..db_base import db
 from ..exceptions import DuplicateRecordError
 from ..models import JobRecord
 from .crud_service import CRUDService
@@ -173,8 +173,8 @@ class JobsService(CRUDService[JobRecord]):
             completed=status_counts.get("completed", 0),
             failed=status_counts.get("failed", 0),
             cancelled=status_counts.get("cancelled", 0),
-            # "running": status_counts.get("running", 0),
-            # "pending": status_counts.get("pending", 0),
+            # running=status_counts.get(self.RUNNING_STATUS, 0),
+            # pending=status_counts.get(self.PENDING_STATUS, 0),
         )
 
         return UserJobsStats(
@@ -184,7 +184,7 @@ class JobsService(CRUDService[JobRecord]):
 
     def has_active_job(self, job_type: str) -> bool:
         """
-        Check if there is an active (pending or running) job of the given type.
+        Check if there is an active (running) job of the given type.
 
         This is an auxiliary application-level check that works on all database backends
         (MySQL, SQLite, PostgreSQL). Note that the primary enforcement mechanism for
@@ -196,7 +196,7 @@ class JobsService(CRUDService[JobRecord]):
                 self.session.query(JobRecord.id)
                 .filter(
                     JobRecord.job_type == job_type,
-                    JobRecord.status.in_(["pending", "running"]),
+                    JobRecord.status.in_([self.RUNNING_STATUS]),
                     JobRecord.is_running == 1,
                 )
                 .first()
@@ -206,342 +206,31 @@ class JobsService(CRUDService[JobRecord]):
             logger.exception("Error checking for active job")
             raise exc
 
-    # ------------------------------------------------------------------
-    # Queue primitives
-    # ------------------------------------------------------------------
-
-    def enqueue_job(self, job_type: str, username: str) -> JobRecord:
-        """Create a queued job record without reserving the active slot.
-
-        The row is written with ``status='pending'`` and ``is_running=NULL`` so
-        that any number of jobs of the same type can wait in the queue. The
-        unique ``idx_unique_active_job`` constraint only sees non-NULL values,
-        therefore pending rows never conflict with each other.
-
-        Args:
-            job_type: The job type identifier.
-            username: Owner of the job.
-
-        Returns:
-            The persisted pending JobRecord.
+    def create_job(
+        self,
+        job_type: str,
+        username: str,
+        set_is_running: bool = True,
+    ) -> JobRecord:
         """
-        job = JobRecord(
-            job_type=job_type,
-            username=username,
-            status=self.PENDING_STATUS,
-            is_running=None,
-        )
-        try:
-            self.session.add(job)
-            self.session.commit()
-            self.session.refresh(job)
-        except Exception:
-            self.session.rollback()
-            logger.exception("Failed to enqueue job of type %s", job_type)
-            raise
-
-        return job
-
-    def claim_pending_job(self, job_id: int) -> bool:
-        """Atomically move a pending job to running, reserving the active slot.
-
-        Equivalent SQL::
-
-            UPDATE jobs
-               SET status = 'running', is_running = 1, started_at = NOW()
-             WHERE id = %s AND status = 'pending' AND is_running IS NULL
-
-        The database unique constraint on ``(job_type, is_running)`` is the
-        final guard: when another job of the same type already holds the slot
-        the UPDATE raises an IntegrityError, which is reported as a lost claim
-        (``False``) instead of an error.
-
-        Args:
-            job_id: The pending job to claim.
-
-        Returns:
-            True when this caller claimed the job, False when the job was
-            already claimed, cancelled, or the slot is taken by another job.
-        """
-        stmt = (
-            update(JobRecord)
-            .where(
-                JobRecord.id == job_id,
-                JobRecord.status == self.PENDING_STATUS,
-                JobRecord.is_running.is_(None),
-            )
-            .values(
-                status=self.RUNNING_STATUS,
-                is_running=1,
-                started_at=func.current_timestamp(),
-            )
-            .execution_options(synchronize_session=False)
-        )
-        try:
-            result = self.session.execute(stmt)
-            self.session.commit()
-            # Bulk UPDATEs bypass the identity map: drop cached state so later
-            # reads see the committed values (session uses expire_on_commit=False).
-            self.session.expire_all()
-        except IntegrityError:
-            # Another job of the same type holds idx_unique_active_job.
-            self.session.rollback()
-            logger.info("Claim race lost for job %s: active slot already taken", job_id)
-            return False
-        except Exception:
-            self.session.rollback()
-            logger.exception("Failed to claim pending job %s", job_id)
-            return False
-
-        return bool(result.rowcount and result.rowcount > 0)
-
-    def has_running_job(self, job_type: str) -> bool:
-        """Return True when a job of ``job_type`` currently holds the active slot."""
-        try:
-            row = (
-                self.session.query(JobRecord.id)
-                .filter(JobRecord.job_type == job_type, JobRecord.is_running == 1)
-                .first()
-            )
-            return row is not None
-        except Exception:
-            self.session.rollback()
-            logger.exception("Error checking for a running job of type %s", job_type)
-            return False
-
-    def list_pending_jobs(self, job_type: str | None = None, limit: int | None = None) -> list[JobRecord]:
-        """List queued jobs in FIFO order (``created_at ASC, id ASC``).
-
-        Args:
-            job_type: Restrict the listing to a single job type.
-            limit: Optional maximum number of rows.
-
-        Returns:
-            Pending jobs that do not hold the active slot, oldest first.
-        """
-        query = self.session.query(JobRecord).filter(
-            JobRecord.status == self.PENDING_STATUS,
-            JobRecord.is_running.is_(None),
-        )
-        if job_type:
-            query = query.filter(JobRecord.job_type == job_type)
-
-        query = query.order_by(JobRecord.created_at.asc(), JobRecord.id.asc())
-        if limit is not None and limit > 0:
-            query = query.limit(limit)
-
-        try:
-            return list(query.all())
-        except Exception:
-            self.session.rollback()
-            logger.exception("Error listing pending jobs")
-            return []
-
-    def list_pending_job_types(self) -> list[str]:
-        """Return the distinct job types that currently have queued jobs."""
-        try:
-            rows = (
-                self.session.query(JobRecord.job_type)
-                .filter(
-                    JobRecord.status == self.PENDING_STATUS,
-                    JobRecord.is_running.is_(None),
-                )
-                .distinct()
-                .all()
-            )
-            return [row[0] for row in rows]
-        except Exception:
-            self.session.rollback()
-            logger.exception("Error listing pending job types")
-            return []
-
-    def get_queue_position(self, job_id: int) -> int:
-        """Return the 1-based FIFO position of a pending job inside its type.
-
-        Args:
-            job_id: The queued job.
-
-        Returns:
-            The position (1 = next to run), or 0 when the job is not queued.
-        """
-        job = self.get_record_by_id(job_id)
-        if job is None:
-            return 0
-
-        return self._position_in(job)
-
-    def get_queue_positions(self, job_type: str) -> dict[int, int]:
-        """Map every pending job id of ``job_type`` to its 1-based position."""
-        pending = self.list_pending_jobs(job_type)
-        return {job.id: index + 1 for index, job in enumerate(pending)}
-
-    def _position_in(self, job: JobRecord) -> int:
-        if (job.status or "").lower() != self.PENDING_STATUS or job.is_running is not None:
-            return 0
-
-        pending = self.list_pending_jobs(job.job_type)
-        for index, candidate in enumerate(pending):
-            if candidate.id == job.id:
-                return index + 1
-        return 0
-
-    def cancel_pending_job(self, job_id: int, job_type: str | None = None) -> bool:
-        """Cancel a job that has not started yet.
-
-        Only rows that are still queued (``status='pending'`` and no active
-        slot) are affected, so a job that was claimed concurrently is never
-        cancelled by mistake.
-
-        Args:
-            job_id: The queued job.
-            job_type: Optional extra filter.
-
-        Returns:
-            True when the pending job was cancelled.
-        """
-        stmt = (
-            update(JobRecord)
-            .where(
-                JobRecord.id == job_id,
-                JobRecord.status == self.PENDING_STATUS,
-                JobRecord.is_running.is_(None),
-            )
-            .values(status="cancelled", completed_at=func.current_timestamp())
-            .execution_options(synchronize_session=False)
-        )
-        if job_type:
-            stmt = stmt.where(JobRecord.job_type == job_type)
-
-        try:
-            result = self.session.execute(stmt)
-            self.session.commit()
-            # Bulk UPDATEs bypass the identity map: drop cached state so later
-            # reads see the committed values (session uses expire_on_commit=False).
-            self.session.expire_all()
-        except Exception:
-            self.session.rollback()
-            logger.exception("Error cancelling pending job %s", job_id)
-            return False
-
-        return bool(result.rowcount and result.rowcount > 0)
-
-    def release_active_slot(self, job_id: int) -> bool:
-        """Release the unique active slot held by ``job_id`` without touching status."""
-        stmt = (
-            update(JobRecord)
-            .where(JobRecord.id == job_id, JobRecord.is_running == 1)
-            .values(is_running=None)
-            .execution_options(synchronize_session=False)
-        )
-        try:
-            result = self.session.execute(stmt)
-            self.session.commit()
-            # Bulk UPDATEs bypass the identity map: drop cached state so later
-            # reads see the committed values (session uses expire_on_commit=False).
-            self.session.expire_all()
-        except Exception:
-            self.session.rollback()
-            logger.exception("Error releasing the active slot of job %s", job_id)
-            return False
-
-        return bool(result.rowcount and result.rowcount > 0)
-
-    def fail_job(self, job_id: int, job_type: str, message: str = "") -> bool:
-        """Mark a job as failed, store the reason, and release the active slot.
-
-        Args:
-            job_id: Target job.
-            job_type: Job type used for logging and validation.
-            message: Non-sensitive human readable failure reason.
-
-        Returns:
-            True when the job was updated.
-        """
-        stmt = (
-            update(JobRecord)
-            .where(JobRecord.id == job_id, JobRecord.job_type == job_type)
-            .values(
-                status="failed",
-                is_running=None,
-                error_message=message or None,
-                completed_at=func.current_timestamp(),
-            )
-            .execution_options(synchronize_session=False)
-        )
-        try:
-            result = self.session.execute(stmt)
-            self.session.commit()
-            # Bulk UPDATEs bypass the identity map: drop cached state so later
-            # reads see the committed values (session uses expire_on_commit=False).
-            self.session.expire_all()
-        except Exception:
-            self.session.rollback()
-            logger.exception("Error marking job %s as failed", job_id)
-            return False
-
-        return bool(result.rowcount and result.rowcount > 0)
-
-    def release_stale_active_slots(self, grace_seconds: int | None = None) -> int:
-        """Release active slots still held by jobs in a terminal state.
-
-        A terminal job normally releases its own slot. The slot can survive
-        when a worker process disappeared while a cancellation was in flight.
-        Rows are only touched after ``grace_seconds`` so a worker that is still
-        winding down in another process is never overlapped.
-
-        Args:
-            grace_seconds: Minimum age of ``updated_at``; defaults to
-                ``STALE_SLOT_GRACE_SECONDS``.
-
-        Returns:
-            Number of released slots.
-        """
-        grace = self.STALE_SLOT_GRACE_SECONDS if grace_seconds is None else grace_seconds
-        cutoff = datetime.now(UTC).replace(tzinfo=None) - timedelta(seconds=grace)
-
-        stmt = (
-            update(JobRecord)
-            .where(
-                JobRecord.is_running == 1,
-                JobRecord.status.in_(self.FINAL_STATUSES),
-                func.coalesce(JobRecord.updated_at, JobRecord.created_at) < cutoff,
-            )
-            .values(is_running=None)
-            .execution_options(synchronize_session=False)
-        )
-        try:
-            result = self.session.execute(stmt)
-            self.session.commit()
-            # Bulk UPDATEs bypass the identity map: drop cached state so later
-            # reads see the committed values (session uses expire_on_commit=False).
-            self.session.expire_all()
-        except Exception:
-            self.session.rollback()
-            logger.exception("Failed to release stale active slots")
-            return 0
-
-        released = int(result.rowcount or 0)
-        if released:
-            logger.info("Released %d stale active slot(s) held by terminal jobs", released)
-        return released
-
-    def create_job(self, job_type: str, username: str) -> JobRecord:
-        """
-        Create a new job record that immediately reserves the active slot.
+        Create a new job record.
 
         Query to match:
             INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
             (job_type, "pending", username),
 
-        Note:
-            Queue-aware callers should use :meth:`enqueue_job` instead, which
-            leaves ``is_running`` NULL so the job waits for its turn.
-
         Raises:
             DuplicateRecordError: If a job of the same type is already running.
         """
         try:
-            job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
+            job = JobRecord(
+                job_type=job_type,
+                username=username,
+                status=self.PENDING_STATUS,
+            )
+            if set_is_running:
+                job.is_running = True
+
             self.session.add(job)
             self.session.commit()
         except IntegrityError as exc:
@@ -599,10 +288,9 @@ class JobsService(CRUDService[JobRecord]):
         self,
         job_id: int,
         job_type: str | None = None,
-        release_slot: bool | None = None,
     ) -> bool:
         """
-        Mark a pending or running job as cancelled.
+        Mark a job as cancelled.
             query = "UPDATE jobs SET status = 'cancelled', completed_at = NOW() WHERE id = %s AND status IN ('pending', 'running')"
             params = [job_id]
             if job_type:
@@ -611,41 +299,27 @@ class JobsService(CRUDService[JobRecord]):
 
             rowcount = self.db.execute_query_safe(query, tuple(params))
             return rowcount > 0
-
-        Args:
-            job_id: Target job.
-            job_type: Optional extra filter.
-            release_slot: Force releasing the unique active slot. When None
-                (default) the slot is only released for jobs that do not hold
-                it, so a running job keeps the slot until its execution really
-                stopped. This prevents the next queued job from overlapping a
-                cancellation that is still in flight.
         """
         try:
             query = self.session.query(JobRecord).filter(JobRecord.id == job_id)
             if job_type:
                 query = query.filter(JobRecord.job_type == job_type)
 
-            job = query.filter(JobRecord.status.in_(["pending", "running"])).first()
+            query = query.filter(
+                JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]),
+                JobRecord.is_running == 1,
+            )
+            job = query.first()
 
             if not job:
                 return False
 
-            holds_slot = job.is_running == 1
-            was_running = (job.status or "").lower() == "running"
             job.status = "cancelled"
 
             if job.completed_at is None:
                 job.completed_at = datetime.now(UTC)
 
-            if release_slot is None:
-                # A job that is really executing keeps the unique active slot
-                # until its worker reached a terminal state, so the next queued
-                # job can never overlap the cancellation still in flight.
-                release_slot = not (holds_slot and was_running)
-
-            if release_slot:
-                job.is_running = None
+            job.is_running = None
 
             self.session.commit()
             self.session.refresh(job)
@@ -685,8 +359,9 @@ class JobsService(CRUDService[JobRecord]):
         status_lower = status.lower()
         job.status = status_lower
 
-        if status_lower == "running" and not job.started_at:
+        if status_lower == self.RUNNING_STATUS and not job.started_at:
             job.started_at = datetime.now(UTC)
+            job.is_running = True
 
         if status_lower in self.FINAL_STATUSES:
             job.completed_at = datetime.now(UTC)
@@ -704,7 +379,11 @@ class JobsService(CRUDService[JobRecord]):
 
         return job
 
-    def _get_all_user_jobs_stats(self, username: str, limit: int | None = 100) -> UserJobsStats:
+    def _get_all_user_jobs_stats(
+        self,
+        username: str,
+        limit: int | None = 100,
+    ) -> UserJobsStats:
         """Return typed statistics and recent jobs for all of a user's job types."""
         limit = _normalize_limit(limit)
 
@@ -727,8 +406,8 @@ class JobsService(CRUDService[JobRecord]):
             completed=status_counts.get("completed", 0),
             failed=status_counts.get("failed", 0),
             cancelled=status_counts.get("cancelled", 0),
-            # "running": status_counts.get("running", 0),
-            # "pending": status_counts.get("pending", 0),
+            # running=status_counts.get(self.RUNNING_STATUS, 0),
+            # pending=status_counts.get(self.PENDING_STATUS, 0),
         )
 
         return UserJobsStats(stats=stats, recent_jobs=recent_jobs)
@@ -751,7 +430,7 @@ class JobsService(CRUDService[JobRecord]):
 
     def list_active(self, backend: str | None = None) -> list[JobRecord]:
         """Return all pending/running jobs, optionally filtered by backend."""
-        query = self.session.query(JobRecord).filter(JobRecord.status.in_(["pending", "running"]))
+        query = self.session.query(JobRecord).filter(JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]))
         # if backend: query = query.filter(JobRecord.backend == backend)
         return query.all()
 

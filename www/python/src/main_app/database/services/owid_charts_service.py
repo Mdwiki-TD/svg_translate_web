@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from ...extensions import db
+from ..db_base import db
 from ..models import OwidChartRecord
 from .crud_service import CRUDService
 from .utils import retry_on_db_disconnect

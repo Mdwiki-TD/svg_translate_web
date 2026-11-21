@@ -14,7 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import Model
+from ..db_base import Model
 
 logger = logging.getLogger(__name__)
 

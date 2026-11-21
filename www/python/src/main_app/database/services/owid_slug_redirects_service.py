@@ -5,7 +5,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from ...extensions import db
+from ..db_base import db
 from ..models.owid_slug_redirects import OwidSlugRedirectRecord
 from .crud_service import CRUDService
 

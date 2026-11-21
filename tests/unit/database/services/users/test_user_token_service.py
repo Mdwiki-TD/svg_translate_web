@@ -17,10 +17,10 @@ from unittest.mock import MagicMock
 import pymysql
 import pytest
 from sqlalchemy.exc import OperationalError
+from src.main_app.database import db
 from src.main_app.database.models import AdminUserRecord
 from src.main_app.database.services.users.user_token_service import UserTokenService
 from src.main_app.database.services.users.users_service import UsersService
-from src.main_app.extensions import db
 
 
 # --------------------------------------------------------------------------- #

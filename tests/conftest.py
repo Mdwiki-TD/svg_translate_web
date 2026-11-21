@@ -13,9 +13,9 @@ import os
 import secrets
 import sys
 import tempfile
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -61,8 +61,8 @@ if sys:
 # Import after environment setup
 from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
+from src.main_app.database import db as _db
 from src.main_app.database.create_helper import create_tables, create_views
-from src.main_app.extensions import db as _db
 
 
 @pytest.fixture(autouse=True)
