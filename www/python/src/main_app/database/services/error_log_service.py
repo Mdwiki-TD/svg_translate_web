@@ -13,7 +13,7 @@ from flask import session as flask_session
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from ...extensions import db
+from ..db_base import db
 from ..models.error_log_models import ErrorLogRecord
 from .crud_service import CRUDService  # adjust to where CRUDService lives in your project
 

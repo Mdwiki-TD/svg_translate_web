@@ -6,9 +6,6 @@ and enable proper initialization order with the application factory pattern.
 
 IMPORT RULE: Always import extensions from this module.
 Never instantiate extensions elsewhere.
-
-Usage:
-    from main_app.services.core.extensions import db, migrate, csrf
 """
 
 from __future__ import annotations
@@ -20,23 +17,13 @@ from .csrf_protect import (
     csrf_exempt,
     csrf_init_app,
 )
-from .data_base import (
-    BaseModel,
-    Model,
-    db,
-    metadata,
-)
 
 # Flask-Migrate instance (Alembic integration)
 migrate = Migrate()
 
 __all__ = [
-    "Model",
-    "db",
-    "BaseModel",
     "migrate",
     "csrf",
     "csrf_init_app",
     "csrf_exempt",
-    "metadata",
 ]

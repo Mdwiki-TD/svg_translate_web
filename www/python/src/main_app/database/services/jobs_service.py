@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from ...extensions import db
+from ..db_base import db
 from ..exceptions import DuplicateRecordError
 from ..models import JobRecord
 from .crud_service import CRUDService
@@ -57,6 +57,16 @@ class JobsService(CRUDService[JobRecord]):
     FINAL_STATUSES = ("completed", "failed", "cancelled", "skipped")
 
     STALE_JOB_ERROR = "Interrupted: the process restarted while the job was running; stale lock released on startup"
+
+    # Status of a job that is accepted and waiting for its turn in the queue.
+    PENDING_STATUS = "pending"
+
+    # Status of a job that holds the unique active slot for its job_type.
+    RUNNING_STATUS = "running"
+
+    # Grace period (seconds) after which a terminal job that still holds the
+    # active slot is considered stale and its slot is released by recovery.
+    STALE_SLOT_GRACE_SECONDS = 300
 
     def __init__(self, session: Session | None = None) -> None:
         super().__init__(session=session or db.session)
@@ -163,8 +173,8 @@ class JobsService(CRUDService[JobRecord]):
             completed=status_counts.get("completed", 0),
             failed=status_counts.get("failed", 0),
             cancelled=status_counts.get("cancelled", 0),
-            # "running": status_counts.get("running", 0),
-            # "pending": status_counts.get("pending", 0),
+            # running=status_counts.get(self.RUNNING_STATUS, 0),
+            # pending=status_counts.get(self.PENDING_STATUS, 0),
         )
 
         return UserJobsStats(
@@ -186,7 +196,7 @@ class JobsService(CRUDService[JobRecord]):
                 self.session.query(JobRecord.id)
                 .filter(
                     JobRecord.job_type == job_type,
-                    JobRecord.status.in_(["running"]),
+                    JobRecord.status.in_([self.RUNNING_STATUS]),
                     JobRecord.is_running == 1,
                 )
                 .first()
@@ -196,7 +206,12 @@ class JobsService(CRUDService[JobRecord]):
             logger.exception("Error checking for active job")
             raise exc
 
-    def create_job(self, job_type: str, username: str) -> JobRecord:
+    def create_job(
+        self,
+        job_type: str,
+        username: str,
+        set_is_running: bool = True,
+    ) -> JobRecord:
         """
         Create a new job record.
 
@@ -208,7 +223,14 @@ class JobsService(CRUDService[JobRecord]):
             DuplicateRecordError: If a job of the same type is already running.
         """
         try:
-            job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
+            job = JobRecord(
+                job_type=job_type,
+                username=username,
+                status=self.PENDING_STATUS,
+            )
+            if set_is_running:
+                job.is_running = True
+
             self.session.add(job)
             self.session.commit()
         except IntegrityError as exc:
@@ -262,7 +284,11 @@ class JobsService(CRUDService[JobRecord]):
 
         return with_retry()
 
-    def cancel_job_db(self, job_id: int, job_type: str | None = None) -> bool:
+    def cancel_job_db(
+        self,
+        job_id: int,
+        job_type: str | None = None,
+    ) -> bool:
         """
         Mark a job as cancelled.
             query = "UPDATE jobs SET status = 'cancelled', completed_at = NOW() WHERE id = %s AND status IN ('pending', 'running')"
@@ -279,10 +305,11 @@ class JobsService(CRUDService[JobRecord]):
             if job_type:
                 query = query.filter(JobRecord.job_type == job_type)
 
-            job = query.filter(
-                JobRecord.status.in_(["pending", "running"]),
+            query = query.filter(
+                JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]),
                 JobRecord.is_running == 1,
-            ).first()
+            )
+            job = query.first()
 
             if not job:
                 return False
@@ -332,8 +359,9 @@ class JobsService(CRUDService[JobRecord]):
         status_lower = status.lower()
         job.status = status_lower
 
-        if status_lower == "running" and not job.started_at:
+        if status_lower == self.RUNNING_STATUS and not job.started_at:
             job.started_at = datetime.now(UTC)
+            job.is_running = True
 
         if status_lower in self.FINAL_STATUSES:
             job.completed_at = datetime.now(UTC)
@@ -351,7 +379,11 @@ class JobsService(CRUDService[JobRecord]):
 
         return job
 
-    def _get_all_user_jobs_stats(self, username: str, limit: int | None = 100) -> UserJobsStats:
+    def _get_all_user_jobs_stats(
+        self,
+        username: str,
+        limit: int | None = 100,
+    ) -> UserJobsStats:
         """Return typed statistics and recent jobs for all of a user's job types."""
         limit = _normalize_limit(limit)
 
@@ -374,8 +406,8 @@ class JobsService(CRUDService[JobRecord]):
             completed=status_counts.get("completed", 0),
             failed=status_counts.get("failed", 0),
             cancelled=status_counts.get("cancelled", 0),
-            # "running": status_counts.get("running", 0),
-            # "pending": status_counts.get("pending", 0),
+            # running=status_counts.get(self.RUNNING_STATUS, 0),
+            # pending=status_counts.get(self.PENDING_STATUS, 0),
         )
 
         return UserJobsStats(stats=stats, recent_jobs=recent_jobs)
@@ -398,7 +430,7 @@ class JobsService(CRUDService[JobRecord]):
 
     def list_active(self, backend: str | None = None) -> list[JobRecord]:
         """Return all pending/running jobs, optionally filtered by backend."""
-        query = self.session.query(JobRecord).filter(JobRecord.status.in_(["pending", "running"]))
+        query = self.session.query(JobRecord).filter(JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]))
         # if backend: query = query.filter(JobRecord.backend == backend)
         return query.all()
 

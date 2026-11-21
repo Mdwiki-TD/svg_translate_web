@@ -6,8 +6,8 @@ from datetime import datetime
 from sqlalchemy import ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from ...extensions import Model, db
 from ...services.utils.decode_bytes import coerce_bytes
+from ..db_base import Model, db
 from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)

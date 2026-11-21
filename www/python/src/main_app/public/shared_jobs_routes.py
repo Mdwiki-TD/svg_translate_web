@@ -107,10 +107,8 @@ class SharedJobRoutes:
             return None
 
         try:
-            job_id = JobStarter().start_form(auth_payload, job_type, args, form_data)
-            flash(f"Job {job_id} started to {job_type}.", "success")
-            return job_id
-        except DuplicateRecordError:
+            job_id = JobStarter().submit_form(auth_payload, job_type, args, form_data)
+        except DuplicateRecordError:  # pragma: no cover - kept for safety
             logger.warning(
                 "User '%s' attempted to start duplicate job type '%s'",
                 getattr(user, "username", "N/A"),
@@ -120,11 +118,15 @@ class SharedJobRoutes:
                 "A job of this type is already running. Please wait for it to complete.",
                 "warning",
             )
+            return None
         except Exception:
             logger.exception("Failed to start job")
             flash("Failed to start job. Please try again.", "danger")
+            return None
 
-        return None
+        flash(f"Job {job_id} started to {job_type}.", "success")
+
+        return job_id
 
     def delete_job_handler(self, job_id: int, job_type: str) -> str:
         """Delete a job by ID and job type."""

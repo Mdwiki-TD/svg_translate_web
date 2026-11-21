@@ -10,7 +10,7 @@ from datetime import datetime
 from sqlalchemy import exists
 from sqlalchemy.orm import Session, contains_eager, joinedload
 
-from ....extensions import db
+from ...db_base import db
 from ...models import AdminUserRecord, UserRecord, UserTokenRecord
 from ..crud_service import CRUDService
 from ..utils import retry_on_db_disconnect

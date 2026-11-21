@@ -8,15 +8,14 @@ import logging
 from typing import Any
 
 from flask import Flask, render_template, request
+from flask_sqlalchemy import SQLAlchemy
 
 from .admin import AdminsRouteRegister
 from .config import Config, ConfigLoader, get_settings
-from .database import init_db
-from .database.exceptions import DatabaseInitError
+from .database import DatabaseBuilder
+from .database import db as _db
 from .error_pages import register_cache_headers, register_error_pages
-from .extensions import csrf_init_app
-from .extensions import db as _db
-from .extensions import migrate
+from .extensions import csrf_init_app, migrate
 from .jobs_workers.cli_jobs import register_cli_jobs
 from .logger_config import LoggingConfigurator
 from .public import PublicRouteRegister
@@ -28,6 +27,11 @@ logger = logging.getLogger(__name__)
 
 class AppFactory:
     """Builds and configures the Flask application."""
+
+    @staticmethod
+    def init_app_and_db(app, db: SQLAlchemy) -> bool:
+        db.init_app(app)
+        return DatabaseBuilder.build(db, app)
 
     @classmethod
     def create(cls, config_class: type[Config] | None = None) -> Flask:
@@ -50,6 +54,7 @@ class AppFactory:
         db_is_ok = True
         # Initialize Flask-SQLAlchemy and Flask-Migrate
         if app.config.get("SQLALCHEMY_DATABASE_URI"):
+            migrate.init_app(app, _db)
             db_is_ok = cls.init_app_and_db(app, _db)
 
         init_rate_limiter(app)
@@ -83,23 +88,6 @@ class AppFactory:
         app_settings.ensure_directories()
         register_error_pages(app)
         register_cache_headers(app)
-
-    @staticmethod
-    def init_app_and_db(app, _db) -> bool:
-        _db.init_app(app)
-        migrate.init_app(app, _db)
-
-        try:
-            with app.app_context():
-                # Create database tables and views if they don't exist
-                init_db(_db)
-            return True
-        except DatabaseInitError as exc:
-            logger.error("%s", exc)
-        except Exception as e:
-            logger.error("Failed to create tables: %s", e)
-
-        return False
 
     @staticmethod
     def _register_routes(app: Flask) -> None:

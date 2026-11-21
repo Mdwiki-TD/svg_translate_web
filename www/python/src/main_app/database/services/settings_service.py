@@ -9,7 +9,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from ...extensions import db
+from ..db_base import db
 from ..models import SettingRecord
 from .crud_service import CRUDService
 

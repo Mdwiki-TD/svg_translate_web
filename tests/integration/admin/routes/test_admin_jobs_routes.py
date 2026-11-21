@@ -24,9 +24,9 @@ def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
 @pytest.fixture
 def mock_start_job_form(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    _mock.start_form = Mock()
+    _mock.submit_form = Mock()
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobStarter", Mock(return_value=_mock))
-    return _mock.start_form
+    return _mock.submit_form
 
 
 @pytest.fixture

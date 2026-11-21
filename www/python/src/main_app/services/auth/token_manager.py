@@ -61,6 +61,41 @@ class TokenManager:
             logger.error("Error loading user for ID %s: %s", user_id, e)
             return None
 
+    def get_auth_payload_by_username(self, username: str) -> dict | None:
+        """Rebuild the execution identity of a user from their username.
+
+        Used to start queued jobs long after the request that submitted them
+        ended. Only the username is persisted with the job; the (encrypted)
+        OAuth credentials are loaded again here, so no secret ever lives in
+        the queue payload.
+
+        Args:
+            username: The job owner's username.
+
+        Returns:
+            A mapping with ``id``, ``username``, ``access_token`` and
+            ``access_secret`` (still encrypted), or None when the user has no
+            stored credentials.
+        """
+        if not username:
+            return None
+
+        try:
+            token = self.user_token_service.get_user_token_by_username(username)
+        except Exception:
+            logger.exception("Failed to load credentials by username")
+            return None
+
+        if token is None:
+            return None
+
+        return {
+            "id": token.user_id,
+            "username": username,
+            "access_token": token.access_token,
+            "access_secret": token.access_secret,
+        }
+
     def get_decrypted_token(self, user_id: int) -> dict | None:
         """
         Load encrypted tokens for ``user_id`` and return decrypted values.
