@@ -279,7 +279,8 @@ class TestHasActiveJob(TestSetup):
     """Tests for has_active_job."""
 
     def test_returns_true_when_active_job_exists(self) -> None:
-        self.service.create_job("test_job", username="test_user")
+        job = self.service.create_job("test_job", username="test_user")
+        self.service.update_job_status(job.id, "running", job_type="test_job")
         assert self.service.has_active_job("test_job") is True
 
     def test_returns_false_when_no_active_job(self) -> None:
