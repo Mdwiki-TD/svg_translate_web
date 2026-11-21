@@ -173,8 +173,8 @@ class JobsService(CRUDService[JobRecord]):
             completed=status_counts.get("completed", 0),
             failed=status_counts.get("failed", 0),
             cancelled=status_counts.get("cancelled", 0),
-            # "running": status_counts.get("running", 0),
-            # "pending": status_counts.get("pending", 0),
+            # running=status_counts.get(self.RUNNING_STATUS, 0),
+            # pending=status_counts.get(self.PENDING_STATUS, 0),
         )
 
         return UserJobsStats(
@@ -184,7 +184,7 @@ class JobsService(CRUDService[JobRecord]):
 
     def has_active_job(self, job_type: str) -> bool:
         """
-        Check if there is an active (pending or running) job of the given type.
+        Check if there is an active (running) job of the given type.
 
         This is an auxiliary application-level check that works on all database backends
         (MySQL, SQLite, PostgreSQL). Note that the primary enforcement mechanism for
@@ -196,7 +196,7 @@ class JobsService(CRUDService[JobRecord]):
                 self.session.query(JobRecord.id)
                 .filter(
                     JobRecord.job_type == job_type,
-                    JobRecord.status.in_(["pending", "running"]),
+                    JobRecord.status.in_([self.RUNNING_STATUS]),
                     JobRecord.is_running == 1,
                 )
                 .first()
@@ -205,6 +205,307 @@ class JobsService(CRUDService[JobRecord]):
         except Exception as exc:
             logger.exception("Error checking for active job")
             raise exc
+
+    def create_job(
+        self,
+        job_type: str,
+        username: str,
+        set_is_running: bool = True,
+    ) -> JobRecord:
+        """
+        Create a new job record that immediately reserves the active slot.
+
+        Query to match:
+            INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
+            (job_type, "pending", username),
+
+        Note:
+            Queue-aware callers should use :meth:`enqueue_job` instead, which
+            leaves ``is_running`` NULL so the job waits for its turn.
+
+        Raises:
+            DuplicateRecordError: If a job of the same type is already running.
+        """
+        try:
+            job = JobRecord(
+                job_type=job_type,
+                username=username,
+                status=self.PENDING_STATUS,
+            )
+            if set_is_running:
+                job.is_running = True
+
+            self.session.add(job)
+            self.session.commit()
+        except IntegrityError as exc:
+            self.session.rollback()
+            if "idx_unique_active_job" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
+                logger.warning("Duplicate active job detected for job_type=%s", job_type)
+                raise DuplicateRecordError(
+                    f"A job of type '{job_type}' is already active (pending or running)."
+                ) from exc
+            raise  # Re-raise unexpected IntegrityError
+
+        try:
+            self.session.refresh(job)
+        except Exception:
+            self.session.rollback()
+            raise
+
+        return job
+
+    def update_job_status(
+        self,
+        job_id: int,
+        status: str,
+        result_file: str | None = None,
+        *,
+        job_type: str,
+    ) -> JobRecord:
+        """
+        Update job status and result file.
+        """
+        job = self.get_job(job_id, job_type)
+        try:
+            return self._update_job_status(job, status, result_file)
+        except Exception as exc:
+            self.session.rollback()
+            raise exc
+
+    def update_job_status_with_retry(
+        self,
+        job_id: int,
+        status: str,
+        result_file: str | None = None,
+        *,
+        job_type: str,
+        remove_session: bool = True,
+    ) -> JobRecord:
+        @retry_on_db_disconnect(remove_session=remove_session)
+        def with_retry() -> JobRecord:
+            job = self.get_job(job_id, job_type)
+            return self._update_job_status(job, status, result_file)
+
+        return with_retry()
+
+    def cancel_job_db(
+        self,
+        job_id: int,
+        job_type: str | None = None,
+        release_slot: bool | None = None,
+    ) -> bool:
+        """
+        Mark a pending or running job as cancelled.
+            query = "UPDATE jobs SET status = 'cancelled', completed_at = NOW() WHERE id = %s AND status IN ('pending', 'running')"
+            params = [job_id]
+            if job_type:
+                query += " AND job_type = %s"
+                params.append(job_type)
+
+            rowcount = self.db.execute_query_safe(query, tuple(params))
+            return rowcount > 0
+
+        Args:
+            job_id: Target job.
+            job_type: Optional extra filter.
+            release_slot: Force releasing the unique active slot. When None
+                (default) the slot is only released for jobs that do not hold
+                it, so a running job keeps the slot until its execution really
+                stopped. This prevents the next queued job from overlapping a
+                cancellation that is still in flight.
+        """
+        try:
+            query = self.session.query(JobRecord).filter(JobRecord.id == job_id)
+            if job_type:
+                query = query.filter(JobRecord.job_type == job_type)
+
+            query = query.filter(
+                JobRecord.status.in_(
+                    [self.PENDING_STATUS, self.RUNNING_STATUS],
+                )
+            )
+            job = query.first()
+
+            if not job:
+                return False
+
+            holds_slot = job.is_running == 1
+            was_running = (job.status or "").lower() == self.RUNNING_STATUS
+            job.status = "cancelled"
+
+            if job.completed_at is None:
+                job.completed_at = datetime.now(UTC)
+
+            if release_slot is None:
+                # A job that is really executing keeps the unique active slot
+                # until its worker reached a terminal state, so the next queued
+                # job can never overlap the cancellation still in flight.
+                release_slot = not (holds_slot and was_running)
+
+            if release_slot:
+                job.is_running = None
+
+            self.session.commit()
+            self.session.refresh(job)
+            return True
+        except Exception as e:
+            logger.error(f"Error cancelling JobRecord: {e}")
+            self.session.rollback()
+            return False
+
+    def delete_job_by_id_and_type(self, job_id: int, job_type: str) -> bool:
+        """
+        Special case since it filters by multiple columns (id and job_type).
+        """
+        try:
+            affected_rows = (
+                self.session.query(JobRecord)
+                .filter(JobRecord.id == job_id, JobRecord.job_type == job_type)
+                .delete(synchronize_session=False)
+            )
+            self.session.commit()
+            return affected_rows > 0
+        except Exception as e:
+            logger.error(f"Error deleting JobRecord: {e}")
+            self.session.rollback()
+            return False
+
+    def _update_job_status(
+        self,
+        job: JobRecord,
+        status: str,
+        result_file: str | None = None,
+    ) -> JobRecord:
+        """
+        Update job status and result file.
+        """
+
+        status_lower = status.lower()
+        job.status = status_lower
+
+        if status_lower == self.RUNNING_STATUS and not job.started_at:
+            job.started_at = datetime.now(UTC)
+            job.is_running = True
+
+        if status_lower in self.FINAL_STATUSES:
+            job.completed_at = datetime.now(UTC)
+            job.is_running = None
+
+        if result_file:
+            job.result_file = result_file
+
+        try:
+            self.session.commit()
+            self.session.refresh(job)
+        except Exception:
+            self.session.rollback()
+            raise
+
+        return job
+
+    def _get_all_user_jobs_stats(
+        self,
+        username: str,
+        limit: int | None = 100,
+    ) -> UserJobsStats:
+        """Return typed statistics and recent jobs for all of a user's job types."""
+        limit = _normalize_limit(limit)
+
+        base_query = self.session.query(JobRecord).filter(JobRecord.username == username)
+
+        records = (
+            self.session.query(JobRecord.status, func.count(JobRecord.id))
+            .filter(JobRecord.username == username)
+            .group_by(JobRecord.status)
+            .all()
+        )
+        status_counts: dict[str, int] = {row[0]: row[1] for row in records}
+
+        recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
+
+        total_jobs = sum(status_counts.values())
+
+        stats = JobStats(
+            total=total_jobs,
+            completed=status_counts.get("completed", 0),
+            failed=status_counts.get("failed", 0),
+            cancelled=status_counts.get("cancelled", 0),
+            # running=status_counts.get(self.RUNNING_STATUS, 0),
+            # pending=status_counts.get(self.PENDING_STATUS, 0),
+        )
+
+        return UserJobsStats(stats=stats, recent_jobs=recent_jobs)
+
+    def mark_as_completed(self, job: JobRecord) -> None:
+        job.is_running = None
+        if job.completed_at is None:
+            job.completed_at = datetime.now(UTC)
+
+        self.update(job, status="completed")
+
+    # ------------------------------------------------------------------
+    # New methods for Toolforge migration
+    # ------------------------------------------------------------------
+
+    def mark_failed(self, job: JobRecord, reason: str = "") -> JobRecord:
+        """Mark a job as failed, releasing the is_running lock."""
+        logger.warning("Job %s failed: %s", job.id, reason)
+        return self.update_job_status(job.id, "failed", job_type=job.job_type)
+
+    def list_active(self, backend: str | None = None) -> list[JobRecord]:
+        """Return all pending/running jobs, optionally filtered by backend."""
+        query = self.session.query(JobRecord).filter(JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]))
+        # if backend: query = query.filter(JobRecord.backend == backend)
+        return query.all()
+
+    def cleanup_stale_jobs_on_startup(self) -> int:
+        """Release job locks left behind by a previous process.
+
+        Only thread-backed jobs are affected, since they cannot survive a
+        process restart. Safe only when run once, before any worker starts
+        executing jobs. Each released job is marked as failed with an
+        explanatory error_message.
+        """
+        try:
+            # Fetch the affected rows first so they can be logged and updated by id
+            stale = (
+                self.session.query(
+                    JobRecord.id,
+                    JobRecord.job_type,
+                    JobRecord.username,
+                    JobRecord.started_at,
+                )
+                .filter(
+                    JobRecord.is_running.is_(True),
+                    JobRecord.backend == "thread",
+                )
+                .with_for_update()
+                .all()
+            )
+            if not stale:
+                return 0
+
+            count = (
+                self.session.query(JobRecord)
+                .filter(JobRecord.id.in_([row.id for row in stale]))
+                .update(
+                    {
+                        JobRecord.status: "failed",
+                        JobRecord.is_running: None,  # NULL releases the unique lock
+                        JobRecord.error_message: self.STALE_JOB_ERROR,
+                        JobRecord.completed_at: func.coalesce(JobRecord.completed_at, func.current_timestamp()),
+                    },
+                    synchronize_session=False,
+                )
+            )
+            self.session.commit()
+        except Exception:
+            self.session.rollback()
+            logger.exception("Failed to clean up stale jobs on startup")
+            return 0
+
+        logger.info("Cleaned up %d stale jobs on startup: %s", count, self.STALE_JOB_ERROR)
+        return count
 
     # ------------------------------------------------------------------
     # Queue primitives
@@ -272,7 +573,7 @@ class JobsService(CRUDService[JobRecord]):
             )
             .values(
                 status=self.RUNNING_STATUS,
-                is_running=1,
+                is_running=True,
                 started_at=func.current_timestamp(),
             )
             .execution_options(synchronize_session=False)
@@ -524,285 +825,6 @@ class JobsService(CRUDService[JobRecord]):
         if released:
             logger.info("Released %d stale active slot(s) held by terminal jobs", released)
         return released
-
-    def create_job(self, job_type: str, username: str) -> JobRecord:
-        """
-        Create a new job record that immediately reserves the active slot.
-
-        Query to match:
-            INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
-            (job_type, "pending", username),
-
-        Note:
-            Queue-aware callers should use :meth:`enqueue_job` instead, which
-            leaves ``is_running`` NULL so the job waits for its turn.
-
-        Raises:
-            DuplicateRecordError: If a job of the same type is already running.
-        """
-        try:
-            job = JobRecord(job_type=job_type, username=username, status="pending", is_running=1)
-            self.session.add(job)
-            self.session.commit()
-        except IntegrityError as exc:
-            self.session.rollback()
-            if "idx_unique_active_job" in str(exc.orig) or "UNIQUE constraint failed" in str(exc.orig):
-                logger.warning("Duplicate active job detected for job_type=%s", job_type)
-                raise DuplicateRecordError(
-                    f"A job of type '{job_type}' is already active (pending or running)."
-                ) from exc
-            raise  # Re-raise unexpected IntegrityError
-
-        try:
-            self.session.refresh(job)
-        except Exception:
-            self.session.rollback()
-            raise
-
-        return job
-
-    def update_job_status(
-        self,
-        job_id: int,
-        status: str,
-        result_file: str | None = None,
-        *,
-        job_type: str,
-    ) -> JobRecord:
-        """
-        Update job status and result file.
-        """
-        job = self.get_job(job_id, job_type)
-        try:
-            return self._update_job_status(job, status, result_file)
-        except Exception as exc:
-            self.session.rollback()
-            raise exc
-
-    def update_job_status_with_retry(
-        self,
-        job_id: int,
-        status: str,
-        result_file: str | None = None,
-        *,
-        job_type: str,
-        remove_session: bool = True,
-    ) -> JobRecord:
-        @retry_on_db_disconnect(remove_session=remove_session)
-        def with_retry() -> JobRecord:
-            job = self.get_job(job_id, job_type)
-            return self._update_job_status(job, status, result_file)
-
-        return with_retry()
-
-    def cancel_job_db(
-        self,
-        job_id: int,
-        job_type: str | None = None,
-        release_slot: bool | None = None,
-    ) -> bool:
-        """
-        Mark a pending or running job as cancelled.
-            query = "UPDATE jobs SET status = 'cancelled', completed_at = NOW() WHERE id = %s AND status IN ('pending', 'running')"
-            params = [job_id]
-            if job_type:
-                query += " AND job_type = %s"
-                params.append(job_type)
-
-            rowcount = self.db.execute_query_safe(query, tuple(params))
-            return rowcount > 0
-
-        Args:
-            job_id: Target job.
-            job_type: Optional extra filter.
-            release_slot: Force releasing the unique active slot. When None
-                (default) the slot is only released for jobs that do not hold
-                it, so a running job keeps the slot until its execution really
-                stopped. This prevents the next queued job from overlapping a
-                cancellation that is still in flight.
-        """
-        try:
-            query = self.session.query(JobRecord).filter(JobRecord.id == job_id)
-            if job_type:
-                query = query.filter(JobRecord.job_type == job_type)
-
-            job = query.filter(JobRecord.status.in_(["pending", "running"])).first()
-
-            if not job:
-                return False
-
-            holds_slot = job.is_running == 1
-            was_running = (job.status or "").lower() == "running"
-            job.status = "cancelled"
-
-            if job.completed_at is None:
-                job.completed_at = datetime.now(UTC)
-
-            if release_slot is None:
-                # A job that is really executing keeps the unique active slot
-                # until its worker reached a terminal state, so the next queued
-                # job can never overlap the cancellation still in flight.
-                release_slot = not (holds_slot and was_running)
-
-            if release_slot:
-                job.is_running = None
-
-            self.session.commit()
-            self.session.refresh(job)
-            return True
-        except Exception as e:
-            logger.error(f"Error cancelling JobRecord: {e}")
-            self.session.rollback()
-            return False
-
-    def delete_job_by_id_and_type(self, job_id: int, job_type: str) -> bool:
-        """
-        Special case since it filters by multiple columns (id and job_type).
-        """
-        try:
-            affected_rows = (
-                self.session.query(JobRecord)
-                .filter(JobRecord.id == job_id, JobRecord.job_type == job_type)
-                .delete(synchronize_session=False)
-            )
-            self.session.commit()
-            return affected_rows > 0
-        except Exception as e:
-            logger.error(f"Error deleting JobRecord: {e}")
-            self.session.rollback()
-            return False
-
-    def _update_job_status(
-        self,
-        job: JobRecord,
-        status: str,
-        result_file: str | None = None,
-    ) -> JobRecord:
-        """
-        Update job status and result file.
-        """
-
-        status_lower = status.lower()
-        job.status = status_lower
-
-        if status_lower == "running" and not job.started_at:
-            job.started_at = datetime.now(UTC)
-
-        if status_lower in self.FINAL_STATUSES:
-            job.completed_at = datetime.now(UTC)
-            job.is_running = None
-
-        if result_file:
-            job.result_file = result_file
-
-        try:
-            self.session.commit()
-            self.session.refresh(job)
-        except Exception:
-            self.session.rollback()
-            raise
-
-        return job
-
-    def _get_all_user_jobs_stats(self, username: str, limit: int | None = 100) -> UserJobsStats:
-        """Return typed statistics and recent jobs for all of a user's job types."""
-        limit = _normalize_limit(limit)
-
-        base_query = self.session.query(JobRecord).filter(JobRecord.username == username)
-
-        records = (
-            self.session.query(JobRecord.status, func.count(JobRecord.id))
-            .filter(JobRecord.username == username)
-            .group_by(JobRecord.status)
-            .all()
-        )
-        status_counts: dict[str, int] = {row[0]: row[1] for row in records}
-
-        recent_jobs = base_query.order_by(JobRecord.created_at.desc()).limit(limit).all()
-
-        total_jobs = sum(status_counts.values())
-
-        stats = JobStats(
-            total=total_jobs,
-            completed=status_counts.get("completed", 0),
-            failed=status_counts.get("failed", 0),
-            cancelled=status_counts.get("cancelled", 0),
-            # "running": status_counts.get("running", 0),
-            # "pending": status_counts.get("pending", 0),
-        )
-
-        return UserJobsStats(stats=stats, recent_jobs=recent_jobs)
-
-    def mark_as_completed(self, job: JobRecord) -> None:
-        job.is_running = None
-        if job.completed_at is None:
-            job.completed_at = datetime.now(UTC)
-
-        self.update(job, status="completed")
-
-    # ------------------------------------------------------------------
-    # New methods for Toolforge migration
-    # ------------------------------------------------------------------
-
-    def mark_failed(self, job: JobRecord, reason: str = "") -> JobRecord:
-        """Mark a job as failed, releasing the is_running lock."""
-        logger.warning("Job %s failed: %s", job.id, reason)
-        return self.update_job_status(job.id, "failed", job_type=job.job_type)
-
-    def list_active(self, backend: str | None = None) -> list[JobRecord]:
-        """Return all pending/running jobs, optionally filtered by backend."""
-        query = self.session.query(JobRecord).filter(JobRecord.status.in_(["pending", "running"]))
-        # if backend: query = query.filter(JobRecord.backend == backend)
-        return query.all()
-
-    def cleanup_stale_jobs_on_startup(self) -> int:
-        """Release job locks left behind by a previous process.
-
-        Only thread-backed jobs are affected, since they cannot survive a
-        process restart. Safe only when run once, before any worker starts
-        executing jobs. Each released job is marked as failed with an
-        explanatory error_message.
-        """
-        try:
-            # Fetch the affected rows first so they can be logged and updated by id
-            stale = (
-                self.session.query(
-                    JobRecord.id,
-                    JobRecord.job_type,
-                    JobRecord.username,
-                    JobRecord.started_at,
-                )
-                .filter(
-                    JobRecord.is_running.is_(True),
-                    JobRecord.backend == "thread",
-                )
-                .with_for_update()
-                .all()
-            )
-            if not stale:
-                return 0
-
-            count = (
-                self.session.query(JobRecord)
-                .filter(JobRecord.id.in_([row.id for row in stale]))
-                .update(
-                    {
-                        JobRecord.status: "failed",
-                        JobRecord.is_running: None,  # NULL releases the unique lock
-                        JobRecord.error_message: self.STALE_JOB_ERROR,
-                        JobRecord.completed_at: func.coalesce(JobRecord.completed_at, func.current_timestamp()),
-                    },
-                    synchronize_session=False,
-                )
-            )
-            self.session.commit()
-        except Exception:
-            self.session.rollback()
-            logger.exception("Failed to clean up stale jobs on startup")
-            return 0
-
-        logger.info("Cleaned up %d stale jobs on startup: %s", count, self.STALE_JOB_ERROR)
-        return count
 
 
 __all__ = [
