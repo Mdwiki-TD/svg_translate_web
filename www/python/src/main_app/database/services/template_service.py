@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import String, cast, func, select
 from sqlalchemy.orm import Session
 
-from ...extensions import db
+from ..db_base import db
 from ..exceptions import DuplicateRecordError
 from ..models.templates import TemplateRecord
 from ..templates_utils import ensure_template_data

@@ -5,7 +5,7 @@ import logging
 from sqlalchemy import Index, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import Model
+from ..db_base import Model
 from .base import TimestampMixin
 
 logger = logging.getLogger(__name__)

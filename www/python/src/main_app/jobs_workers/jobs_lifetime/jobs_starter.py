@@ -123,7 +123,7 @@ class JobStarter:
 
         return job.id
 
-    def start_form(
+    def submit_form(
         self,
         auth_payload: dict[str, Any] | None,
         job_type: str,

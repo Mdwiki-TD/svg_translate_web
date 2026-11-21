@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 from src.main_app.config import TestingConfig
+from src.main_app.database import db as _db
 from src.main_app.database.services import OwidChartsService
-from src.main_app.extensions import db as _db
 
 
 @pytest.fixture

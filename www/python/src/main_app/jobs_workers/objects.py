@@ -13,6 +13,8 @@ class JobsRunner:
     cancel_event: threading.Event | None = None
     args: dict[str, Any] | None = None
     form_data: dict[str, Any] | None = None
+    # Job type of the running job; used to advance its queue when it finishes.
+    job_type: str = ""
 
 
 @dataclass

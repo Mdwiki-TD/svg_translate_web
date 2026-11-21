@@ -6,7 +6,7 @@ import time
 
 from sqlalchemy.exc import OperationalError
 
-from ....extensions import db
+from ...db_base import db
 
 logger = logging.getLogger(__name__)
 

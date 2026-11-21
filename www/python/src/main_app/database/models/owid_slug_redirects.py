@@ -6,7 +6,7 @@ from datetime import datetime
 from sqlalchemy import Index, String, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...extensions import Model
+from ..db_base import Model
 
 logger = logging.getLogger(__name__)
 
