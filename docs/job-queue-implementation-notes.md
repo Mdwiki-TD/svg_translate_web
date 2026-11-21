@@ -34,47 +34,47 @@ index, so any number of pending rows can coexist while only one row per
 
 ## 2. Verified lifecycle map (Phase 1 deliverable)
 
-| Step | Code location | Slot |
-| --- | --- | --- |
-| Submit | `public/shared_jobs_routes.py::SharedJobRoutes.start_job_handler` → `jobs_lifetime/jobs_starter.py::JobStarter.submit_form` | — |
-| Enqueue (persist job + payload) | `jobs_lifetime/jobs_queue.py::JobsQueue.enqueue` → `JobsService.enqueue_job` + `JobFilesService.save_payload` | not taken |
-| Claim (atomic pending → running) | `JobsService.claim_pending_job` (single conditional `UPDATE`, `IntegrityError` = lost race) | **taken** |
-| Execute | `backends/thread_backend.py::ThreadBackend.start` → `_runner` → `BaseObjectsJobWorker.run` | held |
-| Complete / fail | `base_worker.py::after_run` → `JobsService._update_job_status` (final statuses set `is_running = NULL`) | released |
-| Cancel (queued) | `jobs_lifetime/jobs_canceller.py::JobCanceller.cancel` → `JobsQueue.cancel_pending` → `JobsService.cancel_pending_job` (backend never invoked) | never taken |
-| Cancel (running) | `JobCanceller.cancel` → cancel event + `.cancelled` marker + `JobsService.cancel_job_db` (status becomes `cancelled`, **slot kept**) | held until the worker stops |
-| Advance the queue | `thread_backend._runner` `finally` → `JobsQueue.on_job_finished` → `dispatch_next` | next job claims |
-| Startup recovery | `database/__init__.py::init_db` → `cleanup_stale_jobs_on_startup` + `JobsQueue.recover(force=True)` | released / reclaimed |
-| Periodic recovery | `flask dispatch-jobs` CLI (`toolforge/shs/dispatch_jobs.sh`) → `JobsQueue.recover(force=True)` | released / reclaimed |
+| Step                             | Code location                                                                                                                                  | Slot                        |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| Submit                           | `public/shared_jobs_routes.py::SharedJobRoutes.start_job_handler` → `jobs_lifetime/jobs_starter.py::JobStarter.submit_form`                    | —                           |
+| Enqueue (persist job + payload)  | `jobs_lifetime/jobs_queue.py::JobsQueue.enqueue` → `JobsService.enqueue_job` + `JobFilesService.save_payload`                                  | not taken                   |
+| Claim (atomic pending → running) | `JobsService.claim_pending_job` (single conditional `UPDATE`, `IntegrityError` = lost race)                                                    | **taken**                   |
+| Execute                          | `backends/thread_backend.py::ThreadBackend.start` → `_runner` → `BaseObjectsJobWorker.run`                                                     | held                        |
+| Complete / fail                  | `base_worker.py::after_run` → `JobsService._update_job_status` (final statuses set `is_running = NULL`)                                        | released                    |
+| Cancel (queued)                  | `jobs_lifetime/jobs_canceller.py::JobCanceller.cancel` → `JobsQueue.cancel_pending` → `JobsService.cancel_pending_job` (backend never invoked) | never taken                 |
+| Cancel (running)                 | `JobCanceller.cancel` → cancel event + `.cancelled` marker + `JobsService.cancel_job_db` (status becomes `cancelled`, **slot kept**)           | held until the worker stops |
+| Advance the queue                | `thread_backend._runner` `finally` → `JobsQueue.on_job_finished` → `dispatch_next`                                                             | next job claims             |
+| Startup recovery                 | `database/__init__.py::init_db` → `cleanup_stale_jobs_on_startup` + `JobsQueue.recover(force=True)`                                            | released / reclaimed        |
+| Periodic recovery                | `flask dispatch-jobs` CLI (`toolforge/shs/dispatch_jobs.sh`) → `JobsQueue.recover(force=True)`                                                 | released / reclaimed        |
 
 ## 3. New and changed files
 
 ### New
 
-| File | Purpose |
-| --- | --- |
+| File                                                               | Purpose                                                                 |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------- |
 | `www/python/src/main_app/jobs_workers/jobs_lifetime/jobs_queue.py` | `JobsQueue`, `JobIdentityResolver`, `EnqueueResult`, `sanitize_payload` |
-| `toolforge/shs/dispatch_jobs.sh` | Cron-friendly periodic recovery (`flask dispatch-jobs`) |
-| `tests/unit/jobs_workers/jobs_lifetime/test_jobs_queue.py` | Queue behaviour, FIFO, claims, failures, cancellation, recovery |
-| `tests/unit/jobs_workers/jobs_lifetime/test_queue_lifecycle.py` | Cancellation races, backend finish hook, startup recovery |
-| `tests/integration/admin/routes/test_jobs_queue_ui.py` | Queue position rendering + submission feedback |
+| `toolforge/shs/dispatch_jobs.sh`                                   | Cron-friendly periodic recovery (`flask dispatch-jobs`)                 |
+| `tests/unit/jobs_workers/jobs_lifetime/test_jobs_queue.py`         | Queue behaviour, FIFO, claims, failures, cancellation, recovery         |
+| `tests/unit/jobs_workers/jobs_lifetime/test_queue_lifecycle.py`    | Cancellation races, backend finish hook, startup recovery               |
+| `tests/integration/admin/routes/test_jobs_queue_ui.py`             | Queue position rendering + submission feedback                          |
 
 ### Changed
 
-| File | Change |
-| --- | --- |
-| `database/services/jobs_service.py` | Queue primitives: `enqueue_job`, `claim_pending_job`, `has_running_job`, `list_pending_jobs`, `list_pending_job_types`, `get_queue_position(s)`, `cancel_pending_job`, `release_active_slot`, `fail_job`, `release_stale_active_slots`; `cancel_job_db` no longer releases the slot of a *running* job |
-| `io/jobs_files_service.py` | Durable payload store: `payload_file_name`, `save_payload`, `load_payload`, `delete_payload` |
-| `services/auth/token_manager.py` | `get_auth_payload_by_username()` — rebuilds execution identity from the persisted username |
-| `jobs_workers/jobs_lifetime/jobs_starter.py` | Submits through the queue (`submit`/`submit_form`), keeps `start`/`start_form`/`start_cli` returning the job id |
-| `jobs_workers/jobs_lifetime/jobs_canceller.py` | Cancels queued jobs without touching a backend; keeps running-job semantics |
-| `jobs_workers/backends/thread_backend.py` | Advances the queue when a job's execution really stopped |
-| `jobs_workers/objects.py` | `JobsRunner.job_type` (needed to advance the right queue) |
-| `jobs_workers/cli_jobs.py` | `flask dispatch-jobs` recovery command |
-| `database/__init__.py` | Startup queue recovery (gated by `JOBS_QUEUE_STARTUP_DISPATCH`) |
-| `config/flask_config.py` | `JOBS_QUEUE_STARTUP_DISPATCH` (disabled for `TestingConfig`) |
-| `public/shared_jobs_routes.py` | Queue-aware flash messages, `queue_positions` / `queue_position` template context |
-| `templates/_macros.html`, `jobs_templates/_list_table.html`, `base_details_public.html`, `admin_templates/base_details_admin.html` | `Queued · #N` status labels |
+| File                                                                                                                               | Change                                                                                                                                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `database/services/jobs_service.py`                                                                                                | Queue primitives: `enqueue_job`, `claim_pending_job`, `has_running_job`, `list_pending_jobs`, `list_pending_job_types`, `get_queue_position(s)`, `cancel_pending_job`, `release_active_slot`, `fail_job`, `release_stale_active_slots`; `cancel_job_db` no longer releases the slot of a _running_ job |
+| `io/jobs_files_service.py`                                                                                                         | Durable payload store: `payload_file_name`, `save_payload`, `load_payload`, `delete_payload`                                                                                                                                                                                                           |
+| `services/auth/token_manager.py`                                                                                                   | `get_auth_payload_by_username()` — rebuilds execution identity from the persisted username                                                                                                                                                                                                             |
+| `jobs_workers/jobs_lifetime/jobs_starter.py`                                                                                       | Submits through the queue (`submit`/`submit_form`), keeps `start`/`start_form`/`start_cli` returning the job id                                                                                                                                                                                        |
+| `jobs_workers/jobs_lifetime/jobs_canceller.py`                                                                                     | Cancels queued jobs without touching a backend; keeps running-job semantics                                                                                                                                                                                                                            |
+| `jobs_workers/backends/thread_backend.py`                                                                                          | Advances the queue when a job's execution really stopped                                                                                                                                                                                                                                               |
+| `jobs_workers/objects.py`                                                                                                          | `JobsRunner.job_type` (needed to advance the right queue)                                                                                                                                                                                                                                              |
+| `jobs_workers/cli_jobs.py`                                                                                                         | `flask dispatch-jobs` recovery command                                                                                                                                                                                                                                                                 |
+| `database/__init__.py`                                                                                                             | Startup queue recovery (gated by `JOBS_QUEUE_STARTUP_DISPATCH`)                                                                                                                                                                                                                                        |
+| `config/flask_config.py`                                                                                                           | `JOBS_QUEUE_STARTUP_DISPATCH` (disabled for `TestingConfig`)                                                                                                                                                                                                                                           |
+| `public/shared_jobs_routes.py`                                                                                                     | Queue-aware flash messages, `queue_positions` / `queue_position` template context                                                                                                                                                                                                                      |
+| `templates/_macros.html`, `jobs_templates/_list_table.html`, `base_details_public.html`, `admin_templates/base_details_admin.html` | `Queued · #N` status labels                                                                                                                                                                                                                                                                            |
 
 ## 4. Concurrency and atomic claiming
 
@@ -109,7 +109,7 @@ directory:
 - `csrf_token`, `access_token`, `access_secret`, `password`, `secret` and
   `token` keys are stripped before writing (`sanitize_payload`).
 - **No OAuth secret is ever written to the queue payload.** At dispatch time
-  `JobIdentityResolver` reloads the *encrypted* token through
+  `JobIdentityResolver` reloads the _encrypted_ token through
   `TokenManager.get_auth_payload_by_username()` — the same shape produced by
   `CurrentUser.to_auth_payload()`, which `WikiSiteClient` decrypts.
 - `Background job` (CLI/cron submissions) keeps using the tool bot password.
@@ -121,7 +121,7 @@ directory:
 
 ## 6. Cancellation race handling
 
-`cancel_job_db()` marks a *running* job `cancelled` but **keeps**
+`cancel_job_db()` marks a _running_ job `cancelled` but **keeps**
 `is_running = 1`. The slot is released only by:
 
 1. the worker's own terminal status update (`_update_job_status`), or
@@ -145,7 +145,7 @@ meantime is never cancelled by mistake.
   `toolforge-jobs run queue-dispatcher --image python3.13 --command "~/shs/dispatch_jobs.sh"`.
   It is throttled and idempotent, so it is safe to run often and concurrently.
 - Recovery never marks a running job failed just because a web process
-  restarted; only slots of *terminal* jobs older than the grace period, or
+  restarted; only slots of _terminal_ jobs older than the grace period, or
   thread jobs cleaned up by the pre-existing startup routine, are released.
 
 ## 8. Deployment order
