@@ -55,6 +55,26 @@ class WtpTemplates:
         """Return True if the span is inside a top-level template."""
         return any(_inside(span, t) for t in self.top_tpls)
 
+    @staticmethod
+    def render_pretty(template: wtp.Template, ljust: int = 0) -> str:
+        """Render a template with one named parameter per line.
+
+        Positional parameters stay inline (``|value``); named ones go on their
+        own line (``\\n|key=value``). Names are left-padded to ``ljust``
+        characters when ``ljust`` > 0. The template itself is not mutated.
+        """
+        result = "{{" + template.name.strip()
+        for arg in template.arguments:
+            value = arg.value.strip()
+            if arg.positional:
+                result += "|" + value
+            else:
+                key = arg.name.strip()
+                key_fmt = key.ljust(ljust) if ljust > 0 else key
+                result += "\n|" + key_fmt + "=" + value
+        result += "\n}}"
+        return result
+
 
 __all__ = [
     "WtpTemplates",
