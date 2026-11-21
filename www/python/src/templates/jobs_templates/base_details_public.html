@@ -58,7 +58,7 @@
                                     <td>
                                         <div
                                             class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
-                                            {{ status_icon(job.status) }}
+                                            {{ job_status(job.status, queue_position | default(0)) }}
                                             {% if job.status | is_job_running %}
                                             {{ auto_refresh_status() }}
                                             {% endif %}

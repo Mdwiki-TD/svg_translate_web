@@ -469,3 +469,173 @@ class TestWithMocks(TestSetup):
 
         with pytest.raises(OperationalError):
             self.service.update_job_status(job.id, "completed", job_type="test_job")
+
+
+class TestQueuePrimitives(TestSetup):
+    """Tests for the FIFO queue primitives added for job queuing."""
+
+    def test_enqueue_job_does_not_reserve_active_slot(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+
+        assert job.status == "pending"
+        assert job.is_running is None
+        assert self.service.has_running_job("queue_type") is False
+
+    def test_multiple_jobs_of_same_type_can_be_enqueued(self) -> None:
+        jobs = [self.service.enqueue_job("queue_type", username=f"user_{i}") for i in range(3)]
+
+        assert len(jobs) == 3
+        assert len(self.service.list_pending_jobs("queue_type")) == 3
+
+    def test_claim_pending_job_reserves_slot(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+
+        assert self.service.claim_pending_job(job.id) is True
+
+        claimed = self.service.get_job(job.id, "queue_type")
+        assert claimed.status == "running"
+        assert claimed.is_running == 1
+        assert claimed.started_at is not None
+        assert self.service.has_running_job("queue_type") is True
+
+    def test_claim_twice_returns_false(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+
+        assert self.service.claim_pending_job(job.id) is True
+        assert self.service.claim_pending_job(job.id) is False
+
+    def test_claim_blocked_by_unique_active_slot(self) -> None:
+        first = self.service.enqueue_job("queue_type", username="user_a")
+        second = self.service.enqueue_job("queue_type", username="user_b")
+
+        assert self.service.claim_pending_job(first.id) is True
+        # The unique idx_unique_active_job constraint rejects the second claim
+        assert self.service.claim_pending_job(second.id) is False
+
+        still_queued = self.service.get_job(second.id, "queue_type")
+        assert still_queued.status == "pending"
+        assert still_queued.is_running is None
+
+    def test_claim_of_non_pending_job_returns_false(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+        self.service.cancel_pending_job(job.id, "queue_type")
+
+        assert self.service.claim_pending_job(job.id) is False
+
+    def test_list_pending_jobs_is_fifo(self) -> None:
+        first = self.service.enqueue_job("queue_type", username="user_a")
+        second = self.service.enqueue_job("queue_type", username="user_a")
+        third = self.service.enqueue_job("queue_type", username="user_a")
+
+        pending = self.service.list_pending_jobs("queue_type")
+
+        assert [job.id for job in pending] == [first.id, second.id, third.id]
+
+    def test_list_pending_jobs_excludes_running_and_other_types(self) -> None:
+        running = self.service.enqueue_job("queue_type", username="user_a")
+        self.service.claim_pending_job(running.id)
+        self.service.enqueue_job("queue_type", username="user_a")
+        self.service.enqueue_job("other_type", username="user_a")
+
+        pending = self.service.list_pending_jobs("queue_type")
+
+        assert len(pending) == 1
+        assert running.id not in [job.id for job in pending]
+
+    def test_list_pending_job_types(self) -> None:
+        self.service.enqueue_job("type_a", username="user_a")
+        self.service.enqueue_job("type_b", username="user_a")
+        running = self.service.enqueue_job("type_c", username="user_a")
+        self.service.claim_pending_job(running.id)
+
+        assert sorted(self.service.list_pending_job_types()) == ["type_a", "type_b"]
+
+    def test_queue_positions(self) -> None:
+        first = self.service.enqueue_job("queue_type", username="user_a")
+        second = self.service.enqueue_job("queue_type", username="user_a")
+        third = self.service.enqueue_job("queue_type", username="user_a")
+
+        assert self.service.get_queue_positions("queue_type") == {first.id: 1, second.id: 2, third.id: 3}
+        assert self.service.get_queue_position(second.id) == 2
+
+    def test_queue_position_after_cancel_shifts(self) -> None:
+        first = self.service.enqueue_job("queue_type", username="user_a")
+        second = self.service.enqueue_job("queue_type", username="user_a")
+
+        self.service.cancel_pending_job(first.id, "queue_type")
+
+        assert self.service.get_queue_position(second.id) == 1
+
+    def test_queue_position_zero_for_running_job(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+        self.service.claim_pending_job(job.id)
+
+        assert self.service.get_queue_position(job.id) == 0
+
+    def test_cancel_pending_job(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+
+        assert self.service.cancel_pending_job(job.id, "queue_type") is True
+
+        cancelled = self.service.get_job(job.id, "queue_type")
+        assert cancelled.status == "cancelled"
+        assert cancelled.completed_at is not None
+        assert cancelled.is_running is None
+
+    def test_cancel_pending_job_cannot_cancel_running_job(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+        self.service.claim_pending_job(job.id)
+
+        assert self.service.cancel_pending_job(job.id, "queue_type") is False
+        assert self.service.get_job(job.id, "queue_type").status == "running"
+
+    def test_release_active_slot(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+        self.service.claim_pending_job(job.id)
+
+        assert self.service.release_active_slot(job.id) is True
+        assert self.service.has_running_job("queue_type") is False
+        # Releasing twice is a no-op
+        assert self.service.release_active_slot(job.id) is False
+
+    def test_fail_job_releases_slot_and_stores_reason(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+        self.service.claim_pending_job(job.id)
+
+        assert self.service.fail_job(job.id, "queue_type", "boom") is True
+
+        failed = self.service.get_job(job.id, "queue_type")
+        assert failed.status == "failed"
+        assert failed.is_running is None
+        assert failed.error_message == "boom"
+        assert failed.completed_at is not None
+
+    def test_release_stale_active_slots_ignores_fresh_rows(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+        self.service.claim_pending_job(job.id)
+        self.service.cancel_job_db(job.id, "queue_type")
+
+        assert self.service.release_stale_active_slots(grace_seconds=300) == 0
+        assert self.service.has_running_job("queue_type") is True
+
+    def test_release_stale_active_slots_releases_old_terminal_rows(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+        self.service.claim_pending_job(job.id)
+        self.service.cancel_job_db(job.id, "queue_type")
+
+        assert self.service.release_stale_active_slots(grace_seconds=-1) == 1
+        assert self.service.has_running_job("queue_type") is False
+
+    def test_cancel_running_job_keeps_slot_until_execution_stops(self) -> None:
+        job = self.service.enqueue_job("queue_type", username="user_a")
+        self.service.claim_pending_job(job.id)
+
+        assert self.service.cancel_job_db(job.id, "queue_type") is True
+
+        cancelled = self.service.get_job(job.id, "queue_type")
+        assert cancelled.status == "cancelled"
+        assert cancelled.is_running == 1
+
+        # The worker reached its terminal state and released the slot
+        self.service.update_job_status(job.id, "cancelled", job_type="queue_type")
+        assert self.service.has_running_job("queue_type") is False

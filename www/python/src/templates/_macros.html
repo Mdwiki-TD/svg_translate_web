@@ -173,6 +173,25 @@
 {%- endmacro -%}
 
 
+{# queued status icon: shows the FIFO position of a pending job #}
+{% macro queued_status_icon(position) %}
+<small
+    class="d-inline-flex px-2 py-1 fw-semibold text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-2">
+    Queued · #{{ position }}
+</small>
+{%- endmacro -%}
+
+
+{# job status: queued jobs show their position inside their job type queue #}
+{% macro job_status(status, position=0) %}
+{% if status and status | lower == 'pending' and position %}
+{{ queued_status_icon(position) }}
+{% else %}
+{{ status_icon(status) }}
+{% endif %}
+{%- endmacro -%}
+
+
 {# status card #}
 {% macro stats_card(title, value, border_type, icon="") %}
 
