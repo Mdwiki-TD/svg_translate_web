@@ -15,7 +15,7 @@ import sys
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from unittest.mock import MagicMock
 
 import pytest
@@ -76,6 +76,17 @@ def stop_nets(request):
 
     # Otherwise, disable the socket for all other tests
     disable_socket(allow_unix_socket=True)
+
+
+@pytest.fixture
+def load_fixture() -> Callable[[str], str]:
+    def loader(name: str) -> str:
+        path = Path(__file__).parent / name
+        assert path.exists(), f"Fixture file missing: {path}"
+
+        return path.read_text(encoding="utf-8")
+
+    return loader
 
 
 # ── app fixtures ───────────────────────────────────────────────────────────────────
