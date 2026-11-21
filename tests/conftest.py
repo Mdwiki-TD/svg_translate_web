@@ -196,6 +196,27 @@ def mock_site_pages(mock_site, mock_page):
     return _factory
 
 
+# ── get_current_user mocks ───────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def mock_get_current_user(monkeypatch):
+    mock_user = MagicMock(return_value=MagicMock())
+    monkeypatch.setattr(
+        "src.main_app.services.auth.current_user_resolver.CurrentUserResolver.get_current_user",
+        mock_user,
+    )
+    monkeypatch.setattr(
+        "src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user",
+        mock_user,
+    )
+    monkeypatch.setattr(
+        "src.main_app.decorators.auth_decorators.CurrentUserResolver.get_current_user",
+        mock_user,
+    )
+    return mock_user
+
+
 @pytest.fixture
 def mock_crypto_service():
     service = MagicMock()
