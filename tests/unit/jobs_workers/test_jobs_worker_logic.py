@@ -31,11 +31,16 @@ def flask_app():
 def mock_db_services(monkeypatch: pytest.MonkeyPatch):
     mocks = {
         "create": MagicMock(),
+        "save_payload": MagicMock(),
         "cancel_db": MagicMock(),
         "settings": MagicMock(),
         "cancel_file": MagicMock(),
+        "backend": MagicMock(),
     }
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.save_payload", mocks["save_payload"]
+    )
     monkeypatch.setattr(
         "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.cancel_job_db", mocks["cancel_db"]
     )
@@ -45,6 +50,10 @@ def mock_db_services(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.main_app.jobs_workers.jobs_lifetime.jobs_canceller.JobFilesService.create_cancel_file",
         mocks["cancel_file"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.get_backend",
+        lambda name=None: mocks["backend"],
     )
     return mocks
 

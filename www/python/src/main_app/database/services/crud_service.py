@@ -304,8 +304,8 @@ class CRUDService[ModelT]:
     # ------------------------------------------------------------------ #
 
     def bulk_create(self, items: Iterable[dict[str, Any]]) -> Sequence[ModelT]:
-        instances = [self.model(**fields) for fields in items]
         try:
+            instances = [self.model(**fields) for fields in items]
             self.session.add_all(instances)
             self.commit_or_rollback()
         except Exception as exc:
@@ -349,9 +349,8 @@ class CRUDService[ModelT]:
             # ORM bulk UPDATE by primary key (SQLAlchemy 2.0)
             self.session.execute(update(self.model), rows)
             if commit:
-                self.session.commit()
+                self.commit_or_rollback()
         except Exception as exc:
-            self.session.rollback()
             logger.error("Error bulk updating %s: %s", self.model_name, exc)
             raise
 

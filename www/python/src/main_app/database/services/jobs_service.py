@@ -500,7 +500,7 @@ class JobsService(CRUDService[JobRecord]):
             raise LookupError(f"Job {job_id} not found")
         job.backend = backend
         job.payload = json.dumps(payload, default=str)
-        self.session.commit()
+        self.commit_or_rollback()
 
 
 __all__ = [
