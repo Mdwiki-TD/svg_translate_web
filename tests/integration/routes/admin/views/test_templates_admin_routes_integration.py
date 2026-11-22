@@ -5,8 +5,8 @@ from __future__ import annotations
 from unittest.mock import Mock
 
 import pytest
-from src.main_app.routes.admin.views import templates
 from src.main_app.database.services import TemplateService
+from src.main_app.routes.admin.views import templates
 
 
 @pytest.fixture

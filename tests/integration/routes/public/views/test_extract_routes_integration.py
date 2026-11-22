@@ -101,7 +101,9 @@ class TestExtractPost:
         def mock_download(*args, **kwargs):
             return DownloadAndSaveData(result="failed", path="")
 
-        monkeypatch.setattr("src.main_app.routes.public.views.extract_routes.FilesService.download_and_save", mock_download)
+        monkeypatch.setattr(
+            "src.main_app.routes.public.views.extract_routes.FilesService.download_and_save", mock_download
+        )
 
         response = mock_client.post(
             "/extract/",
@@ -156,7 +158,9 @@ class TestExtractRender:
         def mock_download(*args, **kwargs):
             return DownloadAndSaveData(result="success", path=str(tmp_path / "test.svg"))
 
-        monkeypatch.setattr("src.main_app.routes.public.views.extract_routes.FilesService.download_and_save", mock_download)
+        monkeypatch.setattr(
+            "src.main_app.routes.public.views.extract_routes.FilesService.download_and_save", mock_download
+        )
         response = mock_client.post(
             "/extract/",
             data={"filename": "Test.svg"},
@@ -187,7 +191,9 @@ class TestExtractRender:
         def mock_extract(*args, **kwargs):
             return TranslationMapping.from_any(sample_translations)
 
-        monkeypatch.setattr("src.main_app.routes.public.views.extract_routes.FilesService.download_and_save", mock_download)
+        monkeypatch.setattr(
+            "src.main_app.routes.public.views.extract_routes.FilesService.download_and_save", mock_download
+        )
         monkeypatch.setattr(
             "src.main_app.services.copysvg_wrapper.extract_translations.SvgTranslationExtractor._extract_file_translations",
             mock_extract,

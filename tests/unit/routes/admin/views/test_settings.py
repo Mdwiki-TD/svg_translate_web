@@ -10,11 +10,11 @@ from types import SimpleNamespace
 
 import pytest
 from flask import Flask
+from src.main_app.database.services import SettingsService
 from src.main_app.routes.admin.views.settings import (
     SettingsFuncs,
     _parse_setting_value,
 )
-from src.main_app.database.services import SettingsService
 
 # ---------------------------------------------------------------------------
 # SettingsRoutes class structure (no DB needed)

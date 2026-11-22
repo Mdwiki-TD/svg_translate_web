@@ -20,7 +20,9 @@ def _fake_admin_user(monkeypatch):
     monkeypatch.setattr(
         "src.main_app.decorators.auth_decorators.CurrentUserResolver.get_current_user", lambda: admin_user
     )
-    monkeypatch.setattr("src.main_app.routes.public.routes_utils.CurrentUserResolver.get_current_user", lambda: admin_user)
+    monkeypatch.setattr(
+        "src.main_app.routes.public.routes_utils.CurrentUserResolver.get_current_user", lambda: admin_user
+    )
 
 
 @pytest.fixture

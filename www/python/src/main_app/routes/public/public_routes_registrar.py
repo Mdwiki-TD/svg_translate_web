@@ -7,8 +7,9 @@ from typing import Any
 from flask import Blueprint, Flask
 
 from ...jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
-from ..models import RouteModule
 from ...templates_markups import NavigationBar, main_nav_list
+from ..models import RouteModule
+from .shared_jobs_registrar import SharedJobRoutesRegistrar
 from .views import (
     ApiRoutes,
     AuthView,
@@ -22,7 +23,6 @@ from .views import (
     TranslateView,
     UtilsJobsBpRoutes,
 )
-from .shared_jobs_registrar import SharedJobRoutesRegistrar
 
 PUBLIC_ROUTE_MODULES: list[RouteModule] = [
     RouteModule(route_cls=MainView, name="main", url_prefix=""),

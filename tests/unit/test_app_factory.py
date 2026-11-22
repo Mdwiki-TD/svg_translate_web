@@ -1,4 +1,4 @@
-"""Tests for src/main_app/__init__.py - Flask application factory."""
+"""Tests for src/main_app/app_factory.py - Flask application factory."""
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
-from src.main_app import register_error_handlers  # noqa: F401
-from src.main_app import AppFactory
+from src.main_app.app_factory import register_error_handlers  # noqa: F401
+from src.main_app.app_factory import AppFactory
 from src.main_app.config import TestingConfig
 
 

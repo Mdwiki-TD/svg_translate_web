@@ -8,13 +8,12 @@ from flask import Blueprint, Flask
 from flask_sqlalchemy import SQLAlchemy
 
 from ...decorators.admin_decorators import admin_guard
+from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
+from ..models import RouteModule
+from ..public.shared_jobs_registrar import SharedJobRoutesRegistrar
 from .admin_panel import AdminPanel
 from .admin_sidebar import create_admin_sidebar
 from .flask_admin_panel import add_admin_dashboard
-
-from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
-from ..public.shared_jobs_registrar import SharedJobRoutesRegistrar
-from ..models import RouteModule
 from .views.admins import AdminView
 from .views.error_logs import CheckErrorLogsView
 from .views.errors_route import CheckErrorsView

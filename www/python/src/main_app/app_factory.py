@@ -16,9 +16,9 @@ from .config import Config, ConfigLoader, get_settings
 from .database import DatabaseBuilder
 from .database import db as _db
 from .extensions import csrf_init_app, migrate
-from .routes.public.routes_utils import RequestContextHelper
 from .routes import RoutesFactory
 from .routes.error_pages import register_error_handlers
+from .routes.public.routes_utils import RequestContextHelper
 from .services.core import CookieHeaderClient, filters, init_rate_limiter
 
 logger = logging.getLogger(__name__)

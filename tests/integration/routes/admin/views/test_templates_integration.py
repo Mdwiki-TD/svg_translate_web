@@ -1,10 +1,10 @@
 from unittest.mock import Mock
 
 import pytest
+from src.main_app.database.services import TemplateService
 from src.main_app.routes.admin.views.templates import (
     TemplatesRoutesFuncs,
 )
-from src.main_app.database.services import TemplateService
 
 
 @pytest.fixture

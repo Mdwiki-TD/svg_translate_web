@@ -51,13 +51,17 @@ def mock_deps(
     monkeypatch.setattr(
         "src.main_app.routes.public.shared_jobs_routes.CurrentUserResolver.get_current_user", deps.get_current_user
     )
-    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.SharedJobRoutes.can_manage_job", deps.can_manage_job)
+    monkeypatch.setattr(
+        "src.main_app.routes.public.shared_jobs_routes.SharedJobRoutes.can_manage_job", deps.can_manage_job
+    )
     monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobCanceller.cancel", deps.cancel_job_worker)
     monkeypatch.setattr(
         "src.main_app.routes.public.shared_jobs_routes.RequestContextHelper.load_auth_payload", deps.load_auth_payload
     )
     monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobStarter.submit_form", deps.start_job)
-    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobFilesService.load_result", deps.load_job_result)
+    monkeypatch.setattr(
+        "src.main_app.routes.public.shared_jobs_routes.JobFilesService.load_result", deps.load_job_result
+    )
 
     deps.redirect.return_value = "redirected"
     deps.url_for.return_value = MOCK_URL
