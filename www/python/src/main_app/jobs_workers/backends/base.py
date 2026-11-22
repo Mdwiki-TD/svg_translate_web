@@ -27,7 +27,7 @@ class JobBackend(ABC):
         """Start a job and return a backend-specific identifier (e.g. Toolforge name).
 
         Args:
-            job: The database record (already created with is_running=1).
+            job: The database record (already created with is_running=True).
             job_data: The JobData descriptor for this job type.
             payload: The serialized args/form_data dict (no user/token data).
 

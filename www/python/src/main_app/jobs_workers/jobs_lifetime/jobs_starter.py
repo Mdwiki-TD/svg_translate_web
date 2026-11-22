@@ -10,7 +10,7 @@ from flask import Flask, current_app
 from ...database.exceptions import DuplicateRecordError
 from ...database.services import JobsService, SettingsService
 from ..admin_jobs_workers.workers_list import jobs_data_admins
-from ..backends import get_backend, get_backend_name
+from ..backends.registry import get_backend, get_backend_name
 from ..backends.thread_backend import ThreadBackend
 from ..objects import JobData
 from ..public_jobs_workers.workers_list_public import jobs_data_public

@@ -65,6 +65,10 @@ class JobsService(CRUDService[JobRecord]):
     # Status of a job that holds the unique active slot for its job_type.
     RUNNING_STATUS = "running"
 
+    # Grace period (seconds) after which a terminal job that still holds the
+    # active slot is considered stale and its slot is released by recovery.
+    STALE_SLOT_GRACE_SECONDS = 300
+
     def __init__(self, session: Session | None = None) -> None:
         super().__init__(session=session or db.session)
 
@@ -194,7 +198,7 @@ class JobsService(CRUDService[JobRecord]):
                 .filter(
                     JobRecord.job_type == job_type,
                     JobRecord.status.in_([self.RUNNING_STATUS]),
-                    JobRecord.is_running is True,
+                    JobRecord.is_running.is_(True),
                 )
                 .first()
             )
@@ -304,7 +308,7 @@ class JobsService(CRUDService[JobRecord]):
 
             query = query.filter(
                 JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]),
-                JobRecord.is_running == 1,
+                JobRecord.is_running.is_(True),
             )
             job = query.first()
 
@@ -436,7 +440,7 @@ class JobsService(CRUDService[JobRecord]):
         """Return all pending/running jobs, optionally filtered by backend."""
         query = self.session.query(JobRecord).filter(JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]))
         if backend:
-            query = query.filter(JobRecord.backend == backend)
+           query = query.filter(JobRecord.backend == backend)
         return query.all()
 
     def cleanup_stale_jobs_on_startup(self) -> int:

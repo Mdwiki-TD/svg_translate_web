@@ -57,7 +57,7 @@ class JobRecord(Model):
         Index("status_username", "status", "username"),
         # Optional: forbids 0 so the unique lock can't be broken by mistake
         CheckConstraint(
-            "is_running IS NULL OR is_running = 1",
+            "is_running IS NULL OR is_running = True",
             name="chk_jobs_is_running_null_or_one",
         ),
     )
