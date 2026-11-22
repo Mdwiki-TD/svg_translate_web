@@ -10,7 +10,7 @@ from typing import Any
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 
-from .admin import AdminsRouteRegister
+from .routes import RoutesFactory
 from .cli import CliFactory
 from .config import Config, ConfigLoader, get_settings
 from .database import DatabaseBuilder
@@ -18,7 +18,6 @@ from .database import db as _db
 from .error_pages import register_error_handlers
 from .extensions import csrf_init_app, migrate
 from .logger_config import LoggingConfigurator
-from .public import PublicRouteRegister
 from .public.routes_utils import RequestContextHelper
 from .services.core import CookieHeaderClient, filters, init_rate_limiter
 
@@ -59,7 +58,7 @@ class AppFactory:
 
         init_rate_limiter(app)
         if db_is_ok:
-            cls._register_routes(app)
+            RoutesFactory.register(app, _db)
         else:
             app.before_request(cls.db_error_fallback)
         return app
@@ -86,11 +85,6 @@ class AppFactory:
 
         app.jinja_env.filters.update(filters)
         get_settings().ensure_directories()
-
-    @staticmethod
-    def _register_routes(app: Flask) -> None:
-        PublicRouteRegister.register(app)
-        AdminsRouteRegister.register(app, _db)
 
     @staticmethod
     def db_error_fallback():
