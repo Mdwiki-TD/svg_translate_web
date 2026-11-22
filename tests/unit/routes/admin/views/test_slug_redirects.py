@@ -1,4 +1,4 @@
-"""Tests for src/main_app/admin_panel/routes/slug_redirects.py."""
+"""Tests for src/main_app/routes/admin/views/slug_redirects.py."""
 
 from __future__ import annotations
 

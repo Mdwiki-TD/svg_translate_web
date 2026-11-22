@@ -1,5 +1,4 @@
-"""Integration tests for src/main_app/admin_panel/route.py module.
-
+"""
 Tests the admin dashboard, users listing, and admin management through
 the Flask test client with a real SQLite database (via TestingConfig).
 """

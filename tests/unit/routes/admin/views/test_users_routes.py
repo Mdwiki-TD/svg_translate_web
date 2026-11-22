@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/admin_panel/routes/users.py."""
+"""Unit tests for src/main_app/routes/admin/views/users.py."""
 
 from __future__ import annotations
 

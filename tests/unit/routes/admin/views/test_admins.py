@@ -1,5 +1,5 @@
 """
-Unit tests for src/main_app/admin_panel/routes/admins.py module.
+Unit tests for src/main_app/routes/admin/views/admins.py module.
 """
 
 from __future__ import annotations
