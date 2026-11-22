@@ -6,7 +6,7 @@
 > report — do not improvise. When done, update the status row for this plan
 > in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 8bf215bc..HEAD -- src/main_app/routes/public/api_routes.py src/main_app/routes/public/routes/owid_charts_routes.py`
+> **Drift check (run first)**: `git diff --stat 8bf215bc..HEAD -- src/main_app/routes/public/api_routes.py src/main_app/routes/public/views/owid_charts_routes.py`
 > If either file changed since this plan was written, compare the
 > "Current state" excerpts against the live code before proceeding.
 
@@ -38,7 +38,7 @@ Two unauthenticated endpoints expose data that should be restricted:
   - Lines 18-20: `templates_list`, `templates_mismatched_years_list`, `templates_need_update_list` — no auth
   - Lines 22-23: `owid_charts_list` — no auth
 
-- `src/main_app/routes/public/routes/owid_charts_routes.py` — chart listing routes
+- `src/main_app/routes/public/views/owid_charts_routes.py` — chart listing routes
   - Lines 35-38: `index()` filters `if x.chart.is_published` — correct
   - Lines 40-44: `all_charts()` returns ALL charts with no filter and no auth
 
@@ -60,7 +60,7 @@ See `src/main_app/routes/public/public_jobs.py:38-42` for an exemplar of the pat
 
 **In scope** (the only files you should modify):
 - `src/main_app/routes/public/api_routes.py`
-- `src/main_app/routes/public/routes/owid_charts_routes.py`
+- `src/main_app/routes/public/views/owid_charts_routes.py`
 - `tests/integration/` (new or updated tests for auth enforcement)
 
 **Out of scope** (do NOT touch):
@@ -72,7 +72,7 @@ See `src/main_app/routes/public/public_jobs.py:38-42` for an exemplar of the pat
 
 ### Step 1: Add `admin_required` to `/owidcharts/all` route
 
-In `src/main_app/routes/public/routes/owid_charts_routes.py`:
+In `src/main_app/routes/public/views/owid_charts_routes.py`:
 
 1. Add import: `from ...admin.decorators import admin_required`
 2. Add `admin_required` decorator to the `all_charts` method.
@@ -93,7 +93,7 @@ routes = [
 ]
 ```
 
-**Verify**: `grep -n "admin_required" src/main_app/routes/public/routes/owid_charts_routes.py` → import and usage both present
+**Verify**: `grep -n "admin_required" src/main_app/routes/public/views/owid_charts_routes.py` → import and usage both present
 
 ### Step 2: Add `user_login_required` to API template endpoints
 

@@ -54,7 +54,7 @@ The migration will touch several key layers across the application:
 | **Authentication Routes** | `src/main_app/routes/public/auth/routes.py` | Integrate `login_user()` and `logout_user()` from Flask-Login/Flask-Security into the OAuth callback and logout routes. |
 | **Middleware Hooks** | `src/main_app/routes/public/auth/utils.py` | Refactor/retire `load_logged_in_user()` and transition global variable lookups to use Flask-Security's `current_user`. |
 | **Decorators** | `src/main_app/routes/admin/decorators.py` | Deprecate `@admin_required` in favor of `@roles_required('admin')` or `@permissions_required('admin')`. |
-| **Blueprints & Routes** | `src/main_app/routes/admin/routes/` and others | Replace bespoke route protectors with Flask-Security decorators. |
+| **Blueprints & Routes** | `src/main_app/routes/admin/views/` and others | Replace bespoke route protectors with Flask-Security decorators. |
 | **Templates** | `src/templates/` | Modify templates checking `g._current_user` to check Flask-Security's `current_user`. |
 
 ---
@@ -378,8 +378,8 @@ def load_logged_in_user() -> None:
 Once the authentication contexts are unified, we can confidently replace bespoke decorators (`@admin_required`, `@oauth_required`, `@user_login_required`) with the built-in Flask-Security decorators, and change template references from `g._current_user` to the template context variable `current_user`.
 
 #### Files that need modification:
-- `src/main_app/routes/admin/routes/*.py`
-- `src/main_app/routes/public/routes/*.py`
+- `src/main_app/routes/admin/views/*.py`
+- `src/main_app/routes/public/views/*.py`
 - `src/templates/**/*.html`
 
 #### Expected code changes:
@@ -388,7 +388,7 @@ Once the authentication contexts are unified, we can confidently replace bespoke
 Refer to the **Decorator Mapping Table** and **Code Refactoring** section below for granular details. Here is an example refactor for `UsersRoutes`:
 
 ```python
-# src/main_app/routes/admin/routes/users.py (AFTER MIGRATION)
+# src/main_app/routes/admin/views/users.py (AFTER MIGRATION)
 from flask_security import auth_required, roles_required
 
 class UsersRoutes:

@@ -1,5 +1,5 @@
 """
-Integration tests for src/main_app/routes/public/routes/main/routes.py module.
+Integration tests for src/main_app/routes/public/views/main/routes.py module.
 """
 
 from __future__ import annotations
