@@ -1,7 +1,7 @@
 """Flask error handlers plus no-cache headers for form-related routes.
 
 Provides :class:`ErrorHandler` for credential-safe error logging and response
-generation, plus :func:`register_error_pages` and :func:`register_cache_headers`
+generation, plus :func:`register_error_handlers` and :func:`_register_cache_headers`
 for Flask app initialization.
 """
 
@@ -121,7 +121,7 @@ class ErrorHandler:
             picked,
             e,
         )
-        # Also persist to the database; the service never raises
+        # Also persist to the database (detailed row + daily counter); the service never raises
         ErrorLogService().log_request(
             status_code=getattr(e, "code", None) or 500,
             error=e,
@@ -147,7 +147,7 @@ class ErrorHandler:
         error: Exception | None = None,
     ) -> tuple[str | Response, int]:
         """Build the JSON or HTML error response."""
-        json_message = json_message or str(error) if error else None
+        json_message = json_message or (str(error) if error else None)
         if cls.wants_json():
             body = {"error": error_str}
             if json_message is not None:
@@ -162,7 +162,7 @@ class ErrorHandler:
         return render_template("error.html", title=title), status
 
 
-def register_cache_headers(app: Flask) -> None:
+def _register_cache_headers(app: Flask) -> None:
     """Prevent CSRF token caching on form-related routes."""
 
     @app.after_request
@@ -174,7 +174,7 @@ def register_cache_headers(app: Flask) -> None:
         return response
 
 
-def register_error_pages(app: Flask) -> None:
+def _register_error_pages(app: Flask) -> None:
     """Register Flask error handlers for common HTTP errors."""
 
     @app.errorhandler(400)
@@ -282,8 +282,13 @@ def register_error_pages(app: Flask) -> None:
         )
 
 
+def register_error_handlers(app: Flask) -> None:
+    """Register Flask error handlers for common HTTP errors."""
+    _register_error_pages(app)
+    _register_cache_headers(app)
+
+
 __all__ = [
     "ErrorHandler",
-    "register_error_pages",
-    "register_cache_headers",
+    "register_error_handlers",
 ]
