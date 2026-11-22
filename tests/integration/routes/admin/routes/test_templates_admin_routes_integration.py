@@ -5,7 +5,7 @@ from __future__ import annotations
 from unittest.mock import Mock
 
 import pytest
-from src.main_app.admin.routes import templates
+from src.main_app.routes.admin.routes import templates
 from src.main_app.database.services import TemplateService
 
 
@@ -17,9 +17,9 @@ def flash_redirect_mocks(monkeypatch: pytest.MonkeyPatch):
         "redirect": Mock(),
         "url_for": Mock(),
     }
-    monkeypatch.setattr("src.main_app.admin.routes.templates.flash", mocks["flash"])
-    monkeypatch.setattr("src.main_app.admin.routes.templates.redirect", mocks["redirect"])
-    monkeypatch.setattr("src.main_app.admin.routes.templates.url_for", mocks["url_for"])
+    monkeypatch.setattr("src.main_app.routes.admin.routes.templates.flash", mocks["flash"])
+    monkeypatch.setattr("src.main_app.routes.admin.routes.templates.redirect", mocks["redirect"])
+    monkeypatch.setattr("src.main_app.routes.admin.routes.templates.url_for", mocks["url_for"])
     return mocks
 
 

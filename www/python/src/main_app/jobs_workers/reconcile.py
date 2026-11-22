@@ -77,7 +77,7 @@ def reconcile() -> None:
     # Clean up finished Toolforge jobs
     tf = ToolforgeJobsService()
     try:
-        all_tf_jobs = tf.list_jobs().get("jobs", [])
+        all_tf_jobs = tf.list_jobs().jobs
     except Exception:
         logger.exception("Failed to list Toolforge jobs for cleanup")
         return
@@ -86,9 +86,9 @@ def reconcile() -> None:
     known_types = set(jobs_data_admins.keys())
 
     for tf_job in all_tf_jobs:
-        if tf_job.get("status", {}).get("short") not in ("succeeded", "failed"):
+        if tf_job.status.short not in ("succeeded", "failed"):
             continue
-        name = tf_job.get("name", "")
+        name = tf_job.name or ""
         # Extract job_id from name (format: <type-slug>-<id>)
         try:
             job_id = int(name.rsplit("-", 1)[-1])

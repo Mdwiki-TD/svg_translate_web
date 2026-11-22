@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from src.main_app.public.routes_utils import (
+from src.main_app.routes.public.routes_utils import (
     RequestContextHelper,
 )
 from src.main_app.services.auth.current_user import CurrentUser

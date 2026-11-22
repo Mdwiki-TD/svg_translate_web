@@ -440,7 +440,7 @@ class JobsService(CRUDService[JobRecord]):
         """Return all pending/running jobs, optionally filtered by backend."""
         query = self.session.query(JobRecord).filter(JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]))
         if backend:
-           query = query.filter(JobRecord.backend == backend)
+            query = query.filter(JobRecord.backend == backend)
         return query.all()
 
     def cleanup_stale_jobs_on_startup(self) -> int:

@@ -16,7 +16,7 @@ from flask import Flask
 from flask.testing import FlaskClient
 from src.main_app.config import get_settings
 from src.main_app.database.services import UsersService, UserTokenService
-from src.main_app.public.routes.auth_route import OAuthCallbackView  # noqa: F401
+from src.main_app.routes.public.routes.auth_route import OAuthCallbackView  # noqa: F401
 from src.main_app.services.auth import AuthFlowService
 from src.main_app.services.core.cookies import SignedTokenService
 from src.main_app.services.core.rate_limit import (

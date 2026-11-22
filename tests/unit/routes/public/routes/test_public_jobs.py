@@ -11,8 +11,8 @@ from flask import Blueprint, Flask
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.database.models import JobRecord
 from src.main_app.database.services import JobsService
-from src.main_app.public.shared_jobs_registrar import SharedJobRoutesRegistrar
-from src.main_app.public.shared_jobs_routes import SharedJobRoutes
+from src.main_app.routes.public.shared_jobs_registrar import SharedJobRoutesRegistrar
+from src.main_app.routes.public.shared_jobs_routes import SharedJobRoutes
 
 MOCK_URL = "/redirected"
 
@@ -44,20 +44,20 @@ def mock_deps(
     mock_job: MagicMock,
 ) -> MockJobRoutesDeps:
     deps = MockJobRoutesDeps()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.flash", deps.flash)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.redirect", deps.redirect)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.url_for", deps.url_for)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.render_template", deps.render_template)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.flash", deps.flash)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.redirect", deps.redirect)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.url_for", deps.url_for)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.render_template", deps.render_template)
     monkeypatch.setattr(
-        "src.main_app.public.shared_jobs_routes.CurrentUserResolver.get_current_user", deps.get_current_user
+        "src.main_app.routes.public.shared_jobs_routes.CurrentUserResolver.get_current_user", deps.get_current_user
     )
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.SharedJobRoutes.can_manage_job", deps.can_manage_job)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobCanceller.cancel", deps.cancel_job_worker)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.SharedJobRoutes.can_manage_job", deps.can_manage_job)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobCanceller.cancel", deps.cancel_job_worker)
     monkeypatch.setattr(
-        "src.main_app.public.shared_jobs_routes.RequestContextHelper.load_auth_payload", deps.load_auth_payload
+        "src.main_app.routes.public.shared_jobs_routes.RequestContextHelper.load_auth_payload", deps.load_auth_payload
     )
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobStarter.submit_form", deps.start_job)
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobFilesService.load_result", deps.load_job_result)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobStarter.submit_form", deps.start_job)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobFilesService.load_result", deps.load_job_result)
 
     deps.redirect.return_value = "redirected"
     deps.url_for.return_value = MOCK_URL
@@ -372,19 +372,19 @@ class TestJobsPublicRoutesRoutes(TestSetup):
         from flask import render_template as _real_render_template
         from flask import url_for as _real_url_for
 
-        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.render_template", _real_render_template)
-        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.redirect", _real_redirect)
-        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.url_for", _real_url_for)
+        monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.render_template", _real_render_template)
+        monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.redirect", _real_redirect)
+        monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.url_for", _real_url_for)
 
-        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobsService.get_job", mock_deps.get_job)
-        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobsService.list_jobs", mock_deps.list_jobs)
+        monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobsService.get_job", mock_deps.get_job)
+        monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobsService.list_jobs", mock_deps.list_jobs)
         monkeypatch.setattr(
-            "src.main_app.public.shared_jobs_routes.JobsService.delete_job_by_id_and_type",
+            "src.main_app.routes.public.shared_jobs_routes.JobsService.delete_job_by_id_and_type",
             mock_deps.delete_job_by_id_and_type,
         )
-        monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobsService.delete", mock_deps.delete_job)
+        monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobsService.delete", mock_deps.delete_job)
         monkeypatch.setattr(
-            "src.main_app.public.shared_jobs_routes.SettingsService.get_all_settings_ready",
+            "src.main_app.routes.public.shared_jobs_routes.SettingsService.get_all_settings_ready",
             mock_deps.get_all_settings_ready,
         )
 

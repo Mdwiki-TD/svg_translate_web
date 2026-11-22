@@ -17,7 +17,7 @@ pytestmark = [
 @pytest.fixture
 def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.flash", _mock)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.flash", _mock)
     return _mock
 
 
@@ -25,21 +25,21 @@ def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
 def mock_start_job_form(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
     _mock.submit_form = Mock()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobStarter", Mock(return_value=_mock))
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobStarter", Mock(return_value=_mock))
     return _mock.submit_form
 
 
 @pytest.fixture
 def mock_load_auth_payload(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.RequestContextHelper.load_auth_payload", _mock)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.RequestContextHelper.load_auth_payload", _mock)
     return _mock
 
 
 @pytest.fixture
 def mock_cancel_job_worker(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobCanceller", _mock)
+    monkeypatch.setattr("src.main_app.routes.public.shared_jobs_routes.JobCanceller", _mock)
     return _mock.return_value.cancel
 
 
@@ -717,7 +717,7 @@ class TestJobsRoutes(TestSetup):
             raise Exception("Database error")
 
         monkeypatch.setattr(
-            "src.main_app.public.shared_jobs_routes.JobsService.delete_job_by_id_and_type", mock_delete_job
+            "src.main_app.routes.public.shared_jobs_routes.JobsService.delete_job_by_id_and_type", mock_delete_job
         )
 
         response = admin_jobs_client.post(

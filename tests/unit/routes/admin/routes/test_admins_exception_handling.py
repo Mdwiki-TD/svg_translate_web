@@ -6,7 +6,7 @@ import logging
 from unittest.mock import Mock
 
 import pytest
-from src.main_app.admin.routes.admins import AddAdminView
+from src.main_app.routes.admin.routes.admins import AddAdminView
 
 
 class TestAddAdminExceptionHandling:
@@ -22,15 +22,15 @@ class TestAddAdminExceptionHandling:
         # Mock Flask globals to avoid "Working outside of request context" errors
         mock_req = Mock()
         mock_req.form.get.return_value = "test_user"
-        monkeypatch.setattr("src.main_app.admin.routes.admins.request", mock_req)
+        monkeypatch.setattr("src.main_app.routes.admin.routes.admins.request", mock_req)
 
         mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.admin.routes.admins.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.routes.admin.routes.admins.flash", mock_flash)
 
         mock_redirect = Mock()
-        monkeypatch.setattr("src.main_app.admin.routes.admins.redirect", mock_redirect)
+        monkeypatch.setattr("src.main_app.routes.admin.routes.admins.redirect", mock_redirect)
 
-        monkeypatch.setattr("src.main_app.admin.routes.admins.url_for", lambda x: f"/{x}")
+        monkeypatch.setattr("src.main_app.routes.admin.routes.admins.url_for", lambda x: f"/{x}")
 
         # Test with ValueError
         mock_add_admin.side_effect = ValueError("Username invalid")

@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 from flask import Flask
-from src.main_app.admin.routes.settings import (
+from src.main_app.routes.admin.routes.settings import (
     SettingsFuncs,
     _parse_setting_value,
 )
@@ -136,7 +136,7 @@ class TestSettingsRoutesRoutes(TestSetup):
     def test_update_success(self, mock_app: Flask, mock_client, monkeypatch):
         """POST /update with no failed keys should show success flash."""
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.SettingsFuncs.settings_update_form",
+            "src.main_app.routes.admin.routes.settings.SettingsFuncs.settings_update_form",
             lambda self, request_form: ([], []),
         )
 
@@ -146,7 +146,7 @@ class TestSettingsRoutesRoutes(TestSetup):
     def test_update_with_deleted_keys(self, mock_app: Flask, mock_client, monkeypatch):
         """POST /update with deleted keys should show both 'Deleted' and 'Settings updated'."""
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.SettingsFuncs.settings_update_form",
+            "src.main_app.routes.admin.routes.settings.SettingsFuncs.settings_update_form",
             lambda self, request_form: ([], ["key_a", "key_b"]),
         )
 
@@ -156,7 +156,7 @@ class TestSettingsRoutesRoutes(TestSetup):
     def test_update_with_failed_keys(self, mock_app: Flask, mock_client, monkeypatch):
         """POST /update with failed keys should show error flash."""
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.SettingsFuncs.settings_update_form",
+            "src.main_app.routes.admin.routes.settings.SettingsFuncs.settings_update_form",
             lambda self, request_form: (["bad_key"], []),
         )
 
@@ -224,7 +224,7 @@ class TestSettingsUpdateForm(TestSetup):
             return False
 
         monkeypatch.setattr(
-            "src.main_app.admin.routes.settings.SettingsService.update_setting",
+            "src.main_app.routes.admin.routes.settings.SettingsService.update_setting",
             fail_update,
         )
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 
 from flask import Blueprint
-from src.main_app.admin.routes import settings
+from src.main_app.routes.admin.routes import settings
 
 KEY_PATTERN = r"[a-z][a-z0-9_]{0,189}"
 

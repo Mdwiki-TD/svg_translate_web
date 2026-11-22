@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
-from src.main_app.admin.routes_services.toolforge_jobs_service import JobsPageService
+from src.main_app.routes.admin.routes_services.toolforge_jobs_service import JobsPageService
 from src.main_app.api_services.clients.toolforge.toolforge_jobs_api_service import (
     ToolforgeApiError,
     ToolforgeJobsService,

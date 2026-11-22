@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from flask import Blueprint, Flask
-from src.main_app.admin.routes.users import UsersRoutes
+from src.main_app.routes.admin.routes.users import UsersRoutes
 from src.main_app.database.services import UsersService
 
 
@@ -22,10 +22,10 @@ class MockUsersDeps:
 @pytest.fixture
 def mock_deps(monkeypatch: pytest.MonkeyPatch) -> MockUsersDeps:
     deps = MockUsersDeps()
-    monkeypatch.setattr("src.main_app.admin.routes.users.render_template", deps.render_template)
-    monkeypatch.setattr("src.main_app.admin.routes.users.flash", deps.flash)
-    monkeypatch.setattr("src.main_app.admin.routes.users.url_for", deps.url_for)
-    monkeypatch.setattr("src.main_app.admin.routes.users.redirect", deps.redirect)
+    monkeypatch.setattr("src.main_app.routes.admin.routes.users.render_template", deps.render_template)
+    monkeypatch.setattr("src.main_app.routes.admin.routes.users.flash", deps.flash)
+    monkeypatch.setattr("src.main_app.routes.admin.routes.users.url_for", deps.url_for)
+    monkeypatch.setattr("src.main_app.routes.admin.routes.users.redirect", deps.redirect)
 
     deps.render_template.return_value = "rendered"
     deps.url_for.return_value = "/admin_panel/users/"
