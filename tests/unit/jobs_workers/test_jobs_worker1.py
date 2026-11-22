@@ -45,15 +45,19 @@ def clean_cancel_events():
 
 @pytest.fixture
 def mock_jobs_worker_services(monkeypatch: pytest.MonkeyPatch):
-    """Mock create_job, Thread, and current_app for job worker tests."""
+    """Mock create_job, save_payload, Thread, and current_app for job worker tests."""
     mocks = {
         "create_job": MagicMock(),
+        "save_payload": MagicMock(),
         "Thread": MagicMock(),
         "current_app": MagicMock(),
     }
 
     monkeypatch.setattr(
         "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create_job"]
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.save_payload", mocks["save_payload"]
     )
     monkeypatch.setattr("src.main_app.jobs_workers.backends.thread_backend.threading.Thread", mocks["Thread"])
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.current_app", mocks["current_app"])

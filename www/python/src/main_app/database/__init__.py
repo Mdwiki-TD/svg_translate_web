@@ -4,7 +4,6 @@ from .db_base import (
     BaseModel,
     Model,
     db,
-    metadata,
 )
 from .db_builder import DatabaseBuilder
 from .exceptions import DatabaseInitError
@@ -15,5 +14,4 @@ __all__ = [
     "Model",
     "db",
     "BaseModel",
-    "metadata",
 ]

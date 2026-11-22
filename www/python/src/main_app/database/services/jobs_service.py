@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -63,6 +64,10 @@ class JobsService(CRUDService[JobRecord]):
 
     # Status of a job that holds the unique active slot for its job_type.
     RUNNING_STATUS = "running"
+
+    # Grace period (seconds) after which a terminal job that still holds the
+    # active slot is considered stale and its slot is released by recovery.
+    STALE_SLOT_GRACE_SECONDS = 300
 
     def __init__(self, session: Session | None = None) -> None:
         super().__init__(session=session or db.session)
@@ -193,7 +198,7 @@ class JobsService(CRUDService[JobRecord]):
                 .filter(
                     JobRecord.job_type == job_type,
                     JobRecord.status.in_([self.RUNNING_STATUS]),
-                    JobRecord.is_running == 1,
+                    JobRecord.is_running.is_(True),
                 )
                 .first()
             )
@@ -303,7 +308,7 @@ class JobsService(CRUDService[JobRecord]):
 
             query = query.filter(
                 JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]),
-                JobRecord.is_running == 1,
+                JobRecord.is_running.is_(True),
             )
             job = query.first()
 
@@ -353,6 +358,13 @@ class JobsService(CRUDService[JobRecord]):
         """
 
         status_lower = status.lower()
+
+        # Prevent overwriting a final status with a different one (race between cancel and completion)
+        current = (job.status or "").lower()
+        if current in self.FINAL_STATUSES and status_lower != current:
+            logger.info("Job %s is already %s; ignoring %s", job.id, current, status_lower)
+            return job
+
         job.status = status_lower
 
         if status_lower == self.RUNNING_STATUS and not job.started_at:
@@ -427,7 +439,8 @@ class JobsService(CRUDService[JobRecord]):
     def list_active(self, backend: str | None = None) -> list[JobRecord]:
         """Return all pending/running jobs, optionally filtered by backend."""
         query = self.session.query(JobRecord).filter(JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]))
-        # if backend: query = query.filter(JobRecord.backend == backend)
+        if backend:
+           query = query.filter(JobRecord.backend == backend)
         return query.all()
 
     def cleanup_stale_jobs_on_startup(self) -> int:
@@ -478,6 +491,16 @@ class JobsService(CRUDService[JobRecord]):
 
         logger.info("Cleaned up %d stale jobs on startup: %s", count, self.STALE_JOB_ERROR)
         return count
+
+    def save_payload(self, job_id: int, backend: str, payload: dict) -> None:
+        """Save the backend name and serialized payload for a job."""
+
+        job = self.get_by(id=job_id)
+        if job is None:
+            raise LookupError(f"Job {job_id} not found")
+        job.backend = backend
+        job.payload = json.dumps(payload, default=str)
+        self.commit_or_rollback()
 
 
 __all__ = [

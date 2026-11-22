@@ -61,7 +61,7 @@ def test_job_record_to_json() -> None:
         result_file="output.csv",
         created_at=dt,
         updated_at=dt,
-        is_running=1,
+        is_running=True,
     )
 
     result = rec.to_json()

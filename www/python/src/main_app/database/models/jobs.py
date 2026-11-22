@@ -57,7 +57,7 @@ class JobRecord(Model):
         Index("status_username", "status", "username"),
         # Optional: forbids 0 so the unique lock can't be broken by mistake
         CheckConstraint(
-            "is_running IS NULL OR is_running = 1",
+            "is_running IS NULL OR is_running = True",
             name="chk_jobs_is_running_null_or_one",
         ),
     )
@@ -95,6 +95,7 @@ class JobRecord(Model):
         server_default=func.current_timestamp(),
         server_onupdate=FetchedValue(),  # MySQL handles ON UPDATE CURRENT_TIMESTAMP
     )
+    payload: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 __all__ = [
