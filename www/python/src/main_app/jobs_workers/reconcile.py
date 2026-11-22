@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 
 from requests import HTTPError
 
-from ..api_services.clients.toolforge_jobs_api_service import ToolforgeJobsService
+from ..api_services.clients.toolforge import ToolforgeJobsService
 from ..config import get_settings
 from ..database.services import JobsService
 from .admin_jobs_workers.workers_list import jobs_data_admins
