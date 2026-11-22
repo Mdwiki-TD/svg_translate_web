@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import logging
+import sys
 
 import click
 from flask import Flask
 
 from .jobs_lifetime.jobs_starter import JobStarter
+from .run_job import run_job_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +40,30 @@ def register_cli_jobs(app: Flask) -> None:
             args={"update_all": update_all_str},
             app=app,
         )
+
+    @app.cli.command("run-job-id")
+    @click.argument("job_id", type=int)
+    def _run_job_id(job_id: int) -> None:
+        """Run a single job by its database ID.
+
+        Usage:
+            flask --app "$HOME/www/python/src/app.py" run-job-id 123
+
+        This is the entry point used by Toolforge one-off pods.
+        The job record must already exist in the database (created by the web UI).
+        """
+        sys.exit(run_job_by_id(job_id))
+
+    @app.cli.command("reconcile-jobs")
+    def _reconcile_jobs() -> None:
+        """Synchronize job DB state with Toolforge and clean up finished jobs.
+
+        Usage:
+            flask --app "$HOME/www/python/src/app.py" reconcile-jobs
+        """
+        from .reconcile import reconcile
+
+        reconcile()
 
 
 __all__ = [

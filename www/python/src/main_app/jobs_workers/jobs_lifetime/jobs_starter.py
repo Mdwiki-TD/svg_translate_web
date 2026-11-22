@@ -10,6 +10,7 @@ from flask import Flask, current_app
 from ...database.exceptions import DuplicateRecordError
 from ...database.services import JobsService, SettingsService
 from ..admin_jobs_workers.workers_list import jobs_data_admins
+from ..backends import get_backend, get_backend_name
 from ..backends.thread_backend import ThreadBackend
 from ..objects import JobData
 from ..public_jobs_workers.workers_list_public import jobs_data_public
@@ -105,20 +106,30 @@ class JobStarter:
             logger.exception("Failed to create job record for job type %s", job_type)
             raise
 
+        # Determine backend and dispatch
+        backend_name = get_backend_name(job_type)
+        svc = JobsService()
+
         # Save payload (no user/token data — identity is rebuilt from job.username)
         payload: dict[str, Any] = {
             "args": resolved_args,
             "form_data": form_data,
-            "user": auth_payload or {},
+            "user": {},
         }
 
-        backend = ThreadBackend()
+        if backend_name == "thread":
+            payload["user"] = auth_payload or {}
+
+        svc.save_payload(job.id, backend_name, payload)
+
+        backend = get_backend(backend_name)
         backend.start(job, job_data, payload)
 
         logger.info(
-            "Started background job job_type: %r, job created in DB with id: %r",
-            job.job_type,
+            "Started background job %s for %s (backend=%s)",
             job.id,
+            job.job_type,
+            backend_name,
         )
 
         return job.id

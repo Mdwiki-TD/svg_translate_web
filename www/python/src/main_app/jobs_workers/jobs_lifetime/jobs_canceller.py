@@ -64,6 +64,15 @@ class JobCanceller:
             logger.exception("Failed to cancel job %s in database.", job_id)
             db_cancelled = False
 
+        # 4. If backend is toolforge, also delete the pod
+        if job and getattr(job, "backend", "thread") == "toolforge":
+            try:
+                from ..backends.toolforge_backend import ToolforgeBackend
+
+                ToolforgeBackend().cancel(job)
+            except Exception:
+                logger.exception("Failed to cancel Toolforge job for %s", job_id)
+        #
         return local_cancelled or cancelled_file is not None or db_cancelled
 
 

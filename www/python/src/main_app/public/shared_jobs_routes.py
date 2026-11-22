@@ -477,6 +477,7 @@ class DrawResultFileView(BaseJobView):
         result_file = f"{job_type}_job_{file_number}.json"
 
         result_data = self.jobs_files_service.load_result(result_file)
+
         list_data = []
         if result_data:
             list_data = self._load_list(result_data, result_file, list_name)

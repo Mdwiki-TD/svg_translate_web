@@ -50,9 +50,9 @@ class OtherConfig:
 
     csrf_time_limit: int | None  # None means never expire
     user_agent: str
-    wiki_domain: str
     static_server: str
     tool_title: str
+    wiki_domain: str
 
     @property
     def full_wiki_domain(self) -> str:
@@ -79,9 +79,9 @@ class OtherConfig:
         return OtherConfig(
             csrf_time_limit=csrf_time_limit,
             user_agent=user_agent,
-            wiki_domain=wiki_domain,
             static_server=static_server,
             tool_title=tool_title,
+            wiki_domain=wiki_domain,
         )
 
 
@@ -92,6 +92,11 @@ class JobsConfig:
     jobs_max_workers: int
     jobs_log_lines: int
     priority_per_item: int | None = None
+    backend: str = "thread"  # 'thread' or 'toolforge'
+    toolforge_job_image: str = "python3.13"
+    toolforge_job_default_memory: str = "1Gi"
+    toolforge_job_default_cpu: str = "0.5"
+    toolforge_job_script: str = "~/shs/flask_cmd.sh"
 
     @classmethod
     def load(cls) -> JobsConfig:
@@ -103,10 +108,20 @@ class JobsConfig:
         if priority_per_item == 0:
             priority_per_item = None
 
+        backend = os.getenv("JOBS_BACKEND", "thread").strip().lower()
+        if backend not in ("thread", "toolforge"):
+            logger.warning("Unknown JOBS_BACKEND '%s', falling back to 'thread'", backend)
+            backend = "thread"
+
         _config = JobsConfig(
             jobs_max_workers=jobs_max_workers,
             jobs_log_lines=jobs_log_lines,
             priority_per_item=priority_per_item,
+            backend=backend,
+            toolforge_job_image=os.getenv("TOOLFORGE_JOB_IMAGE", "python3.13"),
+            toolforge_job_default_memory=os.getenv("TOOLFORGE_JOB_DEFAULT_MEMORY", "1Gi"),
+            toolforge_job_default_cpu=os.getenv("TOOLFORGE_JOB_DEFAULT_CPU", "0.5"),
+            toolforge_job_script=os.getenv("TOOLFORGE_JOB_SCRIPT", "~/shs/flask_cmd.sh"),
         )
 
         return _config

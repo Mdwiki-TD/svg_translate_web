@@ -5,12 +5,14 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from .cancel import DbCancelEvent
+
 
 @dataclass
 class JobsRunner:
     job_id: int
     user: dict[str, Any]
-    cancel_event: threading.Event | None = None
+    cancel_event: DbCancelEvent | threading.Event | None = None
     args: dict[str, Any] | None = None
     form_data: dict[str, Any] | None = None
     # Job type of the running job; used to advance its queue when it finishes.

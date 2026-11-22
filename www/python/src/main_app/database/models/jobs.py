@@ -95,6 +95,7 @@ class JobRecord(Model):
         server_default=func.current_timestamp(),
         server_onupdate=FetchedValue(),  # MySQL handles ON UPDATE CURRENT_TIMESTAMP
     )
+    payload: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 __all__ = [
