@@ -1,7 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
-from src.main_app.routes.admin.routes.templates import (
+from src.main_app.routes.admin.views.templates import (
     TemplatesRoutesFuncs,
 )
 from src.main_app.database.services import TemplateService
@@ -10,7 +10,7 @@ from src.main_app.database.services import TemplateService
 @pytest.fixture
 def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.routes.admin.routes.templates.flash", _mock)
+    monkeypatch.setattr("src.main_app.routes.admin.views.templates.flash", _mock)
     return _mock
 
 
@@ -18,7 +18,7 @@ def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
 def mock_redirect(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
     _mock.return_value = "redirected"
-    monkeypatch.setattr("src.main_app.routes.admin.routes.templates.redirect", _mock)
+    monkeypatch.setattr("src.main_app.routes.admin.views.templates.redirect", _mock)
     return _mock
 
 
@@ -26,7 +26,7 @@ def mock_redirect(monkeypatch: pytest.MonkeyPatch) -> Mock:
 def mock_url_for(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
     _mock.return_value = "/dash"
-    monkeypatch.setattr("src.main_app.routes.admin.routes.templates.url_for", _mock)
+    monkeypatch.setattr("src.main_app.routes.admin.views.templates.url_for", _mock)
     return _mock
 
 
@@ -34,7 +34,7 @@ def mock_url_for(monkeypatch: pytest.MonkeyPatch) -> Mock:
 def mock_render_template(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
     _mock.return_value = "rendered"
-    monkeypatch.setattr("src.main_app.routes.admin.routes.templates.render_template", _mock)
+    monkeypatch.setattr("src.main_app.routes.admin.views.templates.render_template", _mock)
     return _mock
 
 
@@ -92,7 +92,7 @@ def test_delete_template_success(mock_flash, mock_redirect, mock_url_for):
 
 def test_create_json_file_success(mock_app):
     """Test create_json_file returns JSON file with templates data."""
-    from src.main_app.routes.admin.routes.templates import create_json_file
+    from src.main_app.routes.admin.views.templates import create_json_file
 
     svc = TemplateService()
     svc.add_template_data(
@@ -115,7 +115,7 @@ def test_create_json_file_success(mock_app):
 
 def test_create_json_file_no_templates(mock_app):
     """Test create_json_file returns 404 when no templates."""
-    from src.main_app.routes.admin.routes.templates import create_json_file
+    from src.main_app.routes.admin.views.templates import create_json_file
 
     msg, status_code = create_json_file()
 

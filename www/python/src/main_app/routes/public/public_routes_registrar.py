@@ -9,7 +9,7 @@ from flask import Blueprint, Flask
 from ...jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
 from ..models import RouteModule
 from ...templates_markups import NavigationBar, main_nav_list
-from .routes import (
+from .views import (
     ApiRoutes,
     AuthView,
     ExplorerView,

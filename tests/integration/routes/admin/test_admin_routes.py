@@ -266,7 +266,7 @@ class TestAdminRoutes(TestSetup):
     def test_add_admin_empty_username_flash(self, mock_app, mock_client, monkeypatch):
         """Adding admin with empty username should flash error."""
         mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.routes.admin.routes.admins.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.routes.admin.views.admins.flash", mock_flash)
 
         self._login_admin(mock_app, mock_client)
         resp = mock_client.post(
@@ -280,7 +280,7 @@ class TestAdminRoutes(TestSetup):
     def test_add_duplicate_admin_flash(self, mock_app, mock_client, monkeypatch):
         """Adding a duplicate admin should flash warning."""
         mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.routes.admin.routes.admins.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.routes.admin.views.admins.flash", mock_flash)
 
         self._login_admin(mock_app, mock_client)
         mock_client.post(
@@ -370,7 +370,7 @@ class TestAdminRoutes(TestSetup):
     def test_delete_nonexistent_admin_flash(self, mock_app, mock_client, monkeypatch):
         """Deleting a non-existent admin should flash warning."""
         mock_flash = Mock()
-        monkeypatch.setattr("src.main_app.routes.admin.routes.admins.flash", mock_flash)
+        monkeypatch.setattr("src.main_app.routes.admin.views.admins.flash", mock_flash)
 
         self._login_admin(mock_app, mock_client)
         resp = mock_client.post(

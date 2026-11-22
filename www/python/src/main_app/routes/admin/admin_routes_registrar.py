@@ -15,15 +15,15 @@ from .flask_admin_panel import add_admin_dashboard
 from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
 from ..public.shared_jobs_registrar import SharedJobRoutesRegistrar
 from ..models import RouteModule
-from .routes.admins import AdminView
-from .routes.error_logs import CheckErrorLogsView
-from .routes.errors_route import CheckErrorsView
-from .routes.owid_charts import OwidChartsRoutes
-from .routes.settings import SettingsRoutes
-from .routes.slug_redirects import SlugRedirectsRoutes
-from .routes.templates import TemplatesRoutes
-from .routes.toolforge_jobs_view import ToolforgeJobsView
-from .routes.users import UsersRoutes
+from .views.admins import AdminView
+from .views.error_logs import CheckErrorLogsView
+from .views.errors_route import CheckErrorsView
+from .views.owid_charts import OwidChartsRoutes
+from .views.settings import SettingsRoutes
+from .views.slug_redirects import SlugRedirectsRoutes
+from .views.templates import TemplatesRoutes
+from .views.toolforge_jobs_view import ToolforgeJobsView
+from .views.users import UsersRoutes
 
 ADMIN_ROUTE_MODULES: list[RouteModule] = [
     RouteModule(route_cls=AdminView, name="admins", url_prefix="/admins"),
