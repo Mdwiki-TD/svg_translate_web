@@ -11,7 +11,6 @@ from flask import Blueprint, Flask
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.database.models import JobRecord
 from src.main_app.database.services import JobsService
-from src.main_app.jobs_workers.jobs_lifetime.jobs_queue import EnqueueResult
 from src.main_app.public.shared_jobs_registrar import SharedJobRoutesRegistrar
 from src.main_app.public.shared_jobs_routes import SharedJobRoutes
 
@@ -67,7 +66,7 @@ def mock_deps(
     deps.can_manage_job.return_value = True
     deps.cancel_job_worker.return_value = False
     deps.load_auth_payload.return_value = {"token": "abc"}
-    deps.start_job.return_value = EnqueueResult(job_id=42, queued=False)
+    deps.start_job.return_value = 42
 
     return deps
 
@@ -230,20 +229,6 @@ class TestDeleteJob(TestSetup):
 
 
 class TestStartJob(TestSetup):
-    def test_queued_job_reports_position(self, mock_deps: MockJobRoutesDeps) -> None:
-        mock_deps.start_job.return_value = EnqueueResult(job_id=43, queued=True, position=3)
-        result = self.service.start_job_handler("test_job", {})
-        assert result == 43
-        mock_deps.flash.assert_called_once_with(
-            "Your job has been added to the queue. Its current position is 3.", "info"
-        )
-
-    def test_queued_job_next_in_line(self, mock_deps: MockJobRoutesDeps) -> None:
-        mock_deps.start_job.return_value = EnqueueResult(job_id=44, queued=True, position=1)
-        result = self.service.start_job_handler("test_job", {})
-        assert result == 44
-        mock_deps.flash.assert_called_once_with("Job 44 is next in the queue for test_job.", "success")
-
     def test_not_logged_in(self, mock_deps: MockJobRoutesDeps) -> None:
         mock_deps.get_current_user.return_value = None
         result = self.service.start_job_handler("test_job", {})
@@ -294,7 +279,6 @@ class TestJobsList(TestSetup):
             jobs=[seeded_job],
             template_data=mock_template_data,
             form=None,
-            queue_positions={},
             bp_name="public_jobs",
         )
 
@@ -338,7 +322,6 @@ class TestJobDetail(TestSetup):
             job=seeded_job,
             result_data={"errors": {}, "summary": {}},
             template_data=mock_template_data,
-            queue_position=0,
             bp_name="public_jobs",
         )
 
@@ -358,7 +341,6 @@ class TestJobDetail(TestSetup):
             job=seeded_job_with_result,
             result_data={"key": "value", "errors": {}, "summary": {}},
             template_data=mock_template_data,
-            queue_position=0,
             bp_name="public_jobs",
         )
 

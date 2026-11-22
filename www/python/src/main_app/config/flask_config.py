@@ -63,9 +63,6 @@ class Config:
     SQLALCHEMY_ECHO: bool = False
     RATELIMIT_STORAGE_URI = "memory://"
 
-    # Dispatch queued jobs once during application startup (queue recovery).
-    JOBS_QUEUE_STARTUP_DISPATCH: bool = True
-
     def __init__(self) -> None:
         app_settings = get_settings()
         """Initialize configuration with values from environment-based settings."""
@@ -158,9 +155,6 @@ class TestingConfig(Config):
     # Use SQLite in-memory for tests (no MySQL dependency)
     SQLALCHEMY_DATABASE_URI: str = "sqlite:///:memory:"  # pyright: ignore[reportIncompatibleVariableOverride]
     SQLALCHEMY_ENGINE_OPTIONS: dict[str, Any] = {}  # SQLite doesn't need MySQL options
-
-    # Never spawn worker threads while building the app in tests
-    JOBS_QUEUE_STARTUP_DISPATCH: bool = False
 
 
 class ConfigLoader:

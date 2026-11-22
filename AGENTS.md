@@ -168,27 +168,6 @@ _works_files/            # Offline CLI tools (not part of Flask app)
 
 ## Background Jobs
 
-### Job Queue (FIFO)
-
-Jobs are submitted to a persistent database-backed queue instead of being
-rejected when another job of the same type is running.
-
-- `jobs_workers/jobs_lifetime/jobs_queue.py` — `JobsQueue` owns ordering,
-  atomic claiming, dispatching, pending cancellation, and recovery.
-- Queued job: `status='pending'`, `is_running=NULL` (holds no active slot).
-  Running job: `status='running'`, `is_running=1` (unique per `job_type` via
-  `idx_unique_active_job`).
-- Payloads (`args`, sanitized `form_data`, `username`) are persisted as
-  `{job_type}_job_{id}.payload.json`; **never** store OAuth tokens there —
-  identity is rebuilt at dispatch time via
-  `TokenManager.get_auth_payload_by_username()`.
-- The queue advances from `thread_backend._runner`'s `finally` hook, on app
-  startup (`init_db`), and via `flask dispatch-jobs` (periodic recovery).
-- Cancelling a *running* job keeps the active slot until the execution really
-  stopped, so the next queued job can never overlap it.
-
-See `docs/job-queue-implementation-notes.md` for the full lifecycle map.
-
 ### Adding a New Job
 
 1. Create `src/main_app/jobs_workers/<job_name>/worker.py` with a class extending `BaseJobWorker`

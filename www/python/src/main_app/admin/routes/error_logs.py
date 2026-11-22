@@ -16,9 +16,6 @@ logger = logging.getLogger(__name__)
 
 PER_PAGE = 50
 MAX_DAYS = 365
-OVERALL_LIMIT = 100  # rows in the all-time "top failing paths" table
-PERIOD_LIMIT = 25  # rows in the selected-period "top failing paths" table
-HISTORY_DEFAULT_DAYS = 90
 
 
 class ErrorLogsView(MethodView):
@@ -47,9 +44,8 @@ class ErrorLogsView(MethodView):
 
         service = ErrorLogService()
         pagination = service.search(**filters, page=page, per_page=PER_PAGE)
-
         summary = service.status_summary(filters["days"])
-        top_paths = service.top_paths(days=filters["days"], limit=PERIOD_LIMIT)
+        top_paths = service.top_paths(days=filters["days"], limit=10)
 
         # Active filters only, reused by the form and the pagination links
         link_args = {
@@ -77,7 +73,8 @@ class CheckErrorLogsView:
     @staticmethod
     def register(bp: Blueprint) -> None:
         """Register error logs URL rules on the provided blueprint."""
-        bp.add_url_rule("/", view_func=ErrorLogsView.as_view("error_logs"))
+        view = ErrorLogsView.as_view("error_logs")
+        bp.add_url_rule("/", view_func=view)
 
 
 __all__ = [

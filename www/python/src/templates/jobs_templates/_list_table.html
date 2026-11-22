@@ -1,4 +1,4 @@
-{% from "_macros.html" import status_icon, job_status %}
+{% from "_macros.html" import status_icon %}
 {% from "_macros/forms.html" import form_start_job %}
 {% from "jobs_templates/_help_templates/_jobs_actions.html" import jobs_actions %}
 
@@ -67,7 +67,7 @@
                         <td>{{ job.id }}</td>
                         <td>
                             {# {{ job.status }} #}
-                            {{ job_status(job.status, (queue_positions | default({})).get(job.id, 0)) }}
+                            {{ status_icon(job.status) }}
                         </td>
                         <td>{{ job.username if job.username else '-' }}</td>
                         <td>{{ job.created_at | format_long_date("-") }}</td>
