@@ -9,8 +9,8 @@ import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
-from .admin import AdminsRouteRegister
-from .public import PublicRouteRegister
+from ..admin import AdminsRouteRegister
+from ..public import PublicRouteRegister
 
 logger = logging.getLogger(__name__)
 
