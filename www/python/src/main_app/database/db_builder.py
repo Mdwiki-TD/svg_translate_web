@@ -41,6 +41,20 @@ class DatabaseBuilder:
             event.listen(engine, "connect", cls.receive_connect)
 
     @staticmethod
+    def recover_job_queue() -> None:
+        # Recover the job queue: release stale active slots and start eligible
+        # pending jobs that were persisted before the process restarted.
+        try:
+            from ..jobs_workers.jobs_lifetime.jobs_queue import JobsQueue
+
+            dispatched = JobsQueue().recover(force=True)
+            if dispatched:
+                logger.info("Startup queue recovery dispatched jobs: %s", dispatched)
+
+        except Exception:
+            logger.exception("Failed to recover the job queue on startup")
+
+    @staticmethod
     def cleanup_stale_jobs() -> None:
         # Clean up stale thread jobs left over from a previous run
         from .services import JobsService
@@ -73,6 +87,9 @@ class DatabaseBuilder:
 
         # Clean up stale thread jobs left over from a previous run
         cls.cleanup_stale_jobs()
+
+        if app.config.get("JOBS_QUEUE_STARTUP_DISPATCH", True):
+            cls.recover_job_queue()
 
     @classmethod
     def build(cls, _db: SQLAlchemy, app: Flask) -> bool:

@@ -39,6 +39,20 @@ def register_cli_jobs(app: Flask) -> None:
             app=app,
         )
 
+    @app.cli.command("dispatch-jobs")
+    def _dispatch_jobs() -> None:
+        """Recover the job queue: release stale slots and start pending jobs.
+
+        Intended for periodic execution (cron / toolforge-jobs schedule) so a
+        job persisted before a crash or restart is never left waiting forever:
+
+        flask --app "$HOME/www/python/src/app.py" dispatch-jobs
+        """
+        from .jobs_lifetime.jobs_queue import JobsQueue
+
+        dispatched = JobsQueue().recover(force=True)
+        click.echo(f"Dispatched {len(dispatched)} pending job(s): {dispatched}")
+
 
 __all__ = [
     "register_cli_jobs",

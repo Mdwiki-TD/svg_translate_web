@@ -10,16 +10,15 @@ from typing import Any
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 
-from .admin import AdminsRouteRegister
+from .cli import CliFactory
 from .config import Config, ConfigLoader, get_settings
 from .database import DatabaseBuilder
 from .database import db as _db
-from .error_pages import register_cache_headers, register_error_pages
+from .error_pages import register_error_handlers
 from .extensions import csrf_init_app, migrate
-from .jobs_workers.cli_jobs import register_cli_jobs
 from .logger_config import LoggingConfigurator
-from .public import PublicRouteRegister
 from .public.routes_utils import RequestContextHelper
+from .routes import RoutesFactory
 from .services.core import CookieHeaderClient, filters, init_rate_limiter
 
 logger = logging.getLogger(__name__)
@@ -59,7 +58,7 @@ class AppFactory:
 
         init_rate_limiter(app)
         if db_is_ok:
-            cls._register_routes(app)
+            RoutesFactory.register(app, _db)
         else:
             app.before_request(cls.db_error_fallback)
         return app
@@ -81,19 +80,11 @@ class AppFactory:
     def _init_extensions(app: Flask):
         # Initialize CSRF protection
         csrf_init_app(app)
+        register_error_handlers(app)
+        CliFactory.register(app)
 
         app.jinja_env.filters.update(filters)
-
-        app_settings = get_settings()
-        app_settings.ensure_directories()
-        register_error_pages(app)
-        register_cache_headers(app)
-
-    @staticmethod
-    def _register_routes(app: Flask) -> None:
-        PublicRouteRegister.register(app)
-        AdminsRouteRegister.register(app, _db)
-        register_cli_jobs(app)
+        get_settings().ensure_directories()
 
     @staticmethod
     def db_error_fallback():

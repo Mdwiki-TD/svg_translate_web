@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from .charts_and_templates_service import ChartAndTemplate, ChartsAndTemplatesService
 from .crud_service import CRUDService
+from .jobs_queue_service import QueueJobsService
 from .jobs_service import JobsService, JobStats, UserJobsStats
 from .owid_charts_service import OwidChartsService
 from .owid_slug_redirects_service import OwidSlugRedirectsService
@@ -22,6 +23,7 @@ __all__ = [
     "AdminService",
     "JobStats",
     "JobsService",
+    "QueueJobsService",
     "UserJobsStats",
     "OwidChartsService",
     "OwidSlugRedirectsService",
