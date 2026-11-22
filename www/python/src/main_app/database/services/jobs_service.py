@@ -64,10 +64,6 @@ class JobsService(CRUDService[JobRecord]):
     # Status of a job that holds the unique active slot for its job_type.
     RUNNING_STATUS = "running"
 
-    # Grace period (seconds) after which a terminal job that still holds the
-    # active slot is considered stale and its slot is released by recovery.
-    STALE_SLOT_GRACE_SECONDS = 300
-
     def __init__(self, session: Session | None = None) -> None:
         super().__init__(session=session or db.session)
 

@@ -49,6 +49,7 @@ class ThreadBackend(JobBackend):
             cancel_event=cancel_event,
             args=payload["args"],
             form_data=payload["form_data"],
+            job_type=job.job_type,
         )
 
         flask_app = current_app._get_current_object()  # type: ignore[attr-defined]
