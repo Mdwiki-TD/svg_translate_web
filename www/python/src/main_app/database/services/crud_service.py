@@ -310,6 +310,12 @@ class CRUDService[ModelT]:
             self.commit_or_rollback()
         except Exception as exc:
             logger.error("Error bulk creating %s: %s", self.model_name, exc)
+            # Rollback to clear any invalid transaction state so the session
+            # can recover on the next call.
+            try:
+                self.session.rollback()
+            except Exception:
+                pass
             raise
         return instances
 
@@ -352,6 +358,12 @@ class CRUDService[ModelT]:
                 self.commit_or_rollback()
         except Exception as exc:
             logger.error("Error bulk updating %s: %s", self.model_name, exc)
+            # Rollback to clear any invalid transaction state (e.g. after a
+            # lost connection) so the session can recover on the next call.
+            try:
+                self.session.rollback()
+            except Exception:
+                pass
             raise
 
         return len(rows)
