@@ -26,7 +26,7 @@ The project is reorganizing tests into three types:
 Every test file **must mirror** its `src/main_app/` counterpart path. Examples:
 
 -   `src/main_app/database/db_Jobs.py` → `tests/unit/main_app/database/test_db_Jobs.py`
--   `src/main_app/public/auth/routes.py` → `tests/integration/main_app/public/auth/test_routes.py`
+-   `src/main_app/routes/public/auth/routes.py` → `tests/integration/main_app/public/auth/test_routes.py`
 -   `src/main_app/services/jobs_service.py` → `tests/unit/main_app/services/test_jobs_service.py`
 
 ## Split File Naming Convention

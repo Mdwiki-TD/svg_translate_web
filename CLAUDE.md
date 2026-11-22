@@ -110,7 +110,7 @@ _works_files/                 # Offline CLI tools (not part of Flask app)
 
 ### Flask Application Factory
 
-The app uses the factory pattern via `AppFactory.create()` in `www/python/src/main_app/__init__.py`. Routes are organized as Flask blueprints under `www/python/src/main_app/public/`.
+The app uses the factory pattern via `AppFactory.create()` in `www/python/src/main_app/__init__.py`. Routes are organized as Flask blueprints under `www/python/src/main_app/routes/public/`.
 
 ### Task Pipeline (8 stages)
 

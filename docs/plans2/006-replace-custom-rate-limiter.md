@@ -6,7 +6,7 @@
 > report — do not improvise. When done, update the status row for this plan
 > in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 8bf215bc..HEAD -- src/main_app/public/auth/rate_limit.py src/main_app/public/auth/routes.py src/main_app/__init__.py`
+> **Drift check (run first)**: `git diff --stat 8bf215bc..HEAD -- src/main_app/routes/public/auth/rate_limit.py src/main_app/routes/public/auth/routes.py src/main_app/__init__.py`
 
 ## Status
 
@@ -35,11 +35,11 @@ Migrating to it fixes both issues and removes ~60 lines of custom code.
 
 ## Current state
 
-- `src/main_app/public/auth/rate_limit.py` — custom `RateLimiter` class (lines 1-58)
+- `src/main_app/routes/public/auth/rate_limit.py` — custom `RateLimiter` class (lines 1-58)
   - `login_rate_limiter = RateLimiter(limit=5, period=timedelta(minutes=1))`
   - `callback_rate_limiter = RateLimiter(limit=10, period=timedelta(minutes=1))`
 
-- `src/main_app/public/auth/routes.py` — uses the custom rate limiter
+- `src/main_app/routes/public/auth/routes.py` — uses the custom rate limiter
   - Line 42: `from .rate_limit import callback_rate_limiter, login_rate_limiter`
   - Lines 100-106: `login_rate_limiter.allow()` / `try_after()` in `login()`
   - Lines 131-134: `callback_rate_limiter.allow()` in `callback()`
@@ -62,8 +62,8 @@ See `src/main_app/extensions/_csrf.py` for the pattern.
 ## Scope
 
 **In scope**:
-- `src/main_app/public/auth/rate_limit.py` — replace custom class with flask-limiter wrapper
-- `src/main_app/public/auth/routes.py` — update to use flask-limiter decorators or programmatic API
+- `src/main_app/routes/public/auth/rate_limit.py` — replace custom class with flask-limiter wrapper
+- `src/main_app/routes/public/auth/routes.py` — update to use flask-limiter decorators or programmatic API
 - `src/main_app/extensions/__init__.py` — add limiter initialization
 - `src/main_app/extensions/_limiter.py` — new file for limiter extension
 - `src/main_app/__init__.py` — initialize limiter in app factory
@@ -119,7 +119,7 @@ In `src/main_app/__init__.py`, inside `create_app()`:
 
 ### Step 4: Replace custom rate limiter in `rate_limit.py`
 
-Replace the entire contents of `src/main_app/public/auth/rate_limit.py`:
+Replace the entire contents of `src/main_app/routes/public/auth/rate_limit.py`:
 
 ```python
 """Rate limiting for authentication endpoints using flask-limiter."""
@@ -139,11 +139,11 @@ __all__ = [
 ]
 ```
 
-**Verify**: `grep -n "class RateLimiter" src/main_app/public/auth/rate_limit.py` → no matches
+**Verify**: `grep -n "class RateLimiter" src/main_app/routes/public/auth/rate_limit.py` → no matches
 
 ### Step 5: Update auth routes to use flask-limiter
 
-In `src/main_app/public/auth/routes.py`:
+In `src/main_app/routes/public/auth/routes.py`:
 
 1. Replace the import:
    - Remove: `from .rate_limit import callback_rate_limiter, login_rate_limiter`
@@ -200,7 +200,7 @@ except Exception:
 4. Remove the `_client_key()` function if it's no longer needed for rate limiting
    (check if it's used in log messages — it is, so keep it).
 
-**Verify**: `grep -n "login_rate_limiter\|callback_rate_limiter" src/main_app/public/auth/routes.py` → no matches
+**Verify**: `grep -n "login_rate_limiter\|callback_rate_limiter" src/main_app/routes/public/auth/routes.py` → no matches
 
 ### Step 6: Run the test suite
 

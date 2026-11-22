@@ -1,5 +1,5 @@
 """
-Unit tests for src/main_app/public/routes_utils.py module.
+Unit tests for src/main_app/routes/public/routes_utils.py module.
 """
 
 from __future__ import annotations

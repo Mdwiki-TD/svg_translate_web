@@ -57,9 +57,9 @@ This is backward-compatible — all existing public callers continue to work unc
 
 **Note:** The admin route `draw_result_file` already exists at:
 
--   `src/main_app/admin/routes/jobs.py` line 42:
+-   `src/main_app/routes/admin/routes/jobs.py` line 42:
     `("/<string:job_type>/file/<int:file_number>/<string:list_name>", "GET", self.draw_result_file)`
--   It inherits the implementation from `src/main_app/public/shared_jobs_routes.py` (class `JobsBp`).
+-   It inherits the implementation from `src/main_app/routes/public/shared_jobs_routes.py` (class `JobsBp`).
 
 ---
 

@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/public/public_jobs.py module."""
+"""Unit tests for src/main_app/routes/public/public_jobs.py module."""
 
 from __future__ import annotations
 

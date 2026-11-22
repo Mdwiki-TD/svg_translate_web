@@ -51,10 +51,10 @@ The migration will touch several key layers across the application:
 | **Configuration** | `src/main_app/config/` | Add Flask-Security configuration variables (e.g., `SECURITY_PASSWORD_REQUIRED = False`). |
 | **Extensions** | `src/main_app/extensions/` | Instantiate the `Security` extension and register it with the app factory. |
 | **Database Models** | `src/main_app/database/models/users.py` | Update `UserRecord` to inherit from `UserMixin` and add `fs_uniquifier`. Convert `AdminUserRecord` or create a new `Role` table matching Flask-Security expectations. |
-| **Authentication Routes** | `src/main_app/public/auth/routes.py` | Integrate `login_user()` and `logout_user()` from Flask-Login/Flask-Security into the OAuth callback and logout routes. |
-| **Middleware Hooks** | `src/main_app/public/auth/utils.py` | Refactor/retire `load_logged_in_user()` and transition global variable lookups to use Flask-Security's `current_user`. |
-| **Decorators** | `src/main_app/admin/decorators.py` | Deprecate `@admin_required` in favor of `@roles_required('admin')` or `@permissions_required('admin')`. |
-| **Blueprints & Routes** | `src/main_app/admin/routes/` and others | Replace bespoke route protectors with Flask-Security decorators. |
+| **Authentication Routes** | `src/main_app/routes/public/auth/routes.py` | Integrate `login_user()` and `logout_user()` from Flask-Login/Flask-Security into the OAuth callback and logout routes. |
+| **Middleware Hooks** | `src/main_app/routes/public/auth/utils.py` | Refactor/retire `load_logged_in_user()` and transition global variable lookups to use Flask-Security's `current_user`. |
+| **Decorators** | `src/main_app/routes/admin/decorators.py` | Deprecate `@admin_required` in favor of `@roles_required('admin')` or `@permissions_required('admin')`. |
+| **Blueprints & Routes** | `src/main_app/routes/admin/routes/` and others | Replace bespoke route protectors with Flask-Security decorators. |
 | **Templates** | `src/templates/` | Modify templates checking `g._current_user` to check Flask-Security's `current_user`. |
 
 ---
@@ -288,8 +288,8 @@ def create_app(config_class: Type) -> Flask:
 To prevent breaking existing sessions and to ensure both the legacy `g._current_user` system and Flask-Security's session manager function correctly during transition, we bridge them inside the OAuth authentication endpoints.
 
 #### Files that need modification:
-- `src/main_app/public/auth/routes.py`
-- `src/main_app/public/auth/utils.py`
+- `src/main_app/routes/public/auth/routes.py`
+- `src/main_app/routes/public/auth/utils.py`
 
 #### Expected code changes:
 
@@ -297,7 +297,7 @@ To prevent breaking existing sessions and to ensure both the legacy `g._current_
 During a successful OAuth login, we programmatically call Flask-Security's `login_user()` helper. This guarantees that Flask-Login sets session variables (`user_id`, `remember`) under the hood, while preserving our traditional custom session and cookies.
 
 ```python
-# src/main_app/public/auth/routes.py
+# src/main_app/routes/public/auth/routes.py
 from flask_security import login_user, logout_user
 
 # Inside callback():
@@ -336,7 +336,7 @@ from flask_security import login_user, logout_user
 We can modify `load_logged_in_user()` to automatically populate Flask-Security context if only the legacy session exists, or vice versa, ensuring dual state alignment.
 
 ```python
-# src/main_app/public/auth/utils.py
+# src/main_app/routes/public/auth/utils.py
 from flask_security import login_user, current_user
 
 
@@ -378,8 +378,8 @@ def load_logged_in_user() -> None:
 Once the authentication contexts are unified, we can confidently replace bespoke decorators (`@admin_required`, `@oauth_required`, `@user_login_required`) with the built-in Flask-Security decorators, and change template references from `g._current_user` to the template context variable `current_user`.
 
 #### Files that need modification:
-- `src/main_app/admin/routes/*.py`
-- `src/main_app/public/routes/*.py`
+- `src/main_app/routes/admin/routes/*.py`
+- `src/main_app/routes/public/routes/*.py`
 - `src/templates/**/*.html`
 
 #### Expected code changes:
@@ -388,7 +388,7 @@ Once the authentication contexts are unified, we can confidently replace bespoke
 Refer to the **Decorator Mapping Table** and **Code Refactoring** section below for granular details. Here is an example refactor for `UsersRoutes`:
 
 ```python
-# src/main_app/admin/routes/users.py (AFTER MIGRATION)
+# src/main_app/routes/admin/routes/users.py (AFTER MIGRATION)
 from flask_security import auth_required, roles_required
 
 class UsersRoutes:
@@ -441,8 +441,8 @@ Modify checks in templates.
 With all routes migrated, we remove the legacy session/cookie recovery mechanisms, deprecate unused files, and lock down security options to minimize attack surface area.
 
 #### Files that need modification:
-- `src/main_app/admin/decorators.py` (Delete/deprecate)
-- `src/main_app/public/auth/utils.py` (Delete legacy logic)
+- `src/main_app/routes/admin/decorators.py` (Delete/deprecate)
+- `src/main_app/routes/public/auth/utils.py` (Delete legacy logic)
 - `src/main_app/services/auth/current_user.py` (Remove `CurrentUser` dataclass)
 
 #### Cleaned-up code details:
@@ -575,7 +575,7 @@ Should any phase encounter critical errors in production, follow these steps to 
 - **CSRF Synchronization:** Align Flask-WTF CSRF configurations with Flask-Security's inner CSRF validators.
 - **Service Layer Separation:** Keep business logic decoupled from `current_user` objects. Pass simple values (`username`, `user_id`) to background workers rather than full ORM models.
 - **Role/Permission Caching:** For large-scale data sets, use Redis to cache Flask-Security role lookup queries to keep latency low.
-- **Remove Orphaned Code:** Once fully migrated, delete unused modules (`src/main_app/admin/decorators.py` and old custom cookies utility files).
+- **Remove Orphaned Code:** Once fully migrated, delete unused modules (`src/main_app/routes/admin/decorators.py` and old custom cookies utility files).
 
 ---
 *Migration Plan approved for implementation.*

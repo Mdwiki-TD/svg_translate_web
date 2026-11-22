@@ -1,4 +1,4 @@
-"""Tests for src/main_app/admin/routes/settings.py.
+"""Tests for src/main_app/routes/admin/routes/settings.py.
 
 Uses the full app factory (TestingConfig) with a real SQLite database.
 Only the ``admin_required`` auth decorator is bypassed.

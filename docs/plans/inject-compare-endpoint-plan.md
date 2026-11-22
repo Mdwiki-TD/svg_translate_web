@@ -22,7 +22,7 @@ Target file ──extract──> target_translations_before
 
 ## Files to Create
 
-### 1. `src/main_app/public/routes/inject_routes.py`
+### 1. `src/main_app/routes/public/routes/inject_routes.py`
 
 Module-level helper + `InjectRoutes` class (same pattern as `extract_routes.py`).
 
@@ -140,7 +140,7 @@ Reuses existing macros: `card_header`, `commons_file_link`, `render_extract_deta
 
 ## Files to Modify
 
-### 4. `src/main_app/public/routes/__init__.py`
+### 4. `src/main_app/routes/public/routes/__init__.py`
 
 Add import:
 
@@ -150,7 +150,7 @@ from .inject_routes import InjectRoutes
 
 Add to `__all__`.
 
-### 5. `src/main_app/public/__init__.py`
+### 5. `src/main_app/routes/public/__init__.py`
 
 Add import:
 
