@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class RoutesFactory:
-
     @classmethod
     def register(cls, app: Flask, _db: SQLAlchemy) -> None:
         PublicRouteRegister.register(app)

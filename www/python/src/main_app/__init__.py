@@ -10,7 +10,6 @@ from typing import Any
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 
-from .routes import RoutesFactory
 from .cli import CliFactory
 from .config import Config, ConfigLoader, get_settings
 from .database import DatabaseBuilder
@@ -19,6 +18,7 @@ from .error_pages import register_error_handlers
 from .extensions import csrf_init_app, migrate
 from .logger_config import LoggingConfigurator
 from .public.routes_utils import RequestContextHelper
+from .routes import RoutesFactory
 from .services.core import CookieHeaderClient, filters, init_rate_limiter
 
 logger = logging.getLogger(__name__)
