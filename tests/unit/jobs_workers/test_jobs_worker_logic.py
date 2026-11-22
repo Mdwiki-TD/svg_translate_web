@@ -7,13 +7,13 @@ from unittest.mock import MagicMock
 
 import pytest
 from flask import Flask
+from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.jobs_workers.backends.thread_backend import _runner
 from src.main_app.jobs_workers.jobs_lifetime.cancel_registry import (
     pop_cancel_event,
     register_cancel_event,
 )
 from src.main_app.jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
-from src.main_app.jobs_workers.jobs_lifetime.jobs_queue import EnqueueResult
 from src.main_app.jobs_workers.jobs_lifetime.jobs_starter import (
     JobStarter,
     _load_job_args,
@@ -31,14 +31,11 @@ def flask_app():
 def mock_db_services(monkeypatch: pytest.MonkeyPatch):
     mocks = {
         "create": MagicMock(),
-        "enqueue": MagicMock(),
         "cancel_db": MagicMock(),
         "settings": MagicMock(),
         "cancel_file": MagicMock(),
     }
     monkeypatch.setattr("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create"])
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsQueue.enqueue", mocks["enqueue"])
-    mocks["enqueue"].return_value = EnqueueResult(job_id=123, queued=False)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.cancel_job_db", mocks["cancel_db"]
     )
@@ -131,14 +128,12 @@ def mock_jobs_data_admins(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 class TestStartJob:
     def test_start_job_success(self, mock_db_services, mock_jobs_data_admins, flask_app):
         mock_jobs_data_admins.__getitem__.return_value = MagicMock(job_class=lambda *args, **kwargs: None, job_args=[])
-        mock_db_services["enqueue"].return_value = EnqueueResult(job_id=123, queued=False)
+        mock_db_services["create"].return_value = MagicMock(id=123)
         user = {"username": "testuser"}
 
         with flask_app.app_context():
             job_id = JobStarter().start(user, "test")
             assert job_id == 123
-
-        mock_db_services["enqueue"].assert_called_once_with("test", "testuser", args={}, form_data=None)
 
     def test_start_job_unknown_type(self):
         with pytest.raises(ValueError, match="Unknown job type"):
@@ -149,28 +144,16 @@ class TestStartJob:
         with pytest.raises(ValueError, match="User authentication data is required"):
             JobStarter().start({}, "test")
 
-    def test_start_job_while_same_type_running_is_queued(self, mock_db_services, mock_jobs_data_admins, flask_app):
-        """A second job of the same type is accepted and queued, not rejected."""
+    def test_start_job_duplicate(self, mock_db_services, mock_jobs_data_admins, flask_app):
         mock_jobs_data_admins.__getitem__.return_value = MagicMock(job_class=lambda *args, **kwargs: None, job_args=[])
-        mock_db_services["enqueue"].return_value = EnqueueResult(job_id=7, queued=True, position=2)
-
+        mock_db_services["create"].side_effect = DuplicateRecordError()
         with flask_app.app_context():
-            job_id = JobStarter().start({"username": "u"}, "test")
-
-        assert job_id == 7
-
-    def test_start_job_sanitizes_csrf_token(self, mock_db_services, mock_jobs_data_admins, flask_app):
-        mock_jobs_data_admins.__getitem__.return_value = MagicMock(job_class=lambda *args, **kwargs: None, job_args=[])
-        mock_db_services["enqueue"].return_value = EnqueueResult(job_id=9, queued=False)
-
-        with flask_app.app_context():
-            JobStarter().start({"username": "u"}, "test", args={"csrf_token": "x", "keep": "1"})
-
-        assert mock_db_services["enqueue"].call_args.kwargs["args"] == {"keep": "1"}
+            with pytest.raises(DuplicateRecordError):
+                JobStarter().start({"username": "u"}, "test")
 
     def test_start_job_cli_success(self, mock_db_services, mock_jobs_data_admins, flask_app):
         mock_jobs_data_admins.__getitem__.return_value = MagicMock(job_class=lambda *args, **kwargs: None, job_args=[])
-        mock_db_services["enqueue"].return_value = EnqueueResult(job_id=456, queued=False)
+        mock_db_services["create"].return_value = MagicMock(id=456)
         user = {"username": "testuser"}
 
         job_id = JobStarter().start_cli(user, "test", app=flask_app)

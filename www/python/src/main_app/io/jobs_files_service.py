@@ -86,54 +86,6 @@ class JobFilesService:
 
         return data
 
-    @staticmethod
-    def payload_file_name(job_id: int, job_type: str) -> str:
-        """Return the durable payload file name of a queued job."""
-        return f"{job_type}_job_{job_id}.payload.json"
-
-    def save_payload(self, job_id: int, job_type: str, payload: dict[str, Any]) -> Path:
-        """Persist the execution payload of a queued job.
-
-        A queued job may wait for a long time and can be dispatched by another
-        process, so its payload must survive web restarts. Only non-sensitive
-        data belongs here (args, sanitized form_data, username); never OAuth
-        tokens or secrets.
-
-        Args:
-            job_id: The job record id.
-            job_type: The job type, used to build the file name.
-            payload: JSON serializable execution data.
-
-        Returns:
-            The path of the written payload file.
-        """
-        filename = self.payload_file_name(job_id, job_type)
-        return self.save_result(filename, payload)
-
-    def load_payload(self, job_id: int, job_type: str) -> dict[str, Any] | None:
-        """Load the persisted execution payload of a job, or None if missing."""
-        filename = self.payload_file_name(job_id, job_type)
-        data = self._load_result(filename)
-        return data if isinstance(data, dict) else None
-
-    def delete_payload(self, job_id: int, job_type: str) -> bool:
-        """Remove the persisted payload file of a job.
-
-        Args:
-            job_id: The job record id.
-            job_type: The job type, used to build the file name.
-
-        Returns:
-            True when a payload file was removed.
-        """
-        filepath = self.jobs_dir / self.payload_file_name(job_id, job_type)
-        try:
-            filepath.unlink(missing_ok=True)
-            return True
-        except OSError:
-            logger.exception("Error deleting job payload file %s", filepath)
-            return False
-
     def create_cancel_file(self, filename: str) -> Path | None:
         """Create a cancellation marker file."""
         filepath = self.jobs_dir / filename

@@ -8,7 +8,6 @@ from unittest.mock import Mock
 
 import pytest
 from src.main_app.database.services import JobsService
-from src.main_app.jobs_workers.jobs_lifetime.jobs_queue import EnqueueResult
 
 pytestmark = [
     pytest.mark.integration,
@@ -25,7 +24,7 @@ def mock_flash(monkeypatch: pytest.MonkeyPatch) -> Mock:
 @pytest.fixture
 def mock_start_job_form(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    _mock.submit_form = Mock(return_value=EnqueueResult(job_id=1, queued=False))
+    _mock.submit_form = Mock()
     monkeypatch.setattr("src.main_app.public.shared_jobs_routes.JobStarter", Mock(return_value=_mock))
     return _mock.submit_form
 
@@ -102,7 +101,7 @@ class TestJobsRoutes(TestSetup):
         # Mock the auth payload and job creation
         mock_load_auth_payload.return_value = {"username": "admin"}
         # Mock the job creation
-        mock_start_job_form.return_value = EnqueueResult(job_id=1, queued=False)
+        mock_start_job_form.return_value = 1
 
         response = admin_jobs_client.post("/admin_panel/jobs/collect_templates_data/start")
         assert response.status_code == 302
@@ -227,7 +226,7 @@ class TestJobsRoutes(TestSetup):
 
         # Mock the auth payload and job creation
         mock_load_auth_payload.return_value = {"username": "admin"}
-        mock_start_job_form.return_value = EnqueueResult(job_id=1, queued=False)
+        mock_start_job_form.return_value = 1
 
         response = admin_jobs_client.post("/admin_panel/jobs/fix_nested_main_files/start")
         assert response.status_code == 302
@@ -565,7 +564,7 @@ class TestJobsRoutes(TestSetup):
 
         # Mock the auth payload and job creation
         mock_load_auth_payload.return_value = {"username": "admin"}
-        mock_start_job_form.return_value = EnqueueResult(job_id=1, queued=False)
+        mock_start_job_form.return_value = 1
 
         response = admin_jobs_client.post("/admin_panel/jobs/download_main_files/start")
         assert response.status_code == 302

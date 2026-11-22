@@ -17,23 +17,6 @@ from .base import JobBackend
 logger = logging.getLogger(__name__)
 
 
-def _dispatch_next_job(job_id: int, job_type: str) -> None:
-    """Advance the queue of ``job_type`` after a job reached a terminal state.
-
-    Runs inside the finished job's thread, so the active slot is already
-    released and the next queued job can be claimed safely.
-    """
-    if not job_type:
-        return
-
-    try:
-        from ..jobs_lifetime.jobs_queue import JobsQueue
-
-        JobsQueue().on_job_finished(job_id, job_type)
-    except Exception:  # pragma: no cover - defensive guard
-        logger.exception("Failed to dispatch the next queued job after job %s", job_id)
-
-
 def _runner(
     runner_data: JobsRunner,
     target_class: Callable[[JobsRunner]],
@@ -46,7 +29,6 @@ def _runner(
             worker.run()
         finally:
             pop_cancel_event(runner_data.job_id)
-            _dispatch_next_job(runner_data.job_id, runner_data.job_type)
 
 
 class ThreadBackend(JobBackend):

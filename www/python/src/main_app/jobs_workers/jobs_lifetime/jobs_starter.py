@@ -7,11 +7,12 @@ from typing import Any
 
 from flask import Flask, current_app
 
+from ...database.exceptions import DuplicateRecordError
 from ...database.services import JobsService, SettingsService
 from ..admin_jobs_workers.workers_list import jobs_data_admins
+from ..backends.thread_backend import ThreadBackend
 from ..objects import JobData
 from ..public_jobs_workers.workers_list_public import jobs_data_public
-from .jobs_queue import EnqueueResult, JobsQueue
 
 logger = logging.getLogger(__name__)
 
@@ -45,39 +46,23 @@ def _sanitize_args(args: dict[str, Any]) -> dict[str, Any]:
 
 
 class JobStarter:
-    """Validates job requests and submits them to the job queue.
-
-    A submission is always accepted: when another job of the same type holds
-    the active slot the new job waits in the FIFO queue and is dispatched as
-    soon as the slot is free.
-    """
+    """Manages starting background jobs."""
 
     def __init__(
         self,
         jobs_service: JobsService | None = None,
-        backend_cls: type | None = None,
-        jobs_queue: JobsQueue | None = None,
+        backend_cls: type[ThreadBackend] | None = None,
     ) -> None:
         """Initialize with optional dependencies.
 
         Args:
             jobs_service: Jobs service instance. Falls back to default if None.
-            backend_cls: Backend class used by the queue. Falls back to
-                ThreadBackend when None.
-            jobs_queue: Queue used to enqueue and dispatch jobs.
+            backend_cls: Backend class to use. Falls back to ThreadBackend if None.
         """
         self.jobs_service = jobs_service or JobsService()
-        self._backend_cls = backend_cls
-        self._jobs_queue = jobs_queue
+        self._backend_cls = backend_cls or ThreadBackend
 
-    @property
-    def jobs_queue(self) -> JobsQueue:
-        if self._jobs_queue is None:
-            backend = self._backend_cls() if self._backend_cls else None
-            self._jobs_queue = JobsQueue(jobs_service=self.jobs_service, backend=backend)
-        return self._jobs_queue
-
-    def _submit_impl(
+    def _start_impl(
         self,
         auth_payload: dict[str, Any] | None,
         job_type: str,
@@ -86,20 +71,7 @@ class JobStarter:
         *,
         daemon: bool = False,
         flask_app: Flask | None = None,
-    ) -> EnqueueResult:
-        """Validate the request, persist a pending job, and dispatch when possible.
-
-        Args:
-            auth_payload: Authenticated user data; only the username is stored.
-            job_type: Registered job type.
-            args: Caller supplied arguments.
-            form_data: Submitted form data.
-            daemon: Kept for backward compatibility; the backend decides.
-            flask_app: Kept for backward compatibility; unused here.
-
-        Returns:
-            The queue outcome (job id, queued flag, queue position).
-        """
+    ) -> int:
         job_data: JobData | None = load_job_data(job_type)
         job_class = job_data.job_class if job_data else None
 
@@ -117,22 +89,39 @@ class JobStarter:
         # Remove sensitive keys before storing
         resolved_args = _sanitize_args(resolved_args)
 
-        result = self.jobs_queue.enqueue(
-            job_type,
-            username,
-            args=resolved_args,
-            form_data=form_data,
-        )
+        jobs_svc = JobsService()
+
+        try:
+            # Create job record
+            job = jobs_svc.create_job(job_type, username)
+        except DuplicateRecordError:
+            logger.warning(
+                "Attempted to start duplicate job of type '%s' by user '%s'",
+                job_type,
+                username,
+            )
+            raise
+        except Exception:
+            logger.exception("Failed to create job record for job type %s", job_type)
+            raise
+
+        # Save payload (no user/token data — identity is rebuilt from job.username)
+        payload: dict[str, Any] = {
+            "args": resolved_args,
+            "form_data": form_data,
+            "user": auth_payload or {},
+        }
+
+        backend = ThreadBackend()
+        backend.start(job, job_data, payload)
 
         logger.info(
-            "Submitted background job job_type: %r, job id: %r, queued: %r, position: %r",
-            job_type,
-            result.job_id,
-            result.queued,
-            result.position,
+            "Started background job job_type: %r, job created in DB with id: %r",
+            job.job_type,
+            job.id,
         )
 
-        return result
+        return job.id
 
     def submit_form(
         self,
@@ -140,9 +129,9 @@ class JobStarter:
         job_type: str,
         args: dict[str, Any] | None = None,
         form_data: dict[str, Any] | None = None,
-    ) -> EnqueueResult:
-        """Submit a job with form data; returns the queue outcome."""
-        return self._submit_impl(
+    ) -> int:
+        """Start a background job as a daemon thread with form data."""
+        return self._start_impl(
             auth_payload,
             job_type,
             args,
@@ -151,39 +140,20 @@ class JobStarter:
             flask_app=current_app._get_current_object(),  # type: ignore[attr-defined]
         )
 
-    def submit(
-        self,
-        auth_payload: dict[str, Any] | None,
-        job_type: str,
-        args: dict[str, Any] | None = None,
-    ) -> EnqueueResult:
-        """Submit a job; returns the queue outcome."""
-        return self._submit_impl(
-            auth_payload,
-            job_type,
-            args,
-            daemon=True,
-            flask_app=current_app._get_current_object(),  # type: ignore[attr-defined]
-        )
-
-    def start_form(
-        self,
-        auth_payload: dict[str, Any] | None,
-        job_type: str,
-        args: dict[str, Any] | None = None,
-        form_data: dict[str, Any] | None = None,
-    ) -> int:
-        """Start a background job with form data. Returns the job ID."""
-        return self.submit_form(auth_payload, job_type, args, form_data).job_id
-
     def start(
         self,
         auth_payload: dict[str, Any] | None,
         job_type: str,
         args: dict[str, Any] | None = None,
     ) -> int:
-        """Start a background job. Returns the job ID."""
-        return self.submit(auth_payload, job_type, args).job_id
+        """Start a background job as a daemon thread."""
+        return self._start_impl(
+            auth_payload,
+            job_type,
+            args,
+            daemon=True,
+            flask_app=current_app._get_current_object(),  # type: ignore[attr-defined]
+        )
 
     def start_cli(
         self,
@@ -194,15 +164,14 @@ class JobStarter:
     ) -> int:
         """Start a background job from CLI. Returns the job ID."""
         flask_app = app or current_app._get_current_object()  # type: ignore[attr-defined]
-        return self._submit_impl(
+        return self._start_impl(
             auth_payload,
             job_type,
             args,
             flask_app=flask_app,
-        ).job_id
+        )
 
 
 __all__ = [
     "JobStarter",
-    "EnqueueResult",
 ]

@@ -209,15 +209,11 @@ class JobsService(CRUDService[JobRecord]):
         set_is_running: bool = True,
     ) -> JobRecord:
         """
-        Create a new job record that immediately reserves the active slot.
+        Create a new job record.
 
         Query to match:
             INSERT INTO jobs (job_type, status, username) VALUES (%s, %s, %s)
             (job_type, "pending", username),
-
-        Note:
-            Queue-aware callers should use :meth:`enqueue_job` instead, which
-            leaves ``is_running`` NULL so the job waits for its turn.
 
         Raises:
             DuplicateRecordError: If a job of the same type is already running.
@@ -288,10 +284,9 @@ class JobsService(CRUDService[JobRecord]):
         self,
         job_id: int,
         job_type: str | None = None,
-        release_slot: bool | None = None,
     ) -> bool:
         """
-        Mark a pending or running job as cancelled.
+        Mark a job as cancelled.
             query = "UPDATE jobs SET status = 'cancelled', completed_at = NOW() WHERE id = %s AND status IN ('pending', 'running')"
             params = [job_id]
             if job_type:
@@ -300,15 +295,6 @@ class JobsService(CRUDService[JobRecord]):
 
             rowcount = self.db.execute_query_safe(query, tuple(params))
             return rowcount > 0
-
-        Args:
-            job_id: Target job.
-            job_type: Optional extra filter.
-            release_slot: Force releasing the unique active slot. When None
-                (default) the slot is only released for jobs that do not hold
-                it, so a running job keeps the slot until its execution really
-                stopped. This prevents the next queued job from overlapping a
-                cancellation that is still in flight.
         """
         try:
             query = self.session.query(JobRecord).filter(JobRecord.id == job_id)
@@ -316,30 +302,20 @@ class JobsService(CRUDService[JobRecord]):
                 query = query.filter(JobRecord.job_type == job_type)
 
             query = query.filter(
-                JobRecord.status.in_(
-                    [self.PENDING_STATUS, self.RUNNING_STATUS],
-                )
+                JobRecord.status.in_([self.PENDING_STATUS, self.RUNNING_STATUS]),
+                JobRecord.is_running == 1,
             )
             job = query.first()
 
             if not job:
                 return False
 
-            holds_slot = job.is_running == 1
-            was_running = (job.status or "").lower() == self.RUNNING_STATUS
             job.status = "cancelled"
 
             if job.completed_at is None:
                 job.completed_at = datetime.now(UTC)
 
-            if release_slot is None:
-                # A job that is really executing keeps the unique active slot
-                # until its worker reached a terminal state, so the next queued
-                # job can never overlap the cancellation still in flight.
-                release_slot = not (holds_slot and was_running)
-
-            if release_slot:
-                job.is_running = None
+            job.is_running = None
 
             self.session.commit()
             self.session.refresh(job)
