@@ -103,6 +103,7 @@ def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
     with application.app_context():
         yield application
 
+
 @pytest.fixture
 def test_client(mock_app: Flask) -> FlaskClient:
     """Create a test client for the app.
