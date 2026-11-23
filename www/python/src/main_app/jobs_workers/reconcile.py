@@ -7,8 +7,9 @@ from datetime import UTC, datetime, timedelta
 
 from requests import HTTPError
 
-from ..api_services.clients.toolforge import ToolforgeJobsService
+from ..api_services.clients.toolforge import ToolForgeJob, ToolforgeJobsService
 from ..config import get_settings
+from ..database.models import JobRecord
 from ..database.services import JobsService
 from .admin_jobs_workers.workers_list import jobs_data_admins
 from .backends.toolforge_backend import tf_job_name
@@ -23,42 +24,59 @@ def get_live_status(job) -> dict | None:
     tf = ToolforgeJobsService()
     name = tf_job_name(job.job_type, job.id)
     try:
-        tf_job = tf.show_job(name)["job"]
+        tf_job = tf.show_job(name).job
     except HTTPError as exc:
         if exc.response is not None and exc.response.status_code == 404:
             return None
         raise
-    status = tf_job.get("status", {})
-    return {
-        "short": status.get("short", "unknown"),
-        "duration": status.get("duration"),
-        "messages": status.get("messages", []),
-        "detail": tf_job.get("status_long"),
-    }
+
+    if not tf_job:
+        raise Exception(f"Toolforge job {name} does not exist")
+
+    return tf_job.live_status()
 
 
 def running_jobs():
     """Return active DB rows paired with their live Toolforge state."""
     tf = ToolforgeJobsService()
-    live = {j["name"]: j for j in tf.list_jobs().get("jobs", [])}
+
+    try:
+        jobs = tf.list_jobs().jobs or []
+    except Exception:
+        logger.exception("Failed to list Toolforge jobs for cleanup")
+        return []
+
+    live = {j.name: j for j in jobs}
     rows = JobsService().list_active(backend="toolforge")
-    return [(row, live.get(tf_job_name(row.job_type, row.id))) for row in rows]
+
+    result: list[tuple[JobRecord, ToolForgeJob | None]] = []
+
+    for row in rows:
+        name = tf_job_name(row.job_type, row.id)
+        result.append((row, live.get(name)))
+
+    return result
 
 
 def sync_job(job) -> None:
     """Synchronize a single DB row with its Toolforge state."""
     svc = JobsService()
     live = get_live_status(job)
+
     if live is None:
         created = job.created_at
         if created and created.tzinfo is None:
             created = created.replace(tzinfo=UTC)
+
         if created and datetime.now(UTC) - created > GRACE:
             svc.mark_failed(job, "job is missing in Toolforge")
+
     elif live["short"] == "failed":
         svc.mark_failed(job, "; ".join(live["messages"]))
+
     elif live["short"] == "succeeded" and job.status in ("pending", "running"):
         svc.mark_as_completed(job)
+
     elif live["short"] == "running" and job.status == "pending":
         svc.update_job_status(job.id, "running", job_type=job.job_type)
 
@@ -77,7 +95,7 @@ def reconcile() -> None:
     # Clean up finished Toolforge jobs
     tf = ToolforgeJobsService()
     try:
-        all_tf_jobs = tf.list_jobs().jobs
+        all_tf_jobs = tf.list_jobs().jobs or []
     except Exception:
         logger.exception("Failed to list Toolforge jobs for cleanup")
         return

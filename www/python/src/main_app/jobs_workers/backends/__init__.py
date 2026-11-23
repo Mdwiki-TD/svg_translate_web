@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from .base import JobBackend
-from .registry import get_backend, get_backend_name
+from .registry import BackendRegistry
+from .thread_backend import ThreadBackend
+from .toolforge_backend import ToolforgeBackend
 
 __all__ = [
+    "BackendRegistry",
     "JobBackend",
-    "get_backend",
-    "get_backend_name",
+    "ThreadBackend",
+    "ToolforgeBackend",
 ]

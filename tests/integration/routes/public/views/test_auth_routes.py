@@ -15,15 +15,15 @@ import pytest
 from flask import Flask
 from flask.testing import FlaskClient
 from src.main_app.config import get_settings
-from src.main_app.database.services import UsersService, UserTokenService
-from src.main_app.routes.public.views.auth_route import OAuthCallbackView  # noqa: F401
-from src.main_app.services.auth import AuthFlowService
 from src.main_app.core.cookies import SignedTokenService
 from src.main_app.core.rate_limit import (
     CALLBACK_LIMIT_STRATEGY,
     LOGIN_LIMIT_STRATEGY,
     limiter,
 )
+from src.main_app.database.services import UsersService, UserTokenService
+from src.main_app.routes.public.views.auth_route import OAuthCallbackView  # noqa: F401
+from src.main_app.services.auth import AuthFlowService
 
 
 def _hits_allowed(limit: str) -> int:
