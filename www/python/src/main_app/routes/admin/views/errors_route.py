@@ -119,27 +119,22 @@ class ErrorDashboardView(MethodView):
 
     def get(self, file_name: str | None = None) -> str:
         """Render the log viewer for the selected file, page, and optional search query."""
-        selected_file = file_name or request.args.get("log_file", DEFAULT_LOG_FILE)
         query = request.args.get("q", "").strip()
         per_page = _int_arg("per_page", DEFAULT_PER_PAGE, 1, max(PER_PAGE_CHOICES))
-
-        logger.info("Read file: %s (q=%r)", selected_file, query)
 
         logs_dir = get_log_dir()
         files = self._list_log_files(logs_dir)
 
-        if selected_file not in files:
-            flash(f"File {selected_file} not found")
-            selected_file = DEFAULT_LOG_FILE
-            logger.info("Changed file to: %s", selected_file)
+        selected_file = self.get_selected_log_file(file_name, files, logs_dir)
+        logger.info("Read file: %s (q=%r)", selected_file, query)
 
-        log_path = logs_dir / selected_file
+        log_path = logs_dir / selected_file if selected_file else None
         rows: list[tuple[int, Markup]] = []
         total = 0
         capped = False
         page = 1
 
-        if log_path.is_file():
+        if log_path and log_path.is_file():
             try:
                 pattern = re.compile(f"({re.escape(query)})", re.IGNORECASE) if query else None
 
@@ -174,8 +169,21 @@ class ErrorDashboardView(MethodView):
             total_pages=total_pages,
             capped=capped,
             max_matches=MAX_SEARCH_MATCHES,
-            file_exists=log_path.is_file(),
+            file_exists=log_path and log_path.is_file(),
         )
+
+    def get_selected_log_file(self, file_name: str | None, files: list[str], logs_dir: Path) -> str | None:
+        selected_file = file_name or request.args.get("log_file")
+
+        if selected_file and selected_file not in files:
+            flash(f"File {selected_file} not found")
+            selected_file = None
+
+        if not selected_file and files:
+            _default_log_path = logs_dir / DEFAULT_LOG_FILE
+            selected_file = DEFAULT_LOG_FILE if _default_log_path.is_file() else files[0]
+
+        return selected_file
 
 
 class CheckErrorsView:

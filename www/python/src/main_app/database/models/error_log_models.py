@@ -1,11 +1,15 @@
 """
 SQLAlchemy ORM models
+
+Two tables:
+- error_logs:       detailed, one row per failed request (kept ~7 days, purged weekly)
+- error_log_daily:  one row per (day, status_code, path), only counters (kept long-term)
 """
 
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import (
     BigInteger,
@@ -14,6 +18,7 @@ from sqlalchemy import (
     SmallInteger,
     String,
     Text,
+    UniqueConstraint,
     func,
     text,
 )
@@ -106,6 +111,51 @@ class ErrorLogRecord(Model):
         return cls(**data)
 
 
+class ErrorLogDaily(Model):
+    """
+    Long-term counters: one row per (day, status_code, path).
+
+    The path is stored WITHOUT the query string, so /x.php?a=1 and /x.php?a=2
+    share one row. `path_hash` (md5 of the path) is what the unique key uses,
+    because a unique index over a 500-char utf8mb4 column is too long.
+
+    CREATE TABLE IF NOT EXISTS error_log_daily (
+        id bigint unsigned NOT NULL AUTO_INCREMENT,
+        day date NOT NULL,
+        status_code smallint NOT NULL,
+        path varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL,
+        path_hash char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+        hits int NOT NULL DEFAULT 0,
+        bot_hits int NOT NULL DEFAULT 0,
+        last_seen datetime NOT NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY uq_day_status_path (day, status_code, path_hash),
+        KEY idx_daily_path_day (path_hash, day)
+    ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """
+
+    __tablename__ = "error_log_daily"
+    __table_args__ = (
+        UniqueConstraint("day", "status_code", "path_hash", name="uq_day_status_path"),
+        Index("idx_daily_path_day", "path_hash", "day"),
+        {"mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_unicode_ci"},
+    )
+
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(mysql.BIGINT(unsigned=True), "mysql").with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
+    day: Mapped[date]
+    status_code: Mapped[int] = mapped_column(SmallInteger)
+    path: Mapped[str] = mapped_column(String(500))
+    path_hash: Mapped[str] = mapped_column(String(32))
+    hits: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    bot_hits: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    last_seen: Mapped[datetime]
+
+
 __all__ = [
+    "ErrorLogDaily",
     "ErrorLogRecord",
 ]

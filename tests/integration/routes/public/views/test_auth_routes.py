@@ -56,7 +56,7 @@ def enable_rate_limit(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.usefixtures("mock_app")
 class TestLogin:
     def test_login_success_flow(
-        self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+        self, mock_app: Flask, test_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Login should redirect to MediaWiki and store state + request token in session."""
 
@@ -74,14 +74,14 @@ class TestLogin:
 
         monkeypatch.setattr("src.main_app.services.auth.flow.OAuthService.create_authorization_url", DummyStart())
 
-        response = mock_client.get("/login")
+        response = test_client.get("/login")
 
         assert response.status_code == 302
         assert response.headers["Location"] == "https://auth.example"
 
         app_settings = get_settings()
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             # Real session key from app_settings (oauth_state_nonce)
             assert sess[app_settings.sessions.state_key] == "nonce"
             # Real session key from app_settings (state = request_token_key)
@@ -89,7 +89,7 @@ class TestLogin:
 
     @pytest.mark.usefixtures("enable_rate_limit")
     def test_login_rate_limited(
-        self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+        self, mock_app: Flask, test_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Requests over the login limit should redirect home without reaching the view."""
         calls: list[int] = []
@@ -107,12 +107,12 @@ class TestLogin:
 
         allowed = _hits_allowed(LOGIN_LIMIT_STRATEGY)
         for _ in range(allowed):
-            response = mock_client.get("/login")
+            response = test_client.get("/login")
             assert response.status_code == 302
             assert "boom" in response.headers["Location"]
 
         # One request over the limit: throttled before the view runs
-        response = mock_client.get("/login")
+        response = test_client.get("/login")
 
         assert response.status_code == 429
         headers = dict(response.headers)
@@ -132,7 +132,7 @@ class TestLogin:
 
 @pytest.mark.usefixtures("mock_app")
 class TestCallback:
-    def test_callback_success(self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_callback_success(self, mock_app: Flask, test_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
         """Callback should complete OAuth, persist user to DB, set session and cookie."""
 
         # Mock only the external OAuth completion — returns an access token
@@ -161,13 +161,13 @@ class TestCallback:
         app_settings = get_settings()
 
         # Seed session with state nonce + request token (real session keys)
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess[app_settings.sessions.state_key] = state_nonce
             sess[app_settings.sessions.request_token_key] = "k"
             sess[app_settings.sessions.request_secret_key] = "s"
 
         # The state query param must be the signed token (MediaWiki echoes it back)
-        response = mock_client.get(f"/callback?state={quote(signed_state)}&oauth_verifier=code")
+        response = test_client.get(f"/callback?state={quote(signed_state)}&oauth_verifier=code")
         cookie_header = response.headers.get("Set-Cookie", "")
 
         assert response.status_code == 302
@@ -181,13 +181,13 @@ class TestCallback:
             token = UserTokenService().get_record_by_id(user.user_id)
             assert token is not None
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             assert sess["uid"] == user.user_id
             assert sess["username"] == "Tester"
 
     @pytest.mark.usefixtures("enable_rate_limit")
     def test_callback_rate_limited(
-        self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+        self, mock_app: Flask, test_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Requests over the callback limit should redirect with an error without reaching the view."""
         calls: list[int] = []
@@ -201,12 +201,12 @@ class TestCallback:
 
         allowed = _hits_allowed(CALLBACK_LIMIT_STRATEGY)
         for _ in range(allowed):
-            response = mock_client.get("/callback?state=token&oauth_verifier=code")
+            response = test_client.get("/callback?state=token&oauth_verifier=code")
             assert response.status_code == 302
             assert "error=" not in response.headers["Location"]
 
         # One request over the limit: throttled before the view runs
-        response = mock_client.get("/callback?state=token&oauth_verifier=code")
+        response = test_client.get("/callback?state=token&oauth_verifier=code")
 
         assert response.status_code == 429
         assert len(calls) == allowed
@@ -218,11 +218,11 @@ class TestCallback:
         assert "X-RateLimit-Reset" in headers
 
     def test_callback_missing_state(
-        self, mock_app: Flask, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+        self, mock_app: Flask, test_client: FlaskClient, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Callback should fail when state is missing."""
 
-        response = mock_client.get("/callback")
+        response = test_client.get("/callback")
         assert response.status_code == 302
 
 
@@ -233,7 +233,7 @@ class TestCallback:
 
 @pytest.mark.usefixtures("mock_app")
 class TestLogout:
-    def test_logout_clears_session(self, mock_app: Flask, mock_client: FlaskClient) -> None:
+    def test_logout_clears_session(self, mock_app: Flask, test_client: FlaskClient) -> None:
         """Logout should delete the user token from DB and clear the session."""
         # Seed a real user + token in the DB
         with mock_app.app_context():
@@ -246,11 +246,11 @@ class TestLogout:
             )
             user_id = user.user_id
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess["uid"] = user_id
             sess["username"] = "LogoutUser"
 
-        response = mock_client.get("/logout")
+        response = test_client.get("/logout")
 
         assert response.status_code == 302
         assert response.headers["Location"].endswith("/")
@@ -260,5 +260,5 @@ class TestLogout:
             token = UserTokenService().get_record_by_id(user_id)
             assert token is None
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             assert "uid" not in sess

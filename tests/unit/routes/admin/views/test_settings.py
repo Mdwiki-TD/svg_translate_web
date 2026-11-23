@@ -51,20 +51,20 @@ class TestSettingsRoutesRoutes(TestSetup):
 
     # ── dashboard (GET /) ────────────────────────────────────────────────
 
-    def test_dashboard_returns_settings(self, mock_app: Flask, mock_client):
+    def test_dashboard_returns_settings(self, mock_app: Flask, test_client):
         """Dashboard should render with settings from the real DB."""
         with mock_app.app_context():
             self.service.create_setting("foo", "Foo", "boolean", "true")
             self.service.create_setting("bar", "Bar", "integer", "42")
 
-        resp = mock_client.get("/admin_panel/settings/")
+        resp = test_client.get("/admin_panel/settings/")
         assert resp.status_code == 200
 
     # ── create (POST /create) ────────────────────────────────────────────
 
-    def test_create_valid_key(self, mock_app: Flask, mock_client):
+    def test_create_valid_key(self, mock_app: Flask, test_client):
         """POST /create with valid key, title, and value_type should persist the setting."""
-        resp = mock_client.post(
+        resp = test_client.post(
             "/admin_panel/settings/create",
             data={"key": "my_setting", "title": "My Setting", "value_type": "boolean"},
         )
@@ -76,9 +76,9 @@ class TestSettingsRoutesRoutes(TestSetup):
             assert record.title == "My Setting"
             assert record.value_type == "boolean"
 
-    def test_create_empty_key_shows_error(self, mock_app: Flask, mock_client):
+    def test_create_empty_key_shows_error(self, mock_app: Flask, test_client):
         """POST /create with an empty key should not create a setting."""
-        resp = mock_client.post(
+        resp = test_client.post(
             "/admin_panel/settings/create",
             data={"key": "", "title": "My Setting"},
         )
@@ -87,9 +87,9 @@ class TestSettingsRoutesRoutes(TestSetup):
         with mock_app.app_context():
             assert self.service.get_setting_by_key("") is None
 
-    def test_create_invalid_key_starts_with_number(self, mock_app: Flask, mock_client):
+    def test_create_invalid_key_starts_with_number(self, mock_app: Flask, test_client):
         """POST /create with a key starting with a number should fail validation."""
-        resp = mock_client.post(
+        resp = test_client.post(
             "/admin_panel/settings/create",
             data={"key": "1nvalid", "title": "Invalid"},
         )
@@ -98,9 +98,9 @@ class TestSettingsRoutesRoutes(TestSetup):
         with mock_app.app_context():
             assert self.service.get_setting_by_key("1nvalid") is None
 
-    def test_create_invalid_key_uppercase(self, mock_app: Flask, mock_client):
+    def test_create_invalid_key_uppercase(self, mock_app: Flask, test_client):
         """POST /create with uppercase letters in key should fail validation."""
-        resp = mock_client.post(
+        resp = test_client.post(
             "/admin_panel/settings/create",
             data={"key": "MY_SETTING", "title": "My Setting"},
         )
@@ -109,20 +109,20 @@ class TestSettingsRoutesRoutes(TestSetup):
         with mock_app.app_context():
             assert self.service.get_setting_by_key("MY_SETTING") is None
 
-    def test_create_key_already_exists(self, mock_app: Flask, mock_client):
+    def test_create_key_already_exists(self, mock_app: Flask, test_client):
         """POST /create when setting already exists should flash error and redirect."""
         with mock_app.app_context():
             self.service.create_setting("existing", "Existing", "boolean")
 
-        resp = mock_client.post(
+        resp = test_client.post(
             "/admin_panel/settings/create",
             data={"key": "existing", "title": "Existing", "value_type": "boolean"},
         )
         assert resp.status_code == 302
 
-    def test_create_missing_title(self, mock_app: Flask, mock_client):
+    def test_create_missing_title(self, mock_app: Flask, test_client):
         """POST /create with key but no title should show 'Key and Title are required'."""
-        resp = mock_client.post(
+        resp = test_client.post(
             "/admin_panel/settings/create",
             data={"key": "valid_key", "title": ""},
         )
@@ -133,34 +133,34 @@ class TestSettingsRoutesRoutes(TestSetup):
 
     # ── update (POST /update) ────────────────────────────────────────────
 
-    def test_update_success(self, mock_app: Flask, mock_client, monkeypatch):
+    def test_update_success(self, mock_app: Flask, test_client, monkeypatch):
         """POST /update with no failed keys should show success flash."""
         monkeypatch.setattr(
             "src.main_app.routes.admin.views.settings.SettingsFuncs.settings_update_form",
             lambda self, request_form: ([], []),
         )
 
-        resp = mock_client.post("/admin_panel/settings/update", data={})
+        resp = test_client.post("/admin_panel/settings/update", data={})
         assert resp.status_code == 302
 
-    def test_update_with_deleted_keys(self, mock_app: Flask, mock_client, monkeypatch):
+    def test_update_with_deleted_keys(self, mock_app: Flask, test_client, monkeypatch):
         """POST /update with deleted keys should show both 'Deleted' and 'Settings updated'."""
         monkeypatch.setattr(
             "src.main_app.routes.admin.views.settings.SettingsFuncs.settings_update_form",
             lambda self, request_form: ([], ["key_a", "key_b"]),
         )
 
-        resp = mock_client.post("/admin_panel/settings/update", data={})
+        resp = test_client.post("/admin_panel/settings/update", data={})
         assert resp.status_code == 302
 
-    def test_update_with_failed_keys(self, mock_app: Flask, mock_client, monkeypatch):
+    def test_update_with_failed_keys(self, mock_app: Flask, test_client, monkeypatch):
         """POST /update with failed keys should show error flash."""
         monkeypatch.setattr(
             "src.main_app.routes.admin.views.settings.SettingsFuncs.settings_update_form",
             lambda self, request_form: (["bad_key"], []),
         )
 
-        resp = mock_client.post("/admin_panel/settings/update", data={})
+        resp = test_client.post("/admin_panel/settings/update", data={})
         assert resp.status_code == 302
 
 
