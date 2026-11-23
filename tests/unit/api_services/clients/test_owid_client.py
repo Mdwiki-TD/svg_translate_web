@@ -2,166 +2,157 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 import requests
-from src.main_app.api_services.clients.owid_client import (
-    _build_session,
-    _thread_local,
-    fetch_grapher_metadata_raw,
-    fetch_indicators_metadata,
-)
+from src.main_app.api_services.clients.owid_client import OwidClient
 
 
-class TestBuildSession:
-    """Tests for _build_session function."""
+@dataclass
+class _FakeResponse:
+    """Minimal HTTP response double for OwidClient tests."""
 
-    @pytest.fixture(autouse=True)
-    def _clean_thread_local(self):
-        """Remove any cached session before and after each test."""
-        if hasattr(_thread_local, "session"):
-            del _thread_local.session
-        yield
-        if hasattr(_thread_local, "session"):
-            del _thread_local.session
+    status_code: int | None
+    payload: dict[str, Any] | None = None
+    json_error: Exception | None = None
 
-    def _mock_settings(self, monkeypatch, user_agent: str = "TestBot/1.0"):
-        """Replace owid_client.settings with a mock to avoid frozen dataclass."""
-        mock_settings = MagicMock()
-        mock_settings.other.user_agent = user_agent
+    def json(self) -> dict[str, Any]:
+        if self.json_error is not None:
+            raise self.json_error
+        return self.payload or {}
+
+
+class _FakeHttpClient:
+    """Minimal HTTP client double exposing `.get(url, timeout=...)`."""
+
+    def __init__(
+        self,
+        response: _FakeResponse | None = None,
+        error: Exception | None = None,
+    ) -> None:
+        self._response = response
+        self._error = error
+        self.calls: list[tuple[str, float]] = []
+
+    def get(self, url: str, timeout: float = 15) -> _FakeResponse:
+        self.calls.append((url, timeout))
+        if self._error is not None:
+            raise self._error
+        assert self._response is not None
+        return self._response
+
+
+@pytest.fixture
+def make_client():
+    """Factory fixture creating an OwidClient wired to a fake HTTP client."""
+
+    def _factory(
+        response: _FakeResponse | None = None,
+        error: Exception | None = None,
+        timeout: float = 15,
+    ) -> tuple[OwidClient, _FakeHttpClient]:
+        fake_http = _FakeHttpClient(response=response, error=error)
+        client = OwidClient(http_client=fake_http, timeout=timeout)
+        return client, fake_http
+
+    return _factory
+
+
+class TestOwidClientInit:
+    """Tests for OwidClient initialization."""
+
+    def test_uses_injected_http_client(self, make_client):
+        """Test that a custom http_client instance is stored directly."""
+        client, fake_http = make_client(response=_FakeResponse(status_code=200))
+        assert client.http_client is fake_http
+
+    def test_creates_default_http_client_when_none_provided(self, monkeypatch):
+        """Test that a default HttpClient(use_session=True) is created when omitted."""
+        mock_http_cls = MagicMock()
         monkeypatch.setattr(
-            "src.main_app.api_services.clients.owid_client.get_settings",
-            MagicMock(return_value=mock_settings),
+            "src.main_app.api_services.clients.owid_client.HttpClient",
+            mock_http_cls,
         )
 
-    def test_creates_session_on_first_call(self, monkeypatch):
-        """Test that a requests Session is created on first call to _build_session."""
-        self._mock_settings(monkeypatch)
-        session = _build_session()
-        assert isinstance(session, requests.Session)
+        client = OwidClient()
 
-    def test_reuses_existing_session_on_subsequent_calls(self, monkeypatch):
-        """Test that the same session is returned on subsequent calls."""
-        self._mock_settings(monkeypatch)
-        session1 = _build_session()
-        session2 = _build_session()
-        assert session1 is session2
-
-    def test_sets_user_agent_from_settings(self, monkeypatch):
-        """Test that the User-Agent header is taken from settings.other.user_agent."""
-        self._mock_settings(monkeypatch, user_agent="CustomBot/2.0")
-        session = _build_session()
-        assert session.headers["User-Agent"] == "CustomBot/2.0"
+        mock_http_cls.assert_called_once_with(use_session=True, default_timeout=15)
+        assert client.http_client is mock_http_cls.return_value
 
 
-class TestFetchGrapherMetadata:
-    """Tests for fetch_grapher_metadata_raw function."""
+class TestOwidClientFetchGrapherMetadataRaw:
+    """Tests for OwidClient.fetch_grapher_metadata_raw."""
 
-    @staticmethod
-    def _mock_session(monkeypatch) -> MagicMock:
-        """Replace _build_session with a mock and return the mock session."""
-        mock_session = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.api_services.clients.owid_client._build_session",
-            lambda: mock_session,
-        )
-        return mock_session
+    def test_successful_fetch_returns_parsed_json(self, make_client):
+        """Test that a 200 response returns parsed JSON and status code."""
+        payload = {"name": "chart", "data": [1, 2, 3]}
+        client, fake_http = make_client(response=_FakeResponse(status_code=200, payload=payload))
 
-    def test_successful_fetch_returns_parsed_json(self, monkeypatch):
-        """Test that a successful response returns the parsed dict."""
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"name": "chart", "data": [1, 2, 3]}
-        mock_response.status_code = 200
+        result = client.fetch_grapher_metadata_raw("test-slug")
 
-        mock_session = self._mock_session(monkeypatch)
-        mock_session.get.return_value = mock_response
+        assert result.data == payload
+        assert result.status_code == 200
+        assert fake_http.calls == [("https://ourworldindata.org/grapher/test-slug.metadata.json", 15)]
 
-        result = fetch_grapher_metadata_raw("test-slug")
+    def test_non_200_status_returns_none_data(self, make_client):
+        """Test that a non-200 response returns None data while preserving status code."""
+        client, _ = make_client(response=_FakeResponse(status_code=404, payload={"error": "Not Found"}))
 
-        assert result.data == {"name": "chart", "data": [1, 2, 3]}
-        mock_session.get.assert_called_once_with(
-            "https://ourworldindata.org/grapher/test-slug.metadata.json",
-            timeout=15,
-        )
-
-    def test_http_error_returns_none(self, monkeypatch):
-        """Test that an HTTP error (raise_for_status) returns None."""
-        mock_response = MagicMock()
-        mock_response.raise_for_status.side_effect = requests.HTTPError("404 Not Found")
-        mock_session = self._mock_session(monkeypatch)
-        mock_session.get.return_value = mock_response
-
-        result = fetch_grapher_metadata_raw("missing-slug")
+        result = client.fetch_grapher_metadata_raw("missing-slug")
 
         assert result.data is None
+        assert result.status_code == 404
 
-    def test_network_error_returns_none(self, monkeypatch):
-        """Test that a connection error returns None."""
-        mock_session = self._mock_session(monkeypatch)
-        mock_session.get.side_effect = requests.ConnectionError("Connection refused")
+    def test_network_error_returns_none_and_none_status(self, make_client):
+        """Test that a connection error returns None data and None status code."""
+        client, _ = make_client(error=requests.ConnectionError("Connection refused"))
 
-        result = fetch_grapher_metadata_raw("bad-host")
-
-        assert result.data is None
-
-    def test_invalid_json_response_returns_none(self, monkeypatch):
-        """Test that a non-JSON response returns None."""
-        mock_response = MagicMock()
-        mock_response.json.side_effect = ValueError("Expecting value")
-        mock_session = self._mock_session(monkeypatch)
-        mock_session.get.return_value = mock_response
-
-        result = fetch_grapher_metadata_raw("bad-json")
+        result = client.fetch_grapher_metadata_raw("bad-host")
 
         assert result.data is None
+        assert result.status_code is None
 
+    def test_invalid_json_response_returns_none(self, make_client):
+        """Test that a non-JSON response returns None data and None status code."""
+        client, _ = make_client(response=_FakeResponse(status_code=200, json_error=ValueError("Expecting value")))
 
-class TestFetchIndicatorsMetadata:
-    """Tests for fetch_indicators_metadata function."""
-
-    @staticmethod
-    def _mock_session(monkeypatch) -> MagicMock:
-        """Replace _build_session with a mock and return the mock session."""
-        mock_session = MagicMock()
-        monkeypatch.setattr(
-            "src.main_app.api_services.clients.owid_client._build_session",
-            lambda: mock_session,
-        )
-        return mock_session
-
-    def test_successful_fetch_returns_parsed_json(self, monkeypatch):
-        """Test that a successful response returns the parsed dict."""
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"id": 123, "name": "Population"}
-        mock_response.status_code = 200
-        mock_session = self._mock_session(monkeypatch)
-        mock_session.get.return_value = mock_response
-
-        result = fetch_indicators_metadata(123)
-
-        assert result.data == {"id": 123, "name": "Population"}
-        mock_session.get.assert_called_once_with(
-            "https://api.ourworldindata.org/v1/indicators/123.metadata.json",
-            timeout=15,
-        )
-
-    def test_http_error_returns_none(self, monkeypatch):
-        """Test that an HTTP error returns None."""
-        mock_response = MagicMock()
-        mock_response.raise_for_status.side_effect = requests.HTTPError("500 Server Error")
-        mock_session = self._mock_session(monkeypatch)
-        mock_session.get.return_value = mock_response
-
-        result = fetch_indicators_metadata(999)
+        result = client.fetch_grapher_metadata_raw("bad-json")
 
         assert result.data is None
+        assert result.status_code is None
 
-    def test_network_error_returns_none(self, monkeypatch):
-        """Test that a connection error returns None."""
-        mock_session = self._mock_session(monkeypatch)
-        mock_session.get.side_effect = requests.ConnectionError("Timeout")
 
-        result = fetch_indicators_metadata(456)
+class TestOwidClientFetchIndicatorsMetadata:
+    """Tests for OwidClient.fetch_indicators_metadata."""
+
+    def test_successful_fetch_returns_parsed_json(self, make_client):
+        """Test that a 200 response returns parsed indicator metadata."""
+        payload = {"id": 123, "name": "Population"}
+        client, fake_http = make_client(response=_FakeResponse(status_code=200, payload=payload))
+
+        result = client.fetch_indicators_metadata(123)
+
+        assert result.data == payload
+        assert result.status_code == 200
+        assert fake_http.calls == [("https://api.ourworldindata.org/v1/indicators/123.metadata.json", 15)]
+
+    def test_non_200_status_returns_none_data(self, make_client):
+        """Test that a 500 response returns None data and status code 500."""
+        client, _ = make_client(response=_FakeResponse(status_code=500, payload={"error": "Server Error"}))
+
+        result = client.fetch_indicators_metadata(999)
 
         assert result.data is None
+        assert result.status_code == 500
+
+    def test_network_error_returns_none_and_none_status(self, make_client):
+        """Test that a connection error returns None data and None status code."""
+        client, _ = make_client(error=requests.ConnectionError("Timeout"))
+
+        result = client.fetch_indicators_metadata(456)
+
+        assert result.data is None
+        assert result.status_code is None

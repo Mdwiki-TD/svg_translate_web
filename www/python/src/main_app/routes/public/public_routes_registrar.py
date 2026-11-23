@@ -68,6 +68,7 @@ class PublicRouteRegister:
 
             instance = module.route_cls()
             instance.register(bp, **module.extra_kwargs)
+
             app.register_blueprint(bp)
 
 

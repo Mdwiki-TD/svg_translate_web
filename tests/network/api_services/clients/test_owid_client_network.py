@@ -6,17 +6,17 @@ from __future__ import annotations
 
 import pytest
 from src.main_app.api_services.clients.owid_client import (
-    fetch_grapher_metadata_raw,
+    OwidClient,
 )
 
 pytestmark = pytest.mark.network
 
 
 class TestFetchGrapherMetadata:
-    """Tests for fetch_grapher_metadata_raw function."""
+    """Tests for OwidClient.fetch_grapher_metadata_raw function."""
 
     def test_successful_fetch_returns_parsed_json(self):
         """Test that a successful response returns the parsed dict."""
-        result = fetch_grapher_metadata_raw("test-slug")
+        result = OwidClient().fetch_grapher_metadata_raw("test-slug")
         assert result.status_code == 404
         assert result.data == {"error": "Not found", "status": 404}

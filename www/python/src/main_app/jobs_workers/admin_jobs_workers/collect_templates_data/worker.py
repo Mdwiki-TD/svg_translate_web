@@ -10,7 +10,7 @@ from typing import Any
 
 from mwclient.client import Site
 
-from ....api_services import MwClientPage, fetch_grapher_metadata_raw
+from ....api_services import MwClientPage, OwidClient
 from ....api_services.clients import CategoryMembersService
 from ....database.exceptions import DuplicateRecordError
 from ....database.models import TemplateRecord
@@ -242,7 +242,7 @@ class OneFileProcessor:
 
         if _slug_to_check:
             # Find slug redirect
-            metadata = fetch_grapher_metadata_raw(_slug_to_check)
+            metadata = OwidClient().fetch_grapher_metadata_raw(_slug_to_check)
             if metadata and metadata.data:
                 check_slugs(_slug_to_check, metadata.data)
 

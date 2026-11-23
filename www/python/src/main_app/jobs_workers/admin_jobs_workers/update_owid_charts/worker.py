@@ -23,7 +23,7 @@ from typing import Any
 
 from sqlalchemy.exc import OperationalError
 
-from ....api_services import fetch_grapher_metadata_raw
+from ....api_services import OwidClient
 from ....database.models import OwidChartRecord
 from ....database.services import OwidChartsService
 from ...base_worker import BaseObjectsJobWorker
@@ -136,7 +136,7 @@ class UpdateOwidChartsWorker(BaseObjectsJobWorker[UpdateOwidChartsWorkerObject])
     def _process_one_item(self, chart: OwidChartRecord, info: ChartNewInfo) -> bool:
 
         # 1 A). Fetch metadata
-        grapher_data = fetch_grapher_metadata_raw(chart.slug)
+        grapher_data = OwidClient().fetch_grapher_metadata_raw(chart.slug)
 
         if grapher_data.status_code == 404:
             self._update_db(chart, {"status_404": 404}, info)

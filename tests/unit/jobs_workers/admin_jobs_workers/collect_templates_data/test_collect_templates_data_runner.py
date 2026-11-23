@@ -113,7 +113,7 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidChartsService", _mock_class
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.fetch_grapher_metadata_raw",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidClient.fetch_grapher_metadata_raw",
         mocks["fetch_grapher_metadata_raw"],
     )
 

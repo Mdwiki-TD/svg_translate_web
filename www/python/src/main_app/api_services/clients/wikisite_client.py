@@ -9,7 +9,7 @@ from typing import Any
 import requests
 from mwclient.client import Site
 
-from ...config import get_settings
+from ...config import Settings, get_settings
 from ...core.crypto import CryptoService
 
 logger = logging.getLogger(__name__)
@@ -31,6 +31,12 @@ def coerce_encrypted(value: object) -> bytes | None:
 
 class WikiSiteClient:
     """Helper for creating OAuth-authenticated MediaWiki clients."""
+
+    def __init__(
+        self,
+        app_settings: Settings | None = None,
+    ) -> None:
+        self.app_settings = app_settings or get_settings()
 
     @staticmethod
     def _get_user_site(wiki_domain: str, user: dict[str, Any] | None) -> Site | None:

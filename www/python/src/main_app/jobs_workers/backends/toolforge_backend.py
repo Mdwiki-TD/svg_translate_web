@@ -10,7 +10,7 @@ from typing import Any
 from requests import HTTPError
 
 from ...api_services.clients.toolforge import ToolforgeJobsService
-from ...config import get_settings
+from ...config import Settings, get_settings
 from ...database.models import JobRecord
 from ..objects import JobData
 from .base import JobBackend
@@ -30,12 +30,21 @@ def tf_job_name(job_type: str, job_id: int) -> str:
 class ToolforgeBackend(JobBackend):
     """Runs jobs as one-off Kubernetes pods via the Toolforge Jobs API."""
 
-    def __init__(self, svc: ToolforgeJobsService | None = None) -> None:
+    def __init__(
+        self,
+        svc: ToolforgeJobsService | None = None,
+        app_settings: Settings | None = None,
+    ) -> None:
+        self.app_settings = app_settings or get_settings()
         self.svc = svc or ToolforgeJobsService()
 
-    def start(self, job: JobRecord, job_data: JobData, payload: dict[str, Any]) -> str:
-        app_settings = get_settings()
-        jobs_cfg = app_settings.jobs
+    def start(
+        self,
+        job: JobRecord,
+        job_data: JobData,
+        payload: dict[str, Any],
+    ) -> str:
+        jobs_cfg = self.app_settings.jobs
 
         name = tf_job_name(job.job_type, job.id)
         image = job_data.image or jobs_cfg.toolforge_job_image

@@ -19,6 +19,7 @@ from .translate_routes import TranslateView
 __all__ = [
     "MainView",
     "ProfileView",
+    "AuthView",
     "ExplorerView",
     "ExtractView",
     "InjectView",
@@ -26,6 +27,5 @@ __all__ = [
     "TranslateView",
     "TemplatesView",
     "ApiRoutes",
-    "AuthView",
     "UtilsJobsBpRoutes",
 ]

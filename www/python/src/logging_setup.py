@@ -154,7 +154,7 @@ class ProcessLoggingConfigurator:
 
         Reads the environment directly: logging must start before the app config exists.
         """
-        main_dir = Path(os.path.expandvars(os.getenv("MAIN_DIR", "~/data"))).expanduser()
+        main_dir = Path(os.path.expandvars(os.getenv("MAIN_DIR") or "~/data")).expanduser()
         log_dir = main_dir / "logs"
         log_dir.mkdir(parents=True, exist_ok=True)
         return log_dir

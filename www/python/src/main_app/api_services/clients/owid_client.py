@@ -1,13 +1,8 @@
-""" """
-
 from __future__ import annotations
 
 import logging
-import threading
 
-import requests
-
-from ...config import get_settings
+from .http_client import HttpClient
 from .objects import RawGrapherMetadataResponse
 
 logger = logging.getLogger(__name__)
@@ -19,47 +14,40 @@ INDICATORS_METADATA_URL = "https://api.ourworldindata.org/v1/indicators/{variabl
 REQUEST_TIMEOUT = 15
 
 
-_thread_local = threading.local()
+class OwidClient:
+    """Client for fetching metadata from Our World in Data endpoints."""
 
+    def __init__(
+        self,
+        http_client: HttpClient | None = None,
+        timeout: float = REQUEST_TIMEOUT,
+    ) -> None:
+        # Resolve the HTTP client once so tests and callers can inject a custom client.
+        self.timeout = timeout
+        self.http_client = http_client or HttpClient(use_session=True, default_timeout=self.timeout)
 
-def _build_session() -> requests.Session:
-    if not hasattr(_thread_local, "session"):
-        session = requests.Session()
-        session.headers.update({"User-Agent": get_settings().other.user_agent})
-        _thread_local.session = session
-    return _thread_local.session
+    def _get_metadata(self, url: str, identifier: str | int) -> RawGrapherMetadataResponse:
+        """Fetch JSON metadata from a given URL and normalize errors into a response object."""
+        try:
+            response = self.http_client.get(url)
+            if response.status_code == 200:
+                return RawGrapherMetadataResponse(data=response.json(), status_code=response.status_code)
+            return RawGrapherMetadataResponse(data=None, status_code=response.status_code)
+        except Exception as exc:
+            logger.warning("Failed to fetch metadata for %s: %s", identifier, exc)
+            return RawGrapherMetadataResponse(data=None, status_code=None)
 
+    def fetch_grapher_metadata_raw(self, slug: str) -> RawGrapherMetadataResponse:
+        """Fetch the OWID chart metadata JSON. Returns a dataclass with raw dict and status code."""
+        url = METADATA_URL.format(slug=slug)
+        return self._get_metadata(url, slug)
 
-def fetch_grapher_metadata_raw(slug: str) -> RawGrapherMetadataResponse:
-    """Fetch the OWID chart metadata JSON. Returns a dataclass with raw dict and status code."""
-    session = _build_session()
-    url = METADATA_URL.format(slug=slug)
-    try:
-        response = session.get(url, timeout=REQUEST_TIMEOUT)
-        if response.status_code == 200:
-            return RawGrapherMetadataResponse(data=response.json(), status_code=response.status_code)
-        return RawGrapherMetadataResponse(data=None, status_code=response.status_code)
-    except Exception as exc:
-        logger.warning(f"Failed to fetch metadata for '{slug}': {exc}")
-        return RawGrapherMetadataResponse(data=None, status_code=None)
-
-
-def fetch_indicators_metadata(owid_variable_id: int) -> RawGrapherMetadataResponse:
-    """Fetch the OWID indicator metadata JSON. Returns the parsed dict or None."""
-    session = _build_session()
-    url = INDICATORS_METADATA_URL.format(variable_id=owid_variable_id)
-    try:
-        response = session.get(url, timeout=REQUEST_TIMEOUT)
-        if response.status_code == 200:
-            return RawGrapherMetadataResponse(data=response.json(), status_code=response.status_code)
-
-        return RawGrapherMetadataResponse(data=None, status_code=response.status_code)
-    except Exception as exc:
-        logger.warning(f"Failed to fetch metadata for '{owid_variable_id}': {exc}")
-        return RawGrapherMetadataResponse(data=None, status_code=None)
+    def fetch_indicators_metadata(self, owid_variable_id: int) -> RawGrapherMetadataResponse:
+        """Fetch the OWID indicator metadata JSON. Returns a dataclass with raw dict and status code."""
+        url = INDICATORS_METADATA_URL.format(variable_id=owid_variable_id)
+        return self._get_metadata(url, owid_variable_id)
 
 
 __all__ = [
-    "fetch_grapher_metadata_raw",
-    "fetch_indicators_metadata",
+    "OwidClient",
 ]

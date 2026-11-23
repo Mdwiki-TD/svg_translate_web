@@ -18,24 +18,24 @@ class Config:
     module import time.
     """
 
-    app_settings = get_settings()
+    _app_settings = get_settings()
     # Flask core settings
     DEBUG: bool = False
     TESTING: bool = False
     IS_PRODUCTION: bool = False
-    SECRET_KEY: str = app_settings.security.secret_key
-    SECRET_KEY_FALLBACKS: list[str] = list(app_settings.security.secret_key_fallbacks or [])
+    SECRET_KEY: str = _app_settings.security.secret_key
+    SECRET_KEY_FALLBACKS: list[str] = list(_app_settings.security.secret_key_fallbacks or [])
 
     # Session cookie settings
-    SESSION_COOKIE_HTTPONLY: bool = app_settings.cookie.httponly
-    SESSION_COOKIE_SECURE: bool = app_settings.cookie.secure
-    SESSION_COOKIE_SAMESITE: str = app_settings.cookie.samesite
+    SESSION_COOKIE_HTTPONLY: bool = _app_settings.cookie.httponly
+    SESSION_COOKIE_SECURE: bool = _app_settings.cookie.secure
+    SESSION_COOKIE_SAMESITE: str = _app_settings.cookie.samesite
 
     # CSRF protection settings
     WTF_CSRF_ENABLED: bool = True
     # CSRF token lifetime (in seconds). Default 3600 (1 hour).
     # None = tokens don't expire
-    WTF_CSRF_TIME_LIMIT: int | None = app_settings.other.csrf_time_limit
+    WTF_CSRF_TIME_LIMIT: int | None = _app_settings.other.csrf_time_limit
 
     WTF_CSRF_SSL_STRICT: bool = True
     WTF_CSRF_CHECK_DEFAULT: bool = True
@@ -47,13 +47,13 @@ class Config:
     # Flask 3.1+ security configurations
 
     # Maximum form data in memory (default 16MB)
-    MAX_CONTENT_LENGTH: int | None = app_settings.security.max_content_length
+    MAX_CONTENT_LENGTH: int | None = _app_settings.security.max_content_length
 
     # Maximum form data in memory in bytes (default 16MB)
-    MAX_FORM_MEMORY_SIZE: int = app_settings.security.max_form_memory_size
+    MAX_FORM_MEMORY_SIZE: int = _app_settings.security.max_form_memory_size
 
     # Maximum number of form fields (default 1000)
-    MAX_FORM_PARTS: int = app_settings.security.max_form_parts
+    MAX_FORM_PARTS: int = _app_settings.security.max_form_parts
 
     # Flask-SQLAlchemy
     SQLALCHEMY_DATABASE_URI: str = os.environ.get("DATABASE_URI", "")
@@ -64,13 +64,12 @@ class Config:
     RATELIMIT_STORAGE_URI = "memory://"
 
     def __init__(self) -> None:
-        app_settings = get_settings()
         """Initialize configuration with values from environment-based settings."""
         # Sync with the dataclass-based settings for backward compatibility
-        self.SECRET_KEY = app_settings.security.secret_key
-        self.SESSION_COOKIE_HTTPONLY = app_settings.cookie.httponly
-        self.SESSION_COOKIE_SECURE = app_settings.cookie.secure
-        self.SESSION_COOKIE_SAMESITE = app_settings.cookie.samesite
+        self.SECRET_KEY = self._app_settings.security.secret_key
+        self.SESSION_COOKIE_HTTPONLY = self._app_settings.cookie.httponly
+        self.SESSION_COOKIE_SECURE = self._app_settings.cookie.secure
+        self.SESSION_COOKIE_SAMESITE = self._app_settings.cookie.samesite
 
         # Only set MySQL-specific engine options if URI is MySQL/MariaDB (not SQLite)
         uri = self.SQLALCHEMY_DATABASE_URI or ""
