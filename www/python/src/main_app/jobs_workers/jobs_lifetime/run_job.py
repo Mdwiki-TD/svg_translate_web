@@ -10,9 +10,9 @@ import logging
 import signal
 
 from ...database.services import JobsService
+from ..objects import JobsRunner
 from ..workers_lists import jobs_data_admins
 from .cancel import DbCancelEvent
-from ..objects import JobsRunner
 
 logger = logging.getLogger(__name__)
 

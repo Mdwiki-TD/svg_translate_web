@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from .admin_jobs_workers.workers_list import jobs_data_admins
