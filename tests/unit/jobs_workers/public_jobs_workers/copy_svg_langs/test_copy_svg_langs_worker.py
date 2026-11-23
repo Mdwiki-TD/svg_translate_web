@@ -735,8 +735,10 @@ class TestCopySvgLangsWorkerProcessAdvanced:
 
         result = mock_worker.process()
 
-        assert len(result.files_skipped) == 1
-        assert result.files_skipped[0].status == "skipped"
+        # titles: "F1.svg" plus the auto-added cropped main title "Main (cropped).svg"
+        assert len(result.files_skipped) == 2
+        assert {item.status for item in result.files_skipped} == {"skipped"}
+        assert {item.title for item in result.files_skipped} == {"F1.svg", "Main (cropped).svg"}
 
 
 class TestCopySvgLangsWorkerStageMethods:
@@ -752,6 +754,26 @@ class TestCopySvgLangsWorkerStageMethods:
 
         assert result is False
         assert mock_worker.result.stages.titles.status == "cancelled"
+
+    def test_extract_titles_step_includes_cropped_main_title(
+        self,
+        mock_worker: CopySvgLangsWorker,
+        mock_steps: MockSteps,
+    ):
+        mock_worker.text = "some text"
+        mock_steps.titles.return_value = {
+            "success": True,
+            "main_title": "File:Main.svg",
+            "titles": ["File:Version.svg"],
+        }
+
+        result = mock_worker._extract_titles_step()
+
+        assert result is True
+        assert mock_worker.titles == [
+            "File:Main (cropped).svg",
+            "File:Version.svg",
+        ]
 
     def test_extract_titles_step_exception(
         self,
