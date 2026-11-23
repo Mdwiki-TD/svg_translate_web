@@ -100,9 +100,9 @@ In `tests/integration/test_app_factory_regression.py`, add a test that verifies
 security headers are present on a basic response:
 
 ```python
-def test_security_headers_on_html_response(mock_client):
+def test_security_headers_on_html_response(test_client):
     """Security headers should be present on all HTML responses."""
-    response = mock_client.get("/")
+    response = test_client.get("/")
     assert response.headers.get("X-Content-Type-Options") == "nosniff"
     assert response.headers.get("X-Frame-Options") == "SAMEORIGIN"
     assert "Content-Security-Policy" in response.headers

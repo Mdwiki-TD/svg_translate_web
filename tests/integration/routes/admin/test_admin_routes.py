@@ -50,10 +50,10 @@ class TestSetup:
                 raise
             return uid
 
-    def _login_admin(self, mock_app, mock_client, username="AdminUser"):
+    def _login_admin(self, mock_app, test_client, username="AdminUser"):
         """Set session to an admin user (DB record must already exist)."""
         uid = self._seed_admin(mock_app, username=username)
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess["uid"] = uid
             sess["username"] = username
         return uid
@@ -63,13 +63,13 @@ class TestSetup:
 class TestAdminDashboard(TestSetup):
     """GET /admin_panel/ — admin dashboard page."""
 
-    def test_admin_requires_login(self, mock_client):
+    def test_admin_requires_login(self, test_client):
         """Unauthenticated user should be redirected to login."""
-        resp = mock_client.get("/admin_panel/")
+        resp = test_client.get("/admin_panel/")
         assert resp.status_code == 302
         assert "login" in resp.headers["Location"]
 
-    def test_admin_requires_admin_role(self, mock_app, mock_client):
+    def test_admin_requires_admin_role(self, mock_app, test_client):
         """A regular user (not admin) should get 403."""
         with mock_app.app_context():
             uid = self._upsert_u_token(
@@ -78,20 +78,20 @@ class TestAdminDashboard(TestSetup):
                 access_secret="s",
             )
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess["uid"] = uid
             sess["username"] = "RegularUser"
 
-        resp = mock_client.get("/admin_panel/")
+        resp = test_client.get("/admin_panel/")
         assert resp.status_code == 403
 
-    def test_admin_dashboard_loads(self, mock_app, mock_client):
+    def test_admin_dashboard_loads(self, mock_app, test_client):
         """An admin user should see the dashboard."""
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.get("/admin_panel/")
+        self._login_admin(mock_app, test_client)
+        resp = test_client.get("/admin_panel/")
         assert resp.status_code == 200
 
-    def test_admin_inactive_admin_gets_403(self, mock_app, mock_client):
+    def test_admin_inactive_admin_gets_403(self, mock_app, test_client):
         """A deactivated admin should get 403."""
         with mock_app.app_context():
             uid = self._upsert_u_token(
@@ -102,11 +102,11 @@ class TestAdminDashboard(TestSetup):
             coord = self.service.add_admin("InactiveAdmin")
             self.service.set_admin_active(coord.id, False)
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess["uid"] = uid
             sess["username"] = "InactiveAdmin"
 
-        resp = mock_client.get("/admin_panel/")
+        resp = test_client.get("/admin_panel/")
         assert resp.status_code == 403
 
 
@@ -114,13 +114,13 @@ class TestAdminDashboard(TestSetup):
 class TestDbAdminPanel(TestSetup):
     """GET /admin_panel/db_admin/ — Flask-Admin DB admin panel."""
 
-    def test_db_admin_requires_login(self, mock_client):
+    def test_db_admin_requires_login(self, test_client):
         """Unauthenticated user should be redirected to login when trying to access DB admin."""
-        resp = mock_client.get("/admin_panel/db_admin/")
+        resp = test_client.get("/admin_panel/db_admin/")
         assert resp.status_code == 302
         assert "login" in resp.headers["Location"]
 
-    def test_db_admin_requires_admin_role(self, mock_app, mock_client):
+    def test_db_admin_requires_admin_role(self, mock_app, test_client):
         """A regular user (not admin/admin) should get 403 when trying to access DB admin."""
         with mock_app.app_context():
             uid = self._upsert_u_token(
@@ -129,26 +129,26 @@ class TestDbAdminPanel(TestSetup):
                 access_secret="s",
             )
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess["uid"] = uid
             sess["username"] = "RegularUser"
 
-        resp = mock_client.get("/admin_panel/db_admin/")
+        resp = test_client.get("/admin_panel/db_admin/")
         assert resp.status_code == 403
 
-    def test_db_admin_loads_for_admin(self, mock_app, mock_client):
+    def test_db_admin_loads_for_admin(self, mock_app, test_client):
         """An admin user should be able to load the DB admin dashboard."""
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.get("/admin_panel/db_admin/")
+        self._login_admin(mock_app, test_client)
+        resp = test_client.get("/admin_panel/db_admin/")
         assert resp.status_code == 200
 
-    def test_db_admin_model_view_requires_login(self, mock_client):
+    def test_db_admin_model_view_requires_login(self, test_client):
         """Unauthenticated user should be redirected to login when trying to access a model view."""
-        resp = mock_client.get("/admin_panel/db_admin/userrecord/")
+        resp = test_client.get("/admin_panel/db_admin/userrecord/")
         assert resp.status_code == 302
         assert "login" in resp.headers["Location"]
 
-    def test_db_admin_model_view_requires_admin_role(self, mock_app, mock_client):
+    def test_db_admin_model_view_requires_admin_role(self, mock_app, test_client):
         """A regular user should get 403 when trying to access a model view."""
         with mock_app.app_context():
             uid = self._upsert_u_token(
@@ -157,17 +157,17 @@ class TestDbAdminPanel(TestSetup):
                 access_secret="s",
             )
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess["uid"] = uid
             sess["username"] = "RegularUser"
 
-        resp = mock_client.get("/admin_panel/db_admin/userrecord/")
+        resp = test_client.get("/admin_panel/db_admin/userrecord/")
         assert resp.status_code == 403
 
-    def test_db_admin_model_view_loads_for_admin(self, mock_app, mock_client):
+    def test_db_admin_model_view_loads_for_admin(self, mock_app, test_client):
         """An admin user should be able to load a model view."""
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.get("/admin_panel/db_admin/userrecord/")
+        self._login_admin(mock_app, test_client)
+        resp = test_client.get("/admin_panel/db_admin/userrecord/")
         assert resp.status_code == 200
 
 
@@ -175,7 +175,7 @@ class TestDbAdminPanel(TestSetup):
 class TestAdminUsersPage(TestSetup):
     """GET /admin_panel/users — list all registered users."""
 
-    def test_users_page_requires_admin(self, mock_app, mock_client):
+    def test_users_page_requires_admin(self, mock_app, test_client):
         """Non-admin user should get 403."""
         with mock_app.app_context():
             uid = self._upsert_u_token(
@@ -184,14 +184,14 @@ class TestAdminUsersPage(TestSetup):
                 access_secret="s",
             )
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess["uid"] = uid
             sess["username"] = "NonAdmin"
 
-        resp = mock_client.get("/admin_panel/users")
+        resp = test_client.get("/admin_panel/users")
         assert resp.status_code == 403
 
-    def test_users_page_shows_registered_users(self, mock_app, mock_client):
+    def test_users_page_shows_registered_users(self, mock_app, test_client):
         """Admin should see the users list with seeded users."""
 
         with mock_app.app_context():
@@ -201,15 +201,15 @@ class TestAdminUsersPage(TestSetup):
                 access_secret="s",
             )
 
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.get("/admin_panel/users")
+        self._login_admin(mock_app, test_client)
+        resp = test_client.get("/admin_panel/users")
         assert resp.status_code == 200
 
-    def test_users_page_empty_list(self, mock_app, mock_client):
+    def test_users_page_empty_list(self, mock_app, test_client):
         """Users page should load even with no regular users."""
 
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.get("/admin_panel/users")
+        self._login_admin(mock_app, test_client)
+        resp = test_client.get("/admin_panel/users")
         assert resp.status_code == 200
 
 
@@ -217,7 +217,7 @@ class TestAdminUsersPage(TestSetup):
 class TestAdminRoutes(TestSetup):
     """Admin CRUD via /admin_panel/admins/ endpoints."""
 
-    def test_admins_dashboard_requires_admin(self, mock_app, mock_client):
+    def test_admins_dashboard_requires_admin(self, mock_app, test_client):
         """Non-admin should get 403 on admins page."""
         with mock_app.app_context():
             uid = self._upsert_u_token(
@@ -226,21 +226,21 @@ class TestAdminRoutes(TestSetup):
                 access_secret="s",
             )
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess["uid"] = uid
             sess["username"] = "NonAdmin"
 
-        resp = mock_client.get("/admin_panel/admins/")
+        resp = test_client.get("/admin_panel/admins/")
         assert resp.status_code == 403
 
-    def test_admins_dashboard_loads(self, mock_app, mock_client):
+    def test_admins_dashboard_loads(self, mock_app, test_client):
         """Admin should see the admins dashboard."""
 
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.get("/admin_panel/admins/")
+        self._login_admin(mock_app, test_client)
+        resp = test_client.get("/admin_panel/admins/")
         assert resp.status_code == 200
 
-    def test_add_admin(self, mock_app, mock_client):
+    def test_add_admin(self, mock_app, test_client):
         """Admin should be able to add a new admin."""
 
         with mock_app.app_context():
@@ -250,8 +250,8 @@ class TestAdminRoutes(TestSetup):
                 access_secret="s",
             )
 
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.post(
+        self._login_admin(mock_app, test_client)
+        resp = test_client.post(
             "/admin_panel/admins/add",
             data={"username": "NewCoord"},
             follow_redirects=True,
@@ -262,13 +262,13 @@ class TestAdminRoutes(TestSetup):
             result = self.service.is_active_admin("NewCoord")
             assert result is True
 
-    def test_add_admin_empty_username_flash(self, mock_app, mock_client, monkeypatch):
+    def test_add_admin_empty_username_flash(self, mock_app, test_client, monkeypatch):
         """Adding admin with empty username should flash error."""
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.routes.admin.views.admins.flash", mock_flash)
 
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.post(
+        self._login_admin(mock_app, test_client)
+        resp = test_client.post(
             "/admin_panel/admins/add",
             data={"username": ""},
             follow_redirects=True,
@@ -276,19 +276,19 @@ class TestAdminRoutes(TestSetup):
         assert resp.status_code == 200
         mock_flash.assert_called_once_with("Username is required to add an admin.", "danger")
 
-    def test_add_duplicate_admin_flash(self, mock_app, mock_client, monkeypatch):
+    def test_add_duplicate_admin_flash(self, mock_app, test_client, monkeypatch):
         """Adding a duplicate admin should flash warning."""
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.routes.admin.views.admins.flash", mock_flash)
 
-        self._login_admin(mock_app, mock_client)
-        mock_client.post(
+        self._login_admin(mock_app, test_client)
+        test_client.post(
             "/admin_panel/admins/add",
             data={"username": "AdminUser"},
             follow_redirects=True,
         )
         mock_flash.reset_mock()
-        resp = mock_client.post(
+        resp = test_client.post(
             "/admin_panel/admins/add",
             data={"username": "AdminUser"},
             follow_redirects=True,
@@ -298,7 +298,7 @@ class TestAdminRoutes(TestSetup):
         assert "already exists" in mock_flash.call_args[0][0]
         assert mock_flash.call_args[0][1] == "warning"
 
-    def test_toggle_admin_active(self, mock_app, mock_client):
+    def test_toggle_admin_active(self, mock_app, test_client):
         """Admin should be able to deactivate an admin."""
 
         with mock_app.app_context():
@@ -309,8 +309,8 @@ class TestAdminRoutes(TestSetup):
             )
             coord = self.service.add_admin("ToggleCoord")
 
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.post(
+        self._login_admin(mock_app, test_client)
+        resp = test_client.post(
             f"/admin_panel/admins/{coord.id}/deactivate",
             follow_redirects=True,
         )
@@ -320,7 +320,7 @@ class TestAdminRoutes(TestSetup):
             result = self.service.is_active_admin("ToggleCoord")
             assert result is False
 
-    def test_toggle_admin_reactivate(self, mock_app, mock_client):
+    def test_toggle_admin_reactivate(self, mock_app, test_client):
         """Admin should be able to reactivate an admin."""
 
         with mock_app.app_context():
@@ -332,8 +332,8 @@ class TestAdminRoutes(TestSetup):
             coord = self.service.add_admin("ReactivateCoord")
             self.service.set_admin_active(coord.id, False)
 
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.post(
+        self._login_admin(mock_app, test_client)
+        resp = test_client.post(
             f"/admin_panel/admins/{coord.id}/activate",
             follow_redirects=True,
         )
@@ -343,7 +343,7 @@ class TestAdminRoutes(TestSetup):
             result = self.service.is_active_admin("ReactivateCoord")
             assert result is True
 
-    def test_delete_admin(self, mock_app, mock_client):
+    def test_delete_admin(self, mock_app, test_client):
         """Admin should be able to delete an admin."""
 
         with mock_app.app_context():
@@ -354,8 +354,8 @@ class TestAdminRoutes(TestSetup):
             )
             coord = self.service.add_admin("DeleteCoord")
 
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.post(
+        self._login_admin(mock_app, test_client)
+        resp = test_client.post(
             f"/admin_panel/admins/{coord.id}/delete",
             follow_redirects=True,
         )
@@ -366,13 +366,13 @@ class TestAdminRoutes(TestSetup):
             usernames = [c.username for c in coords]
             assert "DeleteCoord" not in usernames
 
-    def test_delete_nonexistent_admin_flash(self, mock_app, mock_client, monkeypatch):
+    def test_delete_nonexistent_admin_flash(self, mock_app, test_client, monkeypatch):
         """Deleting a non-existent admin should flash warning."""
         mock_flash = Mock()
         monkeypatch.setattr("src.main_app.routes.admin.views.admins.flash", mock_flash)
 
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.post(
+        self._login_admin(mock_app, test_client)
+        resp = test_client.post(
             "/admin_panel/admins/9999/delete",
             follow_redirects=True,
         )
@@ -386,7 +386,7 @@ class TestAdminRoutes(TestSetup):
 class TestAdminRouteIntegration(TestSetup):
     """End-to-end integration scenarios for admin features."""
 
-    def test_admin_can_manage_admin_lifecycle(self, mock_app, mock_client):
+    def test_admin_can_manage_admin_lifecycle(self, mock_app, test_client):
         """Full lifecycle: add -> deactivate -> reactivate -> delete admin."""
 
         with mock_app.app_context():
@@ -396,10 +396,10 @@ class TestAdminRouteIntegration(TestSetup):
                 access_secret="s",
             )
 
-        self._login_admin(mock_app, mock_client)
+        self._login_admin(mock_app, test_client)
 
         # Add
-        mock_client.post(
+        test_client.post(
             "/admin_panel/admins/add",
             data={"username": "LifecycleCoord"},
             follow_redirects=True,
@@ -414,7 +414,7 @@ class TestAdminRouteIntegration(TestSetup):
             coord = next(c for c in coords if c.username == "LifecycleCoord")
 
         # Deactivate
-        mock_client.post(
+        test_client.post(
             f"/admin_panel/admins/{coord.id}/deactivate",
             follow_redirects=True,
         )
@@ -423,7 +423,7 @@ class TestAdminRouteIntegration(TestSetup):
             assert result is False
 
         # Reactivate
-        mock_client.post(
+        test_client.post(
             f"/admin_panel/admins/{coord.id}/activate",
             follow_redirects=True,
         )
@@ -432,7 +432,7 @@ class TestAdminRouteIntegration(TestSetup):
             assert result is True
 
         # Delete
-        mock_client.post(
+        test_client.post(
             f"/admin_panel/admins/{coord.id}/delete",
             follow_redirects=True,
         )
@@ -441,7 +441,7 @@ class TestAdminRouteIntegration(TestSetup):
             usernames = [c.username for c in coords]
             assert "LifecycleCoord" not in usernames
 
-    def test_non_admin_cannot_access_any_admin_route(self, mock_app, mock_client):
+    def test_non_admin_cannot_access_any_admin_route(self, mock_app, test_client):
         """A regular user should be blocked from all admin endpoints."""
         with mock_app.app_context():
             uid = self._upsert_u_token(
@@ -450,7 +450,7 @@ class TestAdminRouteIntegration(TestSetup):
                 access_secret="s",
             )
 
-        with mock_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess["uid"] = uid
             sess["username"] = "BlockedUser"
 
@@ -463,14 +463,14 @@ class TestAdminRouteIntegration(TestSetup):
 
         for method, path in protected_routes:
             if method == "GET":
-                resp = mock_client.get(path)
+                resp = test_client.get(path)
             else:
-                resp = mock_client.post(path, data={})
+                resp = test_client.post(path, data={})
             assert resp.status_code == 403, f"Expected 403 for {method} {path}"
 
-    def test_sidebar_context_injected(self, mock_app, mock_client):
+    def test_sidebar_context_injected(self, mock_app, test_client):
         """Admin pages should have the sidebar context variable injected."""
 
-        self._login_admin(mock_app, mock_client)
-        resp = mock_client.get("/admin_panel/")
+        self._login_admin(mock_app, test_client)
+        resp = test_client.get("/admin_panel/")
         assert resp.status_code == 200

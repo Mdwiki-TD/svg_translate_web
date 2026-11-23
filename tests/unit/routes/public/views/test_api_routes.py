@@ -26,12 +26,12 @@ def owid_charts_svc() -> OwidChartsService:
 class TestTemplatesList:
     """Tests for GET /api/templates."""
 
-    def test_templates_list(self, mock_client: FlaskClient, template_svc: TemplateService) -> None:
+    def test_templates_list(self, test_client: FlaskClient, template_svc: TemplateService) -> None:
         """list returns list of templates; response has data and summary."""
         template_svc.add_template_data({"title": "T1", "main_file": "f1.svg"})
         template_svc.add_template_data({"title": "T2"})
 
-        resp = mock_client.get("/api/templates")
+        resp = test_client.get("/api/templates")
         assert resp.status_code == 200
 
         body = resp.get_json()
@@ -41,7 +41,7 @@ class TestTemplatesList:
         assert body["data"][1]["title"] == "T2"
         assert body["summary"]["total"] == 2
 
-    def test_templates_list_summary_counts(self, mock_client: FlaskClient, template_svc: TemplateService) -> None:
+    def test_templates_list_summary_counts(self, test_client: FlaskClient, template_svc: TemplateService) -> None:
         """Summary counts reflect which optional fields are set."""
         template_svc.add_template_data(
             {
@@ -58,7 +58,7 @@ class TestTemplatesList:
             }
         )
 
-        resp = mock_client.get("/api/templates")
+        resp = test_client.get("/api/templates")
         body = resp.get_json()
 
         assert body["summary"]["total"] == 2
@@ -67,9 +67,9 @@ class TestTemplatesList:
         assert body["summary"]["with_last_world_year"] == 1
         assert body["summary"]["with_source"] == 1
 
-    def test_templates_list_empty(self, mock_client: FlaskClient) -> None:
+    def test_templates_list_empty(self, test_client: FlaskClient) -> None:
         """When no templates exist, data is empty and counts are zero."""
-        resp = mock_client.get("/api/templates")
+        resp = test_client.get("/api/templates")
         body = resp.get_json()
 
         assert body["data"] == []
@@ -84,7 +84,7 @@ class TestTemplatesNeedUpdateList:
     """Tests for GET /api/templates-need-update."""
 
     def test_templates_need_update_list(
-        self, mock_client: FlaskClient, template_svc: TemplateService, owid_charts_svc: OwidChartsService
+        self, test_client: FlaskClient, template_svc: TemplateService, owid_charts_svc: OwidChartsService
     ) -> None:
         """list_templates_need_update returns records; JSON has data key."""
         owid_charts_svc.create(
@@ -117,7 +117,7 @@ class TestTemplatesNeedUpdateList:
             }
         )
 
-        resp = mock_client.get("/api/templates-need-update")
+        resp = test_client.get("/api/templates-need-update")
         body = resp.get_json()
 
         assert len(body["data"]) == 2
@@ -162,17 +162,17 @@ class TestOwidChartsList:
         )
         template_svc.add_template_data({"title": "T3", "slug": "s3", "source": "owid"})
 
-    def test_owid_charts_list_no_filter(self, mock_client: FlaskClient) -> None:
+    def test_owid_charts_list_no_filter(self, test_client: FlaskClient) -> None:
         """Without a filter, all charts are returned."""
-        resp = mock_client.get("/api/owidcharts/")
+        resp = test_client.get("/api/owidcharts/")
         body = resp.get_json()
 
         assert len(body["data"]) == 3
         assert body["selected_template"] == ""
 
-    def test_owid_charts_list_has_template_filter(self, mock_client: FlaskClient) -> None:
+    def test_owid_charts_list_has_template_filter(self, test_client: FlaskClient) -> None:
         """has_template filter returns only charts having a template."""
-        resp = mock_client.get("/api/owidcharts/has_template")
+        resp = test_client.get("/api/owidcharts/has_template")
         body = resp.get_json()
 
         assert len(body["data"]) == 2
@@ -180,17 +180,17 @@ class TestOwidChartsList:
         assert 1 in chart_ids
         assert 3 in chart_ids
 
-    def test_owid_charts_list_no_template_filter(self, mock_client: FlaskClient) -> None:
+    def test_owid_charts_list_no_template_filter(self, test_client: FlaskClient) -> None:
         """no_template filter returns only charts without a template."""
-        resp = mock_client.get("/api/owidcharts/no_template")
+        resp = test_client.get("/api/owidcharts/no_template")
         body = resp.get_json()
 
         assert len(body["data"]) == 1
         assert body["data"][0]["slug"] == "s2"
 
-    def test_owid_charts_list_summary(self, mock_client: FlaskClient) -> None:
+    def test_owid_charts_list_summary(self, test_client: FlaskClient) -> None:
         """Summary counts for published, template, map_tab, timeline are correct."""
-        resp = mock_client.get("/api/owidcharts/")
+        resp = test_client.get("/api/owidcharts/")
         body = resp.get_json()
 
         summary = body["summary"]
@@ -200,9 +200,9 @@ class TestOwidChartsList:
         assert summary["map_tab"] == {"with": 1, "without": 2}
         assert summary["timeline"] == {"with": 2, "without": 1}
 
-    def test_owid_charts_list_enriches_with_template_data(self, mock_client: FlaskClient) -> None:
+    def test_owid_charts_list_enriches_with_template_data(self, test_client: FlaskClient) -> None:
         """Each chart dict has template_id and template_title from the join."""
-        resp = mock_client.get("/api/owidcharts/")
+        resp = test_client.get("/api/owidcharts/")
         body = resp.get_json()
 
         chart_by_slug = {c["slug"]: c for c in body["data"]}
@@ -231,43 +231,43 @@ class TestFileLanguages:
         monkeypatch.setattr("src.main_app.routes.public.views.api_routes.FilesService.get_file_languages", mock)
         return mock
 
-    def test_returns_languages(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
+    def test_returns_languages(self, test_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns language list when file has translations."""
         mock_get_file_languages.return_value = FileLanguagesMap(error=None, langs=["en", "fr", "de"])
 
-        resp = mock_client.get(f"/api/languages/{self.FILE_NAME}")
+        resp = test_client.get(f"/api/languages/{self.FILE_NAME}")
 
         assert resp.status_code == 200
         body = resp.get_json()
         assert body == ["en", "fr", "de"]
         mock_get_file_languages.assert_called_once_with(self.FILE_NAME)
 
-    def test_returns_english_only(self, mock_client: FlaskClient) -> None:
+    def test_returns_english_only(self, test_client: FlaskClient) -> None:
         """Returns ['en'] when file has no translations."""
-        resp = mock_client.get(f"/api/languages/{self.FILE_NAME}")
+        resp = test_client.get(f"/api/languages/{self.FILE_NAME}")
 
         assert resp.status_code == 200
         body = resp.get_json()
         assert body == ["en"]
 
-    def test_returns_404_on_error(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
+    def test_returns_404_on_error(self, test_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns 404 when file metadata cannot be found."""
         mock_get_file_languages.return_value = FileLanguagesMap(
             error="Metadata not found for File:Missing.svg",
             langs=None,
         )
 
-        resp = mock_client.get("/api/languages/File:Missing.svg")
+        resp = test_client.get("/api/languages/File:Missing.svg")
 
         assert resp.status_code == 404
         body = resp.get_json()
         assert "error" in body
 
-    def test_returns_404_on_empty_filename(self, mock_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
+    def test_returns_404_on_empty_filename(self, test_client: FlaskClient, mock_get_file_languages: MagicMock) -> None:
         """Returns 404 when file_name is empty."""
         mock_get_file_languages.return_value = FileLanguagesMap(error="Empty fileName", langs=None)
         # {"error": "Empty fileName", "langs": None}
 
-        resp = mock_client.get("/api/languages/")
+        resp = test_client.get("/api/languages/")
 
         assert resp.status_code == 404

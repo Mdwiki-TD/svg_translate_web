@@ -50,15 +50,15 @@ def mock_auth(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 class TestTranslateRoutes:
-    def test_dashboard_renders(self, mock_client: FlaskClient) -> None:
+    def test_dashboard_renders(self, test_client: FlaskClient) -> None:
         """Dashboard GET request returns form and status 200."""
-        resp = mock_client.get("/translate/")
+        resp = test_client.get("/translate/")
         assert resp.status_code == 200
         assert b"Translate SVG" in resp.data
         assert b"File Name" in resp.data
         assert b"Language Code" in resp.data
 
-    def test_select_post_redirects_to_edit(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_select_post_redirects_to_edit(self, test_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
         """Posting to post endpoint downloads, extracts, and redirects to edit with session_id."""
         # Mock get_file_info
         mock_file_info = FileInfo(exists=True)
@@ -82,7 +82,7 @@ class TestTranslateRoutes:
             lambda *args, **kwargs: mock_extract,
         )
 
-        resp = mock_client.post(
+        resp = test_client.post(
             "/translate",
             data={
                 "filename": "Example.svg",
@@ -92,9 +92,9 @@ class TestTranslateRoutes:
         assert resp.status_code == 302
         assert "/translate/edit?session_id=" in resp.headers["Location"]
 
-    def test_select_post_missing_fields(self, mock_client: FlaskClient) -> None:
+    def test_select_post_missing_fields(self, test_client: FlaskClient) -> None:
         """Posting without required fields redirects to dashboard."""
-        resp = mock_client.post(
+        resp = test_client.post(
             "/translate",
             data={
                 "filename": "",
@@ -104,7 +104,7 @@ class TestTranslateRoutes:
         assert resp.status_code == 302
         assert "/translate/" in resp.headers["Location"]
 
-    def test_edit_get_success(self, mock_client: FlaskClient) -> None:
+    def test_edit_get_success(self, test_client: FlaskClient) -> None:
         """GET edit successfully loads and displays segments from session folder."""
         session_id = "testsession123"
         session_dir = get_session_dir(session_id)
@@ -127,7 +127,7 @@ class TestTranslateRoutes:
         json_path.write_text(json.dumps(session_data), encoding="utf-8")
 
         try:
-            resp = mock_client.get(f"/translate/edit?session_id={session_id}")
+            resp = test_client.get(f"/translate/edit?session_id={session_id}")
             assert resp.status_code == 200
             assert b"Example.svg" in resp.data
             assert b"Hello" in resp.data
@@ -137,13 +137,13 @@ class TestTranslateRoutes:
             if session_dir.exists():
                 shutil.rmtree(session_dir)
 
-    def test_edit_get_invalid_session(self, mock_client: FlaskClient) -> None:
+    def test_edit_get_invalid_session(self, test_client: FlaskClient) -> None:
         """GET edit displays dashboard when session doesn't exist."""
-        resp = mock_client.get("/translate/edit?session_id=nonexistentsession")
+        resp = test_client.get("/translate/edit?session_id=nonexistentsession")
         assert resp.status_code == 302
         assert "/translate/" in resp.headers["Location"]
 
-    def test_save_post_upload_success(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_save_post_upload_success(self, test_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
         """POST save successfully injects, uploads and redirects to dashboard."""
         session_id = "testsession456"
         session_dir = get_session_dir(session_id)
@@ -186,7 +186,7 @@ class TestTranslateRoutes:
         )
 
         try:
-            resp = mock_client.post(
+            resp = test_client.post(
                 "/translate/save",
                 data={
                     "session_id": session_id,
@@ -203,7 +203,7 @@ class TestTranslateRoutes:
             if session_dir.exists():
                 shutil.rmtree(session_dir)
 
-    def test_save_post_download_success(self, mock_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_save_post_download_success(self, test_client: FlaskClient, monkeypatch: pytest.MonkeyPatch) -> None:
         """POST save with action=download successfully injects and sends file."""
         session_id = "testsession789"
         session_dir = get_session_dir(session_id)
@@ -235,7 +235,7 @@ class TestTranslateRoutes:
         )
 
         try:
-            resp = mock_client.post(
+            resp = test_client.post(
                 "/translate/save",
                 data={
                     "session_id": session_id,
