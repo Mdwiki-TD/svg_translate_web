@@ -10,7 +10,7 @@ import logging
 import signal
 
 from ...database.services import JobsService
-from ..admin_jobs_workers.workers_list import jobs_data_admins
+from ..workers_lists import jobs_data_admins
 from .cancel import DbCancelEvent
 from ..objects import JobsRunner
 

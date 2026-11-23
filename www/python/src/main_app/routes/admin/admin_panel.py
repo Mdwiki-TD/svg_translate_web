@@ -14,7 +14,7 @@ from flask.views import MethodView
 
 from ...database.services import JobsService
 from ...decorators import admin_required
-from ...jobs_workers.admin_jobs_workers.workers_list import jobs_data_admins
+from ...jobs_workers.workers_lists import jobs_data_admins
 
 logger = logging.getLogger(__name__)
 

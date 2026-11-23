@@ -6,7 +6,7 @@ from flask import Blueprint, flash, render_template
 from flask.views import MethodView
 
 from ....database.services import JobsService, UserJobsStats
-from ....jobs_workers.public_jobs_workers.workers_list_public import jobs_data_public
+from ....jobs_workers.workers_lists import jobs_data_public
 from ....services.auth.current_user_resolver import CurrentUserResolver
 
 logger = logging.getLogger(__name__)
