@@ -9,7 +9,7 @@ from unittest.mock import Mock
 
 import pytest
 from src.main_app.database.services import AdminService, UsersService, UserTokenService
-from src.main_app.services.core.crypto import CryptoService
+from src.main_app.core.crypto import CryptoService
 
 
 class TestSetup:

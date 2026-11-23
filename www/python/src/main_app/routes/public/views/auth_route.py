@@ -27,8 +27,8 @@ from flask_limiter.util import get_remote_address
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from ....config import get_settings
+from ....core.rate_limit import callback_limit, login_limit
 from ....services.auth import AuthFlowService, CurrentUserResolver
-from ....services.core.rate_limit import callback_limit, login_limit
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,4 @@
-"""Unit tests for src.main_app.services.core.rate_limit (Flask-Limiter based)."""
+"""Unit tests for src.main_app.core.rate_limit (Flask-Limiter based)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from collections.abc import Iterator
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
-from src.main_app.services.core.rate_limit import (
+from src.main_app.core.rate_limit import (
     CALLBACK_LIMIT_STRATEGY,
     LOGIN_LIMIT_STRATEGY,
     callback_limit,

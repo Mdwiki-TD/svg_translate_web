@@ -9,7 +9,7 @@ import logging
 from flask import g, request, session
 
 from ...config import get_settings
-from ..core.cookies.signing import SignedTokenService
+from ...core.cookies.signing import SignedTokenService
 from .current_user import CurrentUser
 from .token_manager import TokenManager
 

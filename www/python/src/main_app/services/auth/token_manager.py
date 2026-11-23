@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import logging
 
+from ...core.crypto import CryptoService
 from ...database.services import (
     UsersService,
     UserTokenService,
 )
-from ..core.crypto import CryptoService
 from .current_user import CurrentUser, UserTokenRecord
 
 logger = logging.getLogger(__name__)

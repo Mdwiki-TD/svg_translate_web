@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from ...config import get_settings
+from ..config import get_settings
 
 
 class CryptoService:

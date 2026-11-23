@@ -1,11 +1,11 @@
-"""Unit tests for src/main_app/services/core/jinja_filters.py module."""
+"""Unit tests for src/main_app/core/jinja_filters.py module."""
 
 from __future__ import annotations
 
 from datetime import datetime
 
 import pytest
-from src.main_app.services.core.jinja_filters import (
+from src.main_app.core.jinja_filters import (
     FormatTimestamps,
     filters,
     get_status_class,

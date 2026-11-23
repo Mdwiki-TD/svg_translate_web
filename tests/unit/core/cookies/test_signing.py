@@ -8,7 +8,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import pytest
-from src.main_app.services.core.cookies.signing import SignedTokenService
+from src.main_app.core.cookies.signing import SignedTokenService
 
 
 class TestSignUserId:
@@ -87,7 +87,7 @@ class TestExtractUserId:
 
         # Patch max_age to be -1 to expire immediately
         # (itsdangerous uses age > max_age check, so -1 expires all tokens)
-        with patch("src.main_app.services.core.cookies.signing.get_settings") as mock_settings:
+        with patch("src.main_app.core.cookies.signing.get_settings") as mock_settings:
             mock_settings.return_value.cookie.max_age = -1  # Expire immediately
 
             result = SignedTokenService().extract_user_id(signed)

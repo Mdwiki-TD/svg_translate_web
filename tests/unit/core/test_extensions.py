@@ -11,8 +11,8 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, func
 from sqlalchemy.orm import Mapped, mapped_column
+from src.main_app.core.extensions import migrate
 from src.main_app.database import Model, db
-from src.main_app.extensions import migrate
 
 
 class MockModel(Model):

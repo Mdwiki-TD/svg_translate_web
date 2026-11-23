@@ -6,7 +6,7 @@ Tests for encryption/decryption helpers used for OAuth token storage.
 from __future__ import annotations
 
 import pytest
-from src.main_app.services.core.crypto import CryptoService
+from src.main_app.core.crypto import CryptoService
 
 
 @pytest.fixture

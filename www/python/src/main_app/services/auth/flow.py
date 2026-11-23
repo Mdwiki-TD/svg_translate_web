@@ -18,8 +18,8 @@ from mwoauth import AccessToken
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from ...config import Settings, get_settings
+from ...core.cookies import SignedTokenService
 from ...database.services import UsersService
-from ..core.cookies import SignedTokenService
 from .auth_exceptions import OAuthCallbackError, OAuthIdentityError
 from .auth_service import OAuthService
 from .mapping import CallbackResult, LoginStartResult, LogoutResult

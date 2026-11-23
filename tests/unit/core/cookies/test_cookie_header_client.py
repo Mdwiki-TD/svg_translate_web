@@ -1,4 +1,4 @@
-"""Unit tests for src/main_app/services/core/cookies.py module."""
+"""Unit tests for src/main_app/core/cookies.py module."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
-from src.main_app.services.core.cookies.cookie_header_client import CookieHeaderClient
+from src.main_app.core.cookies.cookie_header_client import CookieHeaderClient
 
 
 class TestCookieHeaderClientLite:
