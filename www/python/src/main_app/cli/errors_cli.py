@@ -6,8 +6,11 @@ import click
 from flask import Flask
 from flask.cli import AppGroup
 
-from ..database.services.data import DETAIL_RETENTION_DAYS
-from ..database.services.error_log_service import BackfillAlreadyDoneError, ErrorLogService
+from ..database.services.error_log_service import (
+    DETAIL_RETENTION_DAYS,
+    BackfillAlreadyDoneError,
+    ErrorLogService,
+)
 
 
 def register_error_log_commands(app: Flask) -> None:

@@ -13,18 +13,17 @@ import logging
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask.views import MethodView
 
-from ....database.services.data import (
-    DETAIL_RETENTION_DAYS,
-    HISTORY_DEFAULT_DAYS,
-    MAX_DAYS,
-    OVERALL_LIMIT,
-    PER_PAGE,
-    PERIOD_LIMIT,
-)
-from ....database.services.error_log_service import ErrorLogService
+from ....database.services.error_log_service import DETAIL_RETENTION_DAYS, ErrorLogService
 from ....decorators import admin_required
 
 logger = logging.getLogger(__name__)
+
+
+PER_PAGE = 50
+MAX_DAYS = 365
+OVERALL_LIMIT = 100  # rows in the all-time "top failing paths" table
+PERIOD_LIMIT = 25  # rows in the selected-period "top failing paths" table
+HISTORY_DEFAULT_DAYS = 90
 
 
 class ErrorLogsView(MethodView):
