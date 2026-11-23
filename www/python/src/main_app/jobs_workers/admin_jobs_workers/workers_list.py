@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ..objects import JobData
 from .add_lang_categories_to_owid_pages import AddLangCategoriesWorker
 from .add_svglanguages_template import AddSvgSVGLanguagesTemplate

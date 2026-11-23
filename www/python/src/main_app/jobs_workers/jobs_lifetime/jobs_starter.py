@@ -9,11 +9,9 @@ from flask import Flask, current_app
 
 from ...database.exceptions import DuplicateRecordError
 from ...database.services import JobsService, SettingsService
-from ..admin_jobs_workers.workers_list import jobs_data_admins
-from ..backends.registry import get_backend, get_backend_name
-from ..backends.thread_backend import ThreadBackend
+from ..backends import BackendRegistry
 from ..objects import JobData
-from ..public_jobs_workers.workers_list_public import jobs_data_public
+from ..workers_lists import jobs_data_admins, jobs_data_public
 
 logger = logging.getLogger(__name__)
 
@@ -52,16 +50,10 @@ class JobStarter:
     def __init__(
         self,
         jobs_service: JobsService | None = None,
-        backend_cls: type[ThreadBackend] | None = None,
     ) -> None:
-        """Initialize with optional dependencies.
-
-        Args:
-            jobs_service: Jobs service instance. Falls back to default if None.
-            backend_cls: Backend class to use. Falls back to ThreadBackend if None.
-        """
+        """Initialize with optional dependencies."""
         self.jobs_service = jobs_service or JobsService()
-        self._backend_cls = backend_cls or ThreadBackend
+        self.backend_registry = BackendRegistry()
 
     def _start_impl(
         self,
@@ -90,11 +82,9 @@ class JobStarter:
         # Remove sensitive keys before storing
         resolved_args = _sanitize_args(resolved_args)
 
-        jobs_svc = JobsService()
-
         try:
             # Create job record
-            job = jobs_svc.create_job(job_type, username)
+            job = self.jobs_service.create_job(job_type, username)
         except DuplicateRecordError:
             logger.warning(
                 "Attempted to start duplicate job of type '%s' by user '%s'",
@@ -107,8 +97,7 @@ class JobStarter:
             raise
 
         # Determine backend and dispatch
-        backend_name = get_backend_name(job_type)
-        svc = JobsService()
+        backend_name = self.backend_registry.get_backend_name(job_type)
 
         # Save payload (no user/token data — identity is rebuilt from job.username)
         payload: dict[str, Any] = {
@@ -120,9 +109,9 @@ class JobStarter:
         if backend_name == "thread":
             payload["user"] = auth_payload or {}
 
-        svc.save_payload(job.id, backend_name, payload)
+        self.jobs_service.save_payload(job.id, backend_name, payload)
 
-        backend = get_backend(backend_name)
+        backend = self.backend_registry.get_backend(backend_name)
         backend.start(job, job_data, payload)
 
         logger.info(
@@ -140,15 +129,17 @@ class JobStarter:
         job_type: str,
         args: dict[str, Any] | None = None,
         form_data: dict[str, Any] | None = None,
+        app: Flask | None = None,
     ) -> int:
         """Start a background job as a daemon thread with form data."""
+        flask_app = app or current_app._get_current_object()  # type: ignore[attr-defined]
         return self._start_impl(
             auth_payload,
             job_type,
             args,
             form_data,
             daemon=True,
-            flask_app=current_app._get_current_object(),  # type: ignore[attr-defined]
+            flask_app=flask_app,
         )
 
     def start(
@@ -156,14 +147,16 @@ class JobStarter:
         auth_payload: dict[str, Any] | None,
         job_type: str,
         args: dict[str, Any] | None = None,
+        app: Flask | None = None,
     ) -> int:
         """Start a background job as a daemon thread."""
+        flask_app = app or current_app._get_current_object()  # type: ignore[attr-defined]
         return self._start_impl(
             auth_payload,
             job_type,
             args,
             daemon=True,
-            flask_app=current_app._get_current_object(),  # type: ignore[attr-defined]
+            flask_app=flask_app,
         )
 
     def start_cli(

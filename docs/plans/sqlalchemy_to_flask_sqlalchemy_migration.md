@@ -1693,7 +1693,7 @@ def import_chart_with_template(chart_data: dict, template_title: str) -> OwidCha
 ### 13.4 Flask Route Integration
 
 ```python
-# src/main_app/admin/routes/jobs.py
+# src/main_app/routes/admin/views/jobs.py
 from flask import Blueprint, jsonify, request, g, abort
 from ...services.jobs_service import create_job, get_job, update_job_status
 

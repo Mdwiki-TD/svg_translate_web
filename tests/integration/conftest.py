@@ -32,13 +32,13 @@ def admin_jobs_client(monkeypatch: pytest.MonkeyPatch):
         "src.main_app.decorators.auth_decorators.CurrentUserResolver.get_current_user", fake_current_user
     )
     monkeypatch.setattr(
-        "src.main_app.public.shared_jobs_routes.CurrentUserResolver.get_current_user", fake_current_user
+        "src.main_app.routes.public.shared_jobs_routes.CurrentUserResolver.get_current_user", fake_current_user
     )
     monkeypatch.setattr(
         "src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", fake_current_user
     )
     monkeypatch.setattr(
-        "src.main_app.public.routes_utils.RequestContextHelper._is_admin",
+        "src.main_app.routes.public.routes_utils.RequestContextHelper._is_admin",
         lambda user: bool(getattr(user, "is_active_admin", False)),
     )
 

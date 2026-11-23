@@ -161,6 +161,14 @@ class ToolForgeJob(Helper):
 
         return rows
 
+    def live_status(self) -> dict[str, Any]:
+        return {
+            "short": self.status.short or "unknown",
+            "duration": self.status.duration,
+            "messages": self.status.messages,
+            "detail": self.status_long,
+        }
+
 
 @dataclass(kw_only=True)
 class NewJob(Helper):

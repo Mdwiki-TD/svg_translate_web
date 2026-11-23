@@ -19,7 +19,7 @@
 
 ## Architecture & Code Quality Review
 
--   **Code organization**: Mirrors the source tree structure (`tests/unit/admin/routes/` ↔ `src/main_app/admin/routes/`). Clear separation: unit / integration / network.
+-   **Code organization**: Mirrors the source tree structure (`tests/unit/admin/routes/` ↔ `src/main_app/routes/admin/views/`). Clear separation: unit / integration / network.
 -   **Design patterns**:
     -   Fixture-based test setup with `conftest.py` providing app, client, DB, and mock objects
     -   `pytest_socket` for network isolation — prevents accidental HTTP calls in unit tests

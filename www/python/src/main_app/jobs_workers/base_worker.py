@@ -15,7 +15,7 @@ from ..api_services import WikiSiteClient
 from ..config import get_settings
 from ..database.services import JobsService
 from ..io.jobs_files_service import JobFilesService
-from .objects import JobsRunner
+from .objects import DbCancelEvent, JobsRunner
 from .shared_objects import SharedworkerObject, UpdaterOutcome
 from .utils import generate_result_file_name
 
@@ -56,7 +56,7 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
         self.args: dict[str, Any] = data.args or {}
 
         self.user: Final[dict[str, Any]] = data.user
-        self.cancel_event: Final[threading.Event | None] = data.cancel_event
+        self.cancel_event: Final[DbCancelEvent | threading.Event | None] = data.cancel_event
         self.job_type: str = self.JOB_TYPE
         self._status: str = "pending"
 

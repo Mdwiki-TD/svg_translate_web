@@ -9,42 +9,46 @@ from .base import JobBackend
 
 logger = logging.getLogger(__name__)
 
-_BACKENDS: dict[str, type[JobBackend]] = {}
 
+class BackendRegistry:
+    """Registry for resolving and instantiating job backends."""
 
-def _load_backends() -> dict[str, type[JobBackend]]:
-    if _BACKENDS:
-        return _BACKENDS
+    def __init__(self) -> None:
+        self._backends: dict[str, type[JobBackend]] = {}
 
-    from .thread_backend import ThreadBackend
-    from .toolforge_backend import ToolforgeBackend
+    def register(self, name: str, backend_cls: type[JobBackend]) -> None:
+        """Register a backend class under the given name."""
+        self._backends[name] = backend_cls
 
-    _BACKENDS["thread"] = ThreadBackend
-    _BACKENDS["toolforge"] = ToolforgeBackend
-    return _BACKENDS
+    def _ensure_defaults_loaded(self) -> None:
+        if self._backends:
+            return
 
+        from .thread_backend import ThreadBackend
+        from .toolforge_backend import ToolforgeBackend
 
-def get_backend_name(job_type: str | None = None) -> str:
-    """Return the backend name to use for a given job type.
+        self.register("thread", ThreadBackend)
+        self.register("toolforge", ToolforgeBackend)
 
-    Currently reads from the global ``JOBS_BACKEND`` setting.
-    Per-job-type overrides can be added later.
-    """
-    app_settings = get_settings()
-    return app_settings.jobs.backend
+    def available_backends(self) -> list[str]:
+        """Return the list of registered backend names."""
+        self._ensure_defaults_loaded()
+        return list(self._backends)
 
+    def get_backend_name(self, job_type: str | None = None) -> str:
+        """Return the backend name to use for a given job type."""
+        return get_settings().jobs.backend
 
-def get_backend(backend_name: str | None = None) -> JobBackend:
-    """Instantiate and return the requested backend."""
-    backends = _load_backends()
-    name = backend_name or get_backend_name()
-    cls = backends.get(name)
-    if cls is None:
-        raise ValueError(f"Unknown job backend: {name!r}. Available: {list(backends)}")
-    return cls()
+    def get_backend(self, backend_name: str | None = None) -> JobBackend:
+        """Instantiate and return the requested backend."""
+        self._ensure_defaults_loaded()
+        name = backend_name or self.get_backend_name()
+        cls = self._backends.get(name)
+        if cls is None:
+            raise ValueError(f"Unknown job backend: {name!r}. Available: {list(self._backends)}")
+        return cls()
 
 
 __all__ = [
-    "get_backend",
-    "get_backend_name",
+    "BackendRegistry",
 ]

@@ -40,7 +40,7 @@ Plus 2 template files:
 | #   | File                                                           | Change                                                                    |
 | --- | -------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | 8   | `src/main_app/jobs_workers/admin_jobs_workers/workers_list.py` | Register `"add_lang_categories_to_owid_pages"` in `jobs_data_admins` dict |
-| 9   | `src/main_app/admin/sidebar.py`                                | Add a `SidebarItem` under the **"OWID Templates/Pages"** group            |
+| 9   | `src/main_app/routes/admin/sidebar.py`                                | Add a `SidebarItem` under the **"OWID Templates/Pages"** group            |
 
 ## File to Potentially Expand
 

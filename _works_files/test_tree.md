@@ -3,22 +3,6 @@ tests/
 │
 ├── integration/
 │   │
-│   ├── admin/
-│   │   │
-│   │   ├── routes/
-│   │   │   ├── test_add_lang_categories_details_template.py
-│   │   │   ├── test_admin_jobs_routes.py
-│   │   │   ├── test_admin_templates_routes.py
-│   │   │   ├── test_create_owid_pages_details_template.py
-│   │   │   ├── test_crop_main_files_details_template.py
-│   │   │   ├── test_owid_charts_integration.py
-│   │   │   ├── test_settings_integration.py
-│   │   │   ├── test_templates_admin_routes_integration.py
-│   │   │   ├── test_templates_integration.py
-│   │   │   └── test_update_owid_charts_details_template.py
-│   │   │
-│   │   └── test_admin_routes.py
-│   │
 │   ├── api_services/
 │   │   │
 │   │   ├── clients/
@@ -32,34 +16,34 @@ tests/
 │   ├── database/
 │   │   └── test_connection_reuse.py
 │   │
-│   ├── public/
+│   ├── routes/
 │   │   │
-│   │   ├── auth/
-│   │   │   ├── test_auth_routes.py
-│   │   │   └── test_oauth_helpers_integration.py
+│   │   ├── admin/
+│   │   │   │
+│   │   │   ├── views/
+│   │   │   │   ├── test_add_lang_categories_details_template.py
+│   │   │   │   ├── test_admin_jobs_routes.py
+│   │   │   │   ├── test_admin_templates_routes.py
+│   │   │   │   ├── test_create_owid_pages_details_template.py
+│   │   │   │   ├── test_crop_main_files_details_template.py
+│   │   │   │   ├── test_owid_charts_integration.py
+│   │   │   │   ├── test_settings_integration.py
+│   │   │   │   ├── test_templates_admin_routes_integration.py
+│   │   │   │   ├── test_templates_integration.py
+│   │   │   │   └── test_update_owid_charts_details_template.py
+│   │   │   │
+│   │   │   └── test_admin_routes.py
 │   │   │
-│   │   ├── explorer/
-│   │   │
-│   │   ├── extract/
-│   │   │
-│   │   ├── fix_nested/
-│   │   │
-│   │   ├── main/
-│   │   │
-│   │   ├── routes/
-│   │   │   ├── test_explorer_routes_integration.py
-│   │   │   ├── test_extract_routes_integration.py
-│   │   │   ├── test_routes_integration.py
-│   │   │   └── test_owid_charts_routes_integration.py
-│   │   │
-│   │   ├── test_jobs_utils_bp_routes_integration.py
-│   │   └── test_public_jobs_integration.py
-│   │
-│   ├── public_jobs_workers/
-│   │   │
-│   │   └── copy_svg_langs/
+│   │   └── public/
 │   │       │
-│   │       └── steps/
+│   │       └── views/
+│   │           ├── test_auth_routes.py
+│   │           ├── test_explorer_routes_integration.py
+│   │           ├── test_extract_routes_integration.py
+│   │           ├── test_jobs_utils_bp_routes_integration.py
+│   │           ├── test_main_route.py
+│   │           ├── test_oauth_helpers_integration.py
+│   │           └── test_owid_charts_routes_integration.py
 │   │
 │   ├── services/
 │   │   │
@@ -87,36 +71,28 @@ tests/
 │   │   ├── clients/
 │   │   │   └── test_owid_client_network.py
 │   │   │
-│   │   ├── mwclient_page/
-│   │   │   └── test_mwclient_wraper_network.py
-│   │   │
-│   │   └── test_query_api_network.py
+│   │   └── mwclient_page/
+│   │       └── test_mwclient_wraper_network.py
 │   │
 │   ├── __init__.py
-│   ├── network_conftest.py
 │   └── README.md
 │
 ├── unit/
 │   │
-│   ├── admin/
-│   │   │
-│   │   ├── routes/
-│   │   │   ├── test_coordinators.py
-│   │   │   ├── test_coordinators_exception_handling.py
-│   │   │   ├── test_owid_charts.py
-│   │   │   ├── test_settings.py
-│   │   │   ├── test_slug_redirects.py
-│   │   │   ├── test_templates.py
-│   │   │   └── test_users_routes.py
-│   │   │
-│   │   └── test_admins_required.py
-│   │
 │   ├── api_services/
 │   │   │
 │   │   ├── clients/
+│   │   │   │
+│   │   │   ├── toolforge/
+│   │   │   │   ├── test_toolforge_api_service.py
+│   │   │   │   ├── test_toolforge_jobs_api_service.py
+│   │   │   │   ├── test_toolforge_jobs_api_service2.py
+│   │   │   │   └── test_toolforge_jobs_types.py
+│   │   │   │
+│   │   │   ├── test_category_members_api.py
 │   │   │   ├── test_commons_client.py
 │   │   │   ├── test_owid_client.py
-│   │   │   └── test_wiki_client.py
+│   │   │   └── test_wikisite_client.py
 │   │   │
 │   │   ├── files_service/
 │   │   │   ├── test_file_langs.py
@@ -130,7 +106,6 @@ tests/
 │   │   │   ├── test_mwclient_page.py
 │   │   │   └── test_mwclient_wraper.py
 │   │   │
-│   │   ├── test_category.py
 │   │   └── test_query_api.py
 │   │
 │   ├── config/
@@ -141,11 +116,13 @@ tests/
 │   ├── core/
 │   │   │
 │   │   ├── cookies/
-│   │   │   ├── test_cookie.py
-│   │   │   └── test_cookie_header_client.py
+│   │   │   ├── test_cookie_header_client.py
+│   │   │   └── test_signing.py
 │   │   │
 │   │   ├── test_crypto.py
-│   │   └── test_jinja_filters.py
+│   │   ├── test_extensions.py
+│   │   ├── test_jinja_filters.py
+│   │   └── test_rate_limit.py
 │   │
 │   ├── data/
 │   │   └── test_data.py
@@ -153,47 +130,52 @@ tests/
 │   ├── database/
 │   │   │
 │   │   ├── models/
-│   │   │   ├── test_coordinator_record_alchemy.py
-│   │   │   ├── test_jobs.py
+│   │   │   │
+│   │   │   ├── owid/
+│   │   │   │   ├── test_owid_chart_record_alchemy.py
+│   │   │   │   ├── test_owid_slug_redirects.py
+│   │   │   │   └── test_owid_slug_redirects_model.py
+│   │   │   │
+│   │   │   ├── users/
+│   │   │   │   ├── test_admin_users.py
+│   │   │   │   ├── test_user_model.py
+│   │   │   │   └── test_user_token_model.py
+│   │   │   │
 │   │   │   ├── test_jobs_model.py
-│   │   │   ├── test_jobs_modules.py
-│   │   │   ├── test_owid_chart_record_alchemy.py
-│   │   │   ├── test_owid_slug_redirects.py
-│   │   │   ├── test_owid_slug_redirects_model.py
 │   │   │   ├── test_template_need_update_record_alchemy.py
-│   │   │   ├── test_template_record_alchemy.py
-│   │   │   ├── test_users.py
-│   │   │   └── test_views.py
+│   │   │   └── test_template_record_alchemy.py
 │   │   │
 │   │   ├── services/
+│   │   │   │
+│   │   │   ├── users/
+│   │   │   │   ├── test_admin_service.py
+│   │   │   │   ├── test_user_token_service.py
+│   │   │   │   └── test_users_service.py
 │   │   │   │
 │   │   │   ├── utils/
 │   │   │   │   ├── test_detachedinstanceerror.py
 │   │   │   │   └── test_retry_on_disconnect.py
 │   │   │   │
-│   │   │   ├── test_admin_service.py
 │   │   │   ├── test_charts_and_templates_service.py
 │   │   │   ├── test_jobs_service.py
 │   │   │   ├── test_owid_charts_service.py
 │   │   │   ├── test_owid_slug_redirects_service.py
 │   │   │   ├── test_settings_service.py
 │   │   │   ├── test_template_service.py
-│   │   │   ├── test_user_token_service.py
-│   │   │   ├── test_users_service.py
 │   │   │   └── test_views_service.py
 │   │   │
-│   │   ├── test_db_init.py
 │   │   ├── test_exceptions.py
 │   │   └── test_templates_utils.py
 │   │
 │   ├── decorators/
+│   │   ├── test_admin_decorators.py
+│   │   ├── test_admins_required.py
+│   │   └── test_auth_decorators.py
 │   │
 │   ├── extensions/
 │   │
 │   ├── io/
-│   │   ├── test_jobs_files_service.py
-│   │   ├── test_jobs_files_service1.py
-│   │   └── test_jobs_files_service_new.py
+│   │   └── test_jobs_files_service.py
 │   │
 │   ├── jobs_workers/
 │   │   │
@@ -239,6 +221,7 @@ tests/
 │   │   │   │   └── test_fix_worker_cancellation.py
 │   │   │   │
 │   │   │   ├── rename_owid_pages/
+│   │   │   │   ├── test_rename_owid_pages_objects.py
 │   │   │   │   └── test_rename_owid_pages_worker.py
 │   │   │   │
 │   │   │   ├── update_owid_charts/
@@ -248,6 +231,13 @@ tests/
 │   │   │   │   └── test_jobs_workers_utils.py
 │   │   │   │
 │   │   │   └── test_slugs_helpers.py
+│   │   │
+│   │   ├── base_worker/
+│   │   │   ├── test_base_worker.py
+│   │   │   ├── test_base_worker_object.py
+│   │   │   └── test_job_lifecycle_updates.py
+│   │   │
+│   │   ├── jobs_lifetime/
 │   │   │
 │   │   ├── public_jobs_workers/
 │   │   │   │
@@ -267,9 +257,6 @@ tests/
 │   │   ├── utils/
 │   │   │   └── test_utils_init.py
 │   │   │
-│   │   ├── test_base_worker.py
-│   │   ├── test_base_worker_object.py
-│   │   ├── test_job_lifecycle_updates.py
 │   │   ├── test_jobs_worker.py
 │   │   ├── test_jobs_worker1.py
 │   │   ├── test_jobs_worker_logic.py
@@ -278,47 +265,67 @@ tests/
 │   │   ├── test_workers_list.py
 │   │   └── test_workers_utils.py
 │   │
-│   ├── public/
+│   ├── parsers/
 │   │   │
-│   │   ├── auth/
-│   │   │   ├── test_rate_limit.py
-│   │   │   └── test_routes.py
+│   │   ├── wtp_mapping/
+│   │   │   │
+│   │   │   ├── data/
+│   │   │   │   └── source-1.wiki
+│   │   │   │
+│   │   │   ├── test_wtp_refs.py
+│   │   │   ├── test_wtp_refs_temps.py
+│   │   │   └── test_wtp_temps.py
 │   │   │
-│   │   ├── routes/
-│   │   │   └── test_owid_charts_routes.py
+│   │   ├── test_template_editor.py
+│   │   └── test_template_editor_delete.py
+│   │
+│   ├── routes/
 │   │   │
-│   │   ├── utils/
-│   │   │   ├── test_compare.py
-│   │   │   ├── test_explorer_utils.py
-│   │   │   ├── test_get_job_detail_url.py
-│   │   │   ├── test_routes_utils.py
-│   │   │   ├── test_routes_utils_unit.py
-│   │   │   └── test_thumbnail_utils.py
+│   │   ├── admin/
+│   │   │   │
+│   │   │   ├── views/
+│   │   │   │   ├── test_admins.py
+│   │   │   │   ├── test_admins_exception_handling.py
+│   │   │   │   ├── test_owid_charts.py
+│   │   │   │   ├── test_settings.py
+│   │   │   │   ├── test_slug_redirects.py
+│   │   │   │   ├── test_templates.py
+│   │   │   │   └── test_users_routes.py
+│   │   │   │
+│   │   │   └── test_admin_sidebar.py
 │   │   │
-│   │   ├── test_api_routes.py
-│   │   ├── test_jobs_utils_bp.py
-│   │   ├── test_profile.py
-│   │   ├── test_public_jobs.py
-│   │   ├── test_shared_jobs_routes.py
-│   │   └── test_translate_routes.py
+│   │   └── public/
+│   │       │
+│   │       ├── auth/
+│   │       │
+│   │       ├── routes_service/
+│   │       │   ├── test_compare.py
+│   │       │   ├── test_explorer_utils.py
+│   │       │   └── test_thumbnail_utils.py
+│   │       │
+│   │       ├── views/
+│   │       │   ├── test_api_routes.py
+│   │       │   ├── test_jobs_utils_bp.py
+│   │       │   ├── test_profile_view.py
+│   │       │   ├── test_public_jobs.py
+│   │       │   └── test_translate_routes.py
+│   │       │
+│   │       ├── test_routes_utils.py
+│   │       └── test_shared_jobs_routes.py
 │   │
 │   ├── services/
 │   │   │
 │   │   ├── auth/
-│   │   │   ├── test_auth_decorators.py
 │   │   │   ├── test_auth_service.py
-│   │   │   ├── test_auth_utils.py
 │   │   │   ├── test_current_user.py
+│   │   │   ├── test_current_user_resolver.py
+│   │   │   ├── test_flow.py
 │   │   │   └── test_token_manager.py
 │   │   │
 │   │   ├── copysvg_wrapper/
 │   │   │   ├── test_extract_translations.py
 │   │   │   ├── test_inject_one_file.py
 │   │   │   └── test_nested_fixer.py
-│   │   │
-│   │   ├── core/
-│   │   │   │
-│   │   │   └── cookies/
 │   │   │
 │   │   ├── data/
 │   │   │
@@ -330,7 +337,7 @@ tests/
 │   │       └── test_decode_bytes.py
 │   │
 │   ├── templates_markups/
-│   │   └── test_admin_sidebar.py
+│   │   └── test_sidebar.py
 │   │
 │   ├── utils/
 │   │   │
@@ -351,8 +358,8 @@ tests/
 │   │   │   │
 │   │   │   ├── other_versions/
 │   │   │   │   ├── test_other_versions.py
-│   │   │   │   ├── test_other_versions_delete.py
-│   │   │   │   └── test_other_versions_svg_lang.py
+│   │   │   │   ├── test_other_versions_svg_lang.py
+│   │   │   │   └── test_other_versions_updater.py
 │   │   │   │
 │   │   │   ├── owid_gallery/
 │   │   │   │   ├── test_find_newest_year.py
@@ -373,12 +380,12 @@ tests/
 │   │   └── test_verify.py
 │   │
 │   ├── conftest.py
+│   ├── test_app_factory.py
 │   ├── test_app_factory_regression_unit.py
-│   ├── test_extensions.py
-│   ├── test_init.py
-│   └── test_logger_config.py
+│   └── test_logging_setup.py
 │
 ├── __init__.py
+├── AUDIT_REPORT_2025-01-20.md
 ├── conftest.py
 ├── README.md
 └── test_app.py

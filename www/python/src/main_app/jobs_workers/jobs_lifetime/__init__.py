@@ -1,5 +1,3 @@
-"""Job execution backends (thread / toolforge)."""
-
 from __future__ import annotations
 
 from .jobs_canceller import JobCanceller

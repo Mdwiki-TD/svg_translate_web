@@ -10,7 +10,7 @@ from src.main_app.api_services.clients.wikisite_client import (
     WikiSiteClient,
     coerce_encrypted,
 )
-from src.main_app.services.core.crypto import CryptoService
+from src.main_app.core.crypto import CryptoService
 
 
 class TestCoerceEncrypted:

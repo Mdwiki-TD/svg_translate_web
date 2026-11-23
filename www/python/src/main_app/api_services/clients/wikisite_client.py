@@ -10,7 +10,7 @@ import requests
 from mwclient.client import Site
 
 from ...config import get_settings
-from ...services.core.crypto import CryptoService
+from ...core.crypto import CryptoService
 
 logger = logging.getLogger(__name__)
 
