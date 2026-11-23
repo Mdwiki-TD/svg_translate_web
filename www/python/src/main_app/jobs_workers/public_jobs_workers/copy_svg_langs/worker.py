@@ -12,6 +12,7 @@ from ....services.copysvg_wrapper import (
     ExtractResult,
     SvgTranslationExtractor,
 )
+from ...admin_jobs_workers.crop_main_files.steps import CropMainFilesSteps
 from ...base_worker import BaseObjectsJobWorker
 from ...objects import JobsRunner
 from .files_worker import OneFileProcessor
@@ -95,6 +96,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
             self.main_title = step_result["main_title"]
             self.result.main_title = self.main_title
             self.titles = list(step_result["titles"])
+            cropped_main_title = CropMainFilesSteps.generate_cropped_filename(self.main_title)
+            if cropped_main_title not in self.titles:
+                self.titles.append(cropped_main_title)
             self.titles.sort()
 
             return True
