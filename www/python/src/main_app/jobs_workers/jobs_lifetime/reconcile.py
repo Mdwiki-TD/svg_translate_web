@@ -7,12 +7,12 @@ from datetime import UTC, datetime, timedelta
 
 from requests import HTTPError
 
-from ..api_services.clients.toolforge import ToolForgeJob, ToolforgeJobsService
-from ..config import get_settings
-from ..database.models import JobRecord
-from ..database.services import JobsService
-from .admin_jobs_workers.workers_list import jobs_data_admins
-from .backends.toolforge_backend import tf_job_name
+from ...api_services.clients.toolforge import ToolForgeJob, ToolforgeJobsService
+from ...config import get_settings
+from ...database.models import JobRecord
+from ...database.services import JobsService
+from ..admin_jobs_workers.workers_list import jobs_data_admins
+from ..backends.toolforge_backend import tf_job_name
 
 logger = logging.getLogger(__name__)
 

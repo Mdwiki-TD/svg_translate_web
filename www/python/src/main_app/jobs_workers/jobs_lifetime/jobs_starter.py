@@ -9,10 +9,9 @@ from flask import Flask, current_app
 
 from ...database.exceptions import DuplicateRecordError
 from ...database.services import JobsService, SettingsService
-from ..admin_jobs_workers.workers_list import jobs_data_admins
+from ..workers_lists import jobs_data_admins, jobs_data_public
 from ..backends import BackendRegistry
 from ..objects import JobData
-from ..public_jobs_workers.workers_list_public import jobs_data_public
 
 logger = logging.getLogger(__name__)
 

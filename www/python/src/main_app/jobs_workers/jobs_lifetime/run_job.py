@@ -9,10 +9,10 @@ import json
 import logging
 import signal
 
-from ..database.services import JobsService
-from .admin_jobs_workers.workers_list import jobs_data_admins
+from ...database.services import JobsService
+from ..admin_jobs_workers.workers_list import jobs_data_admins
 from .cancel import DbCancelEvent
-from .objects import JobsRunner
+from ..objects import JobsRunner
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +24,8 @@ def build_job_user(username: str) -> dict | None:
     ``{id, username, access_token, access_secret}``.
     Returns None if the user has no token (deleted or never logged in).
     """
-    from ..database.services.users.user_token_service import UserTokenService
-    from ..services.auth.token_manager import TokenManager
+    from ...database.services.users.user_token_service import UserTokenService
+    from ...services.auth.token_manager import TokenManager
 
     token = UserTokenService().get_user_token_by_username(username)
     if token is None:

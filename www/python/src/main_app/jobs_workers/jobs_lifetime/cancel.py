@@ -30,7 +30,7 @@ class DbCancelEvent:
         now = time.monotonic()
         if now - self._last_check >= self.interval:
             self._last_check = now
-            from ..database.services import JobsService
+            from ...database.services import JobsService
 
             self._set = JobsService().is_job_cancelled(self.job_id)
         return self._set

@@ -34,10 +34,15 @@ def mock_jobs_service() -> MagicMock:
 
 
 @pytest.fixture
+def mock_jobs_files_service() -> MagicMock:
+    """Fake JobFilesService, injected directly into JobCanceller."""
+    return MagicMock()
+
+
+@pytest.fixture
 def mock_db_services(monkeypatch: pytest.MonkeyPatch):
     mocks = {
         "settings": MagicMock(),
-        "cancel_file": MagicMock(),
         "backend": MagicMock(),
     }
     monkeypatch.setattr(
@@ -47,10 +52,6 @@ def mock_db_services(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.BackendRegistry.get_backend",
         lambda *a: mocks["backend"],
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.jobs_lifetime.jobs_canceller.JobFilesService.create_cancel_file",
-        mocks["cancel_file"],
     )
     return mocks
 
@@ -107,21 +108,24 @@ def test_runner_no_form_data(flask_app):
     assert pop_cancel_event(1) is None  # should be popped
 
 
-def test_cancel_job_worker(mock_db_services, mock_jobs_service):
+def test_cancel_job_worker(mock_jobs_service, mock_jobs_files_service):
     event = threading.Event()
     register_cancel_event(1, event)
     job = MagicMock()
     job.result_file = "test_result"
 
     mock_jobs_service.cancel_job_db.return_value = True
-    mock_db_services["cancel_file"].return_value = True
+    mock_jobs_files_service.create_cancel_file.return_value = True
 
-    res = JobCanceller(jobs_service=mock_jobs_service).cancel(1, "test_type", job)
+    res = JobCanceller(
+        jobs_service=mock_jobs_service,
+        jobs_files_service=mock_jobs_files_service,
+    ).cancel(1, "test_type", job)
 
     assert res is True
     assert event.is_set()
     mock_jobs_service.cancel_job_db.assert_called_once_with(1, "test_type")
-    mock_db_services["cancel_file"].assert_called_once_with("test_result.cancelled")
+    mock_jobs_files_service.create_cancel_file.assert_called_once_with("test_result.cancelled")
 
 
 @pytest.fixture
