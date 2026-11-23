@@ -735,10 +735,10 @@ class TestCopySvgLangsWorkerProcessAdvanced:
 
         result = mock_worker.process()
 
-        # titles: "F1.svg" plus the auto-added cropped main title "File:Main (cropped).svg"
+        # titles: "F1.svg" plus the auto-added cropped main title "Main (cropped).svg"
         assert len(result.files_skipped) == 2
         assert {item.status for item in result.files_skipped} == {"skipped"}
-        assert {item.title for item in result.files_skipped} == {"F1.svg", "File:Main (cropped).svg"}
+        assert {item.title for item in result.files_skipped} == {"F1.svg", "Main (cropped).svg"}
 
 
 class TestCopySvgLangsWorkerStageMethods:
@@ -763,6 +763,27 @@ class TestCopySvgLangsWorkerStageMethods:
         mock_worker.text = "some text"
         mock_steps.titles.return_value = {
             "success": True,
+            "main_title": "Main.svg",
+            "titles": ["Version.svg"],
+        }
+
+        result = mock_worker._extract_titles_step()
+
+        assert result is True
+        assert mock_worker.titles == [
+            "Main (cropped).svg",
+            "Version.svg",
+        ]
+
+    def test_extract_titles_step_cropped_main_title_without_file_prefix(
+        self,
+        mock_worker: CopySvgLangsWorker,
+        mock_steps: MockSteps,
+    ):
+        """A main title carrying the 'File:' prefix still yields a bare cropped title."""
+        mock_worker.text = "some text"
+        mock_steps.titles.return_value = {
+            "success": True,
             "main_title": "File:Main.svg",
             "titles": ["File:Version.svg"],
         }
@@ -771,8 +792,8 @@ class TestCopySvgLangsWorkerStageMethods:
 
         assert result is True
         assert mock_worker.titles == [
-            "File:Main (cropped).svg",
             "File:Version.svg",
+            "Main (cropped).svg",
         ]
 
     def test_extract_titles_step_exception(
