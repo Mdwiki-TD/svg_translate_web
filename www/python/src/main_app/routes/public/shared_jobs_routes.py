@@ -227,14 +227,17 @@ class SharedJobRoutes:
 
         # Load job result if available
         result_data = (self.jobs_files_service.load_result(job.result_file) or {}) if job.result_file else {}
-        result_data.setdefault("errors", {})
+        errors = result_data.get("errors")
+        if not isinstance(errors, list):
+            errors = [errors] if isinstance(errors, dict) and errors else []
+            result_data["errors"] = errors
         result_data.setdefault("summary", {})
 
         if job.error_message:
-            result_data["errors"].append({"error": job.error_message, "error_type": "DB error"})
+            errors.append({"error": job.error_message, "error_type": "DB error"})
 
         if result_data.get("error"):
-            result_data["errors"].append(
+            errors.append(
                 {
                     "error": result_data["error"],
                     "error_type": result_data.get("error_type") or "Error",

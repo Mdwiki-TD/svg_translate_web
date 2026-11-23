@@ -324,7 +324,7 @@ class TestJobDetail(TestSetup):
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job,
-            result_data={"errors": {}, "summary": {}},
+            result_data={"errors": [], "summary": {}},
             template_data=mock_template_data,
             bp_name="public_jobs",
         )
@@ -343,7 +343,7 @@ class TestJobDetail(TestSetup):
         mock_deps.render_template.assert_called_once_with(
             "test_detail.html",
             job=seeded_job_with_result,
-            result_data={"key": "value", "errors": {}, "summary": {}},
+            result_data={"key": "value", "errors": [], "summary": {}},
             template_data=mock_template_data,
             bp_name="public_jobs",
         )
