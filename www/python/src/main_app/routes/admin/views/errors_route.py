@@ -127,13 +127,13 @@ class ErrorDashboardView(MethodView):
 
         logs_dir = get_log_dir()
         files = self._list_log_files(logs_dir)
-        files.append(DEFAULT_LOG_PATH.name)
 
         selected_file = self.get_selected_log_file(file_name, files)
         logger.info("Read file: %s (q=%r)", selected_file, query)
 
         log_path = logs_dir / selected_file if selected_file else DEFAULT_LOG_PATH
 
+        files.append(DEFAULT_LOG_PATH.name)
         rows: list[tuple[int, Markup]] = []
         total = 0
         capped = False
