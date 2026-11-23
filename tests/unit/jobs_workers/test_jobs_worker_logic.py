@@ -52,7 +52,7 @@ def mock_db_services(monkeypatch: pytest.MonkeyPatch):
         mocks["cancel_file"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.get_backend",
+        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.BackendRegistry.get_backend",
         lambda name=None: mocks["backend"],
     )
     return mocks
