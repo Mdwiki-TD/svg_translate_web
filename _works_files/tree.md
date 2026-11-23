@@ -3,35 +3,24 @@ src/
 │
 ├── main_app/
 │   │
-│   ├── admin/
-│   │   │
-│   │   ├── routes/
-│   │   │   ├── __init__.py
-│   │   │   ├── coordinators.py
-│   │   │   ├── error_logs.py
-│   │   │   ├── errors_route.py
-│   │   │   ├── jobs.py
-│   │   │   ├── owid_charts.py
-│   │   │   ├── settings.py
-│   │   │   ├── slug_redirects.py
-│   │   │   ├── templates.py
-│   │   │   └── users.py
-│   │   │
-│   │   ├── __init__.py
-│   │   ├── admin_panel.py
-│   │   ├── decorators.py
-│   │   ├── flask_admin_panel.py
-│   │   └── flask_admin_panel_models.py
-│   │
 │   ├── api_services/
 │   │   │
 │   │   ├── clients/
+│   │   │   │
+│   │   │   ├── toolforge/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── toolforge_api_service.py
+│   │   │   │   ├── toolforge_jobs_api_service.py
+│   │   │   │   └── toolforge_jobs_types.py
+│   │   │   │
 │   │   │   ├── __init__.py
+│   │   │   ├── category_members_api.py
 │   │   │   ├── commons_client.py
 │   │   │   ├── http_client.py
+│   │   │   ├── http_client_helper.py
 │   │   │   ├── objects.py
 │   │   │   ├── owid_client.py
-│   │   │   └── wiki_client.py
+│   │   │   └── wikisite_client.py
 │   │   │
 │   │   ├── files_service/
 │   │   │   ├── __init__.py
@@ -47,15 +36,33 @@ src/
 │   │   │   └── mwclient_wraper.py
 │   │   │
 │   │   ├── __init__.py
-│   │   ├── category.py
 │   │   ├── query_api.py
 │   │   └── README.md
+│   │
+│   ├── cli/
+│   │   ├── __init__.py
+│   │   └── cli_jobs.py
 │   │
 │   ├── config/
 │   │   ├── __init__.py
 │   │   ├── classes.py
-│   │   ├── flask_config.py
-│   │   └── main_settings.py
+│   │   └── flask_config.py
+│   │
+│   ├── core/
+│   │   │
+│   │   ├── cookies/
+│   │   │   ├── __init__.py
+│   │   │   ├── cookie_header_client.py
+│   │   │   └── signing.py
+│   │   │
+│   │   ├── extensions/
+│   │   │   ├── __init__.py
+│   │   │   └── csrf_protect.py
+│   │   │
+│   │   ├── __init__.py
+│   │   ├── crypto.py
+│   │   ├── jinja_filters.py
+│   │   └── rate_limit.py
 │   │
 │   ├── data/
 │   │   ├── __init__.py
@@ -79,12 +86,17 @@ src/
 │   │   │
 │   │   ├── services/
 │   │   │   │
+│   │   │   ├── users/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── admin_service.py
+│   │   │   │   ├── user_token_service.py
+│   │   │   │   └── users_service.py
+│   │   │   │
 │   │   │   ├── utils/
 │   │   │   │   ├── __init__.py
 │   │   │   │   └── retry_on_disconnect.py
 │   │   │   │
 │   │   │   ├── __init__.py
-│   │   │   ├── admin_service.py
 │   │   │   ├── charts_and_templates_service.py
 │   │   │   ├── crud_service.py
 │   │   │   ├── error_log_service.py
@@ -93,21 +105,19 @@ src/
 │   │   │   ├── owid_slug_redirects_service.py
 │   │   │   ├── settings_service.py
 │   │   │   ├── template_service.py
-│   │   │   ├── user_token_service.py
-│   │   │   ├── users_service.py
 │   │   │   └── views_service.py
 │   │   │
 │   │   ├── __init__.py
 │   │   ├── create_helper.py
+│   │   ├── db_base.py
+│   │   ├── db_builder.py
 │   │   ├── exceptions.py
 │   │   └── templates_utils.py
 │   │
 │   ├── decorators/
-│   │
-│   ├── extensions/
 │   │   ├── __init__.py
-│   │   ├── _csrf.py
-│   │   └── data_base.py
+│   │   ├── admin_decorators.py
+│   │   └── auth_decorators.py
 │   │
 │   ├── io/
 │   │   ├── __init__.py
@@ -184,6 +194,19 @@ src/
 │   │   │   ├── slugs_helpers.py
 │   │   │   └── workers_list.py
 │   │   │
+│   │   ├── backends/
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py
+│   │   │   ├── registry.py
+│   │   │   ├── thread_backend.py
+│   │   │   └── toolforge_backend.py
+│   │   │
+│   │   ├── jobs_lifetime/
+│   │   │   ├── __init__.py
+│   │   │   ├── cancel_registry.py
+│   │   │   ├── jobs_canceller.py
+│   │   │   └── jobs_starter.py
+│   │   │
 │   │   ├── public_jobs_workers/
 │   │   │   │
 │   │   │   ├── copy_svg_langs/
@@ -207,48 +230,86 @@ src/
 │   │   │   ├── __init__.py
 │   │   │   └── workers_list_public.py
 │   │   │
-│   │   ├── utils/
-│   │   │   └── __init__.py
-│   │   │
 │   │   ├── __init__.py
 │   │   ├── base_worker.py
-│   │   ├── cli_jobs.py
-│   │   ├── jobs_worker.py
+│   │   ├── cancel.py
 │   │   ├── objects.py
-│   │   └── shared_objects.py
+│   │   ├── reconcile.py
+│   │   ├── run_job.py
+│   │   ├── shared_objects.py
+│   │   └── utils.py
 │   │
-│   ├── public/
+│   ├── parsers/
 │   │   │
-│   │   ├── auth/
+│   │   ├── wtp_mapping/
 │   │   │   ├── __init__.py
-│   │   │   ├── decorators.py
-│   │   │   ├── rate_limit.py
-│   │   │   └── routes.py
-│   │   │
-│   │   ├── routes/
-│   │   │   ├── __init__.py
-│   │   │   ├── explorer_routes.py
-│   │   │   ├── extract_routes.py
-│   │   │   ├── inject_routes.py
-│   │   │   ├── mapping.py
-│   │   │   ├── owid_charts_routes.py
-│   │   │   ├── routes.py
-│   │   │   ├── templates.py
-│   │   │   └── translate_routes.py
-│   │   │
-│   │   ├── utils/
-│   │   │   ├── __init__.py
-│   │   │   ├── compare.py
-│   │   │   ├── explorer_utils.py
-│   │   │   ├── routes_utils.py
-│   │   │   └── thumbnail_utils.py
+│   │   │   ├── wtp_refs.py
+│   │   │   ├── wtp_refs_temps.py
+│   │   │   └── wtp_temps.py
 │   │   │
 │   │   ├── __init__.py
-│   │   ├── api_routes.py
-│   │   ├── jobs_utils_bp.py
-│   │   ├── profile.py
-│   │   ├── public_jobs.py
-│   │   └── shared_jobs_routes.py
+│   │   └── template_editor.py
+│   │
+│   ├── routes/
+│   │   │
+│   │   ├── admin/
+│   │   │   │
+│   │   │   ├── routes_services/
+│   │   │   │   ├── toolforge_jobs_mapping.py
+│   │   │   │   └── toolforge_jobs_service.py
+│   │   │   │
+│   │   │   ├── views/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── admins.py
+│   │   │   │   ├── error_logs.py
+│   │   │   │   ├── errors_route.py
+│   │   │   │   ├── owid_charts.py
+│   │   │   │   ├── settings.py
+│   │   │   │   ├── slug_redirects.py
+│   │   │   │   ├── templates.py
+│   │   │   │   ├── toolforge_jobs_view.py
+│   │   │   │   └── users.py
+│   │   │   │
+│   │   │   ├── __init__.py
+│   │   │   ├── admin_panel.py
+│   │   │   ├── admin_routes_registrar.py
+│   │   │   ├── admin_sidebar.py
+│   │   │   ├── flask_admin_panel.py
+│   │   │   └── flask_admin_panel_models.py
+│   │   │
+│   │   ├── public/
+│   │   │   │
+│   │   │   ├── routes_service/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── compare.py
+│   │   │   │   ├── explorer_utils.py
+│   │   │   │   └── thumbnail_utils.py
+│   │   │   │
+│   │   │   ├── views/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── api_routes.py
+│   │   │   │   ├── auth_route.py
+│   │   │   │   ├── explorer_routes.py
+│   │   │   │   ├── extract_routes.py
+│   │   │   │   ├── inject_routes.py
+│   │   │   │   ├── jobs_utils_bp.py
+│   │   │   │   ├── main_route.py
+│   │   │   │   ├── mapping.py
+│   │   │   │   ├── owid_charts_routes.py
+│   │   │   │   ├── profile_view.py
+│   │   │   │   ├── templates_view.py
+│   │   │   │   └── translate_routes.py
+│   │   │   │
+│   │   │   ├── __init__.py
+│   │   │   ├── public_routes_registrar.py
+│   │   │   ├── routes_utils.py
+│   │   │   ├── shared_jobs_registrar.py
+│   │   │   └── shared_jobs_routes.py
+│   │   │
+│   │   ├── __init__.py
+│   │   ├── error_pages.py
+│   │   ├── models.py
+│   │   └── routes_factory.py
 │   │
 │   ├── services/
 │   │   │
@@ -257,9 +318,10 @@ src/
 │   │   │   ├── auth_exceptions.py
 │   │   │   ├── auth_service.py
 │   │   │   ├── current_user.py
+│   │   │   ├── current_user_resolver.py
 │   │   │   ├── flow.py
-│   │   │   ├── token_manager.py
-│   │   │   └── utils.py
+│   │   │   ├── mapping.py
+│   │   │   └── token_manager.py
 │   │   │
 │   │   ├── copysvg_wrapper/
 │   │   │   ├── __init__.py
@@ -267,17 +329,6 @@ src/
 │   │   │   ├── inject_one_file.py
 │   │   │   ├── mapping.py
 │   │   │   └── nested_fixer.py
-│   │   │
-│   │   ├── core/
-│   │   │   │
-│   │   │   ├── cookies/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── cookie.py
-│   │   │   │   └── cookie_header_client.py
-│   │   │   │
-│   │   │   ├── __init__.py
-│   │   │   ├── crypto.py
-│   │   │   └── jinja_filters.py
 │   │   │
 │   │   ├── fix_nested/
 │   │   │   ├── __init__.py
@@ -292,17 +343,16 @@ src/
 │   │
 │   ├── templates_markups/
 │   │   │
-│   │   ├── admin_sidebar/
-│   │   │   ├── __init__.py
-│   │   │   ├── mapping.py
-│   │   │   ├── sidebar.py
-│   │   │   └── sidebar_list.py
-│   │   │
 │   │   ├── navbar/
 │   │   │   ├── __init__.py
 │   │   │   ├── mapping.py
 │   │   │   ├── nav_bar.py
 │   │   │   └── navbar_list.py
+│   │   │
+│   │   ├── sidebar/
+│   │   │   ├── __init__.py
+│   │   │   ├── mapping.py
+│   │   │   └── sidebar.py
 │   │   │
 │   │   └── __init__.py
 │   │
@@ -326,9 +376,8 @@ src/
 │   │   └── wikitext.7z
 │   │
 │   ├── __init__.py
-│   ├── error_pages.py
-│   ├── logger_config.py
-│   └── models.py
+│   ├── app_factory.py
+│   └── README.md
 │
 ├── offline/
 │   ├── error.txt
@@ -357,7 +406,8 @@ src/
 │   │   ├── sidebar.js
 │   │   └── SVGLanguages.js
 │   │
-│   └── favicon.ico
+│   ├── favicon.ico
+│   └── toolinfo.json
 │
 ├── templates/
 │   │
@@ -381,7 +431,9 @@ src/
 │   │   │
 │   │   ├── owid_charts/
 │   │   │
-│   │   └── slug_redirects/
+│   │   ├── slug_redirects/
+│   │   │
+│   │   └── tf_jobs/
 │   │
 │   ├── explorer/
 │   │
@@ -432,7 +484,9 @@ src/
 │
 ├── __init__.py
 ├── app.py
+├── bootstrap.py
 ├── import_owid_charts.py
+├── logging_setup.py
 └── uwsgi.ini
 
 ```
