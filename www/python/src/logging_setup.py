@@ -114,7 +114,7 @@ class DailyFileHandler(logging.FileHandler):
                 self.stream.flush()
                 self.stream.close()
             finally:
-                self.stream = None  # reopened lazily by FileHandler.emit
+                self.stream = None  # pyright: ignore[reportAttributeAccessIssue] # reopened lazily by FileHandler.emit
         self.baseFilename = os.path.abspath(self._path_for(day))
         self._day = day
         self._prune()

@@ -10,7 +10,6 @@ from typing import Any
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 
-from ..logger_config import LoggingConfigurator
 from .cli import CliFactory
 from .config import Config, ConfigLoader, get_settings
 from .database import DatabaseBuilder
@@ -46,7 +45,6 @@ class AppFactory:
         app.test_client_class = CookieHeaderClient
         app.config.from_object(config_class())
 
-        cls._init_logging(app)
         cls._register_template_context(app)
         cls._init_extensions(app)
 
@@ -62,19 +60,6 @@ class AppFactory:
         else:
             app.before_request(cls.db_error_fallback)
         return app
-
-    @staticmethod
-    def _init_logging(app: Flask):
-        level = logging.DEBUG if app.config["DEBUG"] else logging.INFO
-        use_color = app.config["IS_PRODUCTION"] is False
-        daily_rotation = app.config["IS_PRODUCTION"] is True
-
-        LoggingConfigurator.configure_logging(
-            level=level,
-            name="main_app",
-            use_colorlog=use_color,
-            daily_rotation=daily_rotation,
-        )
 
     @staticmethod
     def _init_extensions(app: Flask):
