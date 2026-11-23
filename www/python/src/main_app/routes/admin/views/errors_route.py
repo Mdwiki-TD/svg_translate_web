@@ -96,7 +96,10 @@ class ErrorDashboardView(MethodView):
 
     @staticmethod
     def _search(
-        path: Path, pattern: re.Pattern[str], page: int, per_page: int
+        path: Path,
+        pattern: re.Pattern[str],
+        page: int,
+        per_page: int,
     ) -> tuple[list[tuple[int, str]], int, bool]:
         """Stream the file once; return one page of matches, total matches, and a capped flag."""
         start = (page - 1) * per_page
@@ -124,6 +127,7 @@ class ErrorDashboardView(MethodView):
 
         logs_dir = get_log_dir()
         files = self._list_log_files(logs_dir)
+        files.append(DEFAULT_LOG_PATH.name)
 
         selected_file = self.get_selected_log_file(file_name, files)
         logger.info("Read file: %s (q=%r)", selected_file, query)
