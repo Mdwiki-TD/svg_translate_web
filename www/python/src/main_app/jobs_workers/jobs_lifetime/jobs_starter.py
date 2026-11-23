@@ -130,15 +130,17 @@ class JobStarter:
         job_type: str,
         args: dict[str, Any] | None = None,
         form_data: dict[str, Any] | None = None,
+        app: Flask | None = None,
     ) -> int:
         """Start a background job as a daemon thread with form data."""
+        flask_app = app or current_app._get_current_object()  # type: ignore[attr-defined]
         return self._start_impl(
             auth_payload,
             job_type,
             args,
             form_data,
             daemon=True,
-            flask_app=current_app._get_current_object(),  # type: ignore[attr-defined]
+            flask_app=flask_app,
         )
 
     def start(
@@ -146,14 +148,16 @@ class JobStarter:
         auth_payload: dict[str, Any] | None,
         job_type: str,
         args: dict[str, Any] | None = None,
+        app: Flask | None = None,
     ) -> int:
         """Start a background job as a daemon thread."""
+        flask_app = app or current_app._get_current_object()  # type: ignore[attr-defined]
         return self._start_impl(
             auth_payload,
             job_type,
             args,
             daemon=True,
-            flask_app=current_app._get_current_object(),  # type: ignore[attr-defined]
+            flask_app=flask_app,
         )
 
     def start_cli(

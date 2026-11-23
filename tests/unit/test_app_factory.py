@@ -16,14 +16,9 @@ def mock_environ(tmp_path):
         yield
 
 
-@pytest.fixture
-def app(mock_environ):
-    return AppFactory.create(TestingConfig)
-
-
-def test_csrf_protection_enabled(app):
-    assert app.config.get("WTF_CSRF_ENABLED", True) is False
-    assert app.config.get("WTF_CSRF_CHECK_DEFAULT", True) is True
+def test_csrf_protection_enabled(mock_app):
+    assert mock_app.config.get("WTF_CSRF_ENABLED", True) is False
+    assert mock_app.config.get("WTF_CSRF_CHECK_DEFAULT", True) is True
 
 
 class TestCreateApp:
@@ -64,30 +59,28 @@ class TestCreateApp:
 
 
 class TestErrorHandlers:
-    def test_error_handlers_400_returns_html(self, app):
-        with app.test_client() as client:
-            resp = client.get("/test?malformed")
-            assert resp.status_code == 404
-            assert resp.content_type == "text/html; charset=utf-8"
+    def test_error_handlers_400_returns_html(self, test_client):
+        resp = test_client.get("/test?malformed")
+        assert resp.status_code == 404
+        assert resp.content_type == "text/html; charset=utf-8"
 
-    def test_error_handlers_400_returns_application_json_if_api(self, app):
-        with app.test_client() as client:
-            resp = client.get("/api/test?malformed")
-            assert resp.status_code == 404
-            assert resp.content_type == "application/json"
+    def test_error_handlers_400_returns_application_json_if_api(self, test_client):
+        resp = test_client.get("/api/test?malformed")
+        assert resp.status_code == 404
+        assert resp.content_type == "application/json"
 
-    def test_error_handlers_404_returns_not_found(self, app):
-        with app.test_client() as client:
-            resp = client.get("/nonexistent-route-test-404")
-            assert resp.status_code == 404
+    def test_error_handlers_404_returns_not_found(self, test_client):
 
-    def test_error_handlers_405_returns_not_allowed(self, app):
-        with app.test_client() as client:
-            resp = client.post("/")
-            assert resp.status_code == 405
+        resp = test_client.get("/nonexistent-route-test-404")
+        assert resp.status_code == 404
 
-    def test_500_error_handler_exists(self, app):
-        spec = app.error_handler_spec.get(None, {})
+    def test_error_handlers_405_returns_not_allowed(self, test_client):
+
+        resp = test_client.post("/")
+        assert resp.status_code == 405
+
+    def test_500_error_handler_exists(self, mock_app: Flask):
+        spec = mock_app.error_handler_spec.get(None, {})
         has_handler = 500 in spec
         assert has_handler
 
