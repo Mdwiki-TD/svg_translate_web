@@ -111,7 +111,7 @@ def test_settings():
     app_settings = Settings(
         cookie=cookie_config,
         sessions=sessions,
-        oauth=None,
+        oauth=OAuthConfig.load(),
         paths=paths,
         jobs=jobs_config,
         security=security_config,
@@ -120,6 +120,6 @@ def test_settings():
 
     assert app_settings.other.wiki_domain == "upload.example.com"
     assert app_settings.cookie.name == "test"
-    assert app_settings.paths.svg_data == Path("/svg")
+    assert app_settings.paths.svg_data == Path("/svg/data")
     assert app_settings.security.max_content_length == 100 * 1024 * 1024
     assert app_settings.other.csrf_time_limit == 3600
