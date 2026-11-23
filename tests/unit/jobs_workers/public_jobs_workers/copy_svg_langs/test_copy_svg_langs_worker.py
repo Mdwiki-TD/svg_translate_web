@@ -735,10 +735,10 @@ class TestCopySvgLangsWorkerProcessAdvanced:
 
         result = mock_worker.process()
 
-        # titles: "F1.svg" plus the auto-added cropped main title "Main (cropped).svg"
+        # titles: "F1.svg" plus the auto-added cropped main title "File:Main (cropped).svg"
         assert len(result.files_skipped) == 2
         assert {item.status for item in result.files_skipped} == {"skipped"}
-        assert {item.title for item in result.files_skipped} == {"F1.svg", "Main (cropped).svg"}
+        assert {item.title for item in result.files_skipped} == {"F1.svg", "File:Main (cropped).svg"}
 
 
 class TestCopySvgLangsWorkerStageMethods:
