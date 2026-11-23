@@ -19,7 +19,7 @@ from ....decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_LOG_FILE = "errors.log"
+DEFAULT_LOG_PATH = Path.home() / "uwsgi.log"
 DEFAULT_PER_PAGE = 200
 PER_PAGE_CHOICES = (100, 200, 500, 1000)
 # Guards the browser against a single enormous line (e.g. a minified payload).
@@ -125,10 +125,11 @@ class ErrorDashboardView(MethodView):
         logs_dir = get_log_dir()
         files = self._list_log_files(logs_dir)
 
-        selected_file = self.get_selected_log_file(file_name, files, logs_dir)
+        selected_file = self.get_selected_log_file(file_name, files)
         logger.info("Read file: %s (q=%r)", selected_file, query)
 
-        log_path = logs_dir / selected_file if selected_file else None
+        log_path = logs_dir / selected_file if selected_file else DEFAULT_LOG_PATH
+
         rows: list[tuple[int, Markup]] = []
         total = 0
         capped = False
@@ -151,7 +152,7 @@ class ErrorDashboardView(MethodView):
                 rows = [(no, _highlight(text, pattern)) for no, text in raw_rows]
             except OSError:
                 logger.exception("Error reading log file: %s", log_path)
-                flash(f"Could not read {selected_file}")
+                flash(f"Could not read {log_path.name}")
 
         total_pages = max(1, math.ceil(total / per_page))
         page = min(page, total_pages) if not query else page
@@ -159,7 +160,7 @@ class ErrorDashboardView(MethodView):
         return render_template(
             "admins/errors.html",
             files=files,
-            selected_file=selected_file,
+            selected_file=log_path.name,
             rows=rows,
             query=query,
             page=page,
@@ -172,16 +173,12 @@ class ErrorDashboardView(MethodView):
             file_exists=log_path and log_path.is_file(),
         )
 
-    def get_selected_log_file(self, file_name: str | None, files: list[str], logs_dir: Path) -> str | None:
+    def get_selected_log_file(self, file_name: str | None, files: list[str]) -> str | None:
         selected_file = file_name or request.args.get("log_file")
 
         if selected_file and selected_file not in files:
             flash(f"File {selected_file} not found")
             selected_file = None
-
-        if not selected_file and files:
-            _default_log_path = logs_dir / DEFAULT_LOG_FILE
-            selected_file = DEFAULT_LOG_FILE if _default_log_path.is_file() else files[0]
 
         return selected_file
 
