@@ -753,6 +753,26 @@ class TestCopySvgLangsWorkerStageMethods:
         assert result is False
         assert mock_worker.result.stages.titles.status == "cancelled"
 
+    def test_extract_titles_step_includes_cropped_main_title(
+        self,
+        mock_worker: CopySvgLangsWorker,
+        mock_steps: MockSteps,
+    ):
+        mock_worker.text = "some text"
+        mock_steps.titles.return_value = {
+            "success": True,
+            "main_title": "File:Main.svg",
+            "titles": ["File:Version.svg"],
+        }
+
+        result = mock_worker._extract_titles_step()
+
+        assert result is True
+        assert mock_worker.titles == [
+            "File:Main (cropped).svg",
+            "File:Version.svg",
+        ]
+
     def test_extract_titles_step_exception(
         self,
         mock_worker: CopySvgLangsWorker,
