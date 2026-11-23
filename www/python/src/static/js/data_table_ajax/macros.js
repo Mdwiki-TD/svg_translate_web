@@ -92,15 +92,16 @@ function renderCommonsLink(title, _type, _row) {
  * newrevid: number | null;
  * details: { newrevid?: number | null } | null;
  * }} step
+ * @param {string} wiki_domain
  */
-function renderStep(step) {
+function renderStep(step, wiki_domain="commons.wikimedia.org") {
     if (!step) return '<span class="text-muted">-</span>';
     const title = step.msg || step.message || step.new_value || step.value || '';
     // some steps keep the revision id inside `details`
     const newrevid = step.newrevid ?? step.details?.newrevid ?? null;
     if (step.result === true || step.result === 'updated') {
         if (newrevid && newrevid !== 0) {
-            return diffLink("commons.wikimedia.org", newrevid, title);
+            return diffLink(wiki_domain, newrevid, title);
         }
         return `<span class="badge bg-success" title="${title}"><i class="bi bi-check-lg"></i></span>`;
     }
