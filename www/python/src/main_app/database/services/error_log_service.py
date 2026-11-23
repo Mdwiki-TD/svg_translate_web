@@ -366,8 +366,7 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
             )
 
         result = self.session.execute(
-            text(
-                """
+            text("""
                 INSERT INTO error_log_daily
                     (day, status_code, path, path_hash, hits, bot_hits, last_seen)
                 SELECT DATE(created_at), status_code, path, MD5(path),
@@ -379,8 +378,7 @@ class ErrorLogService(CRUDService[ErrorLogRecord]):
                     hits = error_log_daily.hits + VALUES(hits),
                     bot_hits = error_log_daily.bot_hits + VALUES(bot_hits),
                     last_seen = GREATEST(error_log_daily.last_seen, VALUES(last_seen))
-                """
-            ),
+                """),
             {"before": before},
         )
         self.commit_or_rollback()
