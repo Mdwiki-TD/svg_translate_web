@@ -19,7 +19,7 @@ class TestUtilsJobsBpRoutes:
 
 @pytest.mark.usefixtures("mock_app")
 class TestServeDownloadMainFile:
-    def test_serves_file(self, mock_client, monkeypatch, tmp_path):
+    def test_serves_file(self, test_client, monkeypatch, tmp_path):
         main_files = tmp_path / "main_files"
         main_files.mkdir()
         (main_files / "test.svg").write_text("<svg/>")
@@ -39,7 +39,7 @@ class TestServeDownloadMainFile:
             return resp
 
         monkeypatch.setattr("src.main_app.routes.public.views.jobs_utils_bp.send_from_directory", _fake_send)
-        resp = mock_client.get("/jobs_utils/download_main_files/file/test.svg")
+        resp = test_client.get("/jobs_utils/download_main_files/file/test.svg")
         assert resp.status_code == 200
 
 
@@ -70,7 +70,7 @@ class TestServeCropFiles:
 
 @pytest.mark.usefixtures("mock_app")
 class TestDownloadAllMainFiles:
-    def test_download_success(self, mock_client, monkeypatch):
+    def test_download_success(self, test_client, monkeypatch):
         admin_user = MagicMock(is_active_admin=True)
         monkeypatch.setattr(
             "src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: admin_user
@@ -84,10 +84,10 @@ class TestDownloadAllMainFiles:
             "src.main_app.routes.public.views.jobs_utils_bp.get_settings", Mock(return_value=mock_settings2)
         )
 
-        resp = mock_client.get("/jobs_utils/download_main_files/download-all")
+        resp = test_client.get("/jobs_utils/download_main_files/download-all")
         assert resp.status_code == 200
 
-    def test_download_not_found(self, mock_client, monkeypatch):
+    def test_download_not_found(self, test_client, monkeypatch):
         admin_user = MagicMock(is_active_admin=True)
         monkeypatch.setattr(
             "src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: admin_user
@@ -99,11 +99,11 @@ class TestDownloadAllMainFiles:
         monkeypatch.setattr("src.main_app.routes.public.views.jobs_utils_bp.flash", mock_flash)
         monkeypatch.setattr("src.main_app.routes.public.views.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.routes.public.views.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
-        resp = mock_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
+        resp = test_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
         assert resp.status_code == 200
         mock_flash.assert_called_once_with("Not found", "warning")
 
-    def test_download_error(self, mock_client, monkeypatch):
+    def test_download_error(self, test_client, monkeypatch):
         admin_user = MagicMock(is_active_admin=True)
         monkeypatch.setattr(
             "src.main_app.decorators.admin_decorators.CurrentUserResolver.get_current_user", lambda: admin_user
@@ -115,6 +115,6 @@ class TestDownloadAllMainFiles:
         monkeypatch.setattr("src.main_app.routes.public.views.jobs_utils_bp.flash", mock_flash)
         monkeypatch.setattr("src.main_app.routes.public.views.jobs_utils_bp.redirect", lambda x: f"redirect:{x}")
         monkeypatch.setattr("src.main_app.routes.public.views.jobs_utils_bp.url_for", lambda x, **kw: f"/{x}")
-        resp = mock_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
+        resp = test_client.get("/jobs_utils/download_main_files/download-all", follow_redirects=True)
         assert resp.status_code == 200
         mock_flash.assert_called_once_with("Error", "danger")

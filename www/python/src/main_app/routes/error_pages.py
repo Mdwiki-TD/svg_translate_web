@@ -3,6 +3,10 @@
 Provides :class:`ErrorHandler` for credential-safe error logging and response
 generation, plus :func:`register_error_handlers` and :func:`_register_cache_headers`
 for Flask app initialization.
+
+Every logged error updates a per-day counter (error_log_daily, kept long-term)
+and writes a detailed row (error_logs, purged weekly with
+``flask error-logs purge``).
 """
 
 from __future__ import annotations

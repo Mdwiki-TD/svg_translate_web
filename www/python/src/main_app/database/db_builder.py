@@ -37,8 +37,8 @@ class DatabaseBuilder:
             if not event.contains(engine, "connect", cls.enable_sqlite_foreign_keys):
                 event.listen(engine, "connect", cls.enable_sqlite_foreign_keys)
 
-        if not event.contains(engine, "connect", cls.receive_connect):
-            event.listen(engine, "connect", cls.receive_connect)
+        # if not event.contains(engine, "connect", cls.receive_connect):
+        #     event.listen(engine, "connect", cls.receive_connect)
 
     @staticmethod
     def cleanup_stale_jobs() -> None:

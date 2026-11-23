@@ -21,6 +21,8 @@
 <div class="container-fluid py-3">
   <h3 class="mb-3">Request Errors logs</h3>
 
+  {% include "admins/_error_logs_tabs.html" %}
+
   {# ================= 3. Filters ================= #}
   <div class="card shadow-sm mb-4">
     <div class="card-header fw-semibold">
@@ -108,7 +110,8 @@
             {% for p in top_paths %}
             <tr>
               <td class="text-break">
-                {{ p.path }}
+                <a class="text-decoration-none"
+                  href="{{ url_for(request.blueprint ~ '.error_log_path', path=p.path, days=filters.days) }}">{{ p.path }}</a>
               </td>
               <td>{{ status_badge(p.status_code) }}</td>
               <td class="text-end" data-order="{{ p.hits }}">{{ num(p.hits) }}</td>

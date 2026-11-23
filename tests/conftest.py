@@ -105,19 +105,6 @@ def mock_app() -> Generator[Flask, Any, None]:  # noqa: UP043
 
 
 @pytest.fixture
-def mock_client(mock_app: Flask) -> FlaskClient:
-    """Create a test client for the app.
-
-    Args:
-        mock_app: The Flask application fixture.
-
-    Returns:
-        Test client for making HTTP requests.
-    """
-    return mock_app.test_client()
-
-
-@pytest.fixture
 def test_client(mock_app: Flask) -> FlaskClient:
     """Create a test client for the app.
 
@@ -131,11 +118,11 @@ def test_client(mock_app: Flask) -> FlaskClient:
 
 
 @pytest.fixture
-def mock_login(mock_client):
+def mock_login(test_client):
     """Helper to set ``session['username']`` to a given user."""
 
     def _login(username: str) -> None:
-        with mock_client.session_transaction() as session:
+        with test_client.session_transaction() as session:
             session["username"] = username
 
     return _login

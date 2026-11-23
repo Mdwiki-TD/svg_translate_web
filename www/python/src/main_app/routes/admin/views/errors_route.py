@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import math
 import re
+from dataclasses import dataclass, field
 from itertools import islice
 from pathlib import Path
 
@@ -19,7 +20,7 @@ from ....decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_LOG_FILE = "errors.log"
+DEFAULT_LOG_PATH = Path.home() / "uwsgi.log"
 DEFAULT_PER_PAGE = 200
 PER_PAGE_CHOICES = (100, 200, 500, 1000)
 # Guards the browser against a single enormous line (e.g. a minified payload).
@@ -28,11 +29,22 @@ MAX_LINE_CHARS = 5_000
 MAX_SEARCH_MATCHES = 10_000
 CHUNK_SIZE = 1024 * 1024
 
+Row = tuple[int, str]
+
+
+@dataclass(frozen=True)
+class LogPage:
+    """One rendered page of log rows plus the totals needed for pagination."""
+
+    rows: list[tuple[int, Markup]] = field(default_factory=list)
+    total: int = 0
+    page: int = 1
+    capped: bool = False
+
 
 def get_log_dir() -> Path:
     """Return configured log directory path."""
-    app_settings = get_settings()
-    return Path(app_settings.paths.log_dir)
+    return Path(get_settings().paths.log_dir)
 
 
 def _int_arg(name: str, default: int, minimum: int, maximum: int | None = None) -> int:
@@ -62,17 +74,47 @@ def _highlight(text: str, pattern: re.Pattern[str] | None) -> Markup:
     return Markup("").join(Markup("<mark>%s</mark>") % part if i % 2 else escape(part) for i, part in enumerate(parts))
 
 
+def _open_text(path: Path):
+    """Open a log file as tolerant UTF-8 text."""
+    return path.open("r", encoding="utf-8", errors="replace")
+
+
 class ErrorDashboardView(MethodView):
     """View to display log files in pages, with server-side search."""
 
     decorators = [admin_required]
 
+    # ---- file selection -------------------------------------------------
+
     @staticmethod
-    def _list_log_files(log_dir: Path) -> list[str]:
-        """List all .log files in the specified directory."""
-        if not log_dir.is_dir():
-            return []
-        return sorted(f.name for f in log_dir.iterdir() if f.is_file() and f.suffix == ".log")
+    def _available_files(log_dir: Path) -> list[str]:
+        """List the .log files in log_dir, plus the default log if it is not already there."""
+        names = set()
+        if log_dir.is_dir():
+            names = {f.name for f in log_dir.iterdir() if f.is_file() and f.suffix == ".log"}
+        names.add(DEFAULT_LOG_PATH.name)
+        return sorted(names)
+
+    @staticmethod
+    def _resolve_log_path(log_dir: Path, available: list[str], requested: str | None) -> Path:
+        """Validate the requested name against the whitelist and return its path.
+
+        The whitelist also blocks path traversal. Unknown names flash a message
+        and fall back to the default log.
+        """
+        if not requested:
+            return DEFAULT_LOG_PATH
+        if requested not in available:
+            flash(f"File {requested} not found")
+            return DEFAULT_LOG_PATH
+
+        candidate = log_dir / requested
+        # The default log normally lives outside log_dir (in the home directory).
+        if requested == DEFAULT_LOG_PATH.name and not candidate.is_file():
+            return DEFAULT_LOG_PATH
+        return candidate
+
+    # ---- reading --------------------------------------------------------
 
     @staticmethod
     def _count_lines(path: Path) -> int:
@@ -87,25 +129,27 @@ class ErrorDashboardView(MethodView):
         return total if last_byte == b"\n" else total + 1
 
     @staticmethod
-    def _read_page(path: Path, page: int, per_page: int) -> list[tuple[int, str]]:
+    def _read_page(path: Path, page: int, per_page: int) -> list[Row]:
         """Return (line_number, text) rows for one page without loading the whole file."""
         start = (page - 1) * per_page
-        with path.open("r", encoding="utf-8", errors="replace") as fh:
+        with _open_text(path) as fh:
             lines = islice(fh, start, start + per_page)
             return [(start + i + 1, _clip(line)) for i, line in enumerate(lines)]
 
     @staticmethod
     def _search(
-        path: Path, pattern: re.Pattern[str], page: int, per_page: int
-    ) -> tuple[list[tuple[int, str]], int, bool]:
+        path: Path,
+        pattern: re.Pattern[str],
+        page: int,
+        per_page: int,
+    ) -> tuple[list[Row], int, bool]:
         """Stream the file once; return one page of matches, total matches, and a capped flag."""
         start = (page - 1) * per_page
         end = start + per_page
-        rows: list[tuple[int, str]] = []
+        rows: list[Row] = []
         total = 0
-        capped = False
 
-        with path.open("r", encoding="utf-8", errors="replace") as fh:
+        with _open_text(path) as fh:
             for lineno, line in enumerate(fh, start=1):
                 if not pattern.search(line):
                     continue
@@ -113,68 +157,61 @@ class ErrorDashboardView(MethodView):
                     rows.append((lineno, _clip(line)))
                 total += 1
                 if total >= MAX_SEARCH_MATCHES:
-                    capped = True
-                    break
-        return rows, total, capped
+                    return rows, total, True
+        return rows, total, False
+
+    def _load_page(self, path: Path, query: str, per_page: int) -> LogPage:
+        """Load either a search result page or a plain browse page, highlighted for HTML."""
+        if query:
+            pattern = re.compile(f"({re.escape(query)})", re.IGNORECASE)
+            page = _int_arg("page", 1, 1)
+            raw_rows, total, capped = self._search(path, pattern, page, per_page)
+        else:
+            pattern = None
+            total = self._count_lines(path)
+            # Newest entries are at the bottom, so open on the last page by default.
+            last_page = max(1, math.ceil(total / per_page))
+            page = _int_arg("page", last_page, 1, last_page)
+            raw_rows, capped = self._read_page(path, page, per_page), False
+
+        rows = [(no, _highlight(text, pattern)) for no, text in raw_rows]
+        return LogPage(rows=rows, total=total, page=page, capped=capped)
+
+    # ---- request handling -----------------------------------------------
 
     def get(self, file_name: str | None = None) -> str:
         """Render the log viewer for the selected file, page, and optional search query."""
-        selected_file = file_name or request.args.get("log_file", DEFAULT_LOG_FILE)
         query = request.args.get("q", "").strip()
         per_page = _int_arg("per_page", DEFAULT_PER_PAGE, 1, max(PER_PAGE_CHOICES))
 
-        logger.info("Read file: %s (q=%r)", selected_file, query)
+        log_dir = get_log_dir()
+        files = self._available_files(log_dir)
+        log_path = self._resolve_log_path(log_dir, files, file_name or request.args.get("log_file"))
+        logger.info("Read file: %s (q=%r)", log_path, query)
 
-        logs_dir = get_log_dir()
-        files = self._list_log_files(logs_dir)
-
-        if selected_file not in files:
-            flash(f"File {selected_file} not found")
-            selected_file = DEFAULT_LOG_FILE
-            logger.info("Changed file to: %s", selected_file)
-
-        log_path = logs_dir / selected_file
-        rows: list[tuple[int, Markup]] = []
-        total = 0
-        capped = False
-        page = 1
-
-        if log_path.is_file():
+        file_exists = log_path.is_file()
+        result = LogPage()
+        if file_exists:
             try:
-                pattern = re.compile(f"({re.escape(query)})", re.IGNORECASE) if query else None
-
-                if pattern:
-                    page = _int_arg("page", 1, 1)
-                    raw_rows, total, capped = self._search(log_path, pattern, page, per_page)
-                else:
-                    total = self._count_lines(log_path)
-                    last_page = max(1, math.ceil(total / per_page))
-                    # Newest entries are at the bottom, so open on the last page by default.
-                    page = _int_arg("page", last_page, 1, last_page)
-                    raw_rows = self._read_page(log_path, page, per_page)
-
-                rows = [(no, _highlight(text, pattern)) for no, text in raw_rows]
+                result = self._load_page(log_path, query, per_page)
             except OSError:
                 logger.exception("Error reading log file: %s", log_path)
-                flash(f"Could not read {selected_file}")
-
-        total_pages = max(1, math.ceil(total / per_page))
-        page = min(page, total_pages) if not query else page
+                flash(f"Could not read {log_path.name}")
 
         return render_template(
             "admins/errors.html",
             files=files,
-            selected_file=selected_file,
-            rows=rows,
+            selected_file=log_path.name,
             query=query,
-            page=page,
             per_page=per_page,
             per_page_choices=PER_PAGE_CHOICES,
-            total=total,
-            total_pages=total_pages,
-            capped=capped,
+            total_pages=max(1, math.ceil(result.total / per_page)),
             max_matches=MAX_SEARCH_MATCHES,
-            file_exists=log_path.is_file(),
+            file_exists=file_exists,
+            rows=result.rows,
+            page=result.page,
+            total=result.total,
+            capped=result.capped,
         )
 
 

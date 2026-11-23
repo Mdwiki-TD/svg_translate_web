@@ -37,20 +37,20 @@ def mock_flash(monkeypatch):
     yield flashed
 
 
-def test_extract_get_empty_by_default(mock_client) -> None:
+def test_extract_get_empty_by_default(test_client) -> None:
     """Test that the extract form input is empty by default on GET."""
-    response = mock_client.get("/extract/")
+    response = test_client.get("/extract/")
     assert response.status_code == 200
     assert b'value=""' in response.data
 
 
-def test_extract_get_restores_filename_from_session(mock_client) -> None:
+def test_extract_get_restores_filename_from_session(test_client) -> None:
     """Test that filename is restored from session after OAuth redirect."""
 
-    with mock_client.session_transaction() as sess:
+    with test_client.session_transaction() as sess:
         sess[EXTRACT_FILENAME_KEY] = "test_file.svg"
 
-    response = mock_client.get("/extract/")
+    response = test_client.get("/extract/")
     assert response.status_code == 200
     assert b'value="test_file.svg"' in response.data
 
@@ -72,13 +72,13 @@ def patch_render(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
 class TestExtractPost:
     def test_extract_post_empty_filename_shows_error(
         self,
-        mock_client,
+        test_client,
         patch_render: dict,
         mock_flash,
     ) -> None:
         """Test that submitting an empty filename shows an error."""
 
-        response = mock_client.post(
+        response = test_client.post(
             "/extract/",
             data={"filename": ""},
             follow_redirects=True,
@@ -90,7 +90,7 @@ class TestExtractPost:
 
     def test_extract_post_download_failure(
         self,
-        mock_client,
+        test_client,
         monkeypatch: pytest.MonkeyPatch,
         patch_render: dict,
         mock_flash,
@@ -105,7 +105,7 @@ class TestExtractPost:
             "src.main_app.routes.public.views.extract_routes.FilesService.download_and_save", mock_download
         )
 
-        response = mock_client.post(
+        response = test_client.post(
             "/extract/",
             data={"filename": "Test.svg"},
             follow_redirects=True,
@@ -119,7 +119,7 @@ class TestExtractPost:
 class TestExtractRender:
     def test_extract_post_strips_file_prefix(
         self,
-        mock_client,
+        test_client,
         patch_render: dict,
         mocker: MockerFixture,
         tmp_path,
@@ -135,7 +135,7 @@ class TestExtractRender:
         )
         mock_extract.return_value = TranslationMapping(new={})
 
-        mock_client.post(
+        test_client.post(
             "/extract/",
             data={"filename": "File: Test.svg"},
             follow_redirects=True,
@@ -147,7 +147,7 @@ class TestExtractRender:
 
     def test_extract_post_extraction_error(
         self,
-        mock_client,
+        test_client,
         monkeypatch: pytest.MonkeyPatch,
         patch_render: dict,
         mock_flash,
@@ -161,7 +161,7 @@ class TestExtractRender:
         monkeypatch.setattr(
             "src.main_app.routes.public.views.extract_routes.FilesService.download_and_save", mock_download
         )
-        response = mock_client.post(
+        response = test_client.post(
             "/extract/",
             data={"filename": "Test.svg"},
             follow_redirects=True,
@@ -172,7 +172,7 @@ class TestExtractRender:
 
     def test_extract_post_successful_extraction(
         self,
-        mock_client,
+        test_client,
         monkeypatch: pytest.MonkeyPatch,
         patch_render: dict,
         tmp_path,
@@ -199,7 +199,7 @@ class TestExtractRender:
             mock_extract,
         )
 
-        response = mock_client.post(
+        response = test_client.post(
             "/extract/",
             data={"filename": "Test.svg"},
             follow_redirects=True,

@@ -40,7 +40,7 @@ def seeded_jobs() -> None:
 class TestDashboard:
     def test_dashboard_without_username_and_logged_in(
         self,
-        mock_client: Flask.test_client,
+        test_client: Flask.test_client,
         monkeypatch: pytest.MonkeyPatch,
         seeded_jobs: None,
     ) -> None:
@@ -48,25 +48,25 @@ class TestDashboard:
             "src.main_app.routes.public.views.profile_view.CurrentUserResolver.get_current_user",
             lambda: MockUser(username="alice"),
         )
-        resp = mock_client.get("/profile/")
+        resp = test_client.get("/profile/")
         assert resp.status_code == 200
         assert b"alice" in resp.data
 
     def test_dashboard_without_username_and_not_logged_in(
         self,
-        mock_client: Flask.test_client,
+        test_client: Flask.test_client,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setattr(
             "src.main_app.routes.public.views.profile_view.CurrentUserResolver.get_current_user",
             lambda: None,
         )
-        resp = mock_client.get("/profile/")
+        resp = test_client.get("/profile/")
         assert resp.status_code == 200
 
     def test_dashboard_with_username_and_admin(
         self,
-        mock_client: Flask.test_client,
+        test_client: Flask.test_client,
         monkeypatch: pytest.MonkeyPatch,
         seeded_jobs: None,
     ) -> None:
@@ -74,13 +74,13 @@ class TestDashboard:
             "src.main_app.routes.public.views.profile_view.CurrentUserResolver.get_current_user",
             lambda: MockUser(username="admin", is_active_admin=True),
         )
-        resp = mock_client.get("/profile/other_user")
+        resp = test_client.get("/profile/other_user")
         assert resp.status_code == 200
         assert b"other_user" in resp.data
 
     def test_dashboard_with_username_and_non_admin(
         self,
-        mock_client: Flask.test_client,
+        test_client: Flask.test_client,
         monkeypatch: pytest.MonkeyPatch,
         seeded_jobs: None,
     ) -> None:
@@ -88,13 +88,13 @@ class TestDashboard:
             "src.main_app.routes.public.views.profile_view.CurrentUserResolver.get_current_user",
             lambda: MockUser(username="regular_user"),
         )
-        resp = mock_client.get("/profile/other_user")
+        resp = test_client.get("/profile/other_user")
         assert resp.status_code == 200
         assert b"other_user" in resp.data
 
     def test_dashboard_renders_correct_template_variables(
         self,
-        mock_client: Flask.test_client,
+        test_client: Flask.test_client,
         monkeypatch: pytest.MonkeyPatch,
         seeded_jobs: None,
     ) -> None:
@@ -102,13 +102,13 @@ class TestDashboard:
             "src.main_app.routes.public.views.profile_view.CurrentUserResolver.get_current_user",
             lambda: MockUser(username="alice"),
         )
-        resp = mock_client.get("/profile/")
+        resp = test_client.get("/profile/")
         assert resp.status_code == 200
         assert b"alice" in resp.data
 
     def test_dashboard_passes_dataclass_attributes_to_template(
         self,
-        mock_client: Flask.test_client,
+        test_client: Flask.test_client,
         monkeypatch: pytest.MonkeyPatch,
         seeded_jobs: None,
     ) -> None:
@@ -125,7 +125,7 @@ class TestDashboard:
         )
         monkeypatch.setattr("src.main_app.routes.public.views.profile_view.render_template", capture_template)
 
-        response = mock_client.get("/profile/")
+        response = test_client.get("/profile/")
 
         assert response.status_code == 200
         assert captured["template"] == "profile.html"
@@ -135,7 +135,7 @@ class TestDashboard:
 
     def test_dashboard_uses_empty_dataclass_fallback_when_loading_fails(
         self,
-        mock_client: Flask.test_client,
+        test_client: Flask.test_client,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         captured: dict[str, object] = {}
@@ -155,7 +155,7 @@ class TestDashboard:
         monkeypatch.setattr(JobsService, "get_all_user_jobs_stats", raise_loading_error)
         monkeypatch.setattr("src.main_app.routes.public.views.profile_view.render_template", capture_template)
 
-        response = mock_client.get("/profile/other_user")
+        response = test_client.get("/profile/other_user")
 
         assert response.status_code == 200
         assert captured["template"] == "profile.html"
