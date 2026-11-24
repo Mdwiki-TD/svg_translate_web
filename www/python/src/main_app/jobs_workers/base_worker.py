@@ -84,6 +84,7 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
         self.wiki_domain = self.app_settings.other.wiki_domain
 
         self.result: TResult = self.create_result()
+        self.job_type = self.JOB_TYPE
 
     @abstractmethod
     def create_result(self) -> TResult:

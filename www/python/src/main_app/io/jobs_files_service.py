@@ -12,8 +12,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-from ..config import Settings, get_settings
-
 logger = logging.getLogger(__name__)
 
 
@@ -27,27 +25,12 @@ class JobFilesService:
     def __init__(
         self,
         jobs_dir: Path | None = None,
-        settings: Settings | None = None,
-        bp_name: str | None = None,
     ) -> None:
-        self.settings = settings or get_settings()
-        self.jobs_dir = jobs_dir or self._load_jobs_dir(bp_name or "admin_panel.jobs")
-
-    def _load_jobs_dir(self, bp_name: str) -> Path:
-        """Resolve and cache the jobs data directory."""
-        # Use jobs_path from settings paths
-        if bp_name == "admin_panel.jobs":
-            jobs_dir = self.settings.paths.admin_jobs_path
-        else:
-            jobs_dir = self.settings.paths.jobs_path
-
         if not jobs_dir:
             raise RuntimeError("jobs_path configuration is required for job result storage")
 
-        path = Path(jobs_dir)
-        path.mkdir(parents=True, exist_ok=True)
-
-        return path
+        self.jobs_dir = jobs_dir
+        self.jobs_dir.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _save_data(result_data: dict[str, Any], filepath: Path) -> None:
