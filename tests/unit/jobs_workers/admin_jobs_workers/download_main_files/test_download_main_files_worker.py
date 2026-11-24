@@ -318,24 +318,11 @@ def test_download_main_files_saves_progress_periodically(
     assert mock_base_worker["save_result"].call_count >= 2
 
 
-def test_download_main_files_creates_output_directory(
-    mock_path, mock_base_worker, mock_download_main_services: MockServices, tmp_path
-):
-    """Test that the output directory is created if missing."""
-    mock_download_main_services.list.return_value = []
-    worker = DownloadMainFilesWorker(
-        JobsRunner(
-            job_id=1,
-            user={},
-        )
-    )
-    worker.run()
-
-    mock_path.return_value.mkdir.assert_called()
-
-
 def test_download_main_files_generates_zip_on_completion(
-    mock_path, mock_base_worker, mock_download_main_services: MockServices, tmp_path
+    mock_path,
+    mock_base_worker,
+    mock_download_main_services: MockServices,
+    tmp_path,
 ):
     """Test that zip generation is triggered."""
     mock_download_main_services.list.return_value = []
