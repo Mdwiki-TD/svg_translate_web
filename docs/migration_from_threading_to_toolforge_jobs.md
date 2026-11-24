@@ -4,7 +4,7 @@
 
 ## 1. الملخص التنفيذي
 
-- **الوضع الحالي:** كل مهمة تعمل في خيط (thread) داخل عملية Flask نفسها، وتشارك الذاكرة مع التطبيق (`flask_app`, `threading.Event`, `JobsRunner `).
+- **الوضع الحالي:** كل مهمة تعمل في خيط (thread) داخل عملية Flask نفسها، وتشارك الذاكرة مع التطبيق (`flask_app`, `threading.Event`, `JobsRunner`).
 - **الوضع الجديد:** كل مهمة تعمل في حاوية مستقلة على Kubernetes عبر Toolforge Jobs API، وتُشغَّل بأمر (command) وصورة (image) وحدود موارد.
 - **الفرق الجوهري:** لا يمكن تمرير كائنات Python إلى الحاوية. يجب تمرير `job_id` فقط، ثم إعادة بناء التطبيق والمعاملات داخل العملية الجديدة من قاعدة البيانات.
 - **المكاسب:** المهام تنجو من إعادة تشغيل الـ webservice، وتخرج من حدود ذاكرة التطبيق، ويمكن إيقافها فعلاً (قتل الحاوية)، ولها سجلات وحالة من النظام نفسه.
@@ -20,7 +20,7 @@
 ### 2.1 كيف يعمل اليوم
 
 - `_start_job_impl` يتحقق من نوع المهمة والمستخدم، ويدمج المعاملات (إعدادات النظام ثم معاملات المستدعي)، وينشئ سجل `JobRecord`، ثم ينشئ `threading.Event` ويسجله في قاموس عام `JOBS_CANCEL_EVENTS` محمي بـ Lock.
-- يبني `JobsRunner ` ويشغّل `_runner` في خيط. داخل `_runner` يُفتح `app_context` ثم يُنشأ كائن المهمة ويُستدعى `run()`، وفي `finally` يُحذف حدث الإلغاء.
+- يبني `JobsRunner` ويشغّل `_runner` في خيط. داخل `_runner` يُفتح `app_context` ثم يُنشأ كائن المهمة ويُستدعى `run()`، وفي `finally` يُحذف حدث الإلغاء.
 - الإلغاء في `cancel_job_worker` ثلاثي: حدث محلي، وملف `.cancelled` بجانب ملف النتيجة، وتحديث قاعدة البيانات. وهذا تصميم جيد لأنه مهّد للإلغاء عبر عمليات مختلفة.
 - `start_job` و`start_job_form` يشغّلان خيطًا daemon، أما `start_job_cli` فخيطه غير daemon (تنتظره العملية).
 
@@ -34,7 +34,7 @@
 6. **لا حد للموارد (متوسطة):** كل خيط يستهلك ذاكرة وCPU من حدود الـ webservice ويتنافس مع الطلبات على GIL. القيد الفريد يحد من التوازي لكل نوع فقط، وليس لمجموع الأنواع.
 7. **أولوية المعاملات (متوسطة، أمنية):** `resolved_args.update(args)` يجعل معاملات المستدعي تتجاوز القيم القادمة من `SettingsService`، ولا يُحذف سوى `csrf_token`. الأفضل قائمة بيضاء من المفاتيح.
 8. **نجاح الإلغاء مضلل (منخفضة):** `cancel_job_worker` يُرجع True إذا أُنشئ ملف `.cancelled` حتى لو فشل تحديث قاعدة البيانات (`cancel_job_db` يبتلع الاستثناء ويرجع False).
-9. **تكرار وتحديد الأنواع (منخفضة):** ثلاث دوال start شبه متطابقة، و`Callable[[JobsRunner ]]` غير صحيح (المطلوب `Callable[[JobsRunner ], Any]`)، وحقل `JobsRunner .cancel_event` معرَّف في `objects.py` كـ `threading.Event | None` فلا يقبل بديلًا بين العمليات دون تعديل.
+9. **تكرار وتحديد الأنواع (منخفضة):** ثلاث دوال start شبه متطابقة، و`Callable[[JobsRunner]]` غير صحيح (المطلوب `Callable[[JobsRunner], Any]`)، وحقل `JobsRunner.cancel_event` معرَّف في `objects.py` كـ `threading.Event | None` فلا يقبل بديلًا بين العمليات دون تعديل.
 10. **المسار الموجود في `cli_jobs.py` (ملاحظة):** الأمر `flask run-job <job_type>` يستدعي `start_job_cli` ويعمل في خيط غير daemon داخل عملية الأمر نفسها، أي أن المهام المجدولة تعمل على الأرجح بهذه الطريقة اليوم. لكنه ينشئ سجلًا جديدًا باسم مستخدم `Background job` ويمرر `update_all` فقط، فلا يشغّل سجلًا موجودًا بمعرّفه. وحدث الإلغاء فيه محلي أيضًا، فلا يصله إلا الإلغاء عبر قاعدة البيانات أو الملف.
 
 ## 3. مراجعة toolforge\_jobs\_api\_service.py
@@ -233,7 +233,7 @@ def run_job_by_id(job_id: int) -> int:
     cancel_event = DbCancelEvent(job_id, job.job_type)  # أو threading.Event() انظر 6.3
     signal.signal(signal.SIGTERM, lambda *_: cancel_event.set())
 
-    runner_data = JobsRunner (
+    runner_data = JobsRunner(
         job_id=job_id,
         user=user,
         cancel_event=cancel_event,
@@ -293,7 +293,7 @@ class DbCancelEvent:
         return self._set
 ```
 
-`JobsService.is_job_cancelled` يعمل `session.refresh` فيرى تغييرات العمليات الأخرى، ويستجيب الحدث لـ SIGTERM الذي يرسله `delete_job`. في `objects.py` بدّل نوع `cancel_event` في `JobsRunner ` من `threading.Event | None` إلى Protocol بالدوال `is_set` و`set` و`wait` حتى يقبل `DbCancelEvent`. **تبسيط محتمل:** إن ثبت أن الفئة الأساسية للمهام تفحص `cancel_event.is_set()` وملف `.cancelled` وقاعدة البيانات دوريًا (كما ورد في التقرير الآخر، ولم أتحقق منه)، فيكفي `threading.Event()` عادي يُضبط عند SIGTERM، ويمكن تخطي هذا القسم وإبقاء نوع `JobsRunner .cancel_event` كما هو.
+`JobsService.is_job_cancelled` يعمل `session.refresh` فيرى تغييرات العمليات الأخرى، ويستجيب الحدث لـ SIGTERM الذي يرسله `delete_job`. في `objects.py` بدّل نوع `cancel_event` في `JobsRunner` من `threading.Event | None` إلى Protocol بالدوال `is_set` و`set` و`wait` حتى يقبل `DbCancelEvent`. **تبسيط محتمل:** إن ثبت أن الفئة الأساسية للمهام تفحص `cancel_event.is_set()` وملف `.cancelled` وقاعدة البيانات دوريًا (كما ورد في التقرير الآخر، ولم أتحقق منه)، فيكفي `threading.Event()` عادي يُضبط عند SIGTERM، ويمكن تخطي هذا القسم وإبقاء نوع `JobsRunner.cancel_event` كما هو.
 
 ### 6.4 ToolforgeBackend
 
@@ -365,7 +365,7 @@ return job.id
 
 ### 6.6 هوية المستخدم داخل الحاوية
 
-في وضع threading قيمة `JobsRunner .user` هي `CurrentUser.to_auth_payload()`: الحقول `id` و`username` و`access_token` و`access_secret`، والتوكنان بالبايتات المشفرة كما في `UserTokenRecord` (تُفك عند الاستخدام عبر `CryptoService`). في الحاوية لا يوجد طلب HTTP فلا يعمل hook `set_logged_in_user`، و`g._current_user` فارغ، وهذا حاله في الخيوط اليوم لأن `_runner` يفتح `app_context` جديدًا.
+في وضع threading قيمة `JobsRunner.user` هي `CurrentUser.to_auth_payload()`: الحقول `id` و`username` و`access_token` و`access_secret`، والتوكنان بالبايتات المشفرة كما في `UserTokenRecord` (تُفك عند الاستخدام عبر `CryptoService`). في الحاوية لا يوجد طلب HTTP فلا يعمل hook `set_logged_in_user`، و`g._current_user` فارغ، وهذا حاله في الخيوط اليوم لأن `_runner` يفتح `app_context` جديدًا.
 
 - تُبنى الهوية من `JobRecord.username` عبر `UserTokenService.get_user_token_by_username` ثم `TokenManager.get_authenticated_user` (الدالة `build_job_user` في 6.2)، فتحصل الفئات على نفس الشكل الذي تعرفه.
 - متغيرات البيئة (ومنها مفتاح التشفير) متاحة في مهام Toolforge، فلا إجراء إضافي.
