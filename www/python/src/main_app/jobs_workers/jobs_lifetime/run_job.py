@@ -74,6 +74,7 @@ def run_job_by_id(job_id: int) -> int:
         cancel_event=cancel_event,
         args=payload.get("args") or {},
         form_data=payload.get("form_data"),
+        job_for_admin=job_data.job_for_admin,
     )
 
     try:

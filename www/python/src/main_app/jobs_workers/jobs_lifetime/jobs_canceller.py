@@ -75,10 +75,6 @@ class JobCanceller:
         #
         return local_cancelled or cancelled_file is not None or db_cancelled
 
-
-cancel_job_worker = JobCanceller().cancel
-
 __all__ = [
-    "cancel_job_worker",
     "JobCanceller",
 ]

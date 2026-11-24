@@ -26,18 +26,17 @@ class JobFilesService:
 
     def __init__(
         self,
-        base_dir: Path | None = None,
+        jobs_dir: Path | None = None,
         settings: Settings | None = None,
         bp_name: str | None = None,
     ) -> None:
         self.settings = settings or get_settings()
-        self.bp_name = bp_name or "admin_panel.jobs"
-        self.jobs_dir = base_dir or self._load_jobs_dir()
+        self.jobs_dir = jobs_dir or self._load_jobs_dir(bp_name or "admin_panel.jobs")
 
-    def _load_jobs_dir(self) -> Path:
+    def _load_jobs_dir(self, bp_name: str) -> Path:
         """Resolve and cache the jobs data directory."""
         # Use jobs_path from settings paths
-        if self.bp_name == "admin_panel.jobs":
+        if bp_name == "admin_panel.jobs":
             jobs_dir = self.settings.paths.admin_jobs_path
         else:
             jobs_dir = self.settings.paths.jobs_path
@@ -67,7 +66,7 @@ class JobFilesService:
         """Load job result from a JSON file."""
         filepath = self.jobs_dir / filename
         if not filepath or not os.path.exists(filepath):
-            logger.warning(f"Job result file %s does not exist", filepath)
+            logger.warning("Job result file %s does not exist", str(filepath))
             return None
 
         try:
