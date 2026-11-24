@@ -301,6 +301,11 @@ class SecurityConfig:
         """
         Load security configuration (Flask 3.1+ features)
         """
+        secret_key = os.getenv("FLASK_SECRET_KEY", "")
+
+        if not secret_key:
+            raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
+
         # MAX_CONTENT_LENGTH: Maximum request size (default 100MB)
         max_content_length = _env_int("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
 
@@ -314,7 +319,6 @@ class SecurityConfig:
         secret_key_fallbacks_str = os.getenv("SECRET_KEY_FALLBACKS", "")
         secret_key_fallbacks = tuple(key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip())
 
-        secret_key = os.getenv("FLASK_SECRET_KEY", "")
         secret_salt = os.getenv("SECRET_SALT", "svg-translate")
 
         security_config = SecurityConfig(
@@ -325,9 +329,6 @@ class SecurityConfig:
             max_form_parts=max_form_parts,
             secret_key_fallbacks=secret_key_fallbacks,
         )
-
-        if not security_config.secret_key:
-            raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
 
         return security_config
 
