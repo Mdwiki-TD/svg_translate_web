@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import pytest
-from src.main_app.database.exceptions import RecordNotFoundError
+from src.main_app.database.exceptions import DuplicateRecordError, RecordNotFoundError
 from src.main_app.database.services.users.users_service import UsersService
+
+pytestmark = pytest.mark.unit
 
 
 class TestSetup:
@@ -81,12 +83,12 @@ class TestCreateUser(TestSetup):
         assert persisted is not None
         assert persisted.user_id == result.user_id
 
-    def test_returns_existing_user(self) -> None:
+    def test_raise_when_user_exists(self) -> None:
         user_record = self.service.create_user("test_user")
         assert user_record is not None
-        result = self.service.create_user("test_user")
-        assert result.user_id == user_record.user_id
-        assert result.username == "test_user"
+
+        with pytest.raises(DuplicateRecordError, match="User test_user already exists"):
+            self.service.create_user("test_user")
 
 
 class TestToggleCanRunJobs(TestSetup):

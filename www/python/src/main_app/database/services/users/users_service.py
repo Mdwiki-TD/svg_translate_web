@@ -9,6 +9,8 @@ import logging
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from ...exceptions import DuplicateRecordError
+
 from ...db_base import db
 from ...models import UserRecord
 from ..crud_service import CRUDService
@@ -43,7 +45,13 @@ class UsersService(CRUDService[UserRecord]):
 
     def create_user(self, username: str, **data) -> UserRecord:
         """Add a new user record."""
-        return self.create(username=username.strip(), **data)
+        username = username.strip()
+        self.validate_or_raise(username=username)
+
+        if self.get_by(username=username):
+            raise DuplicateRecordError(f"User {username} already exists")
+
+        return self.create(username=username, **data)
 
     def upsert_user(self, username: str) -> UserRecord:
         """Create a UserRecord if one doesn't exist. Returns the record.
@@ -63,6 +71,20 @@ class UsersService(CRUDService[UserRecord]):
             if record is not None:
                 return record
             raise
+
+    def users_search(self, userlike: str | None) -> list[str]:
+        """Return all user records where there username start with userlike."""
+        if not userlike:
+            return []
+        safe_prefix = userlike.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        rows = (
+            self.session.query(UserRecord.username)
+            .filter(UserRecord.username.like(f"{safe_prefix}%", escape="\\"))
+            .order_by(UserRecord.username.asc())
+            .limit(20)
+            .all()
+        )
+        return [x.username for x in rows]
 
 
 __all__ = [
