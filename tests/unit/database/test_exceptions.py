@@ -11,10 +11,14 @@ from __future__ import annotations
 
 import pytest
 from src.main_app.database.exceptions import (
+    CRUDError,
     DatabaseInitError,
     DuplicateRecordError,
     InsufficientDatabaseConfigError,
     MaxUserConnectionsError,
+    MultipleRecordsFoundError,
+    RecordNotFoundError,
+    UniqueError,
     UserNotFoundError,
 )
 

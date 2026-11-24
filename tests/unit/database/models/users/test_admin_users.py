@@ -2,8 +2,6 @@
 Unit tests for src/main_app/database/models/admin_users.py module.
 
 Classes to test: AdminUserRecord
-
-TODO: write tests
 """
 
 from src.main_app.database.models import UserRecord

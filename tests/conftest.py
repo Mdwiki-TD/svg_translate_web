@@ -147,7 +147,10 @@ def setup_db(mock_app: Flask):
     Creates all real tables (skipping views) and creates views manually.
     The Flask-SQLAlchemy session (db.session) is used throughout tests.
     """
+    from src.main_app.database import DatabaseBuilder
+
     with mock_app.app_context():
+        DatabaseBuilder.register_events(_db.engine)
         sqlite_view_functions(_db)
 
         create_tables(_db)

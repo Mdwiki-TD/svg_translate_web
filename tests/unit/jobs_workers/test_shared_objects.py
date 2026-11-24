@@ -69,7 +69,7 @@ class TestSharedworkerObject:
     def test_lists_are_independent(self):
         a = SharedworkerObject()
         b = SharedworkerObject()
-        a.pages_updated.append({"title": "Test"})
+        a.pages_updated.append(UpdaterOutcome(status="updated"))
         assert b.pages_updated == []
 
     def test_to_json(self):
