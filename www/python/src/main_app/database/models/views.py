@@ -1,3 +1,7 @@
+"""
+Views domain models - SQLAlchemy ORM.
+"""
+
 from __future__ import annotations
 
 import logging

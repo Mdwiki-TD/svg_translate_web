@@ -28,13 +28,13 @@ logger = logging.getLogger(__name__)
 def load_thumb_path() -> Path:
     """Return configured path for thumbnail storage."""
     app_settings = get_settings()
-    return Path(app_settings.paths.svg_data_thumb)
+    return Path(app_settings.paths.flask_data_dir / "svg_data_thumb")
 
 
 def load_svg_data_path() -> Path:
     """Return configured path for SVG data storage."""
     app_settings = get_settings()
-    return Path(app_settings.paths.svg_data)
+    return Path(app_settings.paths.flask_data_dir / "svg_data")
 
 
 class ExplorerMainView(MethodView):

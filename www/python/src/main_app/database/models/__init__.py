@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .jobs import JobRecord
 from .owid_charts import OwidChartRecord
 from .owid_slug_redirects import OwidSlugRedirectRecord

@@ -53,11 +53,10 @@ class AdminService(CRUDService[AdminUserRecord]):
         return record
 
     def add_admin(self, username: str) -> AdminUserRecord:
-        # self.validate_or_raise(username=username)
-        self.validate_or_raise(
-            username=username.strip(),
-        )
         username = username.strip()
+        self.validate_or_raise(
+            username=username,
+        )
 
         """Add an admin."""
         record = self.session.query(AdminUserRecord).filter(AdminUserRecord.username == username).first()

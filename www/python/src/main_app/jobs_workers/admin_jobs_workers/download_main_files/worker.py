@@ -30,7 +30,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker[DownloadMainFilesWorkerObject
         output_dir: Path | None = None,
     ) -> None:
         super().__init__(data)
-        self.output_dir = output_dir or Path(self.app_settings.paths.main_files_path)
+        self.output_dir = output_dir or Path(self.app_settings.paths.flask_data_dir) / "main_files"
         self.main_files_zip_name = self.args.get("main_files_zip_name", "main_files.zip")
         self.limit_items = self.args.get("limit_items") or 0
         self.files_service = FilesService()
@@ -147,7 +147,7 @@ class DownloadMainFilesWorker(BaseObjectsJobWorker[DownloadMainFilesWorkerObject
             FileNotFoundError: If main_files_path directory does not exist
             RuntimeError: If no files are found to zip
         """
-        main_files_path = Path(self.app_settings.paths.main_files_path)
+        main_files_path = Path(self.app_settings.paths.flask_data_dir) / "main_files"
 
         if not main_files_path.exists():
             raise FileNotFoundError(f"Main files directory does not exist: {main_files_path}")

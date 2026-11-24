@@ -52,7 +52,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker[ExtractFilesTranslatio
         self.files_service = FilesService()
         self.mapping: TranslationMapping = TranslationMapping()
 
-        self.svg_data_path = Path(self.app_settings.paths.svg_data)
+        self.svg_data_path = Path(self.app_settings.paths.flask_data_dir / "svg_data")
 
     def create_result(self) -> ExtractFilesTranslationsObject:
         """Create and return the specific result object instance."""

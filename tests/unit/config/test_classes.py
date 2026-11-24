@@ -20,23 +20,13 @@ def test_paths():
     """Test the Paths dataclass."""
     paths = Paths(
         flask_data_dir=Path("/"),
-        svg_data=Path("/svg/data"),
-        svg_data_thumb=Path("/svg/thumb"),
         log_dir=Path("/logs"),
-        fix_nested_data=Path("/fix/nested"),
         jobs_path=Path("/jobs"),
         admin_jobs_path=Path("/jobs"),
-        main_files_path=Path("/main_files"),
-        crop_main_files_path=Path("/crop_main_files"),
     )
 
-    assert paths.svg_data == Path("/svg/data")
-    assert paths.svg_data_thumb == Path("/svg/thumb")
     assert paths.log_dir == Path("/logs")
-    assert paths.fix_nested_data == Path("/fix/nested")
     assert paths.jobs_path == Path("/jobs")
-    assert paths.main_files_path == Path("/main_files")
-    assert paths.crop_main_files_path == Path("/crop_main_files")
 
 
 def test_cookieconfig():
@@ -70,14 +60,9 @@ def test_settings():
     cookie_config = CookieConfig("test", 3600, True, True, "Lax")
     paths = Paths(
         flask_data_dir=Path("/"),
-        svg_data=Path("/svg/data"),
-        svg_data_thumb=Path("/svg/thumb"),
         log_dir=Path("/logs"),
-        fix_nested_data=Path("/fix/nested"),
         jobs_path=Path("/jobs"),
         admin_jobs_path=Path("/jobs"),
-        main_files_path=Path("/main_files"),
-        crop_main_files_path=Path("/crop_main_files"),
     )
 
     jobs_config = JobsConfig(
@@ -120,6 +105,5 @@ def test_settings():
 
     assert app_settings.other.wiki_domain == "upload.example.com"
     assert app_settings.cookie.name == "test"
-    assert app_settings.paths.svg_data == Path("/svg/data")
     assert app_settings.security.max_content_length == 100 * 1024 * 1024
     assert app_settings.other.csrf_time_limit == 3600

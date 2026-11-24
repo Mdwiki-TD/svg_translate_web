@@ -214,12 +214,6 @@ class Paths:
     jobs_path: Path
     admin_jobs_path: Path
 
-    main_files_path: Path
-    svg_data: Path
-    svg_data_thumb: Path
-    fix_nested_data: Path
-    crop_main_files_path: Path
-
     # ------------------------------------------------------------------
     # Factory helpers
     # ------------------------------------------------------------------
@@ -236,18 +230,12 @@ class Paths:
         """
         flask_data_dir = os.getenv("MAIN_DIR") or "~/data"
         flask_data_dir = resolve_path(flask_data_dir)
-        crop_main_files_path = flask_data_dir / "crop_main_files"
 
         return Paths(
             flask_data_dir=flask_data_dir,
             log_dir=flask_data_dir / "logs",
             jobs_path=flask_data_dir / "svg_jobs",
             admin_jobs_path=flask_data_dir / "svg_jobs",
-            main_files_path=flask_data_dir / "main_files",
-            svg_data=flask_data_dir / "svg_data",
-            svg_data_thumb=flask_data_dir / "svg_data_thumb",
-            fix_nested_data=flask_data_dir / "fix_nested_data",
-            crop_main_files_path=crop_main_files_path,
         )
 
     def all_paths(self) -> list[Path]:
@@ -255,13 +243,6 @@ class Paths:
             self.log_dir,
             self.jobs_path,
             self.admin_jobs_path,
-            self.main_files_path,
-            self.svg_data,
-            self.svg_data_thumb,
-            self.fix_nested_data,
-            self.crop_main_files_path,
-            self.crop_main_files_path / "original",
-            self.crop_main_files_path / "cropped",
         ]
 
 

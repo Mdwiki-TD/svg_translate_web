@@ -43,8 +43,9 @@ class OneFileProcessor:
         self.exists: dict[str, Any] = {}
         self.args = args
         app_settings = get_settings()
-        self.original_dir = original_dir or Path(app_settings.paths.crop_main_files_path) / "original"
-        self.cropped_dir = cropped_dir or Path(app_settings.paths.crop_main_files_path) / "cropped"
+        crop_main_files_path = app_settings.paths.flask_data_dir / "crop_main_files"
+        self.original_dir = original_dir or crop_main_files_path / "original"
+        self.cropped_dir = cropped_dir or crop_main_files_path / "cropped"
 
         self.files_service = files_service or FilesService()
         self.charts_and_tmps_service = ChartsAndTemplatesService()

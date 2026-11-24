@@ -19,9 +19,23 @@ from flask.wrappers import Response
 
 from ....config import get_settings
 from ....decorators import admin_required
-from ....jobs_workers.admin_jobs_workers.download_main_files.zip_utils import create_main_files_zip
+from ....jobs_workers.admin_jobs_workers.download_main_files import ZipProvider
 
 logger = logging.getLogger(__name__)
+
+
+def get_main_files_path() -> Path:
+    app_settings = get_settings()
+    main_files_path = Path(app_settings.paths.flask_data_dir) / "main_files"
+    main_files_path.mkdir(parents=True, exist_ok=True)
+    return main_files_path
+
+
+def get_crop_main_files_path() -> Path:
+    app_settings = get_settings()
+    crop_main_files_path = app_settings.paths.flask_data_dir / "crop_main_files"
+    crop_main_files_path.mkdir(parents=True, exist_ok=True)
+    return crop_main_files_path
 
 
 class ServeDownloadMainFileView(MethodView):
@@ -31,8 +45,9 @@ class ServeDownloadMainFileView(MethodView):
 
     def get(self, filename: str) -> Response:
         """Serve a downloaded main file from the main_files_path directory."""
-        app_settings = get_settings()
-        response = send_from_directory(app_settings.paths.main_files_path, filename)
+        main_files_path = get_main_files_path()
+
+        response = send_from_directory(main_files_path, filename)
         response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
@@ -45,7 +60,9 @@ class DownloadAllMainFilesView(MethodView):
 
     def get(self) -> ResponseReturnValue:
         """Download all main files as a zip archive."""
-        response, status_code = create_main_files_zip()
+        main_files_path = get_main_files_path()
+
+        response, status_code = ZipProvider(main_files_path=main_files_path).create_main_files_zip()
 
         # If the response is an error message (not a file), flash it and redirect
         if status_code != 200:
@@ -56,30 +73,32 @@ class DownloadAllMainFilesView(MethodView):
 
 
 class ServeCropOriginalFileView(MethodView):
-    """View to serve an original file from the crop_main_files_path/original directory."""
+    """View to serve an original file from the flask_data_dir/crop_main_files/original directory."""
 
     decorators = [admin_required]
 
     def get(self, filename: str) -> Response:
-        """Serve an original file from the crop_main_files_path/original directory."""
-        app_settings = get_settings()
+        """Serve an original file from the flask_data_dir/crop_main_files/original directory."""
+        crop_main_files_path = get_crop_main_files_path()
+
         filename = filename.removeprefix("File:")
-        response = send_from_directory(Path(app_settings.paths.crop_main_files_path) / "original", filename)
+        response = send_from_directory(crop_main_files_path / "original", filename)
         response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
 
 class ServeCropCroppedFileView(MethodView):
-    """View to serve a cropped file from the crop_main_files_path/cropped directory."""
+    """View to serve a cropped file from the flask_data_dir/crop_main_files/cropped directory."""
 
     decorators = [admin_required]
 
     def get(self, filename: str) -> Response:
-        """Serve a cropped file from the crop_main_files_path/cropped directory."""
-        app_settings = get_settings()
+        """Serve a cropped file from the flask_data_dir/crop_main_files/cropped directory."""
+        crop_main_files_path = get_crop_main_files_path()
         filename = filename.removeprefix("File:")
-        response = send_from_directory(Path(app_settings.paths.crop_main_files_path) / "cropped", filename)
+
+        response = send_from_directory(crop_main_files_path / "cropped", filename)
         response.headers["Content-Security-Policy"] = "script-src 'none'; object-src 'none'"
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response

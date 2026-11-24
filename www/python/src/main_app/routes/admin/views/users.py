@@ -28,7 +28,6 @@ class HelperView(MethodView):
         self.user_service = UsersService()
 
 
-
 class UsersDashboardView(HelperView):
     """View rendering the user management dashboard."""
 
@@ -50,6 +49,7 @@ class UsersDashboardView(HelperView):
             users=users,
             total_users=total,
         )
+
 
 class UpdateCanRunJobsView(HelperView):
     """View to toggle the can_run_jobs column for a user."""

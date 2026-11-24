@@ -60,7 +60,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
         return SvgLangsConfig.load(
             title=self.title,
             args=args,
-            svg_data_path=self.app_settings.paths.svg_data,
+            svg_data_path=self.app_settings.paths.flask_data_dir / "svg_data",
         )
 
     def _extract_titles_step(self) -> bool:

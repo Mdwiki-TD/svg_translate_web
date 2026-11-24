@@ -33,7 +33,7 @@ def get_session_dir(session_id: str) -> Path:
     """Get the path to a session's directory and ensure it exists."""
     app_settings = get_settings()
     safe_session_id = "".join(c for c in session_id if c.isalnum())
-    session_dir = Path(app_settings.paths.main_files_path) / "translate_sessions" / safe_session_id
+    session_dir = app_settings.paths.flask_data_dir / "main_files/translate_sessions" / safe_session_id
     session_dir.mkdir(parents=True, exist_ok=True)
     return session_dir
 

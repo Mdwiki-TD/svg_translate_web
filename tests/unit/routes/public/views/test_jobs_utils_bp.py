@@ -24,7 +24,7 @@ class TestServeDownloadMainFile:
         main_files.mkdir()
         (main_files / "test.svg").write_text("<svg/>")
         mock_settings = MagicMock()
-        mock_settings.paths.main_files_path = str(main_files)
+        mock_settings.paths.flask_data_dir = str(main_files)
         monkeypatch.setattr(
             "src.main_app.routes.public.views.jobs_utils_bp.get_settings", Mock(return_value=mock_settings)
         )
@@ -79,7 +79,7 @@ class TestDownloadAllMainFiles:
         mock_zip.return_value = ("zip_content", 200)
         monkeypatch.setattr("src.main_app.routes.public.views.jobs_utils_bp.create_main_files_zip", mock_zip)
         mock_settings2 = MagicMock()
-        mock_settings2.paths.main_files_path = "/tmp"
+        mock_settings2.paths.flask_data_dir = "/tmp"
         monkeypatch.setattr(
             "src.main_app.routes.public.views.jobs_utils_bp.get_settings", Mock(return_value=mock_settings2)
         )
