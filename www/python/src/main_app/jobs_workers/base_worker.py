@@ -17,7 +17,7 @@ from ..database.services import JobsService
 from ..io.jobs_files_service import JobFilesService
 from .objects import DbCancelEvent, JobsRunner
 from .shared_objects import SharedworkerObject, UpdaterOutcome
-from .utils import generate_result_file_name
+from .utils import generate_cancelled_file_name, generate_result_file_name
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
         self._status: str = "pending"
 
         self.result_file: str = generate_result_file_name(data.job_id, self.JOB_TYPE)
-        self.result_file_cancelled: str = f"{self.result_file}.cancelled"
+        self.result_file_cancelled: str = generate_cancelled_file_name(result_file=self.result_file)
 
         self._edit_count: int = 0
         self.site: Site | None = None
@@ -178,6 +178,7 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
         Returns:
             True if cancelled, False otherwise
         """
+        # TODO: if self.cancel_event is DbCancelEvent, then dont run self.cancel_event.is_set() if check_db is False
         if self.cancel_event and self.cancel_event.is_set():
             logger.info("Job %s: Local cancellation detected, stopping.", self.job_id)
             self._mark_as_cancelled_in_result()

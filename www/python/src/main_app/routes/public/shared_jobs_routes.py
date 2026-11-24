@@ -47,17 +47,6 @@ class SharedJobRoutes:
             jobs_files_service=self.jobs_files_service,
         )
 
-    def can_manage_job(self, job: JobRecord, user: Any) -> bool:
-        """Check if the current user can manage (cancel/delete) a job."""
-        if not user:
-            return False
-        if getattr(user, "is_active_admin", False):
-            return True
-        job_username = job.username
-        if job_username and job_username == user.username:
-            return True
-        return False
-
     def cancel_job_handler(self, job_id: int, job_type: str) -> str:
         """Cancel a running job."""
         user = CurrentUserResolver.get_current_user()
@@ -85,6 +74,17 @@ class SharedJobRoutes:
             flash(f"Failed to cancel job {job_id}", "danger")
 
         return "job_detail"
+
+    def can_manage_job(self, job: JobRecord, user: Any) -> bool:
+        """Check if the current user can manage (cancel/delete) a job."""
+        if not user:
+            return False
+        if getattr(user, "is_active_admin", False):
+            return True
+        job_username = job.username
+        if job_username and job_username == user.username:
+            return True
+        return False
 
     def start_job_handler(
         self,

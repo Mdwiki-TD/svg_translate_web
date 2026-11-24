@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 
+from ...jobs_workers.utils import generate_cancelled_file_name
+
 from ...database.models import JobRecord
 from ...database.services import JobsService
 from ...io.jobs_files_service import JobFilesService
@@ -40,8 +42,10 @@ class JobCanceller:
         Works across multiple processes by updating the database status.
         Returns True if the job was found and cancellation was requested.
         """
-        # if job is None: job = svc.get_by(id=job_id)
-        # 1. Try local cancellation (if the job is in this process)
+        if job is None:
+            job = self.jobs_service.get_by(id=job_id)
+
+        # 1. Try local cancellation (if the job is in this process) for `thread` jobs
         cancel_event = get_cancel_event(job_id)
         local_cancelled = False
         if cancel_event:
@@ -51,8 +55,14 @@ class JobCanceller:
 
         cancelled_file = None
         # 2. Create result_file_cancelled file
-        if job and job.result_file:
-            cancelled_file = self.jobs_files_service.create_cancel_file(f"{job.result_file}.cancelled")
+        if job:
+            filename = generate_cancelled_file_name(
+                job_id=job.id,
+                job_type=job.job_type,
+                result_file=job.result_file,
+            )
+
+            cancelled_file = self.jobs_files_service.create_cancel_file( filename )
 
         # 3. Persist cancellation to DB (for cross-process detection)
         try:
