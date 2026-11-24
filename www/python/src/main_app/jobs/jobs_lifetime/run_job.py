@@ -69,7 +69,9 @@ def run_job_by_id(job_id: int) -> int:
         return 3
 
     payload = json.loads(job.payload) if job.payload else {}
-    svc.update_job_status(job_id, "running", job_type=job.job_type)
+
+    # BaseObjectsJobWorker.before_run will update_job_status
+    # svc.update_job_status(job_id, "running", job_type=job.job_type)
 
     cancel_event = DbCancelEvent(job_id)
     signal.signal(signal.SIGTERM, lambda *_: cancel_event.set())
