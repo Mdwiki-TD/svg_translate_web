@@ -22,14 +22,17 @@ class JobBackend(ABC):
         self,
         job: JobRecord,
         job_data: JobData,
-        payload: dict[str, Any],
+        user: dict[str, Any] | None = None,
     ) -> str:
         """Start a job and return a backend-specific identifier (e.g. Toolforge name).
 
+        The args/form_data payload is already saved on the job record; the executor reads it from the DB.
+
         Args:
-            job: The database record (already created with is_running=True).
+            job: The database record (already created, payload already saved).
             job_data: The JobData descriptor for this job type.
-            payload: The serialized args/form_data dict (no user/token data).
+            user: Auth payload, kept in memory only and never persisted. Used by in-process backends;
+                out-of-process backends ignore it and rebuild the identity from ``job.username``.
 
         Returns:
             A backend-specific identifier (thread id string or Toolforge job name).

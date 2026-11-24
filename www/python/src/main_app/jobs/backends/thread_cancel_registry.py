@@ -1,6 +1,6 @@
-"""Shared cancel event registry for the thread backend.
+"""In-process cancel event registry used by the thread backend only.
 
-Extracted to avoid circular imports between ``jobs_worker`` and ``backends.thread_backend``.
+Cross-process cancellation of thread jobs goes through the ``.cancelled`` file (see ``JobCanceller``).
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ def get_cancel_event(job_id: int) -> threading.Event | None:
 __all__ = [
     "JOBS_CANCEL_EVENTS",
     "JOBS_CANCEL_EVENTS_LOCK",
-    "register_cancel_event",
-    "pop_cancel_event",
     "get_cancel_event",
+    "pop_cancel_event",
+    "register_cancel_event",
 ]

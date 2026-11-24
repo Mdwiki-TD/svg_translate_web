@@ -47,34 +47,6 @@ class SharedJobRoutes:
             jobs_files_service=self.jobs_files_service,
         )
 
-    def cancel_job_handler(self, job_id: int, job_type: str) -> str:
-        """Cancel a running job."""
-        user = CurrentUserResolver.get_current_user()
-        if not user:
-            flash("You must be logged in to cancel jobs.", "danger")
-            return "job_detail"
-
-        try:
-            job = self.job_service.get_job(job_id, job_type)
-        except LookupError:
-            flash("Job not found.", "warning")
-            return "jobs_list"
-
-        if not self.can_manage_job(job, user):
-            flash("You don't have permission to cancel this job.", "danger")
-            return "job_detail"
-
-        try:
-            if self.jobs_canceller.cancel(job_id, job_type, job):
-                flash(f"Job {job_id} cancellation requested.", "success")
-            else:
-                flash(f"Job {job_id} is not running or already cancelled.", "warning")
-        except Exception:
-            logger.exception("Failed to cancel job")
-            flash(f"Failed to cancel job {job_id}", "danger")
-
-        return "job_detail"
-
     def can_manage_job(self, job: JobRecord, user: Any) -> bool:
         """Check if the current user can manage (cancel/delete) a job."""
         if not user:
@@ -132,6 +104,34 @@ class SharedJobRoutes:
         flash(f"Job {job_id} started to {job_type}.", "success")
 
         return job_id
+
+    def cancel_job_handler(self, job_id: int, job_type: str) -> str:
+        """Cancel a running job."""
+        user = CurrentUserResolver.get_current_user()
+        if not user:
+            flash("You must be logged in to cancel jobs.", "danger")
+            return "job_detail"
+
+        try:
+            job = self.job_service.get_job(job_id, job_type)
+        except LookupError:
+            flash("Job not found.", "warning")
+            return "jobs_list"
+
+        if not self.can_manage_job(job, user):
+            flash("You don't have permission to cancel this job.", "danger")
+            return "job_detail"
+
+        try:
+            if self.jobs_canceller.cancel(job_id, job_type, job):
+                flash(f"Job {job_id} cancellation requested.", "success")
+            else:
+                flash(f"Job {job_id} is not running or already cancelled.", "warning")
+        except Exception:
+            logger.exception("Failed to cancel job")
+            flash(f"Failed to cancel job {job_id}", "danger")
+
+        return "job_detail"
 
     def delete_job_handler(self, job_id: int, job_type: str) -> str:
         """Delete a job by ID and job type."""

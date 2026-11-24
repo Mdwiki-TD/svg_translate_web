@@ -42,8 +42,9 @@ class ToolforgeBackend(JobBackend):
         self,
         job: JobRecord,
         job_data: JobData,
-        payload: dict[str, Any],
+        user: dict[str, Any] | None = None,
     ) -> str:
+        # ``user`` is intentionally ignored: the pod rebuilds the identity from ``job.username``.
         jobs_cfg = self.app_settings.jobs
 
         name = tf_job_name(job.job_type, job.id)
@@ -97,7 +98,7 @@ class ToolforgeBackend(JobBackend):
             raise
 
         if not tf_job:
-            raise Exception(f"Toolforge job {name} does not exist")
+            raise RuntimeError(f"Toolforge job {name} does not exist")
 
         return tf_job.live_status()
 
