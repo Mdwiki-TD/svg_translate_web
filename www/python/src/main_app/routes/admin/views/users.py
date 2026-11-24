@@ -16,6 +16,8 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from flask.views import MethodView
 
+from ....database.exceptions import RecordNotFoundError
+
 from ....database.services import UsersService
 from ....decorators import admin_required
 
@@ -60,19 +62,16 @@ class UpdateCanRunJobsView(MethodView):
         """Toggle the can_run_jobs column for a user."""
         desired = 1 if request.form.get("can_run_jobs", "0") == "1" else 0
         try:
-            record = self.user_service.toggle_can_run_jobs(user_id, bool(desired))
-        except LookupError:
+            record = self.user_service.update_by_id(user_id, {"can_run_jobs": bool(desired)})
+        except RecordNotFoundError:
             logger.exception("Unable to update user permissions.")
             flash(f"User with id {user_id} was not found", "warning")
         except Exception:  # pragma: no cover - defensive guard
             logger.exception("Unable to update user permissions.")
             flash("Unable to update user permissions. Please try again.", "danger")
         else:
-            if record is None:
-                flash("Unable to update user permissions. Please try again.", "danger")
-            else:
-                flash(f"User '{record.username}' permissions updated.", "success")
-                logger.info(f"User '{record.username}' [can_run_jobs]={desired} updated.")
+            flash(f"User '{record.username}' permissions updated.", "success")
+            logger.info(f"User '{record.username}' [can_run_jobs]={desired} updated.")
 
         return redirect(url_for("admin_panel.users.dashboard"))
 
@@ -90,19 +89,16 @@ class UpdateCanRunBgJobsView(MethodView):
         desired = 1 if request.form.get("can_run_bg_jobs", "0") == "1" else 0
 
         try:
-            record = self.user_service.toggle_can_run_bg_jobs(user_id, bool(desired))
-        except LookupError:
+            record = self.user_service.update_by_id(user_id, {"can_run_bg_jobs": bool(desired)})
+        except RecordNotFoundError:
             logger.exception("Unable to update user permissions.")
             flash(f"User with id {user_id} was not found", "warning")
-        except Exception:  # pragma: no cover - defensive guard
+        except Exception: # pragma: no cover - defensive guard
             logger.exception("Unable to update user permissions.")
             flash("Unable to update user permissions. Please try again.", "danger")
         else:
-            if record is None:
-                flash("Unable to update user permissions. Please try again.", "danger")
-            else:
-                flash(f"User '{record.username}' permissions updated.", "success")
-                logger.info(f"User '{record.username}' [can_run_bg_jobs]={desired} updated.")
+            flash(f"User '{record.username}' permissions updated.", "success")
+            logger.info(f"User '{record.username}' [can_run_bg_jobs]={desired} updated.")
 
         return redirect(url_for("admin_panel.users.dashboard"))
 

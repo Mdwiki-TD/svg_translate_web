@@ -180,12 +180,12 @@ class CRUDService[ModelT]:
         pk: PKT,  # pyright: ignore[reportInvalidTypeVarUse]
         data: dict[str, Any],
         validate: bool = False,
-    ) -> ModelT | None:
+    ) -> ModelT:
         """Set attributes on `instance` and persist the change."""
         record = self.get_record_by_id(pk)
         if record is None:
             logger.error("Error updating %s id=%s: record not found", self.model_name, pk)
-            return None
+            raise RecordNotFoundError(f"{self.model_name} with id={pk!r} not found")
 
         try:
             # if validate and hasattr(record, "validate"): record.validate()
@@ -193,7 +193,7 @@ class CRUDService[ModelT]:
             return record
         except Exception as exc:
             logger.error("Error updating %s id=%s: %s", self.model_name, pk, exc)
-            return None
+            raise
 
     def upsert(self, pk: PKT, **fields: Any) -> tuple[ModelT, bool]:  # pyright: ignore[reportInvalidTypeVarUse]
         """
@@ -341,7 +341,9 @@ class CRUDService[ModelT]:
             return 0
 
         mapper = inspect(self.model)
-        pk_names = [mapper.get_property_by_column(col).key for col in mapper.primary_key]  # pyright: ignore[reportOptionalMemberAccess]
+        pk_names = [
+            mapper.get_property_by_column(col).key for col in mapper.primary_key
+        ]  # pyright: ignore[reportOptionalMemberAccess]
 
         for row in rows:
             missing = [name for name in pk_names if name not in row]

@@ -59,7 +59,7 @@ class AppFactory:
         return app
 
     @staticmethod
-    def _init_extensions(app: Flask):
+    def _init_extensions(app: Flask) -> None:
         # Initialize CSRF protection
         csrf_init_app(app)
         CliFactory.register(app)

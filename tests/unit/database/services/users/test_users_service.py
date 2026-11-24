@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from src.main_app.database.exceptions import UserNotFoundError
+from src.main_app.database.exceptions import RecordNotFoundError
 from src.main_app.database.services.users.users_service import UsersService
 
 
@@ -73,6 +73,7 @@ class TestCreateUser(TestSetup):
 
     def test_creates_new_user(self) -> None:
         result = self.service.create_user("new_user")
+        assert result is not None
         assert result.username == "new_user"
         assert result.user_id is not None
 
@@ -82,6 +83,7 @@ class TestCreateUser(TestSetup):
 
     def test_returns_existing_user(self) -> None:
         user_record = self.service.create_user("test_user")
+        assert user_record is not None
         result = self.service.create_user("test_user")
         assert result.user_id == user_record.user_id
         assert result.username == "test_user"
@@ -92,7 +94,8 @@ class TestToggleCanRunJobs(TestSetup):
 
     def test_toggles_to_true(self) -> None:
         user_record = self.service.create_user("test_user")
-        result = self.service.toggle_can_run_jobs(user_record.user_id, True)
+        assert user_record is not None
+        result = self.service.update_by_id(user_record.user_id, {"can_run_jobs": True})
         assert bool(result.can_run_jobs) is True
 
         refreshed = self.service.get(user_record.user_id)
@@ -101,7 +104,8 @@ class TestToggleCanRunJobs(TestSetup):
 
     def test_toggles_to_false(self) -> None:
         user_record = self.service.create_user("test_user")
-        result = self.service.toggle_can_run_jobs(user_record.user_id, False)
+        assert user_record is not None
+        result = self.service.update_by_id(user_record.user_id, {"can_run_jobs": False})
         assert bool(result.can_run_jobs) is False
 
         refreshed = self.service.get(user_record.user_id)
@@ -109,8 +113,8 @@ class TestToggleCanRunJobs(TestSetup):
         assert bool(refreshed.can_run_jobs) is False
 
     def test_raises_for_missing_user(self) -> None:
-        with pytest.raises(UserNotFoundError, match="User record not found"):
-            self.service.toggle_can_run_jobs(999, True)
+        with pytest.raises(RecordNotFoundError, match="User record not found"):
+            self.service.update_by_id(999, {"can_run_jobs": False})
 
 
 class TestToggleCanRunBgJobs(TestSetup):
@@ -118,7 +122,8 @@ class TestToggleCanRunBgJobs(TestSetup):
 
     def test_toggles_to_true(self) -> None:
         user_record = self.service.create_user("test_user")
-        result = self.service.toggle_can_run_bg_jobs(user_record.user_id, True)
+        assert user_record is not None
+        result = self.service.update_by_id(user_record.user_id, {"can_run_bg_jobs": True})
         assert bool(result.can_run_bg_jobs) is True
 
         refreshed = self.service.get(user_record.user_id)
@@ -127,7 +132,8 @@ class TestToggleCanRunBgJobs(TestSetup):
 
     def test_toggles_to_false(self) -> None:
         user_record = self.service.create_user("test_user")
-        result = self.service.toggle_can_run_bg_jobs(user_record.user_id, False)
+        assert user_record is not None
+        result = self.service.update_by_id(user_record.user_id, {"can_run_bg_jobs": False})
         assert bool(result.can_run_bg_jobs) is False
 
         refreshed = self.service.get(user_record.user_id)
@@ -135,5 +141,5 @@ class TestToggleCanRunBgJobs(TestSetup):
         assert bool(refreshed.can_run_bg_jobs) is False
 
     def test_raises_for_missing_user(self) -> None:
-        with pytest.raises(UserNotFoundError, match="User record not found"):
-            self.service.toggle_can_run_bg_jobs(999, True)
+        with pytest.raises(RecordNotFoundError, match="User record not found"):
+            self.service.update_by_id(999, {"can_run_bg_jobs": False})

@@ -9,7 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from ...decorators.admin_decorators import admin_guard
 from ...jobs_workers.workers_lists import jobs_data_admins
-from ..models import RouteModule
+from ..objects import RouteModule
 from ..public.shared_jobs_registrar import SharedJobRoutesRegistrar
 from .admin_panel import AdminPanel
 from .admin_sidebar import create_admin_sidebar
