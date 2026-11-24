@@ -7,7 +7,7 @@ import logging
 from ...database.models import JobRecord
 from ...database.services import JobsService
 from ...io.jobs_files_service import JobFilesService
-from .cancel_registry import get_cancel_event
+from .thread_cancel_registry import get_cancel_event
 
 logger = logging.getLogger(__name__)
 

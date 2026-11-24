@@ -7,13 +7,13 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.database.models import JobRecord
-from src.main_app.jobs_workers.jobs_lifetime import cancel_registry
-from src.main_app.jobs_workers.jobs_lifetime.cancel_registry import (
+from src.main_app.jobs.jobs_lifetime import thread_cancel_registry
+from src.main_app.jobs.jobs_lifetime.thread_cancel_registry import (
     get_cancel_event,
     register_cancel_event,
 )
-from src.main_app.jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
-from src.main_app.jobs_workers.jobs_lifetime.jobs_starter import JobStarter
+from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
+from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -36,11 +36,11 @@ def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture(autouse=True)
 def clean_cancel_events():
     """Clear CANCEL_EVENTS before and after each test."""
-    with cancel_registry.JOBS_CANCEL_EVENTS_LOCK:
-        cancel_registry.JOBS_CANCEL_EVENTS.clear()
+    with thread_cancel_registry.JOBS_CANCEL_EVENTS_LOCK:
+        thread_cancel_registry.JOBS_CANCEL_EVENTS.clear()
     yield
-    with cancel_registry.JOBS_CANCEL_EVENTS_LOCK:
-        cancel_registry.JOBS_CANCEL_EVENTS.clear()
+    with thread_cancel_registry.JOBS_CANCEL_EVENTS_LOCK:
+        thread_cancel_registry.JOBS_CANCEL_EVENTS.clear()
 
 
 @pytest.fixture
@@ -54,13 +54,13 @@ def mock_jobs_worker_services(monkeypatch: pytest.MonkeyPatch):
     }
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create_job"]
+        "src.main_app.jobs.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create_job"]
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.jobs_lifetime.jobs_starter.JobsService.save_payload", mocks["save_payload"]
+        "src.main_app.jobs.jobs_lifetime.jobs_starter.JobsService.save_payload", mocks["save_payload"]
     )
-    monkeypatch.setattr("src.main_app.jobs_workers.backends.thread_backend.threading.Thread", mocks["Thread"])
-    monkeypatch.setattr("src.main_app.jobs_workers.jobs_lifetime.jobs_starter.current_app", mocks["current_app"])
+    monkeypatch.setattr("src.main_app.jobs.backends.thread_backend.threading.Thread", mocks["Thread"])
+    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.current_app", mocks["current_app"])
 
     return mocks
 
@@ -150,7 +150,7 @@ def test_runner_calls_target_and_cleans_up():
     register_cancel_event(job_id, event)
     assert get_cancel_event(job_id) == event
 
-    from src.main_app.jobs_workers.backends.thread_backend import _runner
+    from src.main_app.jobs.backends.thread_backend import _runner
 
     data = JobsRunner(
         job_id=job_id,
@@ -245,7 +245,7 @@ def test_runner_passes_args_to_target():
 
     register_cancel_event(job_id, event)
 
-    from src.main_app.jobs_workers.backends.thread_backend import _runner
+    from src.main_app.jobs.backends.thread_backend import _runner
 
     data = JobsRunner(
         job_id=job_id,
@@ -277,7 +277,7 @@ def test_runner_passes_none_args_by_default():
 
     register_cancel_event(job_id, event)
 
-    from src.main_app.jobs_workers.backends.thread_backend import _runner
+    from src.main_app.jobs.backends.thread_backend import _runner
 
     data = JobsRunner(
         job_id=job_id,

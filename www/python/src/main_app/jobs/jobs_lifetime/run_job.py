@@ -14,7 +14,7 @@ import signal
 from ...database.services import JobsService
 from ...jobs_workers.objects import JobData, JobsRunner
 from ...jobs_workers.workers_lists import jobs_data_admins, jobs_data_public
-from .cancel import DbCancelEvent
+from .db_cancel import DbCancelEvent
 
 logger = logging.getLogger(__name__)
 

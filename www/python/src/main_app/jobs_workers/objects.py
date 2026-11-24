@@ -5,7 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..jobs.jobs_lifetime.cancel import DbCancelEvent
+from ..jobs.jobs_lifetime.db_cancel import DbCancelEvent
 
 
 @dataclass
