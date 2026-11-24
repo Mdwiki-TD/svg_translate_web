@@ -3,6 +3,21 @@
 
 {% block title %}Users · {{ tool_title }}{% endblock %}
 
+{%- macro update_user_can_run(end_point, user_id, value, column_name) -%}
+<form method="post" action="{{ url_for(end_point, user_id=user_id) }}" class="d-inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="form-check form-switch d-inline-flex align-items-center">
+        <input type="hidden" name="{{ column_name }}" id="{{ column_name }}-value-{{ user_id }}"
+            value="{{ 1 if value else 0 }}">
+        <input class="form-check-input" type="checkbox" role="switch" id="{{ column_name }}-{{ user_id }}"
+            {% if value %}checked{% endif %}
+            onchange="document.getElementById('{{ column_name }}-value-{{ user_id }}').value = this.checked ? '1' : '0'; this.form.submit();">
+        <label class="visually-hidden" for="{{ column_name }}-{{ user_id }}">Toggle
+            user state</label>
+    </div>
+</form>
+{%- endmacro -%}
+
 {% block admin_contents %}
 
 <div class="card">
@@ -23,6 +38,8 @@
                         <th scope="col" style="width: 5%">ID</th>
                         <th scope="col">User</th>
                         <th scope="col" class="text-center">Create at</th>
+                        <th scope="col" class="text-center">Can run jobs?</th>
+                        <th scope="col" class="text-center">Can run background jobs?</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,6 +53,12 @@
                         </td>
                         <td class="text-center">
                             {{ user.created_at }}
+                        </td>
+                        <td class="text-center">
+                            {{ update_user_can_run('admin_panel.users.update_can_run_jobs', user.user_id, user.can_run_jobs, "can_run_jobs") }}
+                        </td>
+                        <td class="text-center">
+                            {{ update_user_can_run('admin_panel.users.update_can_run_bg_jobs', user.user_id, user.can_run_bg_jobs, "can_run_bg_jobs") }}
                         </td>
                     </tr>
                     {% endfor %}

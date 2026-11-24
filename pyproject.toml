@@ -296,7 +296,7 @@ enableTypeIgnoreComments = true
 reportMissingModuleSource = "warning"
 reportInvalidTypeForm = "warning"
 reportMissingImports = "error"
-reportUndefinedVariable = "warning"
+reportUndefinedVariable = "error"
 
 reportAttributeAccessIssue = true
 reportAssignmentType = "warning"
