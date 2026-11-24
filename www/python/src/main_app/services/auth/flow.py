@@ -249,7 +249,7 @@ class AuthFlowService:
 
     def _resolve_user_id_db(self, username: str) -> int:
         """Return the user_id for ``username``, creating a UserRecord if needed."""
-        record = self.user_svc.ensure_exists(username)
+        record = self.user_svc.upsert_user(username)
         return record.user_id
 
     def _set_auth_cookie(self, user_id: int, response: WerkzeugResponse) -> None:

@@ -41,11 +41,11 @@ class UsersService(CRUDService[UserRecord]):
             return None
         return self.get_by(username=username)
 
-    def create_user(self, username: str) -> None | UserRecord:
-        """Create a user identity row. Idempotent — returns existing if present."""
-        return self.get_by(username=username) or self.create(username=username)
+    def create_user(self, username: str, **data) -> UserRecord:
+        """Add a new user record."""
+        return self.create(username=username.strip(), **data)
 
-    def ensure_exists(self, username: str) -> UserRecord:
+    def upsert_user(self, username: str) -> UserRecord:
         """Create a UserRecord if one doesn't exist. Returns the record.
 
         Handles concurrent-create races (IntegrityError) by retrying
