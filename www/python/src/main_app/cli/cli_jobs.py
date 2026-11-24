@@ -1,4 +1,7 @@
-"""CLI commands for running and managing background jobs."""
+# src/main_app/cli/cli_jobs.py
+"""
+CLI commands for running and managing background jobs.
+"""
 
 from __future__ import annotations
 

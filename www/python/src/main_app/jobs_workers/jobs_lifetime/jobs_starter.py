@@ -1,4 +1,7 @@
-"""Worker module for managing background jobs."""
+# src/main_app/jobs_workers/jobs_lifetime/jobs_starter.py
+"""
+Worker module for managing background jobs.
+"""
 
 from __future__ import annotations
 

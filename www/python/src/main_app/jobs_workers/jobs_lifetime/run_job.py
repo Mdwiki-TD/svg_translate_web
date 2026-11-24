@@ -1,3 +1,4 @@
+# src/main_app/jobs_workers/jobs_lifetime/run_job.py
 """
 Entry point for running a single job by its database ID.
 
@@ -11,11 +12,15 @@ import logging
 import signal
 
 from ...database.services import JobsService
-from ..objects import JobsRunner
-from ..workers_lists import jobs_data_admins
+from ..objects import JobData, JobsRunner
+from ..workers_lists import jobs_data_admins, jobs_data_public
 from .cancel import DbCancelEvent
 
 logger = logging.getLogger(__name__)
+
+
+def load_job_data(job_type: str) -> JobData | None:
+    return jobs_data_admins.get(job_type) or jobs_data_public.get(job_type)
 
 
 def build_job_user(username: str) -> dict | None:
@@ -53,7 +58,7 @@ def run_job_by_id(job_id: int) -> int:
         # Cancelled before the pod started
         return 0
 
-    job_data = jobs_data_admins.get(job.job_type)
+    job_data = load_job_data(job.job_type)
     if not job_data or not job_data.job_class:
         svc.mark_failed(job, f"unknown job type {job.job_type}")
         return 2
