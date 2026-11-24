@@ -11,8 +11,8 @@ import sys
 import click
 from flask import Flask
 
-from ..jobs.jobs_lifetime import JobStarter
-from ..jobs.jobs_lifetime.run_job import run_job_by_id
+from .jobs_lifetime import JobStarter
+from .jobs_lifetime.run_job import run_job_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ def register_cli_jobs(app: Flask) -> None:
     # Adds an optional flag --update-all (default is False if not provided)
     @click.option("--update-all", is_flag=True, help="Set to True if you want to update all.")
     def _run_job(job_type: str, update_all: bool) -> None:
-        """
+        """Create and run a background job inline, in this process (no thread, no pod).
         How to test locally:
         .venv/Scripts/activate
 
@@ -64,7 +64,7 @@ def register_cli_jobs(app: Flask) -> None:
         Usage:
             flask --app "$HOME/www/python/src/app.py" reconcile-jobs
         """
-        from ..jobs.jobs_lifetime.reconcile import reconcile
+        from .jobs_lifetime.reconcile import reconcile
 
         reconcile()
 

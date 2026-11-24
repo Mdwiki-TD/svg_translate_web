@@ -8,7 +8,7 @@ from ...database.models import JobRecord
 from ...database.services import JobsService
 from ...io.jobs_files_service import JobFilesService
 from ...jobs_workers.utils import generate_cancelled_file_name
-from .thread_cancel_registry import get_cancel_event
+from ..backends.thread_cancel_registry import get_cancel_event
 
 logger = logging.getLogger(__name__)
 

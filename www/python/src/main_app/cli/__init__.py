@@ -8,7 +8,7 @@ import logging
 
 from flask import Flask
 
-from .cli_jobs import register_cli_jobs
+from ..jobs.cli_jobs import register_cli_jobs
 from .errors_cli import register_error_log_commands
 
 logger = logging.getLogger(__name__)
