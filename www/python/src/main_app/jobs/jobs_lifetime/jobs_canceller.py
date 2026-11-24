@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import logging
 
-from ...jobs_workers.utils import generate_cancelled_file_name
-
 from ...database.models import JobRecord
 from ...database.services import JobsService
 from ...io.jobs_files_service import JobFilesService
+from ...jobs_workers.utils import generate_cancelled_file_name
 from .thread_cancel_registry import get_cancel_event
 
 logger = logging.getLogger(__name__)
@@ -62,7 +61,7 @@ class JobCanceller:
                 result_file=job.result_file,
             )
 
-            cancelled_file = self.jobs_files_service.create_cancel_file( filename )
+            cancelled_file = self.jobs_files_service.create_cancel_file(filename)
 
         # 3. Persist cancellation to DB (for cross-process detection)
         try:

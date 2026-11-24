@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 GRACE = timedelta(seconds=90)  # Time before considering a missing job as lost
 
+
 def running_jobs():
     """Return active DB rows paired with their live Toolforge state."""
     tf = ToolforgeJobsService()

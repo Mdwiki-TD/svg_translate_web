@@ -8,12 +8,12 @@ from unittest.mock import MagicMock
 import pytest
 from src.main_app.database.models import JobRecord
 from src.main_app.jobs.jobs_lifetime import thread_cancel_registry
+from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
+from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
 from src.main_app.jobs.jobs_lifetime.thread_cancel_registry import (
     get_cancel_event,
     register_cancel_event,
 )
-from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
-from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
@@ -53,12 +53,8 @@ def mock_jobs_worker_services(monkeypatch: pytest.MonkeyPatch):
         "current_app": MagicMock(),
     }
 
-    monkeypatch.setattr(
-        "src.main_app.jobs.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create_job"]
-    )
-    monkeypatch.setattr(
-        "src.main_app.jobs.jobs_lifetime.jobs_starter.JobsService.save_payload", mocks["save_payload"]
-    )
+    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create_job"])
+    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.JobsService.save_payload", mocks["save_payload"])
     monkeypatch.setattr("src.main_app.jobs.backends.thread_backend.threading.Thread", mocks["Thread"])
     monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.current_app", mocks["current_app"])
 
