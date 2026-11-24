@@ -127,7 +127,7 @@ class JobStarter:
 
         return job.id
 
-    def submit_form(
+    def start(
         self,
         auth_payload: dict[str, Any] | None,
         job_type: str,
@@ -146,23 +146,6 @@ class JobStarter:
             flask_app=flask_app,
         )
 
-    def start(
-        self,
-        auth_payload: dict[str, Any] | None,
-        job_type: str,
-        args: dict[str, Any] | None = None,
-        app: Flask | None = None,
-    ) -> int:
-        """Start a background job as a daemon thread."""
-        flask_app = app or current_app._get_current_object()  # type: ignore[attr-defined]
-        return self._start_impl(
-            auth_payload,
-            job_type,
-            args,
-            daemon=True,
-            flask_app=flask_app,
-        )
-
     def start_cli(
         self,
         auth_payload: dict[str, Any] | None,
@@ -176,6 +159,7 @@ class JobStarter:
             auth_payload,
             job_type,
             args,
+            daemon=False,
             flask_app=flask_app,
         )
 

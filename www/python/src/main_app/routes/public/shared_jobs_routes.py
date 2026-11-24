@@ -112,7 +112,7 @@ class SharedJobRoutes:
             return None
 
         try:
-            job_id = JobStarter().submit_form(auth_payload, job_type, args, form_data)
+            job_id = JobStarter().start(auth_payload, job_type, args, form_data)
         except DuplicateRecordError:  # pragma: no cover - kept for safety
             logger.warning(
                 "User '%s' attempted to start duplicate job type '%s'",
