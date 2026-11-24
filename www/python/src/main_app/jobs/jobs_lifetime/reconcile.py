@@ -12,29 +12,11 @@ from ...config import get_settings
 from ...database.models import JobRecord
 from ...database.services import JobsService
 from ...jobs_workers.workers_lists import jobs_data_admins
-from ..backends.toolforge_backend import tf_job_name
+from ..backends.toolforge_backend import ToolforgeBackend, tf_job_name
 
 logger = logging.getLogger(__name__)
 
 GRACE = timedelta(seconds=90)  # Time before considering a missing job as lost
-
-
-def get_live_status(job) -> dict | None:
-    """Query Toolforge for the live status of a single job."""
-    tf = ToolforgeJobsService()
-    name = tf_job_name(job.job_type, job.id)
-    try:
-        tf_job = tf.show_job(name).job
-    except HTTPError as exc:
-        if exc.response is not None and exc.response.status_code == 404:
-            return None
-        raise
-
-    if not tf_job:
-        raise Exception(f"Toolforge job {name} does not exist")
-
-    return tf_job.live_status()
-
 
 def running_jobs():
     """Return active DB rows paired with their live Toolforge state."""
@@ -58,10 +40,10 @@ def running_jobs():
     return result
 
 
-def sync_job(job) -> None:
+def sync_job(job: JobRecord) -> None:
     """Synchronize a single DB row with its Toolforge state."""
     svc = JobsService()
-    live = get_live_status(job)
+    live = ToolforgeBackend().status(job)
 
     if live is None:
         created = job.created_at
@@ -145,7 +127,6 @@ def setup_reconcile_schedule() -> None:
 __all__ = [
     "reconcile",
     "sync_job",
-    "get_live_status",
     "running_jobs",
     "setup_reconcile_schedule",
 ]

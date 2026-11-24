@@ -87,6 +87,7 @@ class ToolforgeBackend(JobBackend):
             return False
 
     def status(self, job: JobRecord) -> dict[str, Any] | None:
+        """Query Toolforge for the live status of a single job."""
         name = tf_job_name(job.job_type, job.id)
         try:
             tf_job = self.svc.show_job(name).job

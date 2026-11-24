@@ -65,7 +65,7 @@ class JobCanceller:
             db_cancelled = False
 
         # 4. If backend is toolforge, also delete the pod
-        if job and getattr(job, "backend", "thread") == "toolforge":
+        if job and job.backend == "toolforge":
             try:
                 from ..backends.toolforge_backend import ToolforgeBackend
 
