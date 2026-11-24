@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from src.main_app.database.models.jobs import JobRecord
-from src.main_app.io.jobs_files_service import JobFilesService, get_jobs_data_dir
+from src.main_app.io.jobs_files_service import JobFilesService
 from src.main_app.jobs_workers.utils import generate_result_file_name
 
 
@@ -286,38 +286,3 @@ class TestIsCancelFileExist:
     def test_false_on_os_error(self, service):
         with patch.object(Path, "exists", side_effect=OSError("Access denied")):
             assert service.is_cancel_file_exist("any.cancel") is False
-
-
-class TestGetJobsDataDir:
-    """Tests for the legacy ``get_jobs_data_dir`` entry point."""
-
-    @pytest.fixture(autouse=True)
-    def _patched_settings(self, mock_settings):
-        # The legacy function takes no arguments, so ``get_settings`` must be patched.
-        get_jobs_data_dir.cache_clear()
-        with patch(
-            "src.main_app.io.jobs_files_service.get_settings",
-            return_value=mock_settings,
-        ):
-            yield
-        get_jobs_data_dir.cache_clear()
-
-    def test_returns_path_and_creates_directory(self, jobs_path):
-        assert not jobs_path.exists()
-
-        result = get_jobs_data_dir()
-
-        assert result == jobs_path
-        assert jobs_path.is_dir()
-
-    def test_raises_when_not_configured(self, mock_settings):
-        mock_settings.paths.jobs_path = None
-
-        with pytest.raises(RuntimeError, match="jobs_path configuration is required"):
-            get_jobs_data_dir()
-
-    def test_result_is_cached(self, mock_settings, tmp_path):
-        first = get_jobs_data_dir()
-        mock_settings.paths.jobs_path = str(tmp_path / "other")
-
-        assert get_jobs_data_dir() == first

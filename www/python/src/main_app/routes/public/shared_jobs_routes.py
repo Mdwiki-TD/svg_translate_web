@@ -40,7 +40,7 @@ class SharedJobRoutes:
         self.job_service = JobsService()
         self.settings_service = SettingsService()
         self.jobs_canceller = JobCanceller()
-        self.jobs_files_service = JobFilesService()
+        self.jobs_files_service = JobFilesService(bp_name=self.bp_name)
 
     def can_manage_job(self, job: Any, user: Any) -> bool:
         """Check if the current user can manage (cancel/delete) a job."""

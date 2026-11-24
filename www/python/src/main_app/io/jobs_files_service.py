@@ -6,7 +6,6 @@ and cancellation markers, plus backward-compatible legacy functions.
 
 from __future__ import annotations
 
-import functools
 import json
 import logging
 import os
@@ -29,14 +28,19 @@ class JobFilesService:
         self,
         base_dir: Path | None = None,
         settings: Settings | None = None,
+        bp_name: str | None = None,
     ) -> None:
         self.settings = settings or get_settings()
         self.jobs_dir = base_dir or self._load_jobs_dir()
+        self.bp_name = bp_name or "admin_panel.jobs"
 
     def _load_jobs_dir(self) -> Path:
         """Resolve and cache the jobs data directory."""
         # Use jobs_path from settings paths
-        jobs_dir = self.settings.paths.jobs_path
+        if self.bp_name == "admin_panel.jobs":
+            jobs_dir = self.settings.paths.admin_jobs_path
+        else:
+            jobs_dir = self.settings.paths.jobs_path
 
         if not jobs_dir:
             raise RuntimeError("jobs_path configuration is required for job result storage")
@@ -107,13 +111,6 @@ class JobFilesService:
             return False
 
 
-@functools.lru_cache(maxsize=1)
-def get_jobs_data_dir() -> Path:
-    """Legacy entry point. Returns the jobs data directory path."""
-    return JobFilesService().jobs_dir
-
-
 __all__ = [
     "JobFilesService",
-    "get_jobs_data_dir",
 ]
