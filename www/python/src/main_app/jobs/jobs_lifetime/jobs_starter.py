@@ -109,10 +109,11 @@ class JobStarter:
             "user": {},
         }
 
+        self.jobs_service.save_payload(job.id, backend_name, payload)
+
+        # update payload with user info for thread backend after payload is saved to DB
         if backend_name == "thread":
             payload["user"] = auth_payload or {}
-
-        self.jobs_service.save_payload(job.id, backend_name, payload)
 
         backend = self.backend_registry.get_backend(backend_name)
         backend.start(job, job_data, payload)
