@@ -16,20 +16,23 @@ from flask import (
 from flask.typing import ResponseReturnValue
 from flask.views import MethodView
 
-
 from ....database.exceptions import RecordNotFoundError
 from ....database.services import UsersService
 from ....decorators import admin_required
 
 logger = logging.getLogger(__name__)
 
-class UsersDashboardView(MethodView):
+
+class HelperView(MethodView):
+    def __init__(self) -> None:
+        self.user_service = UsersService()
+
+
+
+class UsersDashboardView(HelperView):
     """View rendering the user management dashboard."""
 
     decorators = [admin_required]
-
-    def __init__(self) -> None:
-        self.user_service = UsersService()
 
     def get(self) -> str:
         """List every user along with their permission flags."""
@@ -48,12 +51,7 @@ class UsersDashboardView(MethodView):
             total_users=total,
         )
 
-
-class CanRunHelperView(MethodView):
-    def __init__(self) -> None:
-        self.user_service = UsersService()
-
-class UpdateCanRunJobsView(CanRunHelperView):
+class UpdateCanRunJobsView(HelperView):
     """View to toggle the can_run_jobs column for a user."""
 
     decorators = [admin_required]
@@ -76,7 +74,7 @@ class UpdateCanRunJobsView(CanRunHelperView):
         return redirect(url_for("admin_panel.users.dashboard"))
 
 
-class UpdateCanRunBgJobsView(CanRunHelperView):
+class UpdateCanRunBgJobsView(HelperView):
     """View to toggle the can_run_bg_jobs column for a user."""
 
     decorators = [admin_required]
@@ -96,7 +94,6 @@ class UpdateCanRunBgJobsView(CanRunHelperView):
         else:
             flash(f"User '{record.username}' permissions updated.", "success")
             logger.info(f"User '{record.username}' [can_run_bg_jobs]={desired} updated.")
-            logger.info(f"User '{record.username}' [can_run_bg_jobs]={desired} updated.")
 
         return redirect(url_for("admin_panel.users.dashboard"))
 
@@ -113,6 +110,7 @@ class UsersRoutes:
             "/<int:user_id>/can_run_bg_jobs",
             view_func=UpdateCanRunBgJobsView.as_view("update_can_run_bg_jobs"),
         )
+
 
 __all__ = [
     "UsersRoutes",
