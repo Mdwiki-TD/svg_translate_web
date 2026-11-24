@@ -1,5 +1,6 @@
 a {
     text-decoration: none;
+    word-break: break-all !important;
 }
 .card-header > .card-tools {
     float: right;
@@ -26,8 +27,11 @@ a {
     border-radius: 0.25rem;
     color: #adb5bd;
     font-size: 0.875rem;
-    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-        border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition:
+        color 0.15s ease-in-out,
+        background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out,
+        box-shadow 0.15s ease-in-out;
 }
 
 .btn-tool:hover {
@@ -91,4 +95,11 @@ a {
 }
 .nowrap-text {
     white-space: nowrap;
+}
+
+json-data {
+    padding: 10px;
+    border-radius: 5px;
+    max-height: 300px;
+    overflow: auto;
 }

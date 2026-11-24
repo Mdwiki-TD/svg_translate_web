@@ -23,6 +23,7 @@
     <!-- <link href="{{ static_server }}/ajax/libs/prism/1.30.0/themes/prism-coy.min.css" rel="stylesheet" /> -->
     <link rel='stylesheet' href="{{ url_for('static', filename='css/style.css') }}">
     <link rel='stylesheet' href="{{ url_for('static', filename='css/navbar.css') }}">
+    {% block extra_head %}{% endblock %}
     {% block extra_css %}{% endblock %}
 </head>
 
