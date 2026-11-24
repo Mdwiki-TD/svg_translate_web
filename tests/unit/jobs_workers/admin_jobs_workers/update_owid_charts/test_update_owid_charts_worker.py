@@ -34,7 +34,8 @@ def mock_update_owid_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
     # fetch_grapher_metadata_raw returns (metadata, status_code)
     mock_fetch = MagicMock(return_value=RawGrapherMetadataResponse(None, 200))
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.fetch_grapher_metadata_raw", mock_fetch
+        "src.main_app.jobs_workers.admin_jobs_workers.update_owid_charts.worker.OwidClient.fetch_grapher_metadata_raw",
+        mock_fetch,
     )
 
     mock_service = MagicMock()

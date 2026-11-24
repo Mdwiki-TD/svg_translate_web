@@ -96,9 +96,11 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
             self.main_title = step_result["main_title"]
             self.result.main_title = self.main_title
             self.titles = list(step_result["titles"])
+
             cropped_main_title = CropMainFilesSteps.generate_cropped_filename(self.main_title).removeprefix("File:")
             if cropped_main_title not in self.titles:
                 self.titles.append(cropped_main_title)
+
             self.titles.sort()
 
             return True

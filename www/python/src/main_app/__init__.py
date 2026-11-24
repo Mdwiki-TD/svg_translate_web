@@ -1,5 +1,5 @@
 """
-Flask application factory.
+Flask application factory entry point.
 """
 
 from __future__ import annotations

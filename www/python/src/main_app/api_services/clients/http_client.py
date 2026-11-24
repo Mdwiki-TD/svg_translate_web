@@ -70,7 +70,7 @@ class HttpClient(HttpHelper):
     def _user_agent(self) -> str:
         user_agent = os.getenv(
             "USER_AGENT",
-            "Translation Dashboard/1.0 (https://mdwiki.toolforge.org/; tools.mdwiki@toolforge.org)",
+            "mytool/1.0 (https://mytool.toolforge.org; tools.mytool@toolforge.org)",
         )
         return user_agent
 

@@ -259,7 +259,7 @@ class TranslateSaveView(MethodView):
         user_payload = RequestContextHelper.load_auth_payload(g._current_user)
 
         app_settings = get_settings()
-        site = WikiSiteClient.get_user_site(app_settings.other.wiki_domain, user_payload)
+        site = WikiSiteClient().get_user_site(app_settings.other.wiki_domain, user_payload)
 
         if not site:
             flash("OAuth session error. Please log in again.", "danger")

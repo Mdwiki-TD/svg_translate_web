@@ -25,7 +25,7 @@ class TestUserService:
     def _seed_user(self, username: str) -> int:
         """Create a user identity row. Returns user_id.
 
-        Mirrors how the route resolves identity (ensure_exists) before handing
+        Mirrors how the route resolves identity (upsert_user) before handing
         a user_id to TokenManager.save_token.
         """
         with self.app.app_context():
@@ -62,7 +62,7 @@ class TestUserService:
         """A user with no token yet should get one upserted and non-admin status returned.
 
         Mirrors the route flow: the user identity is resolved to a user_id upstream
-        (via ensure_exists), then TokenManager.save_token persists the encrypted token.
+        (via upsert_user), then TokenManager.save_token persists the encrypted token.
         """
         user_id = self._seed_user("brand_new_user")
 

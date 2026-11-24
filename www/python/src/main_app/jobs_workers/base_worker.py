@@ -12,7 +12,7 @@ from mwclient.client import Site
 from sqlalchemy.orm.exc import StaleDataError
 
 from ..api_services import WikiSiteClient
-from ..config import get_settings
+from ..config import Settings, get_settings
 from ..database.services import JobsService
 from ..io.jobs_files_service import JobFilesService
 from .objects import DbCancelEvent, JobsRunner
@@ -51,7 +51,17 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
     def __init__(
         self,
         data: JobsRunner,
+        *,
+        wikisite_client: WikiSiteClient | None = None,
+        jobs_service: JobsService | None = None,
+        jobs_files_service: JobFilesService | None = None,
+        app_settings: Settings | None = None,
     ) -> None:
+        self.wikisite_client = wikisite_client or WikiSiteClient()
+        self.jobs_service = jobs_service or JobsService()
+        self.jobs_files_service = jobs_files_service or JobFilesService()
+        self.app_settings = app_settings or get_settings()
+
         self.job_id: Final[int] = data.job_id
         self.args: dict[str, Any] = data.args or {}
 
@@ -65,14 +75,10 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
 
         self._edit_count: int = 0
         self.site: Site | None = None
-        self.jobs_service = JobsService()
-        self.wikisite_client = WikiSiteClient()
 
-        self.app_settings = get_settings()
         self.wiki_domain = self.app_settings.other.wiki_domain
 
         self.result: TResult = self.create_result()
-        self.jobs_files_service = JobFilesService()
 
     @abstractmethod
     def create_result(self) -> TResult:

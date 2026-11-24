@@ -86,7 +86,7 @@ def mocks() -> dict[str, MagicMock]:
     token_signer.sign_user_id.side_effect = lambda uid: f"signed_uid:{uid}"
     token_signer.extract_user_id.return_value = 42
 
-    user_svc.ensure_exists.return_value = SimpleNamespace(user_id=42, username="WikiEditor")
+    user_svc.upsert_user.return_value = SimpleNamespace(user_id=42, username="WikiEditor")
     token_manager.save_token.return_value = SimpleNamespace(id=1)
     token_manager.get_authenticated_user.return_value = SimpleNamespace(user_id=42, username="WikiEditor")
 
@@ -244,7 +244,7 @@ def test_complete_callback_success(
             oauth_token="req_tok",
             oauth_token_secret="req_sec",
         )
-        mocks["user_svc"].ensure_exists.assert_called_once_with("WikiEditor")
+        mocks["user_svc"].upsert_user.assert_called_once_with("WikiEditor")
         mocks["token_manager"].save_token.assert_called_once_with(
             user_id=42,
             access_token="acc_key",
@@ -454,7 +454,7 @@ def test_complete_callback_resolve_user_id_failure(
     service: AuthFlowService,
     mocks: dict[str, MagicMock],
 ) -> None:
-    mocks["user_svc"].ensure_exists.side_effect = RuntimeError("DB unavailable")
+    mocks["user_svc"].upsert_user.side_effect = RuntimeError("DB unavailable")
 
     with app.test_request_context("/"):
         session["oauth_state_nonce"] = "nonce-1"

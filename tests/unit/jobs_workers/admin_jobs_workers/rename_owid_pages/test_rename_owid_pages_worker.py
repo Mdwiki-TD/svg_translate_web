@@ -331,18 +331,53 @@ class TestUpdateTemplateTitle:
 
 
 class TestWorkerEdgeCases:
-    @pytest.mark.skip(reason="_get_candidates need to retrun something or will skip before reaching the cancel_event")
-    def test_cancel_event_set_stops_processing(self, mock_base_worker, mock_template_service):
+    def test_cancel_event_set_stops_processing(
+        self, mock_base_worker, mock_template_service, mock_mw_client_cls
+    ) -> None:
         cancel_event = threading.Event()
         cancel_event.set()
 
         defaults = {"job_id": 1, "user": {"username": "tester"}, "cancel_event": cancel_event}
         _worker = RenameOwidPagesWorker(
             data=JobsRunner(**defaults),
+            template_service=mock_template_service,
+            mw_client_cls=mock_mw_client_cls,
         )
 
-        _worker.process()
-        assert _worker.result.status == "cancelled"
+        # Candidates must exist, otherwise process() returns "skipped" before
+        # reaching the cancellation check.
+        candidate = RenameInfo(
+            namespace=10,
+            old_title="Template:OWID/daily",
+            new_title="Template:OWID/Daily",
+            full_prefix="Template:OWID/",
+        )
+        _worker._get_candidates = MagicMock(return_value=[candidate])
+
+        result = _worker.process()
+
+        assert result.status == "cancelled"
+        assert result.summary.total == 1
+        assert result.summary.processed == 0
+
+    def test_no_candidates_returns_skipped_before_cancel_check(
+        self, mock_base_worker, mock_template_service, mock_mw_client_cls
+    ) -> None:
+        cancel_event = threading.Event()
+        cancel_event.set()
+
+        defaults = {"job_id": 1, "user": {"username": "tester"}, "cancel_event": cancel_event}
+        _worker = RenameOwidPagesWorker(
+            data=JobsRunner(**defaults),
+            template_service=mock_template_service,
+            mw_client_cls=mock_mw_client_cls,
+        )
+        _worker._get_candidates = MagicMock(return_value=[])
+
+        result = _worker.process()
+
+        assert result.status == "skipped"
+        assert result.note == "No pages need renaming"
 
     def test_module_constants(self, mock_worker: RenameOwidPagesWorker) -> None:
         assert MOVE_REASON == "Capitalize first letter of OWID subpage name"

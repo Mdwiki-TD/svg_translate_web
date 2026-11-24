@@ -71,7 +71,11 @@ class TemplateService(CRUDService[TemplateRecord]):
         template_data: dict[str, str],
     ) -> TemplateRecord | None:
         template_data = ensure_template_data(template_data)
-        return self.update_by_id(pk=template_id, data=template_data)
+        try:
+            return self.update_by_id(pk=template_id, data=template_data)
+        except Exception as exc:
+            logger.error("Error updating %s id=%s: %s", self.model_name, template_id, exc)
+            return None
 
 
 __all__ = [

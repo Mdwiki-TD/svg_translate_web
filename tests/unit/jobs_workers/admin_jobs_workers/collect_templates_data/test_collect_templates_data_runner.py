@@ -113,7 +113,7 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
         "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidChartsService", _mock_class
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.fetch_grapher_metadata_raw",
+        "src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data.worker.OwidClient.fetch_grapher_metadata_raw",
         mocks["fetch_grapher_metadata_raw"],
     )
 
@@ -255,9 +255,8 @@ class TestRunner:
         assert len(result_dict["pages_failed"]) == 1
         assert "Could not find (main file or newest world file or source)" in result_dict["pages_failed"][0]["error"]
 
-    @pytest.mark.skip(reason="exceptions changes")
-    def test_collect_templates_data_handles_exception(self):
-        """Test that exceptions are handled gracefully."""
+    def test_collect_templates_data_handles_exception(self, mock_find_source):
+        """An exception while fetching the wikitext fails the whole job."""
         templates = [
             TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None),
         ]
@@ -265,14 +264,40 @@ class TestRunner:
         self.services["list"].return_value = templates
         self.services["MwClientPage"].return_value.get_text.side_effect = Exception("Network error")
 
+        result_dict = self.collect_runner(job_id=1, user={})
+
+        # The job is marked as failed and the error is recorded in result["errors"]
+        assert result_dict["status"] == "failed"
+        assert result_dict["failed_at"]
+        assert any("Network error" in item["error"] for item in result_dict["errors"])
+
+        # Should not update the template
+        self.services["update_template_data"].assert_not_called()
+
+        # Should save result
+        saved_dict = self.services["save_result"].call_args[0][1]
+        assert saved_dict["summary"]["total"] == 1
+        assert len(saved_dict["pages_failed"]) == 0
+
+    def test_collect_templates_data_handles_update_exception(self, mock_find_source):
+        """An exception while writing to the DB is recorded per template."""
+        templates = [
+            TemplateRecord(id=1, title="Template:Test", main_file=None, last_world_file=None, source=""),
+        ]
+        self.services["get_category_members"].return_value = []
+        self.services["list"].return_value = templates
+        self.services["MwClientPage"].return_value.get_text.return_value = "{{SVGLanguages|test.svg}}"
+        self.services["find_main_title"].return_value = "test.svg"
+        self.services["update_template_data"].side_effect = Exception("DB down")
+
         self.collect_runner(job_id=1, user={})
 
         # Should save result with failed template
         result_dict = self.services["save_result"].call_args[0][1]
         assert result_dict["summary"]["total"] == 1
         assert len(result_dict["pages_failed"]) == 1
-        assert len(result_dict["pages_failed"]) == 1
-        assert "Exception: Network error" in result_dict["pages_failed"][0]["error"]
+        assert "Exception: DB down" in result_dict["pages_failed"][0]["error"]
+        assert result_dict["pages_failed"][0]["error_type"] == "Exception"
 
     def test_collect_templates_data_processes_multiple_templates(self):
         """Test processing multiple templates with mixed results."""

@@ -9,8 +9,9 @@ import logging
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from ...exceptions import DuplicateRecordError
+
 from ...db_base import db
-from ...exceptions import UserNotFoundError
 from ...models import UserRecord
 from ..crud_service import CRUDService
 
@@ -42,50 +43,17 @@ class UsersService(CRUDService[UserRecord]):
             return None
         return self.get_by(username=username)
 
-    def create_user(self, username: str) -> None | UserRecord:
-        """Create a user identity row. Idempotent — returns existing if present."""
-        existing = self.get_by(username=username)
-        if existing:
-            return existing
+    def create_user(self, username: str, **data) -> UserRecord:
+        """Add a new user record."""
+        username = username.strip()
+        self.validate_or_raise(username=username)
 
-        data = {"username": username}
+        if self.get_by(username=username):
+            raise DuplicateRecordError(f"User {username} already exists")
 
-        try:
-            return self.create(**data)
-        except Exception as exc:
-            logger.error("Failed to create new record: %s", exc)
-            return None
+        return self.create(username=username, **data)
 
-    def toggle_can_run_jobs(self, user_id: int, value: bool) -> UserRecord | None:
-        """Toggle can_run_jobs."""
-        record = self.get_user(user_id)
-
-        if not record:
-            raise UserNotFoundError("User record not found")
-
-        data = {"can_run_jobs": value}
-        try:
-            return self.update(record, **data)
-        except Exception as exc:
-            logger.error("Failed to update record: %s", exc)
-            return None
-
-    def toggle_can_run_bg_jobs(self, user_id: int, value: bool) -> UserRecord | None:
-        """Toggle can_run_bg_jobs."""
-        record = self.get_user(user_id)
-
-        if not record:
-            raise UserNotFoundError("User record not found")
-
-        data = {"can_run_bg_jobs": value}
-
-        try:
-            return self.update(record, **data)
-        except Exception as exc:
-            logger.error("Failed to update record: %s", exc)
-            return None
-
-    def ensure_exists(self, username: str) -> UserRecord:
+    def upsert_user(self, username: str) -> UserRecord:
         """Create a UserRecord if one doesn't exist. Returns the record.
 
         Handles concurrent-create races (IntegrityError) by retrying
@@ -103,6 +71,20 @@ class UsersService(CRUDService[UserRecord]):
             if record is not None:
                 return record
             raise
+
+    def users_search(self, userlike: str | None) -> list[str]:
+        """Return all user records where there username start with userlike."""
+        if not userlike:
+            return []
+        safe_prefix = userlike.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        rows = (
+            self.session.query(UserRecord.username)
+            .filter(UserRecord.username.like(f"{safe_prefix}%", escape="\\"))
+            .order_by(UserRecord.username.asc())
+            .limit(20)
+            .all()
+        )
+        return [x.username for x in rows]
 
 
 __all__ = [

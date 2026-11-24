@@ -7,7 +7,6 @@ import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -42,186 +41,6 @@ def resolve_path(_path: str) -> Path:
 
 
 # --- Data Classes for Configuration Sections ---
-
-
-@dataclass(frozen=True)
-class OtherConfig:
-    """configs not in specific sections"""
-
-    csrf_time_limit: int | None  # None means never expire
-    user_agent: str
-    static_server: str
-    tool_title: str
-    wiki_domain: str
-
-    @property
-    def full_wiki_domain(self) -> str:
-        return f"https://{self.wiki_domain}"
-
-    @classmethod
-    def load(cls) -> OtherConfig:
-        # CSRF token lifetime (in seconds). Default 3600 (1 hour).
-        # Set to 0 or None to disable expiration (not recommended for production).
-        csrf_time_limit = _env_int("WTF_CSRF_TIME_LIMIT", 3600)
-        if not csrf_time_limit or csrf_time_limit <= 0:
-            csrf_time_limit = 3600
-
-        wiki_domain = os.getenv("WIKI_DOMAIN") or "commons.wikimedia.org"
-        static_server = os.getenv("STATIC_SERVER") or "https://tools-static.wmflabs.org/cdnjs"
-
-        user_agent = os.getenv(
-            "USER_AGENT",
-            "Copy SVG Translations/1.0 (https://copy-svg-langs.toolforge.org; tools.copy-svg-langs@toolforge.org)",
-        )
-
-        tool_title = os.getenv("TOOL_TITLE") or "Copy SVG Translations"
-
-        return OtherConfig(
-            csrf_time_limit=csrf_time_limit,
-            user_agent=user_agent,
-            static_server=static_server,
-            tool_title=tool_title,
-            wiki_domain=wiki_domain,
-        )
-
-
-@dataclass(frozen=True)
-class JobsConfig:
-    """Configuration for jobs."""
-
-    jobs_max_workers: int
-    jobs_log_lines: int
-    priority_per_item: int | None = None
-    backend: str = "thread"  # 'thread' or 'toolforge'
-    toolforge_job_image: str = "python3.13"
-    toolforge_job_default_memory: str = "1Gi"
-    toolforge_job_default_cpu: str = "0.5"
-    toolforge_job_script: str = "~/shs/flask_cmd.sh"
-
-    @classmethod
-    def load(cls) -> JobsConfig:
-        # Background job runner sizing.
-        jobs_max_workers = max(1, _env_int("JOBS_MAX_WORKERS", 2))
-        jobs_log_lines = max(10, _env_int("JOBS_LOG_LINES", 200))
-
-        priority_per_item = _env_int("PRIORITY_PER_ITEM", 0, safe=True)
-        if priority_per_item == 0:
-            priority_per_item = None
-
-        backend = os.getenv("JOBS_BACKEND", "thread").strip().lower()
-        if backend not in ("thread", "toolforge"):
-            logger.warning("Unknown JOBS_BACKEND '%s', falling back to 'thread'", backend)
-            backend = "thread"
-
-        _config = JobsConfig(
-            jobs_max_workers=jobs_max_workers,
-            jobs_log_lines=jobs_log_lines,
-            priority_per_item=priority_per_item,
-            backend=backend,
-            toolforge_job_image=os.getenv("TOOLFORGE_JOB_IMAGE", "python3.13"),
-            toolforge_job_default_memory=os.getenv("TOOLFORGE_JOB_DEFAULT_MEMORY", "1Gi"),
-            toolforge_job_default_cpu=os.getenv("TOOLFORGE_JOB_DEFAULT_CPU", "0.5"),
-            toolforge_job_script=os.getenv("TOOLFORGE_JOB_SCRIPT", "~/shs/flask_cmd.sh"),
-        )
-
-        return _config
-
-
-@dataclass(frozen=True)
-class Paths:
-    log_dir: str
-    jobs_path: str
-
-    main_files_path: str
-    svg_data: str
-    svg_data_thumb: str
-    fix_nested_data: str
-    crop_main_files_path: str
-
-    # ------------------------------------------------------------------
-    # Factory helpers
-    # ------------------------------------------------------------------
-    @classmethod
-    def from_any(cls, data: dict[str, Any] | Paths) -> Paths:
-        if isinstance(data, Paths):
-            return data
-
-        return cls(
-            log_dir=data.get("log_dir", ""),
-            jobs_path=data.get("jobs_path", ""),
-            main_files_path=data.get("main_files_path", ""),
-            svg_data=data.get("svg_data", ""),
-            svg_data_thumb=data.get("svg_data_thumb", ""),
-            fix_nested_data=data.get("fix_nested_data", ""),
-            crop_main_files_path=data.get("crop_main_files_path", ""),
-        )
-
-    @classmethod
-    def load(cls) -> Paths:
-        """
-        Compute the filesystem paths the application will use.
-
-        The paths are rooted at the MAIN_DIR environment variable if set, otherwise at the user's ~/data directory.
-
-        Returns:
-            Paths: A dataclass
-        """
-        main_dir = os.getenv("MAIN_DIR", "~/data")
-        main_dir = resolve_path(main_dir)
-        crop_main_files_path = f"{main_dir}/crop_main_files"
-
-        crop_main_files_original = f"{crop_main_files_path}/original"
-        crop_main_files_cropped = f"{crop_main_files_path}/cropped"
-
-        Path(crop_main_files_original).mkdir(parents=True, exist_ok=True)
-        Path(crop_main_files_cropped).mkdir(parents=True, exist_ok=True)
-
-        _dirs = {
-            "svg_data": f"{main_dir}/svg_data",
-            "svg_data_thumb": f"{main_dir}/svg_data_thumb",
-            "log_dir": f"{main_dir}/logs",
-            "fix_nested_data": f"{main_dir}/fix_nested_data",
-            "jobs_path": f"{main_dir}/svg_jobs",
-            "main_files_path": f"{main_dir}/main_files",
-            "crop_main_files_path": crop_main_files_path,
-        }
-        return Paths.from_any(_dirs)
-
-    def all_paths(self) -> list[str]:
-        return [
-            self.log_dir,
-            self.jobs_path,
-            self.main_files_path,
-            self.svg_data,
-            self.svg_data_thumb,
-            self.fix_nested_data,
-            self.crop_main_files_path,
-        ]
-
-
-@dataclass(frozen=True)
-class CookieConfig:
-    name: str
-    max_age: int
-    secure: bool
-    httponly: bool
-    samesite: str
-
-    @classmethod
-    def load(cls) -> CookieConfig:
-        session_cookie_secure = _env_bool("SESSION_COOKIE_SECURE", default=True)
-        session_cookie_httponly = _env_bool("SESSION_COOKIE_HTTPONLY", default=True)
-        session_cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
-
-        cookie = CookieConfig(
-            name=os.getenv("AUTH_COOKIE_NAME", "uid_enc_copy"),
-            max_age=_env_int("AUTH_COOKIE_MAX_AGE", 30 * 24 * 3600),
-            secure=session_cookie_secure,
-            httponly=session_cookie_httponly,
-            samesite=session_cookie_samesite,
-        )
-
-        return cookie
 
 
 @dataclass(frozen=True)
@@ -281,15 +100,186 @@ class OAuthConfig:
 
 
 @dataclass(frozen=True)
+class CookieConfig:
+    name: str
+    max_age: int
+    secure: bool
+    httponly: bool
+    samesite: str
+
+    @classmethod
+    def load(cls) -> CookieConfig:
+        session_cookie_secure = _env_bool("SESSION_COOKIE_SECURE", default=True)
+        session_cookie_httponly = _env_bool("SESSION_COOKIE_HTTPONLY", default=True)
+        session_cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+
+        cookie = CookieConfig(
+            name=os.getenv("AUTH_COOKIE_NAME", "uid_enc"),
+            max_age=_env_int("AUTH_COOKIE_MAX_AGE", 30 * 24 * 3600),
+            secure=session_cookie_secure,
+            httponly=session_cookie_httponly,
+            samesite=session_cookie_samesite,
+        )
+
+        return cookie
+
+
+@dataclass(frozen=True)
+class OtherConfig:
+    """configs not in specific sections"""
+
+    csrf_time_limit: int | None  # None means never expire
+    user_agent: str
+    static_server: str
+    tool_title: str
+    wiki_domain: str
+
+    @property
+    def full_wiki_domain(self) -> str:
+        return f"https://{self.wiki_domain}"
+
+    @classmethod
+    def load(cls) -> OtherConfig:
+        # CSRF token lifetime (in seconds). Default 3600 (1 hour).
+        # Set to 0 or None to disable expiration (not recommended for production).
+        csrf_time_limit = _env_int("WTF_CSRF_TIME_LIMIT", 3600)
+        if not csrf_time_limit or csrf_time_limit <= 0:
+            csrf_time_limit = 3600
+
+        static_server = os.getenv("STATIC_SERVER") or "https://tools-static.wmflabs.org/cdnjs"
+
+        user_agent = os.getenv(
+            "USER_AGENT",
+            "mytool/1.0 (https://mytool.toolforge.org; tools.mytool@toolforge.org)",
+        )
+        wiki_domain = os.getenv("WIKI_DOMAIN") or "commons.wikimedia.org"
+
+        tool_title = os.getenv("TOOL_TITLE") or "Copy SVG Translations"
+
+        return OtherConfig(
+            csrf_time_limit=csrf_time_limit,
+            user_agent=user_agent,
+            static_server=static_server,
+            tool_title=tool_title,
+            wiki_domain=wiki_domain,
+        )
+
+
+@dataclass(frozen=True)
+class JobsConfig:
+    """Configuration for jobs."""
+
+    jobs_max_workers: int
+    jobs_log_lines: int
+    priority_per_item: int | None = None
+    backend: str = "thread"  # 'thread' or 'toolforge'
+    toolforge_job_image: str = "python3.13"
+    toolforge_job_default_memory: str = "1Gi"
+    toolforge_job_default_cpu: str = "0.5"
+    toolforge_job_script: str = "~/shs/flask_cmd.sh"
+
+    @classmethod
+    def load(cls) -> JobsConfig:
+        # Background job runner sizing.
+        jobs_max_workers = max(1, _env_int("JOBS_MAX_WORKERS", 2))
+        jobs_log_lines = max(10, _env_int("JOBS_LOG_LINES", 200))
+
+        priority_per_item = _env_int("PRIORITY_PER_ITEM", 0, safe=True)
+        if priority_per_item == 0:
+            priority_per_item = None
+
+        backend = os.getenv("JOBS_BACKEND", "thread").strip().lower()
+        if backend not in ("thread", "toolforge"):
+            logger.warning("Unknown JOBS_BACKEND '%s', falling back to 'thread'", backend)
+            backend = "thread"
+
+        _config = JobsConfig(
+            jobs_max_workers=jobs_max_workers,
+            jobs_log_lines=jobs_log_lines,
+            priority_per_item=priority_per_item,
+            backend=backend,
+            toolforge_job_image=os.getenv("TOOLFORGE_JOB_IMAGE", "python3.13"),
+            toolforge_job_default_memory=os.getenv("TOOLFORGE_JOB_DEFAULT_MEMORY", "1Gi"),
+            toolforge_job_default_cpu=os.getenv("TOOLFORGE_JOB_DEFAULT_CPU", "0.5"),
+            toolforge_job_script=os.getenv("TOOLFORGE_JOB_SCRIPT", "~/shs/flask_cmd.sh"),
+        )
+
+        return _config
+
+
+@dataclass(frozen=True)
+class Paths:
+    flask_data_dir: Path
+    log_dir: Path
+    jobs_path: Path
+    admin_jobs_path: Path
+
+    main_files_path: Path
+    svg_data: Path
+    svg_data_thumb: Path
+    fix_nested_data: Path
+    crop_main_files_path: Path
+
+    # ------------------------------------------------------------------
+    # Factory helpers
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def load(cls) -> Paths:
+        """
+        Compute the filesystem paths the application will use.
+
+        The paths are rooted at the MAIN_DIR environment variable if set, otherwise at the user's ~/data directory.
+
+        Returns:
+            Paths: A dataclass
+        """
+        flask_data_dir = os.getenv("MAIN_DIR") or "~/data"
+        flask_data_dir = resolve_path(flask_data_dir)
+        crop_main_files_path = flask_data_dir / "crop_main_files"
+
+        return Paths(
+            flask_data_dir=flask_data_dir,
+            log_dir=flask_data_dir / "logs",
+            jobs_path=flask_data_dir / "svg_jobs",
+            admin_jobs_path=flask_data_dir / "svg_jobs",
+            main_files_path=flask_data_dir / "main_files",
+            svg_data=flask_data_dir / "svg_data",
+            svg_data_thumb=flask_data_dir / "svg_data_thumb",
+            fix_nested_data=flask_data_dir / "fix_nested_data",
+            crop_main_files_path=crop_main_files_path,
+        )
+
+    def all_paths(self) -> list[Path]:
+        return [
+            self.log_dir,
+            self.jobs_path,
+            self.admin_jobs_path,
+            self.main_files_path,
+            self.svg_data,
+            self.svg_data_thumb,
+            self.fix_nested_data,
+            self.crop_main_files_path,
+            self.crop_main_files_path / "original",
+            self.crop_main_files_path / "cropped",
+        ]
+
+
+@dataclass(frozen=True)
 class CorsConfig:
     allowed_domains: list[str]
 
     @classmethod
     def load(cls) -> CorsConfig:
         # Load CORS configuration
-        cors_domains_str = os.getenv("CORS_ALLOWED_DOMAINS", "medwiki.toolforge.org,mdwikicx.toolforge.org")
+        cors_domains_str = os.getenv("CORS_ALLOWED_DOMAINS", "")
         cors_domains = [d.strip() for d in cors_domains_str.split(",") if d.strip()]
 
+        if not cors_domains:
+            cors_domains = [
+                "mdwikicx.toolforge.org",
+                "mdwiki.toolforge.org",
+            ]
         return CorsConfig(
             allowed_domains=cors_domains,
         )
@@ -387,7 +377,7 @@ class Settings:
         Call this once at app startup (in the factory), not at import time.
         """
         for dir_name in self.paths.all_paths():
-            Path(dir_name).mkdir(parents=True, exist_ok=True)
+            dir_name.mkdir(parents=True, exist_ok=True)
 
 
 @lru_cache(maxsize=1)
@@ -395,8 +385,7 @@ def get_settings() -> Settings:
     """
     Assemble and return the application's Settings populated from environment variables.
 
-    Reads and validates required environment variables, builds cookie, OAuth, path, and database configurations,
-    and returns a consolidated Settings instance.
+    Reads and validates required environment variables, builds cookie, OAuth, path, and database configurations, and returns a consolidated Settings instance.
 
     Returns:
         Settings: The populated application settings.
@@ -410,14 +399,14 @@ def get_settings() -> Settings:
 
 
 __all__ = [
-    "get_settings",
-    "Paths",
     "CookieConfig",
-    "SessionConfig",
-    "OAuthConfig",
-    "JobsConfig",
-    "Settings",
-    "OtherConfig",
-    "SecurityConfig",
     "CorsConfig",
+    "JobsConfig",
+    "OAuthConfig",
+    "OtherConfig",
+    "Paths",
+    "SecurityConfig",
+    "SessionConfig",
+    "Settings",
+    "get_settings",
 ]

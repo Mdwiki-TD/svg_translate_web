@@ -3,9 +3,8 @@
 from .clients import (
     CategoryMembersService,
     CommonsSession,
+    OwidClient,
     WikiSiteClient,
-    fetch_grapher_metadata_raw,
-    fetch_indicators_metadata,
 )
 from .files_service import FilesService, UploadService
 from .mwclient_page import MwClientPage
@@ -19,6 +18,5 @@ __all__ = [
     "FilesService",
     "CommonsSession",
     "MwClientPage",
-    "fetch_grapher_metadata_raw",
-    "fetch_indicators_metadata",
+    "OwidClient",
 ]
