@@ -4,8 +4,7 @@ from urllib.parse import quote
 
 import requests
 
-from ..clients import CommonsSession, GetWithRetryData
-from ..clients.http_client import HttpClient
+from ..clients import CommonsSession, HttpClient
 from .objects import (
     DownloadAndSaveData,
     FileInfo,
@@ -204,7 +203,7 @@ class FilesService:
             normalized_name = title.replace(" ", "_")
             url = f"{BASE_COMMONS_URL}{quote(normalized_name)}"
 
-            download_result: GetWithRetryData = self.downloader.get_with_retry_obj(url=url, max_attempts=5)
+            download_result = self.downloader.get_with_retry_obj(url=url, max_attempts=5)
 
         except Exception as e:
             logger.error(f"Failed: {title} -> {e}")

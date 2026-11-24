@@ -21,7 +21,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
     """Mock the services used by worker module."""
 
     mock_settings = MagicMock()
-    mock_settings.paths.crop_main_files_path = tmp_path / "crop_main_files"
+    mock_settings.paths.flask_data_dir = tmp_path
     mock_settings.other.user_agent = "TestBot/1.0"
 
     mocks = {

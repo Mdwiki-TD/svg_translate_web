@@ -176,7 +176,7 @@ class JobsConfig:
     toolforge_job_image: str = "python3.13"
     toolforge_job_default_memory: str = "1Gi"
     toolforge_job_default_cpu: str = "0.5"
-    toolforge_job_script: str = "~/shs/flask_cmd.sh"
+    toolforge_job_script: str = "~/scripts/flask_cmd.sh"
 
     @classmethod
     def load(cls) -> JobsConfig:
@@ -201,7 +201,7 @@ class JobsConfig:
             toolforge_job_image=os.getenv("TOOLFORGE_JOB_IMAGE", "python3.13"),
             toolforge_job_default_memory=os.getenv("TOOLFORGE_JOB_DEFAULT_MEMORY", "1Gi"),
             toolforge_job_default_cpu=os.getenv("TOOLFORGE_JOB_DEFAULT_CPU", "0.5"),
-            toolforge_job_script=os.getenv("TOOLFORGE_JOB_SCRIPT", "~/shs/flask_cmd.sh"),
+            toolforge_job_script=os.getenv("TOOLFORGE_JOB_SCRIPT", "~/scripts/flask_cmd.sh"),
         )
 
         return _config
@@ -213,12 +213,6 @@ class Paths:
     log_dir: Path
     jobs_path: Path
     admin_jobs_path: Path
-
-    main_files_path: Path
-    svg_data: Path
-    svg_data_thumb: Path
-    fix_nested_data: Path
-    crop_main_files_path: Path
 
     # ------------------------------------------------------------------
     # Factory helpers
@@ -236,18 +230,12 @@ class Paths:
         """
         flask_data_dir = os.getenv("MAIN_DIR") or "~/data"
         flask_data_dir = resolve_path(flask_data_dir)
-        crop_main_files_path = flask_data_dir / "crop_main_files"
 
         return Paths(
             flask_data_dir=flask_data_dir,
             log_dir=flask_data_dir / "logs",
-            jobs_path=flask_data_dir / "svg_jobs",
-            admin_jobs_path=flask_data_dir / "svg_jobs",
-            main_files_path=flask_data_dir / "main_files",
-            svg_data=flask_data_dir / "svg_data",
-            svg_data_thumb=flask_data_dir / "svg_data_thumb",
-            fix_nested_data=flask_data_dir / "fix_nested_data",
-            crop_main_files_path=crop_main_files_path,
+            jobs_path=flask_data_dir / "public_jobs",
+            admin_jobs_path=flask_data_dir / "admin_jobs",
         )
 
     def all_paths(self) -> list[Path]:
@@ -255,13 +243,6 @@ class Paths:
             self.log_dir,
             self.jobs_path,
             self.admin_jobs_path,
-            self.main_files_path,
-            self.svg_data,
-            self.svg_data_thumb,
-            self.fix_nested_data,
-            self.crop_main_files_path,
-            self.crop_main_files_path / "original",
-            self.crop_main_files_path / "cropped",
         ]
 
 
@@ -301,6 +282,11 @@ class SecurityConfig:
         """
         Load security configuration (Flask 3.1+ features)
         """
+        secret_key = os.getenv("FLASK_SECRET_KEY", "")
+
+        if not secret_key:
+            raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
+
         # MAX_CONTENT_LENGTH: Maximum request size (default 100MB)
         max_content_length = _env_int("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
 
@@ -314,7 +300,6 @@ class SecurityConfig:
         secret_key_fallbacks_str = os.getenv("SECRET_KEY_FALLBACKS", "")
         secret_key_fallbacks = tuple(key.strip() for key in secret_key_fallbacks_str.split(",") if key.strip())
 
-        secret_key = os.getenv("FLASK_SECRET_KEY", "")
         secret_salt = os.getenv("SECRET_SALT", "svg-translate")
 
         security_config = SecurityConfig(
@@ -325,9 +310,6 @@ class SecurityConfig:
             max_form_parts=max_form_parts,
             secret_key_fallbacks=secret_key_fallbacks,
         )
-
-        if not security_config.secret_key:
-            raise RuntimeError("FLASK_SECRET_KEY environment variable is required")
 
         return security_config
 

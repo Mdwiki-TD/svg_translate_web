@@ -28,6 +28,7 @@ jobs_data_admins = {
             " <code>Svg lang template</code>,"
             " <code>Update Author in Information template</code>"
         ),
+        job_for_admin=True,
     ),
     # DB Jobs
     "collect_templates_data": JobData(
@@ -41,6 +42,7 @@ jobs_data_admins = {
             "This will start a background job to collect templates data for all templates that don't have one. Continue?"
         ),
         description="""""",
+        job_for_admin=True,
     ),
     "update_owid_charts": JobData(
         job_type=UpdateOwidChartsWorker.JOB_TYPE,
@@ -61,6 +63,7 @@ jobs_data_admins = {
             " and updates <strong>min_time</strong>, <strong>max_time</strong>,"
             " and <strong>len_years</strong> when the timespan has changed."
         ),
+        job_for_admin=True,
     ),
     # Files Jobs (jobs makes edit or upload in commons)
     "crop_main_files": JobData(
@@ -80,6 +83,7 @@ jobs_data_admins = {
             " like: <code>File:Example.svg</code> →"
             " <code>File:Example (cropped).svg</code>"
         ),
+        job_for_admin=True,
     ),
     "fix_nested_main_files": JobData(
         job_type=FixNestedMainFilesWorker.JOB_TYPE,
@@ -95,6 +99,7 @@ jobs_data_admins = {
             " using your credentials. Continue?"
         ),
         description="""""",
+        job_for_admin=True,
     ),
     # OWID Templates/Pages
     "create_owid_pages": JobData(
@@ -114,6 +119,7 @@ jobs_data_admins = {
             " showcase pages: <br> <code>Template:OWID/Some map</code> →"
             " <code>OWID/Some map</code>"
         ),
+        job_for_admin=True,
     ),
     "rename_owid_pages": JobData(
         job_type=RenameOwidPagesWorker.JOB_TYPE,
@@ -128,6 +134,7 @@ jobs_data_admins = {
             ' "OWID/" is lowercase. Continue?'
         ),
         description="""""",
+        job_for_admin=True,
     ),
     "add_svglanguages_template": JobData(
         job_type=AddSvgSVGLanguagesTemplate.JOB_TYPE,
@@ -141,6 +148,7 @@ jobs_data_admins = {
             "This will start a background job to add Template:SVGLanguages to OWID templates.\nContinue?"
         ),
         description="This job add Template:SVGLanguages to OWID templates",
+        job_for_admin=True,
     ),
     "add_lang_categories_to_owid_pages": JobData(
         job_type=AddLangCategoriesWorker.JOB_TYPE,
@@ -161,6 +169,7 @@ jobs_data_admins = {
             " the available SVG translations detected via the Commons file"
             " metadata API."
         ),
+        job_for_admin=True,
     ),
     "download_main_files": JobData(
         job_type=DownloadMainFilesWorker.JOB_TYPE,
@@ -176,6 +185,7 @@ jobs_data_admins = {
             " the remote source to the local filesystem. Continue?"
         ),
         description="""""",
+        job_for_admin=True,
     ),
 }
 

@@ -1,9 +1,9 @@
 """ """
 
 from .worker import DownloadMainFilesWorker
-from .zip_utils import create_main_files_zip
+from .zip_utils import ZipProvider
 
 __all__ = [
+    "ZipProvider",
     "DownloadMainFilesWorker",
-    "create_main_files_zip",
 ]

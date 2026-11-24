@@ -88,6 +88,7 @@ class TestUpsertUserToken(TestSetup):
         self.service.upsert_user_token(user.user_id, b"new", b"new")
 
         stored = self.service.get_record_by_id(user.user_id)
+        assert stored is not None
         assert stored.access_token == b"new"
         assert stored.access_secret == b"new"
 
@@ -168,6 +169,7 @@ class TestGetAuthenticatedUserContext(TestSetup):
 
         token, is_admin = self.service.get_authenticated_user_context(user.user_id)
 
+        assert token is not None
         assert token.user_id == user.user_id
         assert token.user.username == user.username
         assert is_admin is False
@@ -178,6 +180,7 @@ class TestGetAuthenticatedUserContext(TestSetup):
 
         token, is_admin = self.service.get_authenticated_user_context(user.user_id)
 
+        assert token is not None
         assert token.user_id == user.user_id
         assert is_admin is True
 

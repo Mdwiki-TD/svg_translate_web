@@ -11,9 +11,7 @@ from .owid_charts_service import OwidChartsService
 from .owid_slug_redirects_service import OwidSlugRedirectsService
 from .settings_service import SettingsService
 from .template_service import TemplateService
-from .users.admin_service import AdminService
-from .users.user_token_service import UserTokenService
-from .users.users_service import UsersService
+from .users import AdminService, UsersService, UserTokenService
 from .views_service import ViewsService
 
 __all__ = [

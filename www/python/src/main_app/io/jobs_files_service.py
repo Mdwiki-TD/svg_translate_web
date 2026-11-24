@@ -6,14 +6,11 @@ and cancellation markers, plus backward-compatible legacy functions.
 
 from __future__ import annotations
 
-import functools
 import json
 import logging
 import os
 from pathlib import Path
 from typing import Any
-
-from ..config import Settings, get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -27,24 +24,13 @@ class JobFilesService:
 
     def __init__(
         self,
-        base_dir: Path | None = None,
-        settings: Settings | None = None,
+        jobs_dir: Path | None = None,
     ) -> None:
-        self.settings = settings or get_settings()
-        self.jobs_dir = base_dir or self._load_jobs_dir()
-
-    def _load_jobs_dir(self) -> Path:
-        """Resolve and cache the jobs data directory."""
-        # Use jobs_path from settings paths
-        jobs_dir = self.settings.paths.jobs_path
-
         if not jobs_dir:
             raise RuntimeError("jobs_path configuration is required for job result storage")
 
-        path = Path(jobs_dir)
-        path.mkdir(parents=True, exist_ok=True)
-
-        return path
+        self.jobs_dir = jobs_dir
+        self.jobs_dir.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _save_data(result_data: dict[str, Any], filepath: Path) -> None:
@@ -63,6 +49,7 @@ class JobFilesService:
         """Load job result from a JSON file."""
         filepath = self.jobs_dir / filename
         if not filepath or not os.path.exists(filepath):
+            logger.warning("Job result file %s does not exist", str(filepath))
             return None
 
         try:
@@ -107,13 +94,6 @@ class JobFilesService:
             return False
 
 
-@functools.lru_cache(maxsize=1)
-def get_jobs_data_dir() -> Path:
-    """Legacy entry point. Returns the jobs data directory path."""
-    return JobFilesService().jobs_dir
-
-
 __all__ = [
     "JobFilesService",
-    "get_jobs_data_dir",
 ]

@@ -17,6 +17,7 @@ class JobsRunner:
     form_data: dict[str, Any] | None = None
     # Job type of the running job; used to advance its queue when it finishes.
     job_type: str = ""
+    job_for_admin: bool = False
 
 
 @dataclass
@@ -37,6 +38,7 @@ class JobData:
     start_confirm_message: str = "Run the task?"
 
     ready: bool = False
+    job_for_admin: bool = False
 
     # Toolforge resource overrides (None = use global defaults from config)
     image: str | None = None

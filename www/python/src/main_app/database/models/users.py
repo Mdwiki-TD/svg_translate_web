@@ -23,6 +23,7 @@ class UserRecord(Model):
     user_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(String(255), unique=True)
 
+    # Permissions for running foreground and background jobs
     can_run_jobs: Mapped[int] = mapped_column(server_default=text("0"), default=0)
     can_run_bg_jobs: Mapped[int] = mapped_column(server_default=text("0"), default=0)
 

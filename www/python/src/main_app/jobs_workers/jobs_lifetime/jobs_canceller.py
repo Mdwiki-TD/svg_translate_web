@@ -17,7 +17,7 @@ class JobCanceller:
 
     def __init__(
         self,
-        jobs_files_service: JobFilesService | None = None,
+        jobs_files_service: JobFilesService,
         jobs_service: JobsService | None = None,
     ) -> None:
         """Initialize with optional dependencies.
@@ -26,7 +26,7 @@ class JobCanceller:
             jobs_files_service: Job files service. Falls back to default if None.
             jobs_service: Jobs service. Falls back to default if None.
         """
-        self.jobs_files_service = jobs_files_service or JobFilesService()
+        self.jobs_files_service = jobs_files_service
         self.jobs_service = jobs_service or JobsService()
 
     def cancel(
@@ -76,9 +76,6 @@ class JobCanceller:
         return local_cancelled or cancelled_file is not None or db_cancelled
 
 
-cancel_job_worker = JobCanceller().cancel
-
 __all__ = [
-    "cancel_job_worker",
     "JobCanceller",
 ]

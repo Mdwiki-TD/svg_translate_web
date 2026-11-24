@@ -155,17 +155,6 @@ class CommonsSession:
             attempts=attempts,
         )
 
-    def get_with_retry(
-        self,
-        url: str,
-        max_attempts: int = 5,
-    ) -> requests.Response | None:
-        """
-        Get a URL with retry logic for handling rate limiting and network errors.
-        """
-        result = self.get_with_retry_obj(url, max_attempts)
-        return result.content if result.success else None
-
 
 __all__ = [
     "CommonsSession",

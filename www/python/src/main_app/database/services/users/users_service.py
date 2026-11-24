@@ -9,9 +9,8 @@ import logging
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from ...exceptions import DuplicateRecordError
-
 from ...db_base import db
+from ...exceptions import DuplicateRecordError
 from ...models import UserRecord
 from ..crud_service import CRUDService
 
@@ -85,6 +84,14 @@ class UsersService(CRUDService[UserRecord]):
             .all()
         )
         return [x.username for x in rows]
+
+    def update_can_run_jobs(self, user_id: int, desired: bool) -> UserRecord:
+        """Toggle the can_run_jobs column for a user."""
+        return self.update_by_id(user_id, {"can_run_jobs": desired})
+
+    def update_can_run_bg_jobs(self, user_id: int, desired: bool) -> UserRecord:
+        """Toggle the can_run_bg_jobs column for a user."""
+        return self.update_by_id(user_id, {"can_run_bg_jobs": desired})
 
 
 __all__ = [

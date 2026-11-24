@@ -30,7 +30,7 @@ class ExplorerDataService:
         # return Path("I:/TOOLFORGE_TOOLS/copy-svg-langs.toolforge.org/data/svg_data")
         # return Path(__name__).parent.parent.parent / "svg_data"
         app_settings = get_settings()
-        return Path(app_settings.paths.svg_data)
+        return Path(app_settings.paths.flask_data_dir / "svg_data")
 
     def _validate_path_under_base(self, title: str, sub_dir: str) -> Path:
         """Resolve and validate that title/sub_dir is confined under BASE_SVG."""

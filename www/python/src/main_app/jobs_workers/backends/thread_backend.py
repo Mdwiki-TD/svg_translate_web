@@ -50,6 +50,7 @@ class ThreadBackend(JobBackend):
             args=payload["args"],
             form_data=payload["form_data"],
             job_type=job.job_type,
+            job_for_admin=job_data.job_for_admin,
         )
 
         flask_app = current_app._get_current_object()  # type: ignore[attr-defined]

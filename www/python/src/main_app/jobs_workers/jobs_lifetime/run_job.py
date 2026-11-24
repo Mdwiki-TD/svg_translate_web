@@ -1,4 +1,5 @@
-"""Entry point for running a single job by its database ID.
+"""
+Entry point for running a single job by its database ID.
 
 Used by Toolforge one-off pods: ``flask run-job-id <job_id>``.
 """
@@ -74,6 +75,7 @@ def run_job_by_id(job_id: int) -> int:
         cancel_event=cancel_event,
         args=payload.get("args") or {},
         form_data=payload.get("form_data"),
+        job_for_admin=job_data.job_for_admin,
     )
 
     try:

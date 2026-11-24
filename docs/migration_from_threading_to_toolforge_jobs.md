@@ -62,7 +62,7 @@
 
 **مبدأ:** قاعدة البيانات مصدر الحقيقة لحالة منطق المهمة، وToolforge مصدر الحقيقة لحالة الحاوية (لكشف الانهيار، OOM، أو فقدان المهمة).
 
-- **البدء:** واجهة الويب تستدعي `start_job` فتنشئ سجل DB (pending) وتحفظ المعاملات (بلا مستخدم أو توكنات)، ثم تستدعي `create_job` في Toolforge بأمر `bash ~/shs/flask_cmd.sh run-job-id <job_id>`، وتبقى الحالة pending حتى تبدأ الحاوية.
+- **البدء:** واجهة الويب تستدعي `start_job` فتنشئ سجل DB (pending) وتحفظ المعاملات (بلا مستخدم أو توكنات)، ثم تستدعي `create_job` في Toolforge بأمر `bash ~/scripts/flask_cmd.sh run-job-id <job_id>`، وتبقى الحالة pending حتى تبدأ الحاوية.
 - **التنفيذ:** الحاوية تشغّل أمر CLI فتبني التطبيق وتقرأ المعاملات من DB وتبني هوية المستخدم من `JobRecord.username` ثم تضع الحالة running وتشغّل `run()` وتكتب الحالة النهائية.
 - **الإلغاء:** يُسجَّل الإلغاء في DB أولًا، ثم `delete_job`. الحاوية تتلقى SIGTERM فتضع حدث الإلغاء وتنهي بأمان.
 - **المراقبة:** مهمة reconcile دورية تقارن DB بـ `list_jobs`.
@@ -90,7 +90,7 @@
 - أضف الأمر `flask run-job-id` داخل `register_cli_jobs` مع `run_job_by_id` و`build_job_user` (القسم 6.2)، وسكربت الغلاف `flask_cmd.sh` (القسم 6.7).
 - أضف إلى `JobData` الحقول `image` و`memory` و`cpu`، وقرر الإلغاء: `DbCancelEvent` (القسم 6.3) أو `threading.Event` عادي يُضبط عند SIGTERM إن ثبت أن الفئة الأساسية تفحص قاعدة البيانات والملف.
 - سجلات الأمر الحالي `flask run-job` تُسجَّل بـ `backend = 'cli'` لتمييزها.
-- **معيار الإنجاز:** `bash ~/shs/flask_cmd.sh run-job-id 123` يشغّل مهمة أنشأتها الواجهة بهوية صاحبها ويحترم الإلغاء.
+- **معيار الإنجاز:** `bash ~/scripts/flask_cmd.sh run-job-id 123` يشغّل مهمة أنشأتها الواجهة بهوية صاحبها ويحترم الإلغاء.
 
 ### المرحلة 3: ToolforgeBackend
 
@@ -304,7 +304,7 @@ from pathlib import Path
 from ...api_services.clients.toolforge_jobs_api_service import ToolforgeJobsService
 
 IMAGE = "python3.13"  # مأخوذ من بيانات الاختبار في الملف، تحقق من الصور عبر svc.images()
-CMD = "bash ~/shs/flask_cmd.sh run-job-id {job_id}"  # تحقق من المسارات
+CMD = "bash ~/scripts/flask_cmd.sh run-job-id {job_id}"  # تحقق من المسارات
 
 
 def tf_job_name(job_type: str, job_id: int) -> str:
@@ -384,7 +384,7 @@ exec flask --app "$HOME/www/python/src/app.py" "$@"
 ```
 
 - **`exec` ضروري:** بدونه يبقى bash هو العملية الأولى في الحاوية فقد لا يمرر SIGTERM إلى Python، فلا يستجيب `delete_job` استجابة لطيفة. السكربت الحالي لا يستخدم `exec`، فلا يصلح كما هو للمهام القابلة للإلغاء.
-- الاستعمال: `bash ~/shs/flask_cmd.sh run-job-id 123` و`bash ~/shs/flask_cmd.sh reconcile-jobs`.
+- الاستعمال: `bash ~/scripts/flask_cmd.sh run-job-id 123` و`bash ~/scripts/flask_cmd.sh reconcile-jobs`.
 - ملف التطبيق هو `src/app.py` (و`app1.py` الوارد في تعليق `cli_jobs.py` للتشغيل المحلي).
 
 ### 6.8 إضافات اختيارية
@@ -501,7 +501,7 @@ tf.update_job(
         "imagename": IMAGE,
         "job_type": "scheduled",
         "schedule": "*/5 * * * *",  # تحقق من أدنى فاصل تسمح به Toolforge
-        "cmd": "bash ~/shs/flask_cmd.sh reconcile-jobs",
+        "cmd": "bash ~/scripts/flask_cmd.sh reconcile-jobs",
         "mount": "all",
         "memory": "512Mi",
         "cpu": "0.2",
@@ -525,7 +525,7 @@ tf.update_job(
 job_id = start_job(auth_payload, "my_job_type", args={"wiki": "ar"})
 ```
 
-ما يحدث داخليًا: `create_job` يُنشئ الصف ويضع `is_running = 1` (فإن كان النوع نشطًا يُرفع `DuplicateRecordError` كما اليوم)، ثم تُحفظ الحمولة، ثم يُنشأ في Toolforge مهمة one-off باسم مثل `my-job-type-123` تشغّل `bash ~/shs/flask_cmd.sh run-job-id 123`. لاختبار الحاوية يدويًا قبل الربط شغّل `flask --app src/app.py run-job-id 123` محليًا، ثم جرّبه بأمر `toolforge jobs run` مع نفس الصورة و`--mount all`.
+ما يحدث داخليًا: `create_job` يُنشئ الصف ويضع `is_running = 1` (فإن كان النوع نشطًا يُرفع `DuplicateRecordError` كما اليوم)، ثم تُحفظ الحمولة، ثم يُنشأ في Toolforge مهمة one-off باسم مثل `my-job-type-123` تشغّل `bash ~/scripts/flask_cmd.sh run-job-id 123`. لاختبار الحاوية يدويًا قبل الربط شغّل `flask --app src/app.py run-job-id 123` محليًا، ثم جرّبه بأمر `toolforge jobs run` مع نفس الصورة و`--mount all`.
 
 ### إيقاف مهمة
 
@@ -578,7 +578,7 @@ def restart(old_job) -> int:
 
 ## 10. قائمة الاختبار قبل التحويل الكامل
 
-- تشغيل `bash ~/shs/flask_cmd.sh run-job-id <id>` يدويًا لكل `job_type` والتأكد من اكتماله وتحرر `is_running`.
+- تشغيل `bash ~/scripts/flask_cmd.sh run-job-id <id>` يدويًا لكل `job_type` والتأكد من اكتماله وتحرر `is_running`.
 - مستخدم بلا توكن (أو محذوف): تنتهي المهمة failed برسالة واضحة ولا يبقى النوع مقفلًا.
 - إلغاء أثناء التنفيذ عبر الواجهة والتأكد أن الحالة النهائية cancelled وليست completed.
 - التأكد أن SIGTERM يصل إلى Python عبر سكربت الغلاف (`exec`): `delete_job` ينهي المهمة بإنهاء رشيق وليس بقتل مباشر.

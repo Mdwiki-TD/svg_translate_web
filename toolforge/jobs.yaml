@@ -1,5 +1,17 @@
+# sed -i 's/\r$//' ~/shs/*.sh && chmod +x ~/shs/*.sh
+# sed -i 's/\r$//' ~/jobs/*.sh && chmod +x ~/jobs/*.sh
+
+# ===== Weekly jobs =====
+
+- name: purge-error-logs
+  command: "flask --app $HOME/www/python/src/app.py error-logs purge"
+  schedule: "0 3 * * 0"
+  image: python3.13
+  emails: none
+
+# toolforge-jobs run offline --image python3.13 --command "~/scripts/flask_cmd.sh run-job collect_templates_data --update-all" --wait
 - name: offline
-  command: "~/shs/run_job.sh"
+  command: "~/scripts/flask_cmd.sh run-job collect_templates_data --update-all"
   schedule: "@weekly"
   image: python3.13
   emails: none

@@ -25,7 +25,7 @@ def mock_send_from_directory(monkeypatch: pytest.MonkeyPatch) -> Mock:
 @pytest.fixture
 def mock_create_main_files_zip(monkeypatch: pytest.MonkeyPatch) -> Mock:
     _mock = Mock()
-    monkeypatch.setattr("src.main_app.routes.public.views.jobs_utils_bp.create_main_files_zip", _mock)
+    monkeypatch.setattr("src.main_app.routes.public.views.jobs_utils_bp.ZipProvider.create_main_files_zip", _mock)
     return _mock
 
 
@@ -51,8 +51,8 @@ class TestDownloadMainFilesRoutes:
     def test_serve_download_main_file(self, mock_settings, mock_send_from_directory, admin_jobs_client, tmp_path):
         """Test serving a downloaded main file."""
 
-        main_files_path = str(tmp_path / "main_files")
-        mock_settings.paths.main_files_path = main_files_path
+        main_files_path = tmp_path / "main_files"
+        mock_settings.paths.flask_data_dir = tmp_path
 
         mock_send_from_directory.return_value = Response("file_content")
 

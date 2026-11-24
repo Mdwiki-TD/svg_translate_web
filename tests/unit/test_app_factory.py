@@ -64,6 +64,7 @@ class TestErrorHandlers:
         assert resp.status_code == 404
         assert resp.content_type == "text/html; charset=utf-8"
 
+    @pytest.mark.enable_socket
     def test_error_handlers_400_returns_application_json_if_api(self, test_client):
         resp = test_client.get("/api/test?malformed")
         assert resp.status_code == 404

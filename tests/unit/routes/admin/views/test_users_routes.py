@@ -8,7 +8,12 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Blueprint, Flask
 from src.main_app.database.services import UsersService
-from src.main_app.routes.admin.views.users import UsersRoutes
+from src.main_app.routes.admin.views.users import (
+    UpdateCanRunBgJobsView,
+    UpdateCanRunJobsView,
+    UsersDashboardView,
+    UsersRoutes,
+)
 
 
 @dataclass
@@ -40,11 +45,14 @@ def users_service() -> UsersService:
 
 
 @pytest.fixture
-def seeded_users(users_service: UsersService) -> list[int]:
+def seeded_users() -> list[int]:
+    users_service = UsersService()
     alice = users_service.create_user("alice")
     bob = users_service.create_user("bob")
+
     assert alice is not None
     assert bob is not None
+
     return [alice.user_id, bob.user_id]
 
 
@@ -52,18 +60,19 @@ class TestDashboard:
     def test_with_users(self, mock_deps: MockUsersDeps, seeded_users) -> None:
         routes = UsersRoutes()
         routes.register(Blueprint("test", __name__))
-        result = routes.dashboard()
+        result = UsersDashboardView().get()
 
         mock_deps.render_template.assert_called_once()
         _args, kwargs = mock_deps.render_template.call_args
-        assert len(kwargs["users"]) == 2
-        assert kwargs["total_users"] == 2
         assert result == "rendered"
+
+        assert kwargs["total_users"] == 2
+        assert len(kwargs["users"]) == 2
 
     def test_with_0_users(self, mock_deps: MockUsersDeps) -> None:
         routes = UsersRoutes()
         routes.register(Blueprint("test", __name__))
-        result = routes.dashboard()
+        result = UsersDashboardView().get()
 
         mock_deps.render_template.assert_called_once()
         _args, kwargs = mock_deps.render_template.call_args
@@ -89,7 +98,7 @@ class TestUpdatePermissions:
         with mock_app.test_request_context(method="POST", data={"can_run_jobs": "1"}):
             routes = UsersRoutes()
             routes.register(Blueprint("test", __name__))
-            result = routes.update_can_run_jobs(user_id)
+            result = UpdateCanRunJobsView().post(user_id)
 
         mock_deps.flash.assert_called_once()
         assert "permissions updated" in mock_deps.flash.call_args[0][0]
@@ -105,7 +114,7 @@ class TestUpdatePermissions:
         with mock_app.test_request_context(method="POST", data={"can_run_jobs": "0"}):
             routes = UsersRoutes()
             routes.register(Blueprint("test", __name__))
-            result = routes.update_can_run_jobs(user_id)
+            result = UpdateCanRunJobsView().post(user_id)
 
         mock_deps.flash.assert_called_once()
         assert "permissions updated" in mock_deps.flash.call_args[0][0]
@@ -119,7 +128,7 @@ class TestUpdatePermissions:
         with mock_app.test_request_context(method="POST", data={}):
             routes = UsersRoutes()
             routes.register(Blueprint("test", __name__))
-            result = routes.update_can_run_jobs(user_id)
+            result = UpdateCanRunJobsView().post(user_id)
 
         mock_deps.flash.assert_called_once()
         assert "permissions updated" in mock_deps.flash.call_args[0][0]
@@ -132,7 +141,7 @@ class TestUpdatePermissions:
         with mock_app.test_request_context(method="POST", data={}):
             routes = UsersRoutes()
             routes.register(Blueprint("test", __name__))
-            result = routes.update_can_run_jobs(999)
+            result = UpdateCanRunJobsView().post(999)
 
         mock_deps.flash.assert_called_once_with("User with id 999 was not found", "warning")
         mock_deps.url_for.assert_called_once_with("admin_panel.users.dashboard")
@@ -144,7 +153,7 @@ class TestUpdatePermissions:
         with mock_app.test_request_context(method="POST", data={"can_run_bg_jobs": "1"}):
             routes = UsersRoutes()
             routes.register(Blueprint("test", __name__))
-            result = routes.update_can_run_bg_jobs(user_id)
+            result = UpdateCanRunBgJobsView().post(user_id)
 
         mock_deps.flash.assert_called_once()
         assert "permissions updated" in mock_deps.flash.call_args[0][0]
@@ -157,7 +166,7 @@ class TestUpdatePermissions:
         with mock_app.test_request_context(method="POST", data={}):
             routes = UsersRoutes()
             routes.register(Blueprint("test", __name__))
-            result = routes.update_can_run_bg_jobs(999)
+            result = UpdateCanRunBgJobsView().post(999)
 
         mock_deps.flash.assert_called_once_with("User with id 999 was not found", "warning")
         mock_deps.url_for.assert_called_once_with("admin_panel.users.dashboard")
