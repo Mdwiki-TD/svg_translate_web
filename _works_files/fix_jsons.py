@@ -121,5 +121,5 @@ def process_json_files(directory_path: Path):
 
 
 # Target directory using pathlib
-directory_path = Path("I:/TOOLFORGE_TOOLS/copy-svg-langs.toolforge.org/data/svg_jobs")
+directory_path = Path("I:/TOOLFORGE_TOOLS/copy-svg-langs.toolforge.org/data/public_jobs")
 process_json_files(directory_path)

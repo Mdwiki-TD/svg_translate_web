@@ -234,8 +234,8 @@ class Paths:
         return Paths(
             flask_data_dir=flask_data_dir,
             log_dir=flask_data_dir / "logs",
-            jobs_path=flask_data_dir / "public_jobs", # svg_jobs
-            admin_jobs_path=flask_data_dir / "admin_jobs",# svg_jobs
+            jobs_path=flask_data_dir / "public_jobs",
+            admin_jobs_path=flask_data_dir / "admin_jobs",
         )
 
     def all_paths(self) -> list[Path]:
