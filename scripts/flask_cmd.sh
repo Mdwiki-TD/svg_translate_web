@@ -11,5 +11,7 @@ set -euo pipefail
 
 export MDWIKI_CLI=1
 
-source "$HOME/www/python/venv/bin/activate"
+# Activate the virtual environment and install dependencies
+source $HOME/www/python/venv/bin/activate
+
 exec flask --app "$HOME/www/python/src/app.py" "$@"
