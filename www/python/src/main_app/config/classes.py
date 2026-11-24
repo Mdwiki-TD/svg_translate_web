@@ -176,7 +176,7 @@ class JobsConfig:
     toolforge_job_image: str = "python3.13"
     toolforge_job_default_memory: str = "1Gi"
     toolforge_job_default_cpu: str = "0.5"
-    toolforge_job_script: str = "~/shs/flask_cmd.sh"
+    toolforge_job_script: str = "~/scripts/flask_cmd.sh"
 
     @classmethod
     def load(cls) -> JobsConfig:
@@ -201,7 +201,7 @@ class JobsConfig:
             toolforge_job_image=os.getenv("TOOLFORGE_JOB_IMAGE", "python3.13"),
             toolforge_job_default_memory=os.getenv("TOOLFORGE_JOB_DEFAULT_MEMORY", "1Gi"),
             toolforge_job_default_cpu=os.getenv("TOOLFORGE_JOB_DEFAULT_CPU", "0.5"),
-            toolforge_job_script=os.getenv("TOOLFORGE_JOB_SCRIPT", "~/shs/flask_cmd.sh"),
+            toolforge_job_script=os.getenv("TOOLFORGE_JOB_SCRIPT", "~/scripts/flask_cmd.sh"),
         )
 
         return _config
