@@ -16,13 +16,13 @@ import pytest
 from flask import Flask
 from src.main_app.database.services import JobsService, UsersService
 from src.main_app.jobs.backends.thread_backend import _runner
-from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
-from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
-from src.main_app.jobs.jobs_lifetime.thread_cancel_registry import (
+from src.main_app.jobs.backends.thread_cancel_registry import (
     get_cancel_event,
     pop_cancel_event,
     register_cancel_event,
 )
+from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
+from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
 from src.main_app.jobs_workers.objects import JobsRunner
 
 

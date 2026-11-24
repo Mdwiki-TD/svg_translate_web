@@ -9,14 +9,14 @@ import pytest
 from flask import Flask
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.jobs.backends.thread_backend import _runner
+from src.main_app.jobs.backends.thread_cancel_registry import (
+    pop_cancel_event,
+    register_cancel_event,
+)
 from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
 from src.main_app.jobs.jobs_lifetime.jobs_starter import (
     JobStarter,
     _load_job_args,
-)
-from src.main_app.jobs.jobs_lifetime.thread_cancel_registry import (
-    pop_cancel_event,
-    register_cancel_event,
 )
 from src.main_app.jobs_workers.objects import JobsRunner
 

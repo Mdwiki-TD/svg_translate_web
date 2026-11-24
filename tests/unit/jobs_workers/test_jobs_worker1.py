@@ -7,13 +7,13 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.database.models import JobRecord
-from src.main_app.jobs.jobs_lifetime import thread_cancel_registry
-from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
-from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
-from src.main_app.jobs.jobs_lifetime.thread_cancel_registry import (
+from src.main_app.jobs.backends import thread_cancel_registry
+from src.main_app.jobs.backends.thread_cancel_registry import (
     get_cancel_event,
     register_cancel_event,
 )
+from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
+from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
