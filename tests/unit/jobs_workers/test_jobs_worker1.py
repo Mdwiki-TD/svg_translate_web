@@ -122,14 +122,14 @@ def test_cancel_job():
     register_cancel_event(123, event)
 
     assert not event.is_set()
-    result = JobCanceller().cancel(123)
+    result = JobCanceller(MagicMock()).cancel(123)
     assert result is True
     assert event.is_set()
 
 
 def test_cancel_nonexistent_job():
     """Test cancelling a job that isn't registered."""
-    result = JobCanceller().cancel(999)
+    result = JobCanceller(MagicMock()).cancel(999)
     assert result is False
 
 
@@ -209,19 +209,23 @@ def test_multiple_jobs_can_be_cancelled_independently():
     register_cancel_event(2, event2)
     register_cancel_event(3, event3)
 
+    mock_jobs_files_service = MagicMock()
+    mock_jobs_files_service.create_cancel_file = MagicMock(return_value=MagicMock())
+
+    job_canceller = JobCanceller(jobs_files_service=mock_jobs_files_service)
     # Cancel job 2
-    assert JobCanceller().cancel(2) is True
+    assert job_canceller.cancel(2) is True
     assert event2.is_set()
     assert not event1.is_set()
     assert not event3.is_set()
 
     # Cancel job 1
-    assert JobCanceller().cancel(1) is True
+    assert job_canceller.cancel(1) is True
     assert event1.is_set()
     assert not event3.is_set()
 
     # Cancel job 3
-    assert JobCanceller().cancel(3) is True
+    assert job_canceller.cancel(3) is True
     assert event3.is_set()
 
 

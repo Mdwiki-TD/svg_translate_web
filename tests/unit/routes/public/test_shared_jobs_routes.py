@@ -10,9 +10,9 @@ from src.main_app.routes.public.shared_jobs_routes import SharedJobRoutes
 
 class TestCanManageJob:
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup(self, tmp_path):
         """Setup test."""
-        self.service = SharedJobRoutes(bp_name="public_jobs")
+        self.service = SharedJobRoutes(bp_name="public_jobs", jobs_dir=tmp_path)
 
     def test_can_manage_job_none_user(self):
         """Test can_manage_job returns False when user is None."""

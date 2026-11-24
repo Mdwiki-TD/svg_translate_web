@@ -89,9 +89,7 @@ class TestCancelJobWorker(TestSetup):
         register_cancel_event(job_id, event)
 
         mock_jobs_files_service = MagicMock()
-        mock_jobs_files_service.create_cancel_file = MagicMock(
-            return_value=MagicMock()
-        )  # Simulate file creation success
+        mock_jobs_files_service.create_cancel_file = MagicMock(return_value=MagicMock())
 
         with mock_app.app_context():
             result = JobCanceller(mock_jobs_files_service).cancel(job_id, "test_job", job)

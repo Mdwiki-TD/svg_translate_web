@@ -174,9 +174,9 @@ def seeded_job_with_result(seeded_job: JobRecord, jobs_service: JobsService) -> 
 
 class TestSetup:
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup(self, tmp_path):
         """Setup test."""
-        self.service = SharedJobRoutes(bp_name="public_jobs")
+        self.service = SharedJobRoutes(bp_name="public_jobs", jobs_dir=tmp_path)
 
 
 class TestCancelJob(TestSetup):
