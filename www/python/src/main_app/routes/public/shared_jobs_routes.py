@@ -21,7 +21,6 @@ from flask.wrappers import Response
 from flask_wtf import FlaskForm
 
 from ...config import get_settings
-
 from ...database.exceptions import DuplicateRecordError
 from ...database.services import JobsService, SettingsService
 from ...decorators import admin_required, oauth_required
