@@ -12,7 +12,7 @@ from requests import HTTPError
 from ...api_services.clients.toolforge import ToolforgeJobsService
 from ...config import Settings, get_settings
 from ...database.models import JobRecord
-from ..objects import JobData
+from ...jobs_workers.objects import JobData
 from .base import JobBackend
 
 logger = logging.getLogger(__name__)

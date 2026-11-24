@@ -1,4 +1,4 @@
-# src/main_app/jobs_workers/jobs_lifetime/run_job.py
+# src/main_app/jobs/jobs_lifetime/run_job.py
 """
 Entry point for running a single job by its database ID.
 
@@ -12,8 +12,8 @@ import logging
 import signal
 
 from ...database.services import JobsService
-from ..objects import JobData, JobsRunner
-from ..workers_lists import jobs_data_admins, jobs_data_public
+from ...jobs_workers.objects import JobData, JobsRunner
+from ...jobs_workers.workers_lists import jobs_data_admins, jobs_data_public
 from .cancel import DbCancelEvent
 
 logger = logging.getLogger(__name__)

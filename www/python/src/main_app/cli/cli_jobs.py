@@ -11,8 +11,8 @@ import sys
 import click
 from flask import Flask
 
-from ..jobs_workers.jobs_lifetime import JobStarter
-from ..jobs_workers.jobs_lifetime.run_job import run_job_by_id
+from ..jobs.jobs_lifetime import JobStarter
+from ..jobs.jobs_lifetime.run_job import run_job_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ def register_cli_jobs(app: Flask) -> None:
         Usage:
             flask --app "$HOME/www/python/src/app.py" reconcile-jobs
         """
-        from ..jobs_workers.jobs_lifetime.reconcile import reconcile
+        from ..jobs.jobs_lifetime.reconcile import reconcile
 
         reconcile()
 

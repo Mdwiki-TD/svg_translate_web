@@ -10,8 +10,8 @@ from typing import Any
 from flask import Flask, current_app
 
 from ...database.models import JobRecord
+from ...jobs_workers.objects import JobData, JobsRunner
 from ..jobs_lifetime.cancel_registry import get_cancel_event, pop_cancel_event, register_cancel_event
-from ..objects import JobData, JobsRunner
 from .base import JobBackend
 
 logger = logging.getLogger(__name__)
