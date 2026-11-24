@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any
 
 from flask import (
@@ -18,6 +19,8 @@ from flask.typing import ResponseReturnValue
 from flask.views import MethodView
 from flask.wrappers import Response
 from flask_wtf import FlaskForm
+
+from ...config import get_settings
 
 from ...database.exceptions import DuplicateRecordError
 from ...database.services import JobsService, SettingsService
@@ -35,12 +38,11 @@ logger = logging.getLogger(__name__)
 class SharedJobRoutes:
     """Helper service for core job logic across view classes."""
 
-    def __init__(self, bp_name: str) -> None:
+    def __init__(self, bp_name: str, jobs_dir: Path) -> None:
         self.bp_name = bp_name
         self.job_service = JobsService()
         self.settings_service = SettingsService()
-
-        self.jobs_files_service = JobFilesService(bp_name=self.bp_name)
+        self.jobs_files_service = JobFilesService(jobs_dir=jobs_dir)
         self.jobs_canceller = JobCanceller(
             jobs_files_service=self.jobs_files_service,
         )
@@ -266,7 +268,14 @@ class BaseJobView(MethodView):
     ) -> None:
         self.jobs_data_infos = jobs_data_infos
         self.bp_name = bp_name
-        self.shared_service = SharedJobRoutes(bp_name)
+        self.app_settings = get_settings()
+
+        if self.bp_name == "admin_panel.jobs":
+            jobs_dir = self.app_settings.paths.admin_jobs_path
+        else:
+            jobs_dir = self.app_settings.paths.jobs_path
+
+        self.shared_service = SharedJobRoutes(bp_name, jobs_dir)
         self.settings_service = self.shared_service.settings_service
         self.jobs_files_service = self.shared_service.jobs_files_service
 
