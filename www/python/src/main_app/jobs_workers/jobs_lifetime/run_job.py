@@ -1,4 +1,5 @@
-"""Entry point for running a single job by its database ID.
+"""
+Entry point for running a single job by its database ID.
 
 Used by Toolforge one-off pods: ``flask run-job-id <job_id>``.
 """

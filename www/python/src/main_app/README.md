@@ -35,7 +35,7 @@
     -   Template Method pattern in `BaseObjectsJobWorker` (lifecycle: before_run → process → after_run)
     -   Strategy pattern for job workers (pluggable via `JobData` registry)
     -   Singleton via `@lru_cache` for settings
-    -   Data Transfer Objects (`SharedworkerObject`, `CurrentUser`, `JobsRunner`)
+    -   Data Transfer Objects (`SharedworkerObject`, `CurrentUser`, `JobsRunner `)
 -   **Maintainability**: Good modular decomposition. Each job worker is self-contained. Route registrars use a consistent `register(bp)` pattern. Configuration is centralized and type-safe.
 -   **Readability**: Consistent naming conventions (snake_case functions, PascalCase classes). Type hints throughout. Google-style docstrings on most public methods. `__all__` exports defined in every module.
 -   **Scalability**: Background jobs use threading (not async/Celery), which limits horizontal scaling. The `CRUDService` generic pattern is reusable. Database views for computed data (e.g., `templates_need_update`).
