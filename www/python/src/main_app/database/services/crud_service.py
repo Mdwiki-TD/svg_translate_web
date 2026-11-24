@@ -341,9 +341,7 @@ class CRUDService[ModelT]:
             return 0
 
         mapper = inspect(self.model)
-        pk_names = [
-            mapper.get_property_by_column(col).key for col in mapper.primary_key
-        ]  # pyright: ignore[reportOptionalMemberAccess]
+        pk_names = [mapper.get_property_by_column(col).key for col in mapper.primary_key]  # pyright: ignore[reportOptionalMemberAccess]
 
         for row in rows:
             missing = [name for name in pk_names if name not in row]

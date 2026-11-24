@@ -113,7 +113,7 @@ class TestToggleCanRunJobs(TestSetup):
         assert bool(refreshed.can_run_jobs) is False
 
     def test_raises_for_missing_user(self) -> None:
-        with pytest.raises(RecordNotFoundError, match="User record not found"):
+        with pytest.raises(RecordNotFoundError, match="UserRecord with id=999 not found not found"):
             self.service.update_by_id(999, {"can_run_jobs": False})
 
 
@@ -141,5 +141,5 @@ class TestToggleCanRunBgJobs(TestSetup):
         assert bool(refreshed.can_run_bg_jobs) is False
 
     def test_raises_for_missing_user(self) -> None:
-        with pytest.raises(RecordNotFoundError, match="User record not found"):
+        with pytest.raises(RecordNotFoundError, match="UserRecord with id=999 not found not found"):
             self.service.update_by_id(999, {"can_run_bg_jobs": False})

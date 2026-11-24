@@ -17,7 +17,6 @@ from flask.typing import ResponseReturnValue
 from flask.views import MethodView
 
 from ....database.exceptions import RecordNotFoundError
-
 from ....database.services import UsersService
 from ....decorators import admin_required
 
@@ -93,7 +92,7 @@ class UpdateCanRunBgJobsView(MethodView):
         except RecordNotFoundError:
             logger.exception("Unable to update user permissions.")
             flash(f"User with id {user_id} was not found", "warning")
-        except Exception: # pragma: no cover - defensive guard
+        except Exception:  # pragma: no cover - defensive guard
             logger.exception("Unable to update user permissions.")
             flash("Unable to update user permissions. Please try again.", "danger")
         else:
