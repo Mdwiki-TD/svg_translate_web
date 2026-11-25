@@ -16,8 +16,8 @@ jobs_data_admins = {
     "update_wikitext": JobData(
         job_type=UpdateFilesWikiTextWorker.JOB_TYPE,
         job_name="Update Files Wikitext",
-        job_details_template=("jobs_templates/admin_templates/update_wikitext/details.html"),
-        job_list_template=("jobs_templates/admin_templates/update_wikitext/list.html"),
+        job_details_template="jobs_templates/admin_templates/update_wikitext/details.html",
+        job_list_template="jobs_templates/admin_templates/update_wikitext/list.html",
         job_class=UpdateFilesWikiTextWorker,
         job_args=[
             {"key": "template_name", "as": "template_name"},
@@ -34,20 +34,20 @@ jobs_data_admins = {
     "collect_templates_data": JobData(
         job_type=CollectMainFilesWorker.JOB_TYPE,
         job_name="Collect Templates data",
-        job_details_template=("jobs_templates/admin_templates/collect_templates_data/details.html"),
-        job_list_template=("jobs_templates/admin_templates/collect_templates_data/list.html"),
+        job_details_template="jobs_templates/admin_templates/collect_templates_data/details.html",
+        job_list_template="jobs_templates/admin_templates/collect_templates_data/list.html",
         job_class=CollectMainFilesWorker,
         job_args=[],
         start_confirm_message=(
             "This will start a background job to collect templates data for all templates that don't have one. Continue?"
         ),
-        description="""""",
+        description="""A background job to collect templates data for all templates that don't have one.""",
         job_for_admin=True,
     ),
     "update_owid_charts": JobData(
         job_type=UpdateOwidChartsWorker.JOB_TYPE,
         job_name="Update OWID Charts",
-        job_details_template=("jobs_templates/admin_templates/update_owid_charts/details.html"),
+        job_details_template="jobs_templates/admin_templates/update_owid_charts/details.html",
         job_class=UpdateOwidChartsWorker,
         job_args=[
             {"key": "owid_charts_limit_items", "as": "limit_items"},
@@ -69,7 +69,7 @@ jobs_data_admins = {
     "crop_main_files": JobData(
         job_type=CropMainFilesWorker.JOB_TYPE,
         job_name="Crop Newest World Files",
-        job_details_template=("jobs_templates/admin_templates/crop_main_files/details.html"),
+        job_details_template="jobs_templates/admin_templates/crop_main_files/details.html",
         job_class=CropMainFilesWorker,
         job_args=[
             {"key": "crop_newest_upload_limit", "as": "upload_limit"},
@@ -88,7 +88,7 @@ jobs_data_admins = {
     "fix_nested_main_files": JobData(
         job_type=FixNestedMainFilesWorker.JOB_TYPE,
         job_name="Fix Nested Main Files",
-        job_details_template=("jobs_templates/admin_templates/fix_nested_main_files/details.html"),
+        job_details_template="jobs_templates/admin_templates/fix_nested_main_files/details.html",
         job_class=FixNestedMainFilesWorker,
         job_args=[
             {"key": "upload_jobs_files", "as": "upload_files"},
@@ -105,8 +105,8 @@ jobs_data_admins = {
     "create_owid_pages": JobData(
         job_type=CreateOwidPagesWorker.JOB_TYPE,
         job_name="Create OWID Pages",
-        job_details_template=("jobs_templates/admin_templates/create_owid_pages/details.html"),
-        job_list_template=("jobs_templates/admin_templates/create_owid_pages/list.html"),
+        job_details_template="jobs_templates/admin_templates/create_owid_pages/details.html",
+        job_list_template="jobs_templates/admin_templates/create_owid_pages/list.html",
         job_class=CreateOwidPagesWorker,
         job_args=[
             {"key": "create_owid_pages_limit", "as": "limit_items"},
@@ -124,8 +124,8 @@ jobs_data_admins = {
     "rename_owid_pages": JobData(
         job_type=RenameOwidPagesWorker.JOB_TYPE,
         job_name="Rename OWID Pages",
-        job_details_template=("jobs_templates/admin_templates/rename_owid_pages/details.html"),
-        job_list_template=("jobs_templates/admin_templates/rename_owid_pages/list.html"),
+        job_details_template="jobs_templates/admin_templates/rename_owid_pages/details.html",
+        job_list_template="jobs_templates/admin_templates/rename_owid_pages/list.html",
         job_class=RenameOwidPagesWorker,
         job_args=[],
         start_confirm_message=(
@@ -139,7 +139,7 @@ jobs_data_admins = {
     "add_svglanguages_template": JobData(
         job_type=AddSvgSVGLanguagesTemplate.JOB_TYPE,
         job_name="Add {{SVGLanguages}}",
-        job_details_template=("jobs_templates/admin_templates/add_svglanguages_template/details.html"),
+        job_details_template="jobs_templates/admin_templates/add_svglanguages_template/details.html",
         job_class=AddSvgSVGLanguagesTemplate,
         job_args=[
             {"key": "add_svglanguages_limit_items", "as": "limit_items"},
@@ -153,7 +153,7 @@ jobs_data_admins = {
     "add_lang_categories_to_owid_pages": JobData(
         job_type=AddLangCategoriesWorker.JOB_TYPE,
         job_name="Add Language Categories",
-        job_details_template=("jobs_templates/admin_templates/add_lang_categories_to_owid_pages/details.html"),
+        job_details_template="jobs_templates/admin_templates/add_lang_categories_to_owid_pages/details.html",
         job_class=AddLangCategoriesWorker,
         job_args=[
             {"key": "add_lang_categories_limit_items", "as": "limit_items"},
@@ -174,8 +174,8 @@ jobs_data_admins = {
     "download_main_files": JobData(
         job_type=DownloadMainFilesWorker.JOB_TYPE,
         job_name="Download Main Files",
-        job_details_template=("jobs_templates/admin_templates/download_main_files/details.html"),
-        job_list_template=("jobs_templates/admin_templates/download_main_files/list.html"),
+        job_details_template="jobs_templates/admin_templates/download_main_files/details.html",
+        job_list_template="jobs_templates/admin_templates/download_main_files/list.html",
         job_class=DownloadMainFilesWorker,
         job_args=[
             {"key": "download_main_files_limit_items", "as": "limit_items"},

@@ -140,7 +140,7 @@ def mock_p_app(mock_jobs_data: dict[str, MagicMock], tmp_path: Any) -> Flask:
     bp = Blueprint("public_jobs", __name__, url_prefix="/jobs")
     SharedJobRoutesRegistrar.register(
         bp,
-        jobs_data_infos=mock_jobs_data,
+        jobs_data_infos=mock_jobs_data,  # pyright: ignore[reportArgumentType]
         bp_name="public_jobs",
     )
     app.register_blueprint(bp)

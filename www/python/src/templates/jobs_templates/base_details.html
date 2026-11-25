@@ -20,7 +20,16 @@
 {% endblock %}
 
 {# The two outer layouts expose different block names; both render the same body. #}
-{% block content_fluid %}{{ self.details_body() }}{% endblock %}
+{# Public layout: body goes straight into content_fluid.
+   Admin layout: keep admins/base1.html's own content_fluid (via super()) so
+   its wrapper is not replaced; our body is injected through admin_contents. #}
+{% block content_fluid %}
+{%- if details_layout == "admins/base1.html" -%}
+{{ super() }}
+{%- else -%}
+{{ self.details_body() }}
+{%- endif -%}
+{% endblock %}
 {% block admin_contents %}{{ self.details_body() }}{% endblock %}
 
 {% block details_body %}
