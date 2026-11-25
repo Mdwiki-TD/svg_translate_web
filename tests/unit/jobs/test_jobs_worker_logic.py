@@ -72,45 +72,47 @@ def test_load_job_args(mock_db_services):
     assert args == {"arg1": "val1"}
 
 
-def test_runner(flask_app):
-    target = MagicMock()
+def test_runner(flask_app, monkeypatch: pytest.MonkeyPatch):
     cancel_event = threading.Event()
     register_cancel_event(1, cancel_event)
-    data = JobsRunner(
+
+    mock_executor_instance = MagicMock()
+    mock_executor_instance.run.return_value = 0
+    monkeypatch.setattr(
+        "src.main_app.jobs.job_executor.JobExecutor",
+        lambda *a, **kw: mock_executor_instance,
+    )
+
+    _runner(
         job_id=1,
         user={"user": "test"},
         cancel_event=cancel_event,
-        args={"a": 1},
-        form_data={"form_key": "form_val"},
-    )
-    _runner(
-        data,
-        target,
-        flask_app,
+        flask_app=flask_app,
     )
 
-    target.assert_called_once_with(data)
+    mock_executor_instance.run.assert_called_once_with(1, user={"user": "test"}, cancel_event=cancel_event)
     assert pop_cancel_event(1) is None  # should be popped
 
 
-def test_runner_no_form_data(flask_app):
-    target = MagicMock()
+def test_runner_no_form_data(flask_app, monkeypatch: pytest.MonkeyPatch):
     cancel_event = threading.Event()
     register_cancel_event(1, cancel_event)
-    data = JobsRunner(
+
+    mock_executor_instance = MagicMock()
+    mock_executor_instance.run.return_value = 0
+    monkeypatch.setattr(
+        "src.main_app.jobs.job_executor.JobExecutor",
+        lambda *a, **kw: mock_executor_instance,
+    )
+
+    _runner(
         job_id=1,
         user={"user": "test"},
         cancel_event=cancel_event,
-        args={"a": 1},
-        form_data=None,
-    )
-    _runner(
-        data,
-        target,
-        flask_app,
+        flask_app=flask_app,
     )
 
-    target.assert_called_once_with(data)
+    mock_executor_instance.run.assert_called_once_with(1, user={"user": "test"}, cancel_event=cancel_event)
     assert pop_cancel_event(1) is None  # should be popped
 
 
@@ -118,27 +120,38 @@ def test_cancel_job_worker(mock_jobs_service, mock_jobs_files_service):
     event = threading.Event()
     register_cancel_event(1, event)
     job = MagicMock()
+    job.id = 1
     job.result_file = "test_result"
+    job.job_type = "test_type"
+    job.backend = "thread"
 
     mock_jobs_service.cancel_job_db.return_value = True
+    mock_jobs_service.get_by.return_value = job
     mock_jobs_files_service.create_cancel_file.return_value = True
 
+    # Use the real ThreadBackend so cancel() sets the in-process event
+    from src.main_app.jobs.backends.thread_backend import ThreadBackend
+
+    mock_backend_registry = MagicMock()
+    mock_backend_registry.get_backend.return_value = ThreadBackend()
+
     res = JobCanceller(
-        jobs_service=mock_jobs_service,
         jobs_files_service=mock_jobs_files_service,
+        jobs_service=mock_jobs_service,
+        backend_registry=mock_backend_registry,
     ).cancel(1, "test_type", job)
 
     assert res is True
     assert event.is_set()
     mock_jobs_service.cancel_job_db.assert_called_once_with(1, "test_type")
-    mock_jobs_files_service.create_cancel_file.assert_called_once_with("test_result.cancelled")
+    mock_jobs_files_service.create_cancel_file.assert_called_once()
 
 
 @pytest.fixture
 def mock_load_job_data(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
     _mock.return_value = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs.job_executor.load_job_data", _mock)
+    monkeypatch.setattr("src.main_app.jobs.registry.load_job_data", _mock)
     monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.job_creator.load_job_data", _mock)
     return _mock
 

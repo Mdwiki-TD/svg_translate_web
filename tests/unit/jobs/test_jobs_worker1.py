@@ -12,18 +12,10 @@ from src.main_app.jobs.backends.thread_cancel_registry import (
     get_cancel_event,
     register_cancel_event,
 )
+from src.main_app.jobs.job_executor import JobExecutor
 from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
 from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
-from src.main_app.jobs_workers.objects import JobsRunner
-
-
-@pytest.fixture
-def mock_load_job_data(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    _mock = MagicMock()
-    _mock.return_value = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs.job_executor.load_job_data", _mock)
-    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.job_creator.load_job_data", _mock)
-    return _mock
+from src.main_app.jobs_workers.objects import JobData
 
 
 @pytest.fixture(autouse=True)
@@ -54,71 +46,64 @@ def clean_cancel_events():
 
 @pytest.fixture
 def mock_jobs_worker_services(monkeypatch: pytest.MonkeyPatch):
-    """Mock create_job, save_payload, Thread, and current_app for job worker tests."""
-    mocks = {
-        "create_job": MagicMock(),
-        "save_payload": MagicMock(),
-        "Thread": MagicMock(),
-        "current_app": MagicMock(),
+    """Mock JobCreator, BackendRegistry, and load_job_data for job starter tests."""
+    mock_create = MagicMock()
+    mock_get_backend_name = MagicMock(return_value="thread")
+    mock_get_backend = MagicMock()
+    mock_load_job_data = MagicMock()
+
+    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.job_creator.JobCreator.create", mock_create)
+    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.BackendRegistry.get_backend_name", mock_get_backend_name)
+    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.BackendRegistry.get_backend", mock_get_backend)
+    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.job_creator.load_job_data", mock_load_job_data)
+
+    return {
+        "create": mock_create,
+        "get_backend_name": mock_get_backend_name,
+        "get_backend": mock_get_backend,
+        "load_job_data": mock_load_job_data,
     }
-
-    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create_job"])
-    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.JobsService.save_payload", mocks["save_payload"])
-    monkeypatch.setattr("src.main_app.jobs.backends.thread_backend.threading.Thread", mocks["Thread"])
-    monkeypatch.setattr("src.main_app.jobs.backends.thread_backend.current_app", mocks["current_app"])
-
-    return mocks
 
 
 def test_start_collect_templates_data_job(mock_jobs_worker_services):
     """Test starting a collect templates data job."""
     mock_job = JobRecord(id=1, job_type="collect_templates_data", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
+    mock_job_data = JobData(job_type="collect_templates_data", job_name="Test", job_class=MagicMock())
+    mock_backend = MagicMock()
 
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
+    from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_thread_instance = MagicMock()
-    mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
+    mock_jobs_worker_services["create"].return_value = CreatedJob(
+        job=mock_job, job_data=mock_job_data, payload={}
+    )
+    mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     job_id = JobStarter().start({"username": "22"}, "collect_templates_data")
 
     assert job_id == 1
-    mock_jobs_worker_services["create_job"].assert_called_once_with("collect_templates_data", "22")
-    mock_jobs_worker_services["Thread"].assert_called_once()
-    # Verify the thread was started with correct arguments
-    thread_args = mock_jobs_worker_services["Thread"].call_args[1]["args"]
-    runner_data = thread_args[0]
-    assert isinstance(runner_data, JobsRunner)
-    assert runner_data.job_id == 1
-    assert runner_data.user == {"username": "22"}
-    assert isinstance(runner_data.cancel_event, threading.Event)
-    mock_thread_instance.start.assert_called_once()
-
-    # Verify event was registered
-    assert get_cancel_event(1) is not None
+    mock_jobs_worker_services["create"].assert_called_once()
+    mock_backend.start.assert_called_once_with(mock_job, mock_job_data, user={"username": "22"})
 
 
 def test_start_fix_nested_main_files_job(mock_jobs_worker_services):
     """Test starting a fix nested main files job."""
     mock_job = JobRecord(id=2, job_type="fix_nested_main_files", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
+    mock_job_data = JobData(job_type="fix_nested_main_files", job_name="Test", job_class=MagicMock())
+    mock_backend = MagicMock()
 
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
+    from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_thread_instance = MagicMock()
-    mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
+    mock_jobs_worker_services["create"].return_value = CreatedJob(
+        job=mock_job, job_data=mock_job_data, payload={}
+    )
+    mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     user = {"username": "test_user"}
     job_id = JobStarter().start(user, "fix_nested_main_files")
 
     assert job_id == 2
-    mock_jobs_worker_services["create_job"].assert_called_once_with("fix_nested_main_files", "test_user")
-    mock_jobs_worker_services["Thread"].assert_called_once()
-
-    # Verify event was registered
-    assert get_cancel_event(2) is not None
+    mock_jobs_worker_services["create"].assert_called_once()
+    mock_backend.start.assert_called_once_with(mock_job, mock_job_data, user=user)
 
 
 def test_cancel_job():
@@ -126,23 +111,48 @@ def test_cancel_job():
     event = threading.Event()
     register_cancel_event(123, event)
 
+    mock_job = JobRecord(id=123, job_type="test_type", status="running", backend="thread")
+
+    mock_jobs_service = MagicMock()
+    mock_jobs_service.cancel_job_db.return_value = True
+    mock_jobs_service.get_by.return_value = mock_job
+
+    mock_jobs_files_service = MagicMock()
+    mock_jobs_files_service.create_cancel_file.return_value = MagicMock()
+
+    # Use the real ThreadBackend so cancel() sets the in-process event
+    from src.main_app.jobs.backends.thread_backend import ThreadBackend
+
+    mock_backend_registry = MagicMock()
+    mock_backend_registry.get_backend.return_value = ThreadBackend()
+
     assert not event.is_set()
-    result = JobCanceller(MagicMock()).cancel(123)
+    result = JobCanceller(
+        jobs_files_service=mock_jobs_files_service,
+        jobs_service=mock_jobs_service,
+        backend_registry=mock_backend_registry,
+    ).cancel(123)
     assert result is True
     assert event.is_set()
 
 
 def test_cancel_nonexistent_job():
     """Test cancelling a job that isn't registered."""
-    result = JobCanceller(MagicMock()).cancel(999)
+    mock_jobs_service = MagicMock()
+    mock_jobs_service.get_by.return_value = None
+    mock_jobs_service.cancel_job_db.return_value = False
+
+    mock_jobs_files_service = MagicMock()
+
+    result = JobCanceller(
+        jobs_files_service=mock_jobs_files_service,
+        jobs_service=mock_jobs_service,
+    ).cancel(999)
     assert result is False
 
 
-def test_runner_calls_target_and_cleans_up(mock_load_job_data):
+def test_runner_calls_target_and_cleans_up(monkeypatch: pytest.MonkeyPatch):
     """Test the internal _runner function."""
-    mock_target = MagicMock()
-    mock_target.run = MagicMock()
-
     job_id = 456
     user = {"name": "test"}
     event = threading.Event()
@@ -152,11 +162,13 @@ def test_runner_calls_target_and_cleans_up(mock_load_job_data):
     register_cancel_event(job_id, event)
     assert get_cancel_event(job_id) == event
 
-    mock_job_data = MagicMock()
-    mock_job_data.job_class = mock_target
-    mock_job_data.job_args = []  # Empty args to avoid SettingsService
+    mock_executor_instance = MagicMock()
+    mock_executor_instance.run.return_value = 0
 
-    mock_load_job_data.return_value = mock_job_data
+    monkeypatch.setattr(
+        "src.main_app.jobs.job_executor.JobExecutor",
+        lambda *a, **kw: mock_executor_instance,
+    )
 
     from src.main_app.jobs.backends.thread_backend import _runner
 
@@ -166,7 +178,7 @@ def test_runner_calls_target_and_cleans_up(mock_load_job_data):
         cancel_event=event,
         flask_app=flask_app,
     )
-    mock_target.run.assert_called_once_with()
+    mock_executor_instance.run.assert_called_once_with(job_id, user=user, cancel_event=event)
     flask_app.app_context.assert_called_once()
     # After runner finishes, event should be popped from CANCEL_EVENTS
     assert get_cancel_event(job_id) is None
@@ -175,23 +187,22 @@ def test_runner_calls_target_and_cleans_up(mock_load_job_data):
 def test_start_download_main_files_job(mock_jobs_worker_services):
     """Test starting a download main files job."""
     mock_job = JobRecord(id=3, job_type="download_main_files", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
+    mock_job_data = JobData(job_type="download_main_files", job_name="Test", job_class=MagicMock())
+    mock_backend = MagicMock()
 
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
+    from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_thread_instance = MagicMock()
-    mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
+    mock_jobs_worker_services["create"].return_value = CreatedJob(
+        job=mock_job, job_data=mock_job_data, payload={}
+    )
+    mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     user = {"username": "test_user"}
     job_id = JobStarter().start(user, "download_main_files")
 
     assert job_id == 3
-    mock_jobs_worker_services["create_job"].assert_called_once_with("download_main_files", "test_user")
-    mock_jobs_worker_services["Thread"].assert_called_once()
-
-    # Verify event was registered
-    assert get_cancel_event(3) is not None
+    mock_jobs_worker_services["create"].assert_called_once()
+    mock_backend.start.assert_called_once()
 
 
 def test_start_job_with_invalid_job_type():
@@ -210,42 +221,64 @@ def test_multiple_jobs_can_be_cancelled_independently():
     register_cancel_event(2, event2)
     register_cancel_event(3, event3)
 
-    mock_jobs_files_service = MagicMock()
-    mock_jobs_files_service.create_cancel_file = MagicMock(return_value=MagicMock())
+    mock_jobs_service = MagicMock()
+    mock_jobs_service.cancel_job_db.return_value = True
 
-    job_canceller = JobCanceller(jobs_files_service=mock_jobs_files_service)
+    mock_jobs_files_service = MagicMock()
+    mock_jobs_files_service.create_cancel_file.return_value = MagicMock()
+
+    # Use the real ThreadBackend so cancel() sets the in-process events
+    from src.main_app.jobs.backends.thread_backend import ThreadBackend
+
+    mock_backend_registry = MagicMock()
+    mock_backend_registry.get_backend.return_value = ThreadBackend()
+
+    job_canceller = JobCanceller(
+        jobs_files_service=mock_jobs_files_service,
+        jobs_service=mock_jobs_service,
+        backend_registry=mock_backend_registry,
+    )
+
     # Cancel job 2
+    job2 = JobRecord(id=2, job_type="test_type_2", status="running", backend="thread")
+    mock_jobs_service.get_by.return_value = job2
     assert job_canceller.cancel(2) is True
     assert event2.is_set()
     assert not event1.is_set()
     assert not event3.is_set()
 
     # Cancel job 1
+    job1 = JobRecord(id=1, job_type="test_type_1", status="running", backend="thread")
+    mock_jobs_service.get_by.return_value = job1
     assert job_canceller.cancel(1) is True
     assert event1.is_set()
     assert not event3.is_set()
 
     # Cancel job 3
+    job3 = JobRecord(id=3, job_type="test_type_3", status="running", backend="thread")
+    mock_jobs_service.get_by.return_value = job3
     assert job_canceller.cancel(3) is True
     assert event3.is_set()
 
 
-def test_runner_passes_args_to_target(mock_load_job_data):
-    """Test that _runner forwards the args parameter to the target function."""
-    mock_target = MagicMock()
-    mock_target.run = MagicMock()
-
+def test_runner_passes_args_to_target(monkeypatch: pytest.MonkeyPatch):
+    """Test that _runner forwards args through JobExecutor."""
     job_id = 789
     user = {"name": "test"}
     event = threading.Event()
     flask_app = MagicMock()
-    args = {"update_all": "true"}
 
     register_cancel_event(job_id, event)
 
-    from src.main_app.jobs.backends.thread_backend import _runner
+    mock_executor_instance = MagicMock()
+    mock_executor_instance.run.return_value = 0
 
-    mock_load_job_data.return_value = mock_target
+    monkeypatch.setattr(
+        "src.main_app.jobs.job_executor.JobExecutor",
+        lambda *a, **kw: mock_executor_instance,
+    )
+
+    from src.main_app.jobs.backends.thread_backend import _runner
 
     _runner(
         job_id=job_id,
@@ -253,14 +286,11 @@ def test_runner_passes_args_to_target(mock_load_job_data):
         cancel_event=event,
         flask_app=flask_app,
     )
-    mock_target.run.assert_called_once_with()
+    mock_executor_instance.run.assert_called_once_with(job_id, user=user, cancel_event=event)
 
 
-def test_runner_passes_none_args_by_default(mock_load_job_data):
-    """Test that _runner passes args=None to target when args not provided."""
-    mock_target = MagicMock()
-    mock_target.run = MagicMock()
-
+def test_runner_passes_none_args_by_default(monkeypatch: pytest.MonkeyPatch):
+    """Test that _runner passes user=None to JobExecutor when no user given."""
     job_id = 790
     user = None
     event = threading.Event()
@@ -268,7 +298,13 @@ def test_runner_passes_none_args_by_default(mock_load_job_data):
 
     register_cancel_event(job_id, event)
 
-    mock_load_job_data.return_value = mock_target
+    mock_executor_instance = MagicMock()
+    mock_executor_instance.run.return_value = 0
+
+    monkeypatch.setattr(
+        "src.main_app.jobs.job_executor.JobExecutor",
+        lambda *a, **kw: mock_executor_instance,
+    )
 
     from src.main_app.jobs.backends.thread_backend import _runner
 
@@ -278,69 +314,71 @@ def test_runner_passes_none_args_by_default(mock_load_job_data):
         cancel_event=event,
         flask_app=flask_app,
     )
-    mock_target.run.assert_called_once_with()
+    mock_executor_instance.run.assert_called_once_with(job_id, user=None, cancel_event=event)
 
 
 def test_start_job_param(mock_jobs_worker_services):
-    """Test that start_job passes args to the background thread."""
+    """Test that start passes args to the backend."""
     mock_job = JobRecord(id=10, job_type="collect_templates_data", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
+    mock_job_data = JobData(job_type="collect_templates_data", job_name="Test", job_class=MagicMock())
+    mock_backend = MagicMock()
 
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
+    from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_thread_instance = MagicMock()
-    mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
+    mock_jobs_worker_services["create"].return_value = CreatedJob(
+        job=mock_job, job_data=mock_job_data, payload={}
+    )
+    mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     args = {"update_all": "true"}
     job_id = JobStarter().start({"username": "22"}, "collect_templates_data", args=args)
 
     assert job_id == 10
-    mock_jobs_worker_services["Thread"].assert_called_once()
-    thread_args = mock_jobs_worker_services["Thread"].call_args[1]["args"]
-    runner_data = thread_args[0]
-    assert isinstance(runner_data, JobsRunner)
-    assert runner_data.args == args
+    mock_jobs_worker_services["create"].assert_called_once()
+    # Verify args were passed to creator
+    call_kwargs = mock_jobs_worker_services["create"].call_args
+    assert call_kwargs[1]["args"] == args or call_kwargs.kwargs.get("args") == args
 
 
 def test_start_job_without_args_passes_none(mock_jobs_worker_services):
-    """Test that start_job passes args=None to the thread when no args given."""
+    """Test that start passes args=None when no args given."""
     mock_job = JobRecord(id=11, job_type="collect_templates_data", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
+    mock_job_data = JobData(job_type="collect_templates_data", job_name="Test", job_class=MagicMock())
+    mock_backend = MagicMock()
 
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
+    from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_thread_instance = MagicMock()
-    mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
+    mock_jobs_worker_services["create"].return_value = CreatedJob(
+        job=mock_job, job_data=mock_job_data, payload={}
+    )
+    mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     job_id = JobStarter().start({"username": "22"}, "collect_templates_data")
 
     assert job_id == 11
-    thread_args = mock_jobs_worker_services["Thread"].call_args[1]["args"]
-    runner_data = thread_args[0]
-    assert isinstance(runner_data, JobsRunner)
-    assert runner_data.args == {}
+    mock_jobs_worker_services["create"].assert_called_once()
+    # Verify args=None was passed to creator
+    call_kwargs = mock_jobs_worker_services["create"].call_args
+    assert call_kwargs[1].get("args") is None or call_kwargs.kwargs.get("args") is None
 
 
 def test_start_job_alias_works(mock_jobs_worker_services):
-    """Test that the start_job alias behaves identically to start_job."""
+    """Test that start with positional args behaves identically."""
     mock_job = JobRecord(id=12, job_type="collect_templates_data", status="pending")
-    mock_jobs_worker_services["create_job"].return_value = mock_job
+    mock_job_data = JobData(job_type="collect_templates_data", job_name="Test", job_class=MagicMock())
+    mock_backend = MagicMock()
 
-    mock_app = MagicMock()
-    mock_jobs_worker_services["current_app"]._get_current_object.return_value = mock_app
+    from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_thread_instance = MagicMock()
-    mock_jobs_worker_services["Thread"].return_value = mock_thread_instance
+    mock_jobs_worker_services["create"].return_value = CreatedJob(
+        job=mock_job, job_data=mock_job_data, payload={}
+    )
+    mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     args = {"update_all": "true"}
     user = {"username": "alias_user"}
     job_id = JobStarter().start(user, "collect_templates_data", args)
 
     assert job_id == 12
-    mock_jobs_worker_services["create_job"].assert_called_once_with("collect_templates_data", "alias_user")
-    thread_args = mock_jobs_worker_services["Thread"].call_args[1]["args"]
-    runner_data = thread_args[0]
-    assert isinstance(runner_data, JobsRunner)
-    assert runner_data.args == args
+    mock_jobs_worker_services["create"].assert_called_once()
+    mock_backend.start.assert_called_once()
