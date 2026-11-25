@@ -916,7 +916,7 @@ class TestCropMainFilesProcessorHelpers:
         assert processor.result.status == "cancelled"
 
     def test_get_priority(self, mock_crop_services):
-        """Test get_priority calculates correct interval."""
+        """Test _get_priority calculates correct interval."""
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -925,11 +925,11 @@ class TestCropMainFilesProcessorHelpers:
             )
         )
 
-        assert processor.get_priority(5) == 1
-        assert processor.get_priority(10) == 1
-        assert processor.get_priority(25) == 2
-        assert processor.get_priority(100) == 10
-        assert processor.get_priority(200) == 10
+        assert processor._get_priority(5) == 1
+        assert processor._get_priority(10) == 1
+        assert processor._get_priority(100) == 10
+        assert processor._get_priority(200) == 10
+        assert processor._get_priority(25) == 2
 
 
 class TestCropMainFilesProcessorProcessTemplate:

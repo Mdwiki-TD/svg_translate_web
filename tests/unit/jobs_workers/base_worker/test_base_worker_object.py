@@ -75,7 +75,7 @@ def seeded_job():
 
 @pytest.fixture
 def worker(seeded_job, monkeypatch):
-    monkeypatch.setenv("PRIORITY_PER_ITEM", "0")
+    # monkeypatch.setenv("PRIORITY_PER_ITEM", "0")
     user = {"username": "testuser"}
     worker = MockWorker(
         JobsRunner(
@@ -153,9 +153,9 @@ class TestBaseObjectsJobWorker:
             assert worker.check_cancel_db_periodic(interval=10) is False
         assert worker.check_cancel_db_periodic(interval=10) is True
 
-    def test_get_priority(self, worker: MockWorker, monkeypatch):
-        assert worker.get_priority(5) == 1
-        assert worker.get_priority(100) == 10
+    def test_get_priority(self, worker: MockWorker):
+        assert worker._get_priority(5) == 1
+        assert worker._get_priority(100) == 10
 
     def test_handle_error(self, worker):
         worker.handle_error(ValueError("Test error"), context="Some context")
