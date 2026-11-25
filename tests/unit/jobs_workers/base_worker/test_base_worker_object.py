@@ -6,6 +6,7 @@ import threading
 from unittest.mock import MagicMock, patch
 
 import pytest
+from src.main_app.config import Settings
 from src.main_app.database.services import JobsService
 from src.main_app.jobs.base_worker import BaseObjectsJobWorker
 from src.main_app.jobs.objects import JobsRunner
@@ -37,6 +38,12 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
 class MockWorker(BaseObjectsJobWorker[SharedworkerObject]):
     JOB_TYPE = "mock_job"
 
+    def __init__(self, data: JobsRunner):
+        super().__init__(
+            data=data,
+            app_settings=Settings.load(),
+        )
+
     def create_result(self):
         return SharedworkerObject()
 
@@ -67,7 +74,8 @@ def seeded_job():
 
 
 @pytest.fixture
-def worker(seeded_job):
+def worker(seeded_job, monkeypatch):
+    monkeypatch.setenv("PRIORITY_PER_ITEM", "0")
     user = {"username": "testuser"}
     worker = MockWorker(
         JobsRunner(
@@ -145,7 +153,7 @@ class TestBaseObjectsJobWorker:
             assert worker.check_cancel_db_periodic(interval=10) is False
         assert worker.check_cancel_db_periodic(interval=10) is True
 
-    def test_get_priority(self, worker):
+    def test_get_priority(self, worker: MockWorker, monkeypatch):
         assert worker.get_priority(5) == 1
         assert worker.get_priority(100) == 10
 
