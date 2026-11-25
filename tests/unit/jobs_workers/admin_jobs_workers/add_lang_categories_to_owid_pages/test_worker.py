@@ -7,11 +7,11 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.api_services.files_service import FileLanguagesMap
+from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pages.worker import (
     AddLangCategoriesWorker,
     PageInfo,
 )
-from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture

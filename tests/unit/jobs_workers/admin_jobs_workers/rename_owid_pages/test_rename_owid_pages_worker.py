@@ -6,13 +6,13 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
+from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.objects import RenameInfo
 from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker import (
     MOVE_REASON,
     PREFIXES,
     RenameOwidPagesWorker,
 )
-from src.main_app.jobs_workers.objects import JobsRunner
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────────
 

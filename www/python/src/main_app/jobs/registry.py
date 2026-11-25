@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
-from ..jobs_workers.objects import JobData
 from ..jobs_workers.workers_lists import jobs_data_admins, jobs_data_public
+from .objects import JobData
 
 
 def load_job_data(job_type: str) -> JobData | None:

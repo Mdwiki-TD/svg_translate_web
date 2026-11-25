@@ -13,7 +13,7 @@ from typing import Any
 from ...database.exceptions import DuplicateRecordError
 from ...database.models import JobRecord
 from ...database.services import JobsService, SettingsService
-from ...jobs_workers.objects import JobData
+from ..objects import JobData
 from ..registry import load_job_data
 
 logger = logging.getLogger(__name__)

@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from flask import Flask
-from src.main_app.jobs_workers.objects import JobData
+from src.main_app.jobs.objects import JobData
 
 
 @pytest.fixture

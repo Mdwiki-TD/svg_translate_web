@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import OneItem, OneStep, SharedworkerObject
+from ....jobs.shared_objects import OneItem, OneStep, SharedworkerObject
 
 
 @dataclass

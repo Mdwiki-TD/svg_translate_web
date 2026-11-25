@@ -24,8 +24,8 @@ import mwclient.page
 
 from ....api_services import MwClientPage
 from ....database.services import TemplateService
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from .objects import RenameInfo, RenameOwidPagesWorkerObject
 
 logger = logging.getLogger(__name__)

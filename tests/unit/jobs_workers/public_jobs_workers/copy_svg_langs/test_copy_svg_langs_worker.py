@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.api_services.files_service import DownloadAndSaveData, FileLanguagesMap, UploadResult
-from src.main_app.jobs_workers.objects import JobsRunner
+from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs import (
     CopySvgLangsWorker,
     FilesProcessedItem,
@@ -137,14 +137,14 @@ def mock_clients(
     """"""
     mock_get_user_site = MagicMock(return_value=mock_site)
 
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService.update_job_status", MagicMock())
+    monkeypatch.setattr("src.main_app.jobs.base_worker.JobsService.update_job_status", MagicMock())
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobsService.update_job_status_with_retry",
+        "src.main_app.jobs.base_worker.JobsService.update_job_status_with_retry",
         MagicMock(),
     )
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobFilesService.save_result", MagicMock())
+    monkeypatch.setattr("src.main_app.jobs.base_worker.JobFilesService.save_result", MagicMock())
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
+        "src.main_app.jobs.base_worker.WikiSiteClient.get_user_site",
         mock_get_user_site,
     )
     m_session = MagicMock()

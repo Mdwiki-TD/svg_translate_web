@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.main_app.jobs_workers.objects import JobData
+from src.main_app.jobs.objects import JobData
 from src.main_app.jobs_workers.workers_lists import jobs_data_public
 
 

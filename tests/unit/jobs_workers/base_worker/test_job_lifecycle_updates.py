@@ -6,9 +6,9 @@ from sqlalchemy import text
 from src.main_app.database import db
 from src.main_app.database.models.jobs import JobRecord
 from src.main_app.database.services.jobs_service import JobsService
-from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker
-from src.main_app.jobs_workers.objects import JobsRunner
-from src.main_app.jobs_workers.shared_objects import SharedworkerObject
+from src.main_app.jobs.base_worker import BaseObjectsJobWorker
+from src.main_app.jobs.objects import JobsRunner
+from src.main_app.jobs.shared_objects import SharedworkerObject
 
 
 class MockWorker(BaseObjectsJobWorker[SharedworkerObject]):

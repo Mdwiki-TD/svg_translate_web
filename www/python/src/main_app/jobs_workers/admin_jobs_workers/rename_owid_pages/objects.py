@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Literal
 
-from ...shared_objects import SharedMapToJson, SharedworkerObject
+from ....jobs.shared_objects import SharedMapToJson, SharedworkerObject
 
 STATUS_LIST3 = Literal[
     "failed",

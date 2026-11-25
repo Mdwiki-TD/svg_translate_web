@@ -8,9 +8,9 @@ import logging
 
 from ....api_services import MwClientPage
 from ....database.services import ChartsAndTemplatesService, TemplateService
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from ....utils.new_wikitext import SvgFilesCollector
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
 from .files_processor import UpdateWikiTextProcessor
 from .objects import ProcessingFileInfo, UpdateFilesWikiTextObject
 

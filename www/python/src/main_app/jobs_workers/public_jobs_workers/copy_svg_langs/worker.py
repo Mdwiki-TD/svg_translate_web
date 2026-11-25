@@ -8,13 +8,13 @@ import logging
 from typing import Any
 
 from ....api_services.files_service import FilesService
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from ....services.copysvg_wrapper import (
     ExtractResult,
     SvgTranslationExtractor,
 )
 from ...admin_jobs_workers.crop_main_files.steps import CropMainFilesSteps
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
 from .files_worker import OneFileProcessor
 from .objects import (
     CopySvgLangsWorkerObject,

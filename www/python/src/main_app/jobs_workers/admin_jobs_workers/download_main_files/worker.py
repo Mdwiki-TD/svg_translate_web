@@ -12,8 +12,8 @@ from ....api_services import FilesService
 from ....api_services.files_service import DownloadAndSaveData
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from .objects import DownloadMainFilesWorkerObject, FileInfo
 
 logger = logging.getLogger(__name__)

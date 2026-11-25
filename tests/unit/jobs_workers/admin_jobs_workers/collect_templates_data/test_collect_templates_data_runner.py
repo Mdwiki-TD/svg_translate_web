@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 import pytest
 from src.main_app.api_services.clients.objects import RawGrapherMetadataResponse
 from src.main_app.database.models import TemplateRecord
+from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import CollectMainFilesWorker
-from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
@@ -38,9 +38,7 @@ def mock_find_source(monkeypatch: pytest.MonkeyPatch):
 def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     """Mock the services used by collect_templates_data_worker."""
 
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True)
-    )
+    monkeypatch.setattr("src.main_app.jobs.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True))
     mocks = {
         "list": MagicMock(),
         "add_template_data": MagicMock(),
@@ -56,7 +54,7 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
     }
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
+        "src.main_app.jobs.base_worker.WikiSiteClient.get_user_site",
         mocks["get_user_site"],
     )
 
@@ -83,11 +81,11 @@ def mock_collect_services(monkeypatch: pytest.MonkeyPatch, tmp_path):
         MagicMock(return_value=mock_template_service),
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobsService.update_job_status",
+        "src.main_app.jobs.base_worker.JobsService.update_job_status",
         mocks["update_job_status"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
+        "src.main_app.jobs.base_worker.JobFilesService.save_result",
         mocks["save_result"],
     )
 

@@ -10,9 +10,9 @@ from pathlib import Path
 
 from ....api_services import FilesService
 from ....api_services.files_service import UploadService
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from ....services.copysvg_wrapper import NestedStructureService
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
 from .objects import FileResult, FixNestedJobsWorkerObject, StageDetail
 
 logger = logging.getLogger(__name__)

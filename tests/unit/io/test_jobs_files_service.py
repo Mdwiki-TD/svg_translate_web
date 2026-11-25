@@ -11,7 +11,7 @@ from unittest.mock import patch
 import pytest
 from src.main_app.database.models.jobs import JobRecord
 from src.main_app.io.jobs_files_service import JobFilesService
-from src.main_app.jobs_workers.utils import generate_result_file_name
+from src.main_app.jobs.utils import generate_result_file_name
 
 
 @pytest.fixture

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LITERAL, SharedworkerObject, Summary
+from ....jobs.shared_objects import STATUS_LITERAL, SharedworkerObject, Summary
 
 
 @dataclass

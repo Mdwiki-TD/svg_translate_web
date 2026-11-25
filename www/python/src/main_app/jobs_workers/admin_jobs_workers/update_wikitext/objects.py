@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
-from ...shared_objects import OneItem, OneStep, SharedworkerObject, Summary
+from ....jobs.shared_objects import OneItem, OneStep, SharedworkerObject, Summary
 
 STATUS_LITERAL = Literal["completed", "failed", "pending", "skipped", "updated"]
 

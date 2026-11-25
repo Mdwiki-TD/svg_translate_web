@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
-from src.main_app.jobs_workers.utils import generate_cancelled_file_name
+from src.main_app.jobs.utils import generate_cancelled_file_name
 
 
 @dataclass
