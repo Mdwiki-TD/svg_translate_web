@@ -85,6 +85,12 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
         mock_download,
     )
 
+    mock_get_langs = MagicMock()
+    mock_get_langs.return_value = FileLanguagesMap(langs=["en", "de", "fr"])
+    monkeypatch.setattr(
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.FilesService.get_file_languages",
+        mock_get_langs,
+    )
     mock_upload = MagicMock()
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.UploadService.upload_svg",
@@ -101,13 +107,6 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.SvgInjector.inject_one_file",
         mock_inject,
-    )
-
-    mock_get_langs = MagicMock()
-    mock_get_langs.return_value = FileLanguagesMap(langs=["en", "de", "fr"])
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.FilesService.get_file_languages",
-        mock_get_langs,
     )
 
     mw_page = MagicMock()
@@ -156,7 +155,7 @@ def mock_clients(
 
 
 @pytest.fixture
-def mock_worker():
+def mock_worker(mock_site):
     user = {"username": "testuser", "id": 123}
     args = {"title": "File:Test.svg", "upload": True}
     _worker = CopySvgLangsWorker(
@@ -167,6 +166,8 @@ def mock_worker():
         )
     )
     _worker.save_progress = MagicMock()
+    _worker._site = mock_site
+    _worker.site = mock_site
     return _worker
 
 
@@ -270,6 +271,7 @@ class TestCopySvgLangsWorkerProcess:
         mock_worker: CopySvgLangsWorker,
         mock_steps: MockSteps,
         mock_clients: dict[str, MagicMock],
+        mock_site,
         tmp_path: Path,
     ):
         # mock_worker.config = mock_worker._load_config()
@@ -289,6 +291,7 @@ class TestCopySvgLangsWorkerProcess:
 
         mock_copylangs_services.is_cancelled.return_value = False
 
+        mock_worker._site = mock_site
         result = mock_worker.process()
 
         # BaseObjectsJobWorker.run sets it to completed, but process() returns current state
@@ -322,8 +325,9 @@ class TestCopySvgLangsWorkerProcess:
         mock_worker.config.output_dir = tmp_path
         mock_worker.files_processor.config.output_dir = tmp_path
 
-        mock_clients["site"].return_value = None
+        mock_clients["site"].return_value = False
 
+        mock_worker._site = False  # pyright: ignore[reportAttributeAccessIssue]
         result = mock_worker.process()
 
         assert result.errors[0].get("error") == "No authenticated user site available."

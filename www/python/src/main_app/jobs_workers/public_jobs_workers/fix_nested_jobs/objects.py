@@ -5,9 +5,10 @@ Objects for fix_nested_jobs worker.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, WorkerMapping
+from ...shared_objects import STATUS_LITERAL, SharedworkerObject
 
 
 @dataclass
@@ -68,7 +69,7 @@ class Stages:
 @dataclass
 class FileResult:
     status: STATUS_LITERAL = "pending"
-    path: str | None = None
+    path: str | Path | None = None
     error: str | None = None
     success: bool | None = None
     nested_tags_before: int = 0
@@ -77,7 +78,7 @@ class FileResult:
 
 
 @dataclass
-class FixNestedJobsWorkerObject(WorkerMapping):
+class FixNestedJobsWorkerObject(SharedworkerObject):
     job_id: int | None = None
     note: str = ""
     args: dict[str, Any] = field(default_factory=dict)

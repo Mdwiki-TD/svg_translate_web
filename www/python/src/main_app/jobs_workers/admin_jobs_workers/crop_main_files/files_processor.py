@@ -155,7 +155,7 @@ class OneFileProcessor:
         """Download the original file. Returns True on success."""
 
         download_result = CropMainFilesSteps.download_file_for_cropping(
-            template.last_world_file,
+            template.last_world_file,  # pyright: ignore[reportArgumentType]
             self.original_dir,
             files_service=self.files_service,
         )
@@ -180,7 +180,10 @@ class OneFileProcessor:
         cropped_path: Path,
     ) -> bool:
         """Crop the SVG. Returns True on success."""
-        crop_result = CropMainFilesSteps.crop_svg_file(Path(file_info.downloaded_path), cropped_path)
+        crop_result = CropMainFilesSteps.crop_svg_file(
+            Path(file_info.downloaded_path),  # pyright: ignore[reportArgumentType]
+            cropped_path,
+        )
 
         if crop_result["success"]:
             file_info.steps.crop.result = True
@@ -209,7 +212,7 @@ class OneFileProcessor:
 
         upload_result = CropMainFilesSteps.upload_cropped_file(
             file_info.cropped_filename,
-            Path(file_info.cropped_path),
+            Path(file_info.cropped_path),  # pyright: ignore[reportArgumentType]
             self.site,
             cropped_file_wikitext,
         )

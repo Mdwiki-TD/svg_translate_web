@@ -272,8 +272,8 @@ exclude = [
 typeCheckingMode = "standard"
 
 # Automatically find virtual environments
-venvPath = "."
-venv = ".venv"
+# venvPath = "."
+# venv = ".venv"
 
 reportPrivateUsage = false
 reportMissingTypeArgument = false
@@ -326,7 +326,7 @@ reportArgumentType = true
 # reportImplicitOverride = false
 # reportImplicitStringConcatenation = false
 # reportImportCycles = false
-# reportIncompatibleVariableOverride = false
+reportIncompatibleVariableOverride = false
 # reportIncompleteStub = false
 # reportInconsistentOverload = false
 # reportIndexIssue = false

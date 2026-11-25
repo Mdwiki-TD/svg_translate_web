@@ -20,6 +20,8 @@ tests/
 │   │   │
 │   │   ├── admin/
 │   │   │   │
+│   │   │   ├── routes_services/
+│   │   │   │
 │   │   │   ├── views/
 │   │   │   │   ├── test_add_lang_categories_details_template.py
 │   │   │   │   ├── test_admin_jobs_routes.py
@@ -35,6 +37,8 @@ tests/
 │   │   │   └── test_admin_routes.py
 │   │   │
 │   │   └── public/
+│   │       │
+│   │       ├── routes_services/
 │   │       │
 │   │       └── views/
 │   │           ├── test_auth_routes.py
@@ -108,6 +112,8 @@ tests/
 │   │   │
 │   │   └── test_query_api.py
 │   │
+│   ├── cli/
+│   │
 │   ├── config/
 │   │   ├── test_classes.py
 │   │   ├── test_flask_config.py
@@ -118,6 +124,8 @@ tests/
 │   │   ├── cookies/
 │   │   │   ├── test_cookie_header_client.py
 │   │   │   └── test_signing.py
+│   │   │
+│   │   ├── extensions/
 │   │   │
 │   │   ├── test_crypto.py
 │   │   ├── test_extensions.py
@@ -141,6 +149,7 @@ tests/
 │   │   │   │   ├── test_user_model.py
 │   │   │   │   └── test_user_token_model.py
 │   │   │   │
+│   │   │   ├── test_error_log_models.py
 │   │   │   ├── test_jobs_model.py
 │   │   │   ├── test_template_need_update_record_alchemy.py
 │   │   │   └── test_template_record_alchemy.py
@@ -153,10 +162,11 @@ tests/
 │   │   │   │   └── test_users_service.py
 │   │   │   │
 │   │   │   ├── utils/
-│   │   │   │   ├── test_detachedinstanceerror.py
+│   │   │   │   ├── test_detached_instance_error.py
 │   │   │   │   └── test_retry_on_disconnect.py
 │   │   │   │
 │   │   │   ├── test_charts_and_templates_service.py
+│   │   │   ├── test_error_log_service.py
 │   │   │   ├── test_jobs_service.py
 │   │   │   ├── test_owid_charts_service.py
 │   │   │   ├── test_owid_slug_redirects_service.py
@@ -176,6 +186,27 @@ tests/
 │   │
 │   ├── io/
 │   │   └── test_jobs_files_service.py
+│   │
+│   ├── jobs/
+│   │   │
+│   │   ├── backends/
+│   │   │   ├── test_backend_registry.py
+│   │   │   ├── test_base.py
+│   │   │   ├── test_thread_backend.py
+│   │   │   └── test_toolforge_backend.py
+│   │   │
+│   │   ├── jobs_lifetime/
+│   │   │   ├── test_job_creator.py
+│   │   │   ├── test_jobs_canceller.py
+│   │   │   ├── test_jobs_starter.py
+│   │   │   └── test_reconcile.py
+│   │   │
+│   │   ├── test_cli_jobs.py
+│   │   ├── test_job_executor.py
+│   │   ├── test_job_user.py
+│   │   ├── test_jobs_worker1.py
+│   │   ├── test_jobs_worker_logic.py
+│   │   └── test_registry.py
 │   │
 │   ├── jobs_workers/
 │   │   │
@@ -227,6 +258,8 @@ tests/
 │   │   │   ├── update_owid_charts/
 │   │   │   │   └── test_update_owid_charts_worker.py
 │   │   │   │
+│   │   │   ├── update_wikitext/
+│   │   │   │
 │   │   │   ├── utils/
 │   │   │   │   └── test_jobs_workers_utils.py
 │   │   │   │
@@ -236,8 +269,6 @@ tests/
 │   │   │   ├── test_base_worker.py
 │   │   │   ├── test_base_worker_object.py
 │   │   │   └── test_job_lifecycle_updates.py
-│   │   │
-│   │   ├── jobs_lifetime/
 │   │   │
 │   │   ├── public_jobs_workers/
 │   │   │   │
@@ -251,6 +282,8 @@ tests/
 │   │   │   │   ├── test_copy_svg_langs_worker.py
 │   │   │   │   └── test_files_worker.py
 │   │   │   │
+│   │   │   ├── extract_files_translations/
+│   │   │   │
 │   │   │   └── fix_nested_jobs/
 │   │   │       └── test_fix_nested_jobs_worker.py
 │   │   │
@@ -258,9 +291,6 @@ tests/
 │   │   │   └── test_utils_init.py
 │   │   │
 │   │   ├── test_jobs_worker.py
-│   │   ├── test_jobs_worker1.py
-│   │   ├── test_jobs_worker_logic.py
-│   │   ├── test_new_jobs_utils.py
 │   │   ├── test_shared_objects.py
 │   │   ├── test_workers_list.py
 │   │   └── test_workers_utils.py
@@ -286,6 +316,8 @@ tests/
 │   │   │   ├── views/
 │   │   │   │   ├── test_admins.py
 │   │   │   │   ├── test_admins_exception_handling.py
+│   │   │   │   ├── test_error_logs.py
+│   │   │   │   ├── test_errors_route.py
 │   │   │   │   ├── test_owid_charts.py
 │   │   │   │   ├── test_settings.py
 │   │   │   │   ├── test_slug_redirects.py
@@ -298,7 +330,7 @@ tests/
 │   │       │
 │   │       ├── auth/
 │   │       │
-│   │       ├── routes_service/
+│   │       ├── routes_services/
 │   │       │   ├── test_compare.py
 │   │       │   ├── test_explorer_utils.py
 │   │       │   └── test_thumbnail_utils.py
@@ -337,6 +369,11 @@ tests/
 │   │       └── test_decode_bytes.py
 │   │
 │   ├── templates_markups/
+│   │   │
+│   │   ├── navbar/
+│   │   │
+│   │   ├── sidebar/
+│   │   │
 │   │   └── test_sidebar.py
 │   │
 │   ├── utils/

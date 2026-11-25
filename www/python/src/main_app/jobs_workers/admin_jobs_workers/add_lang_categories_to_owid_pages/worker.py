@@ -120,7 +120,7 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker[AddLangCategoriesWorkerObject
         if self.site:
             return self.site.allpages(
                 prefix="OWID/",
-                namespace=0,
+                namespace="0",
                 filterredir="nonredirects",
             )
         return []

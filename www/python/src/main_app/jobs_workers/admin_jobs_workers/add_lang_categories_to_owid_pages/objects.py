@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import OneItem, OneStep, StandardAdminWorkerObject
+from ...shared_objects import OneItem, OneStep, SharedworkerObject
 
 
 @dataclass
@@ -60,7 +60,7 @@ class AddLangCategoriesSummary:
 
 
 @dataclass
-class AddLangCategoriesWorkerObject(StandardAdminWorkerObject):
+class AddLangCategoriesWorkerObject(SharedworkerObject):
     summary: AddLangCategoriesSummary = field(default_factory=AddLangCategoriesSummary)
 
     def update_status(self, info: PageInfo):

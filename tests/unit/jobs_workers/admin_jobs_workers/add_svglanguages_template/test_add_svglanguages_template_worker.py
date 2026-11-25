@@ -17,6 +17,7 @@ from src.main_app.jobs_workers.objects import JobsRunner
 def mock_add_svg_worker(mock_base_worker, mock_before_run) -> AddSvgSVGLanguagesTemplate:
     worker = AddSvgSVGLanguagesTemplate(JobsRunner(job_id=1, user={}))
     worker.site = mock_base_worker["get_user_site"]
+    worker._site = mock_base_worker["get_user_site"]
     return worker
 
 
@@ -114,7 +115,7 @@ class TestAddSvgSVGLanguagesTemplateInit:
         assert worker.job_id == 1
         assert worker.user == user
         assert worker.cancel_event == cancel_event
-        assert worker.site is None
+        assert worker._site is None
         assert worker.result.status == "pending"
 
     def test_worker_reads_limit_items_from_args(self):

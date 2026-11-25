@@ -22,11 +22,12 @@ from flask_wtf import FlaskForm
 
 from ...config import get_settings
 from ...database.exceptions import DuplicateRecordError
+from ...database.models import JobRecord
 from ...database.services import JobsService, SettingsService
 from ...decorators import admin_required, oauth_required
 from ...io.jobs_files_service import JobFilesService
-from ...jobs_workers.jobs_lifetime.jobs_canceller import JobCanceller
-from ...jobs_workers.jobs_lifetime.jobs_starter import JobStarter
+from ...jobs.jobs_lifetime.jobs_canceller import JobCanceller
+from ...jobs.jobs_lifetime.jobs_starter import JobStarter
 from ...jobs_workers.objects import JobData
 from ...services.auth.current_user_resolver import CurrentUserResolver
 from .routes_utils import RequestContextHelper
@@ -46,16 +47,63 @@ class SharedJobRoutes:
             jobs_files_service=self.jobs_files_service,
         )
 
-    def can_manage_job(self, job: Any, user: Any) -> bool:
+    def can_manage_job(self, job: JobRecord, user: Any) -> bool:
         """Check if the current user can manage (cancel/delete) a job."""
         if not user:
             return False
         if getattr(user, "is_active_admin", False):
             return True
-        job_username = getattr(job, "username", None)
+        job_username = job.username
         if job_username and job_username == user.username:
             return True
         return False
+
+    def start_job_handler(
+        self,
+        job_type: str,
+        args: dict[str, Any],
+        check_can_run_bg_jobs: bool = False,
+        form_data: dict[str, Any] | None = None,
+    ) -> int | None:
+        """Start a job."""
+        user = CurrentUserResolver.get_current_user()
+
+        if not user:
+            flash("You must be logged in to start this job.", "danger")
+            return None
+
+        if check_can_run_bg_jobs and not RequestContextHelper.can_run_bg_jobs(user):
+            flash("You do not have permission to run background jobs.", "danger")
+            return None
+
+        try:
+            auth_payload = RequestContextHelper.load_auth_payload(user)
+        except Exception:
+            logger.exception("Failed to load auth payload")
+            flash("Failed to load auth payload. Please try again.", "danger")
+            return None
+
+        try:
+            job_id = JobStarter().start(auth_payload, job_type, args, form_data)
+        except DuplicateRecordError:  # pragma: no cover - kept for safety
+            logger.warning(
+                "User '%s' attempted to start duplicate job type '%s'",
+                getattr(user, "username", "N/A"),
+                job_type,
+            )
+            flash(
+                "A job of this type is already running. Please wait for it to complete.",
+                "warning",
+            )
+            return None
+        except Exception:
+            logger.exception("Failed to start job")
+            flash("Failed to start job. Please try again.", "danger")
+            return None
+
+        flash(f"Job {job_id} started to {job_type}.", "success")
+
+        return job_id
 
     def cancel_job_handler(self, job_id: int, job_type: str) -> str:
         """Cancel a running job."""
@@ -84,53 +132,6 @@ class SharedJobRoutes:
             flash(f"Failed to cancel job {job_id}", "danger")
 
         return "job_detail"
-
-    def start_job_handler(
-        self,
-        job_type: str,
-        args: dict[str, Any],
-        check_can_run_bg_jobs: bool = False,
-        form_data: dict[str, Any] | None = None,
-    ) -> int | None:
-        """Start a job."""
-        user = CurrentUserResolver.get_current_user()
-
-        if not user:
-            flash("You must be logged in to start this job.", "danger")
-            return None
-
-        if check_can_run_bg_jobs and not RequestContextHelper.can_run_bg_jobs(user):
-            flash("You do not have permission to run background jobs.", "danger")
-            return None
-
-        try:
-            auth_payload = RequestContextHelper.load_auth_payload(user)
-        except Exception:
-            logger.exception("Failed to load auth payload")
-            flash("Failed to load auth payload. Please try again.", "danger")
-            return None
-
-        try:
-            job_id = JobStarter().submit_form(auth_payload, job_type, args, form_data)
-        except DuplicateRecordError:  # pragma: no cover - kept for safety
-            logger.warning(
-                "User '%s' attempted to start duplicate job type '%s'",
-                getattr(user, "username", "N/A"),
-                job_type,
-            )
-            flash(
-                "A job of this type is already running. Please wait for it to complete.",
-                "warning",
-            )
-            return None
-        except Exception:
-            logger.exception("Failed to start job")
-            flash("Failed to start job. Please try again.", "danger")
-            return None
-
-        flash(f"Job {job_id} started to {job_type}.", "success")
-
-        return job_id
 
     def delete_job_handler(self, job_id: int, job_type: str) -> str:
         """Delete a job by ID and job type."""

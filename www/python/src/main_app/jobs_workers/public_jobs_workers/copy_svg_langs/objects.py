@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, OneItem, StandardAdminSummary, WorkerMapping
+from ...shared_objects import STATUS_LITERAL, OneItem, SharedworkerObject, Summary
 
 
 @dataclass
@@ -38,7 +38,7 @@ class SvgLangsConfig:
         output_dir_files = (output_dir / "files") if output_dir else None
 
         try:
-            limit_items = int(args.get("limit_items")) or 0
+            limit_items = int(args.get("limit_items")) or 0  # pyright: ignore[reportArgumentType]
         except Exception:
             limit_items = 0
 
@@ -63,7 +63,7 @@ class SvgLangsConfig:
         )
 
     @staticmethod
-    def _compute_output_dir(title: str, svg_data_path: Path | str) -> Path:
+    def _compute_output_dir(title: str, svg_data_path: Path | str) -> Path | None:
         if not title:
             return None
 
@@ -176,8 +176,8 @@ class FilesProcessedItem(OneItem):
 
 
 @dataclass
-class CopySvgLangsWorkerObject(WorkerMapping):
-    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
+class CopySvgLangsWorkerObject(SharedworkerObject):
+    summary: Summary = field(default_factory=Summary)
     title: str | None = None
     main_title: str | None = None
 

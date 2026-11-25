@@ -89,7 +89,7 @@ class OneFileProcessor:
         new_path: Path | None = self._step_inject(title_info, file_path)
 
         # Step 5 + 6: upload, then update `Svg lang`
-        if title_info.steps.inject.result is True:
+        if new_path and title_info.steps.inject.result is True:
             translation_details = title_info.steps.translations.details or {}
             summary = self._create_language_summary(main_title, translation_details)
             return self._upload_and_update_langs(title_info, summary, new_path)
@@ -141,7 +141,7 @@ class OneFileProcessor:
         try:
             file_data: DownloadAndSaveData = self.files_service.download_and_save(
                 title=title_info.title,
-                out_dir=self.config.output_dir_files,
+                out_dir=self.config.output_dir_files,  # pyright: ignore[reportArgumentType]
                 overwrite_download=self.config.overwrite_download,
             )
         except Exception as e:
@@ -163,10 +163,10 @@ class OneFileProcessor:
                 title_info.error += f", error: {file_data.error}"
             return None
 
-        file_path: str | None = file_data.path
+        file_path = file_data.path
         if file_path:
             step._update(result=True, msg="Downloaded successfully", details={"path": file_path})
-            return file_path
+            return str(file_path)
 
         step._update(result=False, msg="Failed to get file path", details={"path": file_path})
         title_info.status = "failed"
@@ -215,7 +215,8 @@ class OneFileProcessor:
             return
 
         try:
-            result: ExtractResult = SvgTranslationExtractor().extract(Path(title_info.file_path))
+            path = Path(title_info.file_path)  # pyright: ignore[reportArgumentType]
+            result: ExtractResult = SvgTranslationExtractor().extract(path)
         except Exception:
             logger.exception("Error in stage translations")
             return
@@ -236,12 +237,12 @@ class OneFileProcessor:
             return None
 
         file_path = Path(file_path)
-        output_file = self.config.output_dir / "translated" / file_path.name
+        output_file = self.config.output_dir / "translated" / file_path.name  # pyright: ignore[reportOptionalOperand]
 
         try:
             inject_result: InjectResult = self.svg_injector.inject_one_file(
                 file=file_path,
-                translations=self.mapping,
+                translations=self.mapping,  # pyright: ignore[reportArgumentType]
                 output_file=output_file,
                 overwrite_translations=self.config.overwrite_translations,
             )
@@ -256,7 +257,7 @@ class OneFileProcessor:
         if inject_result.result is None:
             if inject_result.msg == "No changes":
                 title_info.status = "skipped"
-            title_info.steps.inject._update(result=None, msg=inject_result.msg)
+            title_info.steps.inject._update(result=None, msg=inject_result.msg or "")
             return None
 
         if inject_result.result is False:
@@ -281,11 +282,11 @@ class OneFileProcessor:
                 "inserted": inject_result.inserted_translations or 0,
             },
         )
-        title_info.steps.inject._update(result=True, msg=inject_result.msg)
+        title_info.steps.inject._update(result=True, msg=inject_result.msg or "")
         return output_file
 
     def _fail_inject(self, title_info: FilesProcessedItem, step_msg: str | None, error: str | None = None) -> None:
-        title_info.steps.inject._update(result=False, msg=step_msg)
+        title_info.steps.inject._update(result=False, msg=step_msg or "")
         title_info.mark_failed(error or step_msg or "Failed to inject translations")
 
     # ==================================================================
@@ -296,7 +297,7 @@ class OneFileProcessor:
         self,
         title_info: FilesProcessedItem,
         summary: str,
-        new_path: Path | None,
+        new_path: Path,
     ) -> bool:
         """Upload the file, then update the `Svg lang` template of its description page."""
         uploaded = self._step_upload(title_info, summary, new_path)
@@ -321,7 +322,7 @@ class OneFileProcessor:
         self,
         title_info: FilesProcessedItem,
         summary: str,
-        new_path: Path | None,
+        new_path: Path,
     ) -> bool:
         if self.config.upload_files is False:
             return self._skip_upload(title_info, "Upload disabled from settings", summary)

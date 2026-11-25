@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LITERAL, WorkerMapping
+from ...shared_objects import STATUS_LITERAL, SharedworkerObject
 
 
 @dataclass
@@ -49,7 +49,7 @@ class Summary:
 
 
 @dataclass
-class FixNestedMainFilesWorkerObject(WorkerMapping):
+class FixNestedMainFilesWorkerObject(SharedworkerObject):
     summary: Summary = field(default_factory=Summary)
     pages_success: list[TitleInfo] = field(default_factory=list)
     pages_skipped: list[TitleInfo] = field(default_factory=list)

@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LITERAL, OneStep, StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, OneStep, SharedworkerObject
 
 
 @dataclass
@@ -70,7 +70,7 @@ class CreateOwidPagesSummary:
 
 
 @dataclass
-class CreateOwidPagesWorkerObject(StandardAdminWorkerObject):
+class CreateOwidPagesWorkerObject(SharedworkerObject):
     summary: CreateOwidPagesSummary = field(default_factory=CreateOwidPagesSummary)
     pages_created: list[dict[str, Any]] = field(default_factory=list)
     pages_updated: list[dict[str, Any]] = field(default_factory=list)

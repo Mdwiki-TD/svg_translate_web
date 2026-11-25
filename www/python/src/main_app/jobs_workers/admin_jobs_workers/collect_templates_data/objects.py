@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LITERAL, StandardAdminSummary, WorkerMapping
+from ...shared_objects import STATUS_LITERAL, SharedworkerObject, Summary
 
 
 @dataclass
@@ -123,8 +123,8 @@ class TemplateData:
 
 
 @dataclass
-class CollectTemplatesDataMapping(WorkerMapping):
-    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
+class CollectTemplatesDataMapping(SharedworkerObject):
+    summary: Summary = field(default_factory=Summary)
     pages_added: list[TemplateInfos] = field(default_factory=list)
     pages_updated: list[TemplateInfos] = field(default_factory=list)
     pages_skipped: list[TemplateInfos] = field(default_factory=list)

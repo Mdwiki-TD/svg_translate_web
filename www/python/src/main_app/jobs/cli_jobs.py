@@ -1,4 +1,10 @@
-"""CLI commands for running and managing background jobs."""
+# src/main_app/cli/cli_jobs.py
+"""
+CLI commands for running and managing background jobs.
+
+Exit codes of ``run-job`` / ``run-job-id``:
+    0 = success, 1 = job crashed, 2 = unknown job / not found, 3 = auth error, 4 = duplicate active job.
+"""
 
 from __future__ import annotations
 
@@ -8,10 +14,13 @@ import sys
 import click
 from flask import Flask
 
-from ..jobs_workers.jobs_lifetime import JobStarter
-from ..jobs_workers.jobs_lifetime.run_job import run_job_by_id
+from ..database.exceptions import DuplicateRecordError
+from .job_executor import JobExecutor
+from .jobs_lifetime import JobStarter
 
 logger = logging.getLogger(__name__)
+
+EXIT_DUPLICATE_JOB = 4
 
 
 def register_cli_jobs(app: Flask) -> None:
@@ -21,7 +30,8 @@ def register_cli_jobs(app: Flask) -> None:
     # Adds an optional flag --update-all (default is False if not provided)
     @click.option("--update-all", is_flag=True, help="Set to True if you want to update all.")
     def _run_job(job_type: str, update_all: bool) -> None:
-        """
+        """Create and run a background job inline, in this process (no thread, no pod).
+
         How to test locally:
         .venv/Scripts/activate
 
@@ -31,15 +41,19 @@ def register_cli_jobs(app: Flask) -> None:
         With update_all (True):
         flask --app "$HOME/www/python/src/app.py" run-job collect_templates_data --update-all
         """
-        # Convert boolean to string ("true" or "false") to match your current format
+        # Convert boolean to string ("true" or "false") to match the stored args format
         update_all_str = "true" if update_all else "false"
 
-        JobStarter().start_cli(
-            auth_payload={"username": "Background job"},
-            job_type=job_type,
-            args={"update_all": update_all_str},
-            app=app,
-        )
+        try:
+            exit_code = JobStarter().run_now(job_type, args={"update_all": update_all_str})
+        except DuplicateRecordError:
+            click.echo(f"A '{job_type}' job is already active; nothing was started.", err=True)
+            sys.exit(EXIT_DUPLICATE_JOB)
+        except ValueError as exc:
+            click.echo(str(exc), err=True)
+            sys.exit(2)
+
+        sys.exit(exit_code)
 
     @app.cli.command("run-job-id")
     @click.argument("job_id", type=int)
@@ -52,7 +66,7 @@ def register_cli_jobs(app: Flask) -> None:
         This is the entry point used by Toolforge one-off pods.
         The job record must already exist in the database (created by the web UI).
         """
-        sys.exit(run_job_by_id(job_id))
+        sys.exit(JobExecutor().run(job_id, install_signal_handlers=True))
 
     @app.cli.command("reconcile-jobs")
     def _reconcile_jobs() -> None:
@@ -61,7 +75,7 @@ def register_cli_jobs(app: Flask) -> None:
         Usage:
             flask --app "$HOME/www/python/src/app.py" reconcile-jobs
         """
-        from ..jobs_workers.jobs_lifetime.reconcile import reconcile
+        from .jobs_lifetime.reconcile import reconcile
 
         reconcile()
 

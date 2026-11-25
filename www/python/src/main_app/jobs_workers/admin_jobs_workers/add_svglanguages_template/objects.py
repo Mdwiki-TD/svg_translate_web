@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, OneStep, StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, OneStep, SharedworkerObject
 
 
 @dataclass
@@ -48,7 +48,7 @@ class TemplateInfo:
 
 
 @dataclass
-class AddSvgLanguagesWorkerObject(StandardAdminWorkerObject):
+class AddSvgLanguagesWorkerObject(SharedworkerObject):
     pages_processed: list[TemplateInfo] = field(default_factory=list)
     pages_success: list[TemplateInfo] = field(default_factory=list)
     pages_skipped: list[TemplateInfo] = field(default_factory=list)

@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
-from ...shared_objects import OneItem, OneStep, StandardAdminSummary, WorkerMapping
+from ...shared_objects import OneItem, OneStep, SharedworkerObject, Summary
 
 STATUS_LITERAL = Literal["completed", "failed", "pending", "skipped", "updated"]
 
@@ -41,8 +41,8 @@ class ProcessingFileInfo(OneItem):
 
 
 @dataclass
-class UpdateFilesWikiTextObject(WorkerMapping):
-    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
+class UpdateFilesWikiTextObject(SharedworkerObject):
+    summary: Summary = field(default_factory=Summary)
     title: str | None = None
 
     files_updated: list[ProcessingFileInfo] = field(default_factory=list)

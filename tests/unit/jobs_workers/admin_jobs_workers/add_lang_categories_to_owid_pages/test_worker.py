@@ -44,6 +44,7 @@ def mock_lang_worker(mock_base_worker, mock_before_run) -> AddLangCategoriesWork
         )
     )
     worker.site = mock_base_worker["get_user_site"]
+    worker._site = mock_base_worker["get_user_site"]
     return worker
 
 
@@ -116,7 +117,7 @@ class TestWorkerInit:
         assert worker.job_id == 1
         assert worker.user == user
         assert worker.cancel_event == cancel_event
-        assert worker.site is None
+        assert worker._site is None
 
     def test_job_type(self):
         worker = AddLangCategoriesWorker(

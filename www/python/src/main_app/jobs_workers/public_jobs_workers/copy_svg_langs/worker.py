@@ -36,6 +36,8 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
     def __init__(
         self,
         data: JobsRunner,
+        *,
+        files_service: FilesService | None = None,
     ) -> None:
         super().__init__(data)
         self.title = self.args["title"].strip() if self.args.get("title") else ""
@@ -46,8 +48,12 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
         self.main_title: str = ""
         self.titles: list[str] = []
 
-        self.files_service = FilesService()
-        self.files_processor = OneFileProcessor(self.config, self.files_service, self.site)
+        self.files_service = files_service or FilesService()
+        self.files_processor = OneFileProcessor(
+            self.config,
+            self.files_service,
+            self._site,  # pyright: ignore[reportArgumentType]
+        )
 
     def create_result(self) -> CopySvgLangsWorkerObject:
         """Create and return the specific result object instance."""

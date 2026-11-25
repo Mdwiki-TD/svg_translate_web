@@ -30,7 +30,7 @@ class FixNestedMainFilesWorker(BaseObjectsJobWorker[FixNestedMainFilesWorkerObje
     ) -> None:
         super().__init__(data)
         self.files_service = FilesService()
-        self.upload_service = UploadService(self.site)
+        self.upload_service = UploadService(self._site)  # pyright: ignore[reportArgumentType]
         self.fix_nested_processer = NestedStructureService(
             strategy="flatten",
         )

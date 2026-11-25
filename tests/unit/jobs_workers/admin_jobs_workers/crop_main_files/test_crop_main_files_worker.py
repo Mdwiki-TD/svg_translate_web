@@ -265,7 +265,6 @@ class TestCropMainFilesProcessorInitialization:
         assert processor.job_id == 1
         assert processor.result_file == "crop_main_files_job_1.json"
         assert processor.user == {"username": "test"}
-        assert processor.site is None
 
     def test_processor_default_upload_files(self, mock_crop_services):
         """Test processor defaults upload_files to None."""
@@ -491,7 +490,7 @@ class TestCropMainFilesProcessorSteps:
                 user={},
             )
         )
-        processor.site = MagicMock()
+        processor._site = MagicMock()
 
         file_info = CropFileProcessingInfo(
             template_id=1,
@@ -515,7 +514,7 @@ class TestCropMainFilesProcessorSteps:
         mock_crop_services["CropMainFilesSteps"].upload_cropped_file.return_value = {"success": True}
 
         processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
-        processor.site = MagicMock()
+        processor._site = MagicMock()
         file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Wheat production",
@@ -554,7 +553,7 @@ class TestCropMainFilesProcessorSteps:
                 user={},
             )
         )
-        processor.site = MagicMock()
+        processor._site = MagicMock()
 
         file_info = CropFileProcessingInfo(
             template_id=1,
@@ -583,7 +582,7 @@ class TestCropMainFilesProcessorSteps:
                 user={},
             )
         )
-        processor.site = MagicMock()
+        processor._site = MagicMock()
 
         file_info = CropFileProcessingInfo(
             template_id=1,
@@ -610,7 +609,7 @@ class TestCropMainFilesProcessorSteps:
                 user={},
             )
         )
-        processor.site = MagicMock()
+        processor._site = MagicMock()
 
         file_info = CropFileProcessingInfo(
             template_id=1,
@@ -637,7 +636,7 @@ class TestCropMainFilesProcessorSteps:
                 user={},
             )
         )
-        processor.site = MagicMock()
+        processor._site = MagicMock()
 
         file_info = CropFileProcessingInfo(
             template_id=1,
@@ -663,7 +662,7 @@ class TestCropMainFilesProcessorSteps:
                 user={},
             )
         )
-        processor.site = MagicMock()
+        processor._site = MagicMock()
 
         file_info = CropFileProcessingInfo(
             template_id=1,
@@ -684,7 +683,7 @@ class TestCropMainFilesProcessorSteps:
         mock_crop_services["charts_and_tmps_service"].get_author_citation.return_value = citation
 
         processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
-        processor.site = MagicMock()
+        processor._site = MagicMock()
         file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Wheat production",
@@ -719,7 +718,7 @@ class TestCropMainFilesProcessorSteps:
         mock_crop_services["charts_and_tmps_service"].get_author_citation.return_value = citation
 
         processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
-        processor.site = MagicMock()
+        processor._site = MagicMock()
         file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Wheat production",
@@ -752,7 +751,7 @@ class TestCropMainFilesProcessorSteps:
         mock_crop_services["charts_and_tmps_service"].get_author_citation.return_value = "Stored citation"
 
         processor = CropMainFilesWorker(JobsRunner(job_id=1, user={}))
-        processor.site = MagicMock()
+        processor._site = MagicMock()
         file_info = CropFileProcessingInfo(
             template_id=1,
             template_title="Template:Wheat production",
@@ -784,7 +783,7 @@ class TestCropMainFilesProcessorSteps:
                 user={},
             )
         )
-        processor.site = MagicMock()
+        processor._site = MagicMock()
 
         file_info = CropFileProcessingInfo(
             template_id=1,
@@ -814,7 +813,7 @@ class TestCropMainFilesProcessorSteps:
                 user={},
             )
         )
-        processor.site = MagicMock()
+        processor._site = MagicMock()
 
         file_info = CropFileProcessingInfo(
             template_id=1,
@@ -954,7 +953,7 @@ class TestCropMainFilesProcessorProcessTemplate:
                 args={"upload_files": True},
             )
         )
-        processor.site = _site
+        processor._site = _site
 
         template = TemplateRecord(id=1, title="Template:Test", main_file="test.svg", last_world_file="test_2020.svg")
 
@@ -994,7 +993,7 @@ class TestCropMainFilesProcessorProcessTemplate:
                 args={"upload_files": True},
             )
         )
-        processor.site = _site
+        processor._site = _site
         processor.files_processor.original_dir = tmp_path / "original"
         processor.files_processor.cropped_dir = tmp_path / "cropped"
 
@@ -1027,7 +1026,7 @@ class TestCropMainFilesProcessorProcessTemplate:
             )
         )
         _site = mock_site_pages(False)
-        processor.site = _site
+        processor._site = _site
         processor.files_processor.original_dir = tmp_path / "original"
         processor.files_processor.cropped_dir = tmp_path / "cropped"
 

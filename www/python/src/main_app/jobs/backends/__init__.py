@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from .backend_registry import BackendRegistry
 from .base import JobBackend
-from .registry import BackendRegistry
 from .thread_backend import ThreadBackend
 from .toolforge_backend import ToolforgeBackend
 

@@ -74,7 +74,7 @@ class TestWorkerInit:
         assert _worker.user == {"username": "tester"}
         assert _worker.cancel_event is None
         assert _worker.args == {}
-        assert _worker.site is None
+        assert _worker._site is None
 
     def test_job_type(self, mock_worker: RenameOwidPagesWorker) -> None:
         assert mock_worker.JOB_TYPE == "rename_owid_pages"

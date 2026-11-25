@@ -44,7 +44,7 @@ def make_json_file(jobs_path: Path, tmp_path: Path) -> Callable[[str, object, bo
         file_path.write_text(str(payload), encoding="utf-8")
         return str(file_path) if absolute else filename
 
-    return _factory
+    return _factory  # pyright: ignore[reportReturnType]
 
 
 class TestInit:

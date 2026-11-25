@@ -53,9 +53,7 @@ def slugify_title(title: str) -> str:
         slug = slug.replace("--", "-")
     slug = slug.strip("-")
 
-    if slug:
-        return slug
-    return None
+    return slug
 
 
 class OneFileProcessor:
@@ -138,7 +136,7 @@ class OneFileProcessor:
             template_info.steps.newest_year._update(result="failed", msg=str(e))
 
         if newest_y:
-            template_info.steps.newest_year._update_if_diff(new_value=newest_y)
+            template_info.steps.newest_year._update_if_diff(new_value=str(newest_y))
 
             if newest_y != template.last_world_year:
                 db_data["last_world_year"] = newest_y
@@ -179,7 +177,7 @@ class OneFileProcessor:
         # ------------------
         files_len = SvgFilesCollector().count_svg_files(wikitext)
         if files_len:
-            template_info.steps.files._update_if_diff(new_value=files_len)
+            template_info.steps.files._update_if_diff(new_value=str(files_len))
             if files_len != template.files:
                 db_data["files"] = files_len
 
