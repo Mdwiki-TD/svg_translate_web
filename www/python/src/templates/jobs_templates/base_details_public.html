@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import card_header, status_icon, csrf, job_errors_div, auto_refresh_status %}
+{% from "_macros.html" import card_header, status_icon, job_errors_div, auto_refresh_status %}
 {% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job, form_mark_job_as_completed %}
 
 {% block title %}
@@ -14,15 +14,17 @@
             <div class="d-flex gap-2">
                 {% if (job.status | is_job_running) and (is_admin or current_username == job.username) %}
                 {% if (result_data and result_data.get("final_status_updated") == False) %}
+                {% if is_admin %}
                 {{
                     form_mark_job_as_completed(
-                    url_for('public_jobs.mark_as_completed', job_type=template_data.job_type, job_id=job.id),
+                    url_for(bp_name ~ '.mark_as_completed', job_type=template_data.job_type, job_id=job.id),
                     )
                 }}
+                {% endif %}
                 {% else %}
                 {{
                     form_cancel_job(
-                        url_for('public_jobs.cancel_job', job_type=template_data.job_type, job_id=job.id),
+                        url_for(bp_name ~ '.cancel_job', job_type=template_data.job_type, job_id=job.id),
                         btn_class="btn btn-outline-warning text-muted"
                     )
                 }}
@@ -31,12 +33,12 @@
                 {% if is_admin %}
                 {{
                     form_delete_job(
-                    url_for('public_jobs.delete_job', job_type=template_data.job_type, job_id=job.id),
+                    url_for(bp_name ~ '.delete_job', job_type=template_data.job_type, job_id=job.id),
                     btn_class="btn btn-outline-danger"
                     )
                 }}
                 {% endif %}
-                <a href="{{ url_for('public_jobs.jobs_list', job_type=template_data.job_type) }}"
+                <a href="{{ url_for(bp_name ~ '.jobs_list', job_type=template_data.job_type) }}"
                     class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Back to List
                 </a>
@@ -114,7 +116,7 @@
                                     <th>Result File:</th>
                                     <td>
                                         {% if job.result_file %}
-                                        <a href="{{ url_for('public_jobs.read_job_result_file', result_file=job.result_file, job_type=template_data.job_type) }}"
+                                        <a href="{{ url_for(bp_name ~ '.read_job_result_file', result_file=job.result_file, job_type=template_data.job_type) }}"
                                             target="_blank">
                                             {{ job.result_file }}
                                         </a>

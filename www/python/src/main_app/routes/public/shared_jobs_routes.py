@@ -565,7 +565,12 @@ class AllJobsListView(BaseJobView):
             logger.exception("Unable to load jobs list.")
             flash("Unable to load jobs list.", "danger")
             jobs = []
-        return render_template("jobs_templates/all_jobs_list.html", jobs=jobs)
+
+        return render_template(
+            "jobs_templates/all_jobs_list.html",
+            jobs=jobs,
+            bp_name=self.bp_name,
+        )
 
 
 __all__ = [

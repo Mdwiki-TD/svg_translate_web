@@ -226,6 +226,7 @@ def mock_get_current_user(monkeypatch):
     return mock_user
 
 
+
 @pytest.fixture
 def mock_admin_required(mock_get_current_user):
     """Mock admin_required decorator to bypass authentication checks.
