@@ -151,6 +151,7 @@ class TestFixNestedJobsProcessorSteps(TestSetup):
         self.processor.site = MagicMock()
         self.processor.result.stages.verify.status = "success"
         self.processor.result.file_result = FileResult(path=str(tmp_path / "test.svg"), nested_tags_fixed=2)
+        self.processor.file_path = tmp_path / "test.svg"
         mock_fix_nested_services.upload_svg.return_value = UploadResult(ok=True, result={"some": "data"})
 
         result = self.processor._upload_step(self.processor.result.stages.upload)
@@ -233,7 +234,7 @@ class TestFixNestedJobsProcessor(TestSetup):
 
     def test_filename_empty(self) -> None:
         processor = self._make_processor(args={})
-        assert processor.filename is None
+        assert processor.filename == ""
 
     def test_is_cancelled_no_event(self, mock_fix_nested_services: MockFixNestedServices) -> None:
         mock_fix_nested_services.is_job_cancelled.return_value = False
@@ -260,7 +261,7 @@ class TestPostInit(TestSetup):
 
     def test_filename_none_when_missing_from_args(self):
         proc = self._make_processor(args={})
-        assert proc.filename is None
+        assert proc.filename == ""
 
     def test_site_and_session_default_to_none(self):
         proc = self.processor
@@ -417,9 +418,14 @@ class TestFixStep(TestSetup):
 
     def test_returns_true_on_success(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.repair_file.return_value = RepairResult(
-            success=True, len_tags_before_fix=2, len_tags_after_fix=0
+            success=True,
+            len_tags_before_fix=2,
+            len_tags_after_fix=0,
         )
         proc = self._proc_after_analyze(tmp_path / "x.svg")
+
+        proc.file_path = tmp_path / "x.svg"
+
         result = proc._fix_step(self.processor.result.stages.fix)
         assert result is True
         assert proc.result.stages.fix.status == "success"
@@ -481,6 +487,9 @@ class TestUploadStep(TestSetup):
     def test_returns_true_on_success(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.upload_svg.return_value = UploadResult(ok=True, result={})
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
+
+        proc.file_path = tmp_path / "x.svg"
+
         result = proc._upload_step(self.processor.result.stages.upload)
         assert result is True
         assert proc.result.stages.upload.status == "success"
@@ -488,7 +497,10 @@ class TestUploadStep(TestSetup):
     def test_returns_false_on_failure(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         mock_fix_nested_services.upload_svg.return_value = UploadResult(ok=False, error="permission_denied")
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
+        proc.file_path = tmp_path / "x.svg"
+
         result = proc._upload_step(self.processor.result.stages.upload)
+
         assert result is False
         assert proc.result.stages.upload.status == "failed"
         assert proc.result.stages.upload.message == "permission_denied"
