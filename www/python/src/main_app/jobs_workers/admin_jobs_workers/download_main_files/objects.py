@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any, Literal
 
 from ....database.models import TemplateRecord
-from ...shared_objects import StandardAdminWorkerObject
+from ...shared_objects import SharedworkerObject
 
 STATUS = Literal[
     "pending",
@@ -48,7 +48,7 @@ class FileInfo:
 
 
 @dataclass
-class DownloadMainFilesWorkerObject(StandardAdminWorkerObject):
+class DownloadMainFilesWorkerObject(SharedworkerObject):
     output_path: str | None = None
     files_downloaded: list[dict[str, Any]] = field(default_factory=list)
     files_failed: list[dict[str, Any]] = field(default_factory=list)

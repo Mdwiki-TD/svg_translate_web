@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, SharedworkerObject
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ class CropMainFilesSummary:
 
 
 @dataclass
-class CropMainFilesWorkerObject(StandardAdminWorkerObject):
+class CropMainFilesWorkerObject(SharedworkerObject):
     """ """
 
     summary: CropMainFilesSummary = field(default_factory=CropMainFilesSummary)

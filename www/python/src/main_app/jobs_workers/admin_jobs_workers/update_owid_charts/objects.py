@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any
 
 from ....database.models import OwidChartRecord
-from ...shared_objects import STATUS_LITERAL, StandardAdminWorkerObject
+from ...shared_objects import STATUS_LITERAL, SharedworkerObject
 
 
 @dataclass
@@ -69,7 +69,7 @@ class UpdateOwidChartsSummary:
 
 
 @dataclass
-class UpdateOwidChartsWorkerObject(StandardAdminWorkerObject):
+class UpdateOwidChartsWorkerObject(SharedworkerObject):
     summary: UpdateOwidChartsSummary = field(default_factory=UpdateOwidChartsSummary)
     updated_charts: list[ChartNewInfo] = field(default_factory=list)
     skipped_charts: list[ChartNewInfo] = field(default_factory=list)

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Literal
 
-from ...shared_objects import SharedMapToJson, StandardAdminWorkerObject
+from ...shared_objects import SharedMapToJson, SharedworkerObject
 
 STATUS_LIST3 = Literal[
     "failed",
@@ -75,7 +75,7 @@ class RenameOwidPagesSummary(SharedMapToJson):
 
 
 @dataclass
-class RenameOwidPagesWorkerObject(StandardAdminWorkerObject):
+class RenameOwidPagesWorkerObject(SharedworkerObject):
     summary: RenameOwidPagesSummary = field(default_factory=RenameOwidPagesSummary)
     pages_processed: list[dict[str, Any]] = field(default_factory=list)
 

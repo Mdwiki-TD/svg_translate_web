@@ -115,7 +115,7 @@ class AddLangCategoriesSummary:
 
 
 @dataclass
-class AddLangCategoriesWorkerObject(StandardAdminWorkerObject):
+class AddLangCategoriesWorkerObject(SharedworkerObject):
     summary: AddLangCategoriesSummary = field(default_factory=AddLangCategoriesSummary)
 ```
 
