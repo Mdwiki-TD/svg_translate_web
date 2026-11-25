@@ -36,7 +36,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker[UpdateFilesWikiTextObject])
         super().__init__(data)
         self.title = self.args.get("template_name") or ""
         self.titles: list[str] = []
-        self.files_processor = UpdateWikiTextProcessor(self.site)
+        self.files_processor = UpdateWikiTextProcessor(self._site)  # pyright: ignore[reportArgumentType]
         self.template_service = TemplateService()
         self.charts_and_tmps_service = ChartsAndTemplatesService()
 
@@ -99,8 +99,6 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker[UpdateFilesWikiTextObject])
 
             if n == 1 or n % per_item == 0:
                 self.save_progress()
-
-        return self.result
 
     def process(self) -> UpdateFilesWikiTextObject:
         """Execute the full pipeline."""

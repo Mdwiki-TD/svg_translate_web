@@ -82,15 +82,13 @@ class UpdaterOutcome(SharedMapToJson):
 
 @dataclass
 class Summary(SharedMapToJson):
-    total: int = 0
-    processed: int = 0
-
-
-@dataclass
-class StandardAdminSummary(Summary):
-    success: int = 0
+    changed: int = 0
+    errors: int = 0
     failed: int = 0
+    processed: int = 0
     skipped: int = 0
+    success: int = 0
+    total: int = 0
 
 
 @dataclass
@@ -126,7 +124,7 @@ class SharedworkerObject(WorkerMapping):
 
 @dataclass
 class StandardAdminWorkerObject(WorkerMapping):
-    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
+    summary: Summary = field(default_factory=Summary)
     pages_processed: list[OneItem] = field(default_factory=list)
     pages_success: list[OneItem] = field(default_factory=list)
     pages_skipped: list[OneItem] = field(default_factory=list)
@@ -136,9 +134,8 @@ class StandardAdminWorkerObject(WorkerMapping):
 
 __all__ = [
     "OneStep",
-    "Summary",
     "UpdaterOutcome",
     "SharedworkerObject",
-    "StandardAdminSummary",
+    "Summary",
     "StandardAdminWorkerObject",
 ]

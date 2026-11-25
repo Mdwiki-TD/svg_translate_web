@@ -32,10 +32,10 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker[FixNestedJobsWorkerObject]):
         super().__init__(data)
         self.upload_limit = self.args.get("upload_limit") or 0
 
-        self.filename = self.args.get("filename")
+        self.filename = self.args.get("filename") or ""
         self.file_path: Path | None = None
         self.files_service = FilesService()
-        self.upload_service = UploadService(self.site)
+        self.upload_service = UploadService(self._site)  # pyright: ignore[reportArgumentType]
         self.fix_nested_processer = NestedStructureService(
             strategy="flatten",
         )
@@ -139,6 +139,10 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker[FixNestedJobsWorkerObject]):
         fix_stage.status = "running"
         self.save_progress()
 
+        if self.file_path is None:
+            fix_stage.failed("File not found")
+            return False
+
         fixed = self.fix_nested_processer.repair_file(self.file_path)
 
         self.result.file_result.nested_tags_after = fixed.len_tags_after_fix
@@ -212,6 +216,10 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker[FixNestedJobsWorkerObject]):
         tags_fixed = self.result.file_result.nested_tags_fixed
 
         summary = f"Fixed {tags_fixed} nested tag(s)"
+
+        if self.file_path is None:
+            upload_stage.failed("File not found")
+            return False
 
         upload_result = self.upload_service.upload_svg(
             self.filename,

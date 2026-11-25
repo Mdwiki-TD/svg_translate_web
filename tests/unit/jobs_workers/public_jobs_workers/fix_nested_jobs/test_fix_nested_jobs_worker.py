@@ -473,7 +473,7 @@ class TestUploadStep(TestSetup):
 
     def test_skips_when_no_site(self, mock_fix_nested_services: MockFixNestedServices, tmp_path):
         proc = self._proc_after_verify(path=str(tmp_path / "x.svg"))
-        proc.site = None
+        proc._site = False  # pyright: ignore[reportAttributeAccessIssue]
         result = proc._upload_step(self.processor.result.stages.upload)
         assert result is None
         mock_fix_nested_services.upload_svg.assert_not_called()

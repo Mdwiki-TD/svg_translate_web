@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, WorkerMapping
+from ...shared_objects import STATUS_LITERAL, SharedworkerObject
 
 
 @dataclass
@@ -78,7 +78,7 @@ class FileResult:
 
 
 @dataclass
-class FixNestedJobsWorkerObject(WorkerMapping):
+class FixNestedJobsWorkerObject(SharedworkerObject):
     job_id: int | None = None
     note: str = ""
     args: dict[str, Any] = field(default_factory=dict)

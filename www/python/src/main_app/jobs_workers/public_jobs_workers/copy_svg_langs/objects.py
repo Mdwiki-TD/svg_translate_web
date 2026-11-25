@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, OneItem, StandardAdminSummary, WorkerMapping
+from ...shared_objects import STATUS_LITERAL, OneItem, SharedworkerObject, Summary
 
 
 @dataclass
@@ -176,8 +176,8 @@ class FilesProcessedItem(OneItem):
 
 
 @dataclass
-class CopySvgLangsWorkerObject(WorkerMapping):
-    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
+class CopySvgLangsWorkerObject(SharedworkerObject):
+    summary: Summary = field(default_factory=Summary)
     title: str | None = None
     main_title: str | None = None
 

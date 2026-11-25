@@ -126,7 +126,7 @@ class TestCreateOwidPagesWorkerInitialization:
 
         assert worker.job_id == 1
         assert worker.user == {"username": "test"}
-        assert worker.site is None
+        assert worker._site is None
         assert worker.JOB_TYPE == "create_owid_pages"
 
     def test_worker_initialization_reads_limit_items_from_args(self, mock_owid_pages_services):

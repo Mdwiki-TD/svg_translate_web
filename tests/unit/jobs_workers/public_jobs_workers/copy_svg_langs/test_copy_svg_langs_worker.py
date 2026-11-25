@@ -325,8 +325,9 @@ class TestCopySvgLangsWorkerProcess:
         mock_worker.config.output_dir = tmp_path
         mock_worker.files_processor.config.output_dir = tmp_path
 
-        mock_clients["site"].return_value = None
+        mock_clients["site"].return_value = False
 
+        mock_worker._site = False  # pyright: ignore[reportAttributeAccessIssue]
         result = mock_worker.process()
 
         assert result.errors[0].get("error") == "No authenticated user site available."

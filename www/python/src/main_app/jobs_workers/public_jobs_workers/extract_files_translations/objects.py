@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, OneItem, StandardAdminSummary, WorkerMapping
+from ...shared_objects import STATUS_LITERAL, OneItem, SharedworkerObject, Summary
 
 
 @dataclass
@@ -80,8 +80,8 @@ class FilesProcessedItem(OneItem):
 
 
 @dataclass
-class ExtractFilesTranslationsObject(WorkerMapping):
-    summary: StandardAdminSummary = field(default_factory=StandardAdminSummary)
+class ExtractFilesTranslationsObject(SharedworkerObject):
+    summary: Summary = field(default_factory=Summary)
     title: str | None = None
 
     stages: Stages = field(default_factory=Stages)

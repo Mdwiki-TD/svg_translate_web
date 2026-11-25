@@ -44,7 +44,11 @@ class CropMainFilesWorker(BaseObjectsJobWorker[CropMainFilesWorkerObject]):
 
         self.exists: dict[str, Any] = {}
 
-        self.files_processor = OneFileProcessor(self.job_id, self.site, self.args)
+        self.files_processor = OneFileProcessor(
+            self.job_id,
+            self._site,  # pyright: ignore[reportArgumentType]
+            self.args,
+        )
 
     def create_result(self) -> CropMainFilesWorkerObject:
         """Create and return the specific result object instance."""
