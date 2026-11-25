@@ -13,6 +13,7 @@ def test_generate_result_file_name():
 
     assert filename == "test_job_job_123.json"
 
+
 class TestGenerateResultFileName:
     """Tests for the generate_result_file_name function."""
 

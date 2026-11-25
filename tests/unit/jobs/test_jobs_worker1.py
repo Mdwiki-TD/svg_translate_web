@@ -52,7 +52,9 @@ def mock_jobs_worker_services(monkeypatch: pytest.MonkeyPatch):
     mock_load_job_data = MagicMock()
 
     monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.job_creator.JobCreator.create", mock_create)
-    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.BackendRegistry.get_backend_name", mock_get_backend_name)
+    monkeypatch.setattr(
+        "src.main_app.jobs.jobs_lifetime.jobs_starter.BackendRegistry.get_backend_name", mock_get_backend_name
+    )
     monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.BackendRegistry.get_backend", mock_get_backend)
     monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.job_creator.load_job_data", mock_load_job_data)
 
@@ -72,9 +74,7 @@ def test_start_collect_templates_data_job(mock_jobs_worker_services):
 
     from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_jobs_worker_services["create"].return_value = CreatedJob(
-        job=mock_job, job_data=mock_job_data, payload={}
-    )
+    mock_jobs_worker_services["create"].return_value = CreatedJob(job=mock_job, job_data=mock_job_data, payload={})
     mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     job_id = JobStarter().start({"username": "22"}, "collect_templates_data")
@@ -92,9 +92,7 @@ def test_start_fix_nested_main_files_job(mock_jobs_worker_services):
 
     from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_jobs_worker_services["create"].return_value = CreatedJob(
-        job=mock_job, job_data=mock_job_data, payload={}
-    )
+    mock_jobs_worker_services["create"].return_value = CreatedJob(job=mock_job, job_data=mock_job_data, payload={})
     mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     user = {"username": "test_user"}
@@ -191,9 +189,7 @@ def test_start_download_main_files_job(mock_jobs_worker_services):
 
     from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_jobs_worker_services["create"].return_value = CreatedJob(
-        job=mock_job, job_data=mock_job_data, payload={}
-    )
+    mock_jobs_worker_services["create"].return_value = CreatedJob(job=mock_job, job_data=mock_job_data, payload={})
     mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     user = {"username": "test_user"}
@@ -324,9 +320,7 @@ def test_start_job_param(mock_jobs_worker_services):
 
     from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_jobs_worker_services["create"].return_value = CreatedJob(
-        job=mock_job, job_data=mock_job_data, payload={}
-    )
+    mock_jobs_worker_services["create"].return_value = CreatedJob(job=mock_job, job_data=mock_job_data, payload={})
     mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     args = {"update_all": "true"}
@@ -347,9 +341,7 @@ def test_start_job_without_args_passes_none(mock_jobs_worker_services):
 
     from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_jobs_worker_services["create"].return_value = CreatedJob(
-        job=mock_job, job_data=mock_job_data, payload={}
-    )
+    mock_jobs_worker_services["create"].return_value = CreatedJob(job=mock_job, job_data=mock_job_data, payload={})
     mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     job_id = JobStarter().start({"username": "22"}, "collect_templates_data")
@@ -369,9 +361,7 @@ def test_start_job_alias_works(mock_jobs_worker_services):
 
     from src.main_app.jobs.jobs_lifetime.job_creator import CreatedJob
 
-    mock_jobs_worker_services["create"].return_value = CreatedJob(
-        job=mock_job, job_data=mock_job_data, payload={}
-    )
+    mock_jobs_worker_services["create"].return_value = CreatedJob(job=mock_job, job_data=mock_job_data, payload={})
     mock_jobs_worker_services["get_backend"].return_value = mock_backend
 
     args = {"update_all": "true"}
