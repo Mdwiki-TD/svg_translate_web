@@ -15,12 +15,12 @@ from flask.views import MethodView
 from flask.wrappers import Response
 
 from ....config import get_settings
-from ..routes_service.compare import analyze_file
-from ..routes_service.explorer_utils import (
+from ..routes_services.compare import analyze_file
+from ..routes_services.explorer_utils import (
     get_files,
     get_informations,
 )
-from ..routes_service.thumbnail_utils import save_thumb
+from ..routes_services.thumbnail_utils import save_thumb
 
 logger = logging.getLogger(__name__)
 

@@ -38,7 +38,7 @@ tests/
 │   │   │
 │   │   └── public/
 │   │       │
-│   │       ├── routes_service/
+│   │       ├── routes_services/
 │   │       │
 │   │       └── views/
 │   │           ├── test_auth_routes.py
@@ -330,7 +330,7 @@ tests/
 │   │       │
 │   │       ├── auth/
 │   │       │
-│   │       ├── routes_service/
+│   │       ├── routes_services/
 │   │       │   ├── test_compare.py
 │   │       │   ├── test_explorer_utils.py
 │   │       │   └── test_thumbnail_utils.py

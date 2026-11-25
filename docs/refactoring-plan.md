@@ -124,7 +124,7 @@ Refactor standalone functions across the `www/python/src/main_app/` codebase int
 
 ---
 
-### 5. `public/routes_service/explorer_utils.py` → `ExplorerDataService`
+### 5. `public/routes_services/explorer_utils.py` → `ExplorerDataService`
 
 **Current state:** 7 functions (6 public + 1 private) for reading SVG data files from disk. All share a dependency on `load_svg_data_path()` which reads settings.
 
@@ -146,11 +146,11 @@ Refactor standalone functions across the `www/python/src/main_app/` codebase int
 - Legacy wrappers preserve signatures.
 
 **Files changed:**
-- `public/routes_service/explorer_utils.py` — add class + legacy wrappers
+- `public/routes_services/explorer_utils.py` — add class + legacy wrappers
 
 ---
 
-### 6. `public/routes_service/compare.py` → `SvgComparator`
+### 6. `public/routes_services/compare.py` → `SvgComparator`
 
 **Current state:** 3 small functions for SVG file comparison.
 
@@ -167,7 +167,7 @@ Refactor standalone functions across the `www/python/src/main_app/` codebase int
 - Legacy wrappers preserve signatures.
 
 **Files changed:**
-- `public/routes_service/compare.py` — add class + legacy wrappers
+- `public/routes_services/compare.py` — add class + legacy wrappers
 
 ---
 
@@ -440,9 +440,9 @@ Execute in dependency order (leaves first):
 1. **`cancel_registry.py`** — no dependencies on other refactored modules
 2. **`io/jobs_files_service.py`** — no dependencies on other refactored modules
 3. **`database/templates_utils.py`** — pure functions, no dependencies
-4. **`public/routes_service/compare.py`** — pure functions, no dependencies
+4. **`public/routes_services/compare.py`** — pure functions, no dependencies
 5. **`api_services/query_api.py`** — depends only on mwclient `Site`
-6. **`public/routes_service/explorer_utils.py`** — depends on config + TemplateService
+6. **`public/routes_services/explorer_utils.py`** — depends on config + TemplateService
 7. **`public/routes_utils.py`** — depends on auth resolver
 8. **`services/copysvg_wrapper/inject_one_file.py`** — depends on CopySVGTranslation
 9. **`services/copysvg_wrapper/extract_translations.py`** — depends on CopySVGTranslation
@@ -472,8 +472,8 @@ Test files to create:
 - `tests/unit/jobs_workers/test_cancel_registry.py`
 - `tests/unit/jobs_workers/test_job_starter.py`
 - `tests/unit/api_services/test_wiki_query_api.py`
-- `tests/unit/public/routes_service/test_explorer_data_service.py`
-- `tests/unit/public/routes_service/test_svg_comparator.py`
+- `tests/unit/public/routes_services/test_explorer_data_service.py`
+- `tests/unit/public/routes_services/test_svg_comparator.py`
 - `tests/unit/public/test_request_context_helper.py`
 - `tests/unit/database/test_template_data_helper.py`
 - `tests/unit/services/copysvg_wrapper/test_svg_injector.py`

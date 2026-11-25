@@ -287,7 +287,7 @@ src/
 │   │   │
 │   │   ├── public/
 │   │   │   │
-│   │   │   ├── routes_service/
+│   │   │   ├── routes_services/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── compare.py
 │   │   │   │   ├── explorer_utils.py
