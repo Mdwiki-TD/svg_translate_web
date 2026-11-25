@@ -10,9 +10,9 @@ from ....api_services import MediaWikiQueryService, MwClientPage
 from ....data import get_slug_categories
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from ....utils.new_wikitext import CategoryMerger
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
 from .objects import CreateOwidPagesWorkerObject, OneStep, TemplateProcessingInfo
 from .owid_template_converter import create_new_text
 

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ...shared_objects import STATUS_LITERAL, SharedworkerObject
+from ....jobs.shared_objects import STATUS_LITERAL, SharedworkerObject
 
 
 @dataclass

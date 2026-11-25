@@ -20,9 +20,9 @@ from ....database.services import (
     ViewsService,
 )
 from ....database.templates_utils import extract_slug
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from ....utils.new_wikitext import MainTitleFinder, OwidSourceFinder, SlidersGalleryReader, SvgFilesCollector
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
 from ..slugs_helpers import check_slugs
 from .objects import (
     CollectStepResult,

@@ -10,8 +10,8 @@ from typing import Any
 from ....api_services import MediaWikiQueryService
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from .files_processor import OneFileProcessor
 from .objects import CropFileProcessingInfo, CropMainFilesWorkerObject
 from .steps import CropMainFilesSteps

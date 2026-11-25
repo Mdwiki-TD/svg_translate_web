@@ -4,7 +4,7 @@ import logging
 
 from flask import Blueprint
 
-from ...jobs_workers.objects import JobData
+from ...jobs.objects import JobData
 from .shared_jobs_routes import (
     AllJobsListView,
     CancelJobView,

@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 import pytest
 from src.main_app.api_services.files_service import DownloadAndSaveData
 from src.main_app.api_services.files_service.objects import UploadResult
+from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import worker
-from src.main_app.jobs_workers.objects import JobsRunner
 from src.main_app.services.copysvg_wrapper.mapping import RepairResult
 
 
@@ -28,10 +28,8 @@ def mock_fix_nested_admin_services(mock_before_run, monkeypatch: pytest.MonkeyPa
         "get_user_site": mock_base_worker["get_user_site"],
     }
 
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobsService.update_job_status", mocks["update_job_status"]
-    )
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobFilesService.save_result", mocks["save_result"])
+    monkeypatch.setattr("src.main_app.jobs.base_worker.JobsService.update_job_status", mocks["update_job_status"])
+    monkeypatch.setattr("src.main_app.jobs.base_worker.JobFilesService.save_result", mocks["save_result"])
 
     monkeypatch.setattr(
         "src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files.worker.TemplateService.list",

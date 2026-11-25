@@ -21,8 +21,8 @@ from typing import Any
 
 from ..database.models import JobRecord
 from ..database.services import JobsService
-from ..jobs_workers.objects import JobData, JobsRunner
 from .job_user import build_job_user
+from .objects import JobData, JobsRunner
 from .registry import load_job_data
 
 logger = logging.getLogger(__name__)

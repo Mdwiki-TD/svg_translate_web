@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any
 
 from ....database.models import OwidChartRecord
-from ...shared_objects import STATUS_LITERAL, SharedworkerObject
+from ....jobs.shared_objects import STATUS_LITERAL, SharedworkerObject
 
 
 @dataclass

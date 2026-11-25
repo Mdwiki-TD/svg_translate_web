@@ -80,6 +80,7 @@ class TestStart:
 
         parts.creator.create.assert_not_called()
 
+
 class TestSubmitForm:
     def test_passes_form_data_to_the_creator(self, parts: MockStarterParts) -> None:
         parts.starter.start({"username": "alice"}, "demo", {"a": 1}, {"f": 1})

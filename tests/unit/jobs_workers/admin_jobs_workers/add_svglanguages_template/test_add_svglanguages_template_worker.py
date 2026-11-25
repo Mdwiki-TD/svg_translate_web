@@ -6,11 +6,11 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
+from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker import (
     AddSvgSVGLanguagesTemplate,
     TemplateInfo,
 )
-from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture

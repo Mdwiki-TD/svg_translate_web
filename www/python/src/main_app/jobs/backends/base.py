@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from ...database.models import JobRecord
-from ...jobs_workers.objects import JobData
+from ..objects import JobData
 
 
 class JobBackend(ABC):

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LITERAL, SharedworkerObject
+from ....jobs.shared_objects import STATUS_LITERAL, SharedworkerObject
 
 logger = logging.getLogger(__name__)
 

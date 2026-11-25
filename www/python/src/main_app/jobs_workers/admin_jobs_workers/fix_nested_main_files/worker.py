@@ -11,9 +11,9 @@ from typing import Any
 
 from ....api_services import FilesService, UploadService
 from ....database.services import TemplateService
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from ....services.copysvg_wrapper import NestedStructureService
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
 from .objects import FixNestedMainFilesWorkerObject, TitleInfo
 
 logger = logging.getLogger(__name__)

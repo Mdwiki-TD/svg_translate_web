@@ -15,9 +15,9 @@ from collections.abc import Iterable
 
 from ....api_services import MwClientPage
 from ....api_services.files_service import FilesService
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from ....utils.new_wikitext import CategoryMerger
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
 from .objects import AddLangCategoriesWorkerObject, OneStep, PageInfo
 from .utils import (
     build_category_names,

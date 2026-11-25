@@ -26,8 +26,8 @@ from sqlalchemy.exc import OperationalError
 from ....api_services import OwidClient
 from ....database.models import OwidChartRecord
 from ....database.services import OwidChartsService
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from ..slugs_helpers import check_slugs_url
 from .objects import ChartNewInfo, UpdateOwidChartsWorkerObject
 

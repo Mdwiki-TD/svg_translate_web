@@ -1,4 +1,4 @@
-from ..objects import JobData
+from ...jobs.objects import JobData
 from .copy_svg_langs import CopySvgLangsWorker, setup_svg_langs_form
 from .extract_files_translations import ExtractFilesTranslationsWorker
 from .fix_nested_jobs import FixNestedJobsProcessor

@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any, Literal
 
 from ....database.models import TemplateRecord
-from ...shared_objects import SharedworkerObject
+from ....jobs.shared_objects import SharedworkerObject
 
 STATUS = Literal[
     "pending",

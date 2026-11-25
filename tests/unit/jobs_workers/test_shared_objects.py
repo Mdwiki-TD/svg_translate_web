@@ -7,7 +7,7 @@ Classes to test: UpdaterOutcome, Summary, SharedworkerObject
 
 from __future__ import annotations
 
-from src.main_app.jobs_workers.shared_objects import (
+from src.main_app.jobs.shared_objects import (
     SharedworkerObject,
     Summary,
     UpdaterOutcome,

@@ -15,6 +15,7 @@ from ..api_services import WikiSiteClient
 from ..config import Settings, get_settings
 from ..database.services import JobsService
 from ..io.jobs_files_service import JobFilesService
+from .jobs_lifetime.jobs_canceller import JobCanceller
 from .objects import JobsRunner
 from .shared_objects import SharedworkerObject, UpdaterOutcome
 from .utils import generate_cancelled_file_name, generate_result_file_name
@@ -67,6 +68,9 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
             jobs_dir = self.app_settings.paths.jobs_path
 
         self.jobs_files_service = jobs_files_service or JobFilesService(jobs_dir=jobs_dir)
+        self.jobs_canceller = JobCanceller(
+            jobs_files_service=self.jobs_files_service,
+        )
 
         self.job_id: Final[int] = data.job_id
         self.args: dict[str, Any] = data.args or {}
@@ -189,23 +193,26 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
         Returns:
             True if cancelled, False otherwise
         """
-        # TODO: if self.cancel_event is DbCancelEvent, then dont run self.cancel_event.is_set() if check_db is False
         if self.cancel_event and self.cancel_event.is_set():
             logger.info("Job %s: Local cancellation detected, stopping.", self.job_id)
             self._mark_as_cancelled_in_result()
             return True
 
+        if self.jobs_canceller.is_cancelled(self.job_id, self.result_file_cancelled):
+            self._mark_as_cancelled_in_result()
+            return True
+
+        # TODO: remove the following check after changing tests
         if self.jobs_files_service.is_cancel_file_exist(self.result_file_cancelled):
             logger.info("Job %s: Cancelled file detected, stopping.", self.job_id)
             self._mark_as_cancelled_in_result()
             return True
 
-        if check_db:
-            # Optimize is_cancelled DB check frequency, by reducing the check frequency (to occur every N cycles).
-            if self.jobs_service.is_job_cancelled(self.job_id):
-                logger.info("Job %s: Global cancellation detected, stopping.", self.job_id)
-                self._mark_as_cancelled_in_result()
-                return True
+        # Optimize is_cancelled DB check frequency, by reducing the check frequency (to occur every N cycles).
+        if check_db and self.jobs_service.is_job_cancelled(self.job_id):
+            logger.info("Job %s: Global cancellation detected, stopping.", self.job_id)
+            self._mark_as_cancelled_in_result()
+            return True
 
         return False
 

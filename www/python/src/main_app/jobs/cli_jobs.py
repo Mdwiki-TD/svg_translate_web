@@ -16,7 +16,7 @@ from flask import Flask
 
 from ..database.exceptions import DuplicateRecordError
 from .job_executor import JobExecutor
-from .jobs_lifetime import JobStarter
+from .jobs_lifetime.jobs_starter import JobStarter
 
 logger = logging.getLogger(__name__)
 

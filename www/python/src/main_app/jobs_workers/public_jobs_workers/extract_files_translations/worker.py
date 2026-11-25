@@ -10,13 +10,13 @@ import re
 from pathlib import Path
 
 from ....api_services.files_service import DownloadAndSaveData, FilesService
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from ....services.copysvg_wrapper import (
     ExtractResult,
     SvgTranslationExtractor,
 )
 from ....services.copysvg_wrapper.mapping import TranslationMapping
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
 from ..copy_svg_langs.steps import (
     extract_text_step,
     extract_titles_step,

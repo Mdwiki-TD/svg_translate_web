@@ -28,7 +28,7 @@ from ...decorators import admin_required, oauth_required
 from ...io.jobs_files_service import JobFilesService
 from ...jobs.jobs_lifetime.jobs_canceller import JobCanceller
 from ...jobs.jobs_lifetime.jobs_starter import JobStarter
-from ...jobs_workers.objects import JobData
+from ...jobs.objects import JobData
 from ...services.auth.current_user_resolver import CurrentUserResolver
 from .routes_utils import RequestContextHelper
 

@@ -9,11 +9,11 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.database.models import TemplateRecord
+from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import (
     CropFileProcessingInfo,
     CropMainFilesWorker,
 )
-from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
@@ -57,15 +57,15 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
     mocks["MwClientPage"].return_value.exists.return_value = False
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobsService.update_job_status",
+        "src.main_app.jobs.base_worker.JobsService.update_job_status",
         mocks["update_job_status"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
+        "src.main_app.jobs.base_worker.JobFilesService.save_result",
         mocks["save_result"],
     )
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobsService.is_job_cancelled",
+        "src.main_app.jobs.base_worker.JobsService.is_job_cancelled",
         mocks["is_job_cancelled"],
     )
     monkeypatch.setattr(
@@ -1090,15 +1090,15 @@ class TestCropMainFilesProcessorRun:
         mock_save_job_result = MagicMock()
         mock_is_job_cancelled_file_exist = MagicMock(return_value=False)
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.JobsService.update_job_status",
+            "src.main_app.jobs.base_worker.JobsService.update_job_status",
             mock_update_job_status,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
+            "src.main_app.jobs.base_worker.JobFilesService.save_result",
             mock_save_job_result,
         )
         monkeypatch.setattr(
-            "src.main_app.jobs_workers.base_worker.JobFilesService.is_cancel_file_exist",
+            "src.main_app.jobs.base_worker.JobFilesService.is_cancel_file_exist",
             mock_is_job_cancelled_file_exist,
         )
         mock_update_job_status.side_effect = LookupError("Job not found")

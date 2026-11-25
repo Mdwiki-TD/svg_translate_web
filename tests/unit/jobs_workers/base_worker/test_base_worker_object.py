@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from src.main_app.database.services import JobsService
-from src.main_app.jobs_workers.base_worker import BaseObjectsJobWorker
-from src.main_app.jobs_workers.objects import JobsRunner
-from src.main_app.jobs_workers.shared_objects import SharedworkerObject
+from src.main_app.jobs.base_worker import BaseObjectsJobWorker
+from src.main_app.jobs.objects import JobsRunner
+from src.main_app.jobs.shared_objects import SharedworkerObject
 
 
 @pytest.fixture
@@ -23,9 +23,9 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
         "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
         "save_result": MagicMock(),
     }
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site", mocks["get_user_site"])
+    monkeypatch.setattr("src.main_app.jobs.base_worker.WikiSiteClient.get_user_site", mocks["get_user_site"])
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobFilesService.save_result",
+        "src.main_app.jobs.base_worker.JobFilesService.save_result",
         mocks["save_result"],
     )
     return mocks
@@ -49,7 +49,7 @@ def mock_base_is_cancelled(
         "is_cancel_file_exist": MagicMock(),
     }
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobFilesService.is_cancel_file_exist",
+        "src.main_app.jobs.base_worker.JobFilesService.is_cancel_file_exist",
         mocks["is_cancel_file_exist"],
     )
     return mocks

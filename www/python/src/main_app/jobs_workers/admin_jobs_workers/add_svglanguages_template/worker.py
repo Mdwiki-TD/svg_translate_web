@@ -9,8 +9,8 @@ import logging
 from ....api_services import MwClientPage
 from ....database.models import TemplateRecord
 from ....database.services import TemplateService
-from ...base_worker import BaseObjectsJobWorker
-from ...objects import JobsRunner
+from ....jobs.base_worker import BaseObjectsJobWorker
+from ....jobs.objects import JobsRunner
 from .objects import AddSvgLanguagesWorkerObject, OneStep, TemplateInfo
 from .utils import RE_SVG_LANG, add_template_to_text, extract_svg_file_name
 

@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.database.models import TemplateRecord
+from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.fix_nested_main_files import FixNestedMainFilesWorker
-from src.main_app.jobs_workers.objects import JobsRunner
 
 
 def test_fix_nested_main_files_worker_cancellation(mock_base_worker, monkeypatch: pytest.MonkeyPatch):

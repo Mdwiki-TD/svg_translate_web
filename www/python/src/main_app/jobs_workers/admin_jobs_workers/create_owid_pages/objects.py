@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ...shared_objects import STATUS_LITERAL, OneStep, SharedworkerObject
+from ....jobs.shared_objects import STATUS_LITERAL, OneStep, SharedworkerObject
 
 
 @dataclass

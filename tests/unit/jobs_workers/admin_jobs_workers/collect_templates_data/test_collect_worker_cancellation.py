@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.database.models import TemplateRecord
+from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.collect_templates_data import worker
-from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture(autouse=True)
@@ -69,15 +69,13 @@ def test_collect_templates_data_worker_cancellation(monkeypatch, mock_collect_se
     mock_collect_services["list"].return_value = templates
 
     mock_save_job_result_by_name = MagicMock()
-    monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.JobFilesService.save_result", mock_save_job_result_by_name
-    )
+    monkeypatch.setattr("src.main_app.jobs.base_worker.JobFilesService.save_result", mock_save_job_result_by_name)
 
     mock_jobs_service = MagicMock()
-    monkeypatch.setattr("src.main_app.jobs_workers.base_worker.JobsService", MagicMock(return_value=mock_jobs_service))
+    monkeypatch.setattr("src.main_app.jobs.base_worker.JobsService", MagicMock(return_value=mock_jobs_service))
 
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.base_worker.WikiSiteClient.get_user_site",
+        "src.main_app.jobs.base_worker.WikiSiteClient.get_user_site",
         lambda *args: MagicMock(),
     )
 
