@@ -44,6 +44,7 @@ def mock_load_job_data(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.job_creator.load_job_data", _mock)
     return _mock
 
+
 class TestSetup:
     @pytest.fixture(autouse=True)
     def setup(self) -> None:

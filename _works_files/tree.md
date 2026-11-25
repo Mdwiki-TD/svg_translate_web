@@ -41,7 +41,7 @@ src/
 │   │
 │   ├── cli/
 │   │   ├── __init__.py
-│   │   └── cli_jobs.py
+│   │   └── errors_cli.py
 │   │
 │   ├── config/
 │   │   ├── __init__.py
@@ -123,6 +123,29 @@ src/
 │   │   ├── __init__.py
 │   │   └── jobs_files_service.py
 │   │
+│   ├── jobs/
+│   │   │
+│   │   ├── backends/
+│   │   │   ├── __init__.py
+│   │   │   ├── backend_registry.py
+│   │   │   ├── base.py
+│   │   │   ├── thread_backend.py
+│   │   │   ├── thread_cancel_registry.py
+│   │   │   └── toolforge_backend.py
+│   │   │
+│   │   ├── jobs_lifetime/
+│   │   │   ├── __init__.py
+│   │   │   ├── job_creator.py
+│   │   │   ├── jobs_canceller.py
+│   │   │   ├── jobs_starter.py
+│   │   │   └── reconcile.py
+│   │   │
+│   │   ├── __init__.py
+│   │   ├── cli_jobs.py
+│   │   ├── job_executor.py
+│   │   ├── job_user.py
+│   │   └── registry.py
+│   │
 │   ├── jobs_workers/
 │   │   │
 │   │   ├── admin_jobs_workers/
@@ -194,19 +217,6 @@ src/
 │   │   │   ├── slugs_helpers.py
 │   │   │   └── workers_list.py
 │   │   │
-│   │   ├── backends/
-│   │   │   ├── __init__.py
-│   │   │   ├── base.py
-│   │   │   ├── registry.py
-│   │   │   ├── thread_backend.py
-│   │   │   └── toolforge_backend.py
-│   │   │
-│   │   ├── jobs_lifetime/
-│   │   │   ├── __init__.py
-│   │   │   ├── cancel_registry.py
-│   │   │   ├── jobs_canceller.py
-│   │   │   └── jobs_starter.py
-│   │   │
 │   │   ├── public_jobs_workers/
 │   │   │   │
 │   │   │   ├── copy_svg_langs/
@@ -232,12 +242,10 @@ src/
 │   │   │
 │   │   ├── __init__.py
 │   │   ├── base_worker.py
-│   │   ├── cancel.py
 │   │   ├── objects.py
-│   │   ├── reconcile.py
-│   │   ├── run_job.py
 │   │   ├── shared_objects.py
-│   │   └── utils.py
+│   │   ├── utils.py
+│   │   └── workers_lists.py
 │   │
 │   ├── parsers/
 │   │   │
@@ -308,7 +316,7 @@ src/
 │   │   │
 │   │   ├── __init__.py
 │   │   ├── error_pages.py
-│   │   ├── models.py
+│   │   ├── objects.py
 │   │   └── routes_factory.py
 │   │
 │   ├── services/
