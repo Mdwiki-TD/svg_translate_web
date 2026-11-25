@@ -76,6 +76,7 @@ class JobExecutor:
 
         if user is None:
             user = build_job_user(job.username)
+
         if user is None:
             self.svc.mark_failed(job, f"no token for user {job.username}")
             return EXIT_AUTH_ERROR

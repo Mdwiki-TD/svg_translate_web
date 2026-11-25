@@ -15,7 +15,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Flask
 from src.main_app.database.services import JobsService, UsersService
-from src.main_app.jobs.backends.thread_backend import _runner
 from src.main_app.jobs.backends.thread_cancel_registry import (
     get_cancel_event,
     pop_cancel_event,
@@ -23,7 +22,6 @@ from src.main_app.jobs.backends.thread_cancel_registry import (
 )
 from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
 from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
-from src.main_app.jobs_workers.objects import JobsRunner
 
 
 def test_cancel_event_management():
@@ -38,34 +36,13 @@ def test_cancel_event_management():
     assert get_cancel_event(job_id) is None
 
 
-def test_runner():
-    job_id = 1
-    user = {"username": "test"}
-    cancel_event = threading.Event()
-
-    target_class = MagicMock()
-    target_class.run = MagicMock()
-
+@pytest.fixture
+def mock_load_job_data(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     _mock = MagicMock()
-    _mock.return_value = target_class
-
-    src = Flask(__name__)
-    args = {"foo": "bar"}
-    data = JobsRunner(
-        job_id=job_id,
-        user=user,
-        cancel_event=cancel_event,
-        args=args,
-        form_data=None,
-    )
-
-    register_cancel_event(job_id, cancel_event)
-
-    _runner(data, _mock, src)
-
-    target_class.run.assert_called_once_with()
-    assert get_cancel_event(job_id) is None
-
+    _mock.return_value = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs.job_executor.load_job_data", _mock)
+    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.job_creator.load_job_data", _mock)
+    return _mock
 
 class TestSetup:
     @pytest.fixture(autouse=True)
@@ -112,8 +89,7 @@ class TestCancelJobWorker(TestSetup):
 @pytest.mark.usefixtures("mock_app")
 class TestStartJob(TestSetup):
     @patch("src.main_app.jobs.backends.thread_backend.threading.Thread")
-    @patch("src.main_app.jobs.jobs_lifetime.jobs_starter.jobs_data_admins")
-    def test_start_job(self, mock_jobs_data, mock_thread, mock_app: Flask):
+    def test_start_job(self, mock_thread, mock_app: Flask, mock_load_job_data):
         """JobStarter.start should create a DB record, register cancel event, and spawn a thread."""
         with mock_app.app_context():
             UsersService().create_user("test_user")
@@ -124,7 +100,7 @@ class TestStartJob(TestSetup):
         mock_job_data = MagicMock()
         mock_job_data.job_class = MagicMock()
         mock_job_data.job_args = []  # Empty args to avoid SettingsService
-        mock_jobs_data.get.return_value = mock_job_data
+        mock_load_job_data.return_value = mock_job_data
 
         with mock_app.app_context():
             job_id = JobStarter().start(user_payload, job_type, {"arg": 1})

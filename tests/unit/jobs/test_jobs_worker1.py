@@ -17,6 +17,15 @@ from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
 from src.main_app.jobs_workers.objects import JobsRunner
 
 
+@pytest.fixture
+def mock_load_job_data(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    _mock = MagicMock()
+    _mock.return_value = MagicMock()
+    monkeypatch.setattr("src.main_app.jobs.job_executor.load_job_data", _mock)
+    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.job_creator.load_job_data", _mock)
+    return _mock
+
+
 @pytest.fixture(autouse=True)
 def mock_jobs_service_for_jobs_worker(monkeypatch: pytest.MonkeyPatch):
     """Mock jobs_service.is_job_cancelled and cancel_job to avoid database calls."""
@@ -56,7 +65,7 @@ def mock_jobs_worker_services(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.JobsService.create_job", mocks["create_job"])
     monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.JobsService.save_payload", mocks["save_payload"])
     monkeypatch.setattr("src.main_app.jobs.backends.thread_backend.threading.Thread", mocks["Thread"])
-    monkeypatch.setattr("src.main_app.jobs.jobs_lifetime.jobs_starter.current_app", mocks["current_app"])
+    monkeypatch.setattr("src.main_app.jobs.backends.thread_backend.current_app", mocks["current_app"])
 
     return mocks
 
@@ -129,13 +138,10 @@ def test_cancel_nonexistent_job():
     assert result is False
 
 
-def test_runner_calls_target_and_cleans_up():
+def test_runner_calls_target_and_cleans_up(mock_load_job_data):
     """Test the internal _runner function."""
     mock_target = MagicMock()
     mock_target.run = MagicMock()
-
-    _mock = MagicMock()
-    _mock.return_value = mock_target
 
     job_id = 456
     user = {"name": "test"}
@@ -146,21 +152,20 @@ def test_runner_calls_target_and_cleans_up():
     register_cancel_event(job_id, event)
     assert get_cancel_event(job_id) == event
 
+    mock_job_data = MagicMock()
+    mock_job_data.job_class = mock_target
+    mock_job_data.job_args = []  # Empty args to avoid SettingsService
+
+    mock_load_job_data.return_value = mock_job_data
+
     from src.main_app.jobs.backends.thread_backend import _runner
 
-    data = JobsRunner(
+    _runner(
         job_id=job_id,
         user=user,
         cancel_event=event,
-        args=None,
-        form_data=None,
-    )
-    _runner(
-        runner_data=data,
-        target_class=_mock,
         flask_app=flask_app,
     )
-
     mock_target.run.assert_called_once_with()
     flask_app.app_context.assert_called_once()
     # After runner finishes, event should be popped from CANCEL_EVENTS
@@ -225,13 +230,10 @@ def test_multiple_jobs_can_be_cancelled_independently():
     assert event3.is_set()
 
 
-def test_runner_passes_args_to_target():
+def test_runner_passes_args_to_target(mock_load_job_data):
     """Test that _runner forwards the args parameter to the target function."""
     mock_target = MagicMock()
     mock_target.run = MagicMock()
-
-    _mock = MagicMock()
-    _mock.return_value = mock_target
 
     job_id = 789
     user = {"name": "test"}
@@ -243,28 +245,21 @@ def test_runner_passes_args_to_target():
 
     from src.main_app.jobs.backends.thread_backend import _runner
 
-    data = JobsRunner(
+    mock_load_job_data.return_value = mock_target
+
+    _runner(
         job_id=job_id,
         user=user,
         cancel_event=event,
-        args=args,
-        form_data=None,
-    )
-    _runner(
-        runner_data=data,
-        target_class=_mock,
         flask_app=flask_app,
     )
     mock_target.run.assert_called_once_with()
 
 
-def test_runner_passes_none_args_by_default():
+def test_runner_passes_none_args_by_default(mock_load_job_data):
     """Test that _runner passes args=None to target when args not provided."""
     mock_target = MagicMock()
     mock_target.run = MagicMock()
-
-    _mock = MagicMock()
-    _mock.return_value = mock_target
 
     job_id = 790
     user = None
@@ -273,18 +268,14 @@ def test_runner_passes_none_args_by_default():
 
     register_cancel_event(job_id, event)
 
+    mock_load_job_data.return_value = mock_target
+
     from src.main_app.jobs.backends.thread_backend import _runner
 
-    data = JobsRunner(
+    _runner(
         job_id=job_id,
         user=user,
         cancel_event=event,
-        args=None,
-        form_data=None,
-    )
-    _runner(
-        runner_data=data,
-        target_class=_mock,
         flask_app=flask_app,
     )
     mock_target.run.assert_called_once_with()
