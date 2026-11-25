@@ -12,7 +12,6 @@ from src.main_app.jobs.backends.thread_cancel_registry import (
     get_cancel_event,
     register_cancel_event,
 )
-from src.main_app.jobs.job_executor import JobExecutor
 from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
 from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
 from src.main_app.jobs_workers.objects import JobData

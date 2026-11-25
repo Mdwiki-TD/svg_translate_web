@@ -16,7 +16,6 @@ from src.main_app.jobs.backends.thread_cancel_registry import (
 from src.main_app.jobs.jobs_lifetime.job_creator import _load_job_args
 from src.main_app.jobs.jobs_lifetime.jobs_canceller import JobCanceller
 from src.main_app.jobs.jobs_lifetime.jobs_starter import JobStarter
-from src.main_app.jobs_workers.objects import JobsRunner
 
 
 @pytest.fixture
