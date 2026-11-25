@@ -123,6 +123,7 @@ def test_client(mock_app: Flask) -> FlaskClient:
     """
     return mock_app.test_client()
 
+
 # ── db fixtures ───────────────────────────────────────────────────────────────────
 
 
@@ -224,7 +225,6 @@ def mock_get_current_user(monkeypatch):
         mock_user,
     )
     return mock_user
-
 
 
 @pytest.fixture
