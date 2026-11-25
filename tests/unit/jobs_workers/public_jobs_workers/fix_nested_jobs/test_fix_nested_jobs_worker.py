@@ -264,8 +264,8 @@ class TestPostInit(TestSetup):
 
     def test_site_and_session_default_to_none(self):
         proc = self.processor
-        assert proc.site is None
         assert not hasattr(proc, "session")
+        assert proc._site is None
 
 
 # ---------------------------------------------------------------------------
@@ -451,7 +451,7 @@ class TestVerifyStep(TestSetup):
 class TestUploadStep(TestSetup):
     def _proc_after_verify(self, path, tags_fixed=3):
         proc = self.processor
-        proc.site = MagicMock()
+        proc._site = MagicMock()
         proc.result.stages.verify.status = "success"
         proc.result.file_result = FileResult(
             status="pending",

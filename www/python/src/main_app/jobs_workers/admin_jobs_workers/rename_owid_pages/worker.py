@@ -176,7 +176,7 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
         if self.site:
             return self.site.allpages(
                 prefix=prefix,
-                namespace=namespace,
+                namespace=str(namespace),
                 filterredir="nonredirects",
             )
         return []

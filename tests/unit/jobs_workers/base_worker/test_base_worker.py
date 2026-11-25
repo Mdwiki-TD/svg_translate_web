@@ -63,7 +63,7 @@ class TestValidateUserPermissions:
 
     def test_returns_false_when_site_is_none(self) -> None:
         worker = self._make_worker()
-        worker.site = None
+        worker._site = False  # pyright: ignore[reportAttributeAccessIssue]
 
         assert worker._validate_user_permissions() is False
         # status is NOT changed (no explicit failure set for missing site here)

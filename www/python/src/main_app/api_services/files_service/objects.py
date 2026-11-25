@@ -63,7 +63,7 @@ class FileInfo(SharedMapToJson):
 @dataclass
 class DownloadAndSaveData(SharedMapToJson):
     result: str
-    path: str | None = None
+    path: str | Path | None = None
     size_bytes: int | None = None
     error: str | None = None
 
@@ -72,7 +72,7 @@ class DownloadAndSaveData(SharedMapToJson):
 class DownloadResult(SharedMapToJson):
     success: bool | None = None
     size_bytes: int | None = None
-    path: str | None = None
+    path: str | Path | None = None
     error: str | None = None
 
 

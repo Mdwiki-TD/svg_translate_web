@@ -79,12 +79,23 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
         self.result_file_cancelled: str = generate_cancelled_file_name(result_file=self.result_file)
 
         self._edit_count: int = 0
-        self.site: Site | None = None
+        self._site: Site | None = None
 
         self.wiki_domain = self.app_settings.other.wiki_domain
 
         self.result: TResult = self.create_result()
         self.job_type = self.JOB_TYPE
+
+    @property
+    def site(self) -> Site:
+        if self._site is None:
+            self._check_site()
+
+        return self._site  # pyright: ignore[reportReturnType]
+
+    @site.setter
+    def site(self, value: Site) -> None:
+        self._site = value
 
     @abstractmethod
     def create_result(self) -> TResult:
@@ -262,6 +273,7 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
 
     def _validate_user_permissions(self) -> bool:
         if not self.site:
+            logger.error("Job %s: No site authentication available", self.job_id)
             return False
 
         if "autopatrol" not in self.site.rights:
@@ -273,11 +285,16 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
         return True
 
     def _check_site(self) -> bool:
-        self.site = self.wikisite_client.get_user_site(self.wiki_domain, self.user)
-        if not self.site:
+        if self._site:
+            return True
+
+        site = self.wikisite_client.get_user_site(self.wiki_domain, self.user)
+        if not site:
             logger.warning(f"Job {self.job_id}: No site authentication available")
             self.log_no_site_error()
             return False
+
+        self._site = site
         return True
 
     def run(self) -> dict[str, Any]:

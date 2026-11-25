@@ -38,7 +38,7 @@ class SvgLangsConfig:
         output_dir_files = (output_dir / "files") if output_dir else None
 
         try:
-            limit_items = int(args.get("limit_items")) or 0
+            limit_items = int(args.get("limit_items")) or 0  # pyright: ignore[reportArgumentType]
         except Exception:
             limit_items = 0
 
@@ -63,7 +63,7 @@ class SvgLangsConfig:
         )
 
     @staticmethod
-    def _compute_output_dir(title: str, svg_data_path: Path | str) -> Path:
+    def _compute_output_dir(title: str, svg_data_path: Path | str) -> Path | None:
         if not title:
             return None
 
