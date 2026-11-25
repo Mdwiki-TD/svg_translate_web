@@ -1,0 +1,200 @@
+{#
+    Shared layout for the job details pages.
+
+    This template is not meant to be extended directly by job pages.
+    Extend one of its two thin wrappers instead:
+      - jobs_templates/base_details_public.html  (layout: base.html)
+      - jobs_templates/base_details_admin.html   (layout: admins/base1.html)
+
+    The wrappers set `details_layout` before extending this file, so this file
+    can extend the right outer layout dynamically. All blocks defined below
+    (detail_header_actions, job_info_extra, job_results, job_summary,
+    job_details) are inherited by pages that extend either wrapper.
+#}
+{% extends details_layout | default("base.html") %}
+{% from "_macros.html" import card_header, status_icon, job_errors_div, auto_refresh_status %}
+{% from "_macros/forms.html" import form_cancel_job, form_delete_job, form_mark_job_as_completed %}
+
+{% block title %}
+{{ template_data.job_name }} #{{ job.id }} · {{ tool_title }}
+{% endblock %}
+
+{# The two outer layouts expose different block names; both render the same body. #}
+{% block content_fluid %}{{ self.details_body() }}{% endblock %}
+{% block admin_contents %}{{ self.details_body() }}{% endblock %}
+
+{% block details_body %}
+<div class="container">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="headline mb-0">{{ template_data.job_name }} #{{ job.id }}</h3>
+            <div class="d-flex gap-2">
+                {% if (job.status | is_job_running) and (is_admin or current_username == job.username) %}
+                {% if (result_data and result_data.get("final_status_updated") == False) %}
+                {% if is_admin %}
+                {{
+                    form_mark_job_as_completed(
+                    url_for(bp_name ~ '.mark_as_completed', job_type=template_data.job_type, job_id=job.id),
+                    )
+                }}
+                {% endif %}
+                {% else %}
+                {{
+                    form_cancel_job(
+                        url_for(bp_name ~ '.cancel_job', job_type=template_data.job_type, job_id=job.id),
+                        btn_class="btn btn-outline-warning text-muted"
+                    )
+                }}
+                {% endif %}
+                {% endif %}
+                {% if is_admin %}
+                {{
+                    form_delete_job(
+                    url_for(bp_name ~ '.delete_job', job_type=template_data.job_type, job_id=job.id),
+                    btn_class="btn btn-outline-danger"
+                    )
+                }}
+                {% endif %}
+                <a href="{{ url_for(bp_name ~ '.jobs_list', job_type=template_data.job_type) }}"
+                    class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                {% block detail_header_actions %}{% endblock %}
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Job Summary -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    {{ card_header("Job Information") }}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-striped table-sm table_text_left">
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        <div
+                                            class="d-flex flex-column flex-md-row flex-sm-row justify-content-between align-items-md-center">
+                                            {{ status_icon(job.status) }}
+                                            {% if job.status | is_job_running %}
+                                            {{ auto_refresh_status() }}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>User:</th>
+                                    <td>
+                                        {{ job.username if job.username else '-' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Created:</th>
+                                    <td>
+                                        {{ job.created_at | format_long_date("-") }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Started:</th>
+                                    <td>
+                                        {{ job.started_at | format_short_date("-") }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-striped table-sm">
+                                <tr>
+                                    <th>Completed:</th>
+                                    <td>
+                                        {{ (job.completed_at or result_data.completed_at) | format_short_date("-") }}
+                                    </td>
+                                </tr>
+                                {% if job.failed_at or (result_data and result_data.failed_at) %}
+                                <tr>
+                                    <th>Failed At:</th>
+                                    <td>
+                                        {{ (job.failed_at or result_data.failed_at) | format_long_date("-") }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% if job.cancelled_at or (result_data and result_data.cancelled_at) %}
+                                <tr>
+                                    <th>Cancelled At:</th>
+                                    <td>
+                                        {{ (job.cancelled_at or result_data.cancelled_at)| format_long_date("-") }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Result File:</th>
+                                    <td>
+                                        {% if job.result_file %}
+                                        <a href="{{ url_for(bp_name ~ '.read_job_result_file', result_file=job.result_file, job_type=template_data.job_type) }}"
+                                            target="_blank">
+                                            {{ job.result_file }}
+                                        </a>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Last update:</th>
+                                    <td>
+                                        {{ result_data.last_update| format_long_date("-") }}
+                                    </td>
+                                </tr>
+                                {% block job_info_extra %}{% endblock %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Results -->
+            {% if result_data %}
+            {% block job_results %}
+
+            {% if result_data.errors %}
+            {{ job_errors_div(result_data.errors, job.username) }}
+            {% endif %}
+
+            <div class="card mb-3">
+                <div class="card-header">
+                    {{ card_header(job_summary_title | default("Job Summary")) }}
+                </div>
+                <div class="card-body">
+                    {% block job_summary %}
+                    {% include 'jobs_templates/_help_templates/_job_summary.html' %}
+                    {% endblock %}
+
+                    {% if result_data.note %}
+                    <div class="alert alert-warning" role="alert">
+                        <h5 class="alert-heading">Note!</h5>
+                        <div>
+                            {{ result_data.note }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% block job_details %}{% endblock %}
+            {% endblock %}
+            {% else %}
+            <div class="alert alert-info" role="alert">
+                No job result data available yet. The job may still be running or the
+                result file may not exist.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if job.status | is_job_running %}
+<script src="{{ url_for('static', filename='js/auto-refresh.js') }}"></script>
+{% endif %}
+{% endblock %}
