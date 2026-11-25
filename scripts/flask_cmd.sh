@@ -9,7 +9,7 @@
 # when Toolforge sends it (via delete_job), enabling graceful cancellation.
 set -euo pipefail
 
-export MDWIKI_CLI=1
+export CLI_MODE=1
 
 # Activate the virtual environment and install dependencies
 source $HOME/www/python/venv/bin/activate

@@ -1,3 +1,4 @@
+# pyright: reportAttributeAccessIssue=false
 """Unit tests for src/main_app/jobs/base_worker.py (test_base_worker.py)."""
 
 from __future__ import annotations
@@ -63,7 +64,7 @@ class TestValidateUserPermissions:
 
     def test_returns_false_when_site_is_none(self) -> None:
         worker = self._make_worker()
-        worker._site = False  # pyright: ignore[reportAttributeAccessIssue]
+        worker._site = False
 
         assert worker._validate_user_permissions() is False
         # status is NOT changed (no explicit failure set for missing site here)

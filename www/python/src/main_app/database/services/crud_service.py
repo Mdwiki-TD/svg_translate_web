@@ -436,6 +436,21 @@ class CRUDService[ModelT]:
             return f"CAST(strftime('%Y', {column}) AS INTEGER)"
         return f"YEAR({column})"
 
+    def _release_db_connection(self) -> None:
+        """End the read transaction left open by the initial loads.
+
+        The loads above leave the session in a transaction that keeps its connection
+        checked out. Fetching the first changed title can take minutes, during which
+        that connection sits idle and the server drops it ("MySQL server has gone away").
+        ``pool_pre_ping`` / ``pool_recycle`` only apply when a connection is taken from the
+        pool, so they cannot help a connection that never went back. Committing returns it,
+        and the next ``persist`` checks out a fresh, validated one.
+        """
+        try:
+            self.commit_or_rollback()
+        except Exception as e:
+            logger.warning("Failed to release DB connection: %s", e)
+
 
 __all__ = [
     "CRUDService",

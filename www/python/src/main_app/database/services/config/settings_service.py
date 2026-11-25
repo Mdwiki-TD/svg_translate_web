@@ -9,9 +9,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from ..db_base import db
-from ..models import SettingRecord
-from .crud_service import CRUDService
+from ...db_base import db
+from ...models import SettingRecord
+from ..crud_service import CRUDService
 
 logger = logging.getLogger(__name__)
 
@@ -122,11 +122,7 @@ class SettingsService(CRUDService[SettingRecord]):
         """
         key = key.strip()
         title = title.strip()
-
-        self.validate_or_raise(
-            key=key,
-            title=title,
-        )
+        self.validate_or_raise(key=key, title=title)
 
         default_value_types = {
             "boolean": "false",

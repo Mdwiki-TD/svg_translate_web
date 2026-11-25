@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from src.main_app.database.services.settings_service import SettingsService
+from src.main_app.database.services.config.settings_service import SettingsService
 
 
 class TestSetup:
@@ -126,7 +126,7 @@ class TestUpdateSetting(TestSetup):
 
         self.service.update(setting_record, value_type="integer")
 
-        result = self.service.update_setting(setting_record.key, 99, value_type=None)
+        result = self.service.update_setting(setting_record.key, 99, value_type=None)  # type: ignore
         assert result is not False
         assert setting_record.value == "99"
 
@@ -182,24 +182,24 @@ class TestCreateSetting(TestSetup):
 
 
 class TestSerializeValue:
-    """Test _serialize_value function."""
+    """Test SettingsService.serialize_value function."""
 
     def test_serialize_value_none(self) -> None:
-        """Test _serialize_value handles None."""
+        """Test SettingsService.serialize_value handles None."""
         result = SettingsService.serialize_value(None, "string")
         assert result is None
 
     def test_serialize_value_boolean(self) -> None:
-        """Test _serialize_value handles booleans."""
+        """Test SettingsService.serialize_value handles booleans."""
         assert SettingsService.serialize_value(True, "boolean") == "true"
         assert SettingsService.serialize_value(False, "boolean") == "false"
 
     def test_serialize_value_integer(self) -> None:
-        """Test _serialize_value handles integers."""
+        """Test SettingsService.serialize_value handles integers."""
         assert SettingsService.serialize_value(42, "integer") == "42"
         assert SettingsService.serialize_value(-10, "integer") == "-10"
 
     def test_serialize_value_string(self) -> None:
-        """Test _serialize_value handles strings."""
+        """Test SettingsService.serialize_value handles strings."""
         assert SettingsService.serialize_value("hello", "string") == "hello"
         assert SettingsService.serialize_value(123, "string") == "123"
