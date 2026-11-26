@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
 import time
 from collections.abc import Callable
@@ -17,6 +18,40 @@ from .mwclient_error import handle_mwclient_error
 logger = logging.getLogger(__name__)
 
 _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
+
+
+@dataclass
+class EditPageResult:
+    success: bool
+    error: str | None = None
+    newrevid: int = 0
+    details: str | None = None
+
+    @classmethod
+    def load(cls, data: dict[str, Any]) -> EditPageResult:
+        return cls(
+            success=data.get("success", False),
+            error=data.get("error"),
+            newrevid=data.get("newrevid", 0),
+            details=data.get("details"),
+        )
+
+
+@dataclass
+class MovePageResult:
+    success: bool
+    error: str | None = None
+    newrevid: int = 0
+    details: str | None = None
+
+    @classmethod
+    def load(cls, data: dict[str, Any]) -> MovePageResult:
+        return cls(
+            success=data.get("success", False),
+            error=data.get("error"),
+            newrevid=data.get("newrevid", 0),
+            details=data.get("details"),
+        )
 
 
 class MwClientPage:
@@ -152,23 +187,25 @@ class MwClientPage:
         """Check if the page is a redirect using page.redirects_to()."""
         return self.get_redirect_target() is not None
 
-    def edit(self, text: str | None, summary: str, nocreate: bool = True) -> dict[str, Any]:
+    def edit(self, text: str | None, summary: str, nocreate: bool = True) -> EditPageResult:
         if text is None:
-            return {"success": False, "error": "missing text"}
+            return EditPageResult(success=False, error="missing text")
 
         if not self.load_page() or not self.page:
-            return {"success": False, "error": self.load_page_error}
+            return EditPageResult(success=False, error=self.load_page_error)
 
-        return self._with_retry(self._edit_page, self.page, text, summary, nocreate=nocreate)
+        result = self._with_retry(self._edit_page, self.page, text, summary, nocreate=nocreate)
+        return EditPageResult.load(result)
 
-    def create(self, text: str, summary: str) -> dict[str, Any]:
+    def create(self, text: str, summary: str) -> EditPageResult:
         if not self.load_page() or not self.page:
-            return {"success": False, "error": self.load_page_error}
+            return EditPageResult(success=False, error=self.load_page_error)
 
         if self.page.exists:
-            return {"success": False, "error": "page exists"}
+            return EditPageResult(success=False, error="page exists")
 
-        return self._with_retry(self._edit_page, self.page, text, summary, createonly=True)
+        result = self._with_retry(self._edit_page, self.page, text, summary, createonly=True)
+        return EditPageResult.load(result)
 
     def move(
         self,
@@ -176,23 +213,24 @@ class MwClientPage:
         reason: str = "",
         move_talk: bool = True,
         no_redirect: bool = False,
-    ) -> dict[str, Any]:
+    ) -> MovePageResult:
         """Move (rename) the page, with rate-limit retry handling."""
         if not new_title:
             logger.error("Missing new_title for move page")
-            return {"success": False, "error": "Missing new_title"}
+            return MovePageResult(success=False, error="Missing new_title")
 
         if not self.load_page() or not self.page:
-            return {"success": False, "error": self.load_page_error}
+            return MovePageResult(success=False, error=self.load_page_error)
 
         if not self.page.exists:
-            return {"success": False, "error": "missing"}
+            return MovePageResult(success=False, error="missing")
 
         if not self.page.can("move"):
             logger.error("InsufficientPermission: User does not have move permissions for title: %s", self.title)
-            return {"success": False, "error": "InsufficientPermission"}
+            return MovePageResult(success=False, error="InsufficientPermission")
 
-        return self._with_retry(self._move_page, self.page, new_title, reason, move_talk, no_redirect)
+        result = self._with_retry(self._move_page, self.page, new_title, reason, move_talk, no_redirect)
+        return MovePageResult.load(result)
 
     # ------------------------------------------------------------------
     # Aliases
@@ -207,7 +245,7 @@ class MwClientPage:
         reason: str = "",
         move_talk: bool = True,
         no_redirect: bool = False,
-    ) -> dict[str, Any]:
+    ) -> MovePageResult:
         return self.move(
             new_title,
             reason,
@@ -215,13 +253,15 @@ class MwClientPage:
             no_redirect,
         )
 
-    def edit_page(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
+    def edit_page(self, text: str, summary: str, nocreate: bool = True) -> EditPageResult:
         return self.edit(text, summary, nocreate)
 
-    def create_page(self, text: str, summary: str) -> dict[str, Any]:
+    def create_page(self, text: str, summary: str) -> EditPageResult:
         return self.create(text, summary)
 
 
 __all__ = [
+    "EditPageResult",
+    "MovePageResult",
     "MwClientPage",
 ]

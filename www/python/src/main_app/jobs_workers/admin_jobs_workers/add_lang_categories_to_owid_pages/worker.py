@@ -272,16 +272,16 @@ class AddLangCategoriesWorker(BaseObjectsJobWorker[AddLangCategoriesWorkerObject
             summary=f"Adding language categories: {cat_summary}",
         )
 
-        if res.get("success"):
+        if res.success:
             info.steps.save_page = OneStep(
                 result=True,
                 msg=f"Saved {info.title}",
-                newrevid=res.get("newrevid", 0),
+                newrevid=res.newrevid,
             )
             info.status = "success"
             return True
 
-        err = res.get("error", "Unknown error")
+        err = res.error or "Unknown error"
         self._fail(info, info.steps.save_page, err)
         return False
 

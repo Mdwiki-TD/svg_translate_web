@@ -6,6 +6,7 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
+from src.main_app.api_services.mwclient_page.mwclient_wraper import EditPageResult, MovePageResult
 from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.objects import RenameInfo
 from src.main_app.jobs_workers.admin_jobs_workers.rename_owid_pages.worker import (
@@ -138,7 +139,7 @@ class TestRenameOne:
 
         self._set_pages(new_exists=False, new_is_redirect=False, old_is_redirect=False)
 
-        self._mock_old_page.move.return_value = {"success": True, "newrevid": 42}
+        self._mock_old_page.move.return_value = MovePageResult(success=True, newrevid=42)
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
         result = mock_worker._process_one_item(info)
@@ -152,7 +153,7 @@ class TestRenameOne:
 
         self._set_pages(new_exists=False, new_is_redirect=False, old_is_redirect=False)
 
-        self._mock_old_page.move.return_value = {"success": False, "error": "permission denied"}
+        self._mock_old_page.move.return_value = MovePageResult(success=False, error="permission denied")
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
         result = mock_worker._process_one_item(info)
@@ -165,11 +166,11 @@ class TestRenameOne:
 
         self._set_pages(new_exists=False, new_is_redirect=False, old_is_redirect=False)
 
-        self._mock_old_page.move.return_value = {
-            "success": False,
-            "error": "blocked",
-            "details": "Title blacklist",
-        }
+        self._mock_old_page.move.return_value = MovePageResult(
+            success=False,
+            error="blocked",
+            details="Title blacklist",
+        )
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
         result = mock_worker._process_one_item(info)
@@ -184,7 +185,7 @@ class TestRenameOne:
 
         self._set_pages(new_exists=True, new_is_redirect=True, old_is_redirect=False)
 
-        self._mock_old_page.move.return_value = {"success": True, "newrevid": 99}
+        self._mock_old_page.move.return_value = MovePageResult(success=True, newrevid=99)
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
         result = mock_worker._process_one_item(info)
@@ -197,7 +198,7 @@ class TestRenameOne:
 
         self._set_pages(new_exists=True, new_is_redirect=True, old_is_redirect=False)
 
-        self._mock_old_page.move.return_value = {"success": False, "error": "error"}
+        self._mock_old_page.move.return_value = MovePageResult(success=False, error="error")
 
         info = RenameInfo(10, "Template:OWID/daily", "Template:OWID/Daily")
         result = mock_worker._process_one_item(info)
@@ -253,7 +254,7 @@ class TestRedirectOldToNew:
 
         mock_page = MagicMock(name="old_title_page")
         mock_page.title = "Template:OWID/daily"
-        mock_page.edit.return_value = {"success": True, "newrevid": 55}
+        mock_page.edit.return_value = EditPageResult(success=True, newrevid=55)
 
         result = mock_worker._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
         mock_worker.update_status(info)
@@ -272,7 +273,7 @@ class TestRedirectOldToNew:
 
         mock_page = MagicMock(name="old_title_page")
         mock_page.title = "Template:OWID/daily"
-        mock_page.edit.return_value = {"success": False, "error": "protected page"}
+        mock_page.edit.return_value = EditPageResult(success=False, error="protected page")
 
         result = mock_worker._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
         mock_worker.update_status(info)
@@ -286,7 +287,7 @@ class TestRedirectOldToNew:
 
         mock_page = MagicMock(name="old_title_page")
         mock_page.title = "Template:OWID/daily"
-        mock_page.edit.return_value = {"success": False, "error": "blocked", "details": "abuse filter"}
+        mock_page.edit.return_value = EditPageResult(success=False, error="blocked", details="abuse filter")
 
         result = mock_worker._redirect_old_to_new(info, mock_page, "Template:OWID/Daily")
         mock_worker.update_status(info)

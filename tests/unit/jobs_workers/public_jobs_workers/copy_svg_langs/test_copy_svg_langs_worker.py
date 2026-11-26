@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.api_services.files_service import DownloadAndSaveData, FileLanguagesMap, UploadResult
+from src.main_app.api_services.mwclient_page.mwclient_wraper import EditPageResult
 from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps import ExtractText, ExtractTitles
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs import (
@@ -112,7 +113,7 @@ def mock_copylangs_services(monkeypatch: pytest.MonkeyPatch) -> MockServices:
 
     mw_page = MagicMock()
     mw_page.get_text.return_value = "{{Information\n|other versions={{Svg lang|en}}\n}}"
-    mw_page.edit.return_value = {"success": True, "newrevid": 999}
+    mw_page.edit.return_value = EditPageResult(success=True, newrevid=999)
     monkeypatch.setattr(
         "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.files_worker.MwClientPage",
         MagicMock(return_value=mw_page),

@@ -268,13 +268,13 @@ class OneFileProcessor:
             summary="Adding/updating {{Image extracted}}",
         )
 
-        if update_result["success"]:
+        if update_result.success:
             file_info.steps.update_original.result = True
             file_info.steps.update_original.msg = "Updated original file wikitext"
-            file_info.steps.update_original.newrevid = update_result.get("newrevid", 0)
+            file_info.steps.update_original.newrevid = update_result.newrevid
             return True
 
-        error = update_result.get("error", "Unknown error")
+        error = update_result.error or "Unknown error"
         logger.warning(
             "Job %s: Failed to update original file text for %s (reason: %s)",
             self.job_id,
@@ -311,13 +311,13 @@ class OneFileProcessor:
             new_wikitext,
             summary="Update cropped file author attribution from OWID source",
         )
-        if update_result.get("success"):
+        if update_result.success:
             file_info.steps.update_cropped.result = True
             file_info.steps.update_cropped.msg = "Updated cropped file wikitext"
-            file_info.steps.update_cropped.newrevid = update_result.get("newrevid", 0)
+            file_info.steps.update_cropped.newrevid = update_result.newrevid
             return True
 
-        error = update_result.get("error", "Unknown error")
+        error = update_result.error or "Unknown error"
         logger.warning(
             "Job %s: Failed to update cropped file text for %s (reason: %s)",
             self.job_id,
@@ -368,13 +368,13 @@ class OneFileProcessor:
 
         update_result = page.edit(updated_text, summary)
 
-        if update_result.get("success"):
+        if update_result.success:
             step_obj.result = True
             step_obj.msg = f"Updated page {page_title}"
-            step_obj.newrevid = update_result.get("newrevid", 0)
+            step_obj.newrevid = update_result.newrevid
             return True
 
-        error = update_result.get("error", "Unknown error")
+        error = update_result.error or "Unknown error"
 
         logger.warning("Job %s: Failed to update page %s (reason: %s)", self.job_id, page_title, error)
 

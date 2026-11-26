@@ -229,17 +229,17 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker[CreateOwidPagesWorkerObject]):
             f"Updating OWID page from [[{info.template_title}]]",
         )
 
-        if res["success"]:
+        if res.success:
             info.steps.update_text = OneStep(
                 result=True,
                 msg=f"Updated page: {new_title}",
-                newrevid=res.get("newrevid", 0),
+                newrevid=res.newrevid,
             )
             info.new_page_title = new_title
             info.status = "updated"
             return True
 
-        err = res.get("error", "Unknown error")
+        err = res.error or "Unknown error"
         self._fail(info, info.steps.update_text, err)
         return False
 
@@ -255,15 +255,15 @@ class CreateOwidPagesWorker(BaseObjectsJobWorker[CreateOwidPagesWorkerObject]):
             summary=f"Creating OWID page from [[{info.template_title}]]",
         )
 
-        if not res["success"]:
-            err = res.get("error", "Unknown error")
+        if not res.success:
+            err = res.error or "Unknown error"
             self._fail(info, info.steps.create_new_page, err)
             return False
 
         info.steps.create_new_page = OneStep(
             result=True,
             msg=f"Created: {new_title}",
-            newrevid=res.get("newrevid", 0),
+            newrevid=res.newrevid,
         )
         info.new_page_title = new_title
         info.status = "created"

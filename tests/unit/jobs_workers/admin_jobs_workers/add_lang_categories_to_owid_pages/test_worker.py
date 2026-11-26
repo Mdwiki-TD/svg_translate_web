@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.api_services.files_service import FileLanguagesMap
+from src.main_app.api_services.mwclient_page.mwclient_wraper import EditPageResult
 from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.add_lang_categories_to_owid_pages.worker import (
     AddLangCategoriesWorker,
@@ -404,7 +405,7 @@ class TestStepCheckExisting:
 class TestStepSavePage:
     def test_success(self, mock_lang_worker: AddLangCategoriesWorker):
         mock_page = MagicMock()
-        mock_page.edit.return_value = {"success": True, "newrevid": 12345}
+        mock_page.edit.return_value = EditPageResult(success=True, newrevid=12345)
 
         info = PageInfo(title="OWID/test")
         # _text is the already-merged result from _step_check_existing
@@ -422,7 +423,7 @@ class TestStepSavePage:
 
     def test_failure(self, mock_lang_worker: AddLangCategoriesWorker):
         mock_page = MagicMock()
-        mock_page.edit.return_value = {"success": False, "error": "API error"}
+        mock_page.edit.return_value = EditPageResult(success=False, error="API error")
 
         info = PageInfo(title="OWID/test")
         info._text = "original\n[[Category:English-language SVG]]"

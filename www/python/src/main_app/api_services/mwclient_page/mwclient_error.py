@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
 from typing import Any
 
@@ -9,6 +10,21 @@ import mwclient
 import mwclient.errors
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class MwClientError:
+    error: str
+    details: str
+    success: bool = False
+    newrevid: int = 0
+
+    @classmethod
+    def load(cls, data: dict[str, Any]) -> MwClientError:
+        return cls(
+            error=data.get("error", ""),
+            details=data.get("details", ""),
+        )
 
 
 def handle_mwclient_error(exc: Exception) -> dict[str, Any] | None:

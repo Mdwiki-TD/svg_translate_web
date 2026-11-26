@@ -217,16 +217,16 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
             move_talk=True,
             no_redirect=False,
         )
-        edit_success = bool(res.get("success"))
-        if res.get("success"):
+        edit_success = res.success
+        if res.success:
             info.status = "renamed"
-            info.newrevid = res.get("newrevid", 0)
+            info.newrevid = res.newrevid
             info.msg = f"Moved {old_title} -> {new_title}"
             # Update the title in the database
             self._update_template_title(old_title, new_title)
         else:
-            err = res.get("error", "Unknown error")
-            details = res.get("details")
+            err = res.error or "Unknown error"
+            details = res.details
             info.status = "failed"
             info.msg = f"{err}: {details}" if details else str(err)
 
@@ -243,15 +243,15 @@ class RenameOwidPagesWorker(BaseObjectsJobWorker[RenameOwidPagesWorkerObject]):
             summary=summary,
         )
 
-        edit_success = bool(res.get("success"))
+        edit_success = res.success
         if edit_success:
             info.status = "redirected"
-            info.newrevid = res.get("newrevid", 0)
+            info.newrevid = res.newrevid
             info.msg = f"Redirected {old_title} -> {new_title}"
             self._update_template_title(old_title, new_title)
         else:
-            err = res.get("error", "Unknown error")
-            details = res.get("details")
+            err = res.error or "Unknown error"
+            details = res.details
             info.status = "failed"
             info.msg = f"Failed to redirect: {err}: {details}" if details else f"Failed to redirect: {err}"
 

@@ -6,6 +6,7 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
+from src.main_app.api_services.mwclient_page.mwclient_wraper import EditPageResult
 from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.add_svglanguages_template.worker import (
     AddSvgSVGLanguagesTemplate,
@@ -409,7 +410,7 @@ class TestStepSaveNewText:
     ):
         """Test successful saving of new text."""
         mock_page = MagicMock()
-        mock_page.edit.return_value = {"success": True}
+        mock_page.edit.return_value = EditPageResult(success=True)
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._new_text = "updated text"
@@ -426,7 +427,7 @@ class TestStepSaveNewText:
     ):
         """Test failure when edit fails."""
         mock_page = MagicMock()
-        mock_page.edit.return_value = {"success": False, "error": "API error"}
+        mock_page.edit.return_value = EditPageResult(success=False, error="API error")
 
         info = TemplateInfo(template_id=1, template_title="Template:OWID/test")
         info._new_text = "updated text"

@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 
 import mwclient.errors
 import pytest
-from src.main_app.api_services.mwclient_page.mwclient_wraper import MwClientPage
+from src.main_app.api_services.mwclient_page.mwclient_wraper import EditPageResult, MovePageResult, MwClientPage
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -216,7 +216,7 @@ class TestEdit:
 
         result = wrapper.edit("content", "summary")
 
-        assert result["success"] is True
+        assert result.success is True
         mock_page.edit.assert_called_once_with("content", summary="summary", nocreate=True)
 
     def test_nocreate_passed_through(self):
@@ -234,27 +234,27 @@ class TestEdit:
 
         result = wrapper.edit("content", "summary")
 
-        assert result["success"] is False
+        assert result.success is False
 
     def test_protected_page_error_propagates(self):
         wrapper, mock_page = _mwclient_page()
         mock_page.edit.side_effect = mwclient.errors.ProtectedPageError(MagicMock(), "protectedpage", "Protected")
         result = wrapper.edit("content", "summary")
-        assert result["success"] is False
-        assert result["error"] == "protectedpageerror"
+        assert result.success is False
+        assert result.error == "protectedpageerror"
 
     def test_assert_user_failed_propagates(self):
         wrapper, mock_page = _mwclient_page()
         mock_page.edit.side_effect = mwclient.errors.AssertUserFailedError()
         result = wrapper.edit("content", "summary")
-        assert result == {"success": False, "error": "assertuserfailed"}
+        assert result == EditPageResult(success=False, error="assertuserfailed")
 
     def test_unknown_exception_returns_failure(self):
         wrapper, mock_page = _mwclient_page()
         mock_page.edit.side_effect = RuntimeError("unexpected")
         result = wrapper.edit("content", "summary")
-        assert result["success"] is False
-        assert "unexpected" in result["error"]
+        assert result.success is False
+        assert "unexpected" in result.error
 
     def test_edit_page_alias(self):
         wrapper, mock_page = _mwclient_page()
@@ -264,7 +264,7 @@ class TestEdit:
         wrapper2, mock_page2 = _mwclient_page()
         mock_page2.edit.return_value = {}
         r2 = wrapper2.edit_page("txt", "sum")
-        assert r1["success"] == r2["success"]
+        assert r1.success == r2.success
 
 
 # ---------------------------------------------------------------------------
@@ -279,33 +279,33 @@ class TestCreate:
 
         result = wrapper.create("content", "summary")
 
-        assert result["success"] is True
+        assert result.success is True
         mock_page.edit.assert_called_once_with("content", summary="summary", createonly=True)
 
     def test_fails_when_page_already_exists(self):
         wrapper, _ = _mwclient_page(exists=True)
         result = wrapper.create("content", "summary")
-        assert result == {"success": False, "error": "page exists"}
+        assert result == EditPageResult(success=False, error="page exists")
 
     def test_fails_when_load_page_fails(self, mock_site):
         site = mock_site
         site.pages.__getitem__.side_effect = ConnectionError("down")
         wrapper = MwClientPage("New", site)
         result = wrapper.create("content", "summary")
-        assert result["success"] is False
+        assert result.success is False
 
     def test_create_page_alias(self):
         wrapper, mock_page = _mwclient_page(exists=False)
         mock_page.edit.return_value = {}
         result = wrapper.create_page("content", "summary")
-        assert result["success"] is True
+        assert result.success is True
 
     def test_edit_error_propagates(self):
         wrapper, mock_page = _mwclient_page(exists=False)
         mock_page.edit.side_effect = mwclient.errors.EditError(MagicMock(), "conflict", "Conflict")
         result = wrapper.create("content", "summary")
-        assert result["success"] is False
-        assert result["error"] == "editerror"
+        assert result.success is False
+        assert result.error == "editerror"
 
 
 # ---------------------------------------------------------------------------
@@ -320,20 +320,20 @@ class TestMove:
 
         result = wrapper.move("New Title", reason="reason")
 
-        assert result["success"] is True
+        assert result.success is True
         mock_page.move.assert_called_once_with("New Title", reason="reason", move_talk=True, no_redirect=False)
 
     def test_fails_when_page_missing(self):
         wrapper, _ = _mwclient_page(exists=False)
         result = wrapper.move("New Title")
-        assert result == {"success": False, "error": "missing"}
+        assert result == MovePageResult(success=False, error="missing")
 
     def test_fails_when_load_page_fails(self, mock_site):
         site = mock_site
         site.pages.__getitem__.side_effect = ConnectionError("down")
         wrapper = MwClientPage("Old", site)
         result = wrapper.move("New")
-        assert result["success"] is False
+        assert result.success is False
 
     def test_move_talk_and_no_redirect_forwarded(self):
         wrapper, mock_page = _mwclient_page(exists=True)
@@ -347,14 +347,14 @@ class TestMove:
         wrapper, mock_page = _mwclient_page()
         mock_page.move.side_effect = mwclient.errors.ProtectedPageError(MagicMock(), "protectedpage", "Protected")
         result = wrapper.move("T")
-        assert result["success"] is False
-        assert result["error"] == "protectedpageerror"
+        assert result.success is False
+        assert result.error == "protectedpageerror"
 
     def test_move_page_alias(self):
         wrapper, mock_page = _mwclient_page(exists=True)
         mock_page.move.return_value = {}
         result = wrapper.move_page("New Title", reason="r")
-        assert result["success"] is True
+        assert result.success is True
 
 
 # ---------------------------------------------------------------------------
@@ -429,7 +429,7 @@ class TestWithRetry:
 
         result = wrapper.edit("content", "summary")
 
-        assert result["success"] is True
+        assert result.success is True
         assert mock_page.edit.call_count == 2
         mock_sleep.assert_called_once_with(5)
 
@@ -443,7 +443,7 @@ class TestWithRetry:
 
         result = wrapper.move("New Title")
 
-        assert result["success"] is True
+        assert result.success is True
         assert mock_page.move.call_count == 2
 
 
@@ -462,13 +462,13 @@ class TestEditPageInternal:
 
         result = wrapper.edit("content", "summary")
 
-        assert result["success"] is True
+        assert result.success is True
 
     def test_user_blocked_returns_failure(self):
         wrapper, mock_page = _mwclient_page()
         mock_page.edit.side_effect = mwclient.errors.UserBlocked(MagicMock(), "blocked", "You are blocked")
         result = wrapper.edit("content", "summary")
-        assert result == {"success": False, "error": "userblocked"}
+        assert result == EditPageResult(success=False, error="userblocked")
 
 
 # ---------------------------------------------------------------------------
@@ -483,11 +483,11 @@ class TestMovePageInternal:
 
         result = wrapper.move("New Title")
 
-        assert result["success"] is True
+        assert result.success is True
 
     def test_unknown_exception_returns_failure(self):
         wrapper, mock_page = _mwclient_page(exists=True)
         mock_page.move.side_effect = RuntimeError("unexpected move error")
         result = wrapper.move("New Title")
-        assert result["success"] is False
-        assert "unexpected move error" in result["error"]
+        assert result.success is False
+        assert "unexpected move error" in result.error

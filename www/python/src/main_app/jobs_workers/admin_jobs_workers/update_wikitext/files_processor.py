@@ -132,16 +132,16 @@ class UpdateWikiTextProcessor:
             summary=summary,
         )
 
-        if res["success"]:
+        if res.success:
             info.steps.save_page = OneStep(
                 result=True,
                 msg=f"Updated page: {info.title}",
-                newrevid=res.get("newrevid", 0),
+                newrevid=res.newrevid,
             )
             info.status = "updated"
             return True
 
-        err = res.get("error", "Unknown error")
+        err = res.error or "Unknown error"
         self._fail(info, info.steps.save_page, err)
         return False
 

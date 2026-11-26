@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, call
 import mwclient.errors
 import pytest
 from src.main_app.api_services.mwclient_page import MwClientPage
-from src.main_app.api_services.mwclient_page.mwclient_wraper import _RETRY_DELAYS
+from src.main_app.api_services.mwclient_page.mwclient_wraper import _RETRY_DELAYS, EditPageResult
 
 
 @pytest.fixture(autouse=True)
@@ -130,14 +130,14 @@ class TestEditPage:
     def test_load_page_fails_invalid_title(self, mw_client, mock_site):
         mock_site.pages.__getitem__.side_effect = mwclient.errors.InvalidPageTitle("bad")
         result = mw_client.edit_page("text", "summary")
-        assert result["success"] is False
-        assert result["error"] == "invalidpagetitle"
+        assert result.success is False
+        assert result.error == "invalidpagetitle"
 
     def test_load_page_fails_generic(self, mw_client, mock_site):
         mock_site.pages.__getitem__.side_effect = Exception("network error")
         result = mw_client.edit_page("text", "summary")
-        assert result["success"] is False
-        assert result["error"] == "network error"
+        assert result.success is False
+        assert result.error == "network error"
 
 
 class TestEditPageRateLimit:
@@ -155,7 +155,7 @@ class TestEditPageRateLimit:
             None,  # second attempt succeeds
         ]
         result = mw_client.edit_page("text", "summary")
-        assert result == {"success": True}
+        assert result == EditPageResult(success=True)
         mock_sleep.assert_called_once_with(5)  # first delay only
 
     def test_ratelimited_exhausts_all_retries(self, mock_sleep, mw_client, mock_site, mock_exists_page):
@@ -164,7 +164,7 @@ class TestEditPageRateLimit:
         # always rate limited: 1 initial + 3 retries = 4 calls total
         mock_exists_page.edit.side_effect = rate_exc
         result = mw_client.edit_page("text", "summary")
-        assert result == {"success": False, "error": "ratelimited"}
+        assert result == EditPageResult(success=False, error="ratelimited")
         # 1 initial attempt + len(_RETRY_DELAYS) retries
         assert mock_exists_page.edit.call_count == 1 + len(_RETRY_DELAYS)
 
@@ -179,16 +179,16 @@ class TestEditPageRateLimit:
         # rate limited first, then a different API error
         mock_exists_page.edit.side_effect = [rate_exc, other_exc]
         result = mw_client.edit_page("text", "summary")
-        assert result["success"] is False
-        assert result["error"] == "badtoken"
+        assert result.success is False
+        assert result.error == "badtoken"
         mock_sleep.assert_called_once_with(5)
 
     def test_edit_error_no_retry(self, mw_client, mock_site, mock_exists_page):
         mock_site.pages.__getitem__.return_value = mock_exists_page
         mock_exists_page.edit.side_effect = mwclient.errors.EditError(mock_exists_page, {})
         result = mw_client.edit_page("text", "summary")
-        assert result["success"] is False
-        assert result["error"] == "editerror"
+        assert result.success is False
+        assert result.error == "editerror"
         mock_exists_page.edit.assert_called_once()  # no retry on EditError
 
     def test_retry_sleep_delays_are_correct(self, mock_sleep, mw_client, mock_site, mock_exists_page):
@@ -354,8 +354,8 @@ class TestEditPageProtectedErrors:
         mock_site.pages.__getitem__.return_value = mock_exists_page
         mock_exists_page.edit.side_effect = mock_protected_page
         result = mw_client.edit_page("text", "summary")
-        assert result["success"] is False
-        assert result["error"] == "protectedpageerror"
+        assert result.success is False
+        assert result.error == "protectedpageerror"
         mock_exists_page.edit.assert_called_once()  # no retry on ProtectedPageError
 
     def test_ratelimited_then_protected(self, mock_protected_page, mw_client, mock_site, mock_exists_page):
@@ -366,6 +366,6 @@ class TestEditPageProtectedErrors:
             mock_protected_page,
         ]
         result = mw_client.edit_page("text", "summary")
-        assert result["success"] is False
-        assert result["error"] == "protectedpageerror"
+        assert result.success is False
+        assert result.error == "protectedpageerror"
         assert mock_exists_page.edit.call_count == 2

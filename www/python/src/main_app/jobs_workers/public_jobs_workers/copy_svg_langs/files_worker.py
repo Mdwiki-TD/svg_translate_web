@@ -452,18 +452,18 @@ class OneFileProcessor:
         summary = f"Insert Svg lang ({','.join(langs)})"
         res = page.edit(new_wikitext, summary=summary)
 
-        if res.get("success"):
+        if res.success:
             step._update(
                 result=True,
                 msg=f"Updated page: {file_title}",
-                details={"summary": summary, "langs": langs, "newrevid": res.get("newrevid", 0)},
+                details={"summary": summary, "langs": langs, "newrevid": res.newrevid},
             )
             return True
 
         step._update(
             result=False,
             msg="Failed to save page",
-            details={"error": res.get("error", "Unknown error"), "summary": summary, "langs": langs},
+            details={"error": res.error or "Unknown error", "summary": summary, "langs": langs},
         )
         return False
 

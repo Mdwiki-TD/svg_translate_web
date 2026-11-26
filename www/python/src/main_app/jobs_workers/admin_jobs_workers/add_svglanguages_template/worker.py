@@ -138,15 +138,15 @@ class AddSvgSVGLanguagesTemplate(BaseObjectsJobWorker[AddSvgLanguagesWorkerObjec
             summary=f"Adding {info._template_text}",
         )
 
-        if update_result["success"]:
+        if update_result.success:
             info.steps.save_new_text = OneStep(
                 result=True,
                 msg="Template page updated.",
-                newrevid=update_result.get("newrevid", 0),
+                newrevid=update_result.newrevid,
             )
             return True
 
-        err = update_result.get("error", "Unknown error")
+        err = update_result.error or "Unknown error"
         self._fail(info, info.steps.save_new_text, err)
         return False
 
