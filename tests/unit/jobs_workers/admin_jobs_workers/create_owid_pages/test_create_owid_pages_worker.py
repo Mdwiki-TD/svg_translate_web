@@ -6,6 +6,7 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
+from src.main_app.api_services.mwclient_page.mwclient_wraper import EditPageResult
 from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.create_owid_pages.objects import OneStep
@@ -437,7 +438,7 @@ class TestUpdateStep:
     def test_step_update_page_different_content(self, mock_owid_pages_services):
         """Test _step_update when page has different content."""
         mock_owid_pages_services["MwClientPage"].return_value.get_text.return_value = "Old content"
-        mock_owid_pages_services["page_instance"].edit.return_value = {"success": True}
+        mock_owid_pages_services["page_instance"].edit.return_value = EditPageResult(success=True)
 
         worker = CreateOwidPagesWorker(
             JobsRunner(
@@ -458,7 +459,7 @@ class TestUpdateStep:
     def test_step_update_update_fails(self, mock_owid_pages_services):
         """Test _step_update when update fails."""
         mock_owid_pages_services["MwClientPage"].return_value.get_text.return_value = "Old content"
-        mock_owid_pages_services["page_instance"].edit.return_value = {"success": False, "error": "Edit conflict"}
+        mock_owid_pages_services["page_instance"].edit.return_value = EditPageResult(success=False, error="Edit conflict")
 
         worker = CreateOwidPagesWorker(
             JobsRunner(
@@ -479,7 +480,7 @@ class TestUpdateStep:
 class TestCreateNewPageStep:
     def test_step_create_new_page_success(self, mock_owid_pages_services, mock_site):
         """Test _step_create_new_page with successful creation."""
-        mock_owid_pages_services["page_instance"].create.return_value = {"success": True}
+        mock_owid_pages_services["page_instance"].create.return_value = EditPageResult(success=True)
 
         worker = CreateOwidPagesWorker(
             JobsRunner(
@@ -504,7 +505,7 @@ class TestCreateNewPageStep:
 
     def test_step_create_new_page_failure(self, mock_owid_pages_services):
         """Test _step_create_new_page when creation fails."""
-        mock_owid_pages_services["page_instance"].create.return_value = {"success": False, "error": "Permission denied"}
+        mock_owid_pages_services["page_instance"].create.return_value = EditPageResult(success=False, error="Permission denied")
 
         worker = CreateOwidPagesWorker(
             JobsRunner(
@@ -622,7 +623,7 @@ class TestCreateOwidPagesWorkerProcess:
         mock_owid_pages_services["MwClientPage"].return_value.get_text.return_value = "Template content"
         mock_owid_pages_services["create_new_text"].return_value = "New OWID content"
         mock_owid_pages_services["page_instance"].exists.return_value = False
-        mock_owid_pages_services["page_instance"].create.return_value = {"success": True}
+        mock_owid_pages_services["page_instance"].create.return_value = EditPageResult(success=True)
 
         worker = CreateOwidPagesWorker(
             JobsRunner(
@@ -677,7 +678,7 @@ class TestCreateOwidPagesWorkerProcess:
             else:
                 instance.get_text.return_value = f"Content for {title}"
             instance.exists.return_value = False
-            instance.create.return_value = {"success": True}
+            instance.create.return_value = EditPageResult(success=True)
             return instance
 
         mock_owid_pages_services["MwClientPage"].side_effect = _mwclientpage_side_effect
@@ -709,7 +710,7 @@ class TestCreateOwidPagesWorkerProcess:
         mock_owid_pages_services["MwClientPage"].return_value.get_text.return_value = "Template content"
         mock_owid_pages_services["create_new_text"].return_value = "New OWID content"
         mock_owid_pages_services["page_instance"].exists.return_value = False
-        mock_owid_pages_services["page_instance"].create.return_value = {"success": True}
+        mock_owid_pages_services["page_instance"].create.return_value = EditPageResult(success=True)
         mock_owid_pages_services["is_job_cancelled"].return_value = True
 
         worker = CreateOwidPagesWorker(

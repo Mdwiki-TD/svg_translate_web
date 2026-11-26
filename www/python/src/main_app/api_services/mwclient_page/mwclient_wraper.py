@@ -21,14 +21,14 @@ _RETRY_DELAYS = (5, 15, 30)  # wait time in seconds between retry attempts
 
 
 @dataclass
-class EditPageResult:
+class MwClientResult:
     success: bool
     error: str | None = None
     newrevid: int = 0
     details: str | None = None
 
     @classmethod
-    def load(cls, data: dict[str, Any]) -> EditPageResult:
+    def load(cls, data: dict[str, Any]) -> MwClientResult:
         return cls(
             success=data.get("success", False),
             error=data.get("error"),
@@ -38,20 +38,13 @@ class EditPageResult:
 
 
 @dataclass
-class MovePageResult:
-    success: bool
-    error: str | None = None
-    newrevid: int = 0
-    details: str | None = None
+class EditPageResult(MwClientResult):
+    """Result of editing a page."""
 
-    @classmethod
-    def load(cls, data: dict[str, Any]) -> MovePageResult:
-        return cls(
-            success=data.get("success", False),
-            error=data.get("error"),
-            newrevid=data.get("newrevid", 0),
-            details=data.get("details"),
-        )
+
+@dataclass
+class MovePageResult(MwClientResult):
+    """Result of moving a page."""
 
 
 class MwClientPage:

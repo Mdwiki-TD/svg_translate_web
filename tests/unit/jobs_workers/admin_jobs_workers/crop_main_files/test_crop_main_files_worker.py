@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+from src.main_app.api_services.mwclient_page.mwclient_wraper import EditPageResult
 from src.main_app.database.models import TemplateRecord
 from src.main_app.jobs.objects import JobsRunner
 from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.worker import (
@@ -628,7 +629,7 @@ class TestCropMainFilesProcessorSteps:
         """Test _step_update_original when update is performed."""
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
         mock_crop_services["update_original_file_text"].return_value = "Updated file text"
-        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = EditPageResult(success=True)
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -654,7 +655,7 @@ class TestCropMainFilesProcessorSteps:
         """Test _step_update_original when update fails."""
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
         mock_crop_services["update_original_file_text"].return_value = "Updated file text"
-        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": False, "error": "Edit conflict"}
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = EditPageResult(success=False, error="Edit conflict")
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -712,7 +713,7 @@ class TestCropMainFilesProcessorSteps:
         """Test that changed cropped-file text is saved to Commons."""
         citation = "Food and Agriculture Organization of the United Nations (2025) – with major processing by Our World in Data"
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Cropped file text"
-        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True, "newrevid": 42}
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = EditPageResult(success=True, newrevid=42)
         mock_crop_services["update_information_author"].side_effect = None
         mock_crop_services["update_information_author"].return_value = "Updated cropped file text"
         mock_crop_services["charts_and_tmps_service"].get_author_citation.return_value = citation
@@ -745,7 +746,7 @@ class TestCropMainFilesProcessorSteps:
     def test_step_update_cropped_edit_failure(self, mock_crop_services):
         """Test that a failed cropped-file edit is recorded in the final step."""
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Cropped file text"
-        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": False, "error": "Edit conflict"}
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = EditPageResult(success=False, error="Edit conflict")
         mock_crop_services["update_information_author"].side_effect = None
         mock_crop_services["update_information_author"].return_value = "Updated cropped file text"
         mock_crop_services["charts_and_tmps_service"].get_author_citation.return_value = "Stored citation"
@@ -805,7 +806,7 @@ class TestCropMainFilesProcessorSteps:
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Some text"
         mock_crop_services["MwClientPage"].return_value.exists.return_value = True
         mock_crop_services["update_template_page_file_reference"].return_value = "Updated text"
-        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = EditPageResult(success=True)
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -941,10 +942,10 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_crop_services["get_user_site"].return_value = _site
         mock_crop_services["MwClientPage"].return_value.exists.return_value = True
         mock_crop_services["update_original_file_text"].return_value = "Updated original"
-        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = EditPageResult(success=True)
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Some text"
         mock_crop_services["update_template_page_file_reference"].return_value = "Updated text"
-        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = EditPageResult(success=True)
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -984,7 +985,7 @@ class TestCropMainFilesProcessorProcessTemplate:
         mock_crop_services["update_original_file_text"].return_value = "Updated original"
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Template text"
         mock_crop_services["update_template_page_file_reference"].return_value = "Updated template"
-        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = EditPageResult(success=True)
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -1067,7 +1068,7 @@ class TestCropMainFilesProcessorRun:
         mock_crop_services["update_original_file_text"].return_value = "Updated original"
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Template text"
         mock_crop_services["update_template_page_file_reference"].return_value = "Updated template"
-        mock_crop_services["MwClientPage"].return_value.edit.return_value = {"success": True}
+        mock_crop_services["MwClientPage"].return_value.edit.return_value = EditPageResult(success=True)
 
         processor = CropMainFilesWorker(
             JobsRunner(

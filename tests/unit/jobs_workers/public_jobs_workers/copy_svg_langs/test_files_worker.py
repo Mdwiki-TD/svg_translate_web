@@ -10,6 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.main_app.api_services.files_service import DownloadAndSaveData, FileLanguagesMap, UploadResult
+from src.main_app.api_services.mwclient_page.mwclient_wraper import EditPageResult
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs import (
     FilesProcessedItem,
     OneFileProcessor,
@@ -40,7 +41,7 @@ def mock_deps(tmp_path) -> MagicMock:
     # MediaWiki page mock setup
     mw_page = MagicMock()
     mw_page.get_text.return_value = "{{Information\n|other versions={{Svg lang|en}}\n}}"
-    mw_page.edit.return_value = {"success": True, "newrevid": 999}
+    mw_page.edit.return_value = EditPageResult(success=True, newrevid=999)
 
     mw_client_page = MagicMock()
     mw_client_page.return_value = mw_page
@@ -358,7 +359,7 @@ class TestUpdateLangsStep:
         mock_deps,
     ):
         self._prepare_upload_success(mock_deps)
-        mock_deps.mw_page.edit.return_value = {"success": False, "error": "ratelimited"}
+        mock_deps.mw_page.edit.return_value = EditPageResult(success=False, error="ratelimited")
         title_info = FilesProcessedItem(title="File:Test.svg")
 
         result = files_processor.process_one_item(title_info, "File:Main.svg")
