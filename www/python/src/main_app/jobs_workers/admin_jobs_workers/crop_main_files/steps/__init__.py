@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from .crop_file import crop_svg_file
+from .crop_file import SvgCropper
 from .download import download_file_for_cropping
 from .upload import upload_cropped_file
 
@@ -56,11 +56,11 @@ class CropMainFilesSteps:
         return f"File:{new_filename}"
 
     @staticmethod
-    def crop_svg_file(
+    def crop(
         file_path: Path,
         cropped_output_path: Path,
     ) -> dict[str, Any]:
-        return crop_svg_file(
+        return SvgCropper().crop(
             file_path=file_path,
             cropped_output_path=cropped_output_path,
         )

@@ -13,14 +13,28 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class MwClientError:
+class MwClientWrapperError:
     error: str
     details: str
     success: bool = False
     newrevid: int = 0
 
     @classmethod
-    def load(cls, data: dict[str, Any]) -> MwClientError:
+    def load(cls, data: dict[str, Any]) -> MwClientWrapperError:
+        return cls(
+            error=data.get("error", ""),
+            details=data.get("details", ""),
+        )
+
+    @classmethod
+    def from_exc(cls, exc: Exception) -> MwClientWrapperError:
+        data = handle_mwclient_error(exc)
+        if data is None:
+            return cls(
+                error="unknownerror",
+                details=str(exc),
+            )
+
         return cls(
             error=data.get("error", ""),
             details=data.get("details", ""),

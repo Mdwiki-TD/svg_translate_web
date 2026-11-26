@@ -5,7 +5,9 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from unittest.mock import patch
 
-from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps import crop_file
+from src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.crop_file import (
+    SvgCropper,
+)
 
 
 def create_test_svg(include_footer: bool = True) -> str:
@@ -30,7 +32,7 @@ def test_get_max_y_of_element_with_rect():
     svg = '<rect x="10" y="20" width="50" height="30" />'
     element = ET.fromstring(svg)
 
-    max_y = crop_file.get_max_y_of_element(element)
+    max_y = SvgCropper.get_max_y_of_element(element)
 
     assert max_y == 50.0  # y(20) + height(30)
 
@@ -40,7 +42,7 @@ def test_get_max_y_of_element_with_circle():
     svg = '<circle cx="100" cy="150" r="25" />'
     element = ET.fromstring(svg)
 
-    max_y = crop_file.get_max_y_of_element(element)
+    max_y = SvgCropper.get_max_y_of_element(element)
 
     assert max_y == 150.0  # cy value
 
@@ -50,7 +52,7 @@ def test_get_max_y_of_element_with_no_y_attrs():
     svg = '<rect x="10" width="50" height="30" />'
     element = ET.fromstring(svg)
 
-    max_y = crop_file.get_max_y_of_element(element)
+    max_y = SvgCropper.get_max_y_of_element(element)
 
     assert max_y == 0.0
 
@@ -60,7 +62,7 @@ def test_get_max_y_of_element_with_units():
     svg = '<rect x="10" y="20px" width="50" height="30px" />'
     element = ET.fromstring(svg)
 
-    max_y = crop_file.get_max_y_of_element(element)
+    max_y = SvgCropper.get_max_y_of_element(element)
 
     assert max_y == 50.0  # Should strip 'px' and calculate correctly
 
@@ -70,7 +72,7 @@ def test_get_max_y_of_element_with_invalid_values():
     svg = '<rect x="10" y="invalid" width="50" height="abc" />'
     element = ET.fromstring(svg)
 
-    max_y = crop_file.get_max_y_of_element(element)
+    max_y = SvgCropper.get_max_y_of_element(element)
 
     assert max_y == 0.0  # Should handle invalid values gracefully
 
@@ -80,7 +82,7 @@ def test_get_max_y_of_element_with_negative_values():
     svg = '<rect x="10" y="-20" width="50" height="30" />'
     element = ET.fromstring(svg)
 
-    max_y = crop_file.get_max_y_of_element(element)
+    max_y = SvgCropper.get_max_y_of_element(element)
 
     assert max_y == 10.0  # y(-20) + height(30)
 
@@ -91,7 +93,7 @@ def test_remove_footer_and_adjust_height_success(tmp_path):
     output_path = tmp_path / "output.svg"
     input_path.write_text(create_test_svg(include_footer=True))
 
-    result = crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path))
+    result = SvgCropper().remove_footer_and_adjust_height(str(input_path), str(output_path))
 
     assert result is True
     assert output_path.exists()
@@ -111,7 +113,7 @@ def test_remove_footer_and_adjust_height_updates_viewbox(tmp_path):
     output_path = tmp_path / "output.svg"
     input_path.write_text(create_test_svg(include_footer=True))
 
-    crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path), padding=20.0)
+    SvgCropper().remove_footer_and_adjust_height(str(input_path), str(output_path), padding=20.0)
 
     tree = ET.parse(output_path)
     root = tree.getroot()
@@ -133,7 +135,7 @@ def test_remove_footer_and_adjust_height_no_footer(tmp_path):
     output_path = tmp_path / "output.svg"
     input_path.write_text(create_test_svg(include_footer=False))
 
-    result = crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path))
+    result = SvgCropper().remove_footer_and_adjust_height(str(input_path), str(output_path))
 
     assert result is False
     # Output file should still not exist when footer not found
@@ -156,7 +158,7 @@ def test_remove_footer_and_adjust_height_custom_footer_id(tmp_path):
     ]
     input_path.write_text("\n".join(svg_content))
 
-    result = crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path), footer_id="custom_footer")
+    result = SvgCropper().remove_footer_and_adjust_height(str(input_path), str(output_path), footer_id="custom_footer")
 
     assert result is True
     assert output_path.exists()
@@ -168,7 +170,7 @@ def test_remove_footer_and_adjust_height_custom_padding(tmp_path):
     output_path = tmp_path / "output.svg"
     input_path.write_text(create_test_svg(include_footer=True))
 
-    crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path), padding=50.0)
+    SvgCropper().remove_footer_and_adjust_height(str(input_path), str(output_path), padding=50.0)
 
     tree = ET.parse(output_path)
     root = tree.getroot()
@@ -199,7 +201,7 @@ def test_remove_footer_removes_siblings_after_footer(tmp_path):
     ]
     input_path.write_text("\n".join(svg_content))
 
-    crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path))
+    SvgCropper().remove_footer_and_adjust_height(str(input_path), str(output_path))
 
     tree = ET.parse(output_path)
     root = tree.getroot()
@@ -215,7 +217,7 @@ def test_crop_svg_file_success(tmp_path):
     cropped_output_path = tmp_path / "test_cropped.svg"
     file_path.write_text(create_test_svg(include_footer=True))
 
-    result = crop_file.crop_svg_file(file_path, cropped_output_path)
+    result = SvgCropper().crop(file_path, cropped_output_path)
 
     assert result["success"] is True
     assert result["error"] is None
@@ -228,7 +230,7 @@ def test_crop_svg_file_no_footer(tmp_path):
     cropped_output_path = tmp_path / "test_cropped.svg"
     file_path.write_text(create_test_svg(include_footer=False))
 
-    result = crop_file.crop_svg_file(file_path, cropped_output_path)
+    result = SvgCropper().crop(file_path, cropped_output_path)
 
     assert result["success"] is False
     assert result["error"] == "No footer element found in SVG"
@@ -240,7 +242,7 @@ def test_crop_svg_file_invalid_input(tmp_path):
     cropped_output_path = tmp_path / "test_cropped.svg"
     file_path.write_text("This is not valid XML")
 
-    result = crop_file.crop_svg_file(file_path, cropped_output_path)
+    result = SvgCropper().crop(file_path, cropped_output_path)
 
     assert result["success"] is False
     assert result["error"] is not None
@@ -251,7 +253,7 @@ def test_crop_svg_file_file_not_found(tmp_path):
     file_path = tmp_path / "nonexistent.svg"
     cropped_output_path = tmp_path / "test_cropped.svg"
 
-    result = crop_file.crop_svg_file(file_path, cropped_output_path)
+    result = SvgCropper().crop(file_path, cropped_output_path)
 
     assert result["success"] is False
     assert result["error"] is not None
@@ -265,11 +267,11 @@ def test_crop_svg_file_exception_handling(tmp_path):
 
     # Mock remove_footer_and_adjust_height to raise an exception
     with patch(
-        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.crop_file.remove_footer_and_adjust_height"
+        "src.main_app.jobs_workers.admin_jobs_workers.crop_main_files.steps.crop_file.SvgCropper.remove_footer_and_adjust_height"
     ) as mock_remove:
         mock_remove.side_effect = Exception("Test exception")
 
-        result = crop_file.crop_svg_file(file_path, cropped_output_path)
+        result = SvgCropper().crop(file_path, cropped_output_path)
 
         assert result["success"] is False
         assert "Test exception" in result["error"]
@@ -283,7 +285,7 @@ def test_crop_svg_file_permission_error(tmp_path):
     # Try to write to a directory as if it were a file
     cropped_output_path = tmp_path
 
-    result = crop_file.crop_svg_file(file_path, cropped_output_path)
+    result = SvgCropper().crop(file_path, cropped_output_path)
 
     assert result["success"] is False
     assert result["error"] is not None
@@ -305,7 +307,7 @@ def test_remove_footer_preserves_namespaces(tmp_path):
     ]
     input_path.write_text("\n".join(svg_content))
 
-    crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path))
+    SvgCropper().remove_footer_and_adjust_height(str(input_path), str(output_path))
 
     # Read output and verify namespaces are present
     output_content = output_path.read_text()
@@ -336,7 +338,7 @@ def test_crop_svg_with_complex_nested_elements(tmp_path):
     ]
     input_path.write_text("\n".join(svg_content))
 
-    result = crop_file.remove_footer_and_adjust_height(str(input_path), str(output_path))
+    result = SvgCropper().remove_footer_and_adjust_height(str(input_path), str(output_path))
 
     assert result is True
 
@@ -353,7 +355,7 @@ def test_get_max_y_with_line_elements():
     svg = '<line x1="10" y1="20" x2="100" y2="150" />'
     element = ET.fromstring(svg)
 
-    max_y = crop_file.get_max_y_of_element(element)
+    max_y = SvgCropper.get_max_y_of_element(element)
 
     # Should get y2 value
     assert max_y == 150.0
@@ -365,7 +367,7 @@ def test_crop_svg_file_output_is_valid_xml(tmp_path):
     cropped_output_path = tmp_path / "test_cropped.svg"
     file_path.write_text(create_test_svg(include_footer=True))
 
-    crop_file.crop_svg_file(file_path, cropped_output_path)
+    SvgCropper().crop(file_path, cropped_output_path)
 
     # Should be able to parse the output without errors
     tree = ET.parse(cropped_output_path)

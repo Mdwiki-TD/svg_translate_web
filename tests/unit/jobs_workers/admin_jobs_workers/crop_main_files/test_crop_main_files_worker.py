@@ -28,7 +28,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
     mocks = {
         "charts_and_tmps_service": MagicMock(),
         "create_cropped_file_text": MagicMock(return_value="Cropped file wikitext"),
-        "crop_svg_file": MagicMock(),
+        "crop": MagicMock(),
         "download_file_for_cropping": MagicMock(),
         "get_user_site": mock_base_worker["get_user_site"],
         "is_job_cancelled": MagicMock(return_value=False),
@@ -45,7 +45,7 @@ def mock_crop_services(monkeypatch: pytest.MonkeyPatch, tmp_path, mock_base_work
 
     CropMainFilesSteps = MagicMock()
     CropMainFilesSteps.upload_cropped_file = MagicMock()
-    CropMainFilesSteps.crop_svg_file = MagicMock()
+    CropMainFilesSteps.crop = MagicMock()
     CropMainFilesSteps.download_file_for_cropping = MagicMock()
 
     mocks["CropMainFilesSteps"] = MagicMock(return_value=CropMainFilesSteps)
@@ -427,7 +427,7 @@ class TestCropMainFilesProcessorSteps:
 
     def test_step_crop_success(self, mock_crop_services, tmp_path):
         """Test _step_crop with successful crop."""
-        mock_crop_services["CropMainFilesSteps"].crop_svg_file.return_value = {"success": True}
+        mock_crop_services["CropMainFilesSteps"].crop.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -454,7 +454,7 @@ class TestCropMainFilesProcessorSteps:
 
     def test_step_crop_failure(self, mock_crop_services, tmp_path):
         """Test _step_crop when crop fails."""
-        mock_crop_services["CropMainFilesSteps"].crop_svg_file.return_value = {"success": False, "error": "Invalid SVG"}
+        mock_crop_services["CropMainFilesSteps"].crop.return_value = {"success": False, "error": "Invalid SVG"}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -979,7 +979,7 @@ class TestCropMainFilesProcessorProcessTemplate:
             "success": True,
             "path": str(tmp_path / "test.svg"),
         }
-        mock_crop_services["CropMainFilesSteps"].crop_svg_file.return_value = {"success": True}
+        mock_crop_services["CropMainFilesSteps"].crop.return_value = {"success": True}
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Original file text"
         mock_crop_services["CropMainFilesSteps"].upload_cropped_file.return_value = {"success": True}
         mock_crop_services["update_original_file_text"].return_value = "Updated original"
@@ -1017,7 +1017,7 @@ class TestCropMainFilesProcessorProcessTemplate:
             "success": True,
             "path": str(tmp_path / "test.svg"),
         }
-        mock_crop_services["CropMainFilesSteps"].crop_svg_file.return_value = {"success": True}
+        mock_crop_services["CropMainFilesSteps"].crop.return_value = {"success": True}
 
         processor = CropMainFilesWorker(
             JobsRunner(
@@ -1063,7 +1063,7 @@ class TestCropMainFilesProcessorRun:
             "success": True,
             "path": str(tmp_path / "test.svg"),
         }
-        mock_crop_services["CropMainFilesSteps"].crop_svg_file.return_value = {"success": True}
+        mock_crop_services["CropMainFilesSteps"].crop.return_value = {"success": True}
         mock_crop_services["CropMainFilesSteps"].upload_cropped_file.return_value = {"success": True}
         mock_crop_services["update_original_file_text"].return_value = "Updated original"
         mock_crop_services["MwClientPage"].return_value.get_text.return_value = "Template text"

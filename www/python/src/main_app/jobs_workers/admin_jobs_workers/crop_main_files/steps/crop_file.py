@@ -28,9 +28,41 @@ class SvgCropper:
         self.footer_id = footer_id
         self.padding = padding
 
-    def _get_max_y_of_element(self, element) -> float:
-        """Calculate max Y boundary of an element."""
-        return get_max_y_of_element(element)
+    @staticmethod
+    def get_max_y_of_element(element) -> float:
+        """
+        Get the maximum y+height value from an SVG element and all its descendants.
+        Used to calculate the actual bottom edge of the remaining content.
+        """
+        max_y = 0.0
+
+        y_attrs = [element.get("y"), element.get("y1"), element.get("y2"), element.get("cy")]
+        for y_val in y_attrs:
+            if y_val:
+                # Extract only numbers in case there are strings like "px" attached.
+                # Using pre-compiled _NUM_RE provides ~40-50% speedup per regex match over re.search.
+                y_match = _NUM_RE.search(y_val)
+                if y_match is None:
+                    continue
+                try:
+                    y_val = float(y_match.group())
+                except (ValueError, TypeError):
+                    continue
+
+                # If the element has a height (like rect), add it to Y
+                height_val = element.get("height")
+                h_num = 0.0
+                if height_val:
+                    h_match = _HEIGHT_RE.search(height_val)
+                    if h_match is not None:
+                        try:
+                            h_num = float(h_match.group())
+                        except (ValueError, TypeError):
+                            h_num = 0.0
+
+                # Update the maximum Y-axis value
+                max_y = max(max_y, y_val + h_num)
+        return max_y
 
     def _remove_footer_and_adjust_height(
         self,
@@ -38,165 +70,121 @@ class SvgCropper:
         cropped_path: Path,
     ) -> bool:
         """Remove footer and adjust height."""
-        return remove_footer_and_adjust_height(input_path, cropped_path, self.footer_id, self.padding)
+        return self.remove_footer_and_adjust_height(input_path, cropped_path, self.footer_id, self.padding)
+
+    def remove_footer_and_adjust_height(
+        self,
+        input_path: Path | str,
+        cropped_path: Path | str,
+        footer_id: str = "footer",
+        padding: float = 10.0,
+    ) -> bool:
+        """Remove footer and adjust height."""
+        # 1. Register the SVG namespace to avoid modifying/corrupting the tags
+        namespace = "http://www.w3.org/2000/svg"
+        ET.register_namespace("", namespace)
+        ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
+
+        # Parse the SVG file
+        tree = ET.parse(input_path)
+        root = tree.getroot()
+
+        old_height = root.get("height", "?")
+
+        # 2. Find and remove the footer element
+        footer_removed = False
+        for svg_element in root.iter():
+            if footer_removed:
+                break
+
+            children = list(svg_element)
+            for index, child in enumerate(children):
+                if child.get("id", "") == footer_id:
+                    # Found the footer!
+                    # Now remove the footer and ALL sibling elements that come after it
+                    elements_to_remove = children[index:]
+                    for svg_child_element in elements_to_remove:
+                        svg_element.remove(svg_child_element)
+
+                    footer_removed = True
+                    break
+
+        if not footer_removed:
+            logger.info("No <g id='%s'> found in the file.", footer_id)
+            return False
+
+        # 3. Calculate the new height based on the REMAINING elements
+        content_max_y = 0.0
+
+        # Search all remaining elements for attributes that define their vertical position
+        for child in root.iter():
+            y = self.get_max_y_of_element(child)
+            # Update the maximum Y-axis value
+            content_max_y = max(content_max_y, y)
+
+        logger.info("Max y in remaining content: %.2f", content_max_y)
+
+        # New height = max y of content + padding
+        # Alternatively, use the footer's top position directly: new_height = footer_min_y
+        # Add a bottom margin (padding) to keep it visually appealing
+        # new_height = math.ceil(content_max_y + padding)
+        new_height = content_max_y + padding
+
+        if content_max_y == 0.0:
+            logger.warning("No vertical extent found in remaining content; falling back to original height.")
+            # Optionally fall back to the original height or skip modification
+            return False
+
+        logger.info("New height: %.2f (padding=%.2f)", new_height, padding)
+
+        # 4. Update the viewBox and height attributes in the root <svg> tag
+        root.set("height", f"{new_height:.2f}")
+        old_viewbox = root.get("viewBox", "")
+        if old_viewbox:
+            parts = old_viewbox.split()
+            if len(parts) == 4:
+                # Update the height value in the viewBox
+                parts[3] = f"{new_height:.2f}"
+                root.set("viewBox", " ".join(parts))
+
+        logger.info("height: %s -> %.2f", old_height, new_height)
+
+        # Save the new file
+        tree.write(cropped_path, encoding="unicode", xml_declaration=False)
+
+        logger.info("Saved to: %s", cropped_path)
+        return True
 
     def crop(
         self,
         file_path: Path,
         cropped_output_path: Path,
     ) -> dict[str, Any]:
-        """Crop SVG using viewBox manipulation."""
-        return crop_svg_file(file_path, cropped_output_path)
+        """
+        Crop SVG using viewBox manipulation.
 
+        Full implementation:
+        1. Parse SVG to get current dimensions
+        2. Modify viewBox attribute to crop (or add crop transform)
+        3. Save cropped version to output path
 
-def get_max_y_of_element(element) -> float:
-    """
-    Get the maximum y+height value from an SVG element and all its descendants.
-    Used to calculate the actual bottom edge of the remaining content.
-    """
-    max_y = 0.0
+        Args:
+            file_path: Path to the SVG file to crop
+            cropped_output_path: Path where the cropped SVG should be saved
 
-    y_attrs = [element.get("y"), element.get("y1"), element.get("y2"), element.get("cy")]
-    for y_val in y_attrs:
-        if y_val:
-            # Extract only numbers in case there are strings like "px" attached.
-            # Using pre-compiled _NUM_RE provides ~40-50% speedup per regex match over re.search.
-            y_match = _NUM_RE.search(y_val)
-            if y_match is None:
-                continue
-            try:
-                y_val = float(y_match.group())
-            except (ValueError, TypeError):
-                continue
+        Returns:
+            dict with keys: success (bool), error (str|None)
+        """
+        try:
+            cropped = self.remove_footer_and_adjust_height(file_path, cropped_output_path)
 
-            # If the element has a height (like rect), add it to Y
-            height_val = element.get("height")
-            h_num = 0.0
-            if height_val:
-                h_match = _HEIGHT_RE.search(height_val)
-                if h_match is not None:
-                    try:
-                        h_num = float(h_match.group())
-                    except (ValueError, TypeError):
-                        h_num = 0.0
+        except Exception as e:
+            logger.exception("Error cropping SVG: %s", e)
+            return {"success": False, "error": str(e)}
 
-            # Update the maximum Y-axis value
-            max_y = max(max_y, y_val + h_num)
-    return max_y
-
-
-def remove_footer_and_adjust_height(
-    input_path: Path,
-    cropped_path: Path,
-    footer_id: str = "footer",
-    padding: float = 10.0,
-) -> bool:
-    # 1. Register the SVG namespace to avoid modifying/corrupting the tags
-    namespace = "http://www.w3.org/2000/svg"
-    ET.register_namespace("", namespace)
-    ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
-
-    # Parse the SVG file
-    tree = ET.parse(input_path)
-    root = tree.getroot()
-
-    old_height = root.get("height", "?")
-
-    # 2. Find and remove the footer element
-    footer_removed = False
-    for svg_element in root.iter():
-        if footer_removed:
-            break
-
-        children = list(svg_element)
-        for index, child in enumerate(children):
-            if child.get("id", "") == footer_id:
-                # Found the footer!
-                # Now remove the footer and ALL sibling elements that come after it
-                elements_to_remove = children[index:]
-                for svg_child_element in elements_to_remove:
-                    svg_element.remove(svg_child_element)
-
-                footer_removed = True
-                break
-
-    if not footer_removed:
-        logger.info("No <g id='%s'> found in the file.", footer_id)
-        return False
-
-    # 3. Calculate the new height based on the REMAINING elements
-    content_max_y = 0.0
-
-    # Search all remaining elements for attributes that define their vertical position
-    for child in root.iter():
-        y = get_max_y_of_element(child)
-        # Update the maximum Y-axis value
-        content_max_y = max(content_max_y, y)
-
-    logger.info("Max y in remaining content: %.2f", content_max_y)
-
-    # New height = max y of content + padding
-    # Alternatively, use the footer's top position directly: new_height = footer_min_y
-    # Add a bottom margin (padding) to keep it visually appealing
-    # new_height = math.ceil(content_max_y + padding)
-    new_height = content_max_y + padding
-
-    if content_max_y == 0.0:
-        logger.warning("No vertical extent found in remaining content; falling back to original height.")
-        # Optionally fall back to the original height or skip modification
-        return False
-
-    logger.info("New height: %.2f (padding=%.2f)", new_height, padding)
-
-    # 4. Update the viewBox and height attributes in the root <svg> tag
-    root.set("height", f"{new_height:.2f}")
-    old_viewbox = root.get("viewBox", "")
-    if old_viewbox:
-        parts = old_viewbox.split()
-        if len(parts) == 4:
-            # Update the height value in the viewBox
-            parts[3] = f"{new_height:.2f}"
-            root.set("viewBox", " ".join(parts))
-
-    logger.info("height: %s -> %.2f", old_height, new_height)
-
-    # Save the new file
-    tree.write(cropped_path, encoding="unicode", xml_declaration=False)
-
-    logger.info("Saved to: %s", cropped_path)
-    return True
-
-
-def crop_svg_file(
-    file_path: Path,
-    cropped_output_path: Path,
-) -> dict[str, Any]:
-    """
-    Crop SVG using viewBox manipulation.
-
-    PLACEHOLDER: This is a placeholder implementation. Full implementation will:
-    1. Parse SVG to get current dimensions
-    2. Modify viewBox attribute to crop (or add crop transform)
-    3. Save cropped version to output path
-
-    Args:
-        file_path: Path to the SVG file to crop
-        cropped_output_path: Path where the cropped SVG should be saved
-
-    Returns:
-        dict with keys: success (bool), error (str|None)
-    """
-    try:
-        cropped = remove_footer_and_adjust_height(file_path, cropped_output_path)
-
-    except Exception as e:
-        logger.exception("Error cropping SVG: %s", e)
-        return {"success": False, "error": str(e)}
-
-    return {"success": cropped, "error": None if cropped else "No footer element found in SVG"}
+        return {"success": cropped, "error": None if cropped else "No footer element found in SVG"}
 
 
 __all__ = [
     "SvgCropper",
-    "crop_svg_file",
 ]

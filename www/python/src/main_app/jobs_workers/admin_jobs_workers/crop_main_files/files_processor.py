@@ -180,7 +180,7 @@ class OneFileProcessor:
         cropped_path: Path,
     ) -> bool:
         """Crop the SVG. Returns True on success."""
-        crop_result = CropMainFilesSteps.crop_svg_file(
+        crop_result = CropMainFilesSteps.crop(
             Path(file_info.downloaded_path),  # pyright: ignore[reportArgumentType]
             cropped_path,
         )
