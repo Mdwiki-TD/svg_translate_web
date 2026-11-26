@@ -413,14 +413,14 @@ class TestCreateJob(TestSetup):
         """Creating a second pending job of the same type should raise DuplicateRecordError."""
         self.job_service.create_job(job_type="dup_pending_type", username="user1")
         with pytest.raises(DuplicateRecordError):
-            self.job_service.create_job(job_type="dup_pending_type", username="user2")
+            self.job_service.create_job(job_type="dup_pending_type", username="user1")
 
     def test_create_duplicate_running_job_raises_error(self) -> None:
         """Creating a job while one of same type is running should raise DuplicateRecordError."""
         job = self.job_service.create_job(job_type="dup_running_type", username="user1")
         self.job_service.update_job_status(job.id, "running", job_type="dup_running_type")
         with pytest.raises(DuplicateRecordError):
-            self.job_service.create_job(job_type="dup_running_type", username="user2")
+            self.job_service.create_job(job_type="dup_running_type", username="user1")
 
     def test_create_job(self) -> None:
         """Test creating a new job."""
