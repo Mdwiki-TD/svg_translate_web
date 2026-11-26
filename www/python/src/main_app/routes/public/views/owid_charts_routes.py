@@ -11,7 +11,7 @@ from flask import (
 from flask.views import MethodView
 
 from ....database.services import ChartsAndTemplatesService  # , OwidChartsService
-from ....database.services.charts_and_templates_service import ChartAndTemplate
+from ....database.services.owid.charts_and_templates_service import ChartAndTemplate
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Literal
+from typing import Literal
 
 from ....jobs.shared_objects import SharedMapToJson, SharedworkerObject
 
@@ -77,10 +77,10 @@ class RenameOwidPagesSummary(SharedMapToJson):
 @dataclass
 class RenameOwidPagesWorkerObject(SharedworkerObject):
     summary: RenameOwidPagesSummary = field(default_factory=RenameOwidPagesSummary)
-    pages_processed: list[dict[str, Any]] = field(default_factory=list)
+    pages_processed: list[RenameInfo] = field(default_factory=list)
 
-    pages_renamed: list[dict[str, Any]] = field(default_factory=list)
-    pages_redirected: list[dict[str, Any]] = field(default_factory=list)
+    pages_renamed: list[RenameInfo] = field(default_factory=list)
+    pages_redirected: list[RenameInfo] = field(default_factory=list)
 
 
 __all__ = [

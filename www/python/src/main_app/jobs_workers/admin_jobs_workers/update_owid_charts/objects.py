@@ -4,12 +4,11 @@ Objects for update_owid_charts worker.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
 
 from ....database.models import OwidChartRecord
-from ....jobs.shared_objects import STATUS_LITERAL, SharedworkerObject
+from ....jobs.shared_objects import STATUS_LITERAL, SharedMapToJson, SharedworkerObject
 
 
 @dataclass
@@ -24,7 +23,7 @@ class StepInfo:
 
 
 @dataclass
-class ChartNewInfo:
+class ChartNewInfo(SharedMapToJson):
     chart_id: int
     slug: str
     status: STATUS_LITERAL = "pending"  # updated | skipped | failed
@@ -42,9 +41,6 @@ class ChartNewInfo:
     variable_id: StepInfo = field(default_factory=StepInfo)
 
     # —————————————————————————
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
 
     @classmethod
     def from_chart(cls, chart: OwidChartRecord) -> ChartNewInfo:

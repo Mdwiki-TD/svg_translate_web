@@ -116,6 +116,7 @@ tests/
 │   │
 │   ├── config/
 │   │   ├── test_classes.py
+│   │   ├── test_config_engine_options.py
 │   │   ├── test_flask_config.py
 │   │   └── test_main_settings.py
 │   │
@@ -156,6 +157,9 @@ tests/
 │   │   │
 │   │   ├── services/
 │   │   │   │
+│   │   │   ├── config/
+│   │   │   │   └── test_settings_service.py
+│   │   │   │
 │   │   │   ├── users/
 │   │   │   │   ├── test_admin_service.py
 │   │   │   │   ├── test_user_token_service.py
@@ -170,7 +174,6 @@ tests/
 │   │   │   ├── test_jobs_service.py
 │   │   │   ├── test_owid_charts_service.py
 │   │   │   ├── test_owid_slug_redirects_service.py
-│   │   │   ├── test_settings_service.py
 │   │   │   ├── test_template_service.py
 │   │   │   └── test_views_service.py
 │   │   │
@@ -201,6 +204,7 @@ tests/
 │   │   │   ├── test_jobs_starter.py
 │   │   │   └── test_reconcile.py
 │   │   │
+│   │   ├── conftest.py
 │   │   ├── test_cli_jobs.py
 │   │   ├── test_job_executor.py
 │   │   ├── test_job_user.py
@@ -261,7 +265,6 @@ tests/
 │   │   │   ├── update_wikitext/
 │   │   │   │
 │   │   │   ├── utils/
-│   │   │   │   └── test_jobs_workers_utils.py
 │   │   │   │
 │   │   │   └── test_slugs_helpers.py
 │   │   │
@@ -286,9 +289,6 @@ tests/
 │   │   │   │
 │   │   │   └── fix_nested_jobs/
 │   │   │       └── test_fix_nested_jobs_worker.py
-│   │   │
-│   │   ├── utils/
-│   │   │   └── test_utils_init.py
 │   │   │
 │   │   ├── test_jobs_worker.py
 │   │   ├── test_shared_objects.py
@@ -416,7 +416,6 @@ tests/
 │   │   ├── test_categories_data.py
 │   │   └── test_verify.py
 │   │
-│   ├── conftest.py
 │   ├── test_app_factory.py
 │   ├── test_app_factory_regression_unit.py
 │   └── test_logging_setup.py

@@ -86,6 +86,9 @@ src/
 │   │   │
 │   │   ├── services/
 │   │   │   │
+│   │   │   ├── config/
+│   │   │   │   └── settings_service.py
+│   │   │   │
 │   │   │   ├── users/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── admin_service.py
@@ -103,7 +106,6 @@ src/
 │   │   │   ├── jobs_service.py
 │   │   │   ├── owid_charts_service.py
 │   │   │   ├── owid_slug_redirects_service.py
-│   │   │   ├── settings_service.py
 │   │   │   ├── template_service.py
 │   │   │   └── views_service.py
 │   │   │
@@ -141,10 +143,14 @@ src/
 │   │   │   └── reconcile.py
 │   │   │
 │   │   ├── __init__.py
+│   │   ├── base_worker.py
 │   │   ├── cli_jobs.py
 │   │   ├── job_executor.py
 │   │   ├── job_user.py
-│   │   └── registry.py
+│   │   ├── objects.py
+│   │   ├── registry.py
+│   │   ├── shared_objects.py
+│   │   └── utils.py
 │   │
 │   ├── jobs_workers/
 │   │   │
@@ -241,10 +247,6 @@ src/
 │   │   │   └── workers_list_public.py
 │   │   │
 │   │   ├── __init__.py
-│   │   ├── base_worker.py
-│   │   ├── objects.py
-│   │   ├── shared_objects.py
-│   │   ├── utils.py
 │   │   └── workers_lists.py
 │   │
 │   ├── parsers/
@@ -380,8 +382,7 @@ src/
 │   │   │
 │   │   ├── __init__.py
 │   │   ├── categories_data.py
-│   │   ├── verify.py
-│   │   └── wikitext.7z
+│   │   └── verify.py
 │   │
 │   ├── __init__.py
 │   ├── app_factory.py

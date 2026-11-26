@@ -5,16 +5,15 @@ Objects for fix_nested_main_files worker.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
 
 from ....database.models import TemplateRecord
-from ....jobs.shared_objects import STATUS_LITERAL, SharedworkerObject
+from ....jobs.shared_objects import STATUS_LITERAL, SharedMapToJson, SharedworkerObject
 
 
 @dataclass
-class TitleInfo:
+class TitleInfo(SharedMapToJson):
     id: int
     main_file: str
     title: str = ""
@@ -28,9 +27,6 @@ class TitleInfo:
     def _update(self, status: STATUS_LITERAL, message: str) -> None:
         self.status = status
         self.message = message
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
 
     @classmethod
     def from_template(cls, template: TemplateRecord) -> TitleInfo:

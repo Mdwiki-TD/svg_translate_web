@@ -5,9 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 from unittest.mock import MagicMock
-from flask.testing import FlaskClient
+
 import pytest
 from flask import Blueprint, Flask
+from flask.testing import FlaskClient
 from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.database.models import JobRecord
 from src.main_app.database.services import JobsService

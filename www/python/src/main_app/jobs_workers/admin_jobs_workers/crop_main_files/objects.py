@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from ....database.models import TemplateRecord
-from ....jobs.shared_objects import STATUS_LITERAL, SharedworkerObject
+from ....jobs.shared_objects import STATUS_LITERAL, SharedMapToJson, SharedworkerObject
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class FileStep:
+class FileStep(SharedMapToJson):
     result: Any = None
     msg: str = ""
     newrevid: int | None = None
@@ -26,7 +26,7 @@ class FileStep:
 
 
 @dataclass
-class CropFileSteps:
+class CropFileSteps(SharedMapToJson):
     download: FileStep = field(default_factory=FileStep)
     crop: FileStep = field(default_factory=FileStep)
     upload_cropped: FileStep = field(default_factory=FileStep)
@@ -37,7 +37,7 @@ class CropFileSteps:
 
 
 @dataclass
-class CropFileProcessingInfo:
+class CropFileProcessingInfo(SharedMapToJson):
     """Holds all state for a single file being processed."""
 
     template_id: int
@@ -51,21 +51,16 @@ class CropFileProcessingInfo:
     cropped_path: Path | None = None
     steps: CropFileSteps = field(default_factory=CropFileSteps)
 
-    def to_json(self) -> dict[str, Any]:
-        data = asdict(self)
-        for x, v in data.items():
-            if isinstance(v, Path):
-                data[x] = str(v)
-        return data
-
     @classmethod
     def from_template(cls, template: TemplateRecord) -> CropFileProcessingInfo:
-        cropped_filename = cls.generate_cropped_filename(template.last_world_file)
+        cropped_filename = cls.generate_cropped_filename(
+            template.last_world_file,  # pyright: ignore[reportArgumentType]
+        )
 
         return cls(
             template_id=template.id,
             template_title=template.title,
-            original_file=template.last_world_file,
+            original_file=template.last_world_file,  # pyright: ignore[reportArgumentType]
             cropped_filename=cropped_filename,
             timestamp=datetime.now().isoformat(),
         )
@@ -79,6 +74,9 @@ class CropFileProcessingInfo:
             "File:Death rate from obesity, World, 2021.svg"
             → "File:Death rate from obesity, World, 2021 (cropped).svg"
         """
+        if not filename:
+            return filename
+
         if filename.startswith("File:"):
             base_name = filename[5:]
         else:
