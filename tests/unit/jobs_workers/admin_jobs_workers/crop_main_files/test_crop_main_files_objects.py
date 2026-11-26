@@ -44,8 +44,8 @@ def test_crop_file_processing_info_to_json(tmp_path):
     d = info.to_json()
 
     assert d["template_id"] == 1
-    assert d["downloaded_path"] == str(tmp_path / "download.svg")
-    assert d["cropped_path"] == str(tmp_path / "crop.svg")
+    assert d["downloaded_path"] == tmp_path / "download.svg"
+    assert d["cropped_path"] == tmp_path / "crop.svg"
     assert d["steps"]["download"] == {"result": True, "msg": "Downloaded", "newrevid": None}
     assert d["steps"]["crop"] == {"result": None, "msg": "", "newrevid": None}
 

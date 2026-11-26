@@ -17,22 +17,22 @@ class TestNeedsRename:
     def test_uppercase_first_char_returns_false(self):
         info = RenameInfo(namespace=0, old_title="Template:OWID/Daily_meat_consumption", full_prefix="Template:OWID/")
         assert info.needs_rename() is False
-        assert info.new_title is None
+        assert info.new_title == ""
 
     def test_non_alpha_first_char_returns_false(self):
         info = RenameInfo(namespace=0, old_title="Template:OWID/123_data", full_prefix="Template:OWID/")
         assert info.needs_rename() is False
-        assert info.new_title is None
+        assert info.new_title == ""
 
     def test_title_not_starting_with_prefix_returns_false(self):
         info = RenameInfo(namespace=0, old_title="Template:Other/something", full_prefix="Template:OWID/")
         assert info.needs_rename() is False
-        assert info.new_title is None
+        assert info.new_title == ""
 
     def test_empty_after_prefix_returns_false(self):
         info = RenameInfo(namespace=0, old_title="Template:OWID/", full_prefix="Template:OWID/")
         assert info.needs_rename() is False
-        assert info.new_title is None
+        assert info.new_title == ""
 
     def test_main_namespace_prefix(self):
         info = RenameInfo(namespace=0, old_title="OWID/some_page", full_prefix="OWID/")
@@ -53,7 +53,7 @@ class TestRenameInfo:
         info = RenameInfo(namespace=0, old_title="Old")
         assert info.namespace == 0
         assert info.old_title == "Old"
-        assert info.new_title is None
+        assert info.new_title == ""
         assert info.status == "pending"
         assert info.msg == ""
         assert info.newrevid is None

@@ -22,9 +22,9 @@ export COMPILE_PYTHON_FILES=1
 # additional file to copy to TARGET_DIR
 export COPY_TO_TARGET="requirements.txt"
 
-TARGET_DIR="$HOME/www/python/src"
-
 export REPO_NAME="svgweb"
+
+TARGET_DIR="$HOME/www/python/src"
 
 # Execute the local deployment script directly without cloning from GitHub
 # We copy the script to ~/deploy_scripts/ first from the github action workflow, then call it

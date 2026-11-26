@@ -7,7 +7,7 @@ live in navbar.html.
 
 Usage in the template after registering via init_app(app):
 
-    {{ main_navbar.render_main_links(is_admin) }}
+    {{ main_navbar.render_main_links(is_coordinator, is_admin) }}
     {{
         main_navbar.render_user_links(current_username)
     }}
@@ -62,11 +62,14 @@ class NavigationBar:
         """)
 
     # ---------- main links (replaces nav_link / nav_link_with_args) ----------
-    def render_main_links(self, is_admin=False) -> Markup:
+    def render_main_links(self, is_coordinator=False, is_admin=False) -> Markup:
         parts = []
 
         for link in self.links:
             if link.disabled:
+                continue
+
+            if link.for_coordinators and not is_coordinator and not is_admin:
                 continue
 
             if link.for_admins and not is_admin:
@@ -129,10 +132,11 @@ class NavigationBar:
 
     def render(
         self,
+        is_coordinator=False,
         is_admin=False,
         current_username: str | None = None,
     ) -> Markup:
-        main_links = self.render_main_links(is_admin)
+        main_links = self.render_main_links(is_coordinator, is_admin)
         user_links = self.render_user_links(current_username)
 
         navbar_markup = Markup("""

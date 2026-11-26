@@ -1,6 +1,5 @@
 """"""
 
-from .wiki_clients import WikiSiteClient
 from .clients import (
     CategoryMembersService,
     CommonsSession,
@@ -9,6 +8,7 @@ from .clients import (
 from .files_service import FilesService, UploadService
 from .mwclient_page import MwClientPage
 from .query_api import MediaWikiQueryService
+from .wiki_clients import WikiSiteClient
 
 __all__ = [
     "CategoryMembersService",
