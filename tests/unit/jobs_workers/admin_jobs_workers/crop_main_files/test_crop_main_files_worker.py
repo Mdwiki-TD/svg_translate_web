@@ -231,8 +231,8 @@ class TestFileProcessingInfo:
         assert result["template_title"] == "Template:Test"
         assert result["status"] == "completed"
 
-        assert result["downloaded_path"] == str(Path(tmp_path / "test.svg"))
-        assert result["cropped_path"] == str(Path(tmp_path / "test_cropped.svg"))
+        assert result["downloaded_path"] == Path(tmp_path / "test.svg")
+        assert result["cropped_path"] == Path(tmp_path / "test_cropped.svg")
 
     def test_to_json_with_none_paths(self):
         """Test to_json with None paths."""
