@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from ...templates_markups.sidebar import Sidebar, SidebarGroup, SidebarItem
+from ...templates_markups.sidebar import Sidebar, SidebarGroup, AdminSidebarItem
 
 logger = logging.getLogger(__name__)
 
@@ -21,28 +21,28 @@ def _load_admin_tools() -> list[SidebarGroup]:
         title="Main",
         icon="bi-file-text",
         items=[
-            SidebarItem.dashboard_item(
+            AdminSidebarItem.dashboard_item(
                 "templates",
                 "Templates",
                 "bi-list-columns",
                 "admin_panel.templates.dashboard",
                 "/admin_panel/templates/",
             ),
-            SidebarItem.dashboard_item(
+            AdminSidebarItem.dashboard_item(
                 "templates_need_update",
                 "Templates Need Update",
                 "bi-arrow-repeat",
                 "admin_panel.templates.templates_need_update",
                 "/admin_panel/templates/templates-need-update",
             ),
-            SidebarItem.dashboard_item(
+            AdminSidebarItem.dashboard_item(
                 "owid_charts",
                 "OWID Charts",
                 "bi-graph-up",
                 "admin_panel.owidcharts.dashboard",
                 "/admin_panel/owidcharts/",
             ),
-            SidebarItem.dashboard_item(
+            AdminSidebarItem.dashboard_item(
                 "slug_redirects",
                 "Slug Redirects",
                 "bi-arrow-right-circle",
@@ -57,14 +57,14 @@ def _load_admin_tools() -> list[SidebarGroup]:
         title="Users",
         icon="bi-person",
         items=[
-            SidebarItem.dashboard_item(
+            AdminSidebarItem.dashboard_item(
                 "admins",
                 "Admins",
                 "bi-person-gear",
                 "admin_panel.admins.dashboard",
                 "/admin_panel/admins/",
             ),
-            SidebarItem.dashboard_item(
+            AdminSidebarItem.dashboard_item(
                 "users",
                 "Users",
                 "bi-person",
@@ -79,12 +79,12 @@ def _load_admin_tools() -> list[SidebarGroup]:
         title="DB Jobs",
         icon="bi-database-fill",
         items=[
-            SidebarItem.from_job_item(
+            AdminSidebarItem.from_job_item(
                 "collect_templates_data",
                 "Collect Templates data",
                 "bi-kanban",
             ),
-            SidebarItem.from_job_item(
+            AdminSidebarItem.from_job_item(
                 "update_owid_charts",
                 "Update OWID Charts",
                 "bi-arrow-repeat",
@@ -97,10 +97,10 @@ def _load_admin_tools() -> list[SidebarGroup]:
         title="Files Jobs",
         icon="bi-files",
         items=[
-            SidebarItem.from_job_item("crop_main_files", "Crop Newest World Files", "bi-crop"),
-            SidebarItem.from_job_item("fix_nested_main_files", "Fix Nested Main Files", "bi-tools"),
-            SidebarItem.from_job_item("update_wikitext", "Update Files Wikitext", "bi-file-earmark-text"),
-            SidebarItem.from_job_item(
+            AdminSidebarItem.from_job_item("crop_main_files", "Crop Newest World Files", "bi-crop"),
+            AdminSidebarItem.from_job_item("fix_nested_main_files", "Fix Nested Main Files", "bi-tools"),
+            AdminSidebarItem.from_job_item("update_wikitext", "Update Files Wikitext", "bi-file-earmark-text"),
+            AdminSidebarItem.from_job_item(
                 "download_main_files",
                 "Download Main Files",
                 "bi-download",
@@ -114,14 +114,14 @@ def _load_admin_tools() -> list[SidebarGroup]:
         title="OWID Templates/Pages",
         icon="bi-file-earmark-richtext",
         items=[
-            SidebarItem.from_job_item("create_owid_pages", "Create OWID Pages", "bi-file-earmark-text"),
-            SidebarItem.from_job_item("rename_owid_pages", "Rename OWID Pages", "bi-fonts"),
-            SidebarItem.from_job_item(
+            AdminSidebarItem.from_job_item("create_owid_pages", "Create OWID Pages", "bi-file-earmark-text"),
+            AdminSidebarItem.from_job_item("rename_owid_pages", "Rename OWID Pages", "bi-fonts"),
+            AdminSidebarItem.from_job_item(
                 "add_svglanguages_template",
                 "Add {{SVGLanguages}}",
                 "bi-file-earmark-text",
             ),
-            SidebarItem.from_job_item("add_lang_categories_to_owid_pages", "Add Lang Categories", "bi-tags"),
+            AdminSidebarItem.from_job_item("add_lang_categories_to_owid_pages", "Add Lang Categories", "bi-tags"),
         ],
     )
 
@@ -130,30 +130,28 @@ def _load_admin_tools() -> list[SidebarGroup]:
         title="Settings",
         icon="bi-sliders",
         items=[
-            SidebarItem.dashboard_item(
+            AdminSidebarItem.dashboard_item(
                 "settings",
                 "Settings",
                 "bi-gear",
                 "admin_panel.settings.dashboard",
                 "/admin_panel/settings/",
             ),
-            SidebarItem(
+            AdminSidebarItem(
                 id="db_admin",
-                requires_admin=True,
                 fallback_href="/admin_panel/db_admin",
                 title="DB admin",
                 icon="bi-database",
             ),
-            SidebarItem.dashboard_item(
+            AdminSidebarItem.dashboard_item(
                 "errors",
                 "App Errors",
                 "bi-exclamation-triangle",
                 "admin_panel.errors.dashboard",
                 "/admin_panel/errors/",
             ),
-            SidebarItem(
+            AdminSidebarItem(
                 id="error_logs",
-                requires_admin=True,
                 fallback_href="/admin_panel/error-logs",
                 title="Request Errors logs",
                 icon="bi-exclamation-triangle",
@@ -166,9 +164,8 @@ def _load_admin_tools() -> list[SidebarGroup]:
         title="Other",
         icon="bi-exclamation-triangle",
         items=[
-            SidebarItem(
+            AdminSidebarItem(
                 id="tf_jobs",
-                requires_admin=True,
                 fallback_href="/admin_panel/tfj",
                 title="ToolForge Jobs",
                 icon="bi-hdd-network",
