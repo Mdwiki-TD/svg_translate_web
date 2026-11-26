@@ -18,6 +18,21 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class ExtractText:
+    success: bool
+    text: str
+    error: str | None
+
+    @classmethod
+    def load(cls, data: dict[str, Any]) -> ExtractText:
+        return cls(
+            success=data.get("success", False),
+            text=data.get("text") or "",
+            error=data.get("error"),
+        )
+
+
+@dataclass
 class ExtractTitles:
     success: bool
     titles: list[str]
@@ -38,31 +53,31 @@ class ExtractTitles:
 
 class ExtractSteps:
     @staticmethod
-    def extract_text_step(title: str, site: Site | None = None) -> dict[str, Any]:
+    def extract_text_step(title: str, site: Site | None = None) -> ExtractText:
         """Fetch wikitext for a Commons file.
 
         Args:
             title: Commons title whose wikitext should be retrieved.
 
         Returns:
-            dict with keys: success (bool), text (str), error (str|None)
+            ExtractText with success, text, and error fields.
         """
         logger.info(f"Extracting wikitext for: {title}")
         if not title:
             logger.error("No title found")
-            return {"success": False, "text": "", "error": "No title found"}
+            return ExtractText(success=False, text="", error="No title found")
 
         try:
             text = MwClientPage(title, site).get_text()  # pyright: ignore[reportArgumentType]
         except Exception:
             logger.exception(f"Failed to fetch wikitext for title: {title}")
-            return {"success": False, "text": "", "error": "Failed to fetch wikitext"}
+            return ExtractText(success=False, text="", error="Failed to fetch wikitext")
 
         if not text:
             logger.error(f"No wikitext found for title: {title}")
-            return {"success": False, "text": "", "error": "No wikitext found"}
+            return ExtractText(success=False, text="", error="No wikitext found")
 
-        return {"success": True, "text": text, "error": None}
+        return ExtractText(success=True, text=text, error=None)
 
     @staticmethod
     def extract_titles(
@@ -108,5 +123,7 @@ class ExtractSteps:
 
 
 __all__ = [
+    "ExtractText",
+    "ExtractTitles",
     "ExtractSteps",
 ]

@@ -136,16 +136,14 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker[ExtractFilesTranslatio
             self.result.status = "failed"
             return False
 
-        text = step_result.get("text", "")
-
-        if step_result.get("success") and text:
+        if step_result.success and step_result.text:
             stage.status = "completed"
             stage.message = "Text extracted successfully"
-            self.text = text
+            self.text = step_result.text
             return True
 
         stage.status = "failed"
-        stage.message = step_result.get("error") or "Unknown error"
+        stage.message = step_result.error or "Unknown error"
         self.result.status = "failed"
 
         return False
