@@ -284,7 +284,7 @@ class TestJobsList(TestSetup):
             template_data=mock_template_data,
             form=None,
             bp_name="public_jobs",
-            details_layout="base.html",
+            details_layout="",
         )
 
     def test_listing_with_0_jobs(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
@@ -328,7 +328,7 @@ class TestJobDetail(TestSetup):
             result_data={"errors": [], "summary": {}},
             template_data=mock_template_data,
             bp_name="public_jobs",
-            details_layout="base.html",
+            details_layout="",
         )
 
     def test_job_found_with_result(
@@ -348,7 +348,7 @@ class TestJobDetail(TestSetup):
             result_data={"key": "value", "errors": [], "summary": {}},
             template_data=mock_template_data,
             bp_name="public_jobs",
-            details_layout="base.html",
+            details_layout="",
         )
 
     def test_job_not_found(self, mock_deps: MockJobRoutesDeps, mock_template_data: MagicMock) -> None:
