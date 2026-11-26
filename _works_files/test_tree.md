@@ -95,8 +95,9 @@ tests/
 │   │   │   │
 │   │   │   ├── test_category_members_api.py
 │   │   │   ├── test_commons_client.py
-│   │   │   ├── test_owid_client.py
-│   │   │   └── test_wikisite_client.py
+│   │   │   ├── test_http_client.py
+│   │   │   ├── test_http_client_helper.py
+│   │   │   └── test_owid_client.py
 │   │   │
 │   │   ├── files_service/
 │   │   │   ├── test_file_langs.py
@@ -109,6 +110,9 @@ tests/
 │   │   │   ├── test_mwclient_error.py
 │   │   │   ├── test_mwclient_page.py
 │   │   │   └── test_mwclient_wraper.py
+│   │   │
+│   │   ├── wiki_clients/
+│   │   │   └── test_wikisite_client.py
 │   │   │
 │   │   └── test_query_api.py
 │   │
@@ -160,6 +164,11 @@ tests/
 │   │   │   ├── config/
 │   │   │   │   └── test_settings_service.py
 │   │   │   │
+│   │   │   ├── owid/
+│   │   │   │   ├── test_charts_and_templates_service.py
+│   │   │   │   ├── test_owid_charts_service.py
+│   │   │   │   └── test_owid_slug_redirects_service.py
+│   │   │   │
 │   │   │   ├── users/
 │   │   │   │   ├── test_admin_service.py
 │   │   │   │   ├── test_user_token_service.py
@@ -169,11 +178,8 @@ tests/
 │   │   │   │   ├── test_detached_instance_error.py
 │   │   │   │   └── test_retry_on_disconnect.py
 │   │   │   │
-│   │   │   ├── test_charts_and_templates_service.py
 │   │   │   ├── test_error_log_service.py
 │   │   │   ├── test_jobs_service.py
-│   │   │   ├── test_owid_charts_service.py
-│   │   │   ├── test_owid_slug_redirects_service.py
 │   │   │   ├── test_template_service.py
 │   │   │   └── test_views_service.py
 │   │   │
