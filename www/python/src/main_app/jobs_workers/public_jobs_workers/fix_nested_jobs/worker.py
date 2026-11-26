@@ -256,6 +256,7 @@ class FixNestedJobsProcessor(BaseObjectsJobWorker[FixNestedJobsWorkerObject]):
         if not self.filename:
             logger.error("No filename found")
             self.result.status = "failed"
+            self.log_errors("No filename found")
             return self.result
 
         self.result.filename = self.filename

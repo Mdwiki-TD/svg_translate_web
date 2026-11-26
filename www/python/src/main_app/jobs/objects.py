@@ -24,7 +24,7 @@ class JobData:
     job_name: str
     job_class: Callable
 
-    job_list_template: str = "jobs_templates/base_list_admin.html"
+    job_list_template: str = "jobs_templates/base_list.html"
     job_details_template: str = "jobs_templates/_help_templates/shared_details.html"
 
     job_args: list[dict[str, str]] = field(default_factory=list)

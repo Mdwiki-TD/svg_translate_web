@@ -1,4 +1,4 @@
-{% extends "jobs_templates/base_list_admin.html" %}
+{% extends "jobs_templates/base_list.html" %}
 
 {% block header_actions %}
 <form method="post" action="{{ url_for(bp_name ~ '.start_job', job_type=template_data.job_type) }}" class="d-inline">
