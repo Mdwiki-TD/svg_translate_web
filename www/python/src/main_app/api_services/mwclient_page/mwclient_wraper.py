@@ -152,7 +152,7 @@ class MwClientPage:
         """Check if the page is a redirect using page.redirects_to()."""
         return self.get_redirect_target() is not None
 
-    def edit(self, text: str, summary: str, nocreate: bool = True) -> dict[str, Any]:
+    def edit(self, text: str | None, summary: str, nocreate: bool = True) -> dict[str, Any]:
         if text is None:
             return {"success": False, "error": "missing text"}
 

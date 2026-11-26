@@ -21,8 +21,8 @@ def test_text_task_success(mock_extract_text_services):
 
     result = ExtractSteps.extract_text_step("Title")
 
-    assert result["success"] is True
-    assert result["text"] == "content"
+    assert result.success is True
+    assert result.text == "content"
 
 
 def test_text_task_fail(mock_extract_text_services):
@@ -30,8 +30,8 @@ def test_text_task_fail(mock_extract_text_services):
 
     result = ExtractSteps.extract_text_step("Title")
 
-    assert result["success"] is False
-    assert result["text"] == ""
+    assert result.success is False
+    assert result.text == ""
 
 
 def test_extract_text_step_success(mock_extract_text_services):
@@ -39,9 +39,9 @@ def test_extract_text_step_success(mock_extract_text_services):
 
     result = ExtractSteps.extract_text_step("File:Example.svg")
 
-    assert result["success"] is True
-    assert result["text"] == "some wikitext"
-    assert result["error"] is None
+    assert result.success is True
+    assert result.text == "some wikitext"
+    assert result.error is None
     mock_extract_text_services["MwClientPage"].assert_called_once_with("File:Example.svg", None)
 
 
@@ -50,22 +50,22 @@ def test_extract_text_step_fail(mock_extract_text_services):
 
     result = ExtractSteps.extract_text_step("File:Example.svg")
 
-    assert result["success"] is False
-    assert result["text"] == ""
-    assert result["error"] == "No wikitext found"
+    assert result.success is False
+    assert result.text == ""
+    assert result.error == "No wikitext found"
 
 
 def test_extract_text_step_empty_title():
     result = ExtractSteps.extract_text_step("")
 
-    assert result["success"] is False
-    assert result["text"] == ""
-    assert result["error"] == "No title found"
+    assert result.success is False
+    assert result.text == ""
+    assert result.error == "No title found"
 
 
 def test_extract_text_step_none_title():
     result = ExtractSteps.extract_text_step(None)  # pyright: ignore[reportArgumentType]
 
-    assert result["success"] is False
-    assert result["text"] == ""
-    assert result["error"] == "No title found"
+    assert result.success is False
+    assert result.text == ""
+    assert result.error == "No title found"

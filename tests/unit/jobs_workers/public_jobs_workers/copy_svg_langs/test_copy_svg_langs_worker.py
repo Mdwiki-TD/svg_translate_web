@@ -10,6 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 from src.main_app.api_services.files_service import DownloadAndSaveData, FileLanguagesMap, UploadResult
 from src.main_app.jobs.objects import JobsRunner
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps import ExtractText, ExtractTitles
 from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs import (
     CopySvgLangsWorker,
     FilesProcessedItem,
@@ -47,7 +48,7 @@ def mock_steps(monkeypatch: pytest.MonkeyPatch) -> MockSteps:
 
     mock_titles = MagicMock()
     monkeypatch.setattr(
-        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.ExtractSteps.extract_titles_step",
+        "src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.worker.ExtractSteps.extract_titles",
         mock_titles,
     )
 
@@ -277,8 +278,10 @@ class TestCopySvgLangsWorkerProcess:
         # mock_worker.config = mock_worker._load_config()
         mock_worker.config.output_dir = tmp_path
 
-        mock_steps.text.return_value = {"success": True, "text": "some text"}
-        mock_steps.titles.return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
+        mock_steps.text.return_value = ExtractText(success=True, text="some text", error=None)
+        mock_steps.titles.return_value = ExtractTitles.load(
+            {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
+        )
         mock_steps.translations.return_value = ExtractResult.from_any(
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
@@ -308,7 +311,7 @@ class TestCopySvgLangsWorkerProcess:
         mock_steps: MockSteps,
         mock_clients: dict[str, MagicMock],
     ):
-        mock_steps.text.return_value = {"success": False, "error": "Extraction failed"}
+        mock_steps.text.return_value = ExtractText(success=False, text="", error="Extraction failed")
 
         result = mock_worker.process()
 
@@ -581,8 +584,8 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_steps: MockSteps,
         mock_clients: dict[str, MagicMock],
     ):
-        mock_steps.text.return_value = {"success": True, "text": "some text"}
-        mock_steps.titles.return_value = {"success": False, "error": "Title extraction failed"}
+        mock_steps.text.return_value = ExtractText(success=True, text="some text", error=None)
+        mock_steps.titles.return_value = ExtractTitles.load({"success": False, "error": "Title extraction failed"})
 
         result = mock_worker.process()
 
@@ -600,8 +603,10 @@ class TestCopySvgLangsWorkerProcessAdvanced:
     ):
         mock_copylangs_services.is_cancelled.return_value = False
 
-        mock_steps.text.return_value = {"success": True, "text": "some text"}
-        mock_steps.titles.return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
+        mock_steps.text.return_value = ExtractText(success=True, text="some text", error=None)
+        mock_steps.titles.return_value = ExtractTitles.load(
+            {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
+        )
         mock_copylangs_services.download_and_save.return_value = DownloadAndSaveData(
             result="success", path=str(tmp_path / "test.svg")
         )
@@ -632,8 +637,10 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_worker.config.output_dir = tmp_path
         mock_worker.files_processor.config.output_dir = tmp_path
 
-        mock_steps.text.return_value = {"success": True, "text": "some text"}
-        mock_steps.titles.return_value = {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
+        mock_steps.text.return_value = ExtractText(success=True, text="some text", error=None)
+        mock_steps.titles.return_value = ExtractTitles.load(
+            {"success": True, "main_title": "Main.svg", "titles": ["File1.svg"]}
+        )
         mock_steps.translations.return_value = ExtractResult.from_any(
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
@@ -659,12 +666,14 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_worker.config.output_dir = tmp_path
         mock_worker.files_processor.config.output_dir = tmp_path
 
-        mock_steps.text.return_value = {"success": True, "text": "some text"}
-        mock_steps.titles.return_value = {
-            "success": True,
-            "main_title": "Main.svg",
-            "titles": ["File1.svg", "File2.svg"],
-        }
+        mock_steps.text.return_value = ExtractText(success=True, text="some text", error=None)
+        mock_steps.titles.return_value = ExtractTitles.load(
+            {
+                "success": True,
+                "main_title": "Main.svg",
+                "titles": ["File1.svg", "File2.svg"],
+            }
+        )
         mock_steps.translations.return_value = ExtractResult.from_any(
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
@@ -696,12 +705,14 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_worker.config.output_dir = tmp_path
         mock_worker.files_processor.config.output_dir = tmp_path
 
-        mock_steps.text.return_value = {"success": True, "text": "some text"}
-        mock_steps.titles.return_value = {
-            "success": True,
-            "main_title": "Main.svg",
-            "titles": ["F1.svg", "F2.svg", "F3.svg"],
-        }
+        mock_steps.text.return_value = ExtractText(success=True, text="some text", error=None)
+        mock_steps.titles.return_value = ExtractTitles.load(
+            {
+                "success": True,
+                "main_title": "Main.svg",
+                "titles": ["F1.svg", "F2.svg", "F3.svg"],
+            }
+        )
         mock_steps.translations.return_value = ExtractResult.from_any(
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
@@ -726,8 +737,10 @@ class TestCopySvgLangsWorkerProcessAdvanced:
         mock_worker.config.output_dir = tmp_path
         mock_worker.files_processor.config.output_dir = tmp_path
 
-        mock_steps.text.return_value = {"success": True, "text": "some text"}
-        mock_steps.titles.return_value = {"success": True, "main_title": "Main.svg", "titles": ["F1.svg"]}
+        mock_steps.text.return_value = ExtractText(success=True, text="some text", error=None)
+        mock_steps.titles.return_value = ExtractTitles.load(
+            {"success": True, "main_title": "Main.svg", "titles": ["F1.svg"]}
+        )
         mock_steps.translations.return_value = ExtractResult.from_any(
             {"success": True, "translations": {"new": {"key": {"en": "Text"}}}}
         )
@@ -739,10 +752,9 @@ class TestCopySvgLangsWorkerProcessAdvanced:
 
         result = mock_worker.process()
 
-        # titles: "F1.svg" plus the auto-added cropped main title "Main (cropped).svg"
-        assert len(result.files_skipped) == 2
+        assert len(result.files_skipped) == 1
         assert {item.status for item in result.files_skipped} == {"skipped"}
-        assert {item.title for item in result.files_skipped} == {"F1.svg", "Main (cropped).svg"}
+        assert {item.title for item in result.files_skipped} == {"F1.svg"}
 
 
 class TestCopySvgLangsWorkerStageMethods:
@@ -758,47 +770,6 @@ class TestCopySvgLangsWorkerStageMethods:
 
         assert result is False
         assert mock_worker.result.stages.titles.status == "cancelled"
-
-    def test_extract_titles_step_includes_cropped_main_title(
-        self,
-        mock_worker: CopySvgLangsWorker,
-        mock_steps: MockSteps,
-    ):
-        mock_worker.text = "some text"
-        mock_steps.titles.return_value = {
-            "success": True,
-            "main_title": "Main.svg",
-            "titles": ["Version.svg"],
-        }
-
-        result = mock_worker._extract_titles_step()
-
-        assert result is True
-        assert mock_worker.titles == [
-            "Main (cropped).svg",
-            "Version.svg",
-        ]
-
-    def test_extract_titles_step_cropped_main_title_without_file_prefix(
-        self,
-        mock_worker: CopySvgLangsWorker,
-        mock_steps: MockSteps,
-    ):
-        """A main title carrying the 'File:' prefix still yields a bare cropped title."""
-        mock_worker.text = "some text"
-        mock_steps.titles.return_value = {
-            "success": True,
-            "main_title": "File:Main.svg",
-            "titles": ["File:Version.svg"],
-        }
-
-        result = mock_worker._extract_titles_step()
-
-        assert result is True
-        assert mock_worker.titles == [
-            "File:Version.svg",
-            "Main (cropped).svg",
-        ]
 
     def test_extract_titles_step_exception(
         self,
@@ -820,7 +791,7 @@ class TestCopySvgLangsWorkerStageMethods:
         mock_steps: MockSteps,
     ):
         mock_worker.text = "some text"
-        mock_steps.titles.return_value = {"success": False, "error": "No titles found"}
+        mock_steps.titles.return_value = ExtractTitles.load({"success": False, "error": "No titles found"})
 
         result = mock_worker._extract_titles_step()
 
@@ -834,7 +805,9 @@ class TestCopySvgLangsWorkerStageMethods:
         mock_steps: MockSteps,
     ):
         mock_worker.text = "some text"
-        mock_steps.titles.return_value = {"success": False, "error": "error", "message": "No titles"}
+        mock_steps.titles.return_value = ExtractTitles.load(
+            {"success": False, "error": "error", "message": "No titles"}
+        )
 
         mock_worker._extract_titles_step()
 

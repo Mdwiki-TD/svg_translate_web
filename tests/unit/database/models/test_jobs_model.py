@@ -111,7 +111,7 @@ def test_job_record_table_args() -> None:
     unique_constraint = JobRecord.__table_args__[0]
     assert isinstance(unique_constraint, UniqueConstraint)
     assert unique_constraint.name == "idx_unique_active_job"
-    assert tuple(c.key for c in unique_constraint.columns) == ("job_type", "is_running")
+    assert tuple(c.key for c in unique_constraint.columns) == ("job_type", "is_running", "username")
 
     index = JobRecord.__table_args__[1]
     assert isinstance(index, Index)

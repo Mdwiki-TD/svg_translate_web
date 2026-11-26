@@ -35,7 +35,7 @@ class JobRecord(Model):
         `created_at` datetime NOT NULL DEFAULT current_timestamp(),
         `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
         PRIMARY KEY (`id`),
-        UNIQUE KEY `idx_unique_active_job` (`job_type`,`is_running`),
+        UNIQUE KEY `idx_unique_active_job` (`job_type`,`is_running`, `username`),
         KEY `status_username` (`status`,`username`),
         CONSTRAINT `chk_jobs_is_running_null_or_one` CHECK (`is_running` is null or `is_running` = 1)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -52,7 +52,7 @@ class JobRecord(Model):
 
     __table_args__ = (
         # One running job per job_type; NULL values never conflict
-        UniqueConstraint("job_type", "is_running", name="idx_unique_active_job"),
+        UniqueConstraint("job_type", "is_running", "username", name="idx_unique_active_job"),
         # Composite index for status + username ordering
         Index("status_username", "status", "username"),
         # Optional: forbids 0 so the unique lock can't be broken by mistake

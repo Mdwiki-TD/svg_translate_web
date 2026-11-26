@@ -14,7 +14,6 @@ from ....services.copysvg_wrapper import (
     ExtractResult,
     SvgTranslationExtractor,
 )
-from ...admin_jobs_workers.crop_main_files.steps import CropMainFilesSteps
 from .files_worker import OneFileProcessor
 from .objects import (
     CopySvgLangsWorkerObject,
@@ -80,7 +79,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
         self.save_progress()
 
         try:
-            step_result = ExtractSteps.extract_titles_step(
+            step_result = ExtractSteps.extract_titles(
                 self.text,
                 manual_main_title=self.manual_main_title,
             )
@@ -93,26 +92,22 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
 
             return False
 
-        if step_result.get("message"):
-            stage.message = step_result["message"]
+        if step_result.message:
+            stage.message = step_result.message
 
-        if step_result.get("success"):
+        if step_result.success and step_result.main_title:
             stage.status = "completed"
 
-            self.main_title = step_result["main_title"]
+            self.main_title = step_result.main_title
             self.result.main_title = self.main_title
-            self.titles = list(step_result["titles"])
-
-            cropped_main_title = CropMainFilesSteps.generate_cropped_filename(self.main_title).removeprefix("File:")
-            if cropped_main_title not in self.titles:
-                self.titles.append(cropped_main_title)
+            self.titles = list(step_result.titles)
 
             self.titles.sort()
 
             return True
 
         stage.status = "failed"
-        stage.message = step_result.get("error", "Unknown error")
+        stage.message = step_result.error or "Unknown error"
         self.result.status = "failed"
         return False
 
@@ -123,7 +118,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
 
         main_file_download = self.files_service.download_and_save(
             title=self.main_title,
-            out_dir=output_dir_main,
+            out_dir=output_dir_main,  # pyright: ignore[reportArgumentType]
             overwrite_download=self.config.overwrite_download,
         )
 
@@ -139,7 +134,9 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
         main_title_path = main_file_download.path
 
         try:
-            step_result: ExtractResult = SvgTranslationExtractor().extract(main_title_path)
+            step_result: ExtractResult = SvgTranslationExtractor().extract(
+                main_title_path,  # pyright: ignore[reportArgumentType]
+            )
         except Exception as e:
             logger.exception("Error in stage translations")
             stage.status = "failed"
@@ -178,7 +175,7 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
 
         try:
             step_result = ExtractSteps.extract_text_step(
-                self.title,
+                self.title,  # pyright: ignore[reportArgumentType]
                 self.site,
             )
         except Exception as e:
@@ -188,16 +185,14 @@ class CopySvgLangsWorker(BaseObjectsJobWorker[CopySvgLangsWorkerObject]):
             self.result.status = "failed"
             return False
 
-        text = step_result.get("text", "")
-
-        if step_result.get("success") and text:
+        if step_result.success and step_result.text:
             stage.status = "completed"
             stage.message = "Text extracted successfully"
-            self.text = text
+            self.text = step_result.text
             return True
 
         stage.status = "failed"
-        stage.message = step_result.get("error") or "Unknown error"
+        stage.message = step_result.error or "Unknown error"
         self.result.status = "failed"
 
         return False

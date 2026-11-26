@@ -5,6 +5,7 @@ Step for extracting SVG titles from wikitext.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
 from typing import Any
 
@@ -16,39 +17,73 @@ from ....utils.new_wikitext import SvgFilesCollector
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class ExtractText:
+    success: bool
+    text: str
+    error: str | None
+
+    @classmethod
+    def load(cls, data: dict[str, Any]) -> ExtractText:
+        return cls(
+            success=data.get("success", False),
+            text=data.get("text") or "",
+            error=data.get("error"),
+        )
+
+
+@dataclass
+class ExtractTitles:
+    success: bool
+    titles: list[str]
+    main_title: str | None
+    error: str | None
+    message: str | None
+
+    @classmethod
+    def load(cls, data: dict[str, Any]) -> ExtractTitles:
+        return cls(
+            success=data.get("success", False),
+            titles=data.get("titles") or [],
+            main_title=data.get("main_title"),
+            error=data.get("error"),
+            message=data.get("message"),
+        )
+
+
 class ExtractSteps:
     @staticmethod
-    def extract_text_step(title: str, site: Site | None = None) -> dict[str, Any]:
+    def extract_text_step(title: str, site: Site | None = None) -> ExtractText:
         """Fetch wikitext for a Commons file.
 
         Args:
             title: Commons title whose wikitext should be retrieved.
 
         Returns:
-            dict with keys: success (bool), text (str), error (str|None)
+            ExtractText with success, text, and error fields.
         """
         logger.info(f"Extracting wikitext for: {title}")
         if not title:
             logger.error("No title found")
-            return {"success": False, "text": "", "error": "No title found"}
+            return ExtractText(success=False, text="", error="No title found")
 
         try:
-            text = MwClientPage(title, site).get_text()
+            text = MwClientPage(title, site).get_text()  # pyright: ignore[reportArgumentType]
         except Exception:
             logger.exception(f"Failed to fetch wikitext for title: {title}")
-            return {"success": False, "text": "", "error": "Failed to fetch wikitext"}
+            return ExtractText(success=False, text="", error="Failed to fetch wikitext")
 
         if not text:
             logger.error(f"No wikitext found for title: {title}")
-            return {"success": False, "text": "", "error": "No wikitext found"}
+            return ExtractText(success=False, text="", error="No wikitext found")
 
-        return {"success": True, "text": text, "error": None}
+        return ExtractText(success=True, text=text, error=None)
 
     @staticmethod
-    def extract_titles_step(
+    def extract_titles(
         text: str,
         manual_main_title: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> ExtractTitles:
         """Extract SVG titles from wikitext.
 
         Args:
@@ -69,25 +104,26 @@ class ExtractSteps:
         if not titles or not main_title:
             error = f"No titles or main title found. Manual main title was: '{manual_main_title}'"
             logger.error(error)
-            return {
-                "success": False,
-                "main_title": main_title,
-                "titles": titles or [],
-                "error": error,
-                "message": "",
-            }
+            return ExtractTitles(
+                success=False,
+                main_title=main_title,
+                titles=titles or [],
+                error=error,
+                message="",
+            )
 
         message = f"Found {len(titles)} titles"
-
-        return {
-            "success": True,
-            "main_title": main_title,
-            "titles": titles,
-            "error": None,
-            "message": message,
-        }
+        return ExtractTitles(
+            success=True,
+            main_title=main_title,
+            titles=titles,
+            error=None,
+            message=message,
+        )
 
 
 __all__ = [
+    "ExtractText",
+    "ExtractTitles",
     "ExtractSteps",
 ]
