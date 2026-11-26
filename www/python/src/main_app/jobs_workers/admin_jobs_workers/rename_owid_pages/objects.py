@@ -25,7 +25,7 @@ class RenameInfo(SharedMapToJson):
 
     namespace: int
     old_title: str
-    new_title: str | None = None
+    new_title: str = ""
     newrevid: int | None = None
     status: STATUS_LIST3 = "pending"
     full_prefix: str = ""

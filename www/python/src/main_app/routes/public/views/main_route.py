@@ -13,9 +13,7 @@ from flask import (
 from flask.views import MethodView
 from flask.wrappers import Response
 
-from ....jobs_workers.public_jobs_workers.copy_svg_langs import (
-    setup_svg_langs_form,
-)
+from ....jobs_workers.public_jobs_workers.copy_svg_langs import CopySvgLangsForm
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +23,7 @@ class IndexView(MethodView):
 
     def get(self) -> str:
         """Serve the landing page."""
-        form = setup_svg_langs_form()
+        form = CopySvgLangsForm.setup()
         return render_template(
             "index.html",
             form=form,
@@ -70,22 +68,10 @@ class MainView:
     @staticmethod
     def register(bp: Blueprint) -> None:
         """Register main URL rules on the provided blueprint."""
-        bp.add_url_rule(
-            "/",
-            view_func=IndexView.as_view("index"),
-        )
-        bp.add_url_rule(
-            "/favicon.ico",
-            view_func=FaviconView.as_view("favicon"),
-        )
-        bp.add_url_rule(
-            "/healthz",
-            view_func=MainHealthView.as_view("healthz"),
-        )
-        bp.add_url_rule(
-            "/toolinfo.json",
-            view_func=MainToolinfoView.as_view("toolinfo"),
-        )
+        bp.add_url_rule("/", view_func=IndexView.as_view("index"))
+        bp.add_url_rule("/favicon.ico", view_func=FaviconView.as_view("favicon"))
+        bp.add_url_rule("/healthz", view_func=MainHealthView.as_view("healthz"))
+        bp.add_url_rule("/toolinfo.json", view_func=MainToolinfoView.as_view("toolinfo"))
 
 
 __all__ = [

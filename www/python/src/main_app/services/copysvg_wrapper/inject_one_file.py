@@ -154,7 +154,7 @@ class SvgInjector:
         try:
             op_result = service.inject(
                 svg_path=inject_file,
-                mapping=mapping,
+                mapping=mapping,  # pyright: ignore[reportArgumentType]
             )
 
             if op_result.data is not None:

@@ -88,11 +88,6 @@ class ExtractSteps:
         }
 
 
-extract_titles_step = ExtractSteps.extract_titles_step
-extract_text_step = ExtractSteps.extract_text_step
-
 __all__ = [
     "ExtractSteps",
-    "extract_titles_step",
-    "extract_text_step",
 ]

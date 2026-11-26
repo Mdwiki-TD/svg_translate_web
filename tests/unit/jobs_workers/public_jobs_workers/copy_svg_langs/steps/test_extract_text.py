@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps import extract_text_step
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps import ExtractSteps
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def mock_extract_text_services(monkeypatch: pytest.MonkeyPatch):
 def test_text_task_success(mock_extract_text_services):
     mock_extract_text_services["MwClientPage"].return_value.get_text.return_value = "content"
 
-    result = extract_text_step("Title")
+    result = ExtractSteps.extract_text_step("Title")
 
     assert result["success"] is True
     assert result["text"] == "content"
@@ -28,7 +28,7 @@ def test_text_task_success(mock_extract_text_services):
 def test_text_task_fail(mock_extract_text_services):
     mock_extract_text_services["MwClientPage"].return_value.get_text.return_value = None
 
-    result = extract_text_step("Title")
+    result = ExtractSteps.extract_text_step("Title")
 
     assert result["success"] is False
     assert result["text"] == ""
@@ -37,7 +37,7 @@ def test_text_task_fail(mock_extract_text_services):
 def test_extract_text_step_success(mock_extract_text_services):
     mock_extract_text_services["MwClientPage"].return_value.get_text.return_value = "some wikitext"
 
-    result = extract_text_step("File:Example.svg")
+    result = ExtractSteps.extract_text_step("File:Example.svg")
 
     assert result["success"] is True
     assert result["text"] == "some wikitext"
@@ -48,7 +48,7 @@ def test_extract_text_step_success(mock_extract_text_services):
 def test_extract_text_step_fail(mock_extract_text_services):
     mock_extract_text_services["MwClientPage"].return_value.get_text.return_value = ""
 
-    result = extract_text_step("File:Example.svg")
+    result = ExtractSteps.extract_text_step("File:Example.svg")
 
     assert result["success"] is False
     assert result["text"] == ""
@@ -56,7 +56,7 @@ def test_extract_text_step_fail(mock_extract_text_services):
 
 
 def test_extract_text_step_empty_title():
-    result = extract_text_step("")
+    result = ExtractSteps.extract_text_step("")
 
     assert result["success"] is False
     assert result["text"] == ""
@@ -64,7 +64,7 @@ def test_extract_text_step_empty_title():
 
 
 def test_extract_text_step_none_title():
-    result = extract_text_step(None)
+    result = ExtractSteps.extract_text_step(None)  # pyright: ignore[reportArgumentType]
 
     assert result["success"] is False
     assert result["text"] == ""
