@@ -7,7 +7,69 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from sqlalchemy.pool import NullPool
+
 from .classes import get_settings
+
+
+def build_engine_options(uri: str, *, cli: bool) -> dict[str, Any]:
+    """Build the SQLAlchemy engine options for ``uri``.
+
+    Only MySQL/MariaDB get options; anything else (e.g. SQLite) gets ``{}``.
+
+    Web (uWSGI)
+    -----------
+    NOTE: these values must stay in sync with uwsgi.ini (processes x threads)
+    and with the server limit max_user_connections = 20 (tools.my.cnf.erb).
+
+        max DB connections = processes * (pool_size + max_overflow)
+                           = 2 * (4 + 2) = 12 of 20
+
+    - pool_size should equal `threads` in uwsgi.ini (one connection per thread).
+    - If you raise `processes` or `threads` in uwsgi.ini, lower or adjust
+      pool_size / max_overflow here, or the pools will exceed the user limit
+      and new connections will be refused (error 1040/2006).
+    - Each uWSGI worker has its own pool, which is why `lazy-apps = true`
+      is required (never share a pool across fork).
+    - pool_recycle must stay below the server's wait_timeout = 600.
+
+    CLI jobs (Toolforge job pods)
+    -----------------------------
+    A job is one long-lived process with long idle gaps between DB writes
+    (e.g. while fetching pageviews). A pooled connection that sits idle in
+    those gaps is dropped by the server ("MySQL server has gone away", 2006).
+    ``NullPool`` opens a connection on demand and closes it on release, so
+    nothing idles, and jobs also do not hold slots of the shared
+    max_user_connections = 20 limit. The pool_* options are not accepted by
+    NullPool, so they are left out.
+    """
+    if not uri.startswith(("mysql", "mariadb")):
+        return {}
+
+    connect_args: dict[str, Any] = {
+        "connect_timeout": 5,
+        "read_timeout": 120,
+        "write_timeout": 120,
+        "init_command": 'SET time_zone = "+00:00", NAMES utf8mb4 COLLATE utf8mb4_unicode_ci',
+        "charset": "utf8mb4",
+        "collation": "utf8mb4_unicode_ci",
+    }
+
+    if cli:
+        return {
+            "poolclass": NullPool,
+            "connect_args": connect_args,
+        }
+
+    return {
+        "pool_pre_ping": True,  # validate a connection before using it
+        "pool_size": 4,  # MUST equal `threads` in uwsgi.ini
+        "max_overflow": 2,  # for background threads (e.g. JobsService)
+        "pool_recycle": 280,  # below the server's wait_timeout = 600
+        "pool_timeout": 10,  # fail fast instead of hanging
+        "pool_use_lifo": True,  # let surplus connections idle out and die
+        "connect_args": connect_args,
+    }
 
 
 class Config:
@@ -58,52 +120,15 @@ class Config:
     # Flask-SQLAlchemy
     SQLALCHEMY_DATABASE_URI: str = os.environ.get("DATABASE_URI", "")
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
-    SQLALCHEMY_ENGINE_OPTIONS: dict[str, Any] = {}
+    # Computed once at import. CLI_MODE=1 is exported by flask_cmd.sh before Flask starts.
+    # Subclasses that change SQLALCHEMY_DATABASE_URI must also set their own engine options.
+    SQLALCHEMY_ENGINE_OPTIONS: dict[str, Any] = build_engine_options(
+        SQLALCHEMY_DATABASE_URI,
+        cli=os.environ.get("CLI_MODE") == "1",
+    )
 
     SQLALCHEMY_ECHO: bool = False
     RATELIMIT_STORAGE_URI = "memory://"
-
-    def __init__(self) -> None:
-        """Initialize configuration with values from environment-based settings."""
-        # Sync with the dataclass-based settings for backward compatibility
-        self.SECRET_KEY = self._app_settings.security.secret_key
-        self.SESSION_COOKIE_HTTPONLY = self._app_settings.cookie.httponly
-        self.SESSION_COOKIE_SECURE = self._app_settings.cookie.secure
-        self.SESSION_COOKIE_SAMESITE = self._app_settings.cookie.samesite
-
-        # Only set MySQL-specific engine options if URI is MySQL/MariaDB (not SQLite)
-        uri = self.SQLALCHEMY_DATABASE_URI or ""
-
-        # NOTE: these values must stay in sync with uwsgi.ini (processes x threads)
-        # and with the server limit max_user_connections = 20 (tools.my.cnf.erb).
-        #
-        #   max DB connections = processes * (pool_size + max_overflow)
-        #                      = 2 * (4 + 2) = 12 of 20
-        #
-        # - pool_size should equal `threads` in uwsgi.ini (one connection per thread).
-        # - If you raise `processes` or `threads` in uwsgi.ini, lower or adjust
-        #   pool_size / max_overflow here, or the pools will exceed the user limit
-        #   and new connections will be refused (error 1040/2006).
-        # - Each uWSGI worker has its own pool, which is why `lazy-apps = true`
-        #   is required (never share a pool across fork).
-        # - pool_recycle must stay below the server's wait_timeout = 600.
-        if uri.startswith(("mysql", "mariadb")) and not self.SQLALCHEMY_ENGINE_OPTIONS:
-            self.SQLALCHEMY_ENGINE_OPTIONS = {
-                "pool_pre_ping": True,  # validate a connection before using it
-                "pool_size": 4,  # MUST equal `threads` in uwsgi.ini
-                "max_overflow": 2,  # for background threads (e.g. JobsService)
-                "pool_recycle": 280,  # below the server's wait_timeout = 600
-                "pool_timeout": 10,  # fail fast instead of hanging
-                "pool_use_lifo": True,  # let surplus connections idle out and die
-                "connect_args": {
-                    "connect_timeout": 5,
-                    "read_timeout": 120,
-                    "write_timeout": 120,
-                    "init_command": 'SET time_zone = "+00:00", NAMES utf8mb4 COLLATE utf8mb4_unicode_ci',
-                    "charset": "utf8mb4",
-                    "collation": "utf8mb4_unicode_ci",
-                },
-            }
 
 
 class DevelopmentConfig(Config):

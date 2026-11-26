@@ -1,28 +1,56 @@
-{% extends "admins/base1.html" %}
+{#
+    Shared layout for the job details pages.
+
+    This template is not meant to be extended directly by job pages.
+    Extend one of its two thin wrappers instead:
+      - jobs_templates/base_details_public.html  (layout: base.html)
+      - jobs_templates/base_details_admin.html   (layout: admins/base1.html)
+
+    The wrappers set `details_layout` before extending this file, so this file
+    can extend the right outer layout dynamically. All blocks defined below
+    (detail_header_actions, job_info_extra, job_results, job_summary,
+    job_details) are inherited by pages that extend either wrapper.
+#}
+{% extends details_layout | default("base.html") %}
 {% from "_macros.html" import card_header, status_icon, job_errors_div, auto_refresh_status %}
-{% from "_macros/forms.html" import form_start_job, form_cancel_job, form_delete_job, form_mark_job_as_completed %}
+{% from "_macros/forms.html" import form_cancel_job, form_delete_job, form_mark_job_as_completed %}
 
 {% block title %}
 {{ template_data.job_name }} #{{ job.id }} · {{ tool_title }}
 {% endblock %}
 
-{% block admin_contents %}
-<div>
+{# The two outer layouts expose different block names; both render the same body. #}
+{# Public layout: body goes straight into content_fluid.
+   Admin layout: keep admins/base1.html's own content_fluid (via super()) so
+   its wrapper is not replaced; our body is injected through admin_contents. #}
+{% block content_fluid %}
+{%- if details_layout == "admins/base1.html" -%}
+{{ super() }}
+{%- else -%}
+{{ self.details_body() }}
+{%- endif -%}
+{% endblock %}
+{% block admin_contents %}{{ self.details_body() }}{% endblock %}
+
+{% block details_body %}
+<div class="container">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h3 class="headline mb-0">{{ template_data.job_name }} #{{ job.id }}</h3>
             <div class="d-flex gap-2">
-                {% if (job.status | is_job_running) and is_admin %}
+                {% if (job.status | is_job_running) and (is_admin or current_username == job.username) %}
                 {% if (result_data and result_data.get("final_status_updated") == False) %}
+                {% if is_admin %}
                 {{
                     form_mark_job_as_completed(
-                    url_for('admin_panel.jobs.mark_as_completed', job_type=template_data.job_type, job_id=job.id),
+                    url_for(bp_name ~ '.mark_as_completed', job_type=template_data.job_type, job_id=job.id),
                     )
                 }}
+                {% endif %}
                 {% else %}
                 {{
                     form_cancel_job(
-                        url_for('admin_panel.jobs.cancel_job', job_type=template_data.job_type, job_id=job.id),
+                        url_for(bp_name ~ '.cancel_job', job_type=template_data.job_type, job_id=job.id),
                         btn_class="btn btn-outline-warning text-muted"
                     )
                 }}
@@ -31,12 +59,12 @@
                 {% if is_admin %}
                 {{
                     form_delete_job(
-                    url_for('admin_panel.jobs.delete_job', job_type=template_data.job_type, job_id=job.id),
+                    url_for(bp_name ~ '.delete_job', job_type=template_data.job_type, job_id=job.id),
                     btn_class="btn btn-outline-danger"
                     )
                 }}
                 {% endif %}
-                <a href="{{ url_for('admin_panel.jobs.jobs_list', job_type=template_data.job_type) }}"
+                <a href="{{ url_for(bp_name ~ '.jobs_list', job_type=template_data.job_type) }}"
                     class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Back to List
                 </a>
@@ -63,7 +91,6 @@
                                             {{ auto_refresh_status() }}
                                             {% endif %}
                                         </div>
-
                                     </td>
                                 </tr>
                                 <tr>
@@ -114,7 +141,7 @@
                                     <th>Result File:</th>
                                     <td>
                                         {% if job.result_file %}
-                                        <a href="{{ url_for('admin_panel.jobs.read_job_result_file', result_file=job.result_file, job_type=template_data.job_type) }}"
+                                        <a href="{{ url_for(bp_name ~ '.read_job_result_file', result_file=job.result_file, job_type=template_data.job_type) }}"
                                             target="_blank">
                                             {{ job.result_file }}
                                         </a>
@@ -179,5 +206,4 @@
 {% if job.status | is_job_running %}
 <script src="{{ url_for('static', filename='js/auto-refresh.js') }}"></script>
 {% endif %}
-
 {% endblock %}

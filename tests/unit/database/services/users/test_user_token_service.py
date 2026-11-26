@@ -1,3 +1,4 @@
+# pyright: reportAttributeAccessIssue=false
 """
 Tests for UserTokenService.
 
@@ -352,7 +353,7 @@ class TestGetAuthenticatedUserTokenUnit:
             retry_service.get_authenticated_user_token(8)
 
         assert retry_service.session.query.call_count == 1
-        db.session.rollback.assert_not_called()  # pyright: ignore[reportAttributeAccessIssue]
+        db.session.rollback.assert_not_called()
 
 
 class TestRetryEdgeCases:
@@ -398,7 +399,7 @@ class TestRetryOnDisconnectContext:
 
         assert self.call(retry_service, 8) == expected
         assert retry_service.session.query.call_count == 1
-        db.session.rollback.assert_not_called()  # pyright: ignore[reportAttributeAccessIssue]
+        db.session.rollback.assert_not_called()
 
     @pytest.mark.parametrize("error", [GONE_AWAY, LOST_CONN], ids=["2006", "2013"])
     def test_retries_then_succeeds(self, retry_service, error):
@@ -407,7 +408,7 @@ class TestRetryOnDisconnectContext:
 
         assert self.call(retry_service, 8) == expected
         assert retry_service.session.query.call_count == 2
-        db.session.rollback.assert_called_once()  # pyright: ignore[reportAttributeAccessIssue]
+        db.session.rollback.assert_called_once()
 
     def test_multiple_retries(self, retry_service):
         row, expected = _context_success()
@@ -415,7 +416,7 @@ class TestRetryOnDisconnectContext:
 
         assert self.call(retry_service, 8) == expected
         assert retry_service.session.query.call_count == 3
-        assert db.session.rollback.call_count == 2  # pyright: ignore[reportAttributeAccessIssue]
+        assert db.session.rollback.call_count == 2
 
     def test_raises_after_max_retries(self, retry_service):
         # 1 initial attempt + MAX_RETRIES retries, all failing
@@ -433,7 +434,7 @@ class TestRetryOnDisconnectContext:
             self.call(retry_service, 8)
 
         assert retry_service.session.query.call_count == 1
-        db.session.rollback.assert_not_called()  # pyright: ignore[reportAttributeAccessIssue]
+        db.session.rollback.assert_not_called()
 
     def test_non_operational_error_not_retried(self, retry_service):
         retry_service.session = make_session([ValueError("boom")])

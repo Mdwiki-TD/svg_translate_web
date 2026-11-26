@@ -242,15 +242,18 @@ class BaseObjectsJobWorker[TResult: SharedworkerObject](ABC):
             self.result.cancelled_at = datetime.now().isoformat()
         self.save_progress(insert_last_update=False)
 
-    def get_priority(self, length: int) -> int:
+    def _get_priority(self, length: int) -> int:
         if length < 11:
             return 1
 
+        # Calculate the interval for progress updates to aim for about 10 updates.
+        return min(10, length // 10)
+
+    def get_priority(self, length: int) -> int:
         if self.app_settings.jobs.priority_per_item is not None:
             return self.app_settings.jobs.priority_per_item
 
-        # Calculate the interval for progress updates to aim for about 10 updates.
-        return min(10, length // 10)
+        return self._get_priority(length)
 
     def handle_error(self, error: Exception, context: str = "") -> None:
         """Handle an error during processing.

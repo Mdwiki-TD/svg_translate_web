@@ -58,11 +58,18 @@ if sys:
     python_src_path = project_root  # / "python_src"
     sys.path.insert(0, str(python_src_path))
 
+    # Initialize environment variables and imports before tests run
+    from src.bootstrap import EnvironmentInitializer
+
+    EnvironmentInitializer.setup()
+
+
 # Import after environment setup
 from src.main_app import AppFactory
 from src.main_app.config import TestingConfig
 from src.main_app.database import db as _db
 from src.main_app.database.create_helper import create_tables, create_views
+from src.main_app.services.auth.current_user import CurrentUser
 
 
 @pytest.fixture(autouse=True)
@@ -115,17 +122,6 @@ def test_client(mock_app: Flask) -> FlaskClient:
         Test client for making HTTP requests.
     """
     return mock_app.test_client()
-
-
-@pytest.fixture
-def mock_login(test_client):
-    """Helper to set ``session['username']`` to a given user."""
-
-    def _login(username: str) -> None:
-        with test_client.session_transaction() as session:
-            session["username"] = username
-
-    return _login
 
 
 # ── db fixtures ───────────────────────────────────────────────────────────────────
@@ -232,6 +228,25 @@ def mock_get_current_user(monkeypatch):
 
 
 @pytest.fixture
+def mock_admin_required(mock_get_current_user):
+    """Mock admin_required decorator to bypass authentication checks.
+
+    Inject this fixture into admin route tests to bypass authentication
+    so tests can focus on route functionality rather than auth.
+    """
+    # Mock get_current_user to return a valid user object
+    mock_user = CurrentUser(
+        user_id=0,
+        username="ADMIN_USER",
+        access_token="",
+        access_secret="",
+        is_active_coordinator=True,
+        is_active_admin=True,
+    )
+    mock_get_current_user.return_value = mock_user
+
+
+@pytest.fixture
 def mock_crypto_service():
     service = MagicMock()
     service.generate_key.return_value = "rand_key"
@@ -258,3 +273,43 @@ def mock_mediawiki_api():
     mw_api = MagicMock()
     mw_api.get_title_info.return_value = {"ns": 0}
     return mw_api
+
+
+# ── jobs_workers fixtures ───────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def mock_before_run(monkeypatch: pytest.MonkeyPatch):
+    # Bypass BaseObjectsJobWorker.before_run
+    monkeypatch.setattr("src.main_app.jobs.base_worker.BaseObjectsJobWorker.before_run", MagicMock(return_value=True))
+
+
+@pytest.fixture
+def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
+    """Mock non-DB services common to workers (file I/O, mwclient site, DB calls).
+
+    ``update_job_status`` and ``update_job_status_with_retry`` are kept mocked
+    because most worker tests exercise orchestration logic and do not create
+    real JobRecords in the database.  Tests that need real DB updates should
+    use a ``seeded_job`` fixture instead.
+    """
+    mocks = {
+        "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
+        "save_result": MagicMock(),
+        "update_job_status": MagicMock(),
+        "update_job_status_with_retry": MagicMock(),
+    }
+    monkeypatch.setattr(
+        "src.main_app.jobs.base_worker.WikiSiteClient.get_user_site",
+        mocks["get_user_site"],
+    )
+    monkeypatch.setattr("src.main_app.jobs.base_worker.JobsService.update_job_status", mocks["update_job_status"])
+    monkeypatch.setattr(
+        "src.main_app.jobs.base_worker.JobsService.update_job_status_with_retry",
+        mocks["update_job_status_with_retry"],
+    )
+    monkeypatch.setattr(
+        "src.main_app.jobs.base_worker.JobFilesService.save_result",
+        mocks["save_result"],
+    )
+    return mocks

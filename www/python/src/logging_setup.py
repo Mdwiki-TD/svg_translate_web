@@ -140,11 +140,11 @@ class ProcessLoggingConfigurator:
     def is_cli_process() -> bool:
         """True for ``flask <command>`` runs (run-job, ...), False for web workers.
 
-        ``MDWIKI_CLI=1`` (exported by flask_cmd.sh) is the explicit switch. As a
+        ``CLI_MODE=1`` (exported by flask_cmd.sh) is the explicit switch. As a
         fallback, Flask sets ``FLASK_RUN_FROM_CLI`` for every ``flask`` command;
         the dev web server (``flask run``) is excluded.
         """
-        if os.environ.get("MDWIKI_CLI") == "1":
+        if os.environ.get("CLI_MODE") == "1":
             return True
         return os.environ.get("FLASK_RUN_FROM_CLI") == "true" and "run" not in sys.argv[1:]
 

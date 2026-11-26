@@ -6,6 +6,7 @@ import threading
 from unittest.mock import MagicMock, patch
 
 import pytest
+from src.main_app.config import Settings
 from src.main_app.database.services import JobsService
 from src.main_app.jobs.base_worker import BaseObjectsJobWorker
 from src.main_app.jobs.objects import JobsRunner
@@ -23,7 +24,10 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
         "get_user_site": MagicMock(return_value=MagicMock(name="mw_site")),
         "save_result": MagicMock(),
     }
-    monkeypatch.setattr("src.main_app.jobs.base_worker.WikiSiteClient.get_user_site", mocks["get_user_site"])
+    monkeypatch.setattr(
+        "src.main_app.jobs.base_worker.WikiSiteClient.get_user_site",
+        mocks["get_user_site"],
+    )
     monkeypatch.setattr(
         "src.main_app.jobs.base_worker.JobFilesService.save_result",
         mocks["save_result"],
@@ -33,6 +37,12 @@ def mock_base_worker(monkeypatch: pytest.MonkeyPatch):
 
 class MockWorker(BaseObjectsJobWorker[SharedworkerObject]):
     JOB_TYPE = "mock_job"
+
+    def __init__(self, data: JobsRunner):
+        super().__init__(
+            data=data,
+            app_settings=Settings.load(),
+        )
 
     def create_result(self):
         return SharedworkerObject()
@@ -64,7 +74,8 @@ def seeded_job():
 
 
 @pytest.fixture
-def worker(seeded_job):
+def worker(seeded_job, monkeypatch):
+    # monkeypatch.setenv("PRIORITY_PER_ITEM", "0")
     user = {"username": "testuser"}
     worker = MockWorker(
         JobsRunner(
@@ -142,9 +153,9 @@ class TestBaseObjectsJobWorker:
             assert worker.check_cancel_db_periodic(interval=10) is False
         assert worker.check_cancel_db_periodic(interval=10) is True
 
-    def test_get_priority(self, worker):
-        assert worker.get_priority(5) == 1
-        assert worker.get_priority(100) == 10
+    def test_get_priority(self, worker: MockWorker):
+        assert worker._get_priority(5) == 1
+        assert worker._get_priority(100) == 10
 
     def test_handle_error(self, worker):
         worker.handle_error(ValueError("Test error"), context="Some context")

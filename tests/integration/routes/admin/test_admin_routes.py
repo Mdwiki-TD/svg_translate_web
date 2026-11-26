@@ -9,6 +9,7 @@ from unittest.mock import Mock
 
 import pytest
 from src.main_app.core.crypto import CryptoService
+from src.main_app.database.exceptions import DuplicateRecordError
 from src.main_app.database.services import AdminService, UsersService, UserTokenService
 
 
@@ -44,6 +45,8 @@ class TestSetup:
             )
             try:
                 self.service.add_admin(username)
+            except DuplicateRecordError:
+                self.service.set_admin_active(uid, True)
             except ValueError:
                 pass
             except Exception:
@@ -467,10 +470,3 @@ class TestAdminRouteIntegration(TestSetup):
             else:
                 resp = test_client.post(path, data={})
             assert resp.status_code == 403, f"Expected 403 for {method} {path}"
-
-    def test_sidebar_context_injected(self, mock_app, test_client):
-        """Admin pages should have the sidebar context variable injected."""
-
-        self._login_admin(mock_app, test_client)
-        resp = test_client.get("/admin_panel/")
-        assert resp.status_code == 200

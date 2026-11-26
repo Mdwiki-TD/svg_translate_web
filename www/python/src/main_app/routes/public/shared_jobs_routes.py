@@ -38,8 +38,14 @@ logger = logging.getLogger(__name__)
 class SharedJobRoutes:
     """Helper service for core job logic across view classes."""
 
-    def __init__(self, bp_name: str, jobs_dir: Path) -> None:
+    def __init__(
+        self,
+        bp_name: str,
+        jobs_dir: Path,
+        details_layout: str = "",
+    ) -> None:
         self.bp_name = bp_name
+        self.details_layout = details_layout
         self.job_service = JobsService()
         self.settings_service = SettingsService()
         self.jobs_files_service = JobFilesService(jobs_dir=jobs_dir)
@@ -211,6 +217,7 @@ class SharedJobRoutes:
             form=form,
             jobs=jobs,
             bp_name=self.bp_name,
+            details_layout=self.details_layout,
         )
 
     def job_detail_handler(
@@ -255,6 +262,7 @@ class SharedJobRoutes:
             job=job,
             result_data=result_data,
             bp_name=self.bp_name,
+            details_layout=self.details_layout,
         )
 
 
@@ -269,13 +277,18 @@ class BaseJobView(MethodView):
         self.jobs_data_infos = jobs_data_infos
         self.bp_name = bp_name
         self.app_settings = get_settings()
+        self.details_layout = "admins/base1.html" if self.bp_name == "admin_panel.jobs" else "base.html"
 
         if self.bp_name == "admin_panel.jobs":
             jobs_dir = self.app_settings.paths.admin_jobs_path
         else:
             jobs_dir = self.app_settings.paths.jobs_path
 
-        self.shared_service = SharedJobRoutes(bp_name, jobs_dir)
+        self.shared_service = SharedJobRoutes(
+            bp_name=bp_name,
+            jobs_dir=jobs_dir,
+            details_layout=self.details_layout,
+        )
         self.settings_service = self.shared_service.settings_service
         self.jobs_files_service = self.shared_service.jobs_files_service
 
@@ -565,7 +578,13 @@ class AllJobsListView(BaseJobView):
             logger.exception("Unable to load jobs list.")
             flash("Unable to load jobs list.", "danger")
             jobs = []
-        return render_template("jobs_templates/all_jobs_list.html", jobs=jobs)
+
+        return render_template(
+            "jobs_templates/all_jobs_list.html",
+            jobs=jobs,
+            bp_name=self.bp_name,
+            details_layout=self.details_layout,
+        )
 
 
 __all__ = [

@@ -55,7 +55,7 @@ class AdminDashboardView(MethodView):
             )
 
         return render_template(
-            "admins/admin.html",
+            "admins/index.html",
             jobs=enhanced_jobs,
         )
 
