@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from src.main_app.templates_markups.sidebar.sidebar import (
+from src.main_app.templates_markups.sidebar import (
+    AdminSidebarItem,
+    CoordinatorSidebarItem,
     SidebarItem,
     generate_list_item,
 )
@@ -28,8 +30,12 @@ class TestSidebarItem:
         item = SidebarItem(id="x", title="X", fallback_href="/x", icon="bi-gear")
         assert item.icon == "bi-gear"
 
+    def test_requires_coordinator_defaults_to_true(self):
+        item = CoordinatorSidebarItem(id="x", title="X", fallback_href="/x")
+        assert item.requires_coordinator is True
+
     def test_requires_admin_defaults_to_true(self):
-        item = SidebarItem(id="x", title="X", fallback_href="/x")
+        item = AdminSidebarItem(id="x", title="X", fallback_href="/x")
         assert item.requires_admin is True
 
     def test_resolve_href_uses_fallback_without_endpoint(self):

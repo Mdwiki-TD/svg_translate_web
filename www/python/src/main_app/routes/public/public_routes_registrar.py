@@ -7,7 +7,8 @@ from typing import Any
 from flask import Blueprint, Flask
 
 from ...jobs_workers.workers_lists import jobs_data_public
-from ...templates_markups import NavigationBar, main_nav_list
+from ...templates_markups.navbar_list import main_nav_list
+from ...templates_markups import NavigationBar
 from ..objects import RouteModule
 from .shared_jobs_registrar import SharedJobRoutesRegistrar
 from .views import (

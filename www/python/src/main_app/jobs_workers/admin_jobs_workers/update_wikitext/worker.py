@@ -21,7 +21,7 @@ class UpdateFilesWikiTextWorker(BaseObjectsJobWorker[UpdateFilesWikiTextObject])
     """
     Worker for update_wikitext.
     Steps:
-        1. extract_text: load template wikitext using extract_text_step()
+        1. extract_text: load template wikitext using ExtractSteps.extract_text_step()
         2. extract_titles: get all files names from wikitext into self.titles using SvgFilesCollector.get_titles(text)
         3. get template `author_citation` using `self.files_processor.author_citation = self._get_author_citation(template)`
         4. run process_titles with self.titles.

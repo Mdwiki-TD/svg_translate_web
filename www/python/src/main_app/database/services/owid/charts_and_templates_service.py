@@ -6,9 +6,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from ..db_base import db
-from ..models import OwidChartRecord, TemplateRecord
-from ..templates_utils import extract_slug
+from ...db_base import db
+from ...models import OwidChartRecord, TemplateRecord
+from ...templates_utils import extract_slug
 
 logger = logging.getLogger(__name__)
 

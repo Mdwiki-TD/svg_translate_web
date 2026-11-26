@@ -18,8 +18,7 @@ from ....services.copysvg_wrapper import (
 )
 from ....services.copysvg_wrapper.mapping import TranslationMapping
 from ..copy_svg_langs.steps import (
-    extract_text_step,
-    extract_titles_step,
+    ExtractSteps,
 )
 from .objects import (
     ExtractFilesTranslationsObject,
@@ -87,7 +86,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker[ExtractFilesTranslatio
         self.save_result()
 
         try:
-            step_result = extract_titles_step(self.text)
+            step_result = ExtractSteps.extract_titles_step(self.text)
 
         except Exception as e:
             logger.exception("Error in stage titles")
@@ -126,8 +125,8 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker[ExtractFilesTranslatio
             return False
 
         try:
-            step_result = extract_text_step(
-                self.title,
+            step_result = ExtractSteps.extract_text_step(
+                self.title,  # pyright: ignore[reportArgumentType]
                 self.site,
             )
         except Exception as e:

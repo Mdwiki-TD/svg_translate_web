@@ -4,11 +4,10 @@ Objects for add_svglanguages_template worker.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
 
-from ....jobs.shared_objects import STATUS_LITERAL, OneStep, SharedworkerObject
+from ....jobs.shared_objects import STATUS_LITERAL, OneStep, SharedMapToJson, SharedworkerObject
 
 
 @dataclass
@@ -20,7 +19,7 @@ class InfoSteps:
 
 
 @dataclass
-class TemplateInfo:
+class TemplateInfo(SharedMapToJson):
     """Holds all state for a single template being processed."""
 
     template_id: int
@@ -36,15 +35,6 @@ class TemplateInfo:
     error: str | None = None
 
     _text: str | None = None
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "template_id": self.template_id,
-            "template_title": self.template_title,
-            "timestamp": self.timestamp,
-            "status": self.status,
-            "error": self.error,
-            "steps": asdict(self.steps),
-        }
 
 
 @dataclass

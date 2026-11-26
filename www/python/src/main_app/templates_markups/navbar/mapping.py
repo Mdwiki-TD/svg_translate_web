@@ -30,6 +30,7 @@ class NavLink:
     title: str | None = None
     static_url: str | None = None
     for_admins: bool = False
+    for_coordinators: bool = False
     link_target: str | None = None
 
     def __post_init__(self) -> None:
@@ -85,6 +86,7 @@ class NavDropdown:
     items: list[NavLink] = field(default_factory=list)
     dropdown_id: str = field(default_factory=lambda: f"navbarDarkDropdownMenuLink-{random.randint(1000, 9999)}")
     for_admins: bool = False
+    for_coordinators: bool = False
     disabled: bool = False
 
     def is_active(self) -> bool:

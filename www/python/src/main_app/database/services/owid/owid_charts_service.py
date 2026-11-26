@@ -6,10 +6,10 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from ..db_base import db
-from ..models import OwidChartRecord
-from .crud_service import CRUDService
-from .utils import retry_on_db_disconnect
+from ...db_base import db
+from ...models import OwidChartRecord
+from ..crud_service import CRUDService
+from ..utils import retry_on_db_disconnect
 
 logger = logging.getLogger(__name__)
 

@@ -4,25 +4,22 @@ Objects for copy_svg_langs worker.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import Any
 
-from ....jobs.shared_objects import STATUS_LITERAL, OneItem, SharedworkerObject, Summary
+from ....jobs.shared_objects import STATUS_LITERAL, OneItem, SharedMapToJson, SharedworkerObject, Summary
 
 
 @dataclass
-class StageDetail:
+class StageDetail(SharedMapToJson):
     name: str = ""
     status: STATUS_LITERAL = "pending"
     message: str = ""
     data: Any = None
 
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
-
 
 @dataclass
-class Stages:
+class Stages(SharedMapToJson):
     text: StageDetail = field(
         default_factory=lambda: StageDetail(
             name="text",
@@ -75,9 +72,6 @@ class FilesProcessedItem(OneItem):
     steps: FileSteps = field(default_factory=lambda: FileSteps())
     is_mapping_merged: bool = False
 
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
-
 
 @dataclass
 class ExtractFilesTranslationsObject(SharedworkerObject):
@@ -94,12 +88,6 @@ class ExtractFilesTranslationsObject(SharedworkerObject):
 
     mapping_mereged: int = 0
     note: str = ""
-
-    def to_json(self) -> dict[str, Any]:
-        """
-        Converts the dataclass instance back to its original dictionary format.
-        """
-        return asdict(self)
 
 
 __all__ = [

@@ -2,13 +2,28 @@
 
 from __future__ import annotations
 
-from .navbar import NavigationBar, main_nav_list
-from .sidebar import Sidebar, SidebarGroup, SidebarItem
+from .navbar import NavigationBar, NavLink, NavDropdown
+from .sidebar import (
+    Sidebar,
+    SidebarGroup,
+    SidebarItem,
+    AdminSidebarItem,
+    CoordinatorSidebarItem,
+    generate_list_item,
+)
 
 __all__ = [
     "NavigationBar",
     "Sidebar",
     "SidebarItem",
     "SidebarGroup",
-    "main_nav_list",
+    "NavigationBar",
+    "NavLink",
+    "NavDropdown",
+    "AdminSidebarItem",
+    "Sidebar",
+    "CoordinatorSidebarItem",
+    "generate_list_item",
+    "SidebarItem",
+    "SidebarGroup",
 ]

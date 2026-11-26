@@ -6,12 +6,12 @@ Objects for download_main_files worker.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Literal
+from typing import Literal
 
 from ....database.models import TemplateRecord
-from ....jobs.shared_objects import SharedworkerObject
+from ....jobs.shared_objects import SharedMapToJson, SharedworkerObject
 
 STATUS = Literal[
     "pending",
@@ -23,7 +23,7 @@ STATUS = Literal[
 
 
 @dataclass
-class FileInfo:
+class FileInfo(SharedMapToJson):
     template_id: int
     template_title: str
     filename: str
@@ -34,15 +34,12 @@ class FileInfo:
     path: None | str = None
     size_bytes: None | int = None
 
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
-
     @classmethod
     def from_template(cls, template: TemplateRecord) -> FileInfo:
         return cls(
             template_id=template.id,
             template_title=template.title,
-            filename=template.main_file,
+            filename=template.main_file,  # pyright: ignore[reportArgumentType]
             timestamp=datetime.now().isoformat(),
         )
 
@@ -50,9 +47,9 @@ class FileInfo:
 @dataclass
 class DownloadMainFilesWorkerObject(SharedworkerObject):
     output_path: str | None = None
-    files_downloaded: list[dict[str, Any]] = field(default_factory=list)
-    files_failed: list[dict[str, Any]] = field(default_factory=list)
-    files_processed: list[dict[str, Any]] = field(default_factory=list)
+    files_downloaded: list[FileInfo] = field(default_factory=list)
+    files_failed: list[FileInfo] = field(default_factory=list)
+    files_processed: list[FileInfo] = field(default_factory=list)
 
 
 __all__ = [

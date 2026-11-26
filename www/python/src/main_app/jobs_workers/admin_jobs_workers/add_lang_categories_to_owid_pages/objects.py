@@ -4,9 +4,8 @@ Objects for add_lang_categories_to_owid_pages worker.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
 
 from ....jobs.shared_objects import OneItem, OneStep, SharedworkerObject
 
@@ -35,18 +34,6 @@ class PageInfo(OneItem):
     # Internal temporary state
     _text: str | None = None
     _categories: list[str] = field(default_factory=list)
-
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "title": self.title,
-            "svg_file": self.svg_file,
-            "lang_codes": self.lang_codes,
-            "categories_added": self.categories_added,
-            "timestamp": self.timestamp,
-            "status": self.status,
-            "error": self.error,
-            "steps": asdict(self.steps),
-        }
 
 
 @dataclass

@@ -5,13 +5,6 @@ A Navbar object that auto-generates the navigation bar HTML, replacing
 the manual Jinja macros (nav_link and nav_link_with_args) that used to
 live in navbar.html.
 
-Usage in the template after registering via init_app(app):
-
-    {{ main_navbar.render_main_links(is_admin) }}
-    {{
-        main_navbar.render_user_links(current_username)
-    }}
-
 Both methods return a safe Markup object (no need for the |safe filter,
 though adding it doesn't hurt).
 """
@@ -48,7 +41,8 @@ class NavigationBar:
         )
 
     def create_collapsible_nav(self) -> Markup:
-        return Markup("""
+        return Markup(
+            """
             <div class="d-flex align-items-center order-lg-last">
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,14 +53,22 @@ class NavigationBar:
                     <i class="bi bi-moon-stars-fill"></i>
                 </button>
             </div>
-        """)
+        """
+        )
 
     # ---------- main links (replaces nav_link / nav_link_with_args) ----------
-    def render_main_links(self, is_admin=False) -> Markup:
+    def render_main_links(
+        self,
+        is_coordinator: bool | None = None,
+        is_admin: bool | None = None,
+    ) -> Markup:
         parts = []
 
         for link in self.links:
             if link.disabled:
+                continue
+
+            if link.for_coordinators and not is_coordinator and not is_admin:
                 continue
 
             if link.for_admins and not is_admin:
@@ -129,13 +131,18 @@ class NavigationBar:
 
     def render(
         self,
-        is_admin=False,
+        is_coordinator: bool | None = None,
+        is_admin: bool | None = None,
         current_username: str | None = None,
     ) -> Markup:
-        main_links = self.render_main_links(is_admin)
+        main_links = self.render_main_links(
+            is_coordinator=is_coordinator,
+            is_admin=is_admin,
+        )
         user_links = self.render_user_links(current_username)
 
-        navbar_markup = Markup("""
+        navbar_markup = Markup(
+            """
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto flex-row flex-wrap bd-navbar-nav">
                     {main_links}
@@ -145,7 +152,8 @@ class NavigationBar:
                     {user_links}
                 </ul>
             </div>
-        """).format(
+        """
+        ).format(
             main_links=main_links,
             user_links=user_links,
         )

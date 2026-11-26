@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from .files_worker import OneFileProcessor
-from .forms import setup_svg_langs_form
+from .forms import CopySvgLangsForm
 from .objects import FilesProcessedItem, SvgLangsConfig
+from .steps import ExtractSteps
 from .worker import CopySvgLangsWorker
 
 __all__ = [
@@ -10,5 +11,6 @@ __all__ = [
     "OneFileProcessor",
     "FilesProcessedItem",
     "SvgLangsConfig",
-    "setup_svg_langs_form",
+    "ExtractSteps",
+    "CopySvgLangsForm",
 ]

@@ -1,3 +1,4 @@
+# pyright: reportArgumentType=false
 """Unit tests for jobs_service module."""
 
 from __future__ import annotations

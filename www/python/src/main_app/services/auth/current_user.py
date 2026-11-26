@@ -30,6 +30,7 @@ class CurrentUser:
     access_token: bytes = field(repr=False)
     access_secret: bytes = field(repr=False)
     is_active_admin: bool = False
+    is_active_coordinator: bool = False
     can_run_jobs: bool = False
     can_run_bg_jobs: bool = False
 

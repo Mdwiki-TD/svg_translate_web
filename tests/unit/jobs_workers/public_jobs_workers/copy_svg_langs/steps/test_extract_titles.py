@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps import extract_titles_step
+from src.main_app.jobs_workers.public_jobs_workers.copy_svg_langs.steps import ExtractSteps
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def test_titles_task_success(mock_extract_titles_services):
         "titles": ["f1.svg", "f2.svg"],
     }
 
-    data = extract_titles_step("wikitext")
+    data = ExtractSteps.extract_titles_step("wikitext")
 
     assert data["success"] is True
     assert data["main_title"] == "Main.svg"
@@ -32,7 +32,7 @@ def test_titles_task_success(mock_extract_titles_services):
 def test_titles_task_manual_title(mock_extract_titles_services):
     mock_extract_titles_services["get_files_list_data"].return_value = {"main_title": "Main.svg", "titles": ["f1.svg"]}
 
-    data = extract_titles_step("wikitext", manual_main_title="Manual.svg")
+    data = ExtractSteps.extract_titles_step("wikitext", manual_main_title="Manual.svg")
 
     assert data["main_title"] == "Manual.svg"
 
@@ -40,7 +40,7 @@ def test_titles_task_manual_title(mock_extract_titles_services):
 def test_titles_task_fail(mock_extract_titles_services):
     mock_extract_titles_services["get_files_list_data"].return_value = {"main_title": None, "titles": []}
 
-    data = extract_titles_step("wikitext")
+    data = ExtractSteps.extract_titles_step("wikitext")
 
     assert data["success"] is False
 
@@ -51,7 +51,7 @@ def test_extract_titles_step_success(mock_extract_titles_services):
         "titles": ["File1.svg", "File2.svg"],
     }
 
-    result = extract_titles_step("some text")
+    result = ExtractSteps.extract_titles_step("some text")
 
     assert result["success"] is True
     assert result["main_title"] == "Main.svg"
@@ -65,7 +65,7 @@ def test_extract_titles_step_manual_title(mock_extract_titles_services):
         "titles": ["File1.svg", "File2.svg"],
     }
 
-    result = extract_titles_step("some text", manual_main_title="Manual.svg")
+    result = ExtractSteps.extract_titles_step("some text", manual_main_title="Manual.svg")
 
     assert result["success"] is True
     assert result["main_title"] == "Manual.svg"

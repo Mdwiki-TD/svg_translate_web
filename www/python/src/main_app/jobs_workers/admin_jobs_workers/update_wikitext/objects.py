@@ -4,8 +4,8 @@ Objects for update_wikitext worker.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from typing import Any, Literal
+from dataclasses import dataclass, field
+from typing import Literal
 
 from ....jobs.shared_objects import OneItem, OneStep, SharedworkerObject, Summary
 
@@ -49,10 +49,6 @@ class UpdateFilesWikiTextObject(SharedworkerObject):
     files_skipped: list[ProcessingFileInfo] = field(default_factory=list)
     files_failed: list[ProcessingFileInfo] = field(default_factory=list)
     files_processed: list[ProcessingFileInfo] = field(default_factory=list)
-
-    def to_json(self) -> dict[str, Any]:
-        """Converts the dataclass instance back to its original dictionary format."""
-        return asdict(self)
 
     def update_status(self, info: ProcessingFileInfo) -> None:
         """ """

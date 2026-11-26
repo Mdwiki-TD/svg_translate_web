@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from ...jobs.objects import JobData
-from .copy_svg_langs import CopySvgLangsWorker, setup_svg_langs_form
+from .copy_svg_langs import CopySvgLangsForm, CopySvgLangsWorker
 from .extract_files_translations import ExtractFilesTranslationsWorker
 from .fix_nested_jobs import FixNestedJobsProcessor
 
@@ -28,7 +30,7 @@ jobs_data_public: dict[str, JobData] = {
         ],
         start_confirm_message="",
         load_settings=True,
-        form_class=setup_svg_langs_form,
+        form_class=CopySvgLangsForm.setup,
         used_ajax_table=True,
         description="",
     ),

@@ -5,12 +5,11 @@ Objects for create_owid_pages worker.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
 
 from ....database.models import TemplateRecord
-from ....jobs.shared_objects import STATUS_LITERAL, OneStep, SharedworkerObject
+from ....jobs.shared_objects import STATUS_LITERAL, OneStep, SharedMapToJson, SharedworkerObject
 
 
 @dataclass
@@ -22,7 +21,7 @@ class InfoSteps:
 
 
 @dataclass
-class TemplateProcessingInfo:
+class TemplateProcessingInfo(SharedMapToJson):
     """Holds all state for a single template being processed."""
 
     template_id: int
@@ -39,17 +38,6 @@ class TemplateProcessingInfo:
 
     new_page_title: str | None = None
     slug: str | None = None
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "template_id": self.template_id,
-            "template_title": self.template_title,
-            "new_page_title": self.new_page_title,
-            "slug": self.slug,
-            "timestamp": self.timestamp,
-            "status": self.status,
-            "error": self.error,
-            "steps": asdict(self.steps),
-        }
 
     @classmethod
     def from_template(cls, template: TemplateRecord) -> TemplateProcessingInfo:
@@ -73,8 +61,8 @@ class CreateOwidPagesSummary:
 @dataclass
 class CreateOwidPagesWorkerObject(SharedworkerObject):
     summary: CreateOwidPagesSummary = field(default_factory=CreateOwidPagesSummary)
-    pages_created: list[dict[str, Any]] = field(default_factory=list)
-    pages_updated: list[dict[str, Any]] = field(default_factory=list)
+    pages_created: list[TemplateProcessingInfo] = field(default_factory=list)
+    pages_updated: list[TemplateProcessingInfo] = field(default_factory=list)
 
 
 __all__ = [

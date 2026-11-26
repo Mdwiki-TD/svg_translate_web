@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any
 
 from flask_wtf import FlaskForm
@@ -5,7 +7,7 @@ from wtforms import BooleanField, StringField, SubmitField
 from wtforms.validators import DataRequired, Optional
 
 
-def strip_filter(value: str | None) -> str:
+def strip_filter(value: str | None) -> str | None:
     if value is not None:
         return value.strip()
     return value
@@ -38,27 +40,27 @@ class CopySvgLangsForm(FlaskForm):
 
     submit = SubmitField("Start")
 
+    @classmethod
+    def setup(
+        cls,
+        all_settings: dict[str, Any] | None = None,
+        request_args: dict[str, Any] | None = None,
+    ) -> CopySvgLangsForm:
+        form = CopySvgLangsForm()
+        # set upload default dynamically only on GET (first load)
+        upload_disabled_by_default = bool(
+            all_settings and all_settings.get("copy_svg_langs_upload_disabled_by_default", False)
+        )
 
-def setup_svg_langs_form(
-    all_settings: dict[str, Any] | None = None,
-    request_args: dict[str, Any] | None = None,
-) -> CopySvgLangsForm:
-    form = CopySvgLangsForm()
-    # set upload default dynamically only on GET (first load)
-    upload_disabled_by_default = bool(
-        all_settings and all_settings.get("copy_svg_langs_upload_disabled_by_default", False)
-    )
+        form.upload.data = not upload_disabled_by_default
 
-    form.upload.data = not upload_disabled_by_default
+        if request_args:
+            if request_args.get("title"):
+                form.title.data = request_args["title"]
 
-    if request_args:
-        if request_args.get("title"):
-            form.title.data = request_args["title"]
-
-    return form
+        return form
 
 
 __all__ = [
     "CopySvgLangsForm",
-    "setup_svg_langs_form",
 ]

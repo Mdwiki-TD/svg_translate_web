@@ -29,7 +29,8 @@ class SidebarItem:
     fallback_href: str = "#"
     link_target: str | None = None
     disabled: bool = False
-    requires_admin: bool = True
+    requires_admin: bool | None = None
+    requires_coordinator: bool | None = None
 
     def resolve_href(self) -> str:
         """Resolve this item's URL. Falls back to a static path when there's
@@ -53,7 +54,7 @@ class SidebarItem:
         disabled: bool = False,
     ) -> SidebarItem:
         """Build a SidebarItem pointing at the job-list page for the given job type."""
-        return SidebarItem(
+        return cls(
             id=job_type,
             title=title,
             icon=icon,
@@ -73,13 +74,23 @@ class SidebarItem:
         fallback_href: str,
     ) -> SidebarItem:
         """Build a SidebarItem pointing at a regular admin-panel dashboard endpoint."""
-        return SidebarItem(
+        return cls(
             id=id_,
             title=title,
             icon=icon,
             endpoint=endpoint,
             fallback_href=fallback_href,
         )
+
+
+@dataclass
+class AdminSidebarItem(SidebarItem):
+    requires_admin: bool = True
+
+
+@dataclass
+class CoordinatorSidebarItem(SidebarItem):
+    requires_coordinator: bool = True
 
 
 @dataclass
@@ -94,6 +105,8 @@ class SidebarGroup:
 
 
 __all__ = [
+    "AdminSidebarItem",
+    "CoordinatorSidebarItem",
     "SidebarItem",
     "SidebarGroup",
 ]
