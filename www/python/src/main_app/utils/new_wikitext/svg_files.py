@@ -58,7 +58,11 @@ class SvgFilesCollector:
 
         return titles
 
-    def get_files_list_data(self, text: str, filter_duplicates: bool = True) -> dict[str, Any]:
+    def get_files_list_data(
+        self,
+        text: str,
+        filter_duplicates: bool = True,
+    ) -> dict[str, Any]:
         """Return ``{"main_title": ..., "titles": [...]}`` for the page."""
         titles = self.get_titles(text, filter_duplicates=filter_duplicates)
         titles.extend(self.get_titles_from_wikilinks(text))

@@ -86,7 +86,7 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker[ExtractFilesTranslatio
         self.save_result()
 
         try:
-            step_result = ExtractSteps.extract_titles_step(self.text)
+            step_result = ExtractSteps.extract_titles(self.text)
 
         except Exception as e:
             logger.exception("Error in stage titles")
@@ -96,23 +96,23 @@ class ExtractFilesTranslationsWorker(BaseObjectsJobWorker[ExtractFilesTranslatio
 
             return False
 
-        if step_result.get("message"):
-            stage.message = step_result["message"]
+        if step_result.message:
+            stage.message = step_result.message
 
-        if step_result.get("success"):
+        if step_result.success and step_result.main_title:
             stage.status = "completed"
 
-            self.titles = list(step_result["titles"])
+            self.titles = list(step_result.titles)
 
-            if step_result["main_title"] not in self.titles:
-                self.titles.append(step_result["main_title"])
+            if step_result.main_title not in self.titles:
+                self.titles.append(step_result.main_title)
 
             self.titles.sort()
 
             return True
 
         stage.status = "failed"
-        stage.message = step_result.get("error", "Unknown error")
+        stage.message = step_result.error or "Unknown error"
         self.result.status = "failed"
         return False
 
