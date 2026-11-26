@@ -28,7 +28,7 @@ class MwClientResult:
     details: str | None = None
 
     @classmethod
-    def load(cls, data: dict[str, Any]) -> MwClientResult:
+    def load(cls, data: dict[str, Any]):
         return cls(
             success=data.get("success", False),
             error=data.get("error"),
