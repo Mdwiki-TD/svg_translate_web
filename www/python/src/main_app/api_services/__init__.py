@@ -1,10 +1,10 @@
 """"""
 
+from .wiki_clients import WikiSiteClient
 from .clients import (
     CategoryMembersService,
     CommonsSession,
     OwidClient,
-    WikiSiteClient,
 )
 from .files_service import FilesService, UploadService
 from .mwclient_page import MwClientPage
