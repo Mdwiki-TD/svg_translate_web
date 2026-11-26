@@ -5,7 +5,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-from flask import Flask
+from flask.testing import FlaskClient
 from src.main_app.database.services import JobsService, JobStats, UserJobsStats
 
 
@@ -40,7 +40,7 @@ def seeded_jobs() -> None:
 class TestDashboard:
     def test_dashboard_without_username_and_logged_in(
         self,
-        test_client: Flask.test_client,
+        test_client: FlaskClient,
         monkeypatch: pytest.MonkeyPatch,
         seeded_jobs: None,
     ) -> None:
@@ -54,7 +54,7 @@ class TestDashboard:
 
     def test_dashboard_without_username_and_not_logged_in(
         self,
-        test_client: Flask.test_client,
+        test_client: FlaskClient,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setattr(
@@ -66,7 +66,7 @@ class TestDashboard:
 
     def test_dashboard_with_username_and_admin(
         self,
-        test_client: Flask.test_client,
+        test_client: FlaskClient,
         monkeypatch: pytest.MonkeyPatch,
         seeded_jobs: None,
     ) -> None:
@@ -80,7 +80,7 @@ class TestDashboard:
 
     def test_dashboard_with_username_and_non_admin(
         self,
-        test_client: Flask.test_client,
+        test_client: FlaskClient,
         monkeypatch: pytest.MonkeyPatch,
         seeded_jobs: None,
     ) -> None:
@@ -94,7 +94,7 @@ class TestDashboard:
 
     def test_dashboard_renders_correct_template_variables(
         self,
-        test_client: Flask.test_client,
+        test_client: FlaskClient,
         monkeypatch: pytest.MonkeyPatch,
         seeded_jobs: None,
     ) -> None:
@@ -108,7 +108,7 @@ class TestDashboard:
 
     def test_dashboard_passes_dataclass_attributes_to_template(
         self,
-        test_client: Flask.test_client,
+        test_client: FlaskClient,
         monkeypatch: pytest.MonkeyPatch,
         seeded_jobs: None,
     ) -> None:
@@ -135,7 +135,7 @@ class TestDashboard:
 
     def test_dashboard_uses_empty_dataclass_fallback_when_loading_fails(
         self,
-        test_client: Flask.test_client,
+        test_client: FlaskClient,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         captured: dict[str, object] = {}

@@ -26,16 +26,16 @@ class TemplateInfo:
     template_id: int
     template_title: str
     status: STATUS_LITERAL = "pending"
-    error: str | None = None
-
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     steps: InfoSteps = field(default_factory=InfoSteps)
 
     # Internal temporary state
-    _text: str | None = None
     _template_text: str | None = None
     _new_text: str | None = None
 
+    error: str | None = None
+
+    _text: str | None = None
     def to_json(self) -> dict[str, Any]:
         return {
             "template_id": self.template_id,

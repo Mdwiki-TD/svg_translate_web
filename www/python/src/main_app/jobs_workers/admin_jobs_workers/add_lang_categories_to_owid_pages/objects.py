@@ -63,7 +63,7 @@ class AddLangCategoriesSummary:
 class AddLangCategoriesWorkerObject(SharedworkerObject):
     summary: AddLangCategoriesSummary = field(default_factory=AddLangCategoriesSummary)
 
-    def update_status(self, info: PageInfo):
+    def update_status(self, info: PageInfo) -> None:
         self.summary.processed += 1
 
         if info.status in ["pending", "running"]:

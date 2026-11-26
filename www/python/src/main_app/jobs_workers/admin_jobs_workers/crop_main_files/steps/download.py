@@ -51,11 +51,11 @@ def download_file_for_cropping(
             overwrite_download=True,
         )
 
-        if d_result.result == "success":
+        if d_result.result == "success" and d_result.path:
             result["success"] = True
             result["path"] = Path(d_result.path)
             logger.info("Downloaded for cropping: %s", clean_filename)
-        elif d_result.result == "existing":
+        elif d_result.result == "existing" and d_result.path:
             result["success"] = True
             result["path"] = Path(d_result.path)
             logger.info("Using existing file for cropping: %s", clean_filename)

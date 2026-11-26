@@ -115,12 +115,12 @@ class WorkerMapping(SharedMapToJson):
 class SharedworkerObject(WorkerMapping):
     summary: Summary = field(default_factory=Summary)
 
-    pages_processed: list[UpdaterOutcome] = field(default_factory=list)
-    pages_missing: list[UpdaterOutcome] = field(default_factory=list)
-    pages_skipped: list[UpdaterOutcome] = field(default_factory=list)
-    pages_updated: list[UpdaterOutcome] = field(default_factory=list)
-    pages_failed: list[UpdaterOutcome] = field(default_factory=list)
-    pages_success: list[UpdaterOutcome] = field(default_factory=list)
+    pages_processed: list[UpdaterOutcome | Any] = field(default_factory=list)
+    pages_missing: list[UpdaterOutcome | Any] = field(default_factory=list)
+    pages_skipped: list[UpdaterOutcome | Any] = field(default_factory=list)
+    pages_updated: list[UpdaterOutcome | Any] = field(default_factory=list)
+    pages_failed: list[UpdaterOutcome | Any] = field(default_factory=list)
+    pages_success: list[UpdaterOutcome | Any] = field(default_factory=list)
     args: dict[str, Any] = field(default_factory=dict)
 
 
